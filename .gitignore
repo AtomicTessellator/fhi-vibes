@@ -1,0 +1,18 @@
+# Emacs related files:
+*~
+
+# vim related files
+*.swp
+
+# aims output
+*.out
+
+# Compiled python files:
+*.pyc
+
+# testcase folder
+testcases/
+data/*
+
+# Files derived from templates:
+*.conf
