@@ -83,7 +83,10 @@ The actual code can change to match the results data structure.
 
 \begin{python}
 def run():
-    evaluator(inputs)
+	use inputs to prepare the desired (list of) 
+	calculation(s) as a list of tasks 
+	(len(task) == 1 is possible)
+    evaluator(tasks)
 \end{python}
 Not strictly needed as evaluator(inputs) would also work just as well inside a main python function
 
@@ -165,11 +168,62 @@ In each step, a task ‘get\_forces’ needs to performed to allow the optimizer
 \item \textcolor{deepred}{REM: Maybe a unified Task/Workflow class is sufficient to achieve this?}
 \end{itemize}
 
+\subsection{List of potential tasks and workflows with pseudo input}
+\begin{itemize}
+	\item SinglePointCalculation(\emph{input\_atoms, input\_calc, evaluate})\\
+	$\longrightarrow$ atoms object with results
+	\item Optimizer(\emph{input\_atoms, input\_calc, 
+	algorithm(loss\_fct$<$1e-3), evaluate})
+	\begin{itemize}
+		\item \emph{algorithm} needs to be some general iterator that yields 
+		new atoms
+		until convergence
+	\end{itemize}
+	$\longrightarrow$ atoms and calculator with optimized values
+	\item Phonopy(\emph{input\_atoms, input\_calc, \{disp=0.01, 
+			supercell=[-2, 2, 2, 2, -2, 2, 2, 2, -2], **kwargs\}, evaluate})\\
+		$\longrightarrow$ PhonopyObject
+	\item PhonopyPostprocess(\emph{PhonopyObject,
+		\{q\_mesh=[15, 15, 15], q\_points='default', **kwargs\}})
+	\begin{itemize}
+		\item probably several different tasks like BandStructure, DOS, 
+		ThermalProperties, ...
+	\end{itemize}
+	$\longrightarrow$  desired phonon property, e.g., bandstructure
+	\item Phono3py(\emph{input\_atoms, input\_calc, \{fc2\_disp=0.01, 
+	fc3\_disp=0.03, cutoff=2.0, fc2\_supercell=[-2, 2, 2, 2, -2, 2, 2, 2, -2],
+		fc3\_supercell=[-1, 1, 1, 1, -1, 1, 1, 1, -1], **kwargs\}, evaluate})\\
+	$\longrightarrow$  Phono3pyObject
+	\item Phono3pyPostprocess(\emph{Phono3pyObject,
+		\{q\_mesh=[15, 15, 15], q\_points='default', **kwargs\}}) \\
+	$\longrightarrow$  desired property, e.g., thermal conductivity
+	\item StatisticalSampling(\emph{inital\_atoms, initial\_calc, 
+		force\_constants, SamplignDriver (creates configurations), 
+		RandomNumberGenerator, NSamples='default'})\\
+	$\longrightarrow$ Trajectory 
+	\item MD(\emph{input\_atoms, input\_calc, MD\_driver, 
+		timestep='default', runtime='default', evaluate}) \\
+		$\longrightarrow$ Trajectory = list of atoms objects with some extras
+	\item StressMD(\emph{input\_atoms, input\_calc, MD\_driver, 
+		timestep='default', runtime='default', evaluate})\\
+	$\longrightarrow$ Trajectory containing the subset of atoms that have the 
+	stresses 
+	computed
+	\item GreenKubo(\emph{MDTrajectory with computed stresses, \{**kwargs\}}) \\
+	$\longrightarrow$ Thermal conductivity + X
+\end{itemize}
+
+
 \section{Database Structure}
 Tasks and Workflows (generalized tasks) should be able to hash itself as hashes of the inputs
 
 \section{Initial Example to be Completed}
 Example application: Optimize geometry and perform phonon calculation
 - Ask
+
+\section{Loose List of Ideas}
+\begin{itemize}
+	\item \emph{hash.ini} file stores the keys are (not) to be hashed
+\end{itemize}
 
 \end{document}
