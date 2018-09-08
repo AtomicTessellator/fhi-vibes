@@ -6,7 +6,7 @@
 \usepackage{mathptmx}% http://ctan.org/pkg/mathptmx
 \usepackage{enumitem}
 \usepackage{hyperref}
-
+\usepackage{graphicx}
 \usepackage[parfill]{parskip}
 
 % Default fixed font does not support bold face
@@ -18,6 +18,7 @@
 \definecolor{deepblue}{rgb}{0,0,0.5}
 \definecolor{deepred}{rgb}{0.6,0,0}
 \definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{mygray}{rgb}{0.4,0.4,0.4}
 
 \usepackage{listings}
 
@@ -25,13 +26,14 @@
 \newcommand\pythonstyle{\lstset{
 language=Python,
 basicstyle=\ttm,
-keywords={self, def, while},             % Add keywords here
+keywords={self, def, while, return, if, else, from, import, raise},             % Add keywords here
 keywordstyle=\ttb\color{deepblue},
-emph={MyClass,__init__},          % Custom highlighting
+emph={MyClass,__init__, ValueError},          % Custom highlighting
 emphstyle=\ttb\color{deepred},    % Custom highlighting style
 stringstyle=\color{deepgreen},
 frame=tb,                         % Any extra options here
-showstringspaces=false            %
+showstringspaces=false,            %
+commentstyle=\color{mygray}
 }}
 
 % Python environment
@@ -83,9 +85,9 @@ The actual code can change to match the results data structure.
 
 \begin{python}
 def run():
-	use inputs to prepare the desired (list of) 
-	calculation(s) as a list of tasks 
-	(len(task) == 1 is possible)
+    use inputs to prepare the desired (list of)
+    calculation(s) as a list of tasks
+    (len(task) == 1 is possible)
     evaluator(tasks)
 \end{python}
 Not strictly needed as evaluator(inputs) would also work just as well inside a main python function
@@ -169,50 +171,160 @@ In each step, a task ‘get\_forces’ needs to performed to allow the optimizer
 \end{itemize}
 
 \subsection{List of potential tasks and workflows with pseudo input}
-\begin{itemize}
-	\item SinglePointCalculation(\emph{input\_atoms, input\_calc, evaluate})\\
-	$\longrightarrow$ atoms object with results
-	\item Optimizer(\emph{input\_atoms, input\_calc, 
-	algorithm(loss\_fct$<$1e-3), evaluate})
-	\begin{itemize}
-		\item \emph{algorithm} needs to be some general iterator that yields 
-		new atoms
-		until convergence
-	\end{itemize}
-	$\longrightarrow$ atoms and calculator with optimized values
-	\item Phonopy(\emph{input\_atoms, input\_calc, \{disp=0.01, 
-			supercell=[-2, 2, 2, 2, -2, 2, 2, 2, -2], **kwargs\}, evaluate})\\
-		$\longrightarrow$ PhonopyObject
-	\item PhonopyPostprocess(\emph{PhonopyObject,
-		\{q\_mesh=[15, 15, 15], q\_points='default', **kwargs\}})
-	\begin{itemize}
-		\item probably several different tasks like BandStructure, DOS, 
-		ThermalProperties, ...
-	\end{itemize}
-	$\longrightarrow$  desired phonon property, e.g., bandstructure
-	\item Phono3py(\emph{input\_atoms, input\_calc, \{fc2\_disp=0.01, 
-	fc3\_disp=0.03, cutoff=2.0, fc2\_supercell=[-2, 2, 2, 2, -2, 2, 2, 2, -2],
-		fc3\_supercell=[-1, 1, 1, 1, -1, 1, 1, 1, -1], **kwargs\}, evaluate})\\
-	$\longrightarrow$  Phono3pyObject
-	\item Phono3pyPostprocess(\emph{Phono3pyObject,
-		\{q\_mesh=[15, 15, 15], q\_points='default', **kwargs\}}) \\
-	$\longrightarrow$  desired property, e.g., thermal conductivity
-	\item StatisticalSampling(\emph{inital\_atoms, initial\_calc, 
-		force\_constants, SamplignDriver (creates configurations), 
-		RandomNumberGenerator, NSamples='default'})\\
-	$\longrightarrow$ Trajectory 
-	\item MD(\emph{input\_atoms, input\_calc, MD\_driver, 
-		timestep='default', runtime='default', evaluate}) \\
-		$\longrightarrow$ Trajectory = list of atoms objects with some extras
-	\item StressMD(\emph{input\_atoms, input\_calc, MD\_driver, 
-		timestep='default', runtime='default', evaluate})\\
-	$\longrightarrow$ Trajectory containing the subset of atoms that have the 
-	stresses 
-	computed
-	\item GreenKubo(\emph{MDTrajectory with computed stresses, \{**kwargs\}}) \\
-	$\longrightarrow$ Thermal conductivity + X
-\end{itemize}
 
+\begin{python}
+# return: atoms object with results
+def SinglePointCalculation( input_atoms, input_calc, evaluate):
+    return atoms_claculated
+\end{python}
+
+\begin{python}
+# aglorithm: Some general iterator that yields new atoms until
+# convergence
+# return: atoms and calculator with optimized values
+def Optimizer(input_atoms, input_calc,
+              algorithm(loss_fct<1e-3), evaluate):
+    return optimized_atoms, optimized_calc
+\end{python}
+
+\begin{python}
+# return: PhonopyObject with forces calculated
+def Phonopy(input_atoms, input_calc, {disp=0.01,
+            supercell=[-2, 2, 2, 2, -2, 2, 2, 2, -2], **kwargs},
+            evaluate)
+    return PhonopyObject
+\end{python}
+
+\begin{python}
+# A function that will be generalized to several different tasks
+# like BandStructure, DOS, ThermalProperties, ...
+# return: desired phonon property
+def PhonopyPostprocess(PhonopyObject, {q_mesh=[15, 15, 15],
+                       q_points='default', **kwargs}, evaluate)
+    return  phononProp
+\end{python}
+
+\begin{python}
+# return: Phono3pyObject with forces calculated
+def Phono3py(input_atoms, input_calc, {fc2_disp=0.01,
+             fc3_disp=0.03, cutoff=2.0,
+             fc2_supercell=[-2, 2, 2, 2, -2, 2, 2, 2, -2],
+             fc3_supercell=[-1, 1, 1, 1, -1, 1, 1, 1, -1],
+             **kwargs}, evaluate)
+    return  Phono3pyObject
+\end{python}
+
+\begin{python}
+# return: desired property, e.g. thermal conductivity
+def Phono3pyPostprocess(Phono3pyObject, {q_mesh=[15, 15, 15],
+                        q_points='default', **kwargs})
+    return prop
+\end{python}
+
+\begin{python}
+# return: A list of atoms with some extras
+def StatisticalSampling(inital_atoms, initial_calc,
+        force_constants, SamplignDriver (creates configurations),
+        RandomNumberGenerator, NSamples='default')
+    return Trajectory
+\end{python}
+
+\begin{python}
+# return: A list of atoms with some extras
+def MD(input_atoms, input_calc, MD_driver,
+        timestep='default', runtime='default', evaluate)
+    return Trajectory
+\end{python}
+\newpage
+\begin{python}
+# return: A list of atoms containing the subset of atoms that
+# have the stresses computed
+def StressMD(input_atoms, input_calc, MD_driver,
+        timestep='default', runtime='default', evaluate)
+    return Trajectory
+\end{python}
+
+\begin{python}
+# return: Thermal conductivity + X
+def GreenKubo(MDTrajectory with computed stresses, {**kwargs})
+    return Thermal conductivity + X
+\end{python}
+
+\section{Pseudo Code of Phononpy Calculation with Postprocessing Tasks}
+\begin{figure}
+\includegraphics{PhonnWorkflowDiagram.pdf}
+\caption{Schematic of the dependency graph calculated or given to the system.}
+\label{fig:depGraph}
+\end{figure}
+\subsection{Workflow.py}
+\begin{python}
+import * from HiLDeWorkflowLib
+import numpy as np
+from ase import atoms, .....
+import evaluate from HiLDeEvaluationFunctionLib
+input_atoms = ase.atoms()
+input_calc  = ase.calculator()
+
+# You'd input the graph so the code would be able to generate this
+# process as a task structure. Each one of the function calls
+# would be defined as a separate task described in the
+# taskStructure. I have them listed as a python script here for ease
+# of interpretation
+
+# The workflow will have to change slightly since the functions
+# objects listed there are stored within the task's functions
+# themselves
+
+optKGridAtoms, optKGridCalc = Optimizer(input_atoms, input_calc,
+                              kGridOpt(loss_fct<1e-3), evaluate)
+relaxedGeoCalc = optKGridCalc.make_geometry_relaxation()
+relaxedAtoms = SinglePointCalculation(optKGridAtoms, relaxGeoCalc,
+               evaluate)
+phonoCalc = relaxGeoCalc.make_phonon_calc()
+phonopyObject = Phonopy(relaxedAtoms, phonoCalc, {disp=0.01,
+                supercell=[-2, 2, 2, 2, -2, 2, 2, 2, -2], **kwargs},
+                evaluate)
+results['property'] = PhonopyPostprocess(phonopyObject,
+                      {q_mesh=[15, 15, 15], q_points='default',
+                      **kwargs}, evaluate)
+\end{python}
+\newpage
+\subsection{Optimizer Layout}
+\begin{python}
+def atomsGenerator(atoms, calc):
+    if(convergence criteria is met):
+        yield None
+    else:
+        yield newAtoms, newCalc
+def Optimize(atoms, calc, nMax, atomsGenerator):
+    for nn in range(nMax):
+        Make task to do single point calculation on atoms/calc
+        new_atoms, new_calc = atomsGenerator.send(atoms, calc)
+        if(new_atoms is not None):
+            atoms, calc = new_atoms, new_calc
+        else
+            return atoms, calc
+    raise ValueError("exceeded maximum number of steps")
+\end{python}
+
+\subsection{Optimize Geometry}
+This can be taken from HighAims task library (all single point calculations will be similar)
+
+\subsection{Phonopy Object}
+\begin{python}
+def Phonopy(atoms, calc, {disp=0.01,
+            supercell=[-2, 2, 2, 2, -2, 2, 2, 2, -2], **kwargs},
+            evaluate):
+    # Set up the phonopy object and displacements as normal
+    for disp in dispList:
+        setup/make task for each disp, and execute the task
+    Wait until all tasks are finished and incorporate them into the
+    phonopyObject
+\end{python}
+
+\subsection{Postprocessing}
+This will be a collection of tasks to get the final results you want from the workflow.
+Most of these can be pulled from previously written postprocessing steps.
 
 \section{Database Structure}
 Tasks and Workflows (generalized tasks) should be able to hash itself as hashes of the inputs
@@ -223,7 +335,7 @@ Example application: Optimize geometry and perform phonon calculation
 
 \section{Loose List of Ideas}
 \begin{itemize}
-	\item \emph{hash.ini} file stores the keys are (not) to be hashed
+    \item \emph{hash.ini} file stores the keys are (not) to be hashed
 \end{itemize}
 
 \end{document}
