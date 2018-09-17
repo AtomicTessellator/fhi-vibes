@@ -4,3 +4,4 @@ FK: List of things that might go to database as well:
 FK: Places where ase should be able to handle file objects insteas of strings:
   - MD(trajectory=...)
   - Aims(species_dir=...
+TP: All data structures that go into the database need to have some standardized/reversible method to convert it into a database acceptable data format. We should try to standardize the data types to make this easier
