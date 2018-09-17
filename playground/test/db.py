@@ -11,6 +11,8 @@ from settings import Settings
 st = Settings('hilde.conf')
 st.print()
 
+database_dir = str(Path(st.database.location) / st.database.name)
+print(f'database: {database_dir}')
 aims_tmp_dir = Path(st.database.location) / 'aims_tmp'
 aims_tmp_dir.mkdir(parents=True, exist_ok=True)
 aims = Aims(
@@ -39,7 +41,7 @@ si = Atoms('Si2',
 
 si.set_calculator(aims)
 
-db = connect(Path(st.database.location) / st.database.name)
+db = connect(database_dir)
 atoms_hash, calc_hash = hash_atoms(si, ignore_file='./test/hash_ignore.ini')
 print(atoms_hash, calc_hash)
 
