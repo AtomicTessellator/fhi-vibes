@@ -29,7 +29,7 @@ aims = Aims(
 a = 5.2
 b = a/2
 si = Atoms('Si2',
-           positions=[(0.05, 0., 0.),
+           positions=[(0.1, 0., 0.),
                       (b/2, b/2, b/2)],
            cell=[[0, b, b],
                  [b, 0, b],
