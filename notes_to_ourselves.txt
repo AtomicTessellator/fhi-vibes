@@ -4,3 +4,5 @@ FK: List of things that might go to database as well:
 FK: Places where ase should be able to handle file objects insteas of strings:
   - MD(trajectory=...)
   - Aims(species_dir=...
+FK: It would be neat if atoms.calc.write(..) would accept a directory to write the files to
+  -> I added a cd() that can change directory intermediately (in helpers.paths)
