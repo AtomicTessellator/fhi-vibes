@@ -1,5 +1,5 @@
-from HIGHaims.konstanten.io import n_geom_digits
-from HIGHaims.konstanten.symmetry import symprec
+from playground.konstanten.io import n_geom_digits
+from playground.konstanten.symmetry import symprec
 from scipy.linalg import norm
 import datetime
 

@@ -1,4 +1,5 @@
-from ..helpers.config import ClassDict, ConfigDict
+from helpers.config import ClassDict, ConfigDict
+from playground.helpers.hash import hashfunc 
 import time
 import pickle
 
@@ -34,8 +35,7 @@ class Settings(ConfigDict):
         return string
 
     def get_hash(self, short = True):
-        from HIGHaims.helpers import get_hash
-        return get_hash(self.get_string(), short)
+        return hashfunc(self.get_string())
 
     def for_handler(self, choose=None):
         handler_setup = {**self.machine, **self.watchdog, **self.database, 'k_grid': self.dft.k_grid}

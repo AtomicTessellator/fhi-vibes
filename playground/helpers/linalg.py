@@ -1,5 +1,5 @@
 import numpy as np
-from libflo.konstanten.numerics import eps
+from playground.konstanten.numerics import eps
 
 def clean_matrix(matrix):
     """ clean from small values"""

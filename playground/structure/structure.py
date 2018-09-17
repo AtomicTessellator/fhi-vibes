@@ -21,7 +21,7 @@ from math import sqrt, pi, cos, sin #faster than numpy for scalars
 import datetime
 from .symmetry import Spacegroup
 from . import structure_io
-from HIGHaims.konstanten.symmetry import symprec
+from playground.konstanten.symmetry import symprec
 
 class Cell(Atoms):
     def __init__(self,
@@ -137,9 +137,8 @@ class Cell(Atoms):
 
     #
     def get_hash(self, short = False):
-        from HIGHaims.helpers import get_hash
-        undecorated_string = self.get_string(decorated=False)
-        return get_hash(undecorated_string, short)
+        from playground.helpers.hash import hash_atoms
+        return hash_atoms(self)[0]
 
     #
     # Soubroutines to find cubic supercells

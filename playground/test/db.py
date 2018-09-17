@@ -6,13 +6,16 @@ from ase.atoms import Atoms
 from ase.db import connect
 from pprint import pprint
 from helpers.paths import cd
+from settings import Settings
 
-# aims
-aims_tmp_dir = Path('./db/aims_tmp')
+st = Settings('hilde.conf')
+st.print()
+
+aims_tmp_dir = Path(st.database.location) / 'aims_tmp'
 aims_tmp_dir.mkdir(parents=True, exist_ok=True)
 aims = Aims(
-    aims_command='orterun -n 4 /home/knoop/FHIaims/bin/aims.ipi.mpi.x',
-    species_dir='/home/knoop/FHIaims/aimsfiles/species_defaults/light/',
+    aims_command=st.machine.aims_command,
+    species_dir=str(Path(st.machine.basissetloc) / 'light'),
     outfilename=str('aims.out'),
     sc_accuracy_rho=1e-4,
     xc='pw-lda',
@@ -36,7 +39,7 @@ si = Atoms('Si2',
 
 si.set_calculator(aims)
 
-db = connect('./db/test.db')
+db = connect(Path(st.database.location) / st.database.name)
 atoms_hash, calc_hash = hash_atoms(si, ignore_file='./test/hash_ignore.ini')
 print(atoms_hash, calc_hash)
 
