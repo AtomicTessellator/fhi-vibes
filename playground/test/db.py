@@ -5,7 +5,7 @@ from helpers.hash import hash_atoms
 from ase.atoms import Atoms
 from ase.db import connect
 from pprint import pprint
-from helpers.paths import cd
+from helpers.paths import cwd
 from settings import Settings
 
 st = Settings('hilde.conf')
@@ -60,7 +60,7 @@ if input('proceed? ').lower() == 'y':
 else:
     exit()
 
-with cd(aims_tmp_dir):
+with cwd(aims_tmp_dir):
     tot_en = si.get_total_energy()
 print(f'Total energy is {tot_en}')
 

@@ -11,7 +11,7 @@ from ase.calculators.emt import EMT
 from ase.io import read
 from pathlib import Path
 from playground.settings import Settings
-from playground.helpers.paths import cd
+from playground.helpers.paths import cwd
 
 port = 27182
 st = Settings('hilde.conf')
@@ -44,6 +44,6 @@ calc = Aims(command=command,
 md = Langevin(atoms, temperature=300*units.kB, timestep=.5*units.fs, friction=1e-3,
               trajectory=str(tmp_dir/'md.aims.traj'), logfile=tmp_dir/'md.aims.log')
 
-with SocketIOCalculator(calc, log=sys.stdout, port=port) as calc, cd(tmp_dir):
+with SocketIOCalculator(calc, log=sys.stdout, port=port) as calc, cwd(tmp_dir):
     atoms.calc = calc
     md.run(steps=10)

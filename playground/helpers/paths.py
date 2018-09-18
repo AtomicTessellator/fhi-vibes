@@ -2,10 +2,10 @@ import contextlib
 import os, sys
 
 @contextlib.contextmanager
-def cd(path):
+def cwd(path):
     """ Purpose: change cwd intermediately
         Usage:
-            with cd(some_path):
+            with cwd(some_path):
                 do so some stuff in some_path
 
             do so some other stuff in old cwd
