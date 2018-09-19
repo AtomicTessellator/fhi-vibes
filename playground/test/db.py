@@ -5,12 +5,14 @@ from helpers.hash import hash_atoms
 from ase.atoms import Atoms
 from ase.db import connect
 from pprint import pprint
-from helpers.paths import cd
+from helpers.paths import cwd
 from settings import Settings
 
 st = Settings('hilde.conf')
 st.print()
 
+database_dir = str(Path(st.database.location) / st.database.name)
+print(f'database: {database_dir}')
 aims_tmp_dir = Path(st.database.location) / 'aims_tmp'
 aims_tmp_dir.mkdir(parents=True, exist_ok=True)
 aims = Aims(
@@ -39,7 +41,7 @@ si = Atoms('Si2',
 
 si.set_calculator(aims)
 
-db = connect(Path(st.database.location) / st.database.name)
+db = connect(database_dir)
 atoms_hash, calc_hash = hash_atoms(si, ignore_file='./test/hash_ignore.ini')
 print(atoms_hash, calc_hash)
 
@@ -58,7 +60,7 @@ if input('proceed? ').lower() == 'y':
 else:
     exit()
 
-with cd(aims_tmp_dir):
+with cwd(aims_tmp_dir):
     tot_en = si.get_total_energy()
 print(f'Total energy is {tot_en}')
 
