@@ -112,27 +112,3 @@ class MaterialsFingerprint(object):
                 if( self.minE <= ff and ff <= self.maxE ):
                     fingerprint[pt][np.where(fingerprint[pt][:,0]-dEner/(2.0-1e-10) <= ff)[0][-1], 1] += 1.0
         return fingerprint
-
-def convert_fingerprint(s):
-    sSplit = s.split(b";")
-    fingerprint = {}
-    nbins = int(sSplit[0])
-    isB = bool(sSplit[1])
-    isE = bool(sSplit[2])
-    ii = 3;
-    while ii < len(sSplit):
-        pt = sSplit[ii].decode("ascii")
-        ii += 1
-        fingerprint[pt] = np.ndarray(shape=(nbins,2), dtype=float)
-        for jj in range(nbins):
-            fingerprint[pt][jj,:] = list(map(float,sSplit[ii:ii+2]))
-            ii += 2
-    return MaterialsFingerprint(isE, isB, nbins=nbins, fp=fingerprint)
-
-def adapt_fingerprint(fp):
-    frmt = ("%i;%r;%r" % (fp.nbins, fp.isB, fp.isElec))
-    for pt in fp.fingerprint:
-        frmt += (";%s" % (pt))
-        for ff in fp.fingerprint[pt]:
-            frmt += ";%f;%f" % (ff[0], ff[1])
-    return frmt.encode()

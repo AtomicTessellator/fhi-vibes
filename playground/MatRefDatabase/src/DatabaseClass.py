@@ -27,17 +27,6 @@ def convert2KeyVal(inputVal):
     else:
         return [inputVal]
 
-def adapt_list(ll):
-    frmt = ""
-    for l in ll:
-        frmt += f"{l};{};"
-    return frmt[:-1].encode()
-
-def convert_list(bs):
-    bsSplit = bs.split(b";")
-    ll = []
-
-
 class MateirailsDatabase:
     def __init__(self, filename, adapt_reg=[], con_reg=[]):
         for adap in adapt_reg:

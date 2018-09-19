@@ -1,9 +1,15 @@
-import sys;
-sys.path.append('../src/');
-from MaterialsFingerprints import *
+import sys
+sys.path.append('../src/')
+from MaterialsFingerprints import MaterialsFingerprint
 from DatabaseClass import *
+from databaseRegisterFunctions import *
 import sqlite3
+from ase.io import read
+from ase.calculators.aims import Aims
+from structure import Cell
+from structure import read_aims
 
+import numpy as np
 # Make initial fingerprints
 elecD = MaterialsFingerprint(True, False, spectraFiles=['D_Fingerprint/electron/KS_DOS_total.dat'])
 elecB = MaterialsFingerprint(True, True, kpoints={'\Gamma':np.array([0.0,0.0,0.0]), 'J':np.array([0.5,0.0,0.0]), 'K':np.array([0.5,0.5,0.0])}, spectraFiles=['B_Fingerprint/electron/band1001.out', 'B_Fingerprint/electron/band1002.out'], minE=-14.0, maxE=14.0)
@@ -11,7 +17,7 @@ elecB = MaterialsFingerprint(True, True, kpoints={'\Gamma':np.array([0.0,0.0,0.0
 phononD = MaterialsFingerprint(False, False, spectraFiles=['D_Fingerprint/phonon/total_dos.dat'])
 phononB = MaterialsFingerprint(False, True, kpoints={ '\Gamma': np.array([0.0, 0.00, 0.00]), '\Delta': np.array([0.25, 0., 0.25]), 'X': np.array([0.5, 0.00, 0.50]), 'W': np.array([0.5, 0.25, 0.75]), 'K': np.array([0.375, 0.375, 0.75]), '\Lambda': np.array([0.25, 0.25, 0.25]), 'L': np.array([0.5, 0.5, 0.5]) }, spectraYAML='B_Fingerprint/phonon/band.yaml')
 
-db = MateirailsDatabase("test_fingerprints.db", [(MaterialsFingerprint, adapt_fingerprint)], [("fingerprint", convert_fingerprint)])
+db = MateirailsDatabase("test_fingerprints.db", [(MaterialsFingerprint, adapt_fingerprint), (Atoms, adapt_atom), (Cell, adapt_atom)], [("fingerprint", convert_fingerprint), ("atom", convert_atom), ("cell", convert_atom)])
 
 # db.addAdapter2Register(MaterialsFingerprint, adapt_fingerprint)
 # db.addConverter2Register("fingerprint", convert_fingerprint)
@@ -27,9 +33,21 @@ db.updateRow('fingerprints', 'id', [1, 2], [ [ ("elecD", elecD), ("elecB", elecB
 row = db.selectRows('fingerprints', 'id', [1,2])
 
 testFingerPrintRet = db.selectCell("fingerprints", 'id', 1, "elecD")
-print(type(testFingerPrintRet))
-print(testFingerPrintRet.fingerprint["DOS"] - elecD.fingerprint["DOS"])
 
-# print(type(testFingerPrintRet))
-# print(testFingerPrintRet.fingerprint['DOS'])
+db.createTable("atoms", [("id", "integer"), ("atomsObj", "atom")])
+
+print('read_aims:')
+atoms = read_aims('../../test/geometry.in')
+
+atoms.calc = Aims(k_grid=[1,1,1],
+                  aims_command='orterun -n 4 /home/knoop/FHIaims/bin/aims.ipi.mpi.x',
+                  species_dir='/home/knoop/FHIaims/aimsfiles/species_defaults/light/',
+                  xc='pw-lda',
+                  output_level='MD_light'
+                  )
+print(type(atoms))
+db.insertRows("atoms", 'id', [1], [[("atomsObj", atoms)]])
+atomsCopy = db.selectCell("atoms", 'id', 1, "atomsObj")
+print(adapt_atom(atoms))
+print(adapt_atom(atomsCopy))
 db.close()
