@@ -1,5 +1,5 @@
 import numpy as np
-from playground.konstanten.numerics import eps
+from hilde.konstanten.numerics import eps
 
 def clean_matrix(matrix):
     """ clean from small values"""

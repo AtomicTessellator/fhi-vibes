@@ -1,5 +1,5 @@
-from playground.konstanten.io import n_geom_digits
-from playground.konstanten.symmetry import symprec
+from hilde.konstanten.io import n_geom_digits
+from hilde.konstanten.symmetry import symprec
 from scipy.linalg import norm
 import datetime
 

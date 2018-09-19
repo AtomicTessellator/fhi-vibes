@@ -10,8 +10,8 @@ from ase.calculators.lammpsrun import LAMMPS
 from ase.calculators.emt import EMT
 from ase.io import read
 from pathlib import Path
-from playground.settings import Settings
-from playground.helpers.paths import cwd
+from hilde.settings import Settings
+from hilde.helpers.paths import cwd
 
 port = 27182
 st = Settings('hilde.conf')

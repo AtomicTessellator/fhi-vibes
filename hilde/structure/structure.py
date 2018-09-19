@@ -21,7 +21,7 @@ from math import sqrt, pi, cos, sin #faster than numpy for scalars
 import datetime
 from .symmetry import Spacegroup
 from . import structure_io
-from playground.konstanten.symmetry import symprec
+from hilde.konstanten.symmetry import symprec
 
 class Cell(Atoms):
     def __init__(self,
@@ -137,7 +137,7 @@ class Cell(Atoms):
 
     #
     def get_hash(self, short = False):
-        from playground.helpers.hash import hash_atoms
+        from hilde.helpers.hash import hash_atoms
         return hash_atoms(self)[0]
 
     #
