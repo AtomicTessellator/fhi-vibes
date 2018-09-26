@@ -142,15 +142,19 @@ class Cell(Atoms):
 
     #
     # Soubroutines to find cubic supercells
-    def find_cubic_cell(self, Ntarget=None,
-                        deviate_fill = 0.1, deviate_N = 0.1,
-                        verbose=False, analytical=False):
-        from .cubic_supercell import find_cubic_supercell
+    def find_cubic_cell(self, Ntarget=100, deviation=0.2,
+                        lower_limit=-2, upper_limit=2,
+                        verbose=False):
+        from hilde.helpers.supercell import find_cubic_cell as find_cc
 
-        Sfin = find_cubic_supercell(self, Ntarget,
-                        deviate_fill, deviate_N,
-                        verbose, analytical)
-        return Sfin
+        target_size = Ntarget / self.n_atoms
+
+        smatrix = find_cc(self.cell,
+                          target_size=target_size,
+                          deviation=deviation,
+                          lower_limit=lower_limit, upper_limit=upper_limit,
+                          verbose=verbose)
+        return smatrix
 
     def make_supercell(self, P):
         """Generate a supercell by applying a general transformation (*P*) to
