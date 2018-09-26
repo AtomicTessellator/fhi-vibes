@@ -1,5 +1,5 @@
 from helpers.config import ClassDict, ConfigDict
-from playground.helpers.hash import hashfunc 
+from hilde.helpers.hash import hashfunc 
 import time
 import pickle
 

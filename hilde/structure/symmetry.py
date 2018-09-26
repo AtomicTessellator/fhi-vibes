@@ -4,10 +4,10 @@ from sys import exit
 import numpy as np
 import scipy.linalg as la
 import spglib as spg
-from playground.helpers.cell import cell_to_cellpar, reciprocal_lattice
-from playground.helpers.linalg import clean_matrix
-from playground.konstanten.numerics import loose_tol, wrap_tol, eps
-from playground.konstanten.symmetry import symprec
+from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
+from hilde.helpers.linalg import clean_matrix
+from hilde.konstanten.numerics import loose_tol, wrap_tol, eps
+from hilde.konstanten.symmetry import symprec
 
 
 class SymmetryOperation:
@@ -325,7 +325,7 @@ class Spacegroup:
         self.spglib_dataset = spg.get_symmetry_dataset(self.cell)
     #
     def get_std_cell(self, typ='prim'):
-        from playground.structure import Cell
+        from hilde.structure import Cell
         self.setup(mode=2)
         #
         if 'prim' in typ.lower():
@@ -893,7 +893,7 @@ class Spacegroup:
         Returns:
             The structure in a conventional standardized cell
         """
-        from playground.structure import Cell
+        from hilde.structure import Cell
         self.symprec
         struct = self.refine(primitive=False)
         latt_type = self.get_lattice_type()
@@ -1165,7 +1165,7 @@ class Spacegroup:
         Returns:
             The structure in a primitive standardized cell
         """
-        from playground.structure import Cell
+        from hilde.structure import Cell
         conv = self.get_conventional_standardized(
                 international_monoclinic=international_monoclinic)
         lattice = self.get_lattice_type()
