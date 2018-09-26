@@ -3,6 +3,9 @@ import numpy as np
 import yaml
 # import matplotlib.pyplot as plt
 
+# This class will be split into a band/DOS fingerprint child classes with a unified input structure
+# Right now it is done this way since we need to decide the format of lower level databases to see
+# what is available at which level
 class MaterialsFingerprint(object):
     kpoints = {}
     spectraFiles = []
