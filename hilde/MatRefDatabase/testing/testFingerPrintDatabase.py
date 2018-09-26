@@ -8,8 +8,8 @@ from ase.io import read
 from ase.calculators.aims import Aims
 from structure import Cell
 from structure import read_aims
-
 import numpy as np
+
 # Make initial fingerprints
 elecD = MaterialsFingerprint(True, False, spectraFiles=['D_Fingerprint/electron/KS_DOS_total.dat'])
 elecB = MaterialsFingerprint(True, True, kpoints={'\Gamma':np.array([0.0,0.0,0.0]), 'J':np.array([0.5,0.0,0.0]), 'K':np.array([0.5,0.5,0.0])}, spectraFiles=['B_Fingerprint/electron/band1001.out', 'B_Fingerprint/electron/band1002.out'], minE=-14.0, maxE=14.0)
@@ -34,7 +34,7 @@ row = db.selectRows('fingerprints', 'id', [1,2])
 
 testFingerPrintRet = db.selectCell("fingerprints", 'id', 1, "elecD")
 
-db.createTable("atoms", [("id", "integer"), ("atomsObj", "atom")])
+db.createTable("atoms", [("id", "integer"), ("atomsObj", "atom"), ("element", "string_list")])
 
 print('read_aims:')
 atoms = read_aims('../../test/geometry.in')
