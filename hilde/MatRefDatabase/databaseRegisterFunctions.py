@@ -12,8 +12,8 @@ from ase.io.jsonio import decode
 from ase.utils import formula_metal, basestring
 
 # Helpers for registering atoms/Fingerprints
-from helpers.hash import atoms2json
-from MaterialsFingerprints import MaterialsFingerprint
+from hilde.helpers.hash import atoms2json
+from hilde.MatRefDatabase.MaterialsFingerprints import MaterialsFingerprint
 from ase.io.jsonio import decode
 
 import numpy as np

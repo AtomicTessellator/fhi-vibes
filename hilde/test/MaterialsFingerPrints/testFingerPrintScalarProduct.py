@@ -1,6 +1,5 @@
 import sys
-sys.path.append('../src/')
-from MaterialsFingerprints import MaterialsFingerprint
+from hilde.MatRefDatabase.MaterialsFingerprints import MaterialsFingerprint
 import numpy as np
 
 # Make initial fingerprints
