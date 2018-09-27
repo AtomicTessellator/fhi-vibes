@@ -15,17 +15,14 @@ class MaterialsFingerprint(object):
     isElec = False
     isDStream = False
 
-    def __init__(self, isElec, isB, nbins=-1, dE=-1.0, fp={},kpoints={}, spectraFiles=[], spectraYAML="", minE=None, maxE=None):
-        self.kpoints = kpoints
-        self.spectraFiles = spectraFiles
-        self.spectraYAML = spectraYAML
+    def __init__(self, isElec, isB, nbins=None, dE=None, minE=None, maxE=None, fp = {}):
         self.isB = isB
         self.isElec = isElec
-        self.minE = minE if(minE !=None) else  1e20 if(isB) else np.min( np.genfromtxt(self.spectraFiles[0])[:,0] )
-        self.maxE = maxE if(maxE !=None) else -1e20 if(isB) else np.max( np.genfromtxt(self.spectraFiles[0])[:,0] )
-        self.nbins = nbins
+        self.minE = minE
+        self.maxE = maxE
         self.nbins = nbins
         self.dE    = dE
+        self.ener = self.getEner()
         self.fingerprint = fp
 
     def __conform__(self, protocol):
@@ -64,10 +61,9 @@ class MaterialsFingerprint(object):
         return scalar/len(self.fingerprint)
 
 class DOSFingerprint(MaterialsFingerprint):
-    def __init__(self, isElec, isB, nbins=None, dE=None, fp={},kpoints={}, spectraFiles=[], spectraYAML="", minE=None, maxE=None):
+    def __init__(self, isElec, isB, nbins=None, dE=None, minE=None, maxE=None, fp={}, kpoints={}, spectraFiles=[]):
         self.kpoints = kpoints
         self.spectraFiles = spectraFiles
-        self.spectraYAML = spectraYAML
         self.isElec = isElec
         self.minE = np.min( np.genfromtxt(self.spectraFiles[0])[:,0] ) if minE is None else minE
         self.maxE = np.max( np.genfromtxt(self.spectraFiles[0])[:,0] ) if maxE is None else maxE
@@ -92,7 +88,7 @@ class DOSFingerprint(MaterialsFingerprint):
             self.fingerprint = fp
 
 class BandStructureFingerprint(MaterialsFingerprint):
-    def __init__(self, isElec, isB, nbins=None, dE=None, fp={},kpoints={}, spectraFiles=[], spectraYAML="", minE=None, maxE=None):
+    def __init__(self, isElec, isB, nbins=None, dE=None, minE=None, maxE=None, fp={}, kpoints={}, spectraFiles=[], spectraYAML=""):
         start = clock()
         self.kpoints = kpoints
         self.spectraFiles = spectraFiles

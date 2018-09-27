@@ -23,9 +23,12 @@ def convert_fingerprint(s):
     sSplit = s.split(b";")
     fingerprint = {}
     nbins = int(sSplit[0])
-    isB = bool(sSplit[1])
-    isE = bool(sSplit[2])
-    ii = 3;
+    dE    = float(sSplit[1])
+    minE  = float(sSplit[2])
+    maxE  = float(sSplit[3])
+    isB   = bool(sSplit[4])
+    isE   = bool(sSplit[5])
+    ii    = 6
     while ii < len(sSplit):
         pt = sSplit[ii].decode("ascii")
         ii += 1
@@ -33,10 +36,10 @@ def convert_fingerprint(s):
         for jj in range(nbins):
             fingerprint[pt][jj,:] = list(map(float,sSplit[ii:ii+2]))
             ii += 2
-    return MaterialsFingerprint(isE, isB, nbins=nbins, fp=fingerprint)
+    return MaterialsFingerprint(isE, isB, nbins=nbins, dE=dE, minE=minE, maxE=maxE, fp=fingerprint)
 
 def adapt_fingerprint(fp):
-    frmt = ("%i;%r;%r" % (fp.nbins, fp.isB, fp.isElec))
+    frmt = ("%i;%f;%f;%f;%r;%r" % (fp.nbins, fp.dE, fp.minE, fp.maxE, fp.isB, fp.isElec))
     for pt in fp.fingerprint:
         frmt += (";%s" % (pt))
         for ff in fp.fingerprint[pt]:
