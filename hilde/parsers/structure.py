@@ -1,4 +1,5 @@
 from hilde.structure import Cell
+from hilde.konstanten.symmetry import symprec
 from ase.io import read as ase_read
 
 # Parse geometry.in file
