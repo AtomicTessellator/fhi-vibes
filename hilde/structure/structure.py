@@ -20,7 +20,7 @@ from numpy.linalg import norm
 from math import sqrt, pi, cos, sin #faster than numpy for scalars
 import datetime
 from .symmetry import Spacegroup
-from . import structure_io
+from . import io
 from hilde.konstanten.symmetry import symprec
 
 class Cell(Atoms):
@@ -117,7 +117,7 @@ class Cell(Atoms):
 
     def get_string(self, decorated=True, format = 'aims', scaled=True):
         if format == 'aims':
-            return structure_io.get_aims_string(self, decorated = decorated, scaled = True)
+            return io.get_aims_string(self, decorated = decorated, scaled = True)
         #
         else:
             print(f'Structure output format {format} not implemented. Stop.')
@@ -133,7 +133,7 @@ class Cell(Atoms):
                     f.write(line)
 
     def inform(self, *args, **kwargs):
-       structure_io.inform(self, *args, **kwargs)
+       io.inform(self, *args, **kwargs)
 
     #
     def get_hash(self, short = False):
