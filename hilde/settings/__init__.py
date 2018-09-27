@@ -1,4 +1,4 @@
-from helpers.config import ClassDict, ConfigDict
+from hilde.helpers.config import ClassDict, ConfigDict
 from hilde.helpers.hash import hashfunc 
 import time
 import pickle
