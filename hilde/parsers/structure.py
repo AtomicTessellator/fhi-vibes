@@ -49,4 +49,5 @@ def read_aims(fname, symprec=symprec, sorted = False):
     return cell
 
 def read_aims_output(fname):
+    """ Right now this is just wrapper for ase.io.read(file, ':', 'aims-output')"""
     return ase_read(fname, ':', 'aims-output')
