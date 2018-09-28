@@ -1,12 +1,206 @@
 import sqlite3
 import numpy as np
 import yaml
-from time import clock
-# import matplotlib.pyplot as plt
+from phonopy import Phonopy
 
-# This class will be split into a band/DOS fingerprint child classes with a unified input structure
-# Right now it is done this way since we need to decide the format of lower level databases to see
-# what is available at which level
+# Functions to define the energy bins
+def get_ener( useFrequencies, frequencies, minE, maxE, nbins):
+    """
+    Get the energy bins used for making a fingerprint
+    Args:
+        useFrequencies: if True use the band/DOS frequencies given as the bin boundaries
+        minE          : minimum energy mode to be included
+        maxE          : maximum energy mode to be included
+    nbins         : number of bins for the histogram
+    Returns:
+        energy bin labels (energy of the band or bin center point)
+        energy bin boundaries
+    """
+    if not useFrequencies:
+        enerBounds = np.linspace( minE, maxE, nbins+1 )
+        return enerBounds[:-1] + (enerBounds[1]-enerBounds[0])/2.0, enerBounds
+    else:
+        return np.array(frequencies), np.append(frequencies, [frequencies[-1] + frequencies[-1]/10])
+
+def find_min_E(bands):
+    """
+    Calculates the minimum energy mode in a band structure
+    Args:
+        bands: dictionary describing the phonon/electronic modes at all high symmetry points
+    Returns:
+        The global minimum mode energy energy
+    """
+    return np.min( np.array([ bands[pt] for pt in bands ]).flatten() )
+
+def find_max_E(bands):
+    """
+    Calculates the maximum energy mode in a band structure
+    Args:
+        bands: dictionary describing the phonon/electronic modes at all high symmetry points
+    Returns:
+        The global maximum mode energy energy
+    """
+    return np.max( np.array([ bands[pt] for pt in bands ]).flatten() )
+
+# Given a band structure or dos get the finger print
+def get_fingerprint_bs(bands, minE, maxE, nbins):
+    """
+    Creates a dictionary of the band structure fingerprint at all high symmetry points, where the high symmetry point is the key
+    Args:
+        bands: A dict storing the phonon/electron mode energies at the high symmetry points, which are the keys for the dict
+        minE : The minimum mode energy to include in the fingerprint
+        maxE : The maximum mode energy to include in the fingerprint
+        nbins: Number of bins to be used in the fingerprint
+    Returns:
+        fingerprint: a dictionary of the bs fingerprint at all high symmetry points
+    """
+    fingerprint = {}
+    for pt in bands:
+        ener, enerBounds = get_ener( len(bands[pt]) < nbins, bands[pt], minE, maxE, nbins)
+        fingerprint[pt] = np.zeros(shape=(len(ener), 2))
+        fingerprint[pt][:,0] = ener
+        fingerprint[pt][:,1] = np.histogram(bands[pt], enerBounds)[0]
+    return fingerprint
+
+def get_fingerprint_dos(dos, minE, maxE, nbins):
+    """
+    Creates a dictionary of the density of states fingerprint
+    Args:
+        dos  : an numpy array of the density of states
+        minE : The minimum mode energy to include in the fingerprint
+        maxE : The maximum mode energy to include in the fingerprint
+        nbins: Number of bins to be used in the fingerprint
+    Returns:
+        fingerprint: a dictionary of the dos fingerprint where the only key is "DOS"
+    """
+    fingerprint = {}
+    if(dos.shape[0] < nbins):
+        fingerprint["DOS"] = dos[np.where((dos[:,0] >= minE) & (dos[:,0] <= maxE)), :]
+    else:
+        ener, enerBounds = get_ener(False, dos[:,0], minE, maxE, nbins)
+        fingerprint = { "DOS" : np.zeros(shape=(len(ener), 2) ) }
+        fingerprint["DOS"][:,0] = ener
+        fingerprint["DOS"][:,1] = np.histogram(dos, enerBounds)[0]
+    return fingerprint
+
+# Function to calculate the modes at the high symmetry points
+def get_elec_bands(spectraFiles, k_points):
+    """
+    Generates a dict describing the electronic band structure at from a list of files
+    Args:
+        spectraFiles: A list of files with the bands are defined
+        k_points    : a list of high symmetry points
+    Returns:
+        bands: a dict describing the electronic band structure with the keys being the high symmetry pints
+    """
+    bands = {}
+    for pt in k_points:
+        for sFile in spectraFiles:
+            firstLine = list(filter(lambda x: x != '', open(sFile).readline().rstrip().split(" ")))
+            lastLine  = list(filter(lambda x: x != '', open(sFile).readlines()[-1].rstrip().split(" ")))
+            if( np.all(np.array(firstLine[1:4], dtype='float_') == k_points[pt] )):
+                bands[pt] = np.array(firstLine[5::2], dtype='float_')
+            elif( np.all(np.array(lastLine[1:4], dtype='float_') == k_points[pt] )):
+                bands[pt] = np.array(lastLine[5::2], dtype='float_')
+    return bands
+
+def get_phonon_bands_phonopy(phonon, q_points):
+    """
+    Generates a dict describing the phonon band structure at from a phonopy object
+    Args:
+        phonon  : The phonopy object with the band structure calculated
+        q_points: a list of high symmetry points
+    Returns:
+        bands: a dict describing the phonon band structure with the keys being the high symmetry pints
+    """
+    bands = {}
+    for pt in q_points:
+        bands = phonon.get_frequencies(q_points[pt])
+    return bands
+
+def get_phonon_bands_yaml(yamlFile, q_points):
+    """
+    Generates a dict describing the phonon band structure at from a yaml file
+    Args:
+        yamlFile: The phonopy generated yaml file describing the band structure
+        q_points: a list of high symmetry points
+    Returns:
+        bands: a dict describing the phonon band structure with the keys being the high symmetry pints
+    """
+    bands = {}
+    bsSpect = yaml.load(open(yamlFile, 'r'))
+    bsLimited = []
+    for bandpt in bsSpect["phonon"]:
+        if("label" in bandpt):
+            bsLimited.append(bandpt)
+    bands = {}
+    for pt in q_points:
+        for bb in bsLimited:
+            if( np.all(bb['q-position'] == q_points[pt]) ):
+                bands[pt] = [ff['frequency'] for ff in bb['band']]
+    return bands
+
+# Functions to get the fingerprint from various input values
+def get_phonon_bs_fingerprint_phononpy(phonon, q_points, minE=None, maxE=None, nbins=32):
+    """
+    Generates the phonon band structure fingerprint for a bands structure stored in a phonopy object
+    Args:
+        phonon  : The phonopy generated yaml file describing the band structure
+        q_points: a list of high symmetry points
+        minE    : The minimum mode energy to include in the fingerprint
+        maxE    : The maximum mode energy to include in the fingerprint
+        nbins   : Number of bins to be used in the fingerprint
+    Returns:
+        The phonon band structure fingerprint
+    """
+    bands = get_phonon_bands_phonopy(phonon, q_points)
+    return get_fingerprint_bs(bands, find_min_E(bands) if minE is None else minE, find_max_E(bands) if maxE is None else maxE, nbins)
+
+def get_phonon_bs_fingerprint_yaml(yamlFile, q_points, minE=None, maxE=None, nbins=32):
+    """
+    Generates the phonon band structure fingerprint for a bands structure stored in a phonopy generated yaml file
+    Args:
+        yankFile: The phonopy generated yaml file describing the band structure
+        q_points: a list of high symmetry points
+        minE    : The minimum mode energy to include in the fingerprint
+        maxE    : The maximum mode energy to include in the fingerprint
+        nbins   : Number of bins to be used in the fingerprint
+    Returns:
+        The phonon band structure fingerprint
+    """
+    bands = get_phonon_bands_yaml(yamlFile, bands)
+    return get_fingerprint_bs(bands, find_min_E(bands) if minE is None else minE, find_max_E(bands) if maxE is None else maxE, nbins)
+
+def get_elec_bs_fingerprint(spectraFiles, k_points, minE=None, maxE=None, nbins=32):
+    """
+    Generates the electronic band structure fingerprint for a band structure stored in a set of files
+    Args:
+        spectraFiles: A list of files with the bands are defined
+        k_points    : a list of high symmetry points
+        minE        : The minimum mode energy to include in the fingerprint
+        maxE        : The maximum mode energy to include in the fingerprint
+        nbins       : Number of bins to be used in the fingerprint
+    Returns:
+        The electronic band structure fingerprint
+    """
+    bands = get_elec_bands(spectraFiles, k_points)
+    return get_fingerprint_bs(bands, find_min_E(bands) if minE is None else minE, find_max_E(bands) if maxE is None else maxE, nbins)
+
+def get_dos_fingerprint(dosFile, minE=None, maxE=None, nbins=256):
+    """
+    Generates the density of states fingerprint from a file describing the density of states
+    Args:
+        dosFile: A file storing the density of states in 2 columns: (energy, electron density)
+        minE   : The minimum mode energy to include in the fingerprint
+        maxE   : The maximum mode energy to include in the fingerprint
+        nbins  : Number of bins to be used in the fingerprint
+    Returns:
+        The density of states fingerprint
+    """
+    dos = np.genfromtxt(dosFile)
+    return getDOSFingerprint(dos, np.min(dos[:,0]) if minE is None else minE, np.max(dos[:,0]) if maxE is None else maxE, nbins)
+
+# Class definitions for incorporation into databases
 class MaterialsFingerprint(object):
     kpoints = {}
     spectraFiles = []
@@ -22,7 +216,6 @@ class MaterialsFingerprint(object):
         self.maxE = maxE
         self.nbins = nbins
         self.dE    = dE
-        self.ener = self.getEner()
         self.fingerprint = fp
 
     def __conform__(self, protocol):
@@ -34,13 +227,6 @@ class MaterialsFingerprint(object):
                     frmt += ";%f;%f" % (ff[0], ff[1])
             return frmt
         return ""
-
-    def getEner(self):
-        if(self.nbins != -1):
-            return np.linspace( self.minE, self.maxE, self.nbins+1 )
-        else:
-            return np.arange( self.minE, self.maxE+self.dE/10.0, self.dE )
-
 
     def scalarProduct(self, otherFP):
         if(len(self.fingerprint) != len(otherFP.fingerprint) ):
@@ -65,89 +251,52 @@ class DOSFingerprint(MaterialsFingerprint):
         self.kpoints = kpoints
         self.spectraFiles = spectraFiles
         self.isElec = isElec
-        self.minE = np.min( np.genfromtxt(self.spectraFiles[0])[:,0] ) if minE is None else minE
-        self.maxE = np.max( np.genfromtxt(self.spectraFiles[0])[:,0] ) if maxE is None else maxE
-        if nbins is None:
+        # Determine Energy range
+        dos = np.genfromtxt(self.spectraFiles[0])
+        self.minE = np.min( dos[:,0] ) if minE is None else minE
+        self.maxE = np.max( dos[:,0] ) if maxE is None else maxE
+        self.nbins = nbins
+        if self.nbins is None:
             self.nbins = 256 if dE is None else (self.maxE-self.minE)/dE
-        else:
-            self.nbins = nbins
-        if dE is None:
+        self.dE = dE
+        if self.dE is None:
             self.dE = (self.maxE - self.minE)/(256.0) if dE is None else (self.maxE-self.minE)/nbins
-        else:
-            self.dE = dE
-        self.ener = self.getEner()
-
+        #make the fingerprint
         if(fp == {}):
-            dos = np.genfromtxt(self.spectraFiles[0])
-            self.fingerprint = { "DOS" : np.zeros(shape=(len(self.ener)-1, 2)) }
-            self.fingerprint["DOS"][:,0] = self.ener[:-1] + self.dE/2.0
-            for ff in dos:
-                if(ff[0] >= self.minE and ff[0] <= self.maxE):
-                    self.fingerprint["DOS"][np.where(self.fingerprint["DOS"][:,0]-self.dE/(2.0-1e-10) <= ff[0])[0][-1], 1] += ff[1]
+            self.fingerprint = getDOSFingerprint(dos, self.minE, self.maxE, self.nbins)
         else:
             self.fingerprint = fp
 
 class BandStructureFingerprint(MaterialsFingerprint):
-    def __init__(self, isElec, isB, nbins=None, dE=None, minE=None, maxE=None, fp={}, kpoints={}, spectraFiles=[], spectraYAML=""):
+    def __init__(self, isElec, isB, nbins=None, dE=None, minE=None, maxE=None, fp={}, kpoints={}, spectraFiles=[], spectraYAML="", phonon=None):
         start = clock()
         self.kpoints = kpoints
         self.spectraFiles = spectraFiles
         self.spectraYAML = spectraYAML
         self.isB = isB
         self.isElec = isElec
-        self.bands = {}
+        bands = {}
+        # Take in band structure data
         if(self.isElec):
-            for pt in self.kpoints:
-                for sFile in self.spectraFiles:
-                    firstLine = list(filter(lambda x: x != '', open(sFile).readline().rstrip().split(" ")))
-                    lastLine  = list(filter(lambda x: x != '', open(sFile).readlines()[-1].rstrip().split(" ")))
-                    if( np.all(np.array(firstLine[1:4], dtype='float_') == self.kpoints[pt] )):
-                        self.bands[pt] = np.array(firstLine[5::2], dtype='float_')
-                    elif( np.all(np.array(lastLine[1:4], dtype='float_') == self.kpoints[pt] )):
-                        self.bands[pt] = np.array(lastLine[5::2], dtype='float_')
+            bands = get_elec_bands(self.spectraFiles, self.kpoints)
         else:
-            bsSpect = yaml.load(open(self.spectraYAML, 'r'))
-            bsLimited = []
-            for bandpt in bsSpect["phonon"]:
-                if("label" in bandpt):
-                    bsLimited.append(bandpt)
-            for pt in self.kpoints:
-                for bb in bsLimited:
-                    if( np.all(bb['q-position'] == self.kpoints[pt]) ):
-                        self.bands[pt] = [ff['frequency'] for ff in bb['band']]
-        self.minE = self.findMinE() if minE is None else minE
-        self.maxE = self.findMaxE() if maxE is None else maxE
-        if nbins is None:
-            self.nbins = 256 if dE is None else (self.maxE-self.minE)/dE
-        else:
-            self.nbins = nbins
-        if dE is None:
-            self.dE = (self.maxE - self.minE)/(256.0) if dE is None else (self.maxE-self.minE)/nbins
-        else:
-            self.dE = dE
-        self.ener = self.getEner()
+            if(phonon == None):
+                bands = get_phonon_bands_yaml(self.yamlFile, self.kpoints)
+            else:
+                bands = get_phonon_bands_phonon(self.yamlFile, self.kpoints)
 
+        # Find energy bins
+        self.minE = find_min_E(bands) if minE is None else minE
+        self.maxE = find_max_E(bands) if maxE is None else maxE
+        self.nbins = nbins
+        if self.nbins is None:
+            self.nbins = 32 if dE is None else (self.maxE-self.minE)/dE
+        self.dE = dE
+        if self.dE is None:
+            self.dE = (self.maxE - self.minE)/(256.0) if dE is None else (self.maxE-self.minE)/nbins
+
+        # Make the fingerprint
         if( fp == {} ):
-            self.fingerprint = {}
-            for pt in self.bands:
-                self.fingerprint[pt] = np.zeros(shape=(self.nbins,2))
-                self.fingerprint[pt][:,0] = self.ener[:-1] + (self.dE)/2.0
-                for ff in self.bands[pt]:
-                    if( self.minE <= ff and ff <= self.maxE ):
-                        self.fingerprint[pt][np.where(self.fingerprint[pt][:,0]-self.dE/(2.0-1e-10) <= ff)[0][-1], 1] += 1.0
+            self.fingerprint = get_fingerprint_bs(bands, self.minE, self.maxE, self.nbins)
         else:
             self.fingerprint = fp
-
-    def findMinE(self):
-        minE = 1e20
-        for pt in self.bands:
-            if(np.min(self.bands[pt]) < minE):
-                minE = np.min(self.bands[pt])
-        return minE
-
-    def findMaxE(self):
-        maxE = -1e20
-        for pt in self.bands:
-            if(np.max(self.bands[pt]) > maxE):
-                maxE = np.max(self.bands[pt])
-        return maxE
