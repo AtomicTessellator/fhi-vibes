@@ -1,6 +1,6 @@
 from hilde.structure import read_aims
 from hilde.helpers.geometry import get_cubicness
-from hilde.helpers.linalg import clean_matrix
+from hilde.helpers.maths import clean_matrix
 import numpy as np
 gao = read_aims('gan.in')
 

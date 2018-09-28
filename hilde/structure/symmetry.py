@@ -5,7 +5,7 @@ import numpy as np
 import scipy.linalg as la
 import spglib as spg
 from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
-from hilde.helpers.linalg import clean_matrix
+from hilde.helpers.maths import clean_matrix
 from hilde.konstanten.numerics import loose_tol, wrap_tol, eps
 from hilde.konstanten.symmetry import symprec
 
