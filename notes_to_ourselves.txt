@@ -1,4 +1,4 @@
-FK: should the database know which parameters have been ignores?
+FK: should the database know which parameters have been ignored?
 FK: List of things that might go to database as well:
   - No. of scf steps
 FK: Places where ase should be able to handle file objects insteas of strings:
