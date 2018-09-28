@@ -99,7 +99,7 @@ module supercell
         nn = nint(determinant_3x3_real(real(P, 8)))
         ! Allow up to 20% increase in size from target shape
         if ((nn < target_size  ) .or. (nn > (1.d0 + dev) * target_size)) cycle
-        score = get_deviation(matmul(ccell, P), target_metric)
+        score = get_deviation(matmul(P, ccell), target_metric)
         ! Save the result if it was a good one
         if (score < best_score) then
           found = .true.
