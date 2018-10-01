@@ -1,7 +1,7 @@
+import numpy as np
 from subprocess import Popen, PIPE, STDOUT
 import json
 from sys import exit
-import numpy as np
 import scipy.linalg as la
 import spglib as spg
 from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
@@ -46,7 +46,7 @@ class Spacegroup:
         self.aflow_sgdata = None
         self.aflow_edata = None
         self.aflow_dataset = None
-        self.spglib_dataset = None
+        self._spglib_dataset = None
 
         # Attributes: moved to properties
         self.aflow_std_lattice = None
@@ -68,8 +68,8 @@ class Spacegroup:
         """
 
         # Always perform spglib (if not done yet)
-        if self.spglib_dataset is None:
-            self.spglib_dataset = spg.get_symmetry_dataset(
+        if self._spglib_dataset is None:
+            self._spglib_dataset = spg.get_symmetry_dataset(
             self.cell, symprec=symprec)
 
             lat = self.cell.get_cell()
@@ -169,35 +169,35 @@ class Spacegroup:
     # Properties
     @property
     def number(self):
-        return self.spglib_dataset['number']
+        return self._spglib_dataset['number']
 
     @property
     def hall_number(self):
-        return self.spglib_dataset['hall_number']
+        return self._spglib_dataset['hall_number']
 
     @property
     def international(self):
-        return self.spglib_dataset['international']
+        return self._spglib_dataset['international']
 
     @property
     def hall(self):
-        return self.spglib_dataset['hall']
+        return self._spglib_dataset['hall']
 
     @property
     def choice(self):
-        return self.spglib_dataset['choice']
+        return self._spglib_dataset['choice']
 
     @property
     def transformation_matrix(self):
-        return self.spglib_dataset['transformation_matrix']
+        return self._spglib_dataset['transformation_matrix']
 
     @property
     def origin_shift(self):
-        return self.spglib_dataset['origin_shift']
+        return self._spglib_dataset['origin_shift']
 
     @property
     def frac_rotations(self):
-        return self.spglib_dataset['rotations']
+        return self._spglib_dataset['rotations']
 
     @property
     def rotations(self):
@@ -206,7 +206,7 @@ class Spacegroup:
     @property
     def frac_translations(self):
         """ return cleaned and wrapped fractional translations """
-        frac_translations = self.spglib_dataset['translations']
+        frac_translations = self._spglib_dataset['translations']
         frac_translations += wrap_tol
         frac_translations = (frac_translations % 1 % 1 - wrap_tol)
         return clean_matrix(frac_translations)
@@ -217,31 +217,42 @@ class Spacegroup:
 
     @property
     def wyckoffs(self):
-        return self.spglib_dataset['wyckoffs']
+        return self._spglib_dataset['wyckoffs']
+
+    @property
+    def wyckoffs_unique(self):
+        uwcks, count = np.unique(self.wyckoffs, return_counts=True)
+        return [(w, c) for (w, c) in zip(uwcks, count)]
 
     @property
     def equivalent_atoms(self):
-        return self.spglib_dataset['equivalent_atoms']
+        return self._spglib_dataset['equivalent_atoms']
+
+    @property
+    def equivalent_atoms_unique(self):
+        ats, count = np.unique(self.equivalent_atoms, return_counts=True)
+        return zip(ats, count)
+
 
     @property
     def mapping_to_primitive(self):
-        return self.spglib_dataset['mapping_to_primitive']
+        return self._spglib_dataset['mapping_to_primitive']
 
     @property
     def spglib_std_lattice(self):
-        return self.spglib_dataset['std_lattice']
+        return self._spglib_dataset['std_lattice']
 
     @property
     def spglib_std_positions(self):
-        return self.spglib_dataset['std_positions']
+        return self._spglib_dataset['std_positions']
 
     @property
     def std_mapping_to_primitive(self):
-        return self.spglib_dataset['std_mapping_to_primitive']
+        return self._spglib_dataset['std_mapping_to_primitive']
 
     @property
     def pointgroup(self):
-        return self.spglib_dataset['pointgroup']
+        return self._spglib_dataset['pointgroup']
 
     @property
     def n_symops(self):
@@ -251,23 +262,6 @@ class Spacegroup:
         inform(self.cell, self)
 
     # Symmetry elements from spglib
-    def get_frac_spg_elements(self):
-        self.setup(0)
-        frac_rotations = self.spglib_dataset['rotations']
-        frac_translations = self.spglib_dataset['translations']
-        return frac_rotations, frac_translations
-    #
-    def get_cart_spg_elements(self):
-        self.setup(0)
-        frac_rotations = self.spglib_dataset['rotations']
-        frac_translations = self.spglib_dataset['translations']
-        lat = self.cell.get_cell().T
-        ilat = la.inv(lat)
-        print('* Nothing is cleaned yet')
-        rotations = [lat @ frot @ ilat for frot in frac_rotations]
-        translations = [lat @ ftau for ftau in frac_translations]
-        return rotations, translations
-    #
     def get_site_symmetries(self):
         if self.site_symmetries is not None:
             if len(self.site_symmetries) == self.cell.get_n_atoms():
@@ -293,10 +287,6 @@ class Spacegroup:
 
         self.site_symmetries = np.array(all_site_symmetries, dtype=int)
         return self.site_symmetries
-
-    #
-    def get_wyckoffs(self):
-        return self.wyckoffs
 
     @property
     def symbol(self, format='Herman_Mauguin'):
