@@ -73,6 +73,13 @@ class pAtoms(Atoms):
     def sysname(self):
         return get_sysname(self)
 
+    def to_phonopy_atoms(self):
+        from .convert import to_phonopy_atoms
+        return to_phonopy_atoms(self)
+
+    def to_spglib_cell(self):
+        from .convert import to_spglib_cell
+        return to_spglib_cell(self)
 
     def get_unique_symbols(self):
         return np.unique(self.symbols, return_counts=True)
