@@ -20,6 +20,7 @@ from numpy.linalg import norm
 from math import sqrt, pi, cos, sin #faster than numpy for scalars
 import datetime
 from .symmetry import Spacegroup
+from .misc import get_sysname
 from . import io
 from hilde.konstanten.symmetry import symprec
 
@@ -52,7 +53,6 @@ class Cell(Atoms):
             self.spacegroup  = None
         #
         self.symprec     = symprec
-        self.sysname     = self.get_sysname()
         self.Natoms      = self.get_number_of_atoms()
         self.tags        = [None]
         #
@@ -69,25 +69,13 @@ class Cell(Atoms):
     def symbols(self):
         return self.get_chemical_symbols()
 
+    @property
+    def sysname(self):
+        return get_sysname(self)
+
+
     def get_unique_symbols(self):
         return np.unique(self.symbols, return_counts=True)
-
-    def get_sysname(self):
-        """ Get name of the system:
-        Either the chemical formula, or the chemical formula enriched by spacegroup information"""
-
-        chemical_formula      = self.get_chemical_formula()
-        # if there is no spacegroup
-        if self.spacegroup is None:
-            return chemical_formula
-
-        sg_number             = self.spacegroup.number
-        wyckoff_pos           = self.spacegroup.wyckoffs
-        sysname               = f'{chemical_formula}_{sg_number}'
-        wyck_uniq, wyck_mult  = np.unique(wyckoff_pos, return_counts=1)
-        for mult, wyck in zip(wyck_mult, wyck_uniq):
-            sysname += f'_{mult}{wyck}'
-        return sysname
 
     def get_conventional_standardized(self):
         return self.spacegroup.get_conventional_standardized()

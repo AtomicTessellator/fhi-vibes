@@ -100,7 +100,7 @@ def get_aims_string(cell, decorated=True, scaled=True, velocities=False):
     return string
 
 
-def inform(cell, dft=False, fname=None, verbosity=0):
+def inform(cell, spacegroup=None, dft=False, fname=None, verbosity=0):
     # Structure info:
     print(f'\nGeometry info for:')
     print(f'  input geometry:    {cell.sysname}')
@@ -111,8 +111,11 @@ def inform(cell, dft=False, fname=None, verbosity=0):
     print(f'  Periodicity:       {cell.pbc}')
     print(f'')
 
-    if cell.spacegroup:
-        sds = cell.spacegroup
+    if spacegroup is None and cell.spacegroup is not None:
+        spacegroup = cell.spacegroup
+
+    if spacegroup:
+        sds = spacegroup
         print(f'  Spacegroup:          {sds.international} ({sds.number})')
         print(f'  Wyckoff positions:   {sds.wyckoffs}')
         print(f'  Equivalent atoms:    {sds.equivalent_atoms}')

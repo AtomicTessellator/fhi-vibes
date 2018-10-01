@@ -8,6 +8,7 @@ from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
 from hilde.helpers.maths import clean_matrix
 from hilde.konstanten.numerics import loose_tol, wrap_tol, eps
 from hilde.konstanten.symmetry import symprec
+from .io import inform
 
 
 class SymmetryOperation:
@@ -80,10 +81,10 @@ class Spacegroup:
         self.symprec = symprec
         self.setup(mode=mode, devel=devel)
 
-    def setup(self, mode=1, devel=False):
+    def setup(self, mode=0, devel=False):
         """
         :param mode: 0 for spglib dataset
-                     1 for aflow + spglib (standard)
+                     1 for aflow + spglib
                      2 for full aflow analysis + spglib + sanity check
         """
 
@@ -224,6 +225,9 @@ class Spacegroup:
     @number.setter
     def number(self, value):
         self._number = value
+
+    def inform(self):
+        inform(self.cell, self)
 
     # Symmetry elements from spglib
     def get_frac_spg_elements(self):
@@ -1239,3 +1243,6 @@ class Spacegroup:
                               numbers=new_numbers,pbc=True)
         return Cell(new_atoms)
     # end get_primitive_standardized
+
+def get_spacegroup(atoms, symprec=symprec, mode=0):
+    return Spacegroup(atoms, symprec=symprec, mode=mode)

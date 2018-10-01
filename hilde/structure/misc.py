@@ -1,3 +1,25 @@
+import numpy as np
+
+def get_sysname(atoms, spacegroup=None):
+        """ Get name of the system:
+        Either the chemical formula, or the chemical formula enriched by spacegroup information"""
+
+        chemical_formula      = atoms.get_chemical_formula()
+        # if there is no spacegroup
+        if spacegroup is None and atoms.spacegroup is None:
+            return chemical_formula
+
+        if spacegroup is None and atoms.spacegroup is not None:
+            spacegroup = atoms.spacegroup
+
+        sg_number             = spacegroup.number
+        wyckoff_pos           = spacegroup.wyckoffs
+        sysname               = f'{chemical_formula}_{sg_number}'
+        wyck_uniq, wyck_mult  = np.unique(wyckoff_pos, return_counts=1)
+        for mult, wyck in zip(wyck_mult, wyck_uniq):
+            sysname += f'_{mult}{wyck}'
+        return sysname
+
 def generate_lattice(a, b=None, c=None, alpha=90, beta=90, gamma=90, lattice_type=None):
     """ [pymatgen, adapted]
     Create a Lattice using unit cell lengths (Angstrom) and angles (in degrees).
@@ -57,4 +79,3 @@ def generate_lattice(a, b=None, c=None, alpha=90, beta=90, gamma=90, lattice_typ
                 b * cos(alpha_r)]
     vector_c = [0.0, 0.0, float(c)]
     return np.array([vector_a, vector_b, vector_c])
-
