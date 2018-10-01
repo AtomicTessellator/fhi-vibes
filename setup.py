@@ -2,6 +2,7 @@
 
 from numpy.distutils.core import setup
 from numpy.distutils.core import Extension
+from setuptools import find_packages
 
 ext = Extension(name = 'hilde.helpers.supercell.supercell',
                 sources=['hilde/helpers/supercell/supercell.f90',
@@ -16,8 +17,6 @@ setup(name='HiLDe',
       author_email='knoop@fhi-berlin.mpg.de',
       license='MIT License',
       install_requires=['numpy', 'phonopy', 'spglib'],
-      packages=['hilde.helpers', 'hilde.konstanten', 'hilde.parsers',
-                'hilde.phonopy', 'hilde.settings', 'hilde.structure',
-                'hilde.tasks', 'hilde.helpers.supercell'],
+      packages=find_packages(),
       ext_modules=[ext]
       )
