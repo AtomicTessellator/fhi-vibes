@@ -21,19 +21,19 @@ class Spacegroup:
     def __init__(self, cell, symprec=None, mode=0, devel=False):
         """Should be similar to the symmetry dataset from spglib
 
-        Keys:
-            number
-            hall_number
-            international
-            hall
-            choice
-            transformation_matrix
-            origin_shift
+        Keys (P = property):
+            number (P)
+            hall_number (P)
+            international (P)
+            hall (P)
+            choice (P)
+            transformation_matrix (P)
+            origin_shift (P)
             rotations
             translations
-            wyckoffs
-            equivalent_atoms
-            mapping_to_primitive
+            wyckoffs (P)
+            equivalent_atoms (P)
+            mapping_to_primitive (P)
             std_lattice
             std_types
             std_positions
@@ -48,40 +48,19 @@ class Spacegroup:
         self.aflow_dataset = None
         self.spglib_dataset = None
 
-        # Attributes:
-        self._number = None
-        self.hall_number = None
-        self.international = None
-        self.hall = None
-        self.choice = None
-        self.transformation_matrix = None
-        self.origin_shift = None
-        self.rotations = None
-        self.frac_rotations = None
-        self.translations = None
-        self.frac_translations = None
-        self.wyckoffs = None
-        self.equivalent_atoms = None
-        self.mapping_to_primitive = None
-        self.spglib_std_lattice = None
+        # Attributes: moved to properties
         self.aflow_std_lattice = None
-        self.spglib_std_positions = None
         self.aflow_std_positions = None
-        self.std_mapping_to_primitive = None
-        self.pointgroup = None
-        self.n_symops = None
         self.aflow_spglib_matchlist = None
-        self.site_symmetries = None
-
+        self._site_symmetries = None
         # fmap representations of symmetry operations
         self.fmaps = None
-
         # set up
         self.cell = cell
         self.symprec = symprec
-        self.setup(mode=mode, devel=devel)
+        self.setup(symprec=symprec, mode=mode, devel=devel)
 
-    def setup(self, mode=0, devel=False):
+    def setup(self, symprec=symprec, mode=0, devel=False):
         """
         :param mode: 0 for spglib dataset
                      1 for aflow + spglib
@@ -90,35 +69,11 @@ class Spacegroup:
 
         # Always perform spglib (if not done yet)
         if self.spglib_dataset is None:
-            self._set_spglib_dataset()
+            self.spglib_dataset = spg.get_symmetry_dataset(
+            self.cell, symprec=symprec)
 
             lat = self.cell.get_cell()
             ilat = la.inv(lat)
-            # store as attributes:
-            # fkdev: this is effectively self = spglib_dataset.__dict__
-            self.number = self.spglib_dataset['number']
-            self.hall_number = self.spglib_dataset['hall_number']
-            self.international = self.spglib_dataset['international']
-            self.hall = self.spglib_dataset['hall']
-            self.choice = self.spglib_dataset['choice']
-            self.transformation_matrix = self.spglib_dataset['transformation_matrix']
-            self.origin_shift = self.spglib_dataset['origin_shift']
-            self.frac_rotations = self.spglib_dataset['rotations']
-            self.rotations = [lat.T @ frot @ ilat.T for frot in self.frac_rotations]
-            frac_translations = self.spglib_dataset['translations']
-            # wrap and clean
-            frac_translations += wrap_tol
-            frac_translations = (frac_translations % 1 % 1 - wrap_tol)
-            self.frac_translations = clean_matrix(frac_translations)
-            self.translations = clean_matrix([lat.T @ ft for ft in self.frac_translations])
-            self.wyckoffs = self.spglib_dataset['wyckoffs']
-            self.equivalent_atoms = self.spglib_dataset['equivalent_atoms']
-            self.mapping_to_primitive = self.spglib_dataset['mapping_to_primitive']
-            self.spglib_std_lattice = self.spglib_dataset['std_lattice']
-            self.spglib_std_positions = self.spglib_dataset['std_positions']
-            self.std_mapping_to_primitive = self.spglib_dataset['std_mapping_to_primitive']
-            self.pointgroup = self.spglib_dataset['pointgroup']
-            self.n_symops = len(self.frac_translations)
 
         if mode == 0:
             # set mode
@@ -211,20 +166,86 @@ class Spacegroup:
                 print(f'*Symops found by comparing spglib and aflowsym: {len(matchlist)}')
                 exit('*Error in Spacegroup.setup() ')
 
-            # Store the symops from aflow
-            self.rotations = aflow_cart_rotations[matchlist]
-            self.translations = aflow_cart_translations[matchlist]
-            self.frac_rotations = aflow_frac_rotations[matchlist]
-            self.frac_translations = aflow_frac_translations[matchlist]
-            self.aflow_spglib_matchlist = matchlist
-
     # Properties
     @property
     def number(self):
-        return self._number
-    @number.setter
-    def number(self, value):
-        self._number = value
+        return self.spglib_dataset['number']
+
+    @property
+    def hall_number(self):
+        return self.spglib_dataset['hall_number']
+
+    @property
+    def international(self):
+        return self.spglib_dataset['international']
+
+    @property
+    def hall(self):
+        return self.spglib_dataset['hall']
+
+    @property
+    def choice(self):
+        return self.spglib_dataset['choice']
+
+    @property
+    def transformation_matrix(self):
+        return self.spglib_dataset['transformation_matrix']
+
+    @property
+    def origin_shift(self):
+        return self.spglib_dataset['origin_shift']
+
+    @property
+    def frac_rotations(self):
+        return self.spglib_dataset['rotations']
+
+    @property
+    def rotations(self):
+        return [clean_matrix(lat.T @ frot @ ilat.T) for frot in self.frac_rotations]
+
+    @property
+    def frac_translations(self):
+        """ return cleaned and wrapped fractional translations """
+        frac_translations = self.spglib_dataset['translations']
+        frac_translations += wrap_tol
+        frac_translations = (frac_translations % 1 % 1 - wrap_tol)
+        return clean_matrix(frac_translations)
+
+    @property
+    def translations(self):
+        return clean_matrix([lat.T @ ft for ft in self.frac_translations])
+
+    @property
+    def wyckoffs(self):
+        return self.spglib_dataset['wyckoffs']
+
+    @property
+    def equivalent_atoms(self):
+        return self.spglib_dataset['equivalent_atoms']
+
+    @property
+    def mapping_to_primitive(self):
+        return self.spglib_dataset['mapping_to_primitive']
+
+    @property
+    def spglib_std_lattice(self):
+        return self.spglib_dataset['std_lattice']
+
+    @property
+    def spglib_std_positions(self):
+        return self.spglib_dataset['std_positions']
+
+    @property
+    def std_mapping_to_primitive(self):
+        return self.spglib_dataset['std_mapping_to_primitive']
+
+    @property
+    def pointgroup(self):
+        return self.spglib_dataset['pointgroup']
+
+    @property
+    def n_symops(self):
+        return len(self.frac_rotations)
 
     def inform(self):
         inform(self.cell, self)
@@ -324,10 +345,7 @@ class Spacegroup:
         #     f.write(jsonin)
         # exit()
         self.aflow_dataset = result
-    #
-    def _set_spglib_dataset(self):
-        self.spglib_dataset = spg.get_symmetry_dataset(self.cell)
-    #
+
     def get_std_cell(self, typ='prim'):
         from hilde.structure import Cell
         self.setup(mode=2)
