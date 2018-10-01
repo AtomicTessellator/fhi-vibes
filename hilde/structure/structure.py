@@ -112,7 +112,8 @@ class pAtoms(Atoms):
 
     def get_string(self, decorated=True, format = 'aims', scaled=True):
         if format == 'aims':
-            return io.get_aims_string(self, decorated = decorated, scaled = True)
+            return io.get_aims_string(self,
+                                      decorated = decorated, scaled = True)
         #
         else:
             print(f'Structure output format {format} not implemented. Stop.')
@@ -183,8 +184,8 @@ class pAtoms(Atoms):
     def refine(self, primitive=True):
         import spglib as spg
         if not hasattr(self, 'symprec'):
-            exit('Structure object does not have symprec attribute, but symmetry' +
-                  ' refinement was requested. Abort.')
+            exit('Structure object does not have symprec attribute, ' +
+                 'but symmetry refinement was requested. Abort.')
 
         lattice, scaled_positions, numbers = spg.standardize_cell(
             self, to_primitive=primitive, no_idealize=0, symprec=self.symprec)
