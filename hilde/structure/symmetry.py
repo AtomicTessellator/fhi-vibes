@@ -8,7 +8,6 @@ from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
 from hilde.helpers.maths import clean_matrix
 from hilde.konstanten.numerics import loose_tol, wrap_tol, eps
 from hilde.konstanten.symmetry import symprec
-from hilde.structure.convert import ASE_to_spglib
 from .io import inform
 
 
@@ -19,7 +18,7 @@ class SymmetryOperation:
         self.translation = translation
 
 class Spacegroup:
-    def __init__(self, cell, symprec=None, mode=0, devel=False):
+    def __init__(self, atoms, symprec=None, mode=0, devel=False):
         """Should be similar to the symmetry dataset from spglib
 
         Keys (P = property):
@@ -57,11 +56,11 @@ class Spacegroup:
         # fmap representations of symmetry operations
         self.fmaps = None
         # set up
-        self.cell = cell
+        self.atoms = atoms
         self.symprec = symprec
-        self.setup(symprec=symprec, mode=mode, devel=devel)
+        self.setup(mode=mode, devel=devel)
 
-    def setup(self, symprec=symprec, mode=0, devel=False):
+    def setup(self, mode=0, devel=False):
         """
         :param mode: 0 for spglib dataset
                      1 for aflow + spglib
@@ -71,9 +70,9 @@ class Spacegroup:
         # Always perform spglib (if not done yet)
         if self._spglib_dataset is None:
             self._spglib_dataset = spg.get_symmetry_dataset(
-            ASE_to_spglib(self.cell), symprec=symprec)
+            self.atoms.to_spglib_cell(), symprec=self.symprec)
 
-            lat = self.cell.get_cell()
+            lat = self.atoms.get_cell()
             ilat = la.inv(lat)
 
         if mode == 0:
@@ -259,19 +258,19 @@ class Spacegroup:
         return len(self.frac_rotations)
 
     def inform(self):
-        inform(self.cell, self)
+        inform(self.atoms, self)
 
     # Symmetry elements from spglib
     def get_site_symmetries(self):
         if self.site_symmetries is not None:
-            if len(self.site_symmetries) == self.cell.get_n_atoms():
+            if len(self.site_symmetries) == self.atoms.get_n_atoms():
                 return self.site_symmetries
         #
         # if not yet calculated, do it
-        fpos = self.cell.get_positions(scaled=True)
+        fpos = self.atoms.get_positions(scaled=True)
         frot = self.frac_rotations
         ftrl = self.frac_translations
-        lattice = self.cell.get_cell()
+        lattice = self.atoms.get_cell()
         all_site_symmetries = []
 
         for iat, pos in enumerate(fpos):
@@ -310,21 +309,21 @@ class Spacegroup:
     #
     # Wrap the aflow binary calls (maybe move to dedicated module at some point)
     def _set_aflow_sgdata(self):
-        struct = self.cell.get_string(decorated=False).encode()
+        struct = self.atoms.get_string(decorated=False).encode()
         asym = Popen(['aflow', '--sgdata', '--screen_only', '--print=json'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         jsonin = asym.communicate(input=struct)[0]
         result = json.loads(jsonin)
         self.aflow_sgdata = result
 
     def _set_aflow_edata(self):
-        struct = self.cell.get_string(decorated=False).encode()
+        struct = self.atoms.get_string(decorated=False).encode()
         asym = Popen(['aflow', '--edata', '--print=json'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         jsonin = asym.communicate(input=struct)[0]
         result = json.loads(jsonin)
         self.aflow_edata = result
 
     def _set_aflow_dataset(self):
-        struct = self.cell.get_string(decorated=False).encode()
+        struct = self.atoms.get_string(decorated=False).encode()
         asym = Popen(['aflow', '--fullsym', '--screen_only', '--print=json'], shell=False, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         jsonin = asym.communicate(input=struct)[0]
         result = json.loads(jsonin)
@@ -886,11 +885,11 @@ class Spacegroup:
     def refine(self, primitive=True):
         lattice, scaled_positions, numbers = spg.standardize_cell(
             self, to_primitive=primitive, no_idealize=0, symprec=self.symprec)
-        refined_cell = Atoms(cell=lattice, scaled_positions=scaled_positions,
-                             numbers=numbers, pbc=True)
+        refined_cell = pAtoms(cell=lattice, scaled_positions=scaled_positions,
+                              numbers=numbers, pbc=True, symprec=self.symprec)
         #
         refined_cell.wrap()
-        return Crystal(refined_cell, self.symprec)
+        return refined_cell
 
     def get_conventional_standardized(self, international_monoclinic=False):
         """ [pymatgen, adapted]
@@ -906,7 +905,7 @@ class Spacegroup:
             The structure in a conventional standardized cell
         """
         from hilde.structure import pAtoms
-        self.symprec
+        symprec = self.symprec
         struct = self.refine(primitive=False)
         latt_type = self.get_lattice_type()
         latt = struct.cell
@@ -1084,8 +1083,9 @@ class Spacegroup:
             #we use a LLL Minkowski-like reduction for the triclinic cells
             reduced = struct.get_reduced_structure("LLL")
             cart_coord = struct.get_positions()
-            struct = pAtoms(Atoms(cell=reduced, positions=cart_coord,
-                                    numbers=struct.numbers, pbc=True) )
+            struct = pAtoms(cell=reduced, positions=cart_coord,
+                            numbers=struct.numbers, pbc=True,
+                            symprec=self.symprec)
 
             a, b, c = landang[0:3]
             alpha, beta, gamma = [pi * i / 180
@@ -1161,9 +1161,10 @@ class Spacegroup:
         # end triclinic
 
         new_coords = np.dot(transf,np.transpose(struct.get_scaled_positions())).T
-        new_atoms = Atoms(cell=latt,scaled_positions=new_coords, numbers=struct.numbers,pbc=True)
-        new_structure = pAtoms(new_atoms)
-        return new_structure
+        new_atoms = pAtoms(cell=latt,scaled_positions=new_coords,
+                           numbers=struct.numbers, pbc=True,
+                           symprec=self.symprec)
+        return new_atoms
     # end get_conventional_standardized
 
     def get_primitive_standardized(self, international_monoclinic=False):
@@ -1228,7 +1229,9 @@ class Spacegroup:
                 new_scaled_positions.append(new_sc_pos)
                 new_numbers.append(num)
 
-        new_atoms = Atoms(cell=latt,scaled_positions=new_scaled_positions,numbers=new_numbers,pbc=True)
+        new_atoms = pAtoms(cell=latt, scaled_positions=new_scaled_positions,
+                           numbers=new_numbers, pbc=True,
+                           symprec=self.symprec)
 
         if lattice == "rhombohedral":
             landang = new_atoms.get_cell_lengths_and_angles()
@@ -1247,9 +1250,10 @@ class Spacegroup:
                 if not any( [is_periodic_image(new_sc_pos,n_p) for n_p in new_scaled_positions] ):
                     new_scaled_positions.append(new_sc_pos)
                     new_numbers.append(num)
-            new_atoms = Atoms(cell=latt,scaled_positions=new_scaled_positions,
-                              numbers=new_numbers,pbc=True)
-        return pAtoms(new_atoms)
+            new_atoms = pAtoms(cell=latt,scaled_positions=new_scaled_positions,
+                               numbers=new_numbers,
+                               pbc=True, symprec=self.symprec)
+        return new_atoms
     # end get_primitive_standardized
 
 def get_spacegroup(atoms, symprec=symprec, mode=0):
