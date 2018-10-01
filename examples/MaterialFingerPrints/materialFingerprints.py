@@ -33,10 +33,10 @@ elecBs = [ BandStructureFingerprint(True, True, kpoints=kpoints, spectraFiles=[s
 
 print("DOSFingerprint Convergence")
 for ii in range(len(elecDs)):
-    print(kGridDirs[ii].split("_")[-1], elecDs[-1].scalarProduct(elecDs[ii]))
+    print(kGridDirs[ii].split("_")[-1], elecDs[-1].scalar_product(elecDs[ii]))
 print("BandStructureFingerprint Convergence")
 for ii in range(len(elecBs)):
-    print(kGridDirs[ii].split("_")[-1], elecBs[-1].scalarProduct(elecBs[ii]))
+    print(kGridDirs[ii].split("_")[-1], elecBs[-1].scalar_product(elecBs[ii]))
 
 # Phonons
 # Set up the phonopy objects
@@ -49,7 +49,6 @@ smatrix = np.array([[-1,  1,  1],
 # A series of super cell matrices
 smatrices = [ a * smatrix for a in range(1,3)]
 phononCalcs = [ ph.preprocess(atoms, smatrix) for smatrix in smatrices ]
-
 workdirs = [Path('./Si_{}{}{}_{}{}{}_{}{}{}_{:.3f}'.format(*smatrix.flatten(), vol)) for smatrix in smatrices ]
 for direc in workdirs:
     direc.mkdir(exist_ok=True)
@@ -101,13 +100,16 @@ for ii in range(len(workdirs)):
     phonon.set_band_structure(bands)
     latexify = lambda sym: "$\\mathrm{\\mathsf{" + str(sym)  + "}}$"
     labels = [latexify(sym) for sym in q_path]
-    phonon.write_yaml_band_structure(labels=labels, filename=f'{workdirs[ii]}/band.yaml')
-    plt = phonon.plot_band_structure(labels=labels)
-    plt.ylabel('Frequency [THz]')
-    plt.savefig(f'{workdirs[ii]}/bandstructure.pdf')
     fp = get_phonon_bs_fingerprint_phononpy(phonon, q_points)
-    flattenfp.append( np.array( [fp[pt][:,0] for pt in fp] ) )
+    flattenfp.append( np.array( [fp[pt][:,0] for pt in fp] ).flatten() )
+    q_mesh = [45, 45, 45]
+    phonon.set_mesh(q_mesh)
+    # We generate the DOS by calling .set_total_DOS on the phonopy object
+    phonon.set_total_DOS(freq_pitch=.1, tetrahedron_method=True)
 
-print(np.dot( flattenfp[0]/np.norm(flattenfp[0]), flattenfp[2]/np.norm(flattenfp[2]) ) )
-print(np.dot( flattenfp[1]/np.norm(flattenfp[1]), flattenfp[2]/np.norm(flattenfp[2]) ) )
-print(np.dot( flattenfp[2]/np.norm(flattenfp[2]), flattenfp[2]/np.norm(flattenfp[2]) ) )
+for ff in flattenfp:
+    print(np.dot( ff/np.linalg.norm(ff), flattenfp[-1]/np.linalg.norm(flattenfp[-1]) ) )
+
+phonon_dos_fp = get_phonon_dos_fingerprint_phononpy(phononCalcs[0][0])
+"Phonon DOS"
+print(phonon_dos_fp["DOS"])

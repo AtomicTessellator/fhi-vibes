@@ -75,12 +75,14 @@ def get_fingerprint_dos(dos, minE, maxE, nbins):
     """
     fingerprint = {}
     if(dos.shape[0] < nbins):
-        fingerprint["DOS"] = dos[np.where((dos[:,0] >= minE) & (dos[:,0] <= maxE)), :]
+        fingerprint["DOS"] = dos[np.where((dos[:,0] >= minE) & (dos[:,0] <= maxE))]
+
     else:
         ener, enerBounds = get_ener(False, dos[:,0], minE, maxE, nbins)
         fingerprint = { "DOS" : np.zeros(shape=(len(ener), 2) ) }
         fingerprint["DOS"][:,0] = ener
         fingerprint["DOS"][:,1] = np.histogram(dos, enerBounds)[0]
+    # print(fingerprint["DOS"])
     return fingerprint
 
 # Function to calculate the modes at the high symmetry points
@@ -115,7 +117,7 @@ def get_phonon_bands_phonopy(phonon, q_points):
     """
     bands = {}
     for pt in q_points:
-        bands = phonon.get_frequencies(q_points[pt])
+        bands[pt] = phonon.get_frequencies(q_points[pt])
     return bands
 
 def get_phonon_bands_yaml(yamlFile, q_points):
@@ -198,7 +200,12 @@ def get_dos_fingerprint(dosFile, minE=None, maxE=None, nbins=256):
         The density of states fingerprint
     """
     dos = np.genfromtxt(dosFile)
-    return getDOSFingerprint(dos, np.min(dos[:,0]) if minE is None else minE, np.max(dos[:,0]) if maxE is None else maxE, nbins)
+    return get_fingerprint_dos(dos, np.min(dos[:,0]) if minE is None else minE, np.max(dos[:,0]) if maxE is None else maxE, nbins)
+
+def get_phonon_dos_fingerprint_phononpy(phonon, minE=None, maxE=None, nbins=256):
+    dos = np.array(phonon.get_total_DOS()).transpose()
+    return get_fingerprint_dos(dos, np.min(dos[:,0]) if minE is None else minE, np.max(dos[:,0]) if maxE is None else maxE, nbins)
+
 
 # Class definitions for incorporation into databases
 class MaterialsFingerprint(object):
@@ -228,7 +235,7 @@ class MaterialsFingerprint(object):
             return frmt
         return ""
 
-    def scalarProduct(self, otherFP):
+    def scalar_product(self, otherFP):
         if(len(self.fingerprint) != len(otherFP.fingerprint) ):
             print("The two finger prints do not represent the same q points, the scalar product is zero")
             return 0.0
