@@ -8,6 +8,7 @@ from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
 from hilde.helpers.maths import clean_matrix
 from hilde.konstanten.numerics import loose_tol, wrap_tol, eps
 from hilde.konstanten.symmetry import symprec
+from hilde.structure.convert import ASE_to_spglib
 from .io import inform
 
 
@@ -70,7 +71,7 @@ class Spacegroup:
         # Always perform spglib (if not done yet)
         if self._spglib_dataset is None:
             self._spglib_dataset = spg.get_symmetry_dataset(
-            self.cell, symprec=symprec)
+            ASE_to_spglib(self.cell), symprec=symprec)
 
             lat = self.cell.get_cell()
             ilat = la.inv(lat)
@@ -233,7 +234,6 @@ class Spacegroup:
         ats, count = np.unique(self.equivalent_atoms, return_counts=True)
         return zip(ats, count)
 
-
     @property
     def mapping_to_primitive(self):
         return self._spglib_dataset['mapping_to_primitive']
@@ -337,7 +337,7 @@ class Spacegroup:
         self.aflow_dataset = result
 
     def get_std_cell(self, typ='prim'):
-        from hilde.structure import Cell
+        from hilde.structure import pAtoms
         self.setup(mode=2)
         #
         if 'prim' in typ.lower():
@@ -905,7 +905,7 @@ class Spacegroup:
         Returns:
             The structure in a conventional standardized cell
         """
-        from hilde.structure import Cell
+        from hilde.structure import pAtoms
         self.symprec
         struct = self.refine(primitive=False)
         latt_type = self.get_lattice_type()
@@ -1084,7 +1084,7 @@ class Spacegroup:
             #we use a LLL Minkowski-like reduction for the triclinic cells
             reduced = struct.get_reduced_structure("LLL")
             cart_coord = struct.get_positions()
-            struct = Cell(Atoms(cell=reduced, positions=cart_coord,
+            struct = pAtoms(Atoms(cell=reduced, positions=cart_coord,
                                     numbers=struct.numbers, pbc=True) )
 
             a, b, c = landang[0:3]
@@ -1162,7 +1162,7 @@ class Spacegroup:
 
         new_coords = np.dot(transf,np.transpose(struct.get_scaled_positions())).T
         new_atoms = Atoms(cell=latt,scaled_positions=new_coords, numbers=struct.numbers,pbc=True)
-        new_structure = Cell(new_atoms)
+        new_structure = pAtoms(new_atoms)
         return new_structure
     # end get_conventional_standardized
 
@@ -1177,7 +1177,7 @@ class Spacegroup:
         Returns:
             The structure in a primitive standardized cell
         """
-        from hilde.structure import Cell
+        from hilde.structure import pAtoms
         conv = self.get_conventional_standardized(
                 international_monoclinic=international_monoclinic)
         lattice = self.get_lattice_type()
@@ -1249,7 +1249,7 @@ class Spacegroup:
                     new_numbers.append(num)
             new_atoms = Atoms(cell=latt,scaled_positions=new_scaled_positions,
                               numbers=new_numbers,pbc=True)
-        return Cell(new_atoms)
+        return pAtoms(new_atoms)
     # end get_primitive_standardized
 
 def get_spacegroup(atoms, symprec=symprec, mode=0):

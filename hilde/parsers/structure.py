@@ -1,13 +1,13 @@
-from hilde.structure import Cell
+from hilde.structure import pAtoms
 from hilde.konstanten.symmetry import symprec
 from ase.io import read as ase_read
 
 # Parse geometry.in file
 def read_aims(fname):
-    return Cell(ase_read(fname, 0, 'aims'))
+    return pAtoms(ase_read(fname, 0, 'aims'))
 
 # def read_aims(fname, symprec=symprec, sorted = False):
-#     from .structure import Cell
+#     from .structure import pAtoms
 #     latvecs = []
 #     positions = []
 #     scaled_positions = []
@@ -45,7 +45,7 @@ def read_aims(fname):
 #
 #     #
 #     # Create cell object from this
-    cell = Cell(symprec=symprec, **kwargs)
+    cell = pAtoms(symprec=symprec, **kwargs)
 
     if sorted:
         cell.sort_positions()
