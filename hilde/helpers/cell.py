@@ -2,7 +2,7 @@
 # (see accompanying license files for details).
 
 import numpy as np
-from .linalg import clean_matrix
+from .maths import clean_matrix
 from numpy import pi, sin, cos, arccos, sqrt, dot
 from numpy.linalg import norm
 

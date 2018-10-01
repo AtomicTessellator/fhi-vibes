@@ -17,3 +17,14 @@ data/*
 # Python
 *.ipynb_checkpoints
 *.pyc
+
+# Aims
+*geometry.in
+*control.in
+
+# ASE
+*parameters.ase
+
+*.mod                                                                                          
+*.o                                                                                            
+*.so  
