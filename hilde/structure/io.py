@@ -100,7 +100,7 @@ def get_aims_string(cell, decorated=True, scaled=True, velocities=False):
     return string
 
 
-def inform(cell, dft=False, fname=None, verbosity=0):
+def inform(cell, spacegroup=None, dft=False, fname=None, verbosity=0):
     # Structure info:
     print(f'\nGeometry info for:')
     print(f'  input geometry:    {cell.sysname}')
@@ -111,11 +111,14 @@ def inform(cell, dft=False, fname=None, verbosity=0):
     print(f'  Periodicity:       {cell.pbc}')
     print(f'')
 
-    if cell.spacegroup:
-        sds = cell.spacegroup
+    if spacegroup is None and cell.spacegroup is not None:
+        spacegroup = cell.spacegroup
+
+    if spacegroup:
+        sds = spacegroup
         print(f'  Spacegroup:          {sds.international} ({sds.number})')
-        print(f'  Wyckoff positions:   {sds.wyckoffs}')
-        print(f'  Equivalent atoms:    {sds.equivalent_atoms}')
+        print(f'  Wyckoff positions:   ' + ', '.join(f'{c}*{w}' for (w, c) in sds.wyckoffs_unique))
+        print(f'  Equivalent atoms:    ' + ', '.join(f'{c}*{a}' for (a, c) in sds.equivalent_atoms_unique))
         print(f'  Standard lattice:  ')
         for vec in sds.spglib_std_lattice:
             print(f'    {vec}')
@@ -123,9 +126,9 @@ def inform(cell, dft=False, fname=None, verbosity=0):
     # lengths and angles
     la = cell.get_cell_lengths_and_angles()
     print('\nCell lengths and angles [\u212B, °]:')
-    print('  a, b, c: {}'.format(' '.join([f'{l:15.8f}' for l in la[:3]])))
-    print('  \u03B1, \u03B2, \u03B3: {}'.format(' '.join([f'{l:15.8f}' for l in la[3:]])))
-    print(f'  Volume:  {cell.get_volume():15.8f} \u212B**3')
+    print('  a, b, c: {}'.format(' '.join([f'{l:11.4f}' for l in la[:3]])))
+    print('  \u03B1, \u03B2, \u03B3: {}'.format(' '.join([f'{l:11.4f}' for l in la[3:]])))
+    print(f'  Volume:  {cell.get_volume():11.4f} \u212B**3')
 
     for (ii, tag) in enumerate(tag for tag in cell.tags if tag):
         print(f'  Tag {ii+1:2}:                {tag}')

@@ -20,10 +20,11 @@ from numpy.linalg import norm
 from math import sqrt, pi, cos, sin #faster than numpy for scalars
 import datetime
 from .symmetry import Spacegroup
+from .misc import get_sysname
 from . import io
 from hilde.konstanten.symmetry import symprec
 
-class Cell(Atoms):
+class pAtoms(Atoms):
     def __init__(self,
                  ase_atoms=None,
                  phonopy_atoms=None,
@@ -44,7 +45,7 @@ class Cell(Atoms):
             ase_atoms = Atoms(**kwargs)
 
         # initialize ase Atoms object
-        super(Cell, self).__init__(ase_atoms)
+        super().__init__(ase_atoms)
 
         if symprec:
             self.spacegroup  = Spacegroup(self, symprec)
@@ -52,7 +53,6 @@ class Cell(Atoms):
             self.spacegroup  = None
         #
         self.symprec     = symprec
-        self.sysname     = self.get_sysname()
         self.Natoms      = self.get_number_of_atoms()
         self.tags        = [None]
         #
@@ -69,25 +69,20 @@ class Cell(Atoms):
     def symbols(self):
         return self.get_chemical_symbols()
 
+    @property
+    def sysname(self):
+        return get_sysname(self)
+
+    def to_phonopy_atoms(self):
+        from .convert import to_phonopy_atoms
+        return to_phonopy_atoms(self)
+
+    def to_spglib_cell(self):
+        from .convert import to_spglib_cell
+        return to_spglib_cell(self)
+
     def get_unique_symbols(self):
         return np.unique(self.symbols, return_counts=True)
-
-    def get_sysname(self):
-        """ Get name of the system:
-        Either the chemical formula, or the chemical formula enriched by spacegroup information"""
-
-        chemical_formula      = self.get_chemical_formula()
-        # if there is no spacegroup
-        if self.spacegroup is None:
-            return chemical_formula
-
-        sg_number             = self.spacegroup.number
-        wyckoff_pos           = self.spacegroup.wyckoffs
-        sysname               = f'{chemical_formula}_{sg_number}'
-        wyck_uniq, wyck_mult  = np.unique(wyckoff_pos, return_counts=1)
-        for mult, wyck in zip(wyck_mult, wyck_uniq):
-            sysname += f'_{mult}{wyck}'
-        return sysname
 
     def get_conventional_standardized(self):
         return self.spacegroup.get_conventional_standardized()
@@ -117,7 +112,8 @@ class Cell(Atoms):
 
     def get_string(self, decorated=True, format = 'aims', scaled=True):
         if format == 'aims':
-            return io.get_aims_string(self, decorated = decorated, scaled = True)
+            return io.get_aims_string(self,
+                                      decorated = decorated, scaled = True)
         #
         else:
             print(f'Structure output format {format} not implemented. Stop.')
@@ -183,13 +179,13 @@ class Cell(Atoms):
                      positions = self.get_positions())
         atom.set_pbc(True)
 
-        return Cell(cut(atom, P[0], P[1], P[2]))
+        return pAtoms(cut(atom, P[0], P[1], P[2]))
 
     def refine(self, primitive=True):
         import spglib as spg
         if not hasattr(self, 'symprec'):
-            exit('Structure object does not have symprec attribute, but symmetry' +
-                  ' refinement was requested. Abort.')
+            exit('Structure object does not have symprec attribute, ' +
+                 'but symmetry refinement was requested. Abort.')
 
         lattice, scaled_positions, numbers = spg.standardize_cell(
             self, to_primitive=primitive, no_idealize=0, symprec=self.symprec)
@@ -197,7 +193,7 @@ class Cell(Atoms):
                              numbers=numbers, pbc=True)
 
         refined_cell.wrap()
-        return Cell(refined_cell, self.symprec)
+        return pAtoms(refined_cell, self.symprec)
 
 
     def change_volume(self, factor):
@@ -206,12 +202,12 @@ class Cell(Atoms):
         fac = factor**(1./3)
         for latvec in self.cell:
             newcell.append(latvec*fac)
-        new_structure = Cell(Atoms(cell=newcell, scaled_positions=scaled,
+        new_structure = pAtoms(Atoms(cell=newcell, scaled_positions=scaled,
                         numbers=self.numbers, pbc=True))
         return new_structure
 
     def make_from_cell(self, newcell):
         scaled = self.get_scaled_positions()
-        new_structure = Cell(Atoms(cell=newcell, scaled_positions=scaled,
+        new_structure = pAtoms(Atoms(cell=newcell, scaled_positions=scaled,
                         numbers=self.numbers, pbc=True))
         return new_structure

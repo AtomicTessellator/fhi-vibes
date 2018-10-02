@@ -1,13 +1,14 @@
+import numpy as np
 from subprocess import Popen, PIPE, STDOUT
 import json
 from sys import exit
-import numpy as np
 import scipy.linalg as la
 import spglib as spg
 from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
 from hilde.helpers.maths import clean_matrix
 from hilde.konstanten.numerics import loose_tol, wrap_tol, eps
 from hilde.konstanten.symmetry import symprec
+from .io import inform
 
 
 class SymmetryOperation:
@@ -17,22 +18,22 @@ class SymmetryOperation:
         self.translation = translation
 
 class Spacegroup:
-    def __init__(self, cell, symprec=None, mode=0, devel=False):
+    def __init__(self, atoms, symprec=None, mode=0, devel=False):
         """Should be similar to the symmetry dataset from spglib
 
-        Keys:
-            number
-            hall_number
-            international
-            hall
-            choice
-            transformation_matrix
-            origin_shift
+        Keys (P = property):
+            number (P)
+            hall_number (P)
+            international (P)
+            hall (P)
+            choice (P)
+            transformation_matrix (P)
+            origin_shift (P)
             rotations
             translations
-            wyckoffs
-            equivalent_atoms
-            mapping_to_primitive
+            wyckoffs (P)
+            equivalent_atoms (P)
+            mapping_to_primitive (P)
             std_lattice
             std_types
             std_positions
@@ -45,79 +46,34 @@ class Spacegroup:
         self.aflow_sgdata = None
         self.aflow_edata = None
         self.aflow_dataset = None
-        self.spglib_dataset = None
+        self._spglib_dataset = None
 
-        # Attributes:
-        self._number = None
-        self.hall_number = None
-        self.international = None
-        self.hall = None
-        self.choice = None
-        self.transformation_matrix = None
-        self.origin_shift = None
-        self.rotations = None
-        self.frac_rotations = None
-        self.translations = None
-        self.frac_translations = None
-        self.wyckoffs = None
-        self.equivalent_atoms = None
-        self.mapping_to_primitive = None
-        self.spglib_std_lattice = None
+        # Attributes: moved to properties
         self.aflow_std_lattice = None
-        self.spglib_std_positions = None
         self.aflow_std_positions = None
-        self.std_mapping_to_primitive = None
-        self.pointgroup = None
-        self.n_symops = None
         self.aflow_spglib_matchlist = None
-        self.site_symmetries = None
-
+        self._site_symmetries = None
         # fmap representations of symmetry operations
         self.fmaps = None
-
         # set up
-        self.cell = cell
+        self.atoms = atoms
         self.symprec = symprec
         self.setup(mode=mode, devel=devel)
 
-    def setup(self, mode=1, devel=False):
+    def setup(self, mode=0, devel=False):
         """
         :param mode: 0 for spglib dataset
-                     1 for aflow + spglib (standard)
+                     1 for aflow + spglib
                      2 for full aflow analysis + spglib + sanity check
         """
 
         # Always perform spglib (if not done yet)
-        if self.spglib_dataset is None:
-            self._set_spglib_dataset()
+        if self._spglib_dataset is None:
+            self._spglib_dataset = spg.get_symmetry_dataset(
+            self.atoms.to_spglib_cell(), symprec=self.symprec)
 
-            lat = self.cell.get_cell()
+            lat = self.atoms.get_cell()
             ilat = la.inv(lat)
-            # store as attributes:
-            # fkdev: this is effectively self = spglib_dataset.__dict__
-            self.number = self.spglib_dataset['number']
-            self.hall_number = self.spglib_dataset['hall_number']
-            self.international = self.spglib_dataset['international']
-            self.hall = self.spglib_dataset['hall']
-            self.choice = self.spglib_dataset['choice']
-            self.transformation_matrix = self.spglib_dataset['transformation_matrix']
-            self.origin_shift = self.spglib_dataset['origin_shift']
-            self.frac_rotations = self.spglib_dataset['rotations']
-            self.rotations = [lat.T @ frot @ ilat.T for frot in self.frac_rotations]
-            frac_translations = self.spglib_dataset['translations']
-            # wrap and clean
-            frac_translations += wrap_tol
-            frac_translations = (frac_translations % 1 % 1 - wrap_tol)
-            self.frac_translations = clean_matrix(frac_translations)
-            self.translations = clean_matrix([lat.T @ ft for ft in self.frac_translations])
-            self.wyckoffs = self.spglib_dataset['wyckoffs']
-            self.equivalent_atoms = self.spglib_dataset['equivalent_atoms']
-            self.mapping_to_primitive = self.spglib_dataset['mapping_to_primitive']
-            self.spglib_std_lattice = self.spglib_dataset['std_lattice']
-            self.spglib_std_positions = self.spglib_dataset['std_positions']
-            self.std_mapping_to_primitive = self.spglib_dataset['std_mapping_to_primitive']
-            self.pointgroup = self.spglib_dataset['pointgroup']
-            self.n_symops = len(self.frac_translations)
 
         if mode == 0:
             # set mode
@@ -210,49 +166,111 @@ class Spacegroup:
                 print(f'*Symops found by comparing spglib and aflowsym: {len(matchlist)}')
                 exit('*Error in Spacegroup.setup() ')
 
-            # Store the symops from aflow
-            self.rotations = aflow_cart_rotations[matchlist]
-            self.translations = aflow_cart_translations[matchlist]
-            self.frac_rotations = aflow_frac_rotations[matchlist]
-            self.frac_translations = aflow_frac_translations[matchlist]
-            self.aflow_spglib_matchlist = matchlist
-
     # Properties
     @property
     def number(self):
-        return self._number
-    @number.setter
-    def number(self, value):
-        self._number = value
+        return self._spglib_dataset['number']
+
+    @property
+    def hall_number(self):
+        return self._spglib_dataset['hall_number']
+
+    @property
+    def international(self):
+        return self._spglib_dataset['international']
+
+    @property
+    def hall(self):
+        return self._spglib_dataset['hall']
+
+    @property
+    def choice(self):
+        return self._spglib_dataset['choice']
+
+    @property
+    def transformation_matrix(self):
+        return self._spglib_dataset['transformation_matrix']
+
+    @property
+    def origin_shift(self):
+        return self._spglib_dataset['origin_shift']
+
+    @property
+    def frac_rotations(self):
+        return self._spglib_dataset['rotations']
+
+    @property
+    def rotations(self):
+        return [clean_matrix(lat.T @ frot @ ilat.T) for frot in self.frac_rotations]
+
+    @property
+    def frac_translations(self):
+        """ return cleaned and wrapped fractional translations """
+        frac_translations = self._spglib_dataset['translations']
+        frac_translations += wrap_tol
+        frac_translations = (frac_translations % 1 % 1 - wrap_tol)
+        return clean_matrix(frac_translations)
+
+    @property
+    def translations(self):
+        return clean_matrix([lat.T @ ft for ft in self.frac_translations])
+
+    @property
+    def wyckoffs(self):
+        return self._spglib_dataset['wyckoffs']
+
+    @property
+    def wyckoffs_unique(self):
+        uwcks, count = np.unique(self.wyckoffs, return_counts=True)
+        return [(w, c) for (w, c) in zip(uwcks, count)]
+
+    @property
+    def equivalent_atoms(self):
+        return self._spglib_dataset['equivalent_atoms']
+
+    @property
+    def equivalent_atoms_unique(self):
+        ats, count = np.unique(self.equivalent_atoms, return_counts=True)
+        return zip(ats, count)
+
+    @property
+    def mapping_to_primitive(self):
+        return self._spglib_dataset['mapping_to_primitive']
+
+    @property
+    def spglib_std_lattice(self):
+        return self._spglib_dataset['std_lattice']
+
+    @property
+    def spglib_std_positions(self):
+        return self._spglib_dataset['std_positions']
+
+    @property
+    def std_mapping_to_primitive(self):
+        return self._spglib_dataset['std_mapping_to_primitive']
+
+    @property
+    def pointgroup(self):
+        return self._spglib_dataset['pointgroup']
+
+    @property
+    def n_symops(self):
+        return len(self.frac_rotations)
+
+    def inform(self):
+        inform(self.atoms, self)
 
     # Symmetry elements from spglib
-    def get_frac_spg_elements(self):
-        self.setup(0)
-        frac_rotations = self.spglib_dataset['rotations']
-        frac_translations = self.spglib_dataset['translations']
-        return frac_rotations, frac_translations
-    #
-    def get_cart_spg_elements(self):
-        self.setup(0)
-        frac_rotations = self.spglib_dataset['rotations']
-        frac_translations = self.spglib_dataset['translations']
-        lat = self.cell.get_cell().T
-        ilat = la.inv(lat)
-        print('* Nothing is cleaned yet')
-        rotations = [lat @ frot @ ilat for frot in frac_rotations]
-        translations = [lat @ ftau for ftau in frac_translations]
-        return rotations, translations
-    #
     def get_site_symmetries(self):
         if self.site_symmetries is not None:
-            if len(self.site_symmetries) == self.cell.get_n_atoms():
+            if len(self.site_symmetries) == self.atoms.get_n_atoms():
                 return self.site_symmetries
         #
         # if not yet calculated, do it
-        fpos = self.cell.get_positions(scaled=True)
+        fpos = self.atoms.get_positions(scaled=True)
         frot = self.frac_rotations
         ftrl = self.frac_translations
-        lattice = self.cell.get_cell()
+        lattice = self.atoms.get_cell()
         all_site_symmetries = []
 
         for iat, pos in enumerate(fpos):
@@ -268,10 +286,6 @@ class Spacegroup:
 
         self.site_symmetries = np.array(all_site_symmetries, dtype=int)
         return self.site_symmetries
-
-    #
-    def get_wyckoffs(self):
-        return self.wyckoffs
 
     @property
     def symbol(self, format='Herman_Mauguin'):
@@ -295,21 +309,21 @@ class Spacegroup:
     #
     # Wrap the aflow binary calls (maybe move to dedicated module at some point)
     def _set_aflow_sgdata(self):
-        struct = self.cell.get_string(decorated=False).encode()
+        struct = self.atoms.get_string(decorated=False).encode()
         asym = Popen(['aflow', '--sgdata', '--screen_only', '--print=json'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         jsonin = asym.communicate(input=struct)[0]
         result = json.loads(jsonin)
         self.aflow_sgdata = result
 
     def _set_aflow_edata(self):
-        struct = self.cell.get_string(decorated=False).encode()
+        struct = self.atoms.get_string(decorated=False).encode()
         asym = Popen(['aflow', '--edata', '--print=json'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         jsonin = asym.communicate(input=struct)[0]
         result = json.loads(jsonin)
         self.aflow_edata = result
 
     def _set_aflow_dataset(self):
-        struct = self.cell.get_string(decorated=False).encode()
+        struct = self.atoms.get_string(decorated=False).encode()
         asym = Popen(['aflow', '--fullsym', '--screen_only', '--print=json'], shell=False, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         jsonin = asym.communicate(input=struct)[0]
         result = json.loads(jsonin)
@@ -320,12 +334,9 @@ class Spacegroup:
         #     f.write(jsonin)
         # exit()
         self.aflow_dataset = result
-    #
-    def _set_spglib_dataset(self):
-        self.spglib_dataset = spg.get_symmetry_dataset(self.cell)
-    #
+
     def get_std_cell(self, typ='prim'):
-        from hilde.structure import Cell
+        from hilde.structure import pAtoms
         self.setup(mode=2)
         #
         if 'prim' in typ.lower():
@@ -874,11 +885,11 @@ class Spacegroup:
     def refine(self, primitive=True):
         lattice, scaled_positions, numbers = spg.standardize_cell(
             self, to_primitive=primitive, no_idealize=0, symprec=self.symprec)
-        refined_cell = Atoms(cell=lattice, scaled_positions=scaled_positions,
-                             numbers=numbers, pbc=True)
+        refined_cell = pAtoms(cell=lattice, scaled_positions=scaled_positions,
+                              numbers=numbers, pbc=True, symprec=self.symprec)
         #
         refined_cell.wrap()
-        return Crystal(refined_cell, self.symprec)
+        return refined_cell
 
     def get_conventional_standardized(self, international_monoclinic=False):
         """ [pymatgen, adapted]
@@ -893,8 +904,8 @@ class Spacegroup:
         Returns:
             The structure in a conventional standardized cell
         """
-        from hilde.structure import Cell
-        self.symprec
+        from hilde.structure import pAtoms
+        symprec = self.symprec
         struct = self.refine(primitive=False)
         latt_type = self.get_lattice_type()
         latt = struct.cell
@@ -1072,8 +1083,9 @@ class Spacegroup:
             #we use a LLL Minkowski-like reduction for the triclinic cells
             reduced = struct.get_reduced_structure("LLL")
             cart_coord = struct.get_positions()
-            struct = Cell(Atoms(cell=reduced, positions=cart_coord,
-                                    numbers=struct.numbers, pbc=True) )
+            struct = pAtoms(cell=reduced, positions=cart_coord,
+                            numbers=struct.numbers, pbc=True,
+                            symprec=self.symprec)
 
             a, b, c = landang[0:3]
             alpha, beta, gamma = [pi * i / 180
@@ -1149,9 +1161,10 @@ class Spacegroup:
         # end triclinic
 
         new_coords = np.dot(transf,np.transpose(struct.get_scaled_positions())).T
-        new_atoms = Atoms(cell=latt,scaled_positions=new_coords, numbers=struct.numbers,pbc=True)
-        new_structure = Cell(new_atoms)
-        return new_structure
+        new_atoms = pAtoms(cell=latt,scaled_positions=new_coords,
+                           numbers=struct.numbers, pbc=True,
+                           symprec=self.symprec)
+        return new_atoms
     # end get_conventional_standardized
 
     def get_primitive_standardized(self, international_monoclinic=False):
@@ -1165,7 +1178,7 @@ class Spacegroup:
         Returns:
             The structure in a primitive standardized cell
         """
-        from hilde.structure import Cell
+        from hilde.structure import pAtoms
         conv = self.get_conventional_standardized(
                 international_monoclinic=international_monoclinic)
         lattice = self.get_lattice_type()
@@ -1216,7 +1229,9 @@ class Spacegroup:
                 new_scaled_positions.append(new_sc_pos)
                 new_numbers.append(num)
 
-        new_atoms = Atoms(cell=latt,scaled_positions=new_scaled_positions,numbers=new_numbers,pbc=True)
+        new_atoms = pAtoms(cell=latt, scaled_positions=new_scaled_positions,
+                           numbers=new_numbers, pbc=True,
+                           symprec=self.symprec)
 
         if lattice == "rhombohedral":
             landang = new_atoms.get_cell_lengths_and_angles()
@@ -1235,7 +1250,11 @@ class Spacegroup:
                 if not any( [is_periodic_image(new_sc_pos,n_p) for n_p in new_scaled_positions] ):
                     new_scaled_positions.append(new_sc_pos)
                     new_numbers.append(num)
-            new_atoms = Atoms(cell=latt,scaled_positions=new_scaled_positions,
-                              numbers=new_numbers,pbc=True)
-        return Cell(new_atoms)
+            new_atoms = pAtoms(cell=latt,scaled_positions=new_scaled_positions,
+                               numbers=new_numbers,
+                               pbc=True, symprec=self.symprec)
+        return new_atoms
     # end get_primitive_standardized
+
+def get_spacegroup(atoms, symprec=symprec, mode=0):
+    return Spacegroup(atoms, symprec=symprec, mode=mode)

@@ -5,7 +5,7 @@ A leightweight wrapper for Phonopy()
 import os
 import numpy as np
 from hilde import konstanten as const
-from hilde.structure.convert import ASE_to_phonopy_atoms, phonopy_to_ASE_atoms
+from hilde.structure import pAtoms
 from phonopy import Phonopy
 from collections import namedtuple
 from pathlib import Path
@@ -23,7 +23,7 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
         and the supercells_with_displacements as ase.atoms
     """
 
-    ph_atoms = ASE_to_phonopy_atoms(atoms)
+    ph_atoms = atoms.to_phonopy_atoms()
 
     phonon = Phonopy(ph_atoms,
                      supercell_matrix = supercell_matrix,
@@ -36,8 +36,8 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
                                   is_diagonal  = True,
                                   is_trigonal  = trigonal)
 
-    supercell = phonopy_to_ASE_atoms(phonon.get_supercell())
-    supercells_with_disps = [phonopy_to_ASE_atoms(disp)
+    supercell = pAtoms(phonopy_atoms=phonon.get_supercell())
+    supercells_with_disps = [pAtoms(phonopy_atoms=disp)
                              for disp in phonon.get_supercells_with_displacements()]
 
     pp = namedtuple('phonopy_preprocess', 'phonon supercell supercells_with_displacements')
