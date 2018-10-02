@@ -6,7 +6,7 @@ from hilde.tasks import compute_forces
 from hilde.helpers.k_grid import d2k
 from ase.dft.kpoints import get_cellinfo
 from ase.calculators.aims import Aims
-from hilde.MatRefDatabase.MaterialsFingerprints import get_phonon_bs_fingerprint_phononpy
+from hilde.materials_fp.MaterialsFingerprints import get_phonon_bs_fingerprint_phononpy
 
 atoms = read_aims('si.in')
 

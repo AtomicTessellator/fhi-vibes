@@ -43,7 +43,7 @@ def find_max_E(bands):
     return np.max( np.array([ bands[pt] for pt in bands ]).flatten() )
 
 # Given a band structure or dos get the finger print
-def get_fingerprint_bs(bands, minE, maxE, nbins):
+def get_fingerprint_bs(bands, minE, maxE, nbins, vectorize=False):
     """
     Creates a dictionary of the band structure fingerprint at all high symmetry points, where the high symmetry point is the key
     Args:
@@ -60,7 +60,7 @@ def get_fingerprint_bs(bands, minE, maxE, nbins):
         fingerprint[pt] = np.zeros(shape=(len(ener), 2))
         fingerprint[pt][:,0] = ener
         fingerprint[pt][:,1] = np.histogram(bands[pt], enerBounds)[0]
-    return fingerprint
+    return fingerprint if not vectorize else vectorize_bs_fingerprint(fingerprint)
 
 def get_fingerprint_dos(dos, minE, maxE, nbins):
     """
@@ -143,7 +143,7 @@ def get_phonon_bands_yaml(yamlFile, q_points):
     return bands
 
 # Functions to get the fingerprint from various input values
-def get_phonon_bs_fingerprint_phononpy(phonon, q_points, minE=None, maxE=None, nbins=32):
+def get_phonon_bs_fingerprint_phononpy(phonon, q_points, minE=None, maxE=None, nbins=32, vectorize=False):
     """
     Generates the phonon band structure fingerprint for a bands structure stored in a phonopy object
     Args:
@@ -156,9 +156,9 @@ def get_phonon_bs_fingerprint_phononpy(phonon, q_points, minE=None, maxE=None, n
         The phonon band structure fingerprint
     """
     bands = get_phonon_bands_phonopy(phonon, q_points)
-    return get_fingerprint_bs(bands, find_min_E(bands) if minE is None else minE, find_max_E(bands) if maxE is None else maxE, nbins)
+    return get_fingerprint_bs(bands, find_min_E(bands) if minE is None else minE, find_max_E(bands) if maxE is None else maxE, nbins, vectorize)
 
-def get_phonon_bs_fingerprint_yaml(yamlFile, q_points, minE=None, maxE=None, nbins=32):
+def get_phonon_bs_fingerprint_yaml(yamlFile, q_points, minE=None, maxE=None, nbins=32, vectorize=False):
     """
     Generates the phonon band structure fingerprint for a bands structure stored in a phonopy generated yaml file
     Args:
@@ -171,9 +171,9 @@ def get_phonon_bs_fingerprint_yaml(yamlFile, q_points, minE=None, maxE=None, nbi
         The phonon band structure fingerprint
     """
     bands = get_phonon_bands_yaml(yamlFile, bands)
-    return get_fingerprint_bs(bands, find_min_E(bands) if minE is None else minE, find_max_E(bands) if maxE is None else maxE, nbins)
+    return get_fingerprint_bs(bands, find_min_E(bands) if minE is None else minE, find_max_E(bands) if maxE is None else maxE, nbins, vectorize)
 
-def get_elec_bs_fingerprint(spectraFiles, k_points, minE=None, maxE=None, nbins=32):
+def get_elec_bs_fingerprint(spectraFiles, k_points, minE=None, maxE=None, nbins=32, vectorize=False):
     """
     Generates the electronic band structure fingerprint for a band structure stored in a set of files
     Args:
@@ -186,7 +186,7 @@ def get_elec_bs_fingerprint(spectraFiles, k_points, minE=None, maxE=None, nbins=
         The electronic band structure fingerprint
     """
     bands = get_elec_bands(spectraFiles, k_points)
-    return get_fingerprint_bs(bands, find_min_E(bands) if minE is None else minE, find_max_E(bands) if maxE is None else maxE, nbins)
+    return get_fingerprint_bs(bands, find_min_E(bands) if minE is None else minE, find_max_E(bands) if maxE is None else maxE, nbins, vectorize)
 
 def get_dos_fingerprint(dosFile, minE=None, maxE=None, nbins=256):
     """
@@ -206,7 +206,37 @@ def get_phonon_dos_fingerprint_phononpy(phonon, minE=None, maxE=None, nbins=256)
     dos = np.array(phonon.get_total_DOS()).transpose()
     return get_fingerprint_dos(dos, np.min(dos[:,0]) if minE is None else minE, np.max(dos[:,0]) if maxE is None else maxE, nbins)
 
+def vectorize_bs_fingerprint(fp, col=0):
+    return np.array([ fp[pt][:,col] for pt in fp ]).flatten()
 
+def scalar_product(fp1, fp2, vectorize=False, normalize=False):
+    if( (type(fp1) is list or type(fp2) is not list) and not vectorize):
+        print("A vectorized fingerprint has been passed but vectorize is false, setting it to true")
+        vectorize = True
+    if(vectorize):
+        if(type(fp1) is dict) : fp1 = vectorize_bs_fingerprint(fp1)
+        if(type(fp2) is dict) : fp2 = vectorize_bs_fingerprint(fp2)
+        scaleFactor = np.linalg.norm(fp1) * np.linalg.norm(fp2) if normalize else 1.0
+        return np.dot(fp1, fp2)/scaleFactor
+    else:
+        if(len(self.fingerprint) != len(otherFP.fingerprint) ):
+            print("The two finger prints do not represent the same q points, the scalar product is zero")
+            return 0.0
+        scalar = 0.0
+        for key in self.fingerprint:
+            if key not in otherFP.fingerprint:
+                print("The two finger prints do not represent the same q points, the scalar product is zero")
+                return 0.0
+            elif(self.isB and np.sum(self.fingerprint[key][:,1]) != np.sum(otherFP.fingerprint[key][:,1]) ):
+                print("The two fingerprints should have the same number bands, the scalar product is 0")
+                return 0.0
+            elif( np.any(self.fingerprint[key][:,0] != otherFP.fingerprint[key][:,0] ) ):
+                print("The energy bins need to be exactly the same, the scalar product is 0.0")
+                return 0.0
+            scalar += np.dot(self.fingerprint[key][:,1], otherFP.fingerprint[key][:,1])
+        if(normalize):
+            scalar /= np.linalg.norm(vectorize_bs_fingerprint(fp1,1)) * np.linalg.norm(vectorize_bs_fingerprint(fp2,1))
+        return scalar
 # Class definitions for incorporation into databases
 class MaterialsFingerprint(object):
     kpoints = {}
@@ -235,7 +265,7 @@ class MaterialsFingerprint(object):
             return frmt
         return ""
 
-    def scalar_product(self, otherFP):
+    def scalar_product(self, otherFP, normalize=True):
         if(len(self.fingerprint) != len(otherFP.fingerprint) ):
             print("The two finger prints do not represent the same q points, the scalar product is zero")
             return 0.0
@@ -250,8 +280,10 @@ class MaterialsFingerprint(object):
             elif( np.any(self.fingerprint[key][:,0] != otherFP.fingerprint[key][:,0] ) ):
                 print("The energy bins need to be exactly the same, the scalar product is 0.0")
                 return 0.0
-            scalar += np.dot(self.fingerprint[key][:,1], otherFP.fingerprint[key][:,1])/np.linalg.norm(self.fingerprint[key][:,1])**2
-        return scalar/len(self.fingerprint)
+            scalar += np.dot(self.fingerprint[key][:,1], otherFP.fingerprint[key][:,1])
+        if(normalize):
+            scalar /= np.linalg.norm(vectorize_bs_fingerprint(self.fingerprint,1)) * np.linalg.norm(vectorize_bs_fingerprint(otherFP.fingerprint,1))
+        return scalar
 
 class DOSFingerprint(MaterialsFingerprint):
     def __init__(self, isElec, isB, nbins=None, dE=None, minE=None, maxE=None, fp={}, kpoints={}, spectraFiles=[]):
@@ -270,13 +302,12 @@ class DOSFingerprint(MaterialsFingerprint):
             self.dE = (self.maxE - self.minE)/(256.0) if dE is None else (self.maxE-self.minE)/nbins
         #make the fingerprint
         if(fp == {}):
-            self.fingerprint = getDOSFingerprint(dos, self.minE, self.maxE, self.nbins)
+            self.fingerprint = get_fingerprint_dos(dos, self.minE, self.maxE, self.nbins)
         else:
             self.fingerprint = fp
 
 class BandStructureFingerprint(MaterialsFingerprint):
     def __init__(self, isElec, isB, nbins=None, dE=None, minE=None, maxE=None, fp={}, kpoints={}, spectraFiles=[], spectraYAML="", phonon=None):
-        start = clock()
         self.kpoints = kpoints
         self.spectraFiles = spectraFiles
         self.spectraYAML = spectraYAML

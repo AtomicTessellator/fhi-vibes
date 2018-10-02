@@ -9,7 +9,7 @@ from ase.io import read, write
 import matplotlib.pyplot as plt
 
 import sys
-from hilde.MatRefDatabase.MaterialsFingerprints import *
+from hilde.materials_fp.MaterialsFingerprints import *
 import numpy as np
 from glob import glob
 
@@ -77,7 +77,7 @@ q_points = { '\\Gamma': np.array([0.0, 0.00, 0.00]),
 # This is a possible path through the Brillouin zone
 q_path = ["\\Gamma", "\\Delta", "X", "W", "K", "\\Gamma", "\\Lambda", "L"]
 
-flattenfp = []
+fpList = []
 # Collect the forces
 for ii in range(len(workdirs)):
     force_sets = []
@@ -94,22 +94,22 @@ for ii in range(len(workdirs)):
     phonon.produce_force_constants()
     bands = []
     for jj, _ in enumerate(q_path[:-1]):
-        q_start, q_end = q_points[q_path[ii]], q_points[q_path[ii+1]]
+        q_start, q_end = q_points[q_path[jj]], q_points[q_path[jj+1]]
         band = get_band(q_start, q_end)
         bands.append(band)
     phonon.set_band_structure(bands)
     latexify = lambda sym: "$\\mathrm{\\mathsf{" + str(sym)  + "}}$"
     labels = [latexify(sym) for sym in q_path]
-    fp = get_phonon_bs_fingerprint_phononpy(phonon, q_points)
-    flattenfp.append( np.array( [fp[pt][:,0] for pt in fp] ).flatten() )
+    fp = get_phonon_bs_fingerprint_phononpy(phonon, q_points, vectorize=True)
+    fpList.append( fp )
     q_mesh = [45, 45, 45]
     phonon.set_mesh(q_mesh)
     # We generate the DOS by calling .set_total_DOS on the phonopy object
     phonon.set_total_DOS(freq_pitch=.1, tetrahedron_method=True)
-
-for ff in flattenfp:
-    print(np.dot( ff/np.linalg.norm(ff), flattenfp[-1]/np.linalg.norm(flattenfp[-1]) ) )
+print("phonon BS scalar product")
+for ff in fpList:
+    print( scalar_product(ff, fpList[-1], True, True) )
 
 phonon_dos_fp = get_phonon_dos_fingerprint_phononpy(phononCalcs[0][0])
-"Phonon DOS"
+print("Phonon DOS")
 print(phonon_dos_fp["DOS"])
