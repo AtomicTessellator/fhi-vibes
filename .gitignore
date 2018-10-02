@@ -28,3 +28,7 @@ data/*
 *.mod                                                                                          
 *.o                                                                                            
 *.so  
+
+# build stuff
+build
+lib
