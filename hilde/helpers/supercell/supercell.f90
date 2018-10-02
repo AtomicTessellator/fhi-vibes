@@ -9,7 +9,7 @@ module supercell
       real*8, dimension(3,3), intent(in) :: target_metric
       logical,      optional, intent(in) :: norm
       logical                            :: nrm
-      real*8                             :: ncell(3,3)
+      real*8                             :: ncell(3,3), deviation
 
       nrm = .true.
       if (present(norm)) nrm = norm
@@ -29,19 +29,19 @@ module supercell
     !> metric, e.g., cubic.
     function find_optimal_cell(cell, target_metric, target_size, deviation, &
         lower_limit, upper_limit, verbose) result(smatrix)
-      real*8,  intent(in)   :: cell(3,3) 
+      real*8,  intent(in)   :: cell(3,3)
       real*8,  intent(in)   :: target_metric(3,3)
       real*8,  intent(in)   :: target_size, deviation
       integer, intent(in)   :: lower_limit, upper_limit
       logical, intent(in)   :: verbose
       integer               :: smatrix(3,3)
       optional              :: lower_limit, upper_limit, deviation, verbose
-      integer               :: llim, ulim 
+      integer               :: llim, ulim
       logical               :: vrbs, found
       integer               :: i1, i2, i3, i4, i5, i6, i7, i8, i9, nn
       integer               :: initial_P(3,3), P(3,3), dP(3,3)
       real*8                :: dev, norm, score, best_score, ideal_P(3,3), ccell(3,3)
-      
+
       ! options and defaults
       dev  = 0.1d0
       llim = -2
@@ -79,7 +79,7 @@ module supercell
       ! Approximate the perfect smatrix
       ideal_P   = matmul(target_metric, matinv3x3(ccell))
       initial_P = nint(ideal_P)
-      if (vrbs) write (*,"(A,/,3(F7.3))") 'Ideal P:   ' , ideal_P 
+      if (vrbs) write (*,"(A,/,3(F7.3))") 'Ideal P:   ' , ideal_P
       if (vrbs) write (*,"(A,/,3(I7))") 'Initial P: ' , initial_P
 
       !> Expand brute force
@@ -92,8 +92,8 @@ module supercell
       do i7=llim, ulim
       do i8=llim, ulim
       do i9=llim, ulim
-        dP(1,1:3) =  (/ i1, i2, i3 /)                                                    
-        dP(2,1:3) =  (/ i4, i5, i6 /)                                                    
+        dP(1,1:3) =  (/ i1, i2, i3 /)
+        dP(2,1:3) =  (/ i4, i5, i6 /)
         dP(3,1:3) =  (/ i7, i8, i9 /)
         P = initial_P + dP
         nn = nint(determinant_3x3_real(real(P, 8)))

@@ -25,10 +25,13 @@ data/*
 # ASE
 *parameters.ase
 
-*.mod                                                                                          
-*.o                                                                                            
-*.so  
+*.mod
+*.o
+*.so
 
 # build stuff
 build
 lib
+bin
+dist
+*.egg-info

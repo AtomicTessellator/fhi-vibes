@@ -1,7 +1,7 @@
 from numpy.distutils.core import Extension
 
 ext = Extension(name = 'supercell',
-                sources=['supercell.f90', 'linalg.f90'])
+                sources=['linalg.f90', 'supercell.f90'])
 
 if __name__ == '__main__':
     from numpy.distutils.core import setup
@@ -9,4 +9,3 @@ if __name__ == '__main__':
           description='find cubic supercells',
           author='Florian Knoop',
           ext_modules=[ext])
-
