@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-from numpy.distutils.core import setup
-from numpy.distutils.core import Extension
-from setuptools import find_packages
+import setuptools
+from numpy.distutils.core import setup, Extension
 
 ext = Extension(name = 'hilde.helpers.supercell.supercell',
                 sources=['hilde/helpers/supercell/supercell.f90',
@@ -16,7 +15,8 @@ setup(name='HiLDe',
       author='Thomas Purcell, Florian Knoop',
       author_email='knoop@fhi-berlin.mpg.de',
       license='MIT License',
-      install_requires=['numpy', 'phonopy', 'spglib'],
-      packages=find_packages(),
-      ext_modules=[ext]
+      # install_requires=['numpy', 'phonopy', 'spglib'],
+      packages=setuptools.find_packages(),
+      ext_modules=[ext],
+      scripts=['hilde/scripts/geometry_info']
       )

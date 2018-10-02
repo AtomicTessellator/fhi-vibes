@@ -3,8 +3,8 @@ from hilde.konstanten.symmetry import symprec
 from ase.io import read as ase_read
 
 # Parse geometry.in file
-def read_aims(fname):
-    return pAtoms(ase_read(fname, 0, 'aims'))
+def read_aims(fname, symprec=None):
+    return pAtoms(ase_read(fname, 0, 'aims'), symprec=symprec)
 
 # def read_aims(fname, symprec=symprec, sorted = False):
 #     from .structure import pAtoms
