@@ -48,9 +48,11 @@ init_statements = [
     magmoms BLOB,
     magmom REAL,
     charges BLOB,
-    supercell_matrix BLOB,
-    force_constants BLOB,
-    phonon_dos_fp BLOB,
+    supercell_matrix TEXT,
+    force_constants TEXT,
+    phonon_dos_fp TEXT,
+    qpoints TEXT,
+    phonon_bs_fp TEXT,
     key_value_pairs TEXT,  -- key-value pairs and data as json
     data TEXT,
     natoms INTEGER,  -- stuff for making queries faster
@@ -161,6 +163,8 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                    encode( row.get('supercell_matrix') ),
                    encode(row.get("force_constants")),
                    encode(row.get("phonon_dos_fp")),
+                   encode(row.get("qpoints")),
+                   encode(row.get("phonon_bs_fp")),
                    encode(key_value_pairs),
                    data,
                    len(row.numbers),
@@ -253,27 +257,16 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             dct['force_constants'] = decode(values[26])
         if values[27] is not None:
             dct['phonon_dos_fp'] = decode(values[27])
+        if values[28] is not None:
+            dct['qpoints'] = decode(values[28])
+        if values[29] is not None:
+            dct['phonon_bs_fp'] = decode(values[29])
         if values[len(self.columnnames)-8] != '{}':
             dct['key_value_pairs'] = decode(values[len(self.columnnames)-8])
         if len(values) >= len(self.columnnames)-6 and values[len(self.columnnames)-7] != 'null':
             dct['data'] = decode(values[len(self.columnnames)-7])
 
         return PhononRow(dct)
-
-    def _get_row(self, id):
-        con = self._connect()
-        self._initialize(con)
-        c = con.cursor()
-        if id is None:
-            c.execute('SELECT COUNT(*) FROM systems')
-            assert c.fetchone()[0] == 1
-            c.execute('SELECT * FROM systems')
-        else:
-            c.execute('SELECT * FROM systems WHERE id=?', (id,))
-        values = c.fetchone()
-
-        values = self._old2new(values)
-        return self._convert_tuple_to_row(values)
 
     def create_select_statement(self, keys, cmps, sort=None, order=None, sort_table=None, what='systems.*'):
         tables = ['systems']

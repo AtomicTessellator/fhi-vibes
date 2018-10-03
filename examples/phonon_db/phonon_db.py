@@ -24,7 +24,6 @@ def get_band(q_start, q_end, n_q=51):
     band = [q_start + (q_end - q_start) / (n_q-1) * i for i in range(n_q)]
     return band
 
-
 st = Settings('hilde.conf')
 
 aims_out = "aims.out"
@@ -71,9 +70,11 @@ found = False
 try:
     phonon = db.get_phonon(supercell_matrix=smatrix, atoms_hash=atoms_hash, calc_hash=calc_hash, is_results=True, attach_calculator=False)
     found = True
+    rows = db.get( selection=None, supercell_matrix=smatrix, atoms_hash=atoms_hash, calc_hash=calc_hash, is_results=True)
+    print("q point dictionary stored inside the row")
+    print(rows.qpoints)
 except KeyError:
     print('Si not found, will compute')
-
     if input('proceed? ').lower() == 'y':
         pass
     else:
@@ -94,14 +95,34 @@ except KeyError:
         force_sets.append(forces)
     phonon.set_forces(force_sets)
     phonon.produce_force_constants()
+
+
+q_points = {}
+q_points = {'G': np.array([0.0, 0.00, 0.00]),
+            'D': np.array([0.25, 0., 0.25]),
+            'x': np.array([0.5, 0.00, 0.50]),
+            'w': np.array([0.5, 0.25, 0.75]),
+            'k': np.array([0.375, 0.375, 0.75]),
+            'L': np.array([0.25, 0.25, 0.25]),
+            'l': np.array([0.5, 0.5, 0.5])
+         }
+q_path = ["G", "D", "x", "w", "k", "G", "L", "l"]
+try:
+    bands = []
+    for ii, _ in enumerate(q_path[:-1]):
+        q_start, q_end = q_points[q_path[ii]], q_points[q_path[ii+1]]
+        band = get_band(q_start, q_end)
+        bands.append(band)
+    phonon.set_band_structure(bands)
+except:
+    print("Please run the bandstructure calculations.")
 q_mesh = [45, 45, 45]
 phonon.set_mesh(q_mesh)
 phonon.set_total_DOS(freq_pitch=.1, tetrahedron_method=True )
-
 if not found:
     db.write(phonon, atoms_hash=atoms_hash, calc_hash=calc_hash, is_results=(phonon.get_force_constants() is not None))
 
-# print('Database:')
-# for row in db.select():
-#     print('\n', row['id'])
-#     pprint(row.__dict__)
+print('Database:')
+for row in db.select():
+    print('\n', row['id'])
+    pprint(row.__dict__)

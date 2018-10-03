@@ -32,6 +32,14 @@ def phonon2dict(phonon):
         dct['force_constants'] = phonon.get_force_constants()
     if phonon._total_dos is not None:
         dct['phonon_dos_fp'] = get_phonon_dos_fingerprint_phononpy(phonon)
+    if phonon.band_structure is not None:
+        dct['qpoints'] = {}
+        for ii in range( len(phonon.band_structure.qpoints) ):
+            if list(phonon.band_structure.qpoints[ii][ 0]) not in dct['qpoints'].values():
+                dct['qpoints'][phonon.band_structure.distances[ii][ 0]] = list(phonon.band_structure.qpoints[ii][ 0])
+            if list(phonon.band_structure.qpoints[ii][-1]) not in dct['qpoints'].values():
+                dct['qpoints'][phonon.band_structure.distances[ii][-1]] = list(phonon.band_structure.qpoints[ii][-1])
+        dct['phonon_bs_fp'] = get_phonon_bs_fingerprint_phononpy(phonon, dct['qpoints'])
     return dct
 
 class PhononRow(AtomsRow):
@@ -61,6 +69,4 @@ class PhononRow(AtomsRow):
             if(len(self.force_constants.shape) < 4):
                 self.force_constants.reshape( (int(np.sqrt(len(self.force_constants))/3), int(np.sqrt(len(self.force_constants))/3),3,3) )
             phonon.set_force_constants(self.force_constants)
-        if("qpoints" in self):
-            phonon.set_qpoints_phonon(self.qpoints)
         return phonon
