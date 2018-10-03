@@ -46,6 +46,8 @@ class PhononRow(AtomsRow):
     def __init__(self, dct):
         if isinstance(dct, dict):
             dct = dct.copy()
+            if type(dct['supercell_matrix']) is not list:
+                dct['supercell_matrix'] = list(dct['supercell_matrix'].flatten())
         else:
             dct = phonon2dict(dct)
         assert 'numbers' in dct

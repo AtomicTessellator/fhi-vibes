@@ -15,12 +15,6 @@ from hilde.phonon_db.row import PhononRow
 
 
 class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, tb):
-        pass
-
     def _write(self, phonon, key_value_pairs, data, id):
         PhononDatabase._write(self, phonon, key_value_pairs, data)
         bigdct = {}
@@ -127,6 +121,8 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                     break
             else:
                 for key, op, val in cmps:
+                    if(key == 'supercell_matrix'):
+                        val = list(val.flatten())
                     if isinstance(key, int):
                         value = np.equal(row.numbers, key).sum()
                     else:
@@ -140,16 +136,3 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                     if n >= offset:
                         yield row
                     n += 1
-
-    @property
-    def metadata(self):
-        if self._metadata is None:
-            bigdct, myids, nextid = self._read_json()
-            self._metadata = bigdct.get('metadata', {})
-        return self._metadata.copy()
-
-    @metadata.setter
-    def metadata(self, dct):
-        bigdct, ids, nextid = self._read_json()
-        self._metadata = dct
-        self._write_json(bigdct, ids, nextid)
