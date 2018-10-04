@@ -33,7 +33,7 @@ class PhononRow(AtomsRow):
     def __init__(self, dct):
         if isinstance(dct, dict):
             dct = dct.copy()
-            if type(dct['supercell_matrix']) is not list:
+            if type(dct['supercell_matrix']) is not list and type(dct['supercell_matrix']) is not str:
                 dct['supercell_matrix'] = list(dct['supercell_matrix'].flatten())
         else:
             dct = phonon2dict(dct)
@@ -48,6 +48,7 @@ class PhononRow(AtomsRow):
         self.__dict__.update(dct)
 
     def to_phonon(self, attach_calculator=False, add_additional_information=False):
+        print(type(self.supercell_matrix))
         phonon = Phonopy(to_phonopy_atoms(pAtoms(ase_atoms=self.toatoms())),
                 supercell_matrix = np.array(self.supercell_matrix).reshape(3,3),
                 symprec          = 1e-5,

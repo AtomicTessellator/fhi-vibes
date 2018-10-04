@@ -141,8 +141,8 @@ def connect(name, type='extract_from_name', create_indices=True, use_lock_file=T
             type = None
         elif not isinstance(name, basestring):
             type = 'json'
-        elif (name.startswith('postgresql://') or
-              name.startswith('postgres://')):
+        elif (name.startswith('postgresql:/') or
+              name.startswith('postgres:/')):
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
@@ -168,9 +168,9 @@ def connect(name, type='extract_from_name', create_indices=True, use_lock_file=T
         from hilde.phonon_db.phonon_sqlitedb import PhononSQLite3Database
         return PhononSQLite3Database(name, create_indices, use_lock_file,
                                serial=serial)
-    # if type == 'postgresql':
-    #     from ase.db.postgresql import PostgreSQLDatabase
-    #     return PostgreSQLDatabase(name)
+    if type == 'postgresql':
+        from hilde.phonon_db.phonon_postgresqldb import PhononPostgreSQLDatabase
+        return PhononPostgreSQLDatabase(name)
     raise ValueError('Unknown database type: ' + type)
 
 
