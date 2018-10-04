@@ -1,32 +1,19 @@
 from ase.calculators.aims import Aims
 from pathlib import Path
 import numpy as np
-import shutil
 from hilde.helpers.hash import hash_atoms
 from ase.atoms import Atoms
-from ase.io import read, write
-from ase.io.jsonio import encode
+from ase.dft.kpoints import get_cellinfo, special_paths, bandpath
+
 # from ase.db import connect
 from pprint import pprint
-from hilde.helpers.paths import cwd
 from hilde.settings import Settings
-from hilde.parsers import read_aims, read_aims_output
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import phono as ph
 from hilde.structure import pAtoms
-from aims_calculation import run_aims
-
-
-import os
-
-def get_band(q_start, q_end, n_q=51):
-    """ Create a list of n_q equidistant qpoints connecting q_start and q_end """
-    band = [q_start + (q_end - q_start) / (n_q-1) * i for i in range(n_q)]
-    return band
+from hilde.tasks.calculate import compute_forces
 
 st = Settings('hilde.conf')
-
-aims_out = "aims.out"
 
 database_dir = str(Path(st.database.location) / st.database.name)
 print(f'database: {database_dir}')
@@ -41,7 +28,6 @@ aims = Aims(
     k_grid=[2, 2, 2],
     output_level='MD_light'
 )
-#
 
 # set up geometry
 # Si diamond structure
@@ -51,7 +37,7 @@ siTemp = Atoms('Si2', positions=[(0.1, 0., 0.), (b/2, b/2, b/2)], cell=[[0, b, b
 si = pAtoms(ase_atoms=siTemp)
 si.set_calculator(aims)
 
-smatrix = 1*np.array([[-1,  1,  1],
+smatrix = 2*np.array([[-1,  1,  1],
                       [ 1, -1,  1],
                       [ 1,  1, -1]])
 
@@ -71,58 +57,35 @@ try:
     phonon = db.get_phonon(supercell_matrix=smatrix, atoms_hash=atoms_hash, calc_hash=calc_hash, is_results=True, attach_calculator=False)
     found = True
     rows = db.get( selection=None, supercell_matrix=smatrix, atoms_hash=atoms_hash, calc_hash=calc_hash, is_results=True)
-    print("q point dictionary stored inside the row")
-    print(rows.qpoints)
+    print("The Entropy of Si at 300 K is: ", rows.thermal_entropy(300))
 except KeyError:
     print('Si not found, will compute')
     if input('proceed? ').lower() == 'y':
         pass
     else:
         exit()
-    for jj, cell in enumerate(phononCalc[2]):
-        folder_with_disp = workdir / f'disp-{jj:03d}'
-        folder_with_disp.mkdir(parents=True, exist_ok=True)
-        print(str(folder_with_disp) + ' created')
-        write(str(folder_with_disp / 'geometry.in'),cell, 'aims', scaled=True)
-        try: (folder_with_disp / 'control.in').unlink()
-        except: pass
-        shutil.copy('control.in', str(folder_with_disp / 'control.in'))
-        try:
-            forces = read_aims_output(str(folder_with_disp / 'aims.out'))[0].get_forces()
-        except FileNotFoundError:
-            run_aims(folder_with_disp, "aims.out", st.machine.aims_command)
-            forces = read_aims_output(str(folder_with_disp / 'aims.out'))[0].get_forces()
-        force_sets.append(forces)
-    phonon.set_forces(force_sets)
+    phonon.set_forces(compute_forces(phononCalc[2], si.calc, workdir))
     phonon.produce_force_constants()
 
-
-q_points = {}
-q_points = {'G': np.array([0.0, 0.00, 0.00]),
-            'D': np.array([0.25, 0., 0.25]),
-            'x': np.array([0.5, 0.00, 0.50]),
-            'w': np.array([0.5, 0.25, 0.75]),
-            'k': np.array([0.375, 0.375, 0.75]),
-            'L': np.array([0.25, 0.25, 0.25]),
-            'l': np.array([0.5, 0.5, 0.5])
-         }
-q_path = ["G", "D", "x", "w", "k", "G", "L", "l"]
+si_info = get_cellinfo(si.cell)
+qpaths = special_paths[si_info.lattice].split(",")
 try:
     bands = []
-    for ii, _ in enumerate(q_path[:-1]):
-        q_start, q_end = q_points[q_path[ii]], q_points[q_path[ii+1]]
-        band = get_band(q_start, q_end)
-        bands.append(band)
+    for path in qpaths:
+        for ii, _ in enumerate(path[:-1]):
+            bands.append(bandpath([si_info.special_points[path[ii]], si_info.special_points[path[ii+1]]], si.cell)[0])
     phonon.set_band_structure(bands)
 except:
     print("Please run the bandstructure calculations.")
+
 q_mesh = [45, 45, 45]
 phonon.set_mesh(q_mesh)
 phonon.set_total_DOS(freq_pitch=.1, tetrahedron_method=True )
+phonon.set_thermal_properties(t_step= 25, t_max = 1000, t_min = 0)
+
 if not found:
     db.write(phonon, atoms_hash=atoms_hash, calc_hash=calc_hash, is_results=(phonon.get_force_constants() is not None))
-
-print('Database:')
-for row in db.select():
-    print('\n', row['id'])
-    pprint(row.__dict__)
+# print('Database:')
+# for row in db.select():
+#     print('\n', row['id'])
+#     pprint(row.__dict__)

@@ -53,6 +53,12 @@ init_statements = [
     phonon_dos_fp TEXT,
     qpoints TEXT,
     phonon_bs_fp TEXT,
+    thermal_prop_ZPE REAL,
+    thermal_prop_high_T_S REAL,
+    thermal_prop_T BLOB,
+    thermal_prop_A BLOB,
+    thermal_prop_Cv BLOB,
+    thermal_prop_S BLOB,
     key_value_pairs TEXT,  -- key-value pairs and data as json
     data TEXT,
     natoms INTEGER,  -- stuff for making queries faster
@@ -101,6 +107,36 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     version = None
     columnnames = [line.split()[0].lstrip()
                    for line in init_statements[0].splitlines()[1:]]
+
+    def blob(self, array):
+        """Convert array to blob/buffer object."""
+
+        if array is None:
+            return None
+        if len(array) == 0:
+            array = np.zeros(0)
+        if array.dtype == np.int64:
+            array = array.astype(np.int32)
+        if not np.little_endian:
+            array = array.byteswap()
+        return memoryview(np.ascontiguousarray(array))
+
+    def deblob(self, buf, dtype=float, shape=None):
+        """Convert blob/buffer object to ndarray of correct dtype and shape.
+
+        (without creating an extra view)."""
+        if buf is None:
+            return None
+        if len(buf) == 0:
+            array = np.zeros(0, dtype)
+        else:
+            array = np.frombuffer(buf, dtype)
+            if not np.little_endian:
+                array = array.byteswap()
+        if shape is not None:
+            array.shape = shape
+        return array
+
     def _write(self, atoms, key_value_pairs, data, id):
         PhononDatabase._write(self, atoms, key_value_pairs, data)
         encode = self.encode
@@ -165,6 +201,12 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                    encode(row.get("phonon_dos_fp")),
                    encode(row.get("qpoints")),
                    encode(row.get("phonon_bs_fp")),
+                   row.get("thermal_prop_ZPE"),
+                   row.get("thermal_prop_high_T_S"),
+                   blob(row.get("thermal_prop_T")),
+                   blob(row.get("thermal_prop_A")),
+                   blob(row.get("thermal_prop_S")),
+                   blob(row.get("thermal_prop_Cv")),
                    encode(key_value_pairs),
                    data,
                    len(row.numbers),
@@ -261,6 +303,18 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             dct['qpoints'] = decode(values[28])
         if values[29] is not None:
             dct['phonon_bs_fp'] = decode(values[29])
+        if values[30] is not None:
+            dct['thermal_prop_ZPE'] = values[30]
+        if values[31] is not None:
+            dct['thermal_prop_high_T_S'] = values[31]
+        if values[32] is not None:
+            dct['thermal_prop_T']  = deblob(values[32])
+        if values[33] is not None:
+            dct['thermal_prop_A']  = deblob(values[33])
+        if values[34] is not None:
+            dct['thermal_prop_S']  = deblob(values[34])
+        if values[35] is not None:
+            dct['thermal_prop_Cv'] = deblob(values[35])
         if values[len(self.columnnames)-8] != '{}':
             dct['key_value_pairs'] = decode(values[len(self.columnnames)-8])
         if len(values) >= len(self.columnnames)-6 and values[len(self.columnnames)-7] != 'null':
