@@ -70,7 +70,7 @@ class Spacegroup:
         # Always perform spglib (if not done yet)
         if self._spglib_dataset is None:
             self._spglib_dataset = spg.get_symmetry_dataset(
-            self.atoms.to_spglib_cell(), symprec=self.symprec)
+                self.atoms.to_spglib_cell(), symprec=self.symprec)
 
             lat = self.atoms.get_cell()
             ilat = la.inv(lat)
