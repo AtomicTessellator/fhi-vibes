@@ -1,4 +1,3 @@
-from __future__ import absolute_import, print_function
 import os
 import sys
 
@@ -69,7 +68,6 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         if explain:
             yield {'explain': (0, 0, 0, 'scan table')}
             return
-
         if sort:
             if sort[0] == '-':
                 reverse = True
@@ -97,15 +95,12 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
             for key, row in rows:
                 yield row
             return
-
         try:
             bigdct, ids, nextid = self._read_json()
         except IOError:
             return
-
         if not limit:
             limit = -offset - 1
-
         cmps = [(key, ops[op], val) for key, op, val in cmps]
         n = 0
         for id in ids:
@@ -120,11 +115,20 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                 if key not in row:
                     break
             else:
+                temp = None
+                for key, op, val in cmps:
+                    if(key == 'thermal_prop_T'):
+                        assert op is ops['=']
+                        temp = val
                 for key, op, val in cmps:
                     if(key == 'supercell_matrix'):
                         val = list(val.flatten())
-                    if isinstance(key, int):
+                    if(key is 'thermal_prop_T'):
+                        continue
+                    elif isinstance(key, int):
                         value = np.equal(row.numbers, key).sum()
+                    elif key in ['thermal_prop_A', 'thermal_prop_S', 'thermal_prop_Cv']:
+                        value = row.get(key)[np.where(row.get('thermal_prop_T') == temp)[0]]
                     else:
                         value = row.get(key)
                         if key == 'pbc':

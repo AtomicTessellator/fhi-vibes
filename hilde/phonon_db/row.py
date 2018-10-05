@@ -48,7 +48,6 @@ class PhononRow(AtomsRow):
         self.__dict__.update(dct)
 
     def to_phonon(self, attach_calculator=False, add_additional_information=False):
-        print(type(self.supercell_matrix))
         phonon = Phonopy(to_phonopy_atoms(pAtoms(ase_atoms=self.toatoms())),
                 supercell_matrix = np.array(self.supercell_matrix).reshape(3,3),
                 symprec          = 1e-5,

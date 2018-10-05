@@ -5,6 +5,7 @@ import json
 import numbers
 import sqlite3
 import numpy as np
+import struct
 
 import ase.io.jsonio
 from ase.data import atomic_numbers
@@ -55,10 +56,10 @@ init_statements = [
     phonon_bs_fp TEXT,
     thermal_prop_ZPE REAL,
     thermal_prop_high_T_S REAL,
-    thermal_prop_T BLOB,
-    thermal_prop_A BLOB,
-    thermal_prop_Cv BLOB,
-    thermal_prop_S BLOB,
+    thermal_prop_T TEXT,
+    thermal_prop_A TEXT,
+    thermal_prop_S TEXT,
+    thermal_prop_Cv TEXT,
     key_value_pairs TEXT,  -- key-value pairs and data as json
     data TEXT,
     natoms INTEGER,  -- stuff for making queries faster
@@ -108,33 +109,33 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     columnnames = [line.split()[0].lstrip()
                    for line in init_statements[0].splitlines()[1:]]
 
-    def blob(self, array):
-        """Convert array to blob/buffer object."""
-
+    def toHex(self, array):
         if array is None:
             return None
         if len(array) == 0:
             array = np.zeros(0)
-        if array.dtype == np.int64:
-            array = array.astype(np.int32)
-        if not np.little_endian:
-            array = array.byteswap()
-        return memoryview(np.ascontiguousarray(array))
-
-    def deblob(self, buf, dtype=float, shape=None):
-        """Convert blob/buffer object to ndarray of correct dtype and shape.
-
-        (without creating an extra view)."""
-        if buf is None:
-            return None
-        if len(buf) == 0:
-            array = np.zeros(0, dtype)
+        hexstr = ''
+        if array.dtype is np.int64:
+            for val in array:
+                hexstr += hex( struct.unpack( '>Q', struct.pack('>q', val) )[0] ) if(val != 0) else '0x0000000000000000'
+        elif array.dtype is  np.int32:
+            array = array.astype(np.int64)
+            for val in array:
+                hexstr += hex( struct.unpack( '>Q', struct.pack('>q', val) )[0] ) if(val != 0) else '0x0000000000000000'
         else:
-            array = np.frombuffer(buf, dtype)
-            if not np.little_endian:
-                array = array.byteswap()
-        if shape is not None:
-            array.shape = shape
+            for val in array:
+                hexstr += hex( struct.unpack( '>Q', struct.pack('>d', val) )[0] ) if(val != 0.0) else '0x0000000000000000'
+        return hexstr
+
+    def fromHex(self, hexstr, dtype=np.float64, shape=None):
+        if hexstr is None:
+            return None
+        elif len(hexstr) == 0 :
+            return np.zeros(0, dtype)
+        if dtype is np.int64 or dtype is np.int32 or dtype is int:
+            array = np.array( [ struct.unpack('>q', struct.pack('>Q', int(hh,16) ) )[0] for hh in hexstr.split('0x')[1:] ] ).astype(dtype)
+        else:
+            array = np.array( [ struct.unpack('>d', struct.pack('>Q', int(hh,16) ) )[0] for hh in hexstr.split('0x')[1:] ] ).astype(dtype)
         return array
 
     def _write(self, atoms, key_value_pairs, data, id):
@@ -203,10 +204,10 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                    encode(row.get("phonon_bs_fp")),
                    row.get("thermal_prop_ZPE"),
                    row.get("thermal_prop_high_T_S"),
-                   blob(row.get("thermal_prop_T")),
-                   blob(row.get("thermal_prop_A")),
-                   blob(row.get("thermal_prop_S")),
-                   blob(row.get("thermal_prop_Cv")),
+                   self.toHex(row.get("thermal_prop_T")),
+                   self.toHex(row.get("thermal_prop_A")),
+                   self.toHex(row.get("thermal_prop_S")),
+                   self.toHex(row.get("thermal_prop_Cv")),
                    encode(key_value_pairs),
                    data,
                    len(row.numbers),
@@ -308,13 +309,13 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if values[31] is not None:
             dct['thermal_prop_high_T_S'] = values[31]
         if values[32] is not None:
-            dct['thermal_prop_T']  = deblob(values[32])
+            dct['thermal_prop_T']  = self.fromHex(values[32])
         if values[33] is not None:
-            dct['thermal_prop_A']  = deblob(values[33])
+            dct['thermal_prop_A']  = self.fromHex(values[33])
         if values[34] is not None:
-            dct['thermal_prop_S']  = deblob(values[34])
+            dct['thermal_prop_S']  = self.fromHex(values[34])
         if values[35] is not None:
-            dct['thermal_prop_Cv'] = deblob(values[35])
+            dct['thermal_prop_Cv'] = self.fromHex(values[35])
         if values[len(self.columnnames)-8] != '{}':
             dct['key_value_pairs'] = decode(values[len(self.columnnames)-8])
         if len(values) >= len(self.columnnames)-6 and values[len(self.columnnames)-7] != 'null':
@@ -348,9 +349,17 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         for key, op, value in cmps:
             if isinstance(key, int):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
-
+        temp = None
         for key, op, value in cmps:
-            if key in ['id', 'energy', 'magmom', 'ctime', 'user', 'calculator', 'natoms', 'pbc', 'unique_id', 'fmax', 'smax', 'volume', 'mass', 'charge', 'supercell_matrix']:
+            if key == 'thermal_prop_T':
+                if op != '=':
+                    raise ValeError("For temperature searches the operator must be =")
+                else:
+                    temp = hex( struct.unpack('>Q', struct.pack('>d', value) )[0] )
+        for key, op, value in cmps:
+            if key is 'thermal_prop_T':
+                continue
+            elif key in ['id', 'energy', 'magmom', 'ctime', 'user', 'calculator', 'natoms', 'pbc', 'unique_id', 'fmax', 'smax', 'volume', 'mass', 'charge', 'supercell_matrix']:
                 if key == 'user' and self.version >= 2:
                     key = 'username'
                 elif key == 'pbc':
@@ -360,9 +369,23 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                     assert self.version >= 6, 'Update your db-file'
                 elif key == 'supercell_matrix':
                     value = self.encode(list(value.flatten()))
+
                 where.append('systems.{}{}?'.format(key, op))
                 args.append(value)
-
+            elif key in ['thermal_prop_A', 'thermal_prop_S', 'thermal_prop_Cv']:
+                if(temp is None):
+                    raise ValeError("If selecting with a thermal property a temperature must also be given.")
+                opActual = op
+                if(value < 0.0):
+                    if  (op == '<') : opActual = '>'
+                    elif(op == '>') : opActual = '<'
+                    elif(op == '<='): opActual = '>='
+                    elif(op == '>='): opActual = '<='
+                if self.type == 'postgresql':
+                    where.append("SUBSTR({}, POSITION('{}' IN systems.thermal_prop_T), 18){}?".format(key,temp,opActual))
+                else:
+                    where.append("SUBSTR({}, INSTR(systems.thermal_prop_T,'{}'), 18){}?".format(key,temp,opActual))
+                args.append(hex( struct.unpack('>Q', struct.pack('>d', value) )[0] ) )
             elif isinstance(key, int):
                 if self.type == 'postgresql':
                     where.append(
