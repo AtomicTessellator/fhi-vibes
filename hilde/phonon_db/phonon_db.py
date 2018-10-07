@@ -9,7 +9,7 @@ import functools
 import numbers
 # Import ase
 from ase.utils import Lock, basestring, PurePath
-from ase.db.core import Database, now, lock, parse_selection
+from ase.db.core import Database, now, lock, parse_selection, check, str_represents
 from ase.calculators.calculator import all_properties, all_changes
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
 from ase.data import atomic_numbers
@@ -20,6 +20,7 @@ from hilde.phonon_db.row import PhononRow
 from hilde.materials_fp.MaterialsFingerprints import get_phonon_bs_fingerprint_phononpy, get_phonon_dos_fingerprint_phononpy
 from hilde.structure.structure import pAtoms
 
+# File largely copied from ase.db.core modified to use PhononRows over AtomsRow
 T2000 = 946681200.0  # January 1. 2000
 YEAR = 31557600.0  # 365.25 days
 
@@ -83,7 +84,8 @@ reserved_keys = set(all_properties +
                      'calculator', 'calculator_parameters',
                      'key_value_pairs', 'data'])
 
-numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms'])
+numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms', 'natoms_in_Sc'])
+numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms', 'natoms_in_Sc'])
 
 def str_represents(value, t=int):
     try:
@@ -120,9 +122,10 @@ def check(key_value_pairs):
                         '{}(value) before '.format(t.__name__) +
                         'writing to the database OR change ' +
                         'to a different string.')
+
 def connect(name, type='extract_from_name', create_indices=True, use_lock_file=True, append=True, serial=False):
     """Create connection to database.
-
+    Modified to link to PhononDatabase types
     name: str
         Filename or address of database.
     type: str
@@ -199,13 +202,21 @@ class PhononDatabase(Database):
         self.serial = serial
         self._metadata = None  # decription of columns and other stuff
 
-    def _write(self, atoms, key_value_pairs, data, id=None):
-        check(key_value_pairs)
-        return 1
+    # def _write(self, atoms, key_value_pairs, data, id=None):
+    #     check(key_value_pairs)
+    #     return 1
 
-    def get_phonon(self, selection=None, attach_calculator=False, add_additional_information=False, **kwarg):
+    def get_phonon(self, selection=None, **kwarg):
+        '''
+        Gets a phonopy object from a database row
+        Args:
+            selection: selection criteria for the database query
+            kwargs   : additional selection criteria not stored in selection
+        Returns:
+            the phonopy object of the row
+        '''
         row = self.get(selection, **kwarg)
-        return row.to_phonon(attach_calculator, add_additional_information)
+        return row.to_phonon()
 
     @parallel_function
     @lock

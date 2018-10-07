@@ -8,11 +8,24 @@ from hilde.structure.structure import pAtoms
 from hilde.structure.convert import to_phonopy_atoms
 
 def phonon2dict(phonon):
+    '''
+    Converts a phonopy object to a dictionary
+    Args:
+        phonon: the phonopy object to be converted
+    Returns:
+        dct: the dictionary representation of phonon
+    '''
     dct = atoms2dict(pAtoms(phonopy_atoms=phonon.get_primitive()))
     if phonon.get_supercell_matrix() is not None:
         dct['supercell_matrix'] = list(phonon.get_supercell_matrix().flatten())
+        try:
+            dct['natoms_in_sc'] = len(phonon.get_supercell().symbols)
+        except:
+            dct['natoms_in_sc'] = len(dct['numbers'])
     if phonon.get_force_constants() is not None:
         dct['force_constants'] = phonon.get_force_constants()
+    if phonon.mesh is not None:
+        dct['qmesh'] = phonon.mesh.mesh_numbers
     if phonon._total_dos is not None:
         dct['phonon_dos_fp'] = get_phonon_dos_fingerprint_phononpy(phonon)
     if phonon.band_structure is not None:
@@ -30,10 +43,19 @@ def phonon2dict(phonon):
     return dct
 
 class PhononRow(AtomsRow):
+    '''
+    Class that is largely based off of the ASE AtomsRow object but expanded for phonopy
+    '''
     def __init__(self, dct):
+        '''
+        Constructor for the PhononRow.
+        Args:
+            dct: a phonopy object or a dict
+                representation of the phonopy object to be added to the database
+        '''
         if isinstance(dct, dict):
             dct = dct.copy()
-            if type(dct['supercell_matrix']) is not list and type(dct['supercell_matrix']) is not str:
+            if 'supercell_matrix' in dct and type(dct['supercell_matrix']) is not list and type(dct['supercell_matrix']) is not str:
                 dct['supercell_matrix'] = list(dct['supercell_matrix'].flatten())
         else:
             dct = phonon2dict(dct)
@@ -47,7 +69,12 @@ class PhononRow(AtomsRow):
         self.__dict__.update(kvp)
         self.__dict__.update(dct)
 
-    def to_phonon(self, attach_calculator=False, add_additional_information=False):
+    def to_phonon(self):
+        '''
+        Converts the row back into a phonopy object
+        Returns:
+            phonon: The phonopy object the PhononRow represents
+        '''
         phonon = Phonopy(to_phonopy_atoms(pAtoms(ase_atoms=self.toatoms())),
                 supercell_matrix = np.array(self.supercell_matrix).reshape(3,3),
                 symprec          = 1e-5,
@@ -58,16 +85,45 @@ class PhononRow(AtomsRow):
             if(len(self.force_constants.shape) < 4):
                 self.force_constants.reshape( (int(np.sqrt(len(self.force_constants))/3), int(np.sqrt(len(self.force_constants))/3),3,3) )
             phonon.set_force_constants(self.force_constants)
+        if "qmesh" in self:
+            phonon.set_mesh(self.qmesh)
         if "thermal_prop_T" in self:
             phonon.set_thermal_properties(temperatures=self.thermal_prop_T)
         return phonon
 
     def thermal_heat_capacity_v(self, T):
+        '''
+        Gets the Cv of the material at a given temperature
+        Args:
+            T: float
+                The temperature
+        Returns:
+            Cv : float
+                the heat_capacity_v at temperature T
+        '''
         return self.thermal_prop_Cv[np.where( self.thermal_prop_T == T)[0] ][0]
 
     def thermal_entropy(self, T):
+        '''
+        Gets the entropy of the material at a given temperature
+        Args:
+            T: float
+                The temperature
+        Returns:
+            S: float
+                The entropy at temperature T
+        '''
         return self.thermal_prop_S[np.where( self.thermal_prop_T == T)[0] ][0]
 
     def thermal_free_energy(self, T):
+        '''
+        Gets the Hemholtz free energy of the material at a given temperature
+        Args:
+            T: float
+                The temperature
+        Returns:
+            A: float
+                The Hemholtz free energy at temperature T
+        '''
         return self.thermal_prop_A[np.where( self.thermal_prop_T == T)[0] ][0]
 

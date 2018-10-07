@@ -14,7 +14,24 @@ from hilde.phonon_db.row import PhononRow
 
 
 class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
+    '''
+    A modified ASE JSONDatabase to include phonopy objects, For missing functions see ase.db.jsondb
+    '''
     def _write(self, phonon, key_value_pairs, data, id):
+        '''
+        Writes a phonopy object to the database
+        Args:
+            phonon: phonopy object
+                phonopy object to be added to the database
+            key_values_pairs: dict
+                additional keys to be added to the database
+            data: str
+                Additional data to be included
+            id: int
+                ID for the phonopy object in the database
+        Returns:
+            id: the id of the row
+        '''
         PhononDatabase._write(self, phonon, key_value_pairs, data)
         bigdct = {}
         ids = []
@@ -65,6 +82,32 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         return PhononRow(dct)
 
     def _select(self, keys, cmps, explain=False, verbosity=0, limit=None, offset=0, sort=None, include_data=True, columns='all'):
+        '''
+        Command to access a row in the database
+        Args:
+            keys: list of strs
+                relevant keys to be included in the where part of the select commands
+            cmps: list of tuples (key, op, val)
+                a list of tuples representing what the where conditions for the query are
+            explain: bool
+                Explain query plan.
+            verbosity: int
+                Possible values: 0, 1 or 2.
+            limit: int or None
+                Limit selection.
+            offset: int
+                Offset into selected rows.
+            sort: str
+                Sort rows after key.  Prepend with minus sign for a decending sort.
+            include_data: bool
+                Use include_data=False to skip reading data from rows.
+            columns: 'all' or list of str
+                Specify which columns from the SQL table to include.
+                For example, if only the row id and the energy is needed,
+                queries can be speeded up by setting columns=['id', 'energy'].
+            Yields:
+                a row from the database that matches the query
+            '''
         if explain:
             yield {'explain': (0, 0, 0, 'scan table')}
             return

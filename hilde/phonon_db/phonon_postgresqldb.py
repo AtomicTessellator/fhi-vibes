@@ -103,8 +103,10 @@ def schema_update(sql):
 
     arrays_2D = ['positions', 'cell', 'forces']
 
+    arrays_4D = [ 'force_constants']
+
     txt2jsonb = ['calculator_parameters', 'key_value_pairs', 'data', 'qpoints', 'phonon_bs_fp',
-                 'phonon_dos_fp', 'force_constants', "supercell_matrix"]
+                 'phonon_dos_fp', "supercell_matrix"]
 
     for column in arrays_1D:
         if column in ['numbers', 'tags']:
@@ -116,6 +118,11 @@ def schema_update(sql):
     for column in arrays_2D:
         sql = sql.replace('{} BLOB,'.format(column),
                           '{} DOUBLE PRECISION[][],'.format(column))
+
+    for column in arrays_4D:
+        sql = sql.replace('{} BLOB,'.format(column),
+                          '{} DOUBLE PRECISION[][][][],'.format(column))
+
     for column in txt2jsonb:
         sql = sql.replace('{} TEXT,'.format(column),
                           '{} JSONB,'.format(column))

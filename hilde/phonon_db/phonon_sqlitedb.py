@@ -18,6 +18,9 @@ from ase.utils import basestring
 from hilde.phonon_db.phonon_db import PhononDatabase
 from hilde.phonon_db.row import PhononRow
 
+'''
+Preamble modified from the sqlite database from ASE
+'''
 if sys.version >= '3':
     buffer = memoryview
 
@@ -49,8 +52,10 @@ init_statements = [
     magmoms BLOB,
     magmom REAL,
     charges BLOB,
+    natoms_in_sc INTEGER,
     supercell_matrix TEXT,
-    force_constants TEXT,
+    force_constants BLOB,
+    qmesh TEXT,
     phonon_dos_fp TEXT,
     qpoints TEXT,
     phonon_bs_fp TEXT,
@@ -100,6 +105,10 @@ init_statements = [
 
 
 class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
+    '''
+    Modification of the SQLite3 database from ASE to include phonopy objects
+    See ase.db.sqlite3 for missing function definitions
+    '''
     type = 'db'
     initialized = False
     _allow_reading_old_format = False
@@ -109,25 +118,46 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     columnnames = [line.split()[0].lstrip()
                    for line in init_statements[0].splitlines()[1:]]
 
-    def toHex(self, array):
+    def hexify(self, array):
+        '''
+        Converts a numpy array into a hex string representing the big endian byte encoding of the array
+        Args:
+            array: np.ndarray
+                The array to be converted
+        Returns:
+            hexstr: str
+                The hex string representing the bytestring of the array
+        '''
         if array is None:
             return None
         if len(array) == 0:
             array = np.zeros(0)
         hexstr = ''
         if array.dtype is np.int64:
-            for val in array:
+            for val in array.flatten():
                 hexstr += hex( struct.unpack( '>Q', struct.pack('>q', val) )[0] ) if(val != 0) else '0x0000000000000000'
         elif array.dtype is  np.int32:
             array = array.astype(np.int64)
-            for val in array:
+            for val in array.flatten():
                 hexstr += hex( struct.unpack( '>Q', struct.pack('>q', val) )[0] ) if(val != 0) else '0x0000000000000000'
         else:
-            for val in array:
+            for val in array.flatten():
                 hexstr += hex( struct.unpack( '>Q', struct.pack('>d', val) )[0] ) if(val != 0.0) else '0x0000000000000000'
         return hexstr
 
-    def fromHex(self, hexstr, dtype=np.float64, shape=None):
+    def dehexify(self, hexstr, dtype=np.float64, shape=None):
+        '''
+        Converts a hex string representation of an array into a numpy array
+        Args:
+            hexstr: str
+                the hex string to be converted
+            dtype: numpy data type
+                the data type of the array
+            shape: tuple or ints
+                The shape of an array
+        Returns:
+            array:  The array the hex string represents
+        '''
         if hexstr is None:
             return None
         elif len(hexstr) == 0 :
@@ -138,8 +168,22 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             array = np.array( [ struct.unpack('>d', struct.pack('>Q', int(hh,16) ) )[0] for hh in hexstr.split('0x')[1:] ] ).astype(dtype)
         return array
 
-    def _write(self, atoms, key_value_pairs, data, id):
-        PhononDatabase._write(self, atoms, key_value_pairs, data)
+    def _write(self, phonon, key_value_pairs, data, id):
+        '''
+        Writes a phonopy object to the database. Modifications from ASE are related to phonopy
+        Args:
+            phonon: phonopy object
+                phonopy object to be added to the database
+            key_values_pairs: dict
+                additional keys to be added to the database
+            data: str
+                Additional data to be included
+            id: int
+                ID for the phonopy object in the database
+        Returns:
+            id: the id of the row
+        '''
+        PhononDatabase._write(self, phonon, key_value_pairs, data)
         encode = self.encode
         con = self.connection or self._connect()
         self._initialize(con)
@@ -148,12 +192,12 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         blob = self.blob
         text_key_values = []
         number_key_values = []
-        if not isinstance(atoms, PhononRow):
-            row = PhononRow(atoms)
+        if not isinstance(phonon, PhononRow):
+            row = PhononRow(phonon)
             row.ctime = mtime
             row.user = os.getenv('USER')
         else:
-            row = atoms
+            row = phonon
         if id:
             self._delete(cur, [id], ['keys', 'text_key_values',
                                      'number_key_values', 'species'])
@@ -197,17 +241,19 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                    blob(row.get('magmoms')),
                    row.get('magmom'),
                    blob(row.get('charges')),
+                   row.get('natoms_in_sc'),
                    encode( row.get('supercell_matrix') ),
-                   encode(row.get("force_constants")),
+                   blob(row.get("force_constants")),
+                   encode(row.get("qmesh")),
                    encode(row.get("phonon_dos_fp")),
                    encode(row.get("qpoints")),
                    encode(row.get("phonon_bs_fp")),
                    row.get("thermal_prop_ZPE"),
                    row.get("thermal_prop_high_T_S"),
-                   self.toHex(row.get("thermal_prop_T")),
-                   self.toHex(row.get("thermal_prop_A")),
-                   self.toHex(row.get("thermal_prop_S")),
-                   self.toHex(row.get("thermal_prop_Cv")),
+                   self.hexify(row.get("thermal_prop_T")),
+                   self.hexify(row.get("thermal_prop_A")),
+                   self.hexify(row.get("thermal_prop_S")),
+                   self.hexify(row.get("thermal_prop_Cv")),
                    encode(key_value_pairs),
                    data,
                    len(row.numbers),
@@ -247,6 +293,14 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         return id
 
     def _convert_tuple_to_row(self, values):
+        '''
+        Converts the database's data into a Phonon Row object
+        Args:
+            values: Database encoded data list
+                data from the database
+        Returns
+            PhononRow of the database data for object
+        '''
         deblob = self.deblob
         decode = self.decode
 
@@ -295,35 +349,57 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if values[24] is not None:
             dct['charges'] = deblob(values[24])
         if values[25] is not None:
-            dct['supercell_matrix'] = decode(values[25])
+            dct['natoms_in_sc'] = values[25]
         if values[26] is not None:
-            dct['force_constants'] = decode(values[26])
+            dct['supercell_matrix'] = decode(values[26])
         if values[27] is not None:
-            dct['phonon_dos_fp'] = decode(values[27])
+            dct['force_constants'] = deblob(values[27], shape=(values[25], values[25],3,3))
         if values[28] is not None:
-            dct['qpoints'] = decode(values[28])
+            dct['qmesh'] = ase.io.jsonio.decode(values[28])
         if values[29] is not None:
-            dct['phonon_bs_fp'] = decode(values[29])
+            dct['phonon_dos_fp'] = decode(values[29])
         if values[30] is not None:
-            dct['thermal_prop_ZPE'] = values[30]
+            dct['qpoints'] = decode(values[30])
         if values[31] is not None:
-            dct['thermal_prop_high_T_S'] = values[31]
+            dct['phonon_bs_fp'] = decode(values[31])
         if values[32] is not None:
-            dct['thermal_prop_T']  = self.fromHex(values[32])
+            dct['thermal_prop_ZPE'] = values[32]
         if values[33] is not None:
-            dct['thermal_prop_A']  = self.fromHex(values[33])
+            dct['thermal_prop_high_T_S'] = values[33]
         if values[34] is not None:
-            dct['thermal_prop_S']  = self.fromHex(values[34])
+            dct['thermal_prop_T']  = self.dehexify(values[34])
         if values[35] is not None:
-            dct['thermal_prop_Cv'] = self.fromHex(values[35])
+            dct['thermal_prop_A']  = self.dehexify(values[35])
+        if values[36] is not None:
+            dct['thermal_prop_S']  = self.dehexify(values[36])
+        if values[37] is not None:
+            dct['thermal_prop_Cv'] = self.dehexify(values[37])
         if values[len(self.columnnames)-8] != '{}':
             dct['key_value_pairs'] = decode(values[len(self.columnnames)-8])
         if len(values) >= len(self.columnnames)-6 and values[len(self.columnnames)-7] != 'null':
             dct['data'] = decode(values[len(self.columnnames)-7])
-
         return PhononRow(dct)
 
     def create_select_statement(self, keys, cmps, sort=None, order=None, sort_table=None, what='systems.*'):
+        '''
+        Creates a string that represents a select command in SQLite 3
+        Args:
+            keys: list of strs
+                relevant keys to be included in the where part of the select commands
+            cmps: list of tuples (key, op, val)
+                a list of tuples representing what the where conditions for the query are
+            sort: str
+                Sort rows after key.  Prepend with minus sign for a decending sort.
+            order:
+                the order for the sort table
+            sort_table:
+                sort table for the query
+            what: str
+                The table to be accessed
+        Returns:
+            sql: A lsit of SQL commands
+            args: arguments for the SQL commands
+        '''
         tables = ['systems']
         where = []
         args = []
@@ -442,6 +518,32 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
 
 
     def _select(self, keys, cmps, explain=False, verbosity=0, limit=None, offset=0, sort=None, include_data=True, columns='all'):
+        '''
+        Command to access a row in the database
+        Args:
+            keys: list of strs
+                relevant keys to be included in the where part of the select commands
+            cmps: list of tuples (key, op, val)
+                a list of tuples representing what the where conditions for the query are
+            explain: bool
+                Explain query plan.
+            verbosity: int
+                Possible values: 0, 1 or 2.
+            limit: int or None
+                Limit selection.
+            offset: int
+                Offset into selected rows.
+            sort: str
+                Sort rows after key.  Prepend with minus sign for a decending sort.
+            include_data: bool
+                Use include_data=False to skip reading data from rows.
+            columns: 'all' or list of str
+                Specify which columns from the SQL table to include.
+                For example, if only the row id and the energy is needed,
+                queries can be speeded up by setting columns=['id', 'energy'].
+            Yields:
+                a row from the database that matches the query
+            '''
         con = self._connect()
         self._initialize(con)
 
@@ -509,6 +611,11 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                     yield row
 
     def _initialize(self, con):
+        '''
+        Initializes the database connection/the database
+        Args:
+            con: Connection object to the database
+        '''
         if self.initialized:
             return
 
