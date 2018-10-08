@@ -55,3 +55,7 @@ def read_aims(fname, symprec=symprec):
 def read_aims_output(fname):
     """ Right now this is just wrapper for ase.io.read(file, ':', 'aims-output')"""
     return ase_read(fname, ':', 'aims-output')
+
+def read_lammps_output(fname):
+    """ Right now this is just wrapper for ase.io.read(file, ':', 'aims-output')"""
+    return ase_read(fname, ':', 'lammps')

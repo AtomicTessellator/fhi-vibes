@@ -2,7 +2,7 @@ import contextlib
 import os, sys
 
 @contextlib.contextmanager
-def cwd(path):
+def cwd(path, mkdir=False):
     """ Purpose: change cwd intermediately
         Usage:
             with cwd(some_path):
@@ -11,6 +11,9 @@ def cwd(path):
             do so some other stuff in old cwd
     """
     CWD = os.getcwd()
+
+    if os.path.exists(path) == False and mkdir:
+        os.makedirs(path)
 
     os.chdir(path)
     try:

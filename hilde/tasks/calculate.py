@@ -4,6 +4,25 @@ from ase.calculators.socketio import SocketIOCalculator
 from ase.io import Trajectory
 from contextlib import ExitStack
 
+def calculate(atoms, calculator, workdir):
+    """Short summary.
+    Perform a dft calculation with ASE
+    Args:
+        atoms (Atoms or pAtoms): Structure.
+        calculator (calculator): Calculator.
+        workdir (folder): Folder to perform calculation in.
+
+    Returns:
+        int: 1 when error happened, otherwise None
+    """
+    atoms.calc = calculator
+    with cwd(workdir, mkdir=True):
+        try:
+            atoms.calc.calculate(atoms)
+        except Error as inst:
+            print(inst)
+            return 1
+
 def compute_forces(cells, calculator, workdir):
     """
     Compute forces in given list of atoms objects
@@ -19,21 +38,13 @@ def compute_forces(cells, calculator, workdir):
     workdir.mkdir(exist_ok=True)
     for ii, cell in enumerate(cells):
         folder_with_disp = workdir / f'disp-{ii:03d}'
-        folder_with_disp.mkdir(parents=True, exist_ok=True)
-        try:
-            force = read_aims_output(folder_with_disp / 'aims.out')[0].get_forces()
-        except (FileNotFoundError, IndexError):
-            cell.calc = calculator
-            with cwd(folder_with_disp):
-                try:
-                    cell.calc.calculate(cell)
-                except Error as inst:
-                    print(inst)
-            force = read_aims_output(folder_with_disp / 'aims.out')[0].get_forces()
+        calculate(cell, calculator, folder_with_disp)
+        force = cell.get_forces()
         force_sets.append(force)
     return force_sets
 
-def compute_forces_socketio(cells, calculator, port, workdir, traj_file, log_file):
+def compute_forces_socketio(cells, calculator, port, workdir, traj_file,
+                            log_file):
     """
     Compute forces in given list of atoms objects utilizing the SocketIOCalculator
     Args:
@@ -49,7 +60,7 @@ def compute_forces_socketio(cells, calculator, port, workdir, traj_file, log_fil
 
     """
     force_sets = []
-    tmp_dir.mkdir(exist_ok=True)
+    workdir.mkdir(exist_ok=True)
     with ExitStack() as stack, cwd(workdir):
         calc = stack.enter_context(SocketIOCalculator(calculator, log=log_file.open('w'), port=port))
         traj = stack.enter_context(Trajectory(str(traj_file), mode='a'))
