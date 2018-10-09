@@ -2,13 +2,13 @@
 A leightweight wrapper for Phonopy()
 """
 
-import os
-import numpy as np
-from hilde import konstanten as const
-from hilde.structure import pAtoms
-from phonopy import Phonopy
 from collections import namedtuple
 from pathlib import Path
+from phonopy import Phonopy
+from hilde import konstanten as const
+from hilde.structure import pAtoms
+from hilde.helpers import brillouinzone as bz
+
 
 def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False):
     """
@@ -26,15 +26,15 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
     ph_atoms = atoms.to_phonopy_atoms()
 
     phonon = Phonopy(ph_atoms,
-                     supercell_matrix = supercell_matrix,
-                     symprec          = symprec,
-                     is_symmetry      = True,
-                     factor           = const.eV_to_THz)
+                     supercell_matrix=supercell_matrix,
+                     symprec=symprec,
+                     is_symmetry=True,
+                     factor=const.eV_to_THz)
 
-    phonon.generate_displacements(distance     = disp,
-                                  is_plusminus ='auto',
-                                  is_diagonal  = True,
-                                  is_trigonal  = trigonal)
+    phonon.generate_displacements(distance=disp,
+                                  is_plusminus='auto',
+                                  is_diagonal=True,
+                                  is_trigonal=trigonal)
 
     supercell = pAtoms(phonopy_atoms=phonon.get_supercell())
     supercells_with_disps = [pAtoms(phonopy_atoms=disp)
@@ -43,6 +43,7 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
     pp = namedtuple('phonopy_preprocess', 'phonon supercell supercells_with_displacements')
 
     return pp(phonon, supercell, supercells_with_disps)
+
 
 def get_force_constants(phonon, force_sets=None):
     """
@@ -53,15 +54,16 @@ def get_force_constants(phonon, force_sets=None):
 
     phonon.produce_force_constants(force_sets)
 
-    fc = phonon.get_force_constants()
+    force_constants = phonon.get_force_constants()
 
-    if fc is not None:
+    if force_constants is not None:
         # convert forces from (N, N, 3, 3) to (3*N, 3*N)
         force_constants = phonon.get_force_constants().swapaxes(1, 2).reshape(2*(3*n_atoms, ))
         return force_constants
-    else:
-        print('**Force constants not yet created, please specify force_sets.')
-        return None
+    # else
+    print('**Force constants not yet created, please specify force_sets.')
+    return None
+
 
 def postprocess_init(phonon,
                      force_sets=None):
@@ -81,10 +83,11 @@ def postprocess_init(phonon,
         else:
             exit('** Cannot run postprocess, force_sets have not been provided.')
 
+
 def get_dos(phonon,
             q_mesh=[10, 10, 10],
             freq_min=0,
-            freq_max=25,
+            freq_max='auto',
             freq_pitch=.1,
             tetrahedron_method=True,
             write=False,
@@ -111,6 +114,10 @@ def get_dos(phonon,
     postprocess_init(phonon, force_sets)
 
     phonon.set_mesh(q_mesh)
+
+    if freq_max == 'auto':
+        freq_max = phonon.get_mesh()[2].max() * 1.05
+
     phonon.set_total_DOS(freq_min=freq_min,
                          freq_max=freq_max,
                          freq_pitch=freq_pitch,
@@ -122,8 +129,9 @@ def get_dos(phonon,
 
     return phonon.get_total_DOS()
 
+
 def get_bandstructure(phonon,
-                      path,
+                      paths=None,
                       force_sets=None):
     """
     Compute bandstructure for given path
@@ -140,6 +148,10 @@ def get_bandstructure(phonon,
 
     postprocess_init(phonon, force_sets)
 
-    phonon.set_band_structure(path)
 
-    return phonon.get_band_structure()
+    bands, labels = bz.get_bands_and_labels(phonon.primitive,
+                                            paths)
+
+    phonon.set_band_structure(bands)
+
+    return (*phonon.get_band_structure(), labels)

@@ -1,83 +1,90 @@
+""" Example on how to run a phonopy calculation with lammps as calculator """
+
 import os
-import numpy as np
-import matplotlib.pyplot as plt
-from pathlib import Path
 from time import time
+from pathlib import Path
+import matplotlib.pyplot as plt
 
-from hilde.parsers import read_aims, read_aims_output
-from hilde.helpers.supercell import find_cubic_cell, make_supercell
-from hilde.helpers import cwd, d2k, get_cubicness, clean_matrix
-from hilde.phonopy import phono as ph
-from hilde.tasks.calculate import compute_forces, calculate
 from ase.calculators.lammpsrun import LAMMPS
-from ase.calculators.socketio import SocketIOCalculator
-from ase.dft.kpoints import get_cellinfo, special_paths, bandpath
-from ase.io import Trajectory
 
-atoms = read_aims('si.in')
-vol = atoms.get_volume()
+from hilde.parsers import read_aims
+from hilde.helpers.supercell import find_cubic_cell, make_supercell
+from hilde.helpers import clean_matrix
+from hilde.phonopy import phono as ph
+from hilde.tasks.calculate import compute_forces
+
+def get_smatrix(atoms, n_target=64):
+    """ Return the supercell matrix for atoms with target size """
+    target_size = n_target / len(atoms)
+    return find_cubic_cell(cell=atoms.cell, target_size=target_size)
+
+def setup_workdir(atoms, smatrix):
+    """ Set up a working directory """
+    vol = atoms.get_volume()
+    workdir = Path('./{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}_lammps'.format(
+        atoms.sysname, *smatrix.flatten(), vol)).absolute()
+    workdir.mkdir(exist_ok=True)
+    return workdir
 
 
-n_target = 10
-target_size = n_target / len(atoms)
-smatrix = find_cubic_cell(cell=atoms.cell, target_size=target_size)
+def setup_lammps_si(workdir):
+    """Set up an ASE lammps calculator for silicon with Tersoff potential """
+    # LAMMPS context information
+    lmp_path = Path(os.getenv("LAMMPS_PATH"))
+    potential = str(lmp_path / "potentials" / "Si.tersoff")
+    files = [potential]
+    parameters = {"mass": ["* 1.0"],
+                  "pair_style": "tersoff",
+                  "pair_coeff": ['* * ' + potential + ' Si']}
 
-print(clean_matrix(make_supercell(atoms, smatrix).cell, eps=1e-8))
+    # Logging
+    lammps = LAMMPS(parameters=parameters,
+                    files=files,
+                    tmp_dir=workdir / 'lammps')
 
-workdir = Path('./{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}_lammps'.format(
-    atoms.sysname, *smatrix.flatten(), vol)).absolute()
-workdir.mkdir(exist_ok=True)
+    return lammps
 
-# LAMMPS context information
-lmp_path = Path(os.getenv("LAMMPS_PATH"))
-potential = str(lmp_path / "potentials" / "Si.tersoff")
-files = [potential]
-parameters = {"mass": ["* 1.0"],
-              "pair_style": "tersoff",
-              "pair_coeff": ['* * ' + potential + ' Si']}
 
-# Logging
-lammps = LAMMPS(parameters=parameters,
-                files=files,
-                tmp_dir=workdir / 'lammps')
+def plot_dos_and_bandstructure(phonon, workdir):
+    """ Plot DOS and bandstructure in the working directory """
+    dos = ph.get_dos(phonon,
+                     q_mesh=[25, 25, 25],
+                     freq_max='auto')
+    plt.plot(dos[0], dos[1])
+    plt.savefig(workdir / f'dos.pdf')
 
-# set the phonon object
-phonon, sc, scs = ph.preprocess(atoms, smatrix.T)
-print(f'{len(scs)} supercells created.')
+    _, labels = ph.get_bandstructure(phonon)
 
-phonopy_log = workdir/'phonopy.log'
-traj_file = workdir / 'phonopy.traj'
-tmp_dir = workdir
+    phonon.plot_band_structure(labels=labels)
+    plt.savefig(workdir / 'bandstructure.pdf')
 
-if traj_file.exists():
-    traj = Trajectory(str(traj_file), 'r')
-    force_sets = [a.get_forces() for a in traj]
-else:
+
+def main():
+    """ Main function to run the example calculation """
+    atoms = read_aims('si.in')
+
+    smatrix = get_smatrix(atoms)
+    print(clean_matrix(make_supercell(atoms, smatrix).cell, eps=1e-8))
+
+    workdir = setup_workdir(atoms, smatrix=smatrix)
+
+    lammps = setup_lammps_si(workdir)
+
+    # set the phonon object
+    phonon, _, scs = ph.preprocess(atoms, smatrix.T)
+    print(f'{len(scs)} supercells created.')
+
+    tmp_dir = workdir
+
     stime = time()
     force_sets = compute_forces(cells=scs,
                                 calculator=lammps,
                                 workdir=tmp_dir)
-    timing_socket_io = time()-stime
-    print(f'.. done in {timing_socket_io:.2f}s')
+    timing = time() - stime
+    print(f'.. done in {timing:.2f}s')
 
-dos = ph.get_dos(phonon, force_sets=force_sets)
-plt.plot(dos[0], dos[1])
-plt.savefig(workdir / f'dos.pdf')
+    phonon.produce_force_constants(force_sets)
 
-cellinfo = get_cellinfo(atoms.cell)
-path = special_paths[cellinfo.lattice]
-bands = bandpath(path, atoms.cell)
+    plot_dos_and_bandstructure(phonon, workdir)
 
-plt.figure()
-qp, dd, fr, ev = ph.get_bandstructure(phonon, bands)
-_ = plt.plot(dd[0], fr[0])
-plt.savefig(workdir / 'bandstructure.pdf')
-exit()
-
-phonon.set_band_structure(list(bands))
-print(path)
-
-plt = phonon.plot_band_structure(labels=path.split())
-plt.ylabel('Frequency [THz]')
-# We save the plot in the working directory.
-plt.savefig(str(workdir / 'bandstructure.pdf'))
+main()
