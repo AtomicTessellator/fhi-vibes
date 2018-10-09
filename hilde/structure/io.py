@@ -14,10 +14,13 @@ def get_aims_string(cell, decorated=True, scaled=True, velocities=False):
         string += f'#   Material:          {cell.get_chemical_formula()}\n'
         string += f'#   No. atoms:         {cell.n_atoms}\n'
         if cell.spacegroup is not None:
-            string += '#   Spacegroup:        {:d}\n'.format(cell.spacegroup.number)
-            string += '#   Wyckoff positions: {:s}\n'.format(' '.join([ss for ss in cell.spacegroup.wyckoffs]))
+            sds = cell.spacegroup
+            string += f'#   Spacegroup:        {sds.number:d}\n'
+            string += (f'#   Wyckoff positions: ' +
+                       ', '.join(f'{c}*{w}' for (w, c) in sds.wyckoffs_unique) +
+                       '\n')
         if any(cell.pbc):
-            string += '#   Unit cell volume:  {:f} AA^3\n'.format(cell.get_volume())
+            string += f'#   Unit cell volume:  {cell.get_volume():f} AA^3\n'
         if hasattr(cell, 'tags'):
             for ii, tag in enumerate(cell.tags):
                 string += f'#   Tag {ii+1:2d}:            {tag}\n'
@@ -117,8 +120,10 @@ def inform(cell, spacegroup=None, dft=False, fname=None, verbosity=0):
     if spacegroup:
         sds = spacegroup
         print(f'  Spacegroup:          {sds.international} ({sds.number})')
-        print(f'  Wyckoff positions:   ' + ', '.join(f'{c}*{w}' for (w, c) in sds.wyckoffs_unique))
-        print(f'  Equivalent atoms:    ' + ', '.join(f'{c}*{a}' for (a, c) in sds.equivalent_atoms_unique))
+        print(f'  Wyckoff positions:   ' +
+              ', '.join(f'{c}*{w}' for (w, c) in sds.wyckoffs_unique))
+        print(f'  Equivalent atoms:    ' +
+              ', '.join(f'{c}*{a}' for (a, c) in sds.equivalent_atoms_unique))
         print(f'  Standard lattice:  ')
         for vec in sds.spglib_std_lattice:
             print(f'    {vec}')

@@ -1,6 +1,6 @@
 import numpy as np
 from . import supercell as sc
-from ase.build.supercells import make_supercell # as ase_make_supercell
+from ase.build.supercells import make_supercell as ase_make_supercell
 from hilde.structure import pAtoms
 
 def find_cubic_cell(cell,
@@ -34,5 +34,11 @@ def make_cubic_supercell(atoms,
                               upper_limit=upper_limit,
                               verbose=verbose)
 
-    supercell = pAtoms(ase_atoms=make_supercell(atoms, smatrix))
+    supercell = make_supercell(atoms, smatrix)
+    return supercell, smatrix
+
+def make_supercell(*args, **kwargs):
+    """ Wrap the make_supercell() function from ase.build """
+    supercell = pAtoms(ase_atoms=ase_make_supercell(*args, **kwargs))
+    supercell.tags.append('supercell')
     return supercell

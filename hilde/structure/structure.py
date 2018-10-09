@@ -13,16 +13,16 @@ Contains routines to manipulate structures, such as
  Future speed considerations:
    - make symmetry dataset an attribute to reduce no. of calls
 """
-from ase.atoms import Atoms
+import datetime
+from math import sqrt, pi, cos, sin #faster than numpy for scalars
 import itertools
 import numpy as np
-from numpy.linalg import norm
-from math import sqrt, pi, cos, sin #faster than numpy for scalars
-import datetime
+from ase.atoms import Atoms
 from .symmetry import Spacegroup
 from .misc import get_sysname
 from . import io
 from hilde.konstanten.symmetry import symprec
+from hilde.helpers.maths import clean_matrix
 
 class pAtoms(Atoms):
     def __init__(self,
@@ -47,14 +47,21 @@ class pAtoms(Atoms):
         # initialize ase Atoms object
         super().__init__(ase_atoms)
 
-        if symprec:
+        # clean lattice
+        self.cell = clean_matrix(self.cell)
+
+        if symprec and len(self) <= 200:
             self.spacegroup  = Spacegroup(self, symprec)
+        elif symprec and len(self) > 200:
+            self.spacegroup = None
+            print('**Warning: spacegroup for pAtoms with more than 200 NOT ' +
+                  'computed on default.')
         else:
             self.spacegroup  = None
         #
         self.symprec     = symprec
         self.Natoms      = self.get_number_of_atoms()
-        self.tags        = [None]
+        self.tags        = []
         #
         # Constraints:
         self.constraints_pos = [None for ii in range(self.Natoms)]
@@ -113,7 +120,8 @@ class pAtoms(Atoms):
     def get_string(self, decorated=True, format = 'aims', scaled=True):
         if format == 'aims':
             return io.get_aims_string(self,
-                                      decorated = decorated, scaled = True)
+                                      decorated=decorated,
+                                      scaled=scaled)
         #
         else:
             print(f'Structure output format {format} not implemented. Stop.')
@@ -121,7 +129,7 @@ class pAtoms(Atoms):
 
     def write(self, filename='geometry.in', format='aims', scaled = True):
         with open(filename, 'w') as f:
-            f.write(self.get_string(format=format, scaled = True))
+            f.write(self.get_string(format=format, scaled=scaled))
             # Write symmetry block if existent:
             if len(self.symmetry_block) > 0:
                 f.write('\n#Symmetry block for constrained relaxation:\n')
