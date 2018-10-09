@@ -5,13 +5,12 @@ from time import time
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from ase.calculators.lammpsrun import LAMMPS
-
 from hilde.parsers import read_aims
 from hilde.helpers.supercell import find_cubic_cell, make_supercell
 from hilde.helpers import clean_matrix
 from hilde.phonopy import phono as ph
 from hilde.tasks.calculate import compute_forces
+from hilde.templates.lammps import setup_lammps_si
 
 def get_smatrix(atoms, n_target=64):
     """ Return the supercell matrix for atoms with target size """
@@ -25,24 +24,6 @@ def setup_workdir(atoms, smatrix):
         atoms.sysname, *smatrix.flatten(), vol)).absolute()
     workdir.mkdir(exist_ok=True)
     return workdir
-
-
-def setup_lammps_si(workdir):
-    """Set up an ASE lammps calculator for silicon with Tersoff potential """
-    # LAMMPS context information
-    lmp_path = Path(os.getenv("LAMMPS_PATH"))
-    potential = str(lmp_path / "potentials" / "Si.tersoff")
-    files = [potential]
-    parameters = {"mass": ["* 1.0"],
-                  "pair_style": "tersoff",
-                  "pair_coeff": ['* * ' + potential + ' Si']}
-
-    # Logging
-    lammps = LAMMPS(parameters=parameters,
-                    files=files,
-                    tmp_dir=workdir / 'lammps')
-
-    return lammps
 
 
 def plot_dos_and_bandstructure(phonon, workdir):
