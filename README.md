@@ -23,3 +23,7 @@ and edit according to system.
   target target
   * `geometry_info`: print geometry information for given input
   structure
+* Symmetry Block Generation Functions
+  * `AtomsInput`: A storage class that stores relevant information about a structure
+  * `write_sym_constraints_geo`: Read any geometry.in file and use the list of `AtomInputs`
+  to create a new supercell with a user defined symmetry block added to it
