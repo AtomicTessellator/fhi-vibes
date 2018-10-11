@@ -73,9 +73,9 @@ class pAtoms(Atoms):
     def sysname(self):
         return get_sysname(self)
 
-    def to_phonopy_atoms(self):
+    def to_phonopy_atoms(self, wrap=False):
         from .convert import to_phonopy_atoms
-        return to_phonopy_atoms(self)
+        return to_phonopy_atoms(self,wrap=False)
 
     def to_spglib_cell(self):
         from .convert import to_spglib_cell

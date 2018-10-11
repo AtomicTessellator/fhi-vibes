@@ -1,11 +1,11 @@
 from phonopy.structure.atoms import PhonopyAtoms
 
-def to_phonopy_atoms(structure):
+def to_phonopy_atoms(structure, wrap=False):
     phonopy_atoms= PhonopyAtoms(
         symbols   = structure.get_chemical_symbols(),
         cell      = structure.get_cell(),
         masses    = structure.get_masses(),
-        positions = structure.get_positions(wrap=True))
+        positions = structure.get_positions(wrap=wrap))
     return phonopy_atoms
 
 def to_spglib_cell(structure):
