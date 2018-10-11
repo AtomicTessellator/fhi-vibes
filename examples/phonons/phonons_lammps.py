@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 
 from hilde.parsers import read_aims
 from hilde.helpers.supercell import find_cubic_cell, make_supercell
-from hilde.helpers import clean_matrix
 from hilde.phonopy import phono as ph
 from hilde.tasks.calculate import compute_forces
 from hilde.templates.lammps import setup_lammps_si
@@ -34,7 +33,7 @@ def plot_dos_and_bandstructure(phonon, workdir):
     plt.plot(dos[0], dos[1])
     plt.savefig(workdir / f'dos.pdf')
 
-    _, labels = ph.get_bandstructure(phonon)
+    *_, labels = ph.get_bandstructure(phonon)
 
     phonon.plot_band_structure(labels=labels)
     plt.savefig(workdir / 'bandstructure.pdf')
@@ -45,7 +44,7 @@ def main():
     atoms = read_aims('si.in')
 
     smatrix = get_smatrix(atoms)
-    print(clean_matrix(make_supercell(atoms, smatrix).cell, eps=1e-8))
+    print(make_supercell(atoms, smatrix).cell)
 
     workdir = setup_workdir(atoms, smatrix=smatrix)
 

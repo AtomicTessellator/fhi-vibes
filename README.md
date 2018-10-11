@@ -18,3 +18,8 @@ and edit according to system.
   `phonon.plot_band_structure(labels=labels)`.
   * These functions are used by `hilde.phonopy.plot_dos_and_bandstructure` to
   plot DOS and bandstructure in the working directory.
+* Scripts:
+  * `make_supercell`: create supercell from supercell matrix or
+  target target
+  * `geometry_info`: print geometry information for given input
+  structure
