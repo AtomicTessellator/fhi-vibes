@@ -46,13 +46,15 @@ for nn in [8, 64, 128, 216]:
     force_sets = compute_forces(scs, lammps, workdir)
     phonon.produce_force_constants(force_sets)
 
-    fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points)
-    fps.append([fp[f'{key}'][:, 0] for key in special_points.keys()])
+    fps.append( get_phonon_bs_fingerprint_phononpy(phonon, special_points)[0] )
+    # fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points, vectorize=True)
+    # fps.append([fp[f'{key}'][:, 0] for key in special_points.keys()])
 
 fps = np.asarray(fps)
 
 # Compute difference to largest supercell and choose largest deviation at each
 # q point
+print(fps)
 fp_diffs = abs(fps - fps[-1]).max(axis=2)
 
 print('n_atoms  '  + ' '.join([f'{k:9s}' for k in special_points.keys()]))
