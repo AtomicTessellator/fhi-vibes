@@ -1,7 +1,7 @@
 from pathlib import Path
 import numpy as np
 import shutil
-from hilde.parsers import read_aims, read_aims_output
+from hilde.parsers import read_structure, read_output
 from hilde.phonopy import phono as ph
 from hilde.structure.convert import phonopy_to_ASE_atoms
 from ase.dft.kpoints import get_cellinfo, special_paths, bandpath
@@ -40,7 +40,7 @@ for ii in range(len(elecBs)):
 
 # Phonons
 # Set up the phonopy objects
-atoms = read_aims('../phonons/geometry.in')
+atoms = read_structure('../phonons/geometry.in')
 vol = atoms.get_volume()
 smatrix = np.array([[-1,  1,  1],
                     [ 1, -1,  1],
@@ -85,7 +85,7 @@ for ii in range(len(workdirs)):
     phonon = phononCalcs[ii][0]
     for wd in disps:
         try:
-            forces = read_aims_output(str(wd / 'aims.out'))[0].get_forces()
+            forces = read_output(str(wd / 'aims.out'))[0].get_forces()
         except FileNotFoundError:
             exit(f'Please calculate the forces in {wd} in order to proceed.')
         force_sets.append(forces)

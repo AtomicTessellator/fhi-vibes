@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from hilde.parsers import read_aims
+from hilde.parsers import read_structure
 from hilde.phonopy import phono as ph
 from hilde.tasks import compute_forces
 from hilde.helpers.k_grid import d2k
@@ -8,7 +8,7 @@ from ase.dft.kpoints import get_cellinfo
 from ase.calculators.aims import Aims
 from hilde.materials_fp.MaterialsFingerprints import get_phonon_bs_fingerprint_phononpy
 
-atoms = read_aims('si.in')
+atoms = read_structure('si.in')
 
 # Space group information
 cellinfo = get_cellinfo(atoms.cell)

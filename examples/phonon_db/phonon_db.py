@@ -9,7 +9,7 @@ from pprint import pprint
 from hilde.helpers.hash import hash_atoms
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import phono as ph
-from hilde.parsers.structure import read_aims
+from hilde.parsers.structure import read_structure
 from hilde.settings import Settings
 from hilde.structure import pAtoms
 from hilde.tasks.calculate import compute_forces
@@ -25,7 +25,7 @@ print(f'database: {database_dir}')
 aims_tmp_dir = Path(st.database.location) / 'aims_tmp'
 aims_tmp_dir.mkdir(parents=True, exist_ok=True)
 
-si = read_aims("si.in")
+si = read_structure("si.in")
 si.set_calculator(Aims(
     aims_command=st.machine.aims_command,
     species_dir=str(Path(st.machine.basissetloc) / 'light'),
