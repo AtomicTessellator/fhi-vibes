@@ -1,6 +1,5 @@
 """ Example on how to run a phonopy calculation with lammps as calculator """
 
-import os
 from time import time
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -19,9 +18,9 @@ def get_smatrix(atoms, n_target=64):
 def setup_workdir(atoms, smatrix):
     """ Set up a working directory """
     vol = atoms.get_volume()
-    workdir = Path('./{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}_lammps'.format(
+    workdir = Path('./{}/{}{}{}_{}{}{}_{}{}{}_{:.3f}_lammps'.format(
         atoms.sysname, *smatrix.flatten(), vol)).absolute()
-    workdir.mkdir(exist_ok=True)
+    workdir.mkdir(parents=True, exist_ok=True)
     return workdir
 
 
