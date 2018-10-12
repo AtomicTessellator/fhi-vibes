@@ -50,11 +50,11 @@ class pAtoms(Atoms):
         # clean lattice
         self.cell = clean_matrix(self.cell)
 
-        if symprec and len(self) <= 200:
+        if symprec and len(self) <= 1000:
             self.spacegroup  = Spacegroup(self, symprec)
-        elif symprec and len(self) > 200:
+        elif symprec and len(self) > 1000:
             self.spacegroup = None
-            print('**Warning: spacegroup for pAtoms with more than 200 NOT ' +
+            print('**Warning: spacegroup for pAtoms with more than 1000 NOT ' +
                   'computed on default.')
         else:
             self.spacegroup  = None
@@ -117,7 +117,7 @@ class pAtoms(Atoms):
             self.constraints_lv[2] = True
     #
 
-    def get_string(self, decorated=True, format = 'aims', scaled=True):
+    def get_string(self, decorated=True, format = 'aims', scaled=None):
         if format == 'aims':
             return io.get_aims_string(self,
                                       decorated=decorated,

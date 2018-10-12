@@ -3,8 +3,15 @@ from hilde.konstanten.symmetry import symprec
 from scipy.linalg import norm
 import datetime
 
-def get_aims_string(cell, decorated=True, scaled=True, velocities=False):
+def get_aims_string(cell, decorated=True, scaled=None, velocities=False):
     """ print the string that is geometry.in """
+
+    if scaled is None:
+        if 'supercell' in cell.tags:
+            scaled = False
+        else:
+            scaled = True
+
     if decorated:
         string  = '#=====================================================\n'
         string += f'# libflo:  geometry.in \n'
