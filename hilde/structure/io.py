@@ -1,7 +1,8 @@
+import datetime
 from hilde.konstanten.io import n_geom_digits
 from hilde.konstanten.symmetry import symprec
+from hilde.helpers.maths import clean_matrix
 from scipy.linalg import norm
-import datetime
 
 def get_aims_string(cell, decorated=True, scaled=None, velocities=False):
     """ print the string that is geometry.in """
@@ -51,7 +52,7 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False):
 
     # for latvec, constraint in zip(latvecs[lv_args], cell.constraints_lv[lv_args]):
     if any(cell.pbc):
-        latvecs = cell.get_cell()
+        latvecs = clean_matrix(cell.get_cell())
         for latvec, constraint in zip(latvecs, cell.constraints_lv):
 
             if decorated:
@@ -75,13 +76,13 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False):
         # if decorated:
         #     string += '\n# Scaled positions:\n'
         #
-        positions = cell.get_scaled_positions()
+        positions = clean_matrix(cell.get_scaled_positions())
         atompos   = 'atom_frac'
     else:
         # if decorated:
         #     string += '\n# Cartesian positions:\n'
         #
-        positions = cell.get_positions()
+        positions = clean_matrix(cell.get_positions())
         atompos   = 'atom'
     #
     if velocities:

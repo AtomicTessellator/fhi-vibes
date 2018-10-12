@@ -37,9 +37,9 @@ for nn in [8, 64, 128, 216]:
 
     phonon, sc, scs = ph.preprocess(atoms, smatrix.T)
 
-    workdir = Path('./Si_{}{}{}_{}{}{}_{}{}{}_{:.3f}'.format(
-        *smatrix.flatten(), atoms.get_volume())).absolute()
-    workdir.mkdir(exist_ok=True)
+    workdir = Path('./{}/{}{}{}_{}{}{}_{}{}{}_{:.3f}'.format(
+        atoms.sysname, *smatrix.flatten(), atoms.get_volume())).absolute()
+    workdir.mkdir(parents=True, exist_ok=True)
 
     lammps = setup_lammps_si(workdir)
 
@@ -47,8 +47,8 @@ for nn in [8, 64, 128, 216]:
     phonon.produce_force_constants(force_sets)
 
     fps.append( get_phonon_bs_fingerprint_phononpy(phonon, special_points)[0] )
-    # fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points, vectorize=True)
-    # fps.append([fp[f'{key}'][:, 0] for key in special_points.keys()])
+    # fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points)
+    # fps.append([p[:, 0] for p in fp.values()])
 
 fps = np.asarray(fps)
 
@@ -57,6 +57,6 @@ fps = np.asarray(fps)
 print(fps)
 fp_diffs = abs(fps - fps[-1]).max(axis=2)
 
-print('n_atoms  '  + ' '.join([f'{k:9s}' for k in special_points.keys()]))
+print('n_atoms   '  + ' '.join([f'{k:9s}' for k in special_points.keys()]))
 for nn, fp in zip(n_atoms, fp_diffs):
     print(f'{nn:4d}: ' + ' '.join([f"{f:9.3e}" for f in fp]))

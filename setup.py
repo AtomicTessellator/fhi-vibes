@@ -20,6 +20,7 @@ setup(name='HiLDe',
       ext_modules=[ext],
       scripts=['hilde/scripts/geometry_info',
                'hilde/scripts/get_relaxation_info',
-               'hilde/scripts/make_supercell'],
+               'hilde/scripts/make_supercell',
+               'hilde/scripts/refine_geometry'],
       zip_safe=False
       )
