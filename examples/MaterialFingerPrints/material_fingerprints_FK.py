@@ -1,12 +1,14 @@
+""" Compute the phonon fingerprints for supercells of different size """
+
 from pathlib import Path
 import numpy as np
 from hilde.parsers import read_structure
 from hilde.phonopy import phono as ph
 from hilde.tasks import compute_forces
-from hilde.helpers.k_grid import d2k
 from ase.dft.kpoints import get_cellinfo
 from hilde.templates.lammps import setup_lammps_si
 from hilde.materials_fp.MaterialsFingerprints import get_phonon_bs_fingerprint_phononpy
+from hilde.helpers.supercell import make_cubic_supercell
 
 atoms = read_structure('si.in')
 
@@ -23,8 +25,15 @@ cmatrix = np.array([[-1,  1,  1],
 
 # run phonon calculation for several supercell sizes and compute fingerprints
 fps = []
-for a in range(1, 2):
-    smatrix = cmatrix * a
+n_atoms = []
+for nn in [8, 64, 128, 216]:
+
+    # smatrix = a * cmatrix
+    supercell, smatrix = make_cubic_supercell(atoms, nn)
+
+    n_a = len(supercell)
+    print(f'compute for {n_a} atoms')
+    n_atoms.append(n_a)
 
     phonon, sc, scs = ph.preprocess(atoms, smatrix.T)
 
@@ -38,6 +47,14 @@ for a in range(1, 2):
     phonon.produce_force_constants(force_sets)
 
     fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points)
-    fps.append(fp)
+    fps.append([fp[f'{key}'][:, 0] for key in special_points.keys()])
 
-print(fps)
+fps = np.asarray(fps)
+
+# Compute difference to largest supercell and choose largest deviation at each
+# q point
+fp_diffs = abs(fps - fps[-1]).max(axis=2)
+
+print('n_atoms  '  + ' '.join([f'{k:9s}' for k in special_points.keys()]))
+for nn, fp in zip(n_atoms, fp_diffs):
+    print(f'{nn:4d}: ' + ' '.join([f"{f:9.3e}" for f in fp]))
