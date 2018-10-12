@@ -128,7 +128,7 @@ class pAtoms(Atoms):
             print(f'Structure output format {format} not implemented. Stop.')
             exit()
 
-    def write(self, filename='geometry.in', format='aims', scaled = True):
+    def write(self, filename='geometry.in', format='aims', scaled=None):
         with open(filename, 'w') as f:
             f.write(self.get_string(format=format, scaled=scaled))
             # Write symmetry block if existent:

@@ -38,12 +38,12 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
 
     supercell = pAtoms(phonopy_atoms=phonon.get_supercell(),
                        tags=['supercell',
-                             ('smatrix', list(supercell_matrix.flatten()))])
+                             ('smatrix', list(supercell_matrix.T.flatten()))])
 
     supercells_with_disps = [pAtoms(phonopy_atoms=disp, symprec=None,
                                     tags=['supercell',
                                           ('smatrix',
-                                           list(supercell_matrix.flatten()))])
+                                           list(supercell_matrix.T.flatten()))])
                              for disp in phonon.get_supercells_with_displacements()]
 
     pp = namedtuple('phonopy_preprocess', 'phonon supercell supercells_with_displacements')

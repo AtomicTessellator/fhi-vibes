@@ -37,6 +37,7 @@ def compute_forces(cells, calculator, workdir):
     workdir.mkdir(exist_ok=True)
     for ii, cell in enumerate(cells):
         folder_with_disp = workdir / f'disp-{ii:03d}'
+        cell.write(folder_with_disp / 'geometry.in')
         calculate(cell, calculator, folder_with_disp)
         force = cell.get_forces()
         force_sets.append(force)
