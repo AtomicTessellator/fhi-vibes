@@ -323,17 +323,17 @@ def dict2namedtuple(fp):
     Returns: namedtuple(fp_tup)
         The namedtuple representation of the fingerprint
     '''
-    freqs = [ fp[pt][0] for pt in fp ]
-    n_state = [ fp[pt][1] for pt in fp ]
-    sp_pts = [ fp[pt][2] for pt in fp ]
-    return fp_tup(np.array(freq), np.array(n_state), sp_pts, len(freqs[0]))
+    freqs = [ fp[pt][:,0] for pt in fp ]
+    n_state = [ fp[pt][:,1] for pt in fp ]
+    sp_pts = [ pt for pt in fp ]
+    return fp_tup(np.array(freqs), np.array(n_state), sp_pts, len(freqs[0]))
 
 
 # Class definitions for incorporation into databases
 class MaterialsFingerprint(object):
-'''
-Base class describing material fingerprints
-'''
+    '''
+    Base class describing material fingerprints
+    '''
     def __init__(self, is_elec, is_b, nbins=None, de=None, min_e=None, max_e=None, fp = {}):
         '''
         Initialize the fingerprint
@@ -377,7 +377,7 @@ Base class describing material fingerprints
             return frmt
         return ""
 
-    def scalar_product(self, fp2, col=0, pt='All', normalize=False):
+    def scalar_product(self, fp2, col=0, pt='All', normalize=True):
         '''
         Calculates the dot product between the fingerprint and another fingerprint
         Args:

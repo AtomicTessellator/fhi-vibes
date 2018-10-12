@@ -27,15 +27,15 @@ kpoints = { "L"      : np.array([0.500, 0.500, 0.500]),
             "K"      : np.array([0.375, 0.375, 0.750])
           }
 
-elecDs = [ DOSFingerprint(True, False, spectraFiles=[s + '/KS_DOS_total.dat'], minE=-15.0, maxE=10.0, nbins=100) for s in kGridDirs ]
-elecBs = [ BandStructureFingerprint(True, True, kpoints=kpoints, spectraFiles=[s + '/band1001.out', s + '/band1002.out', s + '/band1003.out', s + '/band1004.out'], minE=-1800.0, maxE=20.0, nbins=20 ) for s in kGridDirs ]
+elecDs = [ DOSFingerprint(True, False, spectra_files=[s + '/KS_DOS_total.dat'], min_e=-15.0, max_e=10.0, nbins=100) for s in kGridDirs ]
+elecBs = [ BandStructureFingerprint(True, True, kpoints=kpoints, spectra_files=[s + '/band1001.out', s + '/band1002.out', s + '/band1003.out', s + '/band1004.out'], min_e=-1800.0, max_e=20.0, nbins=20 ) for s in kGridDirs ]
 
 print("DOSFingerprint Convergence")
 for ii in range(len(elecDs)):
-    print(kGridDirs[ii].split("_")[-1], elecDs[-1].scalar_product(elecDs[ii]))
+    print(kGridDirs[ii].split("_")[-1], elecDs[-1].scalar_product(elecDs[ii], 1, 'All'))
 print("BandStructureFingerprint Convergence")
 for ii in range(len(elecBs)):
-    print(kGridDirs[ii].split("_")[-1], elecBs[-1].scalar_product(elecBs[ii]))
+    print(kGridDirs[ii].split("_")[-1], elecBs[-1].scalar_product(elecBs[ii], 0, 'All'))
 
 # Phonons
 # Set up the phonopy objects
