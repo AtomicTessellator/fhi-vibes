@@ -27,7 +27,7 @@ def phonon2dict(phonon):
     if phonon.mesh is not None:
         dct['qmesh'] = phonon.mesh.mesh_numbers
     if phonon._total_dos is not None:
-        dct['phonon_dos_fp'] = get_phonon_dos_fingerprint_phononpy(phonon)
+        dct['phonon_dos_fp'] = to_dict(get_phonon_dos_fingerprint_phononpy(phonon))
     if phonon.band_structure is not None:
         dct['qpoints'] = {}
         for ii in range( len(phonon.band_structure.qpoints) ):
@@ -35,7 +35,7 @@ def phonon2dict(phonon):
                 dct['qpoints'][phonon.band_structure.distances[ii][ 0]] = list(phonon.band_structure.qpoints[ii][ 0])
             if list(phonon.band_structure.qpoints[ii][-1]) not in dct['qpoints'].values():
                 dct['qpoints'][phonon.band_structure.distances[ii][-1]] = list(phonon.band_structure.qpoints[ii][-1])
-        dct['phonon_bs_fp'] = get_phonon_bs_fingerprint_phononpy(phonon, dct['qpoints'])
+        dct['phonon_bs_fp'] = to_dict(get_phonon_bs_fingerprint_phononpy(phonon, dct['qpoints']))
     if phonon.thermal_properties is not None:
         dct['thermal_prop_ZPE'] = phonon.thermal_properties.zero_point_energy
         dct['thermal_prop_high_T_S'] = phonon.thermal_properties.high_T_entropy

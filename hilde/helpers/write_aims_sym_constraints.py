@@ -274,6 +274,7 @@ def write_sym_constraints_geo(in_file,
                               atom_list,
                               symmetry_lv,
                               lat_param_list,
+                              atom_param_list=[],
                               smatrix=[1, 0, 0, 0, 1, 0, 0, 0, 1],
                               **kwargs):
     '''
@@ -318,7 +319,6 @@ def write_sym_constraints_geo(in_file,
                 atom.num_in_cell += 1
                 break
     # Generate the atom_param_list by parsing each atom types operator list
-    atom_param_list = []
     for atom in atom_list:
         param_list = []
         for pp in atom.sym_params:
