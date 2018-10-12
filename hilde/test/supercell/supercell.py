@@ -1,8 +1,8 @@
-from hilde.structure import read_aims
+from hilde.parsers import read_structure
 from hilde.helpers.geometry import get_cubicness
 from hilde.helpers.maths import clean_matrix
 import numpy as np
-gao = read_aims('gan.in')
+gao = read_structure('gan.in')
 
 gao.inform()
 print()

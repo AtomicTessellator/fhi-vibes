@@ -5,7 +5,6 @@ import sqlite3
 from ase.io import read
 from ase.calculators.aims import Aims
 from hilde.structure import Cell
-from hilde.structure import read_aims
 import numpy as np
 
 # Make initial fingerprints
@@ -34,9 +33,6 @@ print("ELEC B")
 print(elecB.fingerprint)
 
 # db.createTable("atoms", [("id", "integer"), ("atomsObj", "atom"), ("element", "string_list")])
-
-# print('read_aims:')
-# atoms = read_aims('../../test/geometry.in')
 
 # atoms.calc = Aims(k_grid=[1,1,1],
 #                   aims_command='orterun -n 4 /home/knoop/FHIaims/bin/aims.ipi.mpi.x',

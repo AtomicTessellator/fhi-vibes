@@ -3,8 +3,13 @@ from hilde.konstanten.symmetry import symprec
 from ase.io import read as ase_read
 
 # Parse geometry.in file
+def read_structure(fname, symprec=symprec, format='aims'):
+    return pAtoms(ase_read(fname, 0, format), symprec=symprec)
+
+
 def read_aims(fname, symprec=symprec):
-    return pAtoms(ase_read(fname, 0, 'aims'), symprec=symprec)
+    print('** Please use hilde.parsers.read_structure instead of .read_aims')
+    return read_structure(fname, symprec, format)
 
 # def read_aims(fname, symprec=symprec, sorted = False):
 #     from .structure import pAtoms
@@ -45,17 +50,26 @@ def read_aims(fname, symprec=symprec):
 #
 #     #
 #     # Create cell object from this
-    cell = pAtoms(symprec=symprec, **kwargs)
+#    cell = pAtoms(symprec=symprec, **kwargs)
+#
+#    if sorted:
+#        cell.sort_positions()
+#
+#    return cell
 
-    if sorted:
-        cell.sort_positions()
+def read_output(fname, format='aims-output'):
+    """ Right now this is just wrapper for ase.io.read(file, ':', 'aims-output')"""
+    return ase_read(fname, ':', format)
 
-    return cell
 
 def read_aims_output(fname):
     """ Right now this is just wrapper for ase.io.read(file, ':', 'aims-output')"""
+    print('** Please use hilde.parsers.read_output instead of read_aims_output')
     return ase_read(fname, ':', 'aims-output')
+
 
 def read_lammps_output(fname):
     """ Right now this is just wrapper for ase.io.read(file, ':', 'aims-output')"""
+    print('** Please use hilde.parsers.read_output instead of ' +
+          'read_lammps_output')
     return ase_read(fname, ':', 'lammps')

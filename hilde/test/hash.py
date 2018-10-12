@@ -1,4 +1,4 @@
-from structure import read_aims
+from structure import read_output
 from ase.io import read
 from helpers.config import ConfigDict
 from helpers.hash import hash_atoms, atoms2dict
@@ -9,7 +9,7 @@ print('ase read:')
 print(hash_atoms(atoms))
 
 print('read_aims:')
-atoms = read_aims('./test/geometry.in')
+atoms = read_output('./test/geometry.in')
 print(hash_atoms(atoms))
 
 atoms.calc = Aims(k_grid=[1,1,1],

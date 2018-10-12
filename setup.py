@@ -18,6 +18,8 @@ setup(name='HiLDe',
       # install_requires=['numpy', 'phonopy', 'spglib'],
       packages=setuptools.find_packages(),
       ext_modules=[ext],
-      scripts=['hilde/scripts/geometry_info'],
-      zip_safe=True
+      scripts=['hilde/scripts/geometry_info',
+               'hilde/scripts/get_relaxation_info',
+               'hilde/scripts/make_supercell'],
+      zip_safe=False
       )

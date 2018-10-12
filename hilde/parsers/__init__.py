@@ -1,1 +1,1 @@
-from .structure import read_aims, read_aims_output
+from .structure import read_structure, read_output

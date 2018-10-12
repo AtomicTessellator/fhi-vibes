@@ -1,4 +1,3 @@
-from hilde.parsers import read_aims_output
 from hilde.helpers.paths import cwd
 from ase.calculators.socketio import SocketIOCalculator
 from ase.io import Trajectory
@@ -62,7 +61,8 @@ def compute_forces_socketio(cells, calculator, port, workdir, traj_file,
     force_sets = []
     workdir.mkdir(exist_ok=True)
     with ExitStack() as stack, cwd(workdir):
-        calc = stack.enter_context(SocketIOCalculator(calculator, log=log_file.open('w'), port=port))
+        calc = stack.enter_context(
+            SocketIOCalculator(calculator, log=log_file.open('w'), port=port))
         traj = stack.enter_context(Trajectory(str(traj_file), mode='a'))
         atoms = cells[0].copy()
         atoms.calc = calc
