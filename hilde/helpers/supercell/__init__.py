@@ -34,11 +34,14 @@ def make_cubic_supercell(atoms,
                               upper_limit=upper_limit,
                               verbose=verbose)
 
-    supercell = make_supercell(atoms, smatrix)
+    supercell = make_supercell(atoms, smatrix,
+                               tag=('smatrix', list(smatrix.flatten())))
     return supercell, smatrix
 
-def make_supercell(*args, **kwargs):
+def make_supercell(*args, tag=None, **kwargs):
     """ Wrap the make_supercell() function from ase.build """
     supercell = pAtoms(ase_atoms=ase_make_supercell(*args, **kwargs))
     supercell.tags.append('supercell')
+    if tag:
+        supercell.tags.append(tag)
     return supercell
