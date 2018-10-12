@@ -112,4 +112,3 @@ for ff in fp_list:
 phonon_dos_fp = to_dict(get_phonon_dos_fingerprint_phononpy(phononCalcs[0][0]))
 print("Phonon DOS")
 print(phonon_dos_fp["DOS"])
-t_phonon_dos_fingerprint_phononpy(phononCalcs[0][0]))
