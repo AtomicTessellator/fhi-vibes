@@ -34,9 +34,9 @@ def compute_forces(cells, calculator, workdir):
         list of forces for each atoms object in cells
     """
     force_sets = []
-    workdir.mkdir(exist_ok=True)
     for ii, cell in enumerate(cells):
         folder_with_disp = workdir / f'disp-{ii:03d}'
+        folder_with_disp.mkdir(parents=True, exist_ok=True)
         cell.write(folder_with_disp / 'geometry.in')
         calculate(cell, calculator, folder_with_disp)
         force = cell.get_forces()

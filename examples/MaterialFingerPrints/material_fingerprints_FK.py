@@ -37,9 +37,9 @@ for nn in [8, 64, 128, 216]:
 
     phonon, sc, scs = ph.preprocess(atoms, smatrix.T)
 
-    workdir = Path('./Si_{}{}{}_{}{}{}_{}{}{}_{:.3f}'.format(
-        *smatrix.flatten(), atoms.get_volume())).absolute()
-    workdir.mkdir(exist_ok=True)
+    workdir = Path('./{}/{}{}{}_{}{}{}_{}{}{}_{:.3f}'.format(
+        atoms.sysname, *smatrix.flatten(), atoms.get_volume())).absolute()
+    workdir.mkdir(parents=True, exist_ok=True)
 
     lammps = setup_lammps_si(workdir)
 
@@ -55,6 +55,6 @@ fps = np.asarray(fps)
 # q point
 fp_diffs = abs(fps - fps[-1]).max(axis=2)
 
-print('n_atoms  '  + ' '.join([f'{k:9s}' for k in special_points.keys()]))
+print('n_atoms   '  + ' '.join([f'{k:9s}' for k in special_points.keys()]))
 for nn, fp in zip(n_atoms, fp_diffs):
     print(f'{nn:4d}: ' + ' '.join([f"{f:9.3e}" for f in fp]))
