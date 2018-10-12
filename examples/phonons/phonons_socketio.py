@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from time import time
 
-from hilde.parsers import read_aims, read_aims_output
+from hilde.parsers import read_structure, read_output
 from hilde.helpers.supercell import find_cubic_cell, make_supercell
 from hilde.helpers import cwd, d2k, get_cubicness, clean_matrix
 from hilde.phonopy import phono as ph
@@ -13,7 +13,7 @@ from ase.calculators.socketio import SocketIOCalculator
 from ase.dft.kpoints import get_cellinfo, special_paths, bandpath
 from ase.io import Trajectory
 
-atoms = read_aims('si.in')
+atoms = read_structure('si.in')
 vol = atoms.get_volume()
 
 # aims
@@ -45,10 +45,10 @@ relax_folder = Path().cwd() / f'relax_{atoms.sysname}'
 aims = Aims(**{**aims_settings, **relax_settings})
 
 try:
-    ratoms = read_aims(relax_folder / 'geometry.in.next_step')
+    ratoms = read_output(relax_folder / 'geometry.in.next_step')
 except FileNotFoundError:
     calculate(atoms, aims, relax_folder)
-    ratoms = read_aims(relax_folder / 'geometry.in.next_step')
+    ratoms = read_structure(relax_folder / 'geometry.in.next_step')
 
 n_target = 10
 target_size = n_target / len(atoms)

@@ -5,7 +5,7 @@ from time import time
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from hilde.parsers import read_aims
+from hilde.parsers import read_structure
 from hilde.helpers.supercell import find_cubic_cell, make_supercell
 from hilde.phonopy import phono as ph
 from hilde.tasks.calculate import compute_forces
@@ -41,7 +41,7 @@ def plot_dos_and_bandstructure(phonon, workdir):
 
 def main():
     """ Main function to run the example calculation """
-    atoms = read_aims('si.in')
+    atoms = read_structure('si.in')
 
     smatrix = get_smatrix(atoms)
     print(make_supercell(atoms, smatrix).cell)
