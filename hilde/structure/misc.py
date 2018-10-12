@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import cos, sin
 
 def get_sysname(atoms, spacegroup=None):
         """ Get name of the system:

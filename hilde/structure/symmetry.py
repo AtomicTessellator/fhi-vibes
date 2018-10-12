@@ -1,7 +1,8 @@
-import numpy as np
 from subprocess import Popen, PIPE, STDOUT
 import json
 from sys import exit
+import numpy as np
+from numpy import sin, cos
 import scipy.linalg as la
 import spglib as spg
 from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
@@ -9,6 +10,7 @@ from hilde.helpers.maths import clean_matrix
 from hilde.konstanten.numerics import loose_tol, wrap_tol, eps
 from hilde.konstanten.symmetry import symprec
 from .io import inform
+from .misc import generate_lattice
 
 
 class SymmetryOperation:
@@ -883,8 +885,10 @@ class Spacegroup:
     # end get_kpath
 
     def refine(self, primitive=True):
+        from hilde.structure import pAtoms
         lattice, scaled_positions, numbers = spg.standardize_cell(
-            self, to_primitive=primitive, no_idealize=0, symprec=self.symprec)
+            self.atoms, to_primitive=primitive, no_idealize=0,
+            symprec=self.symprec)
         refined_cell = pAtoms(cell=lattice, scaled_positions=scaled_positions,
                               numbers=numbers, pbc=True, symprec=self.symprec)
         #
@@ -921,7 +925,7 @@ class Spacegroup:
             # you want to keep the c axis where it is
             # to keep the C- settings
             transf = np.zeros(shape=(3, 3))
-            if self.get_spacegroup_symbol().startswith("C"):
+            if self.symbol.startswith("C"):
                 transf[2] = [0, 0, 1]
                 a, b = sorted(lengths[:2])
                 sorted_dic = sorted([{'vec': cell[i],
@@ -945,7 +949,7 @@ class Spacegroup:
             for d in range(len(sorted_dic)):
                 transf[d][sorted_dic[d]['orig_index']] = 1
 
-            if abs(b - c) < tol:
+            if abs(b - c) < loose_tol:
                 a, c = c, a
                 transf = np.dot([[0, 0, 1], [0, 1, 0], [1, 0, 0]], transf)
             latt = generate_lattice(a, c=c, lattice_type='tetragonal')
@@ -973,7 +977,7 @@ class Spacegroup:
         elif latt_type == 'monoclinic':
             # You want to keep the c axis where it is to keep the C- settings
             # a vector is crystal axis if alpha < 90 (Curtarolo definition)
-            if self.get_spacegroup_symbol().startswith('C'):
+            if self.symbol.startswith('C'):
                 transf = np.zeros(shape=(3, 3))
                 transf[2] = [0, 0, 1]
                 sorted_dic = sorted([{'vec': latt[i],
@@ -1160,7 +1164,8 @@ class Spacegroup:
             latt = new_matrix
         # end triclinic
 
-        new_coords = np.dot(transf,np.transpose(struct.get_scaled_positions())).T
+        new_coords = np.dot(transf,
+                            np.transpose(struct.get_scaled_positions())).T
         new_atoms = pAtoms(cell=latt,scaled_positions=new_coords,
                            numbers=struct.numbers, pbc=True,
                            symprec=self.symprec)
@@ -1183,7 +1188,7 @@ class Spacegroup:
                 international_monoclinic=international_monoclinic)
         lattice = self.get_lattice_type()
 
-        if "P" in self.get_spacegroup_symbol() or lattice == "hexagonal":
+        if "P" in self.symbol or lattice == "hexagonal":
             return conv
 
         if lattice == "rhombohedral":
@@ -1197,13 +1202,13 @@ class Spacegroup:
             else:
                 transf = np.array([[-1, 1, 1], [2, 1, 1], [-1, -2, 1]],
                                   dtype=np.float) / 3
-        elif "I" in self.get_spacegroup_symbol():
+        elif "I" in self.symbol:
             transf = np.array([[-1, 1, 1], [1, -1, 1], [1, 1, -1]],
                               dtype=np.float) / 2
-        elif "F" in self.get_spacegroup_symbol():
+        elif "F" in self.symbol:
             transf = np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]],
                               dtype=np.float) / 2
-        elif "C" in self.get_spacegroup_symbol() or "A" in self.get_spacegroup_symbol():
+        elif "C" in self.symbol or "A" in self.symbol:
             if self.get_crystal_system() == "monoclinic":
                 transf = np.array([[1, 1, 0], [-1, 1, 0], [0, 0, 2]],
                                   dtype=np.float) / 2
