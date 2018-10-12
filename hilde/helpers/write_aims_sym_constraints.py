@@ -316,13 +316,6 @@ def write_sym_constraints_geo(in_file,
         for atom in atom_list:
             if atom.name[3:] == supercell.symbols[aa] and atom.get_type(coord_prims[aa], atom.distortion_sym) == atom.type_num:
                 atom.num_in_cell += 1
-                coord_i = atom.get_coord_i(coord_prims[aa],
-                                           val=atom.coord_i_val,
-                                           error_tolerance=atom.coord_i_et)
-                supercell.positions[aa] = np.dot(atom.distort_atom(scaled_positions[aa],
-                                                                   distortion=atom.distortion_atom,
-                                                                   coord_i=coord_i),
-                                                 supercell.get_cell())
                 break
     # Generate the atom_param_list by parsing each atom types operator list
     atom_param_list = []
@@ -357,7 +350,9 @@ def write_sym_constraints_geo(in_file,
                 atom.num_in_cell -= 1
                 # zero_pos = np.zeros(3)
                 op = [atom.sym_params[ii].replace("@nn", str(atom.num_in_cell) ) for ii in range(3)]
-                coord_i = atom.get_coord_i(coord_prims[aa], val=atom.coord_i_val, error_tolerance=atom.coord_i_et)
+                coord_i = atom.get_coord_i(coord_prims[aa],
+                                           val=atom.coord_i_val,
+                                           error_tolerance=atom.coord_i_et)
                 zero_pos = np.array([float(atom.zero_position[(ii-coord_i)%3]) if atom.zero_position[(ii-coord_i)%3] != '@xx' else scaled_positions[aa][ii] for ii in range(3)])
                 if np.any(atom.zero_position != "@xx"):
                     inds = (np.where(atom.zero_position != "@xx")[0]+coord_i)%3
@@ -369,6 +364,10 @@ def write_sym_constraints_geo(in_file,
                                                                use_xyz=atom.use_xyz,
                                                                strict=True,
                                                                **kwargs))
+                supercell.positions[aa] = np.dot(atom.distort_atom(scaled_positions[aa],
+                                                                   distortion=atom.distortion_atom,
+                                                                   coord_i=coord_i),
+                                                 supercell.get_cell())
     supercell.write(filename=out_file)
     with open(out_file_sym, 'w') as out_sym:
         for line in supercell.symmetry_block:
