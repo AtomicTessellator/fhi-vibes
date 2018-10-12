@@ -15,7 +15,7 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
     Creates a phonopy object from given input
     Args:
         atoms: atoms object that represents the (primitive) unit cell
-        smatrix: supercell matrix
+        supercell_matrix: supercell matrix
         disp: displacement for the finite displacemt
 
     Returns:
@@ -36,8 +36,14 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
                                   is_diagonal=True,
                                   is_trigonal=trigonal)
 
-    supercell = pAtoms(phonopy_atoms=phonon.get_supercell())
-    supercells_with_disps = [pAtoms(phonopy_atoms=disp)
+    supercell = pAtoms(phonopy_atoms=phonon.get_supercell(),
+                       tags=['supercell',
+                             ('smatrix', list(supercell_matrix.flatten()))])
+
+    supercells_with_disps = [pAtoms(phonopy_atoms=disp, symprec=None,
+                                    tags=['supercell',
+                                          ('smatrix',
+                                           list(supercell_matrix.flatten()))])
                              for disp in phonon.get_supercells_with_displacements()]
 
     pp = namedtuple('phonopy_preprocess', 'phonon supercell supercells_with_displacements')

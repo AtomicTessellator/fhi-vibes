@@ -29,6 +29,7 @@ class pAtoms(Atoms):
                  ase_atoms=None,
                  phonopy_atoms=None,
                  symprec = symprec,
+                 tags = [],
                  **kwargs):
 
         if ase_atoms:
@@ -61,7 +62,7 @@ class pAtoms(Atoms):
         #
         self.symprec     = symprec
         self.Natoms      = self.get_number_of_atoms()
-        self.tags        = []
+        self.tags        = tags
         #
         # Constraints:
         self.constraints_pos = [None for ii in range(self.Natoms)]
