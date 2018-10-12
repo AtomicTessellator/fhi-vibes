@@ -6,7 +6,7 @@ Similar to generate_structure from TDEP.
 import os
 from argparse import ArgumentParser as argpars
 import numpy as np
-from hilde.parsers import read_output
+from hilde.parsers import read_structure
 from hilde.helpers.supercell import make_cubic_supercell, make_supercell
 from hilde.helpers.geometry import get_cubicness
 
@@ -16,13 +16,13 @@ parser.add_argument('-n', type=int, help='target size')
 parser.add_argument('-d', type=int, nargs=9, help='supercell matrix')
 parser.add_argument('--dry', action='store_true',
                     help='Do not write output file')
-parser.add_argument('--format', default='aims', 
+parser.add_argument('--format', default='aims',
                     help='which format should ASE use to read file?')
 args = parser.parse_args()
 
 fname = args.geom
 print(f'Find supercell for')
-cell = read_output(fname, symprec=None, format=args.format)
+cell = read_structure(fname, format=args.format)
 cell.inform(fname=fname)
 
 print('\nSettings:')

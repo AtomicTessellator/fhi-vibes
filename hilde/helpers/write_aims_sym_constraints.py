@@ -8,7 +8,7 @@ from phonopy import Phonopy
 import numpy as np
 
 from hilde.structure.structure import pAtoms
-from hilde.parsers.structure import read_aims
+from hilde.parsers.structure import read_structure
 
 def write_sym_default(zero_pos, **kwargs):
     '''
@@ -297,7 +297,7 @@ def write_sym_constraints_geo(in_file,
         If true allow negative atoms
     '''
     # Convert geometry file into a standardized version
-    unitcell = read_aims(in_file)
+    unitcell = read_structure(in_file)
     unitcell_scaled_pos = unitcell.get_scaled_positions()
     phonon = Phonopy(unitcell.to_phonopy_atoms(wrap=False),
                      supercell_matrix = smatrix,

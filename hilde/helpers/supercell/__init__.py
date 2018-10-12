@@ -52,7 +52,7 @@ def make_cubic_supercell(atoms,
     supercell = make_supercell(atoms, smatrix,
                                tag=('smatrix', list(smatrix.flatten())))
 
-    if supercell.spacegroup:
+    if supercell.spacegroup and atoms.spacegroup:
         n_sc = supercell.spacegroup.number
         n_at = atoms.spacegroup.number
         if n_sc != n_at:
