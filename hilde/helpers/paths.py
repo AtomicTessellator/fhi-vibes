@@ -18,7 +18,7 @@ def cwd(path, mkdir=False):
     os.chdir(path)
     try:
         yield
-    except Error as inst:
+    except Exception as inst:
         print(inst)
         print('Exception caught: ', sys.exc_info()[0])
     finally:

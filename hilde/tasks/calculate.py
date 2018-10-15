@@ -1,7 +1,17 @@
-from hilde.helpers.paths import cwd
+"""
+    Functions to run several related calculations with using trajectories as
+    cache
+"""
+
+import os
+from contextlib import ExitStack
+from pathlib import Path
+from warnings import warn
+from itertools import zip_longest
 from ase.calculators.socketio import SocketIOCalculator
 from ase.io import Trajectory
-from contextlib import ExitStack
+from hilde.helpers.paths import cwd
+from hilde.structure import pAtoms
 
 def calculate(atoms, calculator, workdir):
     """Short summary.
@@ -14,15 +24,70 @@ def calculate(atoms, calculator, workdir):
     Returns:
         int: 1 when error happened, otherwise None
     """
-    atoms.calc = calculator
+    calc_atoms = atoms.copy()
+    calc_atoms.calc = calculator
     with cwd(workdir, mkdir=True):
-        try:
-            atoms.calc.calculate(atoms)
-        except Error as inst:
-            print(inst)
-            return 1
+        calc_atoms.write('geometry.in')
+        calc_atoms.calc.calculate(calc_atoms)
+        return calc_atoms
 
-def compute_forces(cells, calculator, workdir):
+
+def calculate_multiple(cells, calculator, workdir, trajectory=None, read=False):
+    """Calculate several atoms object sharing the same calculator.
+
+    Args:
+        cells (Atoms): List of atoms objects.
+        calculator (calculator): Calculator to run calculation.
+        workdir (str/Path): working directory
+        trajectory (Trajectory): store (and read) information from trajectory
+        read (bool): Read from trajectory if True.
+
+    Returns:
+        list: Atoms objects with calculation performed.
+
+    """
+
+    if trajectory and read:
+        traj = return_from_trajectory(Path(workdir) / trajectory)
+        atoms_coincide = all(cell == atoms for cell, atoms in zip(cells, traj))
+        calcs_coincide = all((p1 == p2 for p1, p2 in
+                              zip_longest(calculator.parameters,
+                                          atoms.calc.parameters))
+                             for atoms in traj)
+        if atoms_coincide and calcs_coincide:
+            return traj
+        # else
+        message = (f'atoms objects and calculators in trajectory ' +
+                   f'{trajectory} do not coincide. Compute explicitly.')
+        warn(message=message)
+
+    workdirs = [Path(workdir) / f'{ii:05d}' for ii, _ in enumerate(cells)]
+
+    if trajectory:
+        if (Path(workdir) / trajectory).exists():
+            (Path(workdir) / trajectory).unlink()
+        traj = Trajectory(os.path.join(workdir, trajectory), mode='a')
+    cells_calculated = []
+    for cell, wdir in zip(cells, workdirs):
+        cell = calculate(cell, calculator, wdir)
+        cells_calculated.append(cell)
+        if trajectory:
+            traj.write(cell)
+
+    return cells_calculated
+
+
+def return_from_trajectory(trajectory):
+    """Check if ase Trajectory exists and return the atoms objects as pAtoms"""
+    if Path(trajectory).exists():
+        traj = Trajectory(str(trajectory), mode='r')
+        all_atoms = [pAtoms(ase_atoms=atoms) for atoms in traj]
+        return all_atoms
+    # else
+    return []
+
+
+def compute_forces(cells, calculator, workdir, trajectory=None):
     """
     Compute forces in given list of atoms objects
     Args:
@@ -33,12 +98,16 @@ def compute_forces(cells, calculator, workdir):
     Returns:
         list of forces for each atoms object in cells
     """
+
+    if trajectory:
+        force_sets = return_from_trajectory(trajectory)
+
     force_sets = []
     for ii, cell in enumerate(cells):
-        folder_with_disp = workdir / f'disp-{ii:03d}'
+        folder_with_disp = Path(workdir) / f'disp-{ii:03d}'
         folder_with_disp.mkdir(parents=True, exist_ok=True)
         cell.write(folder_with_disp / 'geometry.in')
-        calculate(cell, calculator, folder_with_disp)
+        cell = calculate(cell, calculator, folder_with_disp)
         force = cell.get_forces()
         force_sets.append(force)
     return force_sets
@@ -67,12 +136,9 @@ def compute_forces_socketio(cells, calculator, port, workdir, traj_file,
         traj = stack.enter_context(Trajectory(str(traj_file), mode='a'))
         atoms = cells[0].copy()
         atoms.calc = calc
-        for ii, cell in enumerate(cells):
-            try:
-                atoms.positions = cell.positions
-                atoms.calc.calculate(atoms, system_changes=['positions'])
-                force_sets.append(atoms.get_forces())
-                traj.write(atoms)
-            except Error as inst:
-                print(inst)
+        for _, cell in enumerate(cells):
+            atoms.positions = cell.positions
+            atoms.calc.calculate(atoms, system_changes=['positions'])
+            force_sets.append(atoms.get_forces())
+            traj.write(atoms)
     return force_sets
