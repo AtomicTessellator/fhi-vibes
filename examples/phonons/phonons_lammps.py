@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from hilde.parsers import read_structure
 from hilde.helpers.supercell import find_cubic_cell, make_supercell
 from hilde.phonopy import phono as ph
-from hilde.tasks.calculate import compute_forces
+from hilde.tasks.calculate import calculate_multiple
 from hilde.templates.lammps import setup_lammps_si
 
 def get_smatrix(atoms, n_target=64):
@@ -56,9 +56,11 @@ def main():
     tmp_dir = workdir
 
     stime = time()
-    force_sets = compute_forces(cells=scs,
-                                calculator=lammps,
-                                workdir=tmp_dir)
+    atoms_calculated = calculate_multiple(cells=scs,
+                                          calculator=lammps,
+                                          workdir=tmp_dir,
+                                          trajectory='lammps.traj')
+    force_sets = [atoms.get_forces() for atoms in atoms_calculated]
     timing = time() - stime
     print(f'.. done in {timing:.2f}s')
 

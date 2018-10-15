@@ -1,1 +1,1 @@
-from .calculate import compute_forces
+""" Provide highlevel access to calculator.calculate """
