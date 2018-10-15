@@ -24,6 +24,7 @@ from .misc import get_sysname
 from . import io
 from hilde.konstanten.symmetry import symprec
 from hilde.helpers.maths import clean_matrix
+from hilde.konstanten.numerics import loose_tol
 
 class pAtoms(Atoms):
     def __init__(self,
@@ -50,7 +51,7 @@ class pAtoms(Atoms):
         super().__init__(ase_atoms)
 
         # clean lattice
-        self.cell = clean_matrix(self.cell)
+        self.cell = clean_matrix(self.cell, eps=loose_tol)
 
         if symprec and len(self) <= 1000:
             self.spacegroup  = Spacegroup(self, symprec)
