@@ -17,7 +17,7 @@ from ase.atoms import Atoms, symbols2numbers, string2symbols
 
 # Import Hilde
 from hilde.phonon_db.row import PhononRow
-from hilde.materials_fp.MaterialsFingerprints import get_phonon_bs_fingerprint_phononpy, get_phonon_dos_fingerprint_phononpy
+from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy, get_phonon_dos_fingerprint_phononpy
 from hilde.structure.structure import pAtoms
 
 # File largely copied from ase.db.core modified to use PhononRows over AtomsRow

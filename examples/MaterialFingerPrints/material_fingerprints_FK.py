@@ -7,7 +7,7 @@ from hilde.phonopy import phono as ph
 from hilde.tasks import compute_forces
 from ase.dft.kpoints import get_cellinfo
 from hilde.templates.lammps import setup_lammps_si
-from hilde.materials_fp.MaterialsFingerprints import get_phonon_bs_fingerprint_phononpy
+from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.helpers.supercell import make_cubic_supercell
 
 atoms = read_structure('si.in')
@@ -46,7 +46,7 @@ for nn in [8, 64, 128, 216]:
     force_sets = compute_forces(scs, lammps, workdir)
     phonon.produce_force_constants(force_sets)
 
-    fps.append( get_phonon_bs_fingerprint_phononpy(phonon, special_points)[0] )
+    fps.append( get_phonon_bs_fingerprint_phononpy(phonon, special_points, False)[0] )
     # fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points)
     # fps.append([p[:, 0] for p in fp.values()])
 

@@ -8,7 +8,7 @@ from ase.io import read, write
 import matplotlib.pyplot as plt
 
 import sys
-from hilde.materials_fp.MaterialsFingerprints import *
+from hilde.materials_fp.material_fingerprint import *
 import numpy as np
 from glob import glob
 
@@ -99,7 +99,7 @@ for ii in range(len(workdirs)):
     phonon.set_band_structure(bands)
     latexify = lambda sym: "$\\mathrm{\\mathsf{" + str(sym)  + "}}$"
     labels = [latexify(sym) for sym in q_path]
-    fp = get_phonon_bs_fingerprint_phononpy(phonon, q_points)
+    fp = get_phonon_bs_fingerprint_phononpy(phonon, q_points, binning=False)
     fp_list.append( fp )
     q_mesh = [45, 45, 45]
     phonon.set_mesh(q_mesh)
@@ -109,6 +109,6 @@ print("phonon BS scalar product")
 for ff in fp_list:
     print( scalar_product(ff, fp_list[-1], 0, 0, True) )
 
-phonon_dos_fp = to_dict(get_phonon_dos_fingerprint_phononpy(phononCalcs[0][0]))
+phonon_dos_fp = to_dict(get_phonon_dos_fingerprint_phononpy(phononCalcs[0][0], binning=True))
 print("Phonon DOS")
 print(phonon_dos_fp["DOS"])

@@ -7,7 +7,7 @@ from collections import namedtuple
 fp_tup = namedtuple("fp_tup", "frequencies occupancies special_pts nbins")
 
 # Functions to define the energy bins
-def get_ener( useFrequencies, frequencies, min_e, max_e, nbins):
+def get_ener( binning, frequencies, min_e, max_e, nbins):
     """
     Get the energy bins used for making a fingerprint
     Args:
@@ -27,7 +27,7 @@ def get_ener( useFrequencies, frequencies, min_e, max_e, nbins):
         np.ndarray of floats
             energy bin boundaries
     """
-    if not useFrequencies:
+    if binning:
         enerBounds = np.linspace( min_e, max_e, nbins+1 )
         return enerBounds[:-1] + (enerBounds[1]-enerBounds[0])/2.0, enerBounds
     else:
@@ -58,7 +58,7 @@ def find_max_E(bands):
     return np.max( np.array([ bands[pt] for pt in bands ]).flatten() )
 
 # Given a band structure or dos get the finger print
-def get_fingerprint_bs(bands, min_e, max_e, nbins):
+def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
     """
     Creates a dictionary of the band structure fingerprint at all high symmetry points, where the high symmetry point is the key
     Args:
@@ -78,12 +78,12 @@ def get_fingerprint_bs(bands, min_e, max_e, nbins):
     freq_list = []
     n_bands = []
     for pt in bands:
-        ener, enerBounds = get_ener( len(bands[pt]) < nbins, bands[pt], min_e, max_e, nbins)
+        ener, enerBounds = get_ener( binning, bands[pt], min_e, max_e, nbins)
         freq_list.append(ener)
         n_bands.append(np.histogram(bands[pt], enerBounds)[0])
     return fp_tup(np.array(freq_list), np.array(n_bands), [key for key in bands.keys()], len(freq_list[0]))
 
-def get_fingerprint_dos(dos, min_e, max_e, nbins):
+def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
     """
     Creates a dictionary of the density of states fingerprint
     Args:
@@ -105,7 +105,7 @@ def get_fingerprint_dos(dos, min_e, max_e, nbins):
                       ["DOS"],
                       dos.shape[0]
             )
-    ener, enerBounds = get_ener(False, dos[:,0], min_e, max_e, nbins)
+    ener, enerBounds = get_ener(binning, dos[:,0], min_e, max_e, nbins)
     return fp_tup(np.array([ener]),  np.array([np.histogram(dos, enerBounds)[0]]), ["DOS"], nbins)
 
 # Function to calculate the modes at the high symmetry points
@@ -177,7 +177,7 @@ def get_phonon_bands_yaml(spectra_yaml, q_points):
     return bands
 
 # Functions to get the fingerprint from various input values
-def get_phonon_bs_fingerprint_phononpy(phonon, q_points, min_e=None, max_e=None, nbins=32):
+def get_phonon_bs_fingerprint_phononpy(phonon, q_points, binning=True, min_e=None, max_e=None, nbins=32):
     """
     Generates the phonon band structure fingerprint for a bands structure stored in a phonopy object
     Args:
@@ -195,9 +195,9 @@ def get_phonon_bs_fingerprint_phononpy(phonon, q_points, min_e=None, max_e=None,
         The phonon band structure fingerprint
     """
     bands = get_phonon_bands_phonopy(phonon, q_points)
-    return get_fingerprint_bs(bands, find_min_E(bands) if min_e is None else min_e, find_max_E(bands) if max_e is None else max_e, nbins)
+    return get_fingerprint_bs(bands, binning, find_min_E(bands) if min_e is None else min_e, find_max_E(bands) if max_e is None else max_e, nbins)
 
-def get_phonon_bs_fingerprint_yaml(spectra_yaml, q_points, min_e=None, max_e=None, nbins=32):
+def get_phonon_bs_fingerprint_yaml(spectra_yaml, q_points, binning=True, min_e=None, max_e=None, nbins=32):
     """
     Generates the phonon band structure fingerprint for a bands structure stored in a yaml file from a phonopy object
     Args:
@@ -215,9 +215,9 @@ def get_phonon_bs_fingerprint_yaml(spectra_yaml, q_points, min_e=None, max_e=Non
         The phonon band structure fingerprint
     """
     bands = get_phonon_bands_yaml(spectra_yaml, bands)
-    return get_fingerprint_bs(bands, find_min_E(bands) if min_e is None else min_e, find_max_E(bands) if max_e is None else max_e, nbins)
+    return get_fingerprint_bs(bands, binning, find_min_E(bands) if min_e is None else min_e, find_max_E(bands) if max_e is None else max_e, nbins)
 
-def get_elec_bs_fingerprint(spectra_files, k_points, min_e=None, max_e=None, nbins=32):
+def get_elec_bs_fingerprint(spectra_files, k_points, binning=True, min_e=None, max_e=None, nbins=32):
     """
     Generates the electronic band structure fingerprint for a bands stored in text files
     Args:
@@ -235,9 +235,9 @@ def get_elec_bs_fingerprint(spectra_files, k_points, min_e=None, max_e=None, nbi
         The electronic band structure fingerprint
     """
     bands = get_elec_bands(spectra_files, k_points)
-    return get_fingerprint_bs(bands, find_min_E(bands) if min_e is None else min_e, find_max_E(bands) if max_e is None else max_e, nbins)
+    return get_fingerprint_bs(bands, binning, find_min_E(bands) if min_e is None else min_e, find_max_E(bands) if max_e is None else max_e, nbins)
 
-def get_dos_fingerprint(dos_file, min_e=None, max_e=None, nbins=256):
+def get_dos_fingerprint(dos_file, binning=True, min_e=None, max_e=None, nbins=256):
     """
     Generates the density of states fingerprint from a file describing the density of states
     Args:
@@ -255,9 +255,9 @@ def get_dos_fingerprint(dos_file, min_e=None, max_e=None, nbins=256):
         The density of states fingerprint
     """
     dos = np.genfromtxt(dos_file)
-    return get_fingerprint_dos(dos, np.min(dos[:,0]) if min_e is None else min_e, np.max(dos[:,0]) if max_e is None else max_e, nbins)
+    return get_fingerprint_dos(dos, binning, np.min(dos[:,0]) if min_e is None else min_e, np.max(dos[:,0]) if max_e is None else max_e, nbins)
 
-def get_phonon_dos_fingerprint_phononpy(phonon, min_e=None, max_e=None, nbins=256):
+def get_phonon_dos_fingerprint_phononpy(phonon, binning=True, min_e=None, max_e=None, nbins=256):
     '''
     Generates the density of states fingerprint for a bands structure stored in a phonopy object
     Args:
@@ -273,7 +273,7 @@ def get_phonon_dos_fingerprint_phononpy(phonon, min_e=None, max_e=None, nbins=25
         The phonon density of states fingerprint
     '''
     dos = np.array(phonon.get_total_DOS()).transpose()
-    return get_fingerprint_dos(dos, np.min(dos[:,0]) if min_e is None else min_e, np.max(dos[:,0]) if max_e is None else max_e, nbins)
+    return get_fingerprint_dos(dos, binning, np.min(dos[:,0]) if min_e is None else min_e, np.max(dos[:,0]) if max_e is None else max_e, nbins)
 
 def scalar_product(fp1, fp2, col=0, pt='All', normalize=False):
     '''
@@ -422,6 +422,7 @@ class DOSFingerprint(MaterialsFingerprint):
         self.is_elec = is_elec
         # determin_e Energy range
         dos = np.genfromtxt(self.spectra_files[0])
+        binning = True if dos.shape[0] > nbins else False
         self.min_e = np.min( dos[:,0] ) if min_e is None else min_e
         self.max_e = np.max( dos[:,0] ) if max_e is None else max_e
         self.nbins = nbins
@@ -432,7 +433,7 @@ class DOSFingerprint(MaterialsFingerprint):
             self.de = (self.max_e - self.min_e)/(256.0) if de is None else (self.max_e-self.min_e)/nbins
         #make the fingerprint
         if(fp == {}):
-            fp = to_dict(get_fingerprint_dos(dos, self.min_e, self.max_e, self.nbins))
+            fp = to_dict(get_fingerprint_dos(dos, binning, self.min_e, self.max_e, self.nbins))
         self.fingerprint = fp
 
 class BandStructureFingerprint(MaterialsFingerprint):
@@ -475,7 +476,7 @@ class BandStructureFingerprint(MaterialsFingerprint):
                 bands = get_phonon_bands_yaml(self.spectra_yaml, self.kpoints)
             else:
                 bands = get_phonon_bands_phonon(self.spectra_yaml, self.kpoints)
-
+        binning = True if list(bands.values())[0].shape[0] > nbins else False
         # Find energy bins
         self.min_e = find_min_E(bands) if min_e is None else min_e
         self.max_e = find_max_E(bands) if max_e is None else max_e
@@ -488,5 +489,5 @@ class BandStructureFingerprint(MaterialsFingerprint):
 
         # Make the fingerprint
         if( fp == {} ):
-            fp = to_dict(get_fingerprint_bs(bands, self.min_e, self.max_e, self.nbins))
+            fp = to_dict(get_fingerprint_bs(bands, binning, self.min_e, self.max_e, self.nbins))
         self.fingerprint = fp
