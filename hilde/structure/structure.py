@@ -16,6 +16,7 @@ Contains routines to manipulate structures, such as
 import datetime
 from math import sqrt, pi, cos, sin #faster than numpy for scalars
 import itertools
+from copy import copy, deepcopy
 import numpy as np
 from ase.atoms import Atoms
 from .symmetry import Spacegroup
@@ -68,6 +69,11 @@ class pAtoms(Atoms):
         self.constraints_pos = [None for ii in range(self.Natoms)]
         self.constraints_lv  = [None, None, None]
         self.symmetry_block  = []
+
+    def copy(self):
+        new_atoms = super().copy()
+        new_atoms.spacegroup = copy(self.spacegroup)
+        return new_atoms
 
     @property
     def n_atoms(self):

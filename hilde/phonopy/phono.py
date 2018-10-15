@@ -68,10 +68,9 @@ def get_force_constants(phonon, force_sets=None):
         return force_constants
     # else
     print('**Force constants not yet created, please specify force_sets.')
-    return None
 
 
-def postprocess_init(phonon,
+def _postprocess_init(phonon,
                      force_sets=None):
     """
     Make sure that force_constants are present before the actual postprocess is performed.
@@ -117,7 +116,7 @@ def get_dos(phonon,
 
     """
 
-    postprocess_init(phonon, force_sets)
+    _postprocess_init(phonon, force_sets)
 
     phonon.set_mesh(q_mesh)
 
@@ -152,7 +151,7 @@ def get_bandstructure(phonon,
 
     """
 
-    postprocess_init(phonon, force_sets)
+    _postprocess_init(phonon, force_sets)
 
 
     bands, labels = bz.get_bands_and_labels(phonon.primitive,

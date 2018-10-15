@@ -46,7 +46,9 @@ for nn in [8, 64, 128, 216]:
     force_sets = compute_forces(scs, lammps, workdir)
     phonon.produce_force_constants(force_sets)
 
-    fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points, False)[0]
+    # REM: binning=False is optional
+    fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points,
+                                            binning=False)[0]
     fps.append(fp)
 
 fps = np.asarray(fps)
