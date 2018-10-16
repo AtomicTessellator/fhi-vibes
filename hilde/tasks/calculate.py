@@ -2,7 +2,7 @@ from hilde.helpers.paths import cwd
 from ase.calculators.socketio import SocketIOCalculator
 from ase.io import Trajectory
 from contextlib import ExitStack
-
+import os
 def calculate(atoms, calculator, workdir):
     """Short summary.
     Perform a dft calculation with ASE
@@ -42,6 +42,19 @@ def compute_forces(cells, calculator, workdir):
         force = cell.get_forces()
         force_sets.append(force)
     return force_sets
+
+def setup_forces(cells, calculator, workdir):
+    """
+    Sets up the force calculations in a given list of atoms objects
+    Args:
+        cells: list of atoms objects
+        calculator: ase.calculator for calculating the forces
+        workdir: the working directory to compute forces in
+    """
+    for ii, cell in enumerate(cells):
+        folder_with_disp = workdir / f'disp-{ii:03d}'
+        with cwd(folder_with_disp, mkdir=True):
+            calculator.write_input(cell)
 
 def compute_forces_socketio(cells, calculator, port, workdir, traj_file,
                             log_file):
