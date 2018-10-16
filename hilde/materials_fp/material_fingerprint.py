@@ -77,11 +77,13 @@ def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
     """
     freq_list = []
     n_bands = []
+    special_pts=[]
     for pt in bands:
+        special_pts.append(pt)
         ener, enerBounds = get_ener( binning, bands[pt], min_e, max_e, nbins)
         freq_list.append(ener)
         n_bands.append(np.histogram(bands[pt], enerBounds)[0])
-    return fp_tup(np.array(freq_list), np.array(n_bands), [key for key in bands.keys()], len(freq_list[0]))
+    return fp_tup(np.array(freq_list), np.array(n_bands), special_pts, len(freq_list[0]))
 
 def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
     """
