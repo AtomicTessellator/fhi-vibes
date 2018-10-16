@@ -42,6 +42,7 @@ def return_trajectory(cells, calculator, trajectory, force=False):
 
     # Case 1: Trajectory does not yet exist
     if not Path(trajectory).exists():
+        Path(trajectory).parent.mkdir(parents=True)
         traj = Trajectory(str(trajectory), mode='a')
         return traj, False
 
