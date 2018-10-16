@@ -156,8 +156,7 @@ def calculate_multiple_socketio(cells, calculator, workdir, port,
             traj.write(cell)
     return cells_calculated
 
-def setup_multiple(cells, calculator, workdir, trajectory=None,
-                       force=False):
+def setup_multiple(cells, calculator, workdir):
     """
     Write input files for calculations on a list of atoms objects
     Args:
