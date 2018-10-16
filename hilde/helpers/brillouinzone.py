@@ -30,7 +30,7 @@ def get_bands(atoms, paths):
     return bands
 
 
-def get_labels(paths):
+def get_labels(paths, latex=True):
     """ Get the labels for a given path for printing them with latex """
     if len(paths) == 1:
         labels = [*paths]
@@ -40,12 +40,15 @@ def get_labels(paths):
             if l == '|':
                 labels[ii] = f"{labels[ii-1]}|{labels[ii+1]}"
                 labels[ii-1], labels[ii+1] = '', ''
-            if l == 'G':
+            if l == 'G' and latex:
                 labels[ii] = '\\Gamma'
         labels = [l for l in labels if l]
 
     latexify = lambda sym: "$\\mathrm{\\mathsf{" + str(sym)  + "}}$"
-    return [latexify(sym) for sym in labels]
+    if latex:
+        return [latexify(sym) for sym in labels]
+    else:
+        return labels
 
 
 def get_bands_and_labels(atoms, paths=None):

@@ -22,7 +22,7 @@ def d2k(atoms, kptdensity=3.5, even=True):
                 kpts.append(int(np.ceil(k)))
         else:
             kpts.append(1)
-    return np.array(kpts)
+    return kpts
 
 def k2d(atoms, k_grid=[2, 2, 2]):
     """Generate the kpoint density in each direction from given k_grid.

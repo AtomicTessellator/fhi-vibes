@@ -16,6 +16,7 @@ Contains routines to manipulate structures, such as
 import datetime
 from math import sqrt, pi, cos, sin #faster than numpy for scalars
 import itertools
+from copy import copy, deepcopy
 import numpy as np
 from ase.atoms import Atoms
 from .symmetry import Spacegroup
@@ -23,6 +24,7 @@ from .misc import get_sysname
 from . import io
 from hilde.konstanten.symmetry import symprec
 from hilde.helpers.maths import clean_matrix
+from hilde.konstanten.numerics import loose_tol
 
 class pAtoms(Atoms):
     def __init__(self,
@@ -49,7 +51,7 @@ class pAtoms(Atoms):
         super().__init__(ase_atoms)
 
         # clean lattice
-        self.cell = clean_matrix(self.cell)
+        self.cell = clean_matrix(self.cell, eps=loose_tol)
 
         if symprec and len(self) <= 1000:
             self.spacegroup  = Spacegroup(self, symprec)
@@ -68,6 +70,11 @@ class pAtoms(Atoms):
         self.constraints_pos = [None for ii in range(self.Natoms)]
         self.constraints_lv  = [None, None, None]
         self.symmetry_block  = []
+
+    def copy(self):
+        new_atoms = super().copy()
+        new_atoms.spacegroup = copy(self.spacegroup)
+        return new_atoms
 
     @property
     def n_atoms(self):

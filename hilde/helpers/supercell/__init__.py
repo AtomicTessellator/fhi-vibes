@@ -3,6 +3,7 @@ from . import supercell as sc
 from ase.build.supercells import make_supercell as ase_make_supercell
 from hilde.structure import pAtoms
 from hilde.helpers.geometry import get_cubicness
+from warnings import warn
 
 def find_cubic_cell(cell,
                     target_size=1,
@@ -42,28 +43,30 @@ def make_cubic_supercell(atoms,
 
     """
 
-    smatrix = find_cubic_cell(cell=atoms.cell,
-                              target_size=target_size / len(atoms),
+    prim_cell = atoms.copy()
+
+    smatrix = find_cubic_cell(cell=prim_cell.cell,
+                              target_size=target_size / len(prim_cell),
                               deviation=deviation,
                               lower_limit=lower_limit,
                               upper_limit=upper_limit,
                               verbose=verbose)
 
-    supercell = make_supercell(atoms, smatrix,
+    supercell = make_supercell(prim_cell, smatrix,
                                tag=('smatrix', list(smatrix.flatten())))
 
-    if supercell.spacegroup and atoms.spacegroup:
+    if supercell.spacegroup and prim_cell.spacegroup:
         n_sc = supercell.spacegroup.number
-        n_at = atoms.spacegroup.number
+        n_at = prim_cell.spacegroup.number
         if n_sc != n_at:
-            print('**Warning: Spacegroup of supercell: ' +
+            warn('Spacegroup of supercell: ' +
                   f'{n_sc} |= {n_at} of reference cell.')
 
     cub_ness = get_cubicness(supercell.cell)
     if cub_ness < .8:
         print('**Warning: Cubicness of supercell is ' +
               f'{cub_ness:.3f} ({cub_ness**3:.3f})')
-        print(f'**-> Sytems: {atoms.sysname}, target size {target_size}')
+        print(f'**-> Sytems: {prim_cell.sysname}, target size {target_size}')
     return supercell, smatrix
 
 def make_supercell(*args, tag=None, **kwargs):
