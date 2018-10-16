@@ -158,24 +158,15 @@ def calculate_multiple_socketio(cells, calculator, workdir, port,
 
 def setup_multiple(cells, calculator, workdir):
     """
-    Sets up the force calculations in a given list of atoms objects
+    Write input files for calculations on a list of atoms objects
     Args:
         cells (Atoms): List of atoms objects.
         calculator (calculator): Calculator to run calculation.
         workdir (str/Path): working directory
-        trajectory (Trajectory): store (and read) information from trajectory
-        read (bool): Read from trajectory if True.
     """
-    if trajectory:
-        traj_file = Path(workdir) / trajectory
-        traj, is_calculated = return_trajectory(cells, calculator,
-                                                traj_file, force)
-        if is_calculated and not force:
-            return traj
 
     workdirs = [Path(workdir) / f'{ii:05d}' for ii, _ in enumerate(cells)]
 
-    cells_calculated = []
     for cell, wdir in zip(cells, workdirs):
         with cwd(wdir, mkdir=True):
             calculator.write_input(cell)
