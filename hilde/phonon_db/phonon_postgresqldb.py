@@ -1,6 +1,6 @@
 '''
-This file is a copy of ase's postgresql class, it is copied so the function overrides from PhononSQLite3Database
-persist
+This file is a copy of ase's postgresql class, it is copied so the function
+overrides from PhononSQLite3Database persist
 '''
 import json
 
@@ -9,10 +9,22 @@ from psycopg2 import connect
 from psycopg2.extras import execute_values
 
 import ase.io.jsonio
-from ase.db.postgresql import jsonb_indices, remove_nan_and_inf, insert_nan_and_inf, Connection, Cursor, PostgreSQLDatabase
-from hilde.phonon_db.phonon_sqlitedb import init_statements, index_statements, VERSION, PhononSQLite3Database
+from ase.db.postgresql import jsonb_indices
+from ase.db.postgresql import remove_nan_and_inf
+from ase.db.postgresql import insert_nan_and_inf
+from ase.db.postgresql import Connection
+from ase.db.postgresql import Cursor
+
+from hilde.phonon_db.phonon_sqlitedb import init_statements
+from hilde.phonon_db.phonon_sqlitedb import index_statements
+from hilde.phonon_db.phonon_sqlitedb import VERSION
+from hilde.phonon_db.phonon_sqlitedb import PhononSQLite3Database
 
 class PhononPostgreSQLDatabase(PhononSQLite3Database):
+    '''
+    The copy of the ASE PostgreSQLDatabase to override PhononSQLite3Database
+    functions
+    '''
     type = 'postgresql'
     default = 'DEFAULT'
 
@@ -27,7 +39,7 @@ class PhononPostgreSQLDatabase(PhononSQLite3Database):
 
         if array is None:
             return None
-        if len(array) == 0:
+        if array.size == 0:
             array = np.zeros(0)
         if array.dtype == np.int64:
             array = array.astype(np.int32)
@@ -97,16 +109,34 @@ def schema_update(sql):
                   'SERIAL PRIMARY KEY')]:
         sql = sql.replace(a, b)
 
-    arrays_1D = ['numbers', 'initial_magmoms', 'initial_charges', 'masses',
-                 'tags', 'momenta', 'stress', 'dipole', 'magmoms', 'charges',
-                 'thermal_prop_T', 'thermal_prop_A', 'thermal_prop_S', 'thermal_prop_Cv']
+    arrays_1D = ['numbers',
+                 'initial_magmoms',
+                 'initial_charges',
+                 'masses',
+                 'tags',
+                 'momenta',
+                 'stress',
+                 'dipole',
+                 'magmoms',
+                 'charges',
+                 'thermal_prop_T',
+                 'thermal_prop_A',
+                 'thermal_prop_S',
+                 'thermal_prop_Cv'
+                ]
 
     arrays_2D = ['positions', 'cell', 'forces']
 
-    arrays_4D = [ 'force_constants']
+    arrays_4D = ['force_constants']
 
-    txt2jsonb = ['calculator_parameters', 'key_value_pairs', 'data', 'qpoints', 'phonon_bs_fp',
-                 'phonon_dos_fp', "supercell_matrix"]
+    txt2jsonb = ['calculator_parameters',
+                 'key_value_pairs',
+                 'data',
+                 'qpoints',
+                 'phonon_bs_fp',
+                 'phonon_dos_fp',
+                 "supercell_matrix"
+                ]
 
     for column in arrays_1D:
         if column in ['numbers', 'tags']:

@@ -1,6 +1,0 @@
-# diamond structure with lattice constant 5.4 AA.
-lattice_vector    0.0   2.7   2.7
-lattice_vector    2.7   0.0   2.7
-lattice_vector    2.7   2.7   0.0
-atom_frac         0.00  0.00  0.00  Si
-atom_frac         0.25  0.25  0.25  Si

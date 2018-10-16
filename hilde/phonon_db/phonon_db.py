@@ -1,28 +1,23 @@
-import os
-import numpy as np
+""" Defines the base class for the phonon database """
+import numbers
 import operator
 import os
 import re
 import warnings
-import collections
-import functools
-import numbers
+import numpy as np
+
 # Import ase
 from ase.utils import Lock, basestring, PurePath
-from ase.db.core import Database, now, lock, parse_selection, check, str_represents
+from ase.db.core import Database, lock, parse_selection, str_represents
 from ase.calculators.calculator import all_properties, all_changes
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
 from ase.data import atomic_numbers
-from ase.atoms import Atoms, symbols2numbers, string2symbols
+from ase.atoms import string2symbols
 
 # Import Hilde
 from hilde.phonon_db.row import PhononRow
-from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy, get_phonon_dos_fingerprint_phononpy
-from hilde.structure.structure import pAtoms
 
 # File largely copied from ase.db.core modified to use PhononRows over AtomsRow
-T2000 = 946681200.0  # January 1. 2000
-YEAR = 31557600.0  # 365.25 days
 
 default_key_descriptions = {
     'id': ('ID', 'Uniqe row ID', ''),
@@ -55,7 +50,7 @@ seconds = {'s': 1,
            'd': 86400,
            'w': 604800,
            'M': 2629800,
-           'y': YEAR}
+           'y': 31557600}
 
 longwords = {'s': 'second',
              'm': 'minute',
@@ -87,14 +82,10 @@ reserved_keys = set(all_properties +
 numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms', 'natoms_in_Sc'])
 numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms', 'natoms_in_Sc'])
 
-def str_represents(value, t=int):
-    try:
-        t(value)
-    except ValueError:
-        return False
-    return True
-
 def check(key_value_pairs):
+    '''
+    Checks the key value pairs to makes sure they are of the right format
+    '''
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
             raise ValueError('Bad key: {}'.format(key))
@@ -123,12 +114,18 @@ def check(key_value_pairs):
                         'writing to the database OR change ' +
                         'to a different string.')
 
-def connect(name, type='extract_from_name', create_indices=True, use_lock_file=True, append=True, serial=False):
+def connect(name,
+            db_type='extract_from_name',
+            create_indices=True,
+            use_lock_file=True,
+            append=True,
+            serial=False
+           ):
     """Create connection to database.
     Modified to link to PhononDatabase types
     name: str
         Filename or address of database.
-    type: str
+    db_type: str
         One of 'json', 'db', 'postgresql',
         (JSON, SQLite, PostgreSQL).
         Default is 'extract_from_name', which will guess the type
@@ -139,20 +136,20 @@ def connect(name, type='extract_from_name', create_indices=True, use_lock_file=T
         Use append=False to start a new database.
     """
 
-    if type == 'extract_from_name':
+    if db_type == 'extract_from_name':
         if name is None:
-            type = None
+            db_type = None
         elif not isinstance(name, basestring):
-            type = 'json'
+            db_type = 'json'
         elif (name.startswith('postgresql:/') or
               name.startswith('postgres:/')):
-            type = 'postgresql'
+            db_type = 'postgresql'
         else:
-            type = os.path.splitext(name)[1][1:]
-            if type == '':
+            db_type = os.path.splitext(name)[1][1:]
+            if db_type == '':
                 raise ValueError('No file extension or database type given')
 
-    if type is None:
+    if db_type is None:
         return Database()
 
     if not append and world.rank == 0 and os.path.isfile(name):
@@ -161,17 +158,20 @@ def connect(name, type='extract_from_name', create_indices=True, use_lock_file=T
     if isinstance(name, PurePath):
         name = str(name)
 
-    if type != 'postgresql' and isinstance(name, basestring):
+    if db_type != 'postgresql' and isinstance(name, basestring):
         name = os.path.abspath(name)
 
-    if type == 'json':
+    if db_type == 'json':
         from hilde.phonon_db.phonon_jsondb import PhononJSONDatabase
         return PhononJSONDatabase(name, use_lock_file=use_lock_file, serial=serial)
-    if type == 'db':
+    if db_type == 'db':
         from hilde.phonon_db.phonon_sqlitedb import PhononSQLite3Database
-        return PhononSQLite3Database(name, create_indices, use_lock_file,
-                               serial=serial)
-    if type == 'postgresql':
+        return PhononSQLite3Database(name,
+                                     create_indices,
+                                     use_lock_file,
+                                     serial=serial
+                                    )
+    if db_type == 'postgresql':
         from hilde.phonon_db.phonon_postgresqldb import PhononPostgreSQLDatabase
         return PhononPostgreSQLDatabase(name)
     raise ValueError('Unknown database type: ' + type)
@@ -285,7 +285,18 @@ class PhononDatabase(Database):
         return m, n
 
     @parallel_generator
-    def select(self, selection=None, filter=None, explain=False, verbosity=1, limit=None, offset=0, sort=None, include_data=True, columns='all', **kwargs):
+    def select(self,
+               selection=None,
+               filter=None,
+               explain=False,
+               verbosity=1,
+               limit=None,
+               offset=0,
+               sort=None,
+               include_data=True,
+               columns='all',
+               **kwargs
+              ):
         """Select rows.
 
         Return PhononRow iterator with results.  Selection is done

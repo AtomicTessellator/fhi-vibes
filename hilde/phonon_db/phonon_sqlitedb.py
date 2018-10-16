@@ -1,26 +1,24 @@
+''' Defines the phonon SQLite 3 Database '''
 from __future__ import absolute_import, print_function
 import os
-import sys
 import json
 import numbers
 import sqlite3
-import numpy as np
 import struct
+import sys
 
-import ase.io.jsonio
+import numpy as np
+
 from ase.data import atomic_numbers
-from ase.db.core import ops, now, lock, invop, parse_selection
-from ase.db.core import ops, lock, now
-from ase.db.sqlite import SQLite3Database,index_statements,all_tables,float_if_not_none
-from ase.parallel import parallel_function
+from ase.db.core import ops, now, invop
+from ase.db.sqlite import SQLite3Database, index_statements, float_if_not_none
+from ase.io import jsonio
 from ase.utils import basestring
 
 from hilde.phonon_db.phonon_db import PhononDatabase
 from hilde.phonon_db.row import PhononRow
 
-'''
-Preamble modified from the sqlite database from ASE
-'''
+# Preamble modified from the sqlite database from ASE
 if sys.version >= '3':
     buffer = memoryview
 
@@ -59,12 +57,12 @@ init_statements = [
     phonon_dos_fp TEXT,
     qpoints TEXT,
     phonon_bs_fp TEXT,
-    thermal_prop_ZPE REAL,
-    thermal_prop_high_T_S REAL,
-    thermal_prop_T TEXT,
-    thermal_prop_A TEXT,
-    thermal_prop_S TEXT,
-    thermal_prop_Cv TEXT,
+    tp_ZPE REAL,
+    tp_high_T_S REAL,
+    tp_T TEXT,
+    tp_A TEXT,
+    tp_S TEXT,
+    tp_Cv TEXT,
     key_value_pairs TEXT,  -- key-value pairs and data as json
     data TEXT,
     natoms INTEGER,  -- stuff for making queries faster
@@ -103,6 +101,74 @@ init_statements = [
 
     "INSERT INTO information VALUES ('version', '{}')".format(VERSION)]
 
+check_keys = ['id',
+              'energy',
+              'magmom',
+              'ctime',
+              'user',
+              'calculator',
+              'natoms',
+              'pbc',
+              'unique_id',
+              'fmax',
+              'smax',
+              'volume',
+              'mass',
+              'charge',
+              'supercell_matrix'
+             ]
+
+def hexify(array):
+    '''
+    Converts a numpy array into a hex string representing the big endian
+    byte encoding of the array
+    Args:
+        array: np.ndarray
+            The array to be converted
+    Returns:
+        hexstr: str
+            The hex string representing the bytestring of the array
+    '''
+    if array is None:
+        return None
+    if array.size == 0:
+        array = np.zeros(0)
+    hexstr = ''
+    zero = '0x0000000000000000'
+    if array.dtype is np.int64:
+        for val in array.flatten():
+            hexstr += hex(struct.unpack('>Q', struct.pack('>q', val))[0]) if val != 0 else zero
+    elif array.dtype is  np.int32:
+        array = array.astype(np.int64)
+        for val in array.flatten():
+            hexstr += hex(struct.unpack('>Q', struct.pack('>q', val))[0]) if val != 0 else zero
+    else:
+        for val in array.flatten():
+            hexstr += hex(struct.unpack('>Q', struct.pack('>d', val))[0]) if val != 0.0 else zero
+    return hexstr
+
+def dehexify(hexstr, dtype=np.float64, shape=None):
+    '''
+    Converts a hex string representation of an array into a numpy array
+    Args:
+        hexstr: str
+            the hex string to be converted
+        dtype: numpy data type
+            the data type of the array
+        shape: tuple or ints
+            The shape of an array
+    Returns:
+        array:  The array the hex string represents
+    '''
+    if hexstr is None:
+        return None
+    elif not hexstr:
+        return np.zeros(0, dtype)
+    if dtype is np.int64 or dtype is np.int32 or dtype is int:
+        to_ret = [struct.unpack('>q', struct.pack('>Q', int(hh, 16)))[0] for hh in hexstr.split('0x')[1:]]
+    else:
+        to_ret = [struct.unpack('>d', struct.pack('>Q', int(hh, 16)))[0] for hh in hexstr.split('0x')[1:]]
+    return np.array(to_ret).astype(dtype).reshape(shape)
 
 class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     '''
@@ -118,55 +184,6 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     columnnames = [line.split()[0].lstrip()
                    for line in init_statements[0].splitlines()[1:]]
 
-    def hexify(self, array):
-        '''
-        Converts a numpy array into a hex string representing the big endian byte encoding of the array
-        Args:
-            array: np.ndarray
-                The array to be converted
-        Returns:
-            hexstr: str
-                The hex string representing the bytestring of the array
-        '''
-        if array is None:
-            return None
-        if len(array) == 0:
-            array = np.zeros(0)
-        hexstr = ''
-        if array.dtype is np.int64:
-            for val in array.flatten():
-                hexstr += hex( struct.unpack( '>Q', struct.pack('>q', val) )[0] ) if(val != 0) else '0x0000000000000000'
-        elif array.dtype is  np.int32:
-            array = array.astype(np.int64)
-            for val in array.flatten():
-                hexstr += hex( struct.unpack( '>Q', struct.pack('>q', val) )[0] ) if(val != 0) else '0x0000000000000000'
-        else:
-            for val in array.flatten():
-                hexstr += hex( struct.unpack( '>Q', struct.pack('>d', val) )[0] ) if(val != 0.0) else '0x0000000000000000'
-        return hexstr
-
-    def dehexify(self, hexstr, dtype=np.float64, shape=None):
-        '''
-        Converts a hex string representation of an array into a numpy array
-        Args:
-            hexstr: str
-                the hex string to be converted
-            dtype: numpy data type
-                the data type of the array
-            shape: tuple or ints
-                The shape of an array
-        Returns:
-            array:  The array the hex string represents
-        '''
-        if hexstr is None:
-            return None
-        elif len(hexstr) == 0 :
-            return np.zeros(0, dtype)
-        if dtype is np.int64 or dtype is np.int32 or dtype is int:
-            array = np.array( [ struct.unpack('>q', struct.pack('>Q', int(hh,16) ) )[0] for hh in hexstr.split('0x')[1:] ] ).astype(dtype)
-        else:
-            array = np.array( [ struct.unpack('>d', struct.pack('>Q', int(hh,16) ) )[0] for hh in hexstr.split('0x')[1:] ] ).astype(dtype)
-        return array
 
     def _write(self, phonon, key_value_pairs, data, id):
         '''
@@ -224,7 +241,8 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                   blob(row.get('masses')),
                   blob(row.get('tags')),
                   blob(row.get('momenta')),
-                  constraints)
+                  constraints
+                 )
         if 'calculator' in row:
             values += (row.calculator, encode(row.calculator_parameters))
         else:
@@ -242,18 +260,18 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                    row.get('magmom'),
                    blob(row.get('charges')),
                    row.get('natoms_in_sc'),
-                   encode( row.get('supercell_matrix') ),
+                   encode(row.get('supercell_matrix')),
                    blob(row.get("force_constants")),
                    encode(row.get("qmesh")),
                    encode(row.get("phonon_dos_fp")),
                    encode(row.get("qpoints")),
                    encode(row.get("phonon_bs_fp")),
-                   row.get("thermal_prop_ZPE"),
-                   row.get("thermal_prop_high_T_S"),
-                   self.hexify(row.get("thermal_prop_T")),
-                   self.hexify(row.get("thermal_prop_A")),
-                   self.hexify(row.get("thermal_prop_S")),
-                   self.hexify(row.get("thermal_prop_Cv")),
+                   row.get("tp_ZPE"),
+                   row.get("tp_high_T_S"),
+                   hexify(row.get("tp_T")),
+                   hexify(row.get("tp_A")),
+                   hexify(row.get("tp_S")),
+                   hexify(row.get("tp_Cv")),
                    encode(key_value_pairs),
                    data,
                    len(row.numbers),
@@ -353,9 +371,9 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if values[26] is not None:
             dct['supercell_matrix'] = decode(values[26])
         if values[27] is not None:
-            dct['force_constants'] = deblob(values[27], shape=(values[25], values[25],3,3))
+            dct['force_constants'] = deblob(values[27], shape=(values[25], values[25], 3, 3))
         if values[28] is not None:
-            dct['qmesh'] = ase.io.jsonio.decode(values[28])
+            dct['qmesh'] = jsonio.decode(values[28])
         if values[29] is not None:
             dct['phonon_dos_fp'] = decode(values[29])
         if values[30] is not None:
@@ -363,24 +381,31 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if values[31] is not None:
             dct['phonon_bs_fp'] = decode(values[31])
         if values[32] is not None:
-            dct['thermal_prop_ZPE'] = values[32]
+            dct['tp_ZPE'] = values[32]
         if values[33] is not None:
-            dct['thermal_prop_high_T_S'] = values[33]
+            dct['tp_high_T_S'] = values[33]
         if values[34] is not None:
-            dct['thermal_prop_T']  = self.dehexify(values[34])
+            dct['tp_T'] = dehexify(values[34])
         if values[35] is not None:
-            dct['thermal_prop_A']  = self.dehexify(values[35])
+            dct['tp_A'] = dehexify(values[35])
         if values[36] is not None:
-            dct['thermal_prop_S']  = self.dehexify(values[36])
+            dct['tp_S'] = dehexify(values[36])
         if values[37] is not None:
-            dct['thermal_prop_Cv'] = self.dehexify(values[37])
+            dct['tp_Cv'] = dehexify(values[37])
         if values[len(self.columnnames)-8] != '{}':
             dct['key_value_pairs'] = decode(values[len(self.columnnames)-8])
         if len(values) >= len(self.columnnames)-6 and values[len(self.columnnames)-7] != 'null':
             dct['data'] = decode(values[len(self.columnnames)-7])
         return PhononRow(dct)
 
-    def create_select_statement(self, keys, cmps, sort=None, order=None, sort_table=None, what='systems.*'):
+    def create_select_statement(self,
+                                keys,
+                                cmps,
+                                sort=None,
+                                order=None,
+                                sort_table=None,
+                                what='systems.*'
+                               ):
         '''
         Creates a string that represents a select command in SQLite 3
         Args:
@@ -427,15 +452,15 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
         temp = None
         for key, op, value in cmps:
-            if key == 'thermal_prop_T':
+            if key == 'tp_T':
                 if op != '=':
                     raise ValeError("For temperature searches the operator must be =")
                 else:
-                    temp = hex( struct.unpack('>Q', struct.pack('>d', value) )[0] )
+                    temp = hex(struct.unpack('>Q', struct.pack('>d', value))[0])
         for key, op, value in cmps:
-            if key is 'thermal_prop_T':
+            if key == 'tp_T':
                 continue
-            elif key in ['id', 'energy', 'magmom', 'ctime', 'user', 'calculator', 'natoms', 'pbc', 'unique_id', 'fmax', 'smax', 'volume', 'mass', 'charge', 'supercell_matrix']:
+            elif key in check_keys:
                 if key == 'user' and self.version >= 2:
                     key = 'username'
                 elif key == 'pbc':
@@ -448,20 +473,24 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
 
                 where.append('systems.{}{}?'.format(key, op))
                 args.append(value)
-            elif key in ['thermal_prop_A', 'thermal_prop_S', 'thermal_prop_Cv']:
-                if(temp is None):
+            elif key in ['tp_A', 'tp_S', 'tp_Cv']:
+                if temp is None:
                     raise ValeError("If selecting with a thermal property a temperature must also be given.")
-                opActual = op
-                if(value < 0.0):
-                    if  (op == '<') : opActual = '>'
-                    elif(op == '>') : opActual = '<'
-                    elif(op == '<='): opActual = '>='
-                    elif(op == '>='): opActual = '<='
+                op_actual = op
+                if value < 0.0:
+                    if op == '<':
+                        op_actual = '>'
+                    elif op == '>':
+                        op_actual = '<'
+                    elif op == '<=':
+                        op_actual = '>='
+                    elif op == '>=':
+                        op_actual = '<='
                 if self.type == 'postgresql':
-                    where.append("SUBSTR({}, POSITION('{}' IN systems.thermal_prop_T), 18){}?".format(key,temp,opActual))
+                    where.append("SUBSTR({}, POSITION('{}' IN systems.tp_T), 18){}?".format(key, temp, op_actual))
                 else:
-                    where.append("SUBSTR({}, INSTR(systems.thermal_prop_T,'{}'), 18){}?".format(key,temp,opActual))
-                args.append(hex( struct.unpack('>Q', struct.pack('>d', value) )[0] ) )
+                    where.append("SUBSTR({}, INSTR(systems.tp_T,'{}'), 18){}?".format(key, temp, op_actual))
+                args.append(hex(struct.unpack('>Q', struct.pack('>d', value))[0]))
             elif isinstance(key, int):
                 if self.type == 'postgresql':
                     where.append(
@@ -511,13 +540,22 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if where:
             sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
         if sort:
-            # XXX use "?" instead of "{}"
             sql += '\nORDER BY {0}.{1} IS NULL, {0}.{1} {2}'.format(
                 sort_table, sort, order)
         return sql, args
 
 
-    def _select(self, keys, cmps, explain=False, verbosity=0, limit=None, offset=0, sort=None, include_data=True, columns='all'):
+    def _select(self,
+                keys,
+                cmps,
+                explain=False,
+                verbosity=0,
+                limit=None,
+                offset=0,
+                sort=None,
+                include_data=True,
+                columns='all'
+               ):
         '''
         Command to access a row in the database
         Args:
@@ -556,17 +594,36 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             columnindex = [c for c in range(0, len(self.columnnames)-7) if self.columnnames[c] in columns]
         if include_data:
             columnindex.append(len(self.columnnames)-7)
-
+        check_sort = ['id'
+                      'energy'
+                      'username'
+                      'calculator'
+                      'ctime'
+                      'mtime'
+                      'magmom'
+                      'pbc'
+                      'fmax'
+                      'smax'
+                      'volume'
+                      'mass'
+                      'charge'
+                      'natoms'
+                     ]
         if sort:
             if sort[0] == '-':
                 order = 'DESC'
                 sort = sort[1:]
             else:
                 order = 'ASC'
-            if sort in ['id', 'energy', 'username', 'calculator', 'ctime', 'mtime', 'magmom', 'pbc', 'fmax', 'smax', 'volume', 'mass', 'charge', 'natoms']:
+            if sort in check_sort:
                 sort_table = 'systems'
             else:
-                for dct in self._select(keys + [sort], cmps=[], limit=1, include_data=False, columns=['key_value_pairs']):
+                for dct in self._select(keys + [sort],
+                                        cmps=[],
+                                        limit=1,
+                                        include_data=False,
+                                        columns=['key_value_pairs']
+                                       ):
                     if isinstance(dct['key_value_pairs'][sort], basestring):
                         sort_table = 'text_key_values'
                     else:
@@ -607,7 +664,13 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                     if n == limit:
                         return
                     limit -= n
-                for row in self._select(keys + ['-' + sort], cmps, limit=limit, offset=offset, include_data=include_data, columns=columns):
+                for row in self._select(keys + ['-' + sort],
+                                        cmps,
+                                        limit=limit,
+                                        offset=offset,
+                                        include_data=include_data,
+                                        columns=columns
+                                       ):
                     yield row
 
     def _initialize(self, con):
@@ -663,8 +726,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         self.initialized = True
 
 if __name__ == '__main__':
-    import sys
-    from ase.db import connect
+    from hilde.phonon_db.phonon_db import connect
     con = connect(sys.argv[1])
     con._initialize(con._connect())
     print('Version:', con.version)

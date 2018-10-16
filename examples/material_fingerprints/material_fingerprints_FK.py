@@ -21,9 +21,9 @@ special_points = cellinfo.special_points
 # Calculator setup
 
 # conventional supercell matrix
-cmatrix = np.array([[-1,  1,  1],
-                    [ 1, -1,  1],
-                    [ 1,  1, -1]])
+cmatrix = np.array([[-1, 1, 1],
+                    [1, -1, 1],
+                    [1, 1, -1]])
 
 # run phonon calculation for several supercell sizes and compute fingerprints
 fps = []

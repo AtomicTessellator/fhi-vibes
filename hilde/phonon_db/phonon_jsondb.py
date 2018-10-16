@@ -1,12 +1,9 @@
 import os
-import sys
 
 import numpy as np
 
-from ase.db.core import ops, lock, now
+from ase.db.core import ops, now
 from ase.db.jsondb import JSONDatabase
-from ase.io.jsonio import encode, decode
-from ase.parallel import world, parallel_function
 from ase.utils import basestring
 
 from hilde.phonon_db.phonon_db import PhononDatabase
@@ -36,8 +33,7 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         bigdct = {}
         ids = []
         nextid = 1
-        if (isinstance(self.filename, basestring) and
-            os.path.isfile(self.filename)):
+        if (isinstance(self.filename, basestring) and os.path.isfile(self.filename)):
             try:
                 bigdct, ids, nextid = self._read_json()
             except (SyntaxError, ValueError):
@@ -81,7 +77,17 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         dct['id'] = id
         return PhononRow(dct)
 
-    def _select(self, keys, cmps, explain=False, verbosity=0, limit=None, offset=0, sort=None, include_data=True, columns='all'):
+    def _select(self,
+                keys,
+                cmps,
+                explain=False,
+                verbosity=0,
+                limit=None,
+                offset=0,
+                sort=None,
+                include_data=True,
+                columns='all'
+               ):
         '''
         Command to access a row in the database
         Args:
@@ -160,18 +166,18 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
             else:
                 temp = None
                 for key, op, val in cmps:
-                    if(key == 'thermal_prop_T'):
+                    if key == 'tp_T':
                         assert op is ops['=']
                         temp = val
                 for key, op, val in cmps:
-                    if(key == 'supercell_matrix'):
+                    if key == 'supercell_matrix':
                         val = list(val.flatten())
-                    if(key is 'thermal_prop_T'):
+                    if key == 'tp_T':
                         continue
                     elif isinstance(key, int):
                         value = np.equal(row.numbers, key).sum()
-                    elif key in ['thermal_prop_A', 'thermal_prop_S', 'thermal_prop_Cv']:
-                        value = row.get(key)[np.where(row.get('thermal_prop_T') == temp)[0]]
+                    elif key in ['tp_A', 'tp_S', 'tpCv']:
+                        value = row.get(key)[np.where(row.get('tp_T') == temp)[0]]
                     else:
                         value = row.get(key)
                         if key == 'pbc':
