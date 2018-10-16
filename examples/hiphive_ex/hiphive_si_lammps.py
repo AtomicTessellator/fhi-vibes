@@ -66,9 +66,12 @@ def get_fcp(supercell, calculator,
             minimum_distance,
             fit_method='ardr',
             seed=randint(0, 2**32 - 1),
-            filename="si.fcp"):
+            filename="si.fcp",
+            force=False):
     """ Get a ForceConstantPotential for the material """
     try:
+        if force:
+            raise
         fcp = ForceConstantPotential.read(filename)
     except:
         structures = generate_mc_rattled_structures(supercell,
@@ -122,10 +125,10 @@ calc = setup_lammps_si(workdir)
 cutoff_max = inscribed_sphere_in_box(supercell.cell) - .01
 fcp_params = {
     'number_of_structures': 5,
-    'rattle_std': 0.03,
+    'rattle_std': 0.01,
     'minimum_distance': 2.4,
-    'cutoffs': [cutoff_max, 2.0],
-    'number_of_structures': 5
+    'cutoffs': [cutoff_max, 3.0],
+    'force': False
 }
 
 fcp = get_fcp(supercell, calc, **fcp_params)
@@ -156,6 +159,6 @@ freq_diff = diff(bs_hiphive[0][0], bs_phonopy[0][0], bs_phonopy[0][0])
 fc2_diff = diff(fc_phonopy, phonon.get_force_constants(), fc_phonopy)
 
 print("The frequency error between the phonopy and hiphive band structure at " +
-      f"the Gamma point is: {freq_diff}")
+      f"the Gamma point is: {freq_diff:.2e}")
 print("The FC2 error between the phonopy and hiphive force constant matrix is:"
-      + f"{fc2_diff}")
+      + f"{fc2_diff:.2e}")
