@@ -65,7 +65,7 @@ def get_fcp(supercell, calculator,
             rattle_std,
             minimum_distance,
             fit_method='ardr',
-            seed=randint(0, 2**32 - 1),
+            seed=42,
             filename="si.fcp",
             force=False):
     """ Get a ForceConstantPotential for the material """
@@ -127,7 +127,7 @@ fcp_params = {
     'number_of_structures': 5,
     'rattle_std': 0.01,
     'minimum_distance': 2.4,
-    'cutoffs': [cutoff_max, 3.0],
+    'cutoffs': [cutoff_max, 3.0, 3.5],
     'force': False
 }
 
