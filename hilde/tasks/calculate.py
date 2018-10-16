@@ -156,7 +156,8 @@ def calculate_multiple_socketio(cells, calculator, workdir, port,
             traj.write(cell)
     return cells_calculated
 
-def setup_multiple(cells, calculator, workdir):
+def setup_multiple(cells, calculator, workdir, trajectory=None,
+                       force=False):
     """
     Sets up the force calculations in a given list of atoms objects
     Args:

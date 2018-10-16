@@ -2,10 +2,12 @@
 
 from pathlib import Path
 import numpy as np
+
+from ase.dft.kpoints import get_cellinfo
+
 from hilde.parsers import read_structure
 from hilde.phonopy import phono as ph
-from hilde.tasks import compute_forces
-from ase.dft.kpoints import get_cellinfo
+from hilde.tasks.calculate import calculate_multiple
 from hilde.templates.lammps import setup_lammps_si
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.helpers.supercell import make_cubic_supercell
@@ -42,8 +44,8 @@ for nn in [8, 64, 128, 216]:
     workdir.mkdir(parents=True, exist_ok=True)
 
     lammps = setup_lammps_si(workdir)
-
-    force_sets = compute_forces(scs, lammps, workdir)
+    scs = calculate_multiple(scs, lammps, workdir, force=True)
+    force_sets = [sc.get_forces() for sc in scs]
     phonon.produce_force_constants(force_sets)
 
     # REM: binning=False is optional
