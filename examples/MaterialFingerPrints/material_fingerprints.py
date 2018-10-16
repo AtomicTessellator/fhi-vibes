@@ -1,21 +1,36 @@
+from glob import glob
 from pathlib import Path
+import matplotlib.pyplot as plt
 import numpy as np
 import shutil
+
+from ase.io import read, write
+
+from hilde.helpers.brillouinzone import get_bands, get_sp_points
+from hilde.materials_fp.material_fingerprint import *
 from hilde.parsers import read_structure, read_output
 from hilde.phonopy import phono as ph
-from ase.dft.kpoints import get_cellinfo, special_paths, bandpath
-from ase.io import read, write
-import matplotlib.pyplot as plt
+from hilde.settings import Settings
+from hilde.tasks.calculate import calculate_multiple
+from hilde.templates.aims import setup_aims
 
-import sys
-from hilde.materials_fp.material_fingerprint import *
-import numpy as np
-from glob import glob
+def make_workdir(smatrix, vol):
+    wd = Path('./Si_{}{}{}_{}{}{}_{}{}{}_{:.3f}'.format(*smatrix.flatten(), vol))
+    wd.mkdir(exist_ok=True)
+    return wd
+settings = Settings('../../hilde.conf')
+aims_settings = {
+    'command': settings.machine.aims_command,
+    'species_dir': str(Path(settings.machine.basissetloc) / 'light'),
+    'output_level': 'MD_light',
+    'relativistic': 'atomic_zora scalar',
+    'xc': 'pw-lda',
+    'k_grid': 3 * [2],
+    "sc_accuracy_rho" : 0.0001,
+    "sc_accuracy_forces" : 0.0005
+}
 
-def get_band(q_start, q_end, n_q=51):
-    """ Create a list of n_q equidistant qpoints connecting q_start and q_end """
-    band = [q_start + (q_end - q_start) / (n_q-1) * i for i in range(n_q)]
-    return band
+calc = setup_aims(aims_settings)
 
 # Electronic Modes
 kGridDirs = glob("k_grid_conv/*")
@@ -46,61 +61,22 @@ smatrix = np.array([[-1,  1,  1],
                     [ 1,  1, -1]])
 
 # A series of super cell matrices
-smatrices = [ a * smatrix for a in range(1,3)]
-phononCalcs = [ ph.preprocess(atoms, smatrix) for smatrix in smatrices ]
-workdirs = [Path('./Si_{}{}{}_{}{}{}_{}{}{}_{:.3f}'.format(*smatrix.flatten(), vol)) for smatrix in smatrices ]
-for direc in workdirs:
-    direc.mkdir(exist_ok=True)
+smatrices = [a * smatrix for a in range(1,3)]
+phononCalcs = [ph.preprocess(atoms, smatrix)+(make_workdir(smatrix, vol),) for smatrix in smatrices]
 
 # Calculate the Forces
-for ii, cell in enumerate(phononCalcs):
-    for jj, cell in enumerate(phononCalcs[ii][2]):
-        folder_with_disp = workdirs[ii] / f'disp-{jj:03d}'
-        folder_with_disp.mkdir(parents=True, exist_ok=True)
-        print(str(folder_with_disp) + ' created')
-        write(str(folder_with_disp / 'geometry.in'), phononCalcs[ii][2], 'aims', scaled=True)
-        try: (folder_with_disp / 'control.in').unlink()
-        except: pass
-        shutil.copy('control.in', str(folder_with_disp / 'control.in'))
-
-# Define q_path and q_points
-q_points = { '\\Gamma': np.array([0.0, 0.00, 0.00]),
-             '\\Delta': np.array([0.25, 0., 0.25]),
-                   'X': np.array([0.5, 0.00, 0.50]),
-                   'W': np.array([0.5, 0.25, 0.75]),
-                   'K': np.array([0.375, 0.375, 0.75]),
-            '\\Lambda': np.array([0.25, 0.25, 0.25]),
-                   'L': np.array([0.5, 0.5, 0.5])
-             }
-
-# This is a possible path through the Brillouin zone
-q_path = ["\\Gamma", "\\Delta", "X", "W", "K", "\\Gamma", "\\Lambda", "L"]
-
 fp_list = []
-# Collect the forces
-for ii in range(len(workdirs)):
-    force_sets = []
-    disps = sorted(workdirs[ii].glob('disp-???'))
-    phonon = phononCalcs[ii][0]
-    for wd in disps:
-        try:
-            forces = read_output(str(wd / 'aims.out'))[0].get_forces()
-        except FileNotFoundError:
-            exit(f'Please calculate the forces in {wd} in order to proceed.')
-        force_sets.append(forces)
-    print(f'.. {len(force_sets)} force(s) have been read from aims output files.')
-    phonon.set_forces(force_sets)
+for phonon, sc, scs, wd in phononCalcs:
+    scs = calculate_multiple(scs, calc, wd, force=True)
+    phonon.set_forces([sc.get_forces() for sc in scs])
     phonon.produce_force_constants()
-    bands = []
-    for jj, _ in enumerate(q_path[:-1]):
-        q_start, q_end = q_points[q_path[jj]], q_points[q_path[jj+1]]
-        band = get_band(q_start, q_end)
-        bands.append(band)
+
+    bands = get_bands(atoms)
     phonon.set_band_structure(bands)
-    latexify = lambda sym: "$\\mathrm{\\mathsf{" + str(sym)  + "}}$"
-    labels = [latexify(sym) for sym in q_path]
-    fp = get_phonon_bs_fingerprint_phononpy(phonon, q_points, binning=False)
+
+    fp = get_phonon_bs_fingerprint_phononpy(phonon, get_sp_points(atoms), binning=False)
     fp_list.append( fp )
+
     q_mesh = [45, 45, 45]
     phonon.set_mesh(q_mesh)
     # We generate the DOS by calling .set_total_DOS on the phonopy object

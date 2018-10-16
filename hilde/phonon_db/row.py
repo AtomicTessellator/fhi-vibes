@@ -3,7 +3,7 @@ import numpy as np
 from ase.db.row import AtomsRow, atoms2dict
 from ase.atoms import Atoms
 from phonopy import Phonopy
-from hilde.materials_fp.MaterialsFingerprints import get_phonon_bs_fingerprint_phononpy, get_phonon_dos_fingerprint_phononpy
+from hilde.materials_fp.MaterialsFingerprints import get_phonon_bs_fingerprint_phononpy, get_phonon_dos_fingerprint_phononpy, to_dict
 from hilde.structure.structure import pAtoms
 from hilde.structure.convert import to_phonopy_atoms
 

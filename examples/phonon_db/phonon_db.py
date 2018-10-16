@@ -7,12 +7,13 @@ from pathlib import Path
 from pprint import pprint
 
 from hilde.helpers.hash import hash_atoms
+from hilde.helpers.brillouinzone import get_bands_and_labels, get_bands
+from hilde.parsers.structure import read_structure
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import phono as ph
-from hilde.parsers.structure import read_structure
 from hilde.settings import Settings
 from hilde.structure import pAtoms
-from hilde.tasks.calculate import compute_forces
+from hilde.tasks.calculate import calculate_multiple
 
 # Get the settings for the calculation and set up the cell
 st = Settings('../../hilde.conf')
@@ -69,18 +70,13 @@ except KeyError:
     workdir = Path(aims_tmp_dir / '{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}'.format(
         si.sysname, *smatrix.flatten(), vol))
     # Compute forces and phonon properties
-    phonon.set_forces(compute_forces(disp_scs, si.calc, workdir))
+    disp_scs = calculate_multiple(disp_scs, si.calc, workdir, force=True)
+    force_sets = [sc.get_forces() for sc in disp_scs]
+
+    phonon.set_forces(force_sets)
     phonon.produce_force_constants()
-    si_info = get_cellinfo(si.cell)
-    qpaths = special_paths[si_info.lattice].split(",")
-    try:
-        bands = []
-        for path in qpaths:
-            for ii, _ in enumerate(path[:-1]):
-                bands.append(bandpath([si_info.special_points[path[ii]], si_info.special_points[path[ii+1]]], si.cell)[0])
-        phonon.set_band_structure(bands)
-    except:
-        print("Please run the bandstructure calculations.")
+    phonon.set_band_structure(get_bands(si))
+
     q_mesh = [45, 45, 45]
     phonon.set_mesh(q_mesh)
     phonon.set_total_DOS(freq_pitch=.1, tetrahedron_method=True )
