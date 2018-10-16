@@ -3,6 +3,7 @@ import numpy as np
 import yaml
 from phonopy import Phonopy
 from collections import namedtuple
+from ase.dft.kpoints import get_cellinfo
 
 fp_tup = namedtuple("fp_tup", "frequencies occupancies special_pts nbins")
 
@@ -179,7 +180,8 @@ def get_phonon_bands_yaml(spectra_yaml, q_points):
     return bands
 
 # Functions to get the fingerprint from various input values
-def get_phonon_bs_fingerprint_phononpy(phonon, q_points, binning=True, min_e=None, max_e=None, nbins=32):
+def get_phonon_bs_fingerprint_phononpy(phonon, q_points=None, binning=True,
+                                       min_e=None, max_e=None, nbins=32):
     """
     Generates the phonon band structure fingerprint for a bands structure stored in a phonopy object
     Args:
@@ -196,6 +198,9 @@ def get_phonon_bs_fingerprint_phononpy(phonon, q_points, binning=True, min_e=Non
     Returns: namedtuple(fp_tup)
         The phonon band structure fingerprint
     """
+    if q_points is None:
+        q_points = get_cellinfo(phonon.primitive.cell).special_points
+        
     bands = get_phonon_bands_phonopy(phonon, q_points)
     return get_fingerprint_bs(bands, binning, find_min_E(bands) if min_e is None else min_e, find_max_E(bands) if max_e is None else max_e, nbins)
 
