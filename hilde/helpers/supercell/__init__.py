@@ -55,12 +55,13 @@ def make_cubic_supercell(atoms,
     supercell = make_supercell(prim_cell, smatrix,
                                tag=('smatrix', list(smatrix.flatten())))
 
-    if supercell.spacegroup and prim_cell.spacegroup:
+    if (hasattr(prim_cell, 'spacegroup')
+        and supercell.spacegroup and prim_cell.spacegroup):
         n_sc = supercell.spacegroup.number
         n_at = prim_cell.spacegroup.number
         if n_sc != n_at:
             warn('Spacegroup of supercell: ' +
-                  f'{n_sc} |= {n_at} of reference cell.')
+                 f'{n_sc} |= {n_at} of reference cell.')
 
     cub_ness = get_cubicness(supercell.cell)
     if cub_ness < .8:
