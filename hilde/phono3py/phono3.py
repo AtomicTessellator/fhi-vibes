@@ -3,26 +3,47 @@ A leightweight wrapper for Phono3py
 """
 
 from collections import namedtuple
-from pathlib import Path
 import numpy as np
 from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
 from hilde.structure import pAtoms
-from hilde.helpers import brillouinzone as bz
 
 
-def to_pAtoms(atoms, smatrix, symprec=None):
-    """ Helper function to provide supercells of pAtoms type """
+def to_pAtoms(phonopy_atoms, smatrix, symprec=None):
+    """ Convert one or several PhonopyAtoms to pAtoms
 
-    # Check if the atoms does not really exist
-    if atoms is None:
-        return None
+    Args:
+        phonopy_atoms (PhonopyAtoms/list): one or several PhonopyAtoms
+        smatrix (ndarray): Supercell matrix
+        symprec (float): symmetry precision
 
-    return pAtoms(phonopy_atoms=atoms,
-                  symprec=symprec,
-                  tags=['supercell',
-                        ('smatrix', list(smatrix.T.flatten()))]
-                  )
+    Returns:
+        pAtoms/list: one or several pAtoms
+
+    """
+
+    if isinstance(phonopy_atoms, list):
+        latoms = phonopy_atoms
+    else:
+        latoms = [phonopy_atoms]
+
+    out_atoms = []
+    for atoms in latoms:
+        # Check if the atoms does exist (important when working with cutoffs)
+        if atoms is None:
+            out_atoms.append(None)
+            continue
+
+        tags = ['supercell', ('smatrix', list(smatrix.T.flatten()))]
+        out_atoms.append(
+            pAtoms(phonopy_atoms=atoms,
+                   symprec=symprec,
+                   tags=tags)
+            )
+
+    if isinstance(phonopy_atoms, list):
+        return out_atoms
+    return out_atoms
 
 
 def prepare_phono3py(atoms,
@@ -84,10 +105,10 @@ def preprocess(atoms,
                q_mesh=[11, 11, 11],
                disp=0.03,
                cutoff_pair_distance=10.,
-               symprec=1e-5,
-               trigonal=False):
+               symprec=1e-5):
     """
-    Creates a phonopy object from given input
+    Set up a Phono3py object and generate all the necessary supercells
+
     Args:
         atoms: atoms object that represents the (primitive) unit cell
         q_mesh: q-point grid for BZ integrations
@@ -116,22 +137,16 @@ def preprocess(atoms,
                               fc3_supercell_matrix,
                               symprec=symprec)
 
-    fc2_supercells_with_disps = []
-    for scell in phonon3.get_phonon_supercells_with_displacements():
-        fc2_supercells_with_disps.append(
-            to_pAtoms(scell, fc2_supercell_matrix)
-        )
+    scells = phonon3.get_phonon_supercells_with_displacements()
+    fc2_supercells_with_disps = to_pAtoms(scells, fc2_supercell_matrix)
 
-    fc3_supercells_with_disps = []
-    for scell in phonon3.get_supercells_with_displacements():
-        fc3_supercells_with_disps.append(
-            to_pAtoms(scell, fc3_supercell_matrix)
-        )
+    scells = phonon3.get_supercells_with_displacements()
+    fc3_supercells_with_disps = to_pAtoms(scells, fc3_supercell_matrix)
 
     pp = namedtuple('phono3py_preprocess',
-                    ('phonon3 fc2_supercell fc3_supercell ' +
-                    'fc2_supercells_with_displacements ' +
-                    'fc3_supercells_with_displacements'))
+                    ('phonon3 fc2_supercell fc3_supercell' +
+                     ' fc2_supercells_with_displacements' +
+                     ' fc3_supercells_with_displacements'))
 
     return pp(phonon3, fc2_supercell, fc3_supercell,
               fc2_supercells_with_disps, fc3_supercells_with_disps)
@@ -143,13 +158,13 @@ def get_forces(supercells, supercells_computed):
 
     zero_force = np.zeros([len(supercells[0]), 3])
     force_sets = []
-    nn = 0
-    for sc in supercells:
-        if sc is None:
+    counter = 0
+    for scell in supercells:
+        if scell is None:
             force_sets.append(zero_force)
         else:
-            force_sets.append(supercells_computed[nn].get_forces())
-            nn += 1
+            force_sets.append(supercells_computed[counter].get_forces())
+            counter += 1
 
     if len(force_sets) != len(supercells):
         print('len(force_sets), len(supercells):',
@@ -158,112 +173,20 @@ def get_forces(supercells, supercells_computed):
 
     return force_sets
 
-def get_force_constants(phonon, force_sets=None):
-    """
-    fkdev: is this necessary?
-    Take a Phonopy object and produce force constants from the given forces
-    """
-    n_atoms = phonon.get_supercell().get_number_of_atoms()
-
-    phonon.produce_force_constants(force_sets)
-
-    force_constants = phonon.get_force_constants()
-
-    if force_constants is not None:
-        # convert forces from (N, N, 3, 3) to (3*N, 3*N)
-        force_constants = phonon.get_force_constants().swapaxes(1, 2).reshape(2*(3*n_atoms, ))
-        return force_constants
-    # else
-    print('**Force constants not yet created, please specify force_sets.')
-
-
-def _postprocess_init(phonon,
-                     force_sets=None):
-    """
-    Make sure that force_constants are present before the actual postprocess is performed.
-    Args:
-        phonon: pre-processed phonon object
-        force_constants: computed force_constants (optional)
-        force_sets: computed forces (optional)
-
-    Returns:
-
-    """
-    if phonon.get_force_constants() is None:
-        if force_sets is not None:
-            phonon.produce_force_constants(force_sets)
-        else:
-            exit('** Cannot run postprocess, force_sets have not been provided.')
-
-
-def get_dos(phonon,
-            q_mesh=[10, 10, 10],
-            freq_min=0,
-            freq_max='auto',
-            freq_pitch=.1,
-            tetrahedron_method=True,
-            write=False,
-            filename='total_dos.dat',
-            force_sets=None):
-    """
-    Compute the DOS (and save to file)
-    Args:
-        phonon: Phonopy object
-        q_mesh: q mesh to evaluate D(q)
-        freq_min: freq. to start with [THz]
-        freq_max: freq. to stop with [THz]
-        freq_pitch: freq. step [THz]
-        tetrahedron_method: use the tetrahedron method
-        write: should a file be written?
-        filename: file that total DOS is written to
-        force_sets: give force_sets if force_constants are missing
-
-    Returns:
-        tuple: (frequencies, DOS)
-
-    """
-
-    _postprocess_init(phonon, force_sets)
-
-    phonon.set_mesh(q_mesh)
-
-    if freq_max == 'auto':
-        freq_max = phonon.get_mesh()[2].max() * 1.05
-
-    phonon.set_total_DOS(freq_min=freq_min,
-                         freq_max=freq_max,
-                         freq_pitch=freq_pitch,
-                         tetrahedron_method=tetrahedron_method)
-
-    if write:
-        phonon.write_total_DOS()
-        Path('total_dos.dat').rename(filename)
-
-    return phonon.get_total_DOS()
-
-
-def get_bandstructure(phonon,
-                      paths=None,
-                      force_sets=None):
-    """
-    Compute bandstructure for given path
-
-    Args:
-        phonon: Phonopy object
-        path: path in the Brillouin zone
-        force_sets: (optional)
-
-    Returns:
-        (qpoints, distances, frequencies, eigenvectors)
-
-    """
-
-    _postprocess_init(phonon, force_sets)
-
-
-    bands, labels = bz.get_bands_and_labels(phonon.primitive,
-                                            paths)
-
-    phonon.set_band_structure(bands)
-
-    return (*phonon.get_band_structure(), labels)
+# def get_force_constants(phonon, force_sets=None):
+#     """
+#     fkdev: is this necessary?
+#     Take a Phonopy object and produce force constants from the given forces
+#     """
+#     n_atoms = phonon.get_supercell().get_number_of_atoms()
+#
+#     phonon.produce_force_constants(force_sets)
+#
+#     force_constants = phonon.get_force_constants()
+#
+#     if force_constants is not None:
+#         # convert forces from (N, N, 3, 3) to (3*N, 3*N)
+#         force_constants = phonon.get_force_constants().swapaxes(1, 2).reshape(2*(3*n_atoms, ))
+#         return force_constants
+#     # else
+#     warn('Force constants not yet created, please specify force_sets.')
