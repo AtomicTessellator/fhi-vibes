@@ -42,7 +42,7 @@ def return_trajectory(cells, calculator, trajectory, force=False):
 
     # Case 1: Trajectory does not yet exist
     if not Path(trajectory).exists():
-        Path(trajectory).parent.mkdir(parents=True)
+        Path(trajectory).parent.mkdir(parents=True, exist_ok=True)
         traj = Trajectory(str(trajectory), mode='a')
         return traj, False
 
@@ -105,6 +105,8 @@ def calculate_multiple(cells, calculator, workdir, trajectory=None,
 
     cells_calculated = []
     for cell, wdir in zip(cells, workdirs):
+        if cell is None:
+            continue
         cell = calculate(cell, calculator, wdir)
         cells_calculated.append(cell)
         if trajectory:
