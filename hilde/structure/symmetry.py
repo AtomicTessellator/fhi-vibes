@@ -74,8 +74,8 @@ class Spacegroup:
             self._spglib_dataset = spg.get_symmetry_dataset(
                 self.atoms.to_spglib_cell(), symprec=self.symprec)
 
-            lat = self.atoms.get_cell()
-            ilat = la.inv(lat)
+            self.lat = self.atoms.get_cell()
+            self.ilat = la.inv(self.lat)
 
         if mode == 0:
             # set mode
@@ -203,7 +203,7 @@ class Spacegroup:
 
     @property
     def rotations(self):
-        return [clean_matrix(lat.T @ frot @ ilat.T) for frot in self.frac_rotations]
+        return [clean_matrix(self.lat.T @ frot @ self.ilat.T) for frot in self.frac_rotations]
 
     @property
     def frac_translations(self):
@@ -215,7 +215,7 @@ class Spacegroup:
 
     @property
     def translations(self):
-        return clean_matrix([lat.T @ ft for ft in self.frac_translations])
+        return clean_matrix([self.lat.T @ ft for ft in self.frac_translations])
 
     @property
     def wyckoffs(self):
@@ -264,12 +264,12 @@ class Spacegroup:
 
     # Symmetry elements from spglib
     def get_site_symmetries(self):
-        if self.site_symmetries is not None:
+        if self._site_symmetries is not None:
             if len(self.site_symmetries) == self.atoms.get_n_atoms():
-                return self.site_symmetries
+                return self._site_symmetries
         #
         # if not yet calculated, do it
-        fpos = self.atoms.get_positions(scaled=True)
+        fpos = self.atoms.get_scaled_positions()
         frot = self.frac_rotations
         ftrl = self.frac_translations
         lattice = self.atoms.get_cell()
@@ -282,12 +282,12 @@ class Spacegroup:
                 diff = pos - rot_pos
                 diff -= np.rint(diff)
                 diff = np.dot(diff, lattice)
-                if la.norm(diff) < sympr:
+                if la.norm(diff) < self.symprec:
                     site_symmetries.append(ii)
             all_site_symmetries.append(site_symmetries)
 
-        self.site_symmetries = np.array(all_site_symmetries, dtype=int)
-        return self.site_symmetries
+        self._site_symmetries = np.array(all_site_symmetries, dtype=int)
+        return self._site_symmetries
 
     @property
     def symbol(self, format='Herman_Mauguin'):
