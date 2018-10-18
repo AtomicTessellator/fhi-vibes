@@ -33,60 +33,43 @@ def calculate(atoms, calculator, workdir):
         return calc_atoms
 
 
-def return_trajectory(cells, calculator, trajectory, force=False):
-    """Return either a trajectory of computed atoms objects or an empty one
-
-    Returns:
-        (traj, is_calculated): the trajectory and wether it was already
-        calculated"""
-
-    # Case 1: Trajectory does not yet exist
-    if not Path(trajectory).exists():
-        Path(trajectory).parent.mkdir(parents=True, exist_ok=True)
-        traj = Trajectory(str(trajectory), mode='a')
-        return traj, False
-
-    # Case 2: Overwrite trajectory
-    if force:
-        Path(trajectory).rename(str(trajectory) + '.bak')
-        traj = Trajectory(str(trajectory), mode='a')
-        return traj, False
-
-    # Case 3: Read trajectory and try to return if calculations seem plausible
-    try:
-        traj = [pAtoms(ase_atoms=atoms) for atoms in
-                Trajectory(str(trajectory), mode='r')]
-
-        atoms_coincide = all(cell == atoms for cell, atoms in zip(cells, traj))
-        calcs_coincide = all((p1 == p2 for p1, p2 in
-                              zip_longest(calculator.parameters,
-                                          atoms.calc.parameters))
-                             for atoms in traj)
-        if atoms_coincide and calcs_coincide:
-            return traj, True
-        # else
-        message = (f'atoms objects and calculators in trajectory ' +
-                   f'{trajectory} do not coincide. Compute explicitly.')
-        warn(message=message)
-
-    except Exception as inst:
-        print(inst)
-        exit(f'probably the Trajectory in {trajectory} is empty')
-
-    Path(trajectory).rename(str(trajectory) + '.bak')
-    traj = Trajectory(str(trajectory), mode='a')
-    return traj, False
+def calculators_coincide(calc1, calc2):
+    """ Check if calculators coincide by checking the parameters """
+    calcs_coincide = all(p1 == p2 for p1, p2 in
+                         zip_longest(calc1.parameters,
+                                     calc2.parameters))
+    return calcs_coincide
 
 
-def calculate_multiple(cells, calculator, workdir, trajectory=None,
-                       force=False):
+def return_from_trajectory(cells, calculator, trajectory,
+                           ordered=True):
+    """ return pre computed atoms objects from trajectory """
+    cells_computed = []
+    if ordered:
+        itrajectory = iter(trajectory)
+        atoms = next(itrajectory)
+        for cell in cells:
+            if ((atoms == cell) and calculators_coincide(calculator,
+                                                         atoms.calc)):
+                cells_computed.append(atoms)
+                atoms = next(itrajectory)
+            else:
+                cells_computed.append(cell)
+    else:
+        raise Exception('non ordered read from trajectory not yet implemented.')
+    return cells_computed
+
+
+def calculate_multiple(cells, calculator, workdir, trajectory_to=None,
+                       trajectory_from=None):
     """Calculate several atoms object sharing the same calculator.
 
     Args:
         cells (Atoms): List of atoms objects.
         calculator (calculator): Calculator to run calculation.
         workdir (str/Path): working directory
-        trajectory (Trajectory): store (and read) information from trajectory
+        trajectory_to (Trajectory): store information to trajectory
+        trajectory_from (Trajectory): read information from trajectory
         read (bool): Read from trajectory if True.
 
     Returns:
@@ -94,23 +77,36 @@ def calculate_multiple(cells, calculator, workdir, trajectory=None,
 
     """
 
-    if trajectory:
-        traj_file = Path(workdir) / trajectory
-        traj, is_calculated = return_trajectory(cells, calculator,
-                                                traj_file, force)
-        if is_calculated and not force:
-            return traj
+    # If trajectory_from is given, try to read pre-computed atoms from it
+    cells_pre_calculated = cells
+    if trajectory_from is not None:
+        traj_file = os.path.join(workdir, trajectory_from)
+        if Path(traj_file).exists():
+            with Trajectory(traj_file, mode='r') as trajectory:
+                cells_pre_calculated = return_from_trajectory(cells,
+                                                              calculator,
+                                                              trajectory)
+
+    # Check if backup should be performed
+    if trajectory_to is not None:
+        traj_file = os.path.join(workdir, trajectory_to)
+        if Path(traj_file).exists():
+            Path(traj_file).rename(str(traj_file) + '.bak')
 
     workdirs = [Path(workdir) / f'{ii:05d}' for ii, _ in enumerate(cells)]
 
     cells_calculated = []
-    for cell, wdir in zip(cells, workdirs):
+    for cell, wdir in zip(cells_pre_calculated, workdirs):
         if cell is None:
+            cells_calculated.append(cell)
             continue
-        cell = calculate(cell, calculator, wdir)
+        if cell.calc is None:
+            cell = calculate(cell, calculator, wdir)
         cells_calculated.append(cell)
-        if trajectory:
-            traj.write(cell)
+
+        if trajectory_to is not None:
+            with Trajectory(traj_file, mode='a') as trajectory:
+                trajectory.write(cell)
 
     return cells_calculated
 

@@ -115,23 +115,21 @@ def preprocess(atoms,
               fc2_supercells_with_disps, fc3_supercells_with_disps)
 
 
-def get_forces(supercells, supercells_computed):
+def get_forces(supercells_computed):
     """ Return force_sets taking care of supercells that were not computed
     because of cutoff. """
 
-    zero_force = np.zeros([len(supercells[0]), 3])
+    zero_force = np.zeros([len(supercells_computed[0]), 3])
     force_sets = []
-    counter = 0
-    for scell in supercells:
+    for scell in supercells_computed:
         if scell is None:
             force_sets.append(zero_force)
         else:
-            force_sets.append(supercells_computed[counter].get_forces())
-            counter += 1
+            force_sets.append(scell.get_forces())
 
-    if len(force_sets) != len(supercells):
+    if len(force_sets) != len(supercells_computed):
         print('len(force_sets), len(supercells):',
-              len(force_sets), len(supercells))
+              len(force_sets), len(supercells_computed))
         raise RuntimeError("Number of computed supercells incorrect.")
 
     return force_sets
