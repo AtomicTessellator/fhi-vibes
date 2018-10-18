@@ -131,6 +131,7 @@ def calculate_multiple_socketio(cells, calculator, workdir, port,
     """
 
     if trajectory:
+        raise Exception('Future Flo, implement me!')
         traj_file = Path(workdir) / trajectory
         traj, is_calculated = return_trajectory(cells, calculator,
                                                 traj_file, force)
