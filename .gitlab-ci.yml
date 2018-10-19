@@ -4,7 +4,7 @@ python_3_tests:
     # manually install extra deps
     - apt-get update
     - apt-get install -yq gfortran
-    - pip install numpy scipy matplotlib
+    - pip install numpy scipy matplotlib jupyter
     - pip install ase phonopy spglib
     - pip install .
     - python --version
