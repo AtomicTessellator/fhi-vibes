@@ -14,6 +14,14 @@ from ase.io import Trajectory
 from hilde.helpers.paths import cwd
 from hilde.structure import pAtoms
 
+
+def cells_and_workdirs(cells, base_dir):
+    """ generate tuples of atoms object and workingdirectory path """
+    for ii, cell in enumerate(cells):
+        workdir = Path(base_dir) / f'{ii:05d}'
+        yield cell, workdir
+
+
 def calculate(atoms, calculator, workdir):
     """Short summary.
     Perform a dft calculation with ASE
@@ -93,10 +101,8 @@ def calculate_multiple(cells, calculator, workdir, trajectory_to=None,
         if Path(traj_file).exists():
             Path(traj_file).rename(str(traj_file) + '.bak')
 
-    workdirs = [Path(workdir) / f'{ii:05d}' for ii, _ in enumerate(cells)]
-
     cells_calculated = []
-    for cell, wdir in zip(cells_pre_calculated, workdirs):
+    for cell, wdir in cells_and_workdirs(cells_pre_calculated, workdir):
         if cell is None:
             cells_calculated.append(cell)
             continue
@@ -165,9 +171,8 @@ def setup_multiple(cells, calculator, workdir):
         calculator (calculator): Calculator to run calculation.
         workdir (str/Path): working directory
     """
-    workdirs = [Path(workdir) / f'{ii:05d}' for ii, _ in enumerate(cells)]
 
-    for cell, wdir in zip(cells, workdirs):
+    for cell, wdir in cells_and_workdirs(cells, workdir):
         with cwd(wdir, mkdir=True):
             cell.set_calculator(calculator)
             try:
@@ -175,60 +180,3 @@ def setup_multiple(cells, calculator, workdir):
             except AttributeError:
                 print("Calculator has no input just attaching to cell")
     return cells, workdirs
-
-
-# def compute_forces(cells, calculator, workdir, trajectory=None):
-#     """
-#     Compute forces in given list of atoms objects
-#     Args:
-#         cells: list of atoms objects
-#         calculator: ase.calculator for calculating the forces
-#         workdir: the working directory to compute forces in
-#
-#     Returns:
-#         list of forces for each atoms object in cells
-#     """
-#
-#     if trajectory:
-#         force_sets = return_trajectory(trajectory)
-#
-#     force_sets = []
-#     for ii, cell in enumerate(cells):
-#         folder_with_disp = Path(workdir) / f'disp-{ii:03d}'
-#         folder_with_disp.mkdir(parents=True, exist_ok=True)
-#         cell.write(folder_with_disp / 'geometry.in')
-#         cell = calculate(cell, calculator, folder_with_disp)
-#         force = cell.get_forces()
-#         force_sets.append(force)
-#     return force_sets
-#
-# def compute_forces_socketio(cells, calculator, port, workdir, traj_file,
-#                             log_file):
-#     """
-#     Compute forces in given list of atoms objects utilizing the SocketIOCalculator
-#     Args:
-#         cells: list of atoms objects
-#         calculator: ase.calculator for calculating the forces, needs to support socketio
-#         port: the port to be used for socket communication
-#         workdir: the workingdirectory for storing input and output files
-#         traj_file: file to store ase.Trajectory() object in. Basically a list of atom objects
-#         log_file: file to pipe status messages to
-#
-#     Returns:
-#         list of forces for each atoms object in cells
-#
-#     """
-#     force_sets = []
-#     workdir.mkdir(exist_ok=True)
-#     with ExitStack() as stack, cwd(workdir):
-#         calc = stack.enter_context(
-#             SocketIOCalculator(calculator, log=log_file.open('w'), port=port))
-#         traj = stack.enter_context(Trajectory(str(traj_file), mode='a'))
-#         atoms = cells[0].copy()
-#         atoms.calc = calc
-#         for _, cell in enumerate(cells):
-#             atoms.positions = cell.positions
-#             atoms.calc.calculate(atoms, system_changes=['positions'])
-#             force_sets.append(atoms.get_forces())
-#             traj.write(atoms)
-#     return force_sets
