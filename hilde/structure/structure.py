@@ -19,12 +19,40 @@ import itertools
 from copy import copy, deepcopy
 import numpy as np
 from ase.atoms import Atoms
+from ase.db.row import atoms2dict, AtomsRow
 from .symmetry import Spacegroup
 from .misc import get_sysname
 from . import io
 from hilde.konstanten.symmetry import symprec
 from hilde.helpers.maths import clean_matrix
 from hilde.konstanten.numerics import loose_tol
+
+def patoms2dict(atoms):
+    '''
+    Converts a pAtoms object into a dict
+    Args:
+        atoms: pAtoms or Atoms object
+            The pAtoms or Atoms object to be converted into a dictionary
+    Returns: atoms_dict (dict)
+        The dictionary of atoms
+    '''
+    atoms_dict = atoms2dict(atoms)
+    atoms_dict['info'] = atoms.info
+    return atoms_dict
+
+def dict2patoms(atoms_dict):
+    '''
+    Converts a dict into a pAtoms object
+    Args:
+        atoms_dict: dict
+            A dictionary representing the pAtoms object
+    Returns: pAtoms
+        The corresponding pAtoms object
+    '''
+    atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=True))
+    if "info" in atoms_dict:
+        atoms.info = atoms_dict['info']
+    return atoms
 
 class pAtoms(Atoms):
     def __init__(self,
