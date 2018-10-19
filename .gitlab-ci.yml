@@ -8,5 +8,5 @@ python_3_tests:
     - pip install ase phonopy spglib
     - pip install .
     - python --version
-    - cd examples/phonopy
+    - cd $CI_PROJECT_DIR/examples/phonopy
     - jupyter nbconvert --to notebook --execute --ExecutePreprocessor.kernel_name=python3 --output output.ipynb phonopy.ipynb
