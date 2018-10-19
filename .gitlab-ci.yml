@@ -1,0 +1,9 @@
+python_3_tests:
+  image: python:3
+  script:
+    # manually install extra deps
+    - pip install ase phonopy spglib
+    - pip install .
+    - python --version
+    - cd examples/phonopy
+    - jupyter nbconvert --to notebook --execute --ExecutePreprocessor.kernel_name=python3 --output output.ipynb phonopy.ipynb
