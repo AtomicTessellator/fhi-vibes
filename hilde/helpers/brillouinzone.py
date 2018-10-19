@@ -55,8 +55,8 @@ def get_labels(paths, latex=True):
     else:
         return labels
 
-def get_bands_and_labels(atoms, paths=None):
+def get_bands_and_labels(atoms, paths=None, latex=True):
     """ Combine get_bands() and get_labels() """
     if paths is None:
         paths = get_paths(atoms)
-    return get_bands(atoms, paths), get_labels(paths)
+    return get_bands(atoms, paths), get_labels(paths, latex=latex)
