@@ -1,13 +1,23 @@
+image: python:3.7
+# image: continuumio/miniconda3:latest
+# 
+# before_script:
+#   - conda env create -f environment.yml
+#   - source activate hilde
+
 tests:
-  image: python:3
   script:
     # manually install extra deps
     - apt-get update
     - apt-get install -yq gfortran
-    - pip install numpy scipy matplotlib jupyter
-    - pip install phonopy spglib
+    - apt-get install -yq liblapack-dev liblapacke-dev
+    - pip install numpy scipy matplotlib jupyter h5py
+    - pip install spglib phonopy phono3py
     - pip install https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz
     - pip install .
     - python --version
+    - jtest="jupyter nbconvert --to notebook --execute --ExecutePreprocessor.kernel_name=python3 --output output.ipynb"
     - cd $CI_PROJECT_DIR/examples/phonons
-    - jupyter nbconvert --to notebook --execute --ExecutePreprocessor.kernel_name=python3 --output output.ipynb phonopy.ipynb
+    - $jtest phonopy.ipynb
+    - cd $CI_PROJECT_DIR/examples/phono3py
+    - $jtest phono3py.ipynb
