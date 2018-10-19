@@ -57,8 +57,6 @@ def analyze_phonopy(atoms_ideal, smatrix, db_path, calc_atoms):
     disp_cells = [dict2patoms(ca) for ca in calc_atoms]
     smatrix = np.array(smatrix).reshape(3, 3)
     phonon, _, _ = ph.preprocess(atoms, smatrix.T)
-    for cell in disp_cells:
-        print(cell.info)
     disp_cells = sorted(disp_cells, key=lambda x: x.info[displacement_id_str])
     phonon.set_forces([cell.get_forces() for cell in disp_cells])
     atoms_hash, calc_hash = hash_atoms(atoms)
