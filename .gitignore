@@ -25,6 +25,8 @@ data/*
 # ASE
 *parameters.ase
 
+# FireWorks
+launcher_*
 *.mod
 *.o
 *.so

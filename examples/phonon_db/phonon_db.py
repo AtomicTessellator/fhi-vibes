@@ -18,10 +18,10 @@ from hilde.tasks.calculate import calculate_multiple
 # Get the settings for the calculation and set up the cell
 st = Settings('../../hilde.conf')
 if st.database.name.startswith('postgres'):
-    database_dir = st.database.name
+    db_path = st.database.name
 else:
-    database_dir = str(Path(st.database.location) / st.database.name)
-print(f'database: {database_dir}')
+    db_path = str(Path(st.database.location) / st.database.name)
+print(f'database: {db_path}')
 
 aims_tmp_dir = Path(st.database.location) / 'aims_tmp'
 aims_tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -43,7 +43,7 @@ smatrix = 1*np.array([[-1,  1,  1],
                       [ 1,  1, -1]])
 
 # connect to the database and check if the calculation was already done
-db = connect(database_dir)
+db = connect(db_path)
 atoms_hash, calc_hash = hash_atoms(si)
 force_sets = []
 found = False

@@ -38,8 +38,8 @@ def write_sym_xyz(zero_pos, op=["", "", ""], **kwargs):
             an operator is {+,-,*}symmetry_parameter
     '''
     return(f"\nsymmetry_frac {zero_pos[0]:.5f}" + (f"{op[0]}" if op[0] != '' else "") +
-                         f", {zero_pos[1]:.5f}" + (f"{op[1]}" if op[1] != '' else "") +
-                         f", {zero_pos[2]:.5f}" + (f"{op[2]}" if op[2] != '' else ""))
+           f", {zero_pos[1]:.5f}" + (f"{op[1]}" if op[1] != '' else "") +
+           f", {zero_pos[2]:.5f}" + (f"{op[2]}" if op[2] != '' else ""))
 
 def write_sym_ijk(zero_pos,
                   op=["", "", ""],
@@ -72,14 +72,13 @@ def write_sym_ijk(zero_pos,
             coord_i %= 3
         else:
             raise ValueError("i coordinate is outside the acceptable range of 0 to 2")
-    else:
-        return f"\nsymmetry_frac " + \
-               f"{zero_pos[0]:.5f}" if(op[(0-coord_i)%3] == "" or not use_xyz[0]) else \
-               op[(0-coord_i)%3] + ", " + \
-               f"{zero_pos[1]:.5f}" if(op[(1-coord_i)%3] == "" or not use_xyz[1]) else \
-               op[(1-coord_i)%3] + ", " + \
-               f"{zero_pos[2]:.5f}" if(op[(2-coord_i)%3] == "" or not use_xyz[2]) else \
-               op[(2-coord_i)%3]
+    return f"\nsymmetry_frac " + \
+           f"{zero_pos[0]:.5f}" if(op[(0-coord_i)%3] == "" or not use_xyz[0]) else \
+           op[(0-coord_i)%3] + ", " + \
+           f"{zero_pos[1]:.5f}" if(op[(1-coord_i)%3] == "" or not use_xyz[1]) else \
+           op[(1-coord_i)%3] + ", " + \
+           f"{zero_pos[2]:.5f}" if(op[(2-coord_i)%3] == "" or not use_xyz[2]) else \
+           op[(2-coord_i)%3]
 
 def write_sym_fixed(zero_pos, **kwargs):
     '''
@@ -225,19 +224,20 @@ class AtomInputs:
         not act on that coordinate (used for i,j,k representationss)
     '''
     __slots__ = ["name",
-        "zero_position",
-        "sym_params",
-        "type_num",
-        "num_in_cell",
-        "distort_atom",
-        "write_sym",
-        "get_coord_i",
-        "get_type",
-        "distortion_atom",
-        "distortion_sym",
-        "use_xyz",
-        "coord_i_val",
-        "coord_i_et"]
+                 "zero_position",
+                 "sym_params",
+                 "type_num",
+                 "num_in_cell",
+                 "distort_atom",
+                 "write_sym",
+                 "get_coord_i",
+                 "get_type",
+                 "distortion_atom",
+                 "distortion_sym",
+                 "use_xyz",
+                 "coord_i_val",
+                 "coord_i_et"
+                ]
     def __init__(self,
                  name,
                  zero_position=["@xx", "@xx", "@xx"],
@@ -272,7 +272,7 @@ def write_sym_constraints_geo(in_file,
                               out_file,
                               out_file_sym,
                               atom_list,
-                              symmetry_lv,
+                              sym_lv,
                               lat_param_list,
                               atom_param_list=[],
                               smatrix=[1, 0, 0, 0, 1, 0, 0, 0, 1],
@@ -289,7 +289,7 @@ def write_sym_constraints_geo(in_file,
         the system
     atom_list: list of AtomInputs
         A list describing all atom types in the system
-    symmetry_lv: np.ndarray of str (size=3,3)
+    sym_lv: np.ndarray of str (size=3,3)
         An array storing the lattice symmetry operators for the cell
     lat_param_list: list of str
         A list storing all lattice symmetry parameters in lat_param_list
@@ -300,11 +300,12 @@ def write_sym_constraints_geo(in_file,
     unitcell = read_structure(in_file)
     unitcell_scaled_pos = unitcell.get_scaled_positions()
     phonon = Phonopy(unitcell.to_phonopy_atoms(wrap=False),
-                     supercell_matrix = smatrix,
-                     symprec          = 1e-5,
-                     is_symmetry      = True,
-                     factor           = 15.633302,
-                     log_level        = 0)
+                     supercell_matrix=smatrix,
+                     symprec=1e-5,
+                     is_symmetry=True,
+                     factor=15.633302,
+                     log_level=0
+                    )
     supercell = pAtoms(phonopy_atoms=phonon.get_supercell())
     out_dir = Path(out_file).parent
     os.makedirs(out_dir, exist_ok=True)
@@ -315,7 +316,8 @@ def write_sym_constraints_geo(in_file,
     coord_prims = unitcell_scaled_pos[sc_inds2uc_incd]
     for aa in range(len(scaled_positions)):
         for atom in atom_list:
-            if atom.name[3:] == supercell.symbols[aa] and atom.get_type(coord_prims[aa], atom.distortion_sym) == atom.type_num:
+            type_num = atom.get_type(coord_prims[aa], atom.distortion_sym)
+            if atom.name[3:] == supercell.symbols[aa] and type_num == atom.type_num:
                 atom.num_in_cell += 1
                 break
     # Generate the atom_param_list by parsing each atom types operator list
@@ -334,41 +336,49 @@ def write_sym_constraints_geo(in_file,
     # Create the geometry.in.sym file
     supercell.symmetry_block.append("\n# The Symmetry Paramters for the cell")
     supercell.symmetry_block.append("\n# format: symmetry_n_params [n n_lv n_fracpos]")
-    supercell.symmetry_block.append(f"\nsymmetry_n_params {len(atom_param_list) + len(lat_param_list)} {len(lat_param_list)} {len(atom_param_list)}")
+    n_a_param = len(atom_param_list)
+    n_l_param = len(lat_param_list)
+    n_param = n_a_param + n_l_param
+    supercell.symmetry_block.append(f"\nsymmetry_n_params {n_param} {n_l_param} {n_a_param}")
     supercell.symmetry_block.append("\nsymmetry_params")
     for param in lat_param_list+atom_param_list:
         supercell.symmetry_block.append(" " + param)
     # Write Lattice Parameters
-    supercell.symmetry_block.append(f"\nsymmetry_lv {symmetry_lv[0][0]}, {symmetry_lv[0][1]}, {symmetry_lv[0][2]}")
-    supercell.symmetry_block.append(f"\nsymmetry_lv {symmetry_lv[1][0]}, {symmetry_lv[1][1]}, {symmetry_lv[1][2]}")
-    supercell.symmetry_block.append(f"\nsymmetry_lv {symmetry_lv[2][0]}, {symmetry_lv[2][1]}, {symmetry_lv[2][2]}")
+    supercell.symmetry_block.append(f"\nsymmetry_lv {sym_lv[0][0]}, {sym_lv[0][1]}, {sym_lv[0][2]}")
+    supercell.symmetry_block.append(f"\nsymmetry_lv {sym_lv[1][0]}, {sym_lv[1][1]}, {sym_lv[1][2]}")
+    supercell.symmetry_block.append(f"\nsymmetry_lv {sym_lv[2][0]}, {sym_lv[2][1]}, {sym_lv[2][2]}")
     # Write atomic positions using atom specific functions (defined in atom_list)
     for aa in range(len(scaled_positions)):
         diff = supercell.positions[aa] - unitcell.positions[sc_inds2uc_incd[aa]]
         for atom in atom_list:
-            if (supercell.symbols[aa] == atom.name[3:]) and (atom.get_type(coord_prims[aa], atom.distortion_sym) == atom.type_num):
+            type_num = atom.get_type(coord_prims[aa], atom.distortion_sym)
+            if (supercell.symbols[aa] == atom.name[3:]) and (type_num == atom.type_num):
                 atom.num_in_cell -= 1
                 # zero_pos = np.zeros(3)
-                op = [atom.sym_params[ii].replace("@nn", str(atom.num_in_cell) ) for ii in range(3)]
+                op = [atom.sym_params[ii].replace("@nn", str(atom.num_in_cell)) for ii in range(3)]
                 coord_i = atom.get_coord_i(coord_prims[aa],
                                            val=atom.coord_i_val,
                                            error_tolerance=atom.coord_i_et)
-                zero_pos = np.array([float(atom.zero_position[(ii-coord_i)%3]) if atom.zero_position[(ii-coord_i)%3] != '@xx' else scaled_positions[aa][ii] for ii in range(3)])
+                zero_pos = [float(atom.zero_position[(ii-coord_i)%3]) if atom.zero_position[(ii-coord_i)%3] != '@xx' else scaled_positions[aa][ii] for ii in range(3)]
+                zero_pos = np.array(zero_pos)
                 if np.any(atom.zero_position != "@xx"):
-                    inds = (np.where(atom.zero_position != "@xx")[0]+coord_i)%3
-                    zero_pos[inds] = np.linalg.solve( supercell.get_cell().T, (np.dot(zero_pos, unitcell.get_cell()) + diff).T).T[inds]
+                    inds = ((np.where(atom.zero_position != "@xx")[0]+coord_i)%3).astype(int)
+                    zero_pos[inds] = np.linalg.solve(supercell.get_cell().T, (np.dot(zero_pos, unitcell.get_cell()) + diff).T).T[inds]
                     zero_pos[inds] -= np.floor(zero_pos[inds])
                 supercell.symmetry_block.append(atom.write_sym(zero_pos,
                                                                op=op,
-                                                               coord_i =coord_i,
+                                                               coord_i=coord_i,
                                                                use_xyz=atom.use_xyz,
                                                                strict=True,
-                                                               **kwargs))
+                                                               **kwargs
+                                                              )
+                                               )
                 supercell.positions[aa] = np.dot(atom.distort_atom(scaled_positions[aa],
                                                                    distortion=atom.distortion_atom,
-                                                                   coord_i=coord_i),
+                                                                   coord_i=coord_i,
+                                                                   **kwargs),
                                                  supercell.get_cell())
-    supercell.write(filename=out_file)
+    supercell.write(filename=out_file, wrap=False)
     with open(out_file_sym, 'w') as out_sym:
         for line in supercell.symmetry_block:
             out_sym.write(line)

@@ -70,7 +70,7 @@ class pAtoms(Atoms):
         self.constraints_pos = [None for ii in range(self.Natoms)]
         self.constraints_lv  = [None, None, None]
         self.symmetry_block  = []
-
+        self.calc_id = None
     def copy(self):
         new_atoms = super().copy()
         new_atoms.spacegroup = copy(self.spacegroup)
@@ -125,19 +125,20 @@ class pAtoms(Atoms):
             self.constraints_lv[2] = True
     #
 
-    def get_string(self, decorated=True, format = 'aims', scaled=None):
+    def get_string(self, decorated=True, format = 'aims', scaled=None, wrap=True):
         if format == 'aims':
             return io.get_aims_string(self,
                                       decorated=decorated,
-                                      scaled=scaled)
+                                      scaled=scaled,
+                                      wrap=wrap)
         #
         else:
             print(f'Structure output format {format} not implemented. Stop.')
             exit()
 
-    def write(self, filename='geometry.in', format='aims', scaled=None):
+    def write(self, filename='geometry.in', format='aims', scaled=None, wrap=True):
         with open(filename, 'w') as f:
-            f.write(self.get_string(format=format, scaled=scaled))
+            f.write(self.get_string(format=format, scaled=scaled, wrap=wrap))
             # Write symmetry block if existent:
             if len(self.symmetry_block) > 0:
                 f.write('\n#Symmetry block for constrained relaxation:\n')
@@ -227,3 +228,6 @@ class pAtoms(Atoms):
         new_structure = pAtoms(Atoms(cell=newcell, scaled_positions=scaled,
                         numbers=self.numbers, pbc=True))
         return new_structure
+
+    def set_calc_id(self, id_val):
+        self.calc_id = id_val

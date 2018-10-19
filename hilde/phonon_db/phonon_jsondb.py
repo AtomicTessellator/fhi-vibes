@@ -171,7 +171,8 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                         temp = val
                 for key, op, val in cmps:
                     if key == 'supercell_matrix':
-                        val = list(val.flatten())
+                        if not isinstance(val, list):
+                            val = list(val.flatten())
                     if key == 'tp_T':
                         continue
                     elif isinstance(key, int):

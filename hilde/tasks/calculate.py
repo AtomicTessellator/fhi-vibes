@@ -78,7 +78,11 @@ def return_trajectory(cells, calculator, trajectory, force=False):
     return traj, False
 
 
-def calculate_multiple(cells, calculator, workdir, trajectory=None,
+def calculate_multiple(cells,
+                       calculator,
+                       workdir,
+                       trajectory=None,
+                       workdirs=None,
                        force=False):
     """Calculate several atoms object sharing the same calculator.
 
@@ -86,6 +90,7 @@ def calculate_multiple(cells, calculator, workdir, trajectory=None,
         cells (Atoms): List of atoms objects.
         calculator (calculator): Calculator to run calculation.
         workdir (str/Path): working directory
+        workdirs: list of str/paths: specify the directory to calculate each cell in
         trajectory (Trajectory): store (and read) information from trajectory
         read (bool): Read from trajectory if True.
 
@@ -100,8 +105,10 @@ def calculate_multiple(cells, calculator, workdir, trajectory=None,
                                                 traj_file, force)
         if is_calculated and not force:
             return traj
-
-    workdirs = [Path(workdir) / f'{ii:05d}' for ii, _ in enumerate(cells)]
+    if workdirs is None:
+        workdirs = [Path(workdir) / f'{ii:05d}' for ii, _ in enumerate(cells)]
+    else:
+        assert len(cells) == len(workdirs)
 
     cells_calculated = []
     for cell, wdir in zip(cells, workdirs):
@@ -165,12 +172,16 @@ def setup_multiple(cells, calculator, workdir):
         calculator (calculator): Calculator to run calculation.
         workdir (str/Path): working directory
     """
-
     workdirs = [Path(workdir) / f'{ii:05d}' for ii, _ in enumerate(cells)]
 
     for cell, wdir in zip(cells, workdirs):
         with cwd(wdir, mkdir=True):
-            calculator.write_input(cell)
+            cell.set_calculator(calculator)
+            try:
+                calculator.write_input(cell)
+            except:
+                print("Calculator has no input just attaching to cell")
+    return cells, workdirs
 
 
 # def compute_forces(cells, calculator, workdir, trajectory=None):

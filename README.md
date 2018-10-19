@@ -27,3 +27,5 @@ and edit according to system.
   * `AtomsInput`: A storage class that stores relevant information about a structure
   * `write_sym_constraints_geo`: Read any geometry.in file and use the list of `AtomInputs`
   to create a new supercell with a user defined symmetry block added to it
+* FireWorks integration
+  * Functions that can be used with PyTask to use FireWorks as a job manager
