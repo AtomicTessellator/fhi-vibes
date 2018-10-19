@@ -37,7 +37,7 @@ def get_bands(atoms, paths=None):
 def get_labels(paths, latex=True):
     """ Get the labels for a given path for printing them with latex """
     if len(paths) == 1:
-        labels = [*paths]
+        labels = [*paths[0]]
     else:
         labels = [*'|'.join(paths)]
         for ii, l in enumerate(labels):
