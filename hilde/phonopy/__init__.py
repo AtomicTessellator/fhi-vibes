@@ -3,15 +3,16 @@
 from hilde.structure import pAtoms
 
 
-def to_pAtoms(phonopy_atoms, smatrix, symprec=None,
-              info=None):
+displacement_id_str = 'displacement_id'
+
+
+def to_pAtoms(phonopy_atoms, smatrix, symprec=None):
     """ Convert one or several PhonopyAtoms to pAtoms
 
     Args:
         phonopy_atoms (PhonopyAtoms/list): one or several PhonopyAtoms
         smatrix (ndarray): Supercell matrix
         symprec (float): symmetry precision
-        info (str): can be used to enumerate phonpopy_displacments
 
     Returns:
         pAtoms/list: one or several pAtoms
@@ -32,8 +33,6 @@ def to_pAtoms(phonopy_atoms, smatrix, symprec=None,
 
         tags = ['supercell', ('smatrix', list(smatrix.T.flatten()))]
         atoms = pAtoms(phonopy_atoms=atoms, symprec=symprec, tags=tags)
-        if info is not None:
-            atoms.info[info] = ii
         atoms.info['supercell'] = True
         atoms.info['smatrix'] = list(smatrix.T.flatten())
         out_atoms.append(atoms)
