@@ -2,7 +2,8 @@
 Utility functions for working with Brillouin zones
 """
 
-from ase.dft.kpoints import get_cellinfo, special_paths, bandpath, get_special_points
+from ase.dft.kpoints import (special_paths, get_special_points, get_cellinfo,
+                             bandpath)
 
 def get_paths(atoms):
     """ Get recommended path connencting high symmetry points in the BZ.
