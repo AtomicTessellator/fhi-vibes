@@ -171,8 +171,9 @@ def setup_multiple(cells, calculator, workdir):
         calculator (calculator): Calculator to run calculation.
         workdir (str/Path): working directory
     """
-
+    workdirs = []
     for cell, wdir in cells_and_workdirs(cells, workdir):
+        workdirs.append(wdir)
         with cwd(wdir, mkdir=True):
             cell.set_calculator(calculator)
             try:

@@ -3,29 +3,18 @@ from pathlib import Path
 
 from ase.build import bulk
 from ase.calculators.emt import EMT
-from ase.db.row import atoms2dict
 
 from fireworks import Firework, LaunchPad, PyTask, Workflow
 from fireworks.core.rocket_launcher import rapidfire
 
+from hilde.helpers.brillouinzone import get_bands_and_labels
 from hilde.helpers.hash import hash_atoms
-from hilde.helpers.supercell import find_cubic_cell
+from hilde.helpers.utility_functions import get_smatrix, setup_workdir
 from hilde.phonon_db.phonon_db import connect
 from hilde.settings import Settings
-from hilde.structure.structure import pAtoms
+from hilde.structure.structure import pAtoms, patoms2dict
 from hilde.tasks import fireworks_tasks as fwt
 
-def get_smatrix(at, n_target=64):
-    """ Return the supercell matrix for atoms with target size """
-    target_size = n_target / len(at)
-    return find_cubic_cell(cell=at.cell, target_size=target_size)
-
-def setup_workdir(at):
-    """ Set up a working directory """
-    vol = at.get_volume()
-    wd = Path('./{}/{:.3f}_EMT'.format(at.sysname, vol)).absolute()
-    wd.mkdir(parents=True, exist_ok=True)
-    return wd
 
 # Get the settings for the calculation and set up the cell
 st = Settings('../../hilde.conf')
@@ -35,12 +24,12 @@ else:
     db_path = str(Path(st.database.location) / st.database.name)
 print(f'database: {db_path}')
 
-atoms = pAtoms(bulk('Ni', cubic=True))
+atoms = pAtoms(bulk('Ni'))
 atoms.set_calculator(EMT())
 workdir = setup_workdir(atoms)
 smatrix = get_smatrix(atoms, n_target=32)
 atoms_hash, calc_hash = hash_atoms(atoms)
-atoms = atoms2dict(atoms)
+atoms = patoms2dict(atoms)
 
 db = connect(db_path)
 has_fc = False
@@ -71,7 +60,8 @@ if not found or not has_fc:
     # Initialize the displacements with phonopy
     fw1 = Firework(PyTask({"func": fwt.initialize_phonopy_py_task, "args": args_init}))
     # Calculate the forces for all the displacement cells
-    fw2 = Firework(PyTask({"func": fwt.calculate_mult_sp, "inputs": ["atoms_dict", "workdirs"]}))
+    fw2 = Firework(PyTask({"func": fwt.calculate_mult_sp_py_task,
+                           "inputs": ["atom_dicts", "workdirs"]}))
     # Calculate the force constants using phonopy
     fw3 = Firework(PyTask({"func": fwt.analyze_phonopy_py_task,
                            "args":args_anal,
@@ -79,3 +69,14 @@ if not found or not has_fc:
     workflow = Workflow([fw1, fw2, fw3], {fw1:[fw2], fw2:[fw3]})
     launchpad.add_wf(workflow)
     rapidfire(launchpad)
+
+phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
+                                  ("atoms_hash", "=", atoms_hash),
+                                  ("calc_hash", "=", calc_hash),
+                                  ("has_fc", "=", True)])
+
+bands, labels = get_bands_and_labels(phonon.primitive)
+phonon.set_band_structure(bands)
+plt = phonon.plot_band_structure(labels=labels)
+plt.ylabel('Frequency [THz]')
+plt.savefig('phonon_dispersion.pdf')
