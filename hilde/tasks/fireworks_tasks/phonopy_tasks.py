@@ -33,13 +33,8 @@ def initialize_phonopy(atoms_ideal, smatrix, workdir):
     supercells_with_disps, workdirs = setup_multiple(supercells_with_disps,
                                                      atoms.get_calculator(),
                                                      workdir)
-    firework_detours = []
-    for ii, cell in enumerate(supercells_with_disps):
-        cell.set_calc_id(ii)
-        task = PyTask({"func": fwt.calculate_py_task,
-                       "args": [atoms2dict(cell), workdirs[ii], "calc_atoms"]})
-        firework_detours.append(Firework(task))
-    return FWAction(detours=firework_detours)
+    atom_dicts = [atoms2dict(cell) for cell in supercells_with_disps]
+    return FWAction(update_spec={"atom_dicts": atom_dicts, "workdirs": workdirs})
 
 
 def analyze_phonopy(atoms_ideal, smatrix, db_path, calc_atoms):

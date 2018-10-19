@@ -68,10 +68,14 @@ if not found or not has_fc:
     # create the Firework consisting of a single task
     args_init = [atoms, smatrix, workdir]
     args_anal = [atoms, smatrix, db_path]
+    # Initialize the displacements with phonopy
     fw1 = Firework(PyTask({"func": fwt.initialize_phonopy_py_task, "args": args_init}))
-    fw2 = Firework(PyTask({"func": fwt.analyze_phonopy_py_task,
+    # Calculate the forces for all the displacement cells
+    fw2 = Firework(PyTask({"func": fwt.calculate_mult_sp, "inputs": ["atoms_dict", "workdirs"]}))
+    # Calculate the force constants using phonopy
+    fw3 = Firework(PyTask({"func": fwt.analyze_phonopy_py_task,
                            "args":args_anal,
                            "inputs": ["calc_atoms"]}))
-    workflow = Workflow([fw1, fw2], {fw1:[fw2]})
+    workflow = Workflow([fw1, fw2, fw3], {fw1:[fw2], fw2:[fw3]})
     launchpad.add_wf(workflow)
     rapidfire(launchpad)
