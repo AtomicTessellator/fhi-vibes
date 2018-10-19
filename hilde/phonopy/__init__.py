@@ -40,3 +40,19 @@ def to_pAtoms(phonopy_atoms, smatrix, symprec=None):
     if isinstance(phonopy_atoms, list):
         return out_atoms
     return out_atoms[0]
+
+def enumerate_displacements(cells, info_str=displacement_id_str):
+    """ Assign a displacemt id to every atoms obect in cells.
+
+    Args:
+        cells (list): atoms objects created by, e.g., phonopy
+        info_str (str): how to name the child
+
+    Returns:
+        list: cells with id attached to atoms.info (inplace)
+
+    """
+    for nn, scell in enumerate(cells):
+        if scell is None:
+            continue
+        scell.info[info_str] = nn
