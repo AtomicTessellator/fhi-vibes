@@ -6,8 +6,8 @@ from collections import namedtuple
 from pathlib import Path
 from phonopy import Phonopy
 from hilde import konstanten as const
-from hilde.structure import pAtoms
 from hilde.helpers import brillouinzone as bz
+from hilde.phonopy import to_pAtoms
 
 
 def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False):
@@ -36,17 +36,15 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
                                   is_diagonal=True,
                                   is_trigonal=trigonal)
 
-    supercell = pAtoms(phonopy_atoms=phonon.get_supercell(),
-                       tags=['supercell',
-                             ('smatrix', list(supercell_matrix.T.flatten()))])
+    supercell = to_pAtoms(phonon.get_supercell(),
+                          supercell_matrix,
+                          symprec=symprec)
 
-    supercells_with_disps = [pAtoms(phonopy_atoms=disp, symprec=None,
-                                    tags=['supercell',
-                                          ('smatrix',
-                                           list(supercell_matrix.T.flatten()))])
-                             for disp in phonon.get_supercells_with_displacements()]
+    scells = phonon.get_supercells_with_displacements()
+    supercells_with_disps = to_pAtoms(scells, supercell_matrix)
 
-    pp = namedtuple('phonopy_preprocess', 'phonon supercell supercells_with_displacements')
+    pp = namedtuple('phonopy_preprocess',
+                    'phonon supercell supercells_with_displacements')
 
     return pp(phonon, supercell, supercells_with_disps)
 
@@ -67,11 +65,11 @@ def get_force_constants(phonon, force_sets=None):
         force_constants = phonon.get_force_constants().swapaxes(1, 2).reshape(2*(3*n_atoms, ))
         return force_constants
     # else
-    print('**Force constants not yet created, please specify force_sets.')
+    raise ValueError('Force constants not yet created, specify force_sets.')
 
 
 def _postprocess_init(phonon,
-                     force_sets=None):
+                      force_sets=None):
     """
     Make sure that force_constants are present before the actual postprocess is performed.
     Args:
@@ -147,7 +145,7 @@ def get_bandstructure(phonon,
         force_sets: (optional)
 
     Returns:
-        (qpoints, distances, frequencies, eigenvectors)
+        (qpoints, distances, frequencies, eigenvectors, labels)
 
     """
 

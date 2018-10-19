@@ -59,7 +59,8 @@ def main():
     atoms_calculated = calculate_multiple(cells=scs,
                                           calculator=lammps,
                                           workdir=tmp_dir,
-                                          trajectory='lammps.traj')
+                                          trajectory_to='lammps.traj',
+                                          trajectory_from='lammps.traj')
     force_sets = [atoms.get_forces() for atoms in atoms_calculated]
     timing = time() - stime
     print(f'.. done in {timing:.2f}s')

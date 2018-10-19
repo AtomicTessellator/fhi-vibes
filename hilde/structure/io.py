@@ -120,6 +120,11 @@ def inform(cell, spacegroup=None, dft=False, fname=None, verbosity=0):
     print(f'  Number of atoms:   {cell.n_atoms}')
     print(f"  Species:           {', '.join(cell.get_unique_symbols()[0])}")
     print(f'  Periodicity:       {cell.pbc}')
+    if any(cell.pbc):
+        print(f'  Lattice:  ')
+        for vec in cell.cell:
+            print(f'    {vec}')
+
     print(f'')
 
     if spacegroup is None and cell.spacegroup is not None:

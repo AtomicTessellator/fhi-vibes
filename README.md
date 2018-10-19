@@ -9,6 +9,11 @@
 and edit according to system.
 
 **New Features**
+* Wrapper for `phono3py`
+  * Preprocess and re-creation of Phono3py objects from precomputed force 
+  constants, see examples
+* Wrapper for `phonopy`
+  * Preprocess and (some) postprocess, see examples
 * Templates
   * `from hilde.templates.lammps import setup_lammps_si` to provide lammps calculator
 * Brillouin zone helpers
