@@ -71,7 +71,6 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
     #
     # Write (preferably) scaled positions
     symbols = cell.get_chemical_symbols()
-    print(cell.get_scaled_positions)
     if scaled:
         # if decorated:
         #     string += '\n# Scaled positions:\n'

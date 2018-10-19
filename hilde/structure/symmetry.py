@@ -2,7 +2,7 @@ from subprocess import Popen, PIPE, STDOUT
 import json
 from sys import exit
 import numpy as np
-from numpy import sin, cos
+from numpy import sin, cos, sqrt
 import scipy.linalg as la
 import spglib as spg
 from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
