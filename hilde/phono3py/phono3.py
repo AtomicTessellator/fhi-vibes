@@ -6,7 +6,7 @@ from collections import namedtuple
 import numpy as np
 from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
-from hilde.phonopy import to_pAtoms
+from hilde.phonopy import to_pAtoms, displacement_id_str
 
 
 def prepare_phono3py(atoms,
@@ -105,6 +105,12 @@ def preprocess(atoms,
 
     scells = phonon3.get_supercells_with_displacements()
     fc3_supercells_with_disps = to_pAtoms(scells, fc3_supercell_matrix)
+
+    for nn, scell in enumerate([*fc2_supercells_with_disps,
+                                *fc3_supercells_with_disps]):
+        if scell is None:
+            continue
+        scell.info[displacement_id_str] = nn
 
     pp = namedtuple('phono3py_preprocess',
                     ('phonon3 fc2_supercell fc3_supercell' +
