@@ -7,7 +7,7 @@ from pathlib import Path
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
-from hilde.phonopy import to_pAtoms, displacement_id_str
+from hilde.phonopy import to_pAtoms, enumerate_displacements
 
 
 def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False):
@@ -43,8 +43,7 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
     scells = phonon.get_supercells_with_displacements()
     supercells_with_disps = to_pAtoms(scells, supercell_matrix)
 
-    for nn, scell in enumerate(supercells_with_disps):
-        scell.info[displacement_id_str] = nn
+    enumerate_displacements(supercells_with_disps)
 
     pp = namedtuple('phonopy_preprocess',
                     'phonon supercell supercells_with_displacements')
