@@ -109,10 +109,6 @@ class pAtoms(Atoms):
         return self.get_number_of_atoms()
 
     @property
-    def symbols(self):
-        return self.get_chemical_symbols()
-
-    @property
     def sysname(self):
         return get_sysname(self)
 
