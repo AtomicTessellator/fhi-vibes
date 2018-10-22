@@ -1,5 +1,6 @@
 import contextlib
 import os, sys
+import functools
 
 @contextlib.contextmanager
 def cwd(path, mkdir=False, debug=False):
@@ -29,3 +30,14 @@ def cwd(path, mkdir=False, debug=False):
         print('Exception caught: ', sys.exc_info()[0])
     finally:
         os.chdir(CWD)
+
+# would be nice to have?
+# def decor_cwd(path, mkdir=False, debug=False):
+#     def decorator_cwd(func):
+#         @functools.wraps(func)
+#         def execute_func(path, *args, mkdir=False, debug=False, **kwargs):
+#             with cwd(path, mkdir=mkdir, debug=debug):
+#                 values = func(*args, **kwargs)
+#             return values
+#         return execute_func
+#     return decorator_cwd
