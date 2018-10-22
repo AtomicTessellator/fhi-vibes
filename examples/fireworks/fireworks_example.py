@@ -13,7 +13,7 @@ from hilde.helpers.utility_functions import get_smatrix, setup_workdir
 from hilde.phonon_db.phonon_db import connect
 from hilde.settings import Settings
 from hilde.structure.structure import pAtoms, patoms2dict
-from hilde.tasks import fireworks_tasks as fwt
+from hilde.tasks import fireworks as fw
 
 
 # Get the settings for the calculation and set up the cell
@@ -58,12 +58,13 @@ if not found or not has_fc:
     args_init = [atoms, smatrix, workdir]
     args_anal = [atoms, smatrix, db_path]
     # Initialize the displacements with phonopy
-    fw1 = Firework(PyTask({"func": fwt.initialize_phonopy_py_task, "args": args_init}))
+    print(fw.initialize_phonopy.name)
+    fw1 = Firework(PyTask({"func": fw.initialize_phonopy.name, "args": args_init}))
     # Calculate the forces for all the displacement cells
-    fw2 = Firework(PyTask({"func": fwt.calculate_mult_sp_py_task,
+    fw2 = Firework(PyTask({"func": fw.calculate_multiple.name,
                            "inputs": ["atom_dicts", "workdirs"]}))
     # Calculate the force constants using phonopy
-    fw3 = Firework(PyTask({"func": fwt.analyze_phonopy_py_task,
+    fw3 = Firework(PyTask({"func": fw.analyze_phonopy.name,
                            "args":args_anal,
                            "inputs": ["calc_atoms"]}))
     workflow = Workflow([fw1, fw2, fw3], {fw1:[fw2], fw2:[fw3]})

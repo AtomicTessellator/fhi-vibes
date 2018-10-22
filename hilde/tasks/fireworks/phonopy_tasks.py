@@ -9,6 +9,7 @@ from hilde.phonopy import phono as ph, displacement_id_str
 from hilde.structure.structure import patoms2dict, dict2patoms
 from hilde.tasks.calculate import setup_multiple
 
+module_name = __name__
 def initialize_phonopy(atoms_ideal, smatrix, workdir):
     '''
     A wrapper function to initialize all phonopy calculations and add the new
@@ -80,3 +81,6 @@ def analyze_phonopy(atoms_ideal, smatrix, db_path, calc_atoms):
     except ValueError:
         print(f"Fireworker could not access the database {db_path}")
     return FWAction(stored_data={'phonopy_calc': phonon2dict(phonon)})
+
+initialize_phonopy.name = f'{module_name}.{initialize_phonopy.__name__}'
+analyze_phonopy.name = f'{module_name}.{analyze_phonopy.__name__}'

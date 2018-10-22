@@ -1,10 +1,10 @@
 ''' Define FireTasks for electronic structure calculations '''
 from fireworks import FWAction, PyTask, Firework
 from hilde.structure.structure import patoms2dict, dict2patoms
-from hilde.tasks.calculate import calculate
-from hilde.tasks import fireworks_tasks as fwt
+from hilde.tasks.calculate import calculate as calc_hilde
 
-def calculate_sp(atoms_dict, workdir, out_spec):
+module_name = __name__
+def calculate(atoms_dict, workdir, out_spec):
     '''
     A wrapper function for calculate to work within FireWorks
     Args:
@@ -20,10 +20,12 @@ def calculate_sp(atoms_dict, workdir, out_spec):
         include the calculated results (pushes it to the end of a list)
     '''
     atoms = dict2patoms(atoms_dict)
-    temp_atoms = calculate(atoms, atoms.get_calculator(), workdir)
+    temp_atoms = calc_hilde(atoms, atoms.get_calculator(), workdir)
     return FWAction(mod_spec=[{'_push': {out_spec: patoms2dict(temp_atoms)}}])
 
-def calculate_multiple_sp(atom_dicts, workdirs):
+calculate.name = f'{module_name}.{calculate.__name__}'
+
+def calculate_multiple(atom_dicts, workdirs):
     '''
     A wrapper function that generate FireWorks for a set of atoms and associated work
     directories
@@ -37,11 +39,14 @@ def calculate_multiple_sp(atom_dicts, workdirs):
             as detours (Adds child FireWorks to the one calling this function and transfers
             its current children to the new FireWorks)
     '''
+    __name__ = f'{module_name}.{calculate_multiple.__name__}'
     atom_list = [dict2patoms(ad) for ad in atom_dicts]
     firework_detours = []
     for i, cell in enumerate(atom_list):
         cell.set_calc_id(i)
-        task = PyTask({"func": fwt.calculate_py_task,
+        task = PyTask({"func": calculate.name,
                        "args": [patoms2dict(cell), workdirs[i], "calc_atoms"]})
         firework_detours.append(Firework(task))
     return FWAction(detours=firework_detours)
+
+calculate_multiple.name = f'{module_name}.{calculate_multiple.__name__}'
