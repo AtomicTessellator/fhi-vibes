@@ -4,6 +4,7 @@ import operator
 import os
 import re
 import warnings
+from pathlib import Path
 import numpy as np
 
 # Import ase
@@ -139,6 +140,8 @@ def connect(name,
         Use append=False to start a new database.
     """
 
+    name = str(name)
+
     if db_type == 'extract_from_name':
         if name is None:
             db_type = None
@@ -158,10 +161,8 @@ def connect(name,
     if not append and world.rank == 0 and os.path.isfile(name):
         os.remove(name)
 
-    if isinstance(name, PurePath):
-        name = str(name)
 
-    if db_type != 'postgresql' and isinstance(name, basestring):
+    if db_type != 'postgresql':
         name = os.path.abspath(name)
 
     if db_type == 'json':
