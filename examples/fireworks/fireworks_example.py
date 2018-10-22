@@ -2,16 +2,15 @@
 from ase.build import bulk
 from ase.calculators.emt import EMT
 
-from fireworks import Firework, LaunchPad, PyTask, Workflow
-from fireworks.core.rocket_launcher import rapidfire
-
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.utility_functions import get_smatrix, setup_workdir
 from hilde.phonon_db.phonon_db import connect
 from hilde.structure.structure import pAtoms, patoms2dict
 from hilde.tasks import fireworks as fw
-
 from hilde.helpers.paths import cwd
+
+from fireworks import Firework, LaunchPad, PyTask, Workflow
+from fireworks.core.rocket_launcher import rapidfire
 
 db_path = 'test.db'
 print(f'database: {db_path}')
@@ -67,13 +66,14 @@ phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
                                   ("has_fc", "=", True)])
 
 phonon.set_mesh(3 * [3])
-qpoints, weights, frequencies, _ = phonon.get_mesh()
-for q, w, f in zip(qpoints, weights, frequencies):
-    print(f'q = {q} (weight= {w})')
-    print('# Mode   Frequency')
-    for  ii, fi in enumerate(f):
-        print(f'  {ii+1:3d} {fi:12.7f} THz')
-
-print(f'{frequencies.max()}')
-
+_, _, frequencies, _ = phonon.get_mesh()
 assert 8 < frequencies.max() < 10
+
+# qpoints, weights, frequencies, _ = phonon.get_mesh()
+# for q, w, f in zip(qpoints, weights, frequencies):
+#     print(f'q = {q} (weight= {w})')
+#     print('# Mode   Frequency')
+#     for  ii, fi in enumerate(f):
+#         print(f'  {ii+1:3d} {fi:12.7f} THz')
+#
+# print(f'{frequencies.max()}')

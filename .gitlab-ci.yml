@@ -1,10 +1,12 @@
 image: registry.gitlab.com/floyd4k/hilde:latest
 
 before_script:
- - pip install .
+  - pip install .
+  - service mongodb start --ipv6
 
 tests:
   script:
     - jtest="jupyter nbconvert --execute"
     - $jtest $CI_PROJECT_DIR/examples/phonons/phonopy.ipynb
     - $jtest $CI_PROJECT_DIR/examples/phono3py/phono3py.ipynb
+    - python $CI_PROJECT_DIR/examples/fireworks/fireworks_example.py
