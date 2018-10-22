@@ -42,5 +42,5 @@ cp Dockerfile requirements.txt docker
 cd docker
 docker login registry.gitlab.com
 docker build -t registry.gitlab.com/floyd4k/hilde .
-docker push registry.gitlab.com/floyd4k/hilde:latest   
+docker push registry.gitlab.com/floyd4k/hilde 
 ```
