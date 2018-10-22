@@ -1,18 +1,10 @@
-image: python:3.7
-# image: continuumio/miniconda3:latest
-#
-# before_script:
-#   - conda env create -f environment.yml
-#   - source activate hilde
+image: registry.gitlab.com/floyd4k/hilde:latest
+
+before_script:
+ - pip install .
 
 tests:
   script:
-    # manually install extra deps
-    - apt-get update
-    - apt-get install -yq gfortran
-    - pip install -r requirements.txt
-    - pip install .
-    - python --version
     - jtest="jupyter nbconvert --to notebook --execute --ExecutePreprocessor.kernel_name=python3 --output output.ipynb"
     - cd $CI_PROJECT_DIR/examples/phonons
     - $jtest phonopy.ipynb
