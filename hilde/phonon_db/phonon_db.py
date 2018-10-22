@@ -12,7 +12,10 @@ from ase.db.core import Database, lock, parse_selection, str_represents
 from ase.calculators.calculator import all_properties, all_changes
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
 from ase.data import atomic_numbers
-from ase.atoms import string2symbols
+try:
+    from ase.symbols import string2symbols
+except ModuleNotFoundError:
+    from ase.atoms import string2symbols
 
 # Import Hilde
 from hilde.phonon_db.row import PhononRow

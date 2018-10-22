@@ -92,9 +92,9 @@ class PhononRow(AtomsRow):
             if len(self.force_constants.shape) < 4:
                 self.force_constants = reshape_fc(self.force_constants)
             phonon.set_force_constants(self.force_constants)
-        if "qmesh" in self:
+        if "qmesh" in self and self.qmesh is not None:
             phonon.set_mesh(self.qmesh)
-        if "tp_T" in self:
+        if "tp_T" in self and self.tp_T is not None:
             phonon.set_thermal_properties(temperatures=self.tp_T)
         return phonon
 
