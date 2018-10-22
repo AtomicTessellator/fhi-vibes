@@ -1,0 +1,9 @@
+numpy
+scipy
+matplotlib
+jupyter
+h5py
+spglib
+phonopy
+phono3py
+https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz  
