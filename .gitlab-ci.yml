@@ -5,8 +5,6 @@ before_script:
 
 tests:
   script:
-    - jtest="jupyter nbconvert --to notebook --execute --ExecutePreprocessor.kernel_name=python3 --output output.ipynb"
-    - cd $CI_PROJECT_DIR/examples/phonons
-    - $jtest phonopy.ipynb
-    - cd $CI_PROJECT_DIR/examples/phono3py
-    - $jtest phono3py.ipynb
+    - jtest="jupyter nbconvert --execute"
+    - $jtest $CI_PROJECT_DIR/examples/phonons/phonopy.ipynb
+    - $jtest $CI_PROJECT_DIR/examples/phono3py/phono3py.ipynb

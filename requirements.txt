@@ -6,4 +6,5 @@ h5py
 spglib
 phonopy
 phono3py
+fireworks
 https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz  

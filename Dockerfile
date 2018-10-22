@@ -4,5 +4,4 @@ RUN apt-get install -yq gfortran
 RUN apt-get install -yq liblapack-dev liblapacke-dev
 ADD requirements.txt /app/
 WORKDIR /app
-RUN cat ../requirements.txt | xargs -n 1 -L 1 pip install
-ADD . /app
+RUN cat requirements.txt | xargs -n 1 -L 1 pip install

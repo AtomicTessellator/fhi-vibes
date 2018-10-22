@@ -34,3 +34,13 @@ and edit according to system.
   to create a new supercell with a user defined symmetry block added to it
 * FireWorks integration
   * Functions that can be used with PyTask to use FireWorks as a job manager
+
+**Setup of Docker Image**
+```
+mkdir -p docker
+cp Dockerfile requirements.txt docker
+cd docker
+docker login registry.gitlab.com
+docker build -t registry.gitlab.com/floyd4k/hilde .
+docker push registry.gitlab.com/floyd4k/hilde:latest   
+```
