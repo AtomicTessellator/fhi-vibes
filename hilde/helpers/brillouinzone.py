@@ -2,7 +2,8 @@
 Utility functions for working with Brillouin zones
 """
 
-from ase.dft.kpoints import get_cellinfo, special_paths, bandpath, get_special_points
+from ase.dft.kpoints import (special_paths, get_special_points, get_cellinfo,
+                             bandpath)
 
 def get_paths(atoms):
     """ Get recommended path connencting high symmetry points in the BZ.
@@ -37,7 +38,7 @@ def get_bands(atoms, paths=None):
 def get_labels(paths, latex=True):
     """ Get the labels for a given path for printing them with latex """
     if len(paths) == 1:
-        labels = [*paths]
+        labels = [*paths[0]]
     else:
         labels = [*'|'.join(paths)]
         for ii, l in enumerate(labels):
@@ -54,8 +55,8 @@ def get_labels(paths, latex=True):
     else:
         return labels
 
-def get_bands_and_labels(atoms, paths=None):
+def get_bands_and_labels(atoms, paths=None, latex=True):
     """ Combine get_bands() and get_labels() """
     if paths is None:
         paths = get_paths(atoms)
-    return get_bands(atoms, paths), get_labels(paths)
+    return get_bands(atoms, paths), get_labels(paths, latex=latex)
