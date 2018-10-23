@@ -8,7 +8,7 @@ from ase.dft.kpoints import get_cellinfo
 fp_tup = namedtuple("fp_tup", "frequencies occupancies special_pts nbins")
 
 # Functions to define the energy bins
-def get_ener( binning, frequencies, min_e, max_e, nbins):
+def get_ener(binning, frequencies, min_e, max_e, nbins):
     """
     Get the energy bins used for making a fingerprint
     Args:
@@ -81,7 +81,7 @@ def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
     special_pts=[]
     for pt in bands:
         special_pts.append(pt)
-        ener, enerBounds = get_ener( binning, bands[pt], min_e, max_e, nbins)
+        ener, enerBounds = get_ener(binning, bands[pt], min_e, max_e, nbins)
         freq_list.append(ener)
         n_bands.append(np.histogram(bands[pt], enerBounds)[0])
     return fp_tup(np.array(freq_list), np.array(n_bands), special_pts, len(freq_list[0]))
@@ -227,7 +227,11 @@ def get_phonon_bs_fingerprint_yaml(spectra_yaml, q_points, binning=True, min_e=N
         The phonon band structure fingerprint
     """
     bands = get_phonon_bands_yaml(spectra_yaml, bands)
-    return get_fingerprint_bs(bands, binning, find_min_E(bands) if min_e is None else min_e, find_max_E(bands) if max_e is None else max_e, nbins)
+    if min_e is None:
+        min_e = find_min_E(bands)
+    if max_e is None:
+        max_e = find_max_E(bands)
+    return get_fingerprint_bs(bands, binning, min_e, max_e, nbins)
 
 def get_elec_bs_fingerprint(spectra_files, k_points, binning=True, min_e=None, max_e=None, nbins=32):
     """
