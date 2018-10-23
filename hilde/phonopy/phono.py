@@ -7,10 +7,36 @@ from pathlib import Path
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
-from hilde.phonopy import to_pAtoms, enumerate_displacements
+from hilde.phonopy import to_pAtoms, enumerate_displacements, to_phonopy_atoms
 
+default_disp = 0.01
 
-def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False):
+def prepare_phonopy(atoms, supercell_matrix,
+                    fc2=None,
+                    disp=default_disp,
+                    symprec=1e-5,
+                    trigonal=False):
+
+    ph_atoms = to_phonopy_atoms(atoms)
+
+    phonon = Phonopy(ph_atoms,
+                     supercell_matrix=supercell_matrix,
+                     symprec=symprec,
+                     is_symmetry=True,
+                     factor=const.eV_to_THz)
+
+    phonon.generate_displacements(distance=disp,
+                                  is_plusminus='auto',
+                                  is_diagonal=True,
+                                  is_trigonal=trigonal)
+
+    if fc2 is not None:
+        phonon.set_force_constants(fc2)
+
+    return phonon
+
+def preprocess(atoms, supercell_matrix, disp=default_disp,
+               symprec=1e-5, trigonal=False):
     """
     Creates a phonopy object from given input
     Args:
@@ -23,18 +49,10 @@ def preprocess(atoms, supercell_matrix, disp=0.01, symprec=1e-5, trigonal=False)
         and the supercells_with_displacements as ase.atoms
     """
 
-    ph_atoms = atoms.to_phonopy_atoms()
-
-    phonon = Phonopy(ph_atoms,
-                     supercell_matrix=supercell_matrix,
-                     symprec=symprec,
-                     is_symmetry=True,
-                     factor=const.eV_to_THz)
-
-    phonon.generate_displacements(distance=disp,
-                                  is_plusminus='auto',
-                                  is_diagonal=True,
-                                  is_trigonal=trigonal)
+    phonon = prepare_phonopy(atoms, supercell_matrix,
+                             disp=disp,
+                             symprec=symprec,
+                             trigonal=trigonal)
 
     supercell = to_pAtoms(phonon.get_supercell(),
                           supercell_matrix,

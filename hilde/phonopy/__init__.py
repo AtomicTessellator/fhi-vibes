@@ -1,9 +1,19 @@
 """ Module containing wrapper functions to work with Phonopy """
 
+from phonopy.structure.atoms import PhonopyAtoms
 from hilde.structure import pAtoms
 
 
 displacement_id_str = 'displacement_id'
+
+
+def to_phonopy_atoms(atoms):
+    phonopy_atoms= PhonopyAtoms(
+        symbols   = atoms.get_chemical_symbols(),
+        cell      = atoms.get_cell(),
+        masses    = atoms.get_masses(),
+        positions = atoms.get_positions(wrap=True))
+    return phonopy_atoms
 
 
 def to_pAtoms(phonopy_atoms, smatrix, symprec=None):
