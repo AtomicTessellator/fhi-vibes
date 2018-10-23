@@ -1,7 +1,6 @@
 """ Example of hiphive calculation for silicon in comparison to phonopy """
 
 from pathlib import Path
-from random import randint
 import numpy as np
 
 from ase.build import bulk
@@ -9,10 +8,8 @@ from ase.calculators.emt import EMT
 
 from hilde.structure import pAtoms
 from hilde.helpers.supercell import make_cubic_supercell
-from hilde.materials_fp import get_phonon_bs_fingerprint_phononpy
 from hilde.phonopy import phono as ph
 from hilde.tasks.calculate import calculate_multiple
-from hilde.helpers.brillouinzone import get_bands_and_labels
 from hilde.helpers.geometry import inscribed_sphere_in_box
 
 from hiphive import ClusterSpace, StructureContainer, ForceConstantPotential
@@ -27,21 +24,6 @@ def setup_workdir(atoms, smatrix):
         *smatrix.flatten(), vol)).absolute()
     workdir.mkdir(parents=True, exist_ok=True)
     return workdir
-
-def get_bs(phonon):
-    bands, labels = get_bands_and_labels(phonon.primitive)
-    phonon.set_band_structure(bands)
-    return get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
-
-def get_thermal(phonon):
-    phonon.set_mesh(mesh, is_eigenvectors=True, is_mesh_symmetry=False)
-    phonon.set_thermal_displacements(temperatures=temperatures)
-    _, msds = phonon.get_thermal_displacements()
-    msds = np.sum(msds, axis=1)  # sum up the MSD over x,y,z
-    phonon.set_thermal_properties(temperatures=temperatures)
-    _, free_ener, _, _ = phonon.get_thermal_properties()
-    for temperature, msd, A in zip(temperatures, msds, free_ener):
-        print('T = {:4d} K    MSD = {:.5f} A**2, A = {:.5f} KJ/mol'.format(temperature, msd, A))
 
 
 def get_structures_with_displacements(supercell, structures):
@@ -63,8 +45,7 @@ def get_fcp(supercell, calculator,
             rattle_std,
             minimum_distance,
             fit_method='ardr',
-            seed=42,
-            force=False):
+            seed=42):
     """ Get a ForceConstantPotential for the material """
     structures = generate_mc_rattled_structures(supercell,
                                                 number_of_structures,
@@ -119,9 +100,8 @@ fcp_params = {
     'number_of_structures': 5,
     'rattle_std': 0.01,
     'minimum_distance': 2.4,
-    'cutoffs': [cutoff_max, 3.0, 3.5],
-    'force': False
-}
+    'cutoffs': [cutoff_max]
+    }
 
 fcp = get_fcp(supercell, calc, **fcp_params)
 fcs = fcp.get_force_constants(supercell)
@@ -134,24 +114,28 @@ scs_calculated = calculate_multiple(supercells_with_disps,
                                     calc,
                                     workdir=workdir,
                                     trajectory='lammps.traj')
+
 phonon.produce_force_constants([sc.get_forces() for sc in scs_calculated])
 fc_phonopy = phonon.get_force_constants()
 
-print("phonopy")
-get_thermal(phonon)
-bs_phonopy = get_bs(phonon)
 
-print("hiphive")
-phonon.set_force_constants(fcs.get_fc_array(order=2))
-get_thermal(phonon)
-bs_hiphive = get_bs(phonon)
+phonon = ph.prepare_phonopy(atoms_ideal, smatrix.T, fc2=fc_phonopy)
+phonon.set_mesh(mesh)
+_, _, frequencies, _ = phonon.get_mesh()
+freq_max_phonopy = frequencies.max()
+
+phonon = ph.prepare_phonopy(atoms_ideal, smatrix.T,
+                            fc2=fcs.get_fc_array(order=2))
+phonon.set_mesh(mesh)
+_, _, frequencies, _ = phonon.get_mesh()
+freq_max_hiphive = frequencies.max()
 
 diff = lambda x, y, z: np.linalg.norm(x - y) / np.linalg.norm(z)
-freq_diff = diff(bs_hiphive[0][0], bs_phonopy[0][0], 1)
+freq_diff = diff(freq_max_phonopy, freq_max_hiphive, 1)
 fc2_diff = diff(fc_phonopy, phonon.get_force_constants(), fc_phonopy)
 
-print("The frequency error between the phonopy and hiphive band structure at " +
-      f"the Gamma point is: {freq_diff:.2e} THz")
+print("The largest frequency difference between phonopy and hiphive " +
+      f"on a {mesh} grid is: {freq_diff:.2e} THz")
 print("The FC2 error between the phonopy and hiphive force constant matrix is:"
       + f"{fc2_diff:.2e}")
 
