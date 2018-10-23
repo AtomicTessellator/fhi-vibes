@@ -67,7 +67,7 @@ phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
 
 phonon.set_mesh(3 * [3])
 _, _, frequencies, _ = phonon.get_mesh()
-print(f'Highest frequency: {frequencies.max():.3f} eV (Target: [8,10] eV)')
+print(f'Highest frequency: {frequencies.max():.3f} THz (Target: [8,10] THz)')
 assert 8 < frequencies.max() < 10
 
 # qpoints, weights, frequencies, _ = phonon.get_mesh()

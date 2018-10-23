@@ -147,11 +147,11 @@ get_thermal(phonon)
 bs_hiphive = get_bs(phonon)
 
 diff = lambda x, y, z: np.linalg.norm(x - y) / np.linalg.norm(z)
-freq_diff = diff(bs_hiphive[0][0], bs_phonopy[0][0], bs_phonopy[0][0])
+freq_diff = diff(bs_hiphive[0][0], bs_phonopy[0][0], 1)
 fc2_diff = diff(fc_phonopy, phonon.get_force_constants(), fc_phonopy)
 
 print("The frequency error between the phonopy and hiphive band structure at " +
-      f"the Gamma point is: {freq_diff:.2e}")
+      f"the Gamma point is: {freq_diff:.2e} THz")
 print("The FC2 error between the phonopy and hiphive force constant matrix is:"
       + f"{fc2_diff:.2e}")
 
