@@ -14,7 +14,6 @@ from ase.io import Trajectory
 from hilde.helpers.paths import cwd
 from hilde.structure import pAtoms
 
-
 def cells_and_workdirs(cells, base_dir):
     """ generate tuples of atoms object and workingdirectory path """
     for ii, cell in enumerate(cells):
@@ -68,7 +67,9 @@ def return_from_trajectory(cells, calculator, trajectory,
     return cells_computed
 
 
-def calculate_multiple(cells, calculator, workdir, trajectory_to=None,
+def calculate_multiple(cells, calculator, workdir,
+                       trajectory=None,
+                       trajectory_to=None,
                        trajectory_from=None):
     """Calculate several atoms object sharing the same calculator.
 
@@ -76,6 +77,7 @@ def calculate_multiple(cells, calculator, workdir, trajectory_to=None,
         cells (Atoms): List of atoms objects.
         calculator (calculator): Calculator to run calculation.
         workdir (str/Path): working directory
+        trajectory (Trajectory): trajectory for caching
         trajectory_to (Trajectory): store information to trajectory
         trajectory_from (Trajectory): read information from trajectory
         read (bool): Read from trajectory if True.
@@ -84,6 +86,13 @@ def calculate_multiple(cells, calculator, workdir, trajectory_to=None,
         list: Atoms objects with calculation performed.
 
     """
+
+    if trajectory:
+        if trajectory_to or trajectory_from:
+            warn('You specified trajectory as well as trajectory_to/from')
+            print('overwrite trajectory_to/from')
+        trajectory_to = trajectory
+        trajectory_from = trajectory
 
     # If trajectory_from is given, try to read pre-computed atoms from it
     cells_pre_calculated = cells
