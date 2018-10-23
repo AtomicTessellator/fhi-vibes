@@ -35,7 +35,7 @@ def setup_aims(custom_settings={}, workdir=None):
     aims_settings = {**default_settings, **custom_settings}
 
     if workdir:
-        return Aims(label=Path(workdir).absolute,
+        return Aims(label=Path(workdir).absolute(),
                     **aims_settings)
     else:
         return Aims(**aims_settings)
