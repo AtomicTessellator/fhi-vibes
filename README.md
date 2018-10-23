@@ -1,6 +1,6 @@
 **Installation**
 
-`python setup.py install --prefix .`
+`python setup.py install --prefix /your/preferred/folder`
 
 **Basic Setup**
 
@@ -35,7 +35,7 @@ and edit according to system.
 * FireWorks integration
   * Functions that can be used with PyTask to use FireWorks as a job manager
 
-**Setup of Docker Image**
+**Setup of Docker Images to Speed Up Testing**
 ```
 mkdir -p docker
 cp Dockerfile requirements.txt docker
