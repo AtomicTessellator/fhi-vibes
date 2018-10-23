@@ -32,7 +32,7 @@ def get_ener(binning, frequencies, min_e, max_e, nbins):
         enerBounds = np.linspace( min_e, max_e, nbins+1 )
         return enerBounds[:-1] + (enerBounds[1]-enerBounds[0])/2.0, enerBounds
     else:
-        return np.array(frequencies), np.append(frequencies, [frequencies[-1] + frequencies[-1]/10])
+        return np.array(frequencies), np.append(frequencies, [frequencies[-1] + np.abs(frequencies[-1])/10])
 
 def find_min_E(bands):
     """
