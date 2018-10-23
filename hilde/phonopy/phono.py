@@ -16,6 +16,20 @@ def prepare_phonopy(atoms, supercell_matrix,
                     disp=default_disp,
                     symprec=1e-5,
                     trigonal=False):
+    """Create a Phonpopy object
+
+    Args:
+        atoms (atoms): reference structure (unit cell)
+        supercell_matrix (list): supercell matrix
+        fc2 (ndarray): second order force constants (optional)
+        disp (float): finite displacemt in angstrom (default .01)
+        symprec (float): symmetry precision
+        trigonal (bool): wether the system is trigonal
+
+    Returns:
+        Phonopy(): a phonopy object
+
+    """
 
     ph_atoms = to_phonopy_atoms(atoms)
 
