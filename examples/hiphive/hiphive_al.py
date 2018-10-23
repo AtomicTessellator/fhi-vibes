@@ -28,13 +28,9 @@ def setup_workdir(atoms, smatrix):
     workdir.mkdir(parents=True, exist_ok=True)
     return workdir
 
-def get_bs(phonon, filename):
+def get_bs(phonon):
     bands, labels = get_bands_and_labels(phonon.primitive)
     phonon.set_band_structure(bands)
-    plt = phonon.plot_band_structure(labels=labels)
-    plt.ylim([0, 18])
-    plt.ylabel('Frequency [THz]')
-    plt.savefig(filename)
     return get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
 
 def get_thermal(phonon):
@@ -143,12 +139,12 @@ fc_phonopy = phonon.get_force_constants()
 
 print("phonopy")
 get_thermal(phonon)
-bs_phonopy = get_bs(phonon, "bs_phonopy.pdf")
+bs_phonopy = get_bs(phonon)
 
 print("hiphive")
 phonon.set_force_constants(fcs.get_fc_array(order=2))
 get_thermal(phonon)
-bs_hiphive = get_bs(phonon, "bs_hiphive.pdf")
+bs_hiphive = get_bs(phonon)
 
 diff = lambda x, y, z: np.linalg.norm(x - y) / np.linalg.norm(z)
 freq_diff = diff(bs_hiphive[0][0], bs_phonopy[0][0], bs_phonopy[0][0])
