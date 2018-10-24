@@ -45,7 +45,7 @@ class ConfigDict(ClassDict):
         """write a settings object human readable and pickled"""
         with open(filname, 'w') as f:
             timestr = time.strftime('%Y/%m/%d %H:%M:%S')
-            f.write(f'# HIGHaims setup from {timestr}\n')
+            f.write(f'# configfile written at {timestr}\n')
             f.write(self.get_string())
         #
         if pickle:

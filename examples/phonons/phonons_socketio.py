@@ -14,7 +14,7 @@ from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
 import hilde.helpers.brillouinzone as bz
 
-atoms = read_structure('../gan.in')
+atoms = read_structure('../si.in')
 vol = atoms.get_volume()
 
 base_folder = Path(f'{atoms.sysname}').absolute()
@@ -31,7 +31,7 @@ try:
 except FileNotFoundError:
     ratoms = atoms
 
-n_target = 10
+n_target = 4
 sc, smatrix = make_cubic_supercell(ratoms, target_size=n_target)
 
 print(sc.cell)
@@ -55,13 +55,13 @@ print(f'{len(scs)} supercells created.')
 socketio_settings = {
     'use_pimd_wrapper': ('localhost', port),
     'compute_forces': True,
-    'sc_accuracy_rho': 1e-6,
+    'sc_accuracy_rho': 1e-4,
     'k_grid': k_grid
 }
 
 aims = setup_aims(custom_settings=socketio_settings)
 
-phonopy_log = workdir/'phonopy.log'
+phonopy_log = workdir / 'phonopy.log'
 trajectory = workdir / 'phonopy.traj'
 tmp_dir = workdir / 'socketio'
 

@@ -16,7 +16,7 @@ from pathlib import Path
 
 # Read settings
 port = 27182
-settings = Settings('hilde.conf')
+settings = Settings('../../hilde.conf')
 species_dir = str(Path(settings.machine.basissetloc) / 'light')
 command = settings.machine.aims_command
 tmp_dir = Path('./tmp')
