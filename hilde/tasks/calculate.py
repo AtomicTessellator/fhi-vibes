@@ -42,9 +42,13 @@ def calculate(atoms, calculator, workdir):
 
 def calculators_coincide(calc1, calc2):
     """ Check if calculators coincide by checking the parameters """
-    calcs_coincide = all(p1 == p2 for p1, p2 in
-                         zip_longest(calc1.parameters,
-                                     calc2.parameters))
+    warn('dont compare stupid things -> replace me with hashes')
+    try:
+        calcs_coincide = all(p1 == p2 for p1, p2 in
+                             zip_longest(calc1.parameters,
+                                         calc2.parameters))
+    except AttributeError:
+        calcs_coincide = False
     return calcs_coincide
 
 
@@ -54,12 +58,11 @@ def return_from_trajectory(cells, calculator, trajectory,
     cells_computed = []
     if ordered:
         itrajectory = iter(trajectory)
-        atoms = next(itrajectory)
         for cell in cells:
+            atoms = next(itrajectory)
             if ((atoms == cell) and calculators_coincide(calculator,
                                                          atoms.calc)):
                 cells_computed.append(atoms)
-                atoms = next(itrajectory)
             else:
                 cells_computed.append(cell)
     else:
@@ -69,8 +72,7 @@ def return_from_trajectory(cells, calculator, trajectory,
 
 def calculate_multiple(cells, calculator, workdir,
                        trajectory=None,
-                       trajectory_to=None,
-                       trajectory_from=None):
+                       trajectory_to=None):
     """Calculate several atoms object sharing the same calculator.
 
     Args:
@@ -79,7 +81,6 @@ def calculate_multiple(cells, calculator, workdir,
         workdir (str/Path): working directory
         trajectory (Trajectory): trajectory for caching
         trajectory_to (Trajectory): store information to trajectory
-        trajectory_from (Trajectory): read information from trajectory
         read (bool): Read from trajectory if True.
 
     Returns:
@@ -87,17 +88,13 @@ def calculate_multiple(cells, calculator, workdir,
 
     """
 
-    if trajectory:
-        if trajectory_to or trajectory_from:
-            warn('You specified trajectory as well as trajectory_to/from')
-            print('overwrite trajectory_to/from')
-        trajectory_to = trajectory
-        trajectory_from = trajectory
-
     # If trajectory_from is given, try to read pre-computed atoms from it
     cells_pre_calculated = cells
-    if trajectory_from is not None:
-        traj_file = os.path.join(workdir, trajectory_from)
+    if trajectory is not None and trajectory_to is None:
+        trajectory_to = trajectory
+
+    if trajectory is not None:
+        traj_file = os.path.join(workdir, trajectory)
         if Path(traj_file).exists():
             with Trajectory(traj_file, mode='r') as trajectory:
                 cells_pre_calculated = return_from_trajectory(cells,
@@ -120,14 +117,15 @@ def calculate_multiple(cells, calculator, workdir,
         cells_calculated.append(cell)
 
         if trajectory_to is not None:
-            with Trajectory(traj_file, mode='a') as trajectory:
-                trajectory.write(cell)
+            with Trajectory(traj_file, mode='a') as traj:
+                traj.write(cell)
 
     return cells_calculated
 
 
 def calculate_multiple_socketio(cells, calculator, workdir, port,
                                 trajectory='socketio.traj',
+                                trajectory_to=None,
                                 force=False,
                                 log_file='socketio.log'):
     """
@@ -145,13 +143,25 @@ def calculate_multiple_socketio(cells, calculator, workdir, port,
 
     """
 
-    if trajectory:
-        raise Exception('Future Flo, implement me!')
-        traj_file = Path(workdir) / trajectory
-        traj, is_calculated = return_trajectory(cells, calculator,
-                                                traj_file, force)
-        if is_calculated and not force:
-            return traj
+    # If trajectory_from is given, try to read pre-computed atoms from it
+    cells_pre_calculated = cells
+    if trajectory is not None and trajectory_to is None:
+        trajectory_to = trajectory
+
+    if trajectory is not None:
+        traj_file = os.path.join(workdir, trajectory)
+        if Path(traj_file).exists():
+            with Trajectory(traj_file, mode='r') as trajectory:
+                cells_pre_calculated = return_from_trajectory(cells,
+                                                              calculator,
+                                                              trajectory)
+
+    # Check if backup should be performed
+    if trajectory_to is not None:
+        traj_file = os.path.join(workdir, trajectory_to)
+        if Path(traj_file).exists():
+            Path(traj_file).rename(str(traj_file) + '.bak')
+
 
     cells_calculated = []
     workdir.mkdir(exist_ok=True)
@@ -160,15 +170,28 @@ def calculate_multiple_socketio(cells, calculator, workdir, port,
             SocketIOCalculator(calculator, log=log_file.open('w'), port=port))
         atoms = cells[0].copy()
         atoms.calc = calc
-        for _, cell in enumerate(cells):
-            atoms.positions = cell.positions
-            atoms.calc.calculate(atoms, system_changes=['positions'])
-            cells_calculated.append(atoms)
+        for _, cell in enumerate(cells_pre_calculated):
 
-            # prepare atoms to copy to Trajectory
-            cell.calc = calculator
-            cell.calc.results = atoms.calc.results
-            traj.write(cell)
+            if cell is None:
+                cells_calculated.append(cell)
+                continue
+
+            if cell.calc is None:
+                atoms.positions = cell.positions
+                atoms.calc.calculate(atoms, system_changes=['positions'])
+                computed_cell = atoms.copy()
+                # restore the 'original' calculator
+                computed_cell.calc = calculator
+                computed_cell.calc.results = atoms.calc.results
+            else:
+                computed_cell = cell
+
+            cells_calculated.append(computed_cell)
+
+            if trajectory_to is not None:
+                with Trajectory(traj_file, mode='a') as traj:
+                    traj.write(computed_cell)
+
     return cells_calculated
 
 
