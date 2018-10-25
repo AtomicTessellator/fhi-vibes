@@ -57,12 +57,11 @@ def return_from_trajectory(cells, calculator, trajectory,
     """ return pre computed atoms objects from trajectory """
     cells_computed = []
     if ordered:
-        itrajectory = iter(trajectory)
         for cell in cells:
-            atoms = next(itrajectory)
-            if ((atoms == cell) and calculators_coincide(calculator,
-                                                         atoms.calc)):
-                cells_computed.append(atoms)
+            for atoms in trajectory:
+                if ((atoms == cell) and calculators_coincide(
+                    calculator, atoms.calc)):
+                    cells_computed.append(atoms)
             else:
                 cells_computed.append(cell)
     else:
