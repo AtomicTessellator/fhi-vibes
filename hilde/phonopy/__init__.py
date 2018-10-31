@@ -1,5 +1,6 @@
 """ Module containing wrapper functions to work with Phonopy """
 
+import numpy as np
 from phonopy.structure.atoms import PhonopyAtoms
 from hilde.structure import pAtoms
 
@@ -28,6 +29,8 @@ def to_pAtoms(phonopy_atoms, smatrix, symprec=None):
         pAtoms/list: one or several pAtoms
 
     """
+
+    smatrix = np.asarray(smatrix)
 
     if isinstance(phonopy_atoms, list):
         latoms = phonopy_atoms

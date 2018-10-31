@@ -55,18 +55,18 @@ def calculators_coincide(calc1, calc2):
 def return_from_trajectory(cells, calculator, trajectory,
                            ordered=True):
     """ return pre computed atoms objects from trajectory """
-    cells_computed = []
+    cells_pre_computed = []
     if ordered:
         for cell in cells:
             for atoms in trajectory:
                 if ((atoms == cell) and calculators_coincide(
                     calculator, atoms.calc)):
-                    cells_computed.append(atoms)
+                    cells_pre_computed.append(atoms)
             else:
-                cells_computed.append(cell)
+                cells_pre_computed.append(cell)
     else:
         raise Exception('non ordered read from trajectory not yet implemented.')
-    return cells_computed
+    return cells_pre_computed
 
 
 def calculate_multiple(cells, calculator, workdir,
