@@ -16,4 +16,5 @@ all:
 
 devel:
   script:
+    - echo "These are for developing:"
   
