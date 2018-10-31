@@ -194,21 +194,23 @@ def calculate_multiple_socketio(cells, calculator, workdir, port,
     return cells_calculated
 
 
-def setup_multiple(cells, calculator, workdir):
+def setup_multiple(cells, calculator, workdir, mkdir):
     """
     Write input files for calculations on a list of atoms objects
     Args:
         cells (Atoms): List of atoms objects.
         calculator (calculator): Calculator to run calculation.
         workdir (str/Path): working directory
+        mkdir(bool): if true make new directories for each calculation
     """
     workdirs = []
     for cell, wdir in cells_and_workdirs(cells, workdir):
         workdirs.append(wdir)
-        with cwd(wdir, mkdir=True):
-            cell.set_calculator(calculator)
-            try:
-                calculator.write_input(cell)
-            except AttributeError:
-                print("Calculator has no input just attaching to cell")
+        cell.set_calculator(calculator)
+        if mkdir:
+            with cwd(wdir, mkdir=True):
+                try:
+                    calculator.write_input(cell)
+                except AttributeError:
+                    print("Calculator has no input just attaching to cell")
     return cells, workdirs

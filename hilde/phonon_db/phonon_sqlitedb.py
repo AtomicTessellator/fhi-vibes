@@ -184,6 +184,34 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     columnnames = [line.split()[0].lstrip()
                    for line in init_statements[0].splitlines()[1:]]
 
+    def blob(self, array):
+        """Convert array to blob/buffer object."""
+        if array is None:
+            return None
+        array = np.array(array)
+        if len(array) == 0:
+            array = np.zeros(0)
+        if array.dtype == np.int64:
+            array = array.astype(np.int32)
+        if not np.little_endian:
+            array = array.byteswap()
+        return buffer(np.ascontiguousarray(array))
+
+    def deblob(self, buf, dtype=float, shape=None):
+        """Convert blob/buffer object to ndarray of correct dtype and shape.
+
+        (without creating an extra view)."""
+        if buf is None:
+            return None
+        if len(buf) == 0:
+            array = np.zeros(0, dtype)
+        else:
+            array = np.frombuffer(buf, dtype)
+            if not np.little_endian:
+                array = array.byteswap()
+        if shape is not None:
+            array.shape = shape
+        return array
 
     def _write(self, phonon, key_value_pairs, data, id):
         '''
@@ -469,7 +497,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 elif key == 'magmom':
                     assert self.version >= 6, 'Update your db-file'
                 elif key == 'supercell_matrix':
-                    value = self.encode(list(value.flatten()))
+                    value = self.encode(list(np.asarray(value).flatten()))
 
                 where.append('systems.{}{}?'.format(key, op))
                 args.append(value)

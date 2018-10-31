@@ -317,7 +317,7 @@ def write_sym_constraints_geo(in_file,
     for aa in range(len(scaled_positions)):
         for atom in atom_list:
             type_num = atom.get_type(coord_prims[aa], atom.distortion_sym)
-            if atom.name[3:] == supercell.symbols[aa] and type_num == atom.type_num:
+            if int(atom.name[:2]) == supercell.numbers[aa] and type_num == atom.type_num:
                 atom.num_in_cell += 1
                 break
     # Generate the atom_param_list by parsing each atom types operator list
@@ -352,7 +352,7 @@ def write_sym_constraints_geo(in_file,
         diff = supercell.positions[aa] - unitcell.positions[sc_inds2uc_incd[aa]]
         for atom in atom_list:
             type_num = atom.get_type(coord_prims[aa], atom.distortion_sym)
-            if (supercell.symbols[aa] == atom.name[3:]) and (type_num == atom.type_num):
+            if (supercell.numbers[aa] == int(atom.name[:2])) and (type_num == atom.type_num):
                 atom.num_in_cell -= 1
                 # zero_pos = np.zeros(3)
                 op = [atom.sym_params[ii].replace("@nn", str(atom.num_in_cell)) for ii in range(3)]
@@ -370,6 +370,7 @@ def write_sym_constraints_geo(in_file,
                                                                coord_i=coord_i,
                                                                use_xyz=atom.use_xyz,
                                                                strict=True,
+                                                               atom_param_list=atom_param_list,
                                                                **kwargs
                                                               )
                                                )
