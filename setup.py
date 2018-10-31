@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import setuptools
 from numpy.distutils.core import setup, Extension
 

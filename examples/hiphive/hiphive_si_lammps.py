@@ -112,7 +112,7 @@ def get_fcp(supercell, calculator,
 
 
 # setup
-atoms_ideal = read_structure('si.in')
+atoms_ideal = read_structure('../si.in')
 _, smatrix = make_cubic_supercell(atoms_ideal, 64)
 
 # explicit is better than implicit

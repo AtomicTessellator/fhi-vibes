@@ -7,9 +7,9 @@ from kpointoptimizer import KPointOptimizer
 import numpy as np
 
 material = 'aln'
-atoms = read(material + '.in', 0, 'aims')
+atoms = read('../' + material + '.in', 0, 'aims')
 
-settings = Settings('hilde.conf')
+settings = Settings('../../hilde.conf')
 species_dir = str(Path(settings.machine.basissetloc) / 'light')
 command = settings.machine.aims_command
 tmp_dir = Path('./' + material)

@@ -38,3 +38,6 @@ bin
 dist
 docker
 *.egg-info
+
+# vscode
+.vscode
