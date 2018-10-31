@@ -5,29 +5,28 @@ from hilde.structure import pAtoms
 from hilde.helpers.geometry import get_cubicness
 from warnings import warn
 
-def find_cubic_cell(cell,
-                    target_size=1,
-                    deviation=0.2,
-                    lower_limit=-2,
-                    upper_limit=2,
-                    verbose=False):
+
+def find_cubic_cell(
+    cell, target_size=1, deviation=0.2, lower_limit=-2, upper_limit=2, verbose=False
+):
     """ Find a supercell matrix that produces a supercell of given size that is
     as cubic as possible """
 
-    smatrix = sc.supercell.find_optimal_cell(cell, np.eye(3),
-                                             target_size=target_size,
-                                             deviation=deviation,
-                                             lower_limit=lower_limit, upper_limit=upper_limit,
-                                             verbose=verbose
-                                             )
+    smatrix = sc.supercell.find_optimal_cell(
+        cell,
+        np.eye(3),
+        target_size=target_size,
+        deviation=deviation,
+        lower_limit=lower_limit,
+        upper_limit=upper_limit,
+        verbose=verbose,
+    )
     return np.asarray(smatrix, dtype=int)
 
-def make_cubic_supercell(atoms,
-                         target_size=100,
-                         deviation=0.2,
-                         lower_limit=-2,
-                         upper_limit=2,
-                         verbose=False):
+
+def make_cubic_supercell(
+    atoms, target_size=100, deviation=0.2, lower_limit=-2, upper_limit=2, verbose=False
+):
     """ Create a supercell of target size that is as cubic as possible.
 
     Args:
@@ -45,35 +44,44 @@ def make_cubic_supercell(atoms,
 
     prim_cell = atoms.copy()
 
-    smatrix = find_cubic_cell(cell=prim_cell.cell,
-                              target_size=target_size / len(prim_cell),
-                              deviation=deviation,
-                              lower_limit=lower_limit,
-                              upper_limit=upper_limit,
-                              verbose=verbose)
+    smatrix = find_cubic_cell(
+        cell=prim_cell.cell,
+        target_size=target_size / len(prim_cell),
+        deviation=deviation,
+        lower_limit=lower_limit,
+        upper_limit=upper_limit,
+        verbose=verbose,
+    )
 
-    supercell = make_supercell(prim_cell, smatrix,
-                               tag=('smatrix', list(smatrix.flatten())))
+    supercell = make_supercell(
+        prim_cell, smatrix, tag=("smatrix", list(smatrix.flatten()))
+    )
 
-    if (hasattr(prim_cell, 'spacegroup')
-        and supercell.spacegroup and prim_cell.spacegroup):
+    if (
+        hasattr(prim_cell, "spacegroup")
+        and supercell.spacegroup
+        and prim_cell.spacegroup
+    ):
         n_sc = supercell.spacegroup.number
         n_at = prim_cell.spacegroup.number
         if n_sc != n_at:
-            warn('Spacegroup of supercell: ' +
-                 f'{n_sc} |= {n_at} of reference cell.')
+            warn("Spacegroup of supercell: " + f"{n_sc} |= {n_at} of reference cell.")
 
     cub_ness = get_cubicness(supercell.cell)
-    if cub_ness < .8:
-        print('**Warning: Cubicness of supercell is ' +
-              f'{cub_ness:.3f} ({cub_ness**3:.3f})')
-        print(f'**-> Sytems: {prim_cell.sysname}, target size {target_size}')
+    if cub_ness < 0.8:
+        print(
+            "**Warning: Cubicness of supercell is "
+            + f"{cub_ness:.3f} ({cub_ness**3:.3f})"
+        )
+        print(f"**-> Sytems: {prim_cell.sysname}, target size {target_size}")
     return supercell, smatrix
+
 
 def make_supercell(*args, tag=None, **kwargs):
     """ Wrap the make_supercell() function from ase.build """
-    supercell = pAtoms(ase_atoms=ase_make_supercell(*args, **kwargs),
-                       tags = ['supercell'])
+    supercell = pAtoms(
+        ase_atoms=ase_make_supercell(*args, **kwargs), tags=["supercell"]
+    )
     if tag:
         supercell.tags.append(tag)
     return supercell

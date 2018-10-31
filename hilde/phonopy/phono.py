@@ -11,11 +11,10 @@ from hilde.phonopy import to_pAtoms, enumerate_displacements, to_phonopy_atoms
 
 default_disp = 0.01
 
-def prepare_phonopy(atoms, supercell_matrix,
-                    fc2=None,
-                    disp=default_disp,
-                    symprec=1e-5,
-                    trigonal=False):
+
+def prepare_phonopy(
+    atoms, supercell_matrix, fc2=None, disp=default_disp, symprec=1e-5, trigonal=False
+):
     """Create a Phonpopy object
 
     Args:
@@ -33,24 +32,27 @@ def prepare_phonopy(atoms, supercell_matrix,
 
     ph_atoms = to_phonopy_atoms(atoms)
 
-    phonon = Phonopy(ph_atoms,
-                     supercell_matrix=supercell_matrix,
-                     symprec=symprec,
-                     is_symmetry=True,
-                     factor=const.eV_to_THz)
+    phonon = Phonopy(
+        ph_atoms,
+        supercell_matrix=supercell_matrix,
+        symprec=symprec,
+        is_symmetry=True,
+        factor=const.eV_to_THz,
+    )
 
-    phonon.generate_displacements(distance=disp,
-                                  is_plusminus='auto',
-                                  is_diagonal=True,
-                                  is_trigonal=trigonal)
+    phonon.generate_displacements(
+        distance=disp, is_plusminus="auto", is_diagonal=True, is_trigonal=trigonal
+    )
 
     if fc2 is not None:
         phonon.set_force_constants(fc2)
 
     return phonon
 
-def preprocess(atoms, supercell_matrix, disp=default_disp,
-               symprec=1e-5, trigonal=False):
+
+def preprocess(
+    atoms, supercell_matrix, disp=default_disp, symprec=1e-5, trigonal=False
+):
     """
     Creates a phonopy object from given input
     Args:
@@ -63,22 +65,20 @@ def preprocess(atoms, supercell_matrix, disp=default_disp,
         and the supercells_with_displacements as ase.atoms
     """
 
-    phonon = prepare_phonopy(atoms, supercell_matrix,
-                             disp=disp,
-                             symprec=symprec,
-                             trigonal=trigonal)
+    phonon = prepare_phonopy(
+        atoms, supercell_matrix, disp=disp, symprec=symprec, trigonal=trigonal
+    )
 
-    supercell = to_pAtoms(phonon.get_supercell(),
-                          supercell_matrix,
-                          symprec=symprec)
+    supercell = to_pAtoms(phonon.get_supercell(), supercell_matrix, symprec=symprec)
 
     scells = phonon.get_supercells_with_displacements()
     supercells_with_disps = to_pAtoms(scells, supercell_matrix)
 
     enumerate_displacements(supercells_with_disps)
 
-    pp = namedtuple('phonopy_preprocess',
-                    'phonon supercell supercells_with_displacements')
+    pp = namedtuple(
+        "phonopy_preprocess", "phonon supercell supercells_with_displacements"
+    )
 
     return pp(phonon, supercell, supercells_with_disps)
 
@@ -96,16 +96,18 @@ def get_force_constants(phonon, force_sets=None):
 
     if force_constants is not None:
         # convert forces from (N, N, 3, 3) to (3*N, 3*N)
-        force_constants = phonon.get_force_constants().swapaxes(1, 2).reshape(2*(3*n_atoms, ))
+        force_constants = (
+            phonon.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
+        )
         return force_constants
     # else
-    raise ValueError('Force constants not yet created, specify force_sets.')
+    raise ValueError("Force constants not yet created, specify force_sets.")
 
 
-def _postprocess_init(phonon,
-                      force_sets=None):
+def _postprocess_init(phonon, force_sets=None):
     """
-    Make sure that force_constants are present before the actual postprocess is performed.
+    Make sure that force_constants are present before the actual postprocess is
+    performed.
     Args:
         phonon: pre-processed phonon object
         force_constants: computed force_constants (optional)
@@ -118,18 +120,20 @@ def _postprocess_init(phonon,
         if force_sets is not None:
             phonon.produce_force_constants(force_sets)
         else:
-            exit('** Cannot run postprocess, force_sets have not been provided.')
+            exit("** Cannot run postprocess, force_sets have not been provided.")
 
 
-def get_dos(phonon,
-            q_mesh=[10, 10, 10],
-            freq_min=0,
-            freq_max='auto',
-            freq_pitch=.1,
-            tetrahedron_method=True,
-            write=False,
-            filename='total_dos.dat',
-            force_sets=None):
+def get_dos(
+    phonon,
+    q_mesh=[10, 10, 10],
+    freq_min=0,
+    freq_max="auto",
+    freq_pitch=0.1,
+    tetrahedron_method=True,
+    write=False,
+    filename="total_dos.dat",
+    force_sets=None,
+):
     """
     Compute the DOS (and save to file)
     Args:
@@ -152,24 +156,24 @@ def get_dos(phonon,
 
     phonon.set_mesh(q_mesh)
 
-    if freq_max == 'auto':
+    if freq_max == "auto":
         freq_max = phonon.get_mesh()[2].max() * 1.05
 
-    phonon.set_total_DOS(freq_min=freq_min,
-                         freq_max=freq_max,
-                         freq_pitch=freq_pitch,
-                         tetrahedron_method=tetrahedron_method)
+    phonon.set_total_DOS(
+        freq_min=freq_min,
+        freq_max=freq_max,
+        freq_pitch=freq_pitch,
+        tetrahedron_method=tetrahedron_method,
+    )
 
     if write:
         phonon.write_total_DOS()
-        Path('total_dos.dat').rename(filename)
+        Path("total_dos.dat").rename(filename)
 
     return phonon.get_total_DOS()
 
 
-def get_bandstructure(phonon,
-                      paths=None,
-                      force_sets=None):
+def get_bandstructure(phonon, paths=None, force_sets=None):
     """
     Compute bandstructure for given path
 
@@ -185,9 +189,7 @@ def get_bandstructure(phonon,
 
     _postprocess_init(phonon, force_sets)
 
-
-    bands, labels = bz.get_bands_and_labels(phonon.primitive,
-                                            paths)
+    bands, labels = bz.get_bands_and_labels(phonon.primitive, paths)
 
     phonon.set_band_structure(bands)
 
