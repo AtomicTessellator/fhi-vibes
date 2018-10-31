@@ -4,7 +4,7 @@ before_script:
   - pip install .
   - service mongodb start --ipv6
 
-tests:
+all:
   script:
     - jtest="jupyter nbconvert --execute"
     - $jtest $CI_PROJECT_DIR/examples/phonons/phonopy.ipynb
@@ -12,3 +12,8 @@ tests:
     - python $CI_PROJECT_DIR/examples/fireworks/fireworks_example.py
     - python $CI_PROJECT_DIR/examples/hiphive/hiphive_al.py
     - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
+    - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
+
+devel:
+  script:
+  
