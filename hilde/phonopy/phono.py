@@ -72,7 +72,7 @@ def preprocess(
     supercell = to_pAtoms(phonon.get_supercell(), supercell_matrix, symprec=symprec)
 
     scells = phonon.get_supercells_with_displacements()
-    supercells_with_disps = to_pAtoms(scells, supercell_matrix)
+    supercells_with_disps = to_pAtoms(scells, supercell_matrix, atoms.calc)
 
     enumerate_displacements(supercells_with_disps)
 
