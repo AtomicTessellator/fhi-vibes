@@ -22,7 +22,6 @@ def setup_aims(custom_settings={}, workdir=None):
     except:
         command = custom_settings['aims_command']
         species_dir = custom_settings['species_dir']
-
     default_settings = {
         'aims_command': command,
         'outfilename' : "aims.out",

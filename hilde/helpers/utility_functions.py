@@ -16,18 +16,21 @@ def get_smatrix(at, n_target=64):
     target_size = n_target / len(at)
     return find_cubic_cell(cell=at.cell, target_size=target_size)
 
-def setup_workdir(at):
+def setup_workdir(at, base_dir='.', mkdir=True):
     """
     Set up a working directory for a single point calculation
     Args:
         at: pAtoms
             The primitive cell of the calculation
+        base_dir: str
+            path to the base working directory
     Returns:
         The Path object to the work directory
     """
     vol = at.get_volume()
-    wd = Path('./{}/{:.3f}_EMT'.format(at.sysname, vol)).absolute()
-    wd.mkdir(parents=True, exist_ok=True)
+    wd = Path(base_dir + '/{}/{:.3f}_EMT'.format(at.sysname, vol)).absolute()
+    if mkdir:
+        wd.mkdir(parents=True, exist_ok=True)
     return wd
 
 def reshape_fc(fc_arr):

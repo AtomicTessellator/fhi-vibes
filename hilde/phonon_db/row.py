@@ -12,11 +12,12 @@ from hilde.materials_fp.material_fingerprint import to_dict
 from hilde.structure.structure import pAtoms
 from hilde.structure.convert import to_phonopy_atoms
 
-def phonon2dict(phonon):
+def phonon2dict(phonon, to_mongo=False):
     '''
     Converts a phonopy object to a dictionary
     Args:
         phonon: the phonopy object to be converted
+        to_mongo: True if it is being sent to a mongo database
     Returns:
         dct: the dictionary representation of phonon
     '''
@@ -40,7 +41,12 @@ def phonon2dict(phonon):
                 dct['qpoints'][phonon.band_structure.distances[ii][0]] = list(q_pt[0])
             if list(q_pt[-1]) not in dct['qpoints'].values():
                 dct['qpoints'][phonon.band_structure.distances[ii][-1]] = list(q_pt[-1])
-        dct['phonon_bs_fp'] = to_dict(get_phonon_bs_fingerprint_phononpy(phonon, dct['qpoints']))
+        dct['phonon_bs_fp'] = to_dict(get_phonon_bs_fingerprint_phononpy(phonon, dct['qpoints']), to_mongo)
+        if to_mongo:
+            q_pt = {}
+            for pt in dct['qpoints']:
+                q_pt[str(pt)] = dct['qpoints'][pt]
+            dct['qpoints'] = q_pt
     if phonon.thermal_properties is not None:
         dct['tp_ZPE'] = phonon.thermal_properties.zero_point_energy
         dct['tp_high_T_S'] = phonon.thermal_properties.high_T_entropy
@@ -62,6 +68,9 @@ class PhononRow(AtomsRow):
             dct = dct.copy()
             if 'supercell_matrix' in dct and not isinstance(dct['supercell_matrix'], list) and not isinstance(dct['supercell_matrix'], str):
                 dct['supercell_matrix'] = list(dct['supercell_matrix'].flatten())
+            elif 'supercell_matrix' in dct and isinstance(dct['supercell_matrix'], list) and isinstance(dct['supercell_matrix'][0], str):
+                for i, sc_el in enumerate(dct['supercell_matrix']):
+                    dct['supercell_matrix'][i] = int(sc_el)
         else:
             dct = phonon2dict(dct)
         assert 'numbers' in dct
@@ -89,6 +98,7 @@ class PhononRow(AtomsRow):
                          log_level=0
                         )
         if "force_constants" in self:
+            self.force_constants = np.asarray(self.force_constants)
             if len(self.force_constants.shape) < 4:
                 self.force_constants = reshape_fc(self.force_constants)
             phonon.set_force_constants(self.force_constants)

@@ -317,17 +317,23 @@ def scalar_product(fp1, fp2, col=0, pt='All', normalize=False):
         rescale = np.linalg.norm(fp1[col][pt])*np.linalg.norm(fp2[col][pt])
     return np.dot(fp1[col][pt], fp2[col][pt]) / rescale
 
-def to_dict(fp):
+def to_dict(fp, to_mongo=False):
     '''
     Converts a fingerprint into a dictionary
     fp: namedtuple(fp_tup)
-        The fingerprint to be converted into a dictionary
+        The fingerprint to be onverted into a dictionary
+    to_mongo: bool
+        True if the database that this will be stored in is a mongo db
     Returns: dict
         A dictionary of the fingerprint Keys=Point lablels, Values=np.ndarray(frequencies, #of states)
     '''
     fp_dict = {}
-    for aa in range(len(fp[2])):
-        fp_dict[fp[2][aa]] = np.array([fp[0][aa], fp[1][aa]]).T
+    if not to_mongo:
+        for aa in range(len(fp[2])):
+            fp_dict[fp[2][aa]] = np.array([fp[0][aa], fp[1][aa]]).T
+    else:
+        for aa in range(len(fp[2])):
+            fp_dict[str(fp[2][aa])] = np.array([fp[0][aa], fp[1][aa]]).T
     return fp_dict
 
 def dict2namedtuple(fp):
