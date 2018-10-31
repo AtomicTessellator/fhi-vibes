@@ -1,4 +1,4 @@
-image: registry.gitlab.com/floyd4k/hilde:latest
+image: registry.gitlab.com/flokno/hilde:latest
 
 before_script:
   - pip install .
