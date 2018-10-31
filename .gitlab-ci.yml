@@ -11,3 +11,4 @@ tests:
     - $jtest $CI_PROJECT_DIR/examples/phono3py/phono3py.ipynb
     - python $CI_PROJECT_DIR/examples/fireworks/fireworks_example.py
     - python $CI_PROJECT_DIR/examples/hiphive/hiphive_al.py
+    - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py

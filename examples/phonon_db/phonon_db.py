@@ -1,25 +1,20 @@
-from ase.atoms import Atoms
-from ase.calculators.emt import EMT
-from ase.dft.kpoints import get_cellinfo, special_paths, bandpath
+""" example on how to use the phonon database """
 
 import numpy as np
-from pathlib import Path
-from pprint import pprint
+
+from ase.calculators.emt import EMT
+from ase.build import bulk
 
 from hilde.helpers.hash import hash_atoms
-from hilde.helpers.brillouinzone import get_bands_and_labels, get_bands
-from hilde.parsers.structure import read_structure
+from hilde.helpers.brillouinzone import get_bands
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import phono as ph
-from hilde.settings import Settings
-from hilde.structure import pAtoms
-from hilde.tasks.calculate import calculate_multiple
 
 # Get the settings for the calculation and set up the cell
 db_path = "test.db"
 print(f"database: {db_path}")
 
-atoms = read_structure("../Al.in")
+atoms = bulk("Al")
 atoms.set_calculator(EMT())
 
 smatrix = 1 * np.array([[-1, 1, 1], [1, -1, 1], [1, 1, -1]])
@@ -46,6 +41,7 @@ try:
         raise KeyError("selection not found")
     else:
         print("Take from database")
+
 except KeyError:
     # if not perform the calculations
     print("not found in database, compute")
