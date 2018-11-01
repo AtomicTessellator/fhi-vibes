@@ -45,7 +45,7 @@ def calculate_multiple(atom_dicts, workdirs, calc_modifiers={}):
     firework_detours = []
     for i, cell in enumerate(atom_dicts):
         for cm, val in calc_modifiers.items():
-            if cm is "command":
+            if cm in cell:
                 cell[cm] = val
             else:
                 cell['calculator_parameters'][cm] = val
