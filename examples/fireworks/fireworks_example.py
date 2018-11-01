@@ -1,6 +1,7 @@
 ''' An example of how to use FireWorks in conjunction with HilDe'''
 from ase.build import bulk
 from ase.calculators.emt import EMT
+import os
 
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.utility_functions import get_smatrix, setup_workdir
@@ -12,7 +13,7 @@ from hilde.helpers.paths import cwd
 from fireworks import Firework, LaunchPad, PyTask, Workflow
 from fireworks.core.rocket_launcher import rapidfire
 
-db_path = 'test.db'
+db_path = (os.getcwd() + '/test.db')
 print(f'database: {db_path}')
 
 atoms = pAtoms(bulk('Ni', 'fcc', a=3.5))
@@ -35,25 +36,20 @@ launchpad.reset('', require_password=False)
 
 # create the Firework consisting of a single task
 args_init = [atoms, smatrix, workdir]
-args_anal = [atoms, smatrix, db.filename]
-
+args_fc = [atoms, smatrix]
+args_db = [atoms, db_path]
 # Initialize the displacements with phonopy
-fw1 = Firework(PyTask({
-    "func": fw.initialize_phonopy.name,
-    "args": args_init}))
-
-# Calculate the forces for all the displacement cells
-fw2 = Firework(PyTask({
-    "func": fw.calculate_multiple.name,
-    "inputs": ["atom_dicts", "workdirs"]}))
-
-# Calculate the force constants using phonopy
-fw3 = Firework(PyTask({
-    "func": fw.analyze_phonopy.name,
-    "args": args_anal,
-    "inputs": ["calc_atoms"]}))
-
-workflow = Workflow([fw1, fw2, fw3], {fw1:[fw2], fw2:[fw3]})
+fw1 = Firework(PyTask({"func": fw.initialize_phonopy.name,
+                       "args": args_init}))
+fw2 = Firework(PyTask({"func": fw.calculate_multiple.name,
+                      "inputs": ["atom_dicts", "workdirs"]}))
+fw3 = Firework(PyTask({"func": fw.calc_phonopy_force_constants.name,
+                       "args": args_fc,
+                       "inputs": ["calc_atoms"]}))
+fw4 = Firework(PyTask({"func": fw.add_phonon_to_db.name,
+                       "args": args_db,
+                       "inputs": ["phonon_dict"]}))
+workflow = Workflow([fw1, fw2, fw3, fw4], {fw1:[fw2], fw2:[fw3], fw3:[fw4]})
 
 launchpad.add_wf(workflow)
 
@@ -69,12 +65,3 @@ phonon.set_mesh(3 * [3])
 _, _, frequencies, _ = phonon.get_mesh()
 print(f'Highest frequency: {frequencies.max():.3f} THz (Target: [8,10] THz)')
 assert 8 < frequencies.max() < 10
-
-# qpoints, weights, frequencies, _ = phonon.get_mesh()
-# for q, w, f in zip(qpoints, weights, frequencies):
-#     print(f'q = {q} (weight= {w})')
-#     print('# Mode   Frequency')
-#     for  ii, fi in enumerate(f):
-#         print(f'  {ii+1:3d} {fi:12.7f} THz')
-#
-# print(f'{frequencies.max()}')

@@ -612,7 +612,6 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             '''
         con = self._connect()
         self._initialize(con)
-
         values = np.array([None for i in range(len(self.columnnames)-6)])
         values[len(self.columnnames)-8] = '{}'
         values[len(self.columnnames)-7] = 'null'
