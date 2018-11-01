@@ -61,6 +61,9 @@ def dict2patoms(atoms_dict):
         atoms.calc.command = atoms_dict['command']
     if "results" in atoms_dict:
         atoms.calc.results = atoms_dict["results"]
+    for key, val in atoms.calc.results.items():
+        if isinstance(val, list):
+            atoms.calc.results[key] = np.array(val)
     return atoms
 
 class pAtoms(Atoms):

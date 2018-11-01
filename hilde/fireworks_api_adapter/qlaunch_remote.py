@@ -47,6 +47,7 @@ def qlaunch_remote(command,
                    fw_id=None,
                    silencer=False,
                    reserve=False,
+                   gss_auth=True,
                    launchpad_file=None,
                    fworker_file=None,
                    queueadapter_file=None,
@@ -140,7 +141,8 @@ def qlaunch_remote(command,
                     host=h,
                     user=remote_user,
                     config=fabric.Config({'run': {'shell': remote_shell}}),
-                    connect_kwargs={'password': remote_password}) as conn:
+                    connect_kwargs={'password': remote_password,
+                                    "gss_auth": gss_auth}) as conn:
                 for r in remote_config_dir:
                     r = os.path.expanduser(r)
                     conn.run("mkdir -p {}".format(r))
@@ -175,7 +177,8 @@ def qlaunch_remote(command,
                     host=h,
                     user=remote_user,
                     config=fabric.Config({'run': {'shell': remote_shell}}),
-                    connect_kwargs={'password': remote_password}) as conn:
+                    connect_kwargs={'password': remote_password,
+                                    "gss_auth": gss_auth}) as conn:
                 for r in remote_config_dir:
                     r = os.path.expanduser(r)
                     with conn.cd(r):

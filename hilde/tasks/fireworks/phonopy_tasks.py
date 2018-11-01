@@ -69,12 +69,8 @@ def calc_phonopy_force_constants(atoms_ideal, smatrix, calc_atoms, calc_mods={},
     #     dc._calc.command = calc_mods["command"]
     #     dc._calc.parameters["species_dir"] = calc_mods["species_dir"]
     smatrix = np.array(smatrix).reshape(3, 3)
-    print("phonon")
     phonon, _, _ = ph.preprocess(atoms, smatrix.T, symprec=symprec)
-    print("forces in")
-    print(disp_cells[0].calc.results)
     phonon.set_forces([cell.get_forces() for cell in disp_cells])
-    print("forces out")
     phonon.produce_force_constants()
     phonon_dict = phonon2dict(phonon)
     return FWAction(update_spec={"phonon_dict": phonon2dict(phonon)})
