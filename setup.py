@@ -16,7 +16,7 @@ setup(
     description="Haber Institute Lattice Dynamics Package",
     author="Florian Knoop, Thomas Purcell",
     author_email="knoop@fhi-berlin.mpg.de",
-    license="MIT License",
+    license="Unlicense",
     # install_requires=['numpy', 'phonopy', 'spglib'],
     packages=setuptools.find_packages(),
     ext_modules=[ext],
