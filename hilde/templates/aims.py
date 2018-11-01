@@ -18,7 +18,8 @@ def setup_aims(custom_settings={}, workdir=None):
     try:
         settings = Settings('../../hilde.cfg')
         command = settings.machine.aims_command
-        species_dir = Path(settings.machine.basissetloc) / 'light'
+        species_dir = Path(settings.machine.basissetloc) / custom_settings['species_type']
+        del(custom_settings['species_type'])
     except:
         command = custom_settings['aims_command']
         species_dir = custom_settings['species_dir']

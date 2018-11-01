@@ -42,6 +42,7 @@ def patoms2dict(atoms):
         atoms_dict['command'] = atoms.calc.command
     except:
         pass
+    atoms_dict['results'] = atoms.calc.results
     return atoms_dict
 
 def dict2patoms(atoms_dict):
@@ -58,6 +59,11 @@ def dict2patoms(atoms_dict):
         atoms.info = atoms_dict['info']
     if "command" in atoms_dict:
         atoms.calc.command = atoms_dict['command']
+    if "results" in atoms_dict:
+        atoms.calc.results = atoms_dict["results"]
+    for key, val in atoms.calc.results.items():
+        if isinstance(val, list):
+            atoms.calc.results[key] = np.array(val)
     return atoms
 
 class pAtoms(Atoms):
@@ -258,6 +264,3 @@ class pAtoms(Atoms):
         new_structure = pAtoms(Atoms(cell=newcell, scaled_positions=scaled,
                         numbers=self.numbers, pbc=True))
         return new_structure
-
-    def set_calc_id(self, id_val):
-        self.calc_id = id_val

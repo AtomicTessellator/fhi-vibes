@@ -28,7 +28,7 @@ def setup_workdir(at, base_dir='.', mkdir=True):
         The Path object to the work directory
     """
     vol = at.get_volume()
-    wd = Path(base_dir + '/{}/{:.3f}_EMT'.format(at.sysname, vol)).absolute()
+    wd = Path(base_dir + '/{}/{:.3f}'.format(at.sysname, vol)).absolute()
     if mkdir:
         wd.mkdir(parents=True, exist_ok=True)
     return wd
