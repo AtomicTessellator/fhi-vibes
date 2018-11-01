@@ -2,7 +2,7 @@
 import numpy as np
 from fireworks import FWAction
 
-from hilde.helpers.brillouinzone import get_bands_and_labels, get_sp_points
+from hilde.helpers.brillouinzone import get_bands_and_labels
 from hilde.helpers.hash import hash_atoms
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon2dict, PhononRow
@@ -67,10 +67,19 @@ def calc_phonopy_force_constants(atoms_ideal, smatrix, calc_atoms, symprec=1e-5)
     phonon, _, _ = ph.preprocess(atoms, smatrix.T, symprec=symprec)
     phonon.set_forces([cell.get_forces() for cell in disp_cells])
     phonon.produce_force_constants()
-    phonon_dict = phonon2dict(phonon)
     return FWAction(update_spec={"phonon_dict": phonon2dict(phonon)})
 
 def add_keys(phonon_dict, fw_dict):
+    '''
+    Checks the phonon_dictionary and adds any missing keys
+    Args:
+        phonon_dict: dict
+            The original phonon dictionary
+        fw_dict: dict
+            The new phonon dictionary
+    Returns: dict
+        The new phonon dictionary with any keys from the old one that were missing
+    '''
     for key in phonon_dict:
         if key not in fw_dict:
             fw_dict[key] = phonon_dict[key]
@@ -87,8 +96,7 @@ def calc_phonopy_band_structure(phonon_dict):
     '''
     phonon = PhononRow(phonon_dict).to_phonon()
     supercell = pAtoms(phonopy_atoms=phonon.get_supercell())
-    q_points = get_sp_points(supercell)
-    bands, labels = get_bands_and_labels(supercell)
+    bands, _ = get_bands_and_labels(supercell)
     phonon.set_band_structure(bands)
     to_fw = add_keys(phonon_dict, phonon2dict(phonon, True))
     return FWAction(update_spec={"phonon_dict": to_fw})

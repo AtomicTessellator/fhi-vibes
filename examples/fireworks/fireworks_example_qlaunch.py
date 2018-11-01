@@ -1,14 +1,9 @@
-''' An example of how to use FireWorks in conjunction with HilDe'''
+''' An example of how to use FireWorks in conjunction with HilDe and remote clusters'''
 from argparse import ArgumentParser
 import os
-from pathlib import Path
-
-from ase.build import bulk
-from ase.calculators.emt import EMT
 
 from fireworks import Firework, LaunchPad, PyTask, Workflow
 from fireworks.core.rocket_launcher import rapidfire
-from fireworks.utilities.fw_serializers import load_object_from_file
 
 from hilde.fireworks_api_adapter.qlaunch_remote import qlaunch_remote
 from hilde.helpers.brillouinzone import get_bands_and_labels
@@ -16,7 +11,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers.utility_functions import get_smatrix, setup_workdir
 from hilde.parsers import read_structure
 from hilde.phonon_db.phonon_db import connect
-from hilde.structure.structure import pAtoms, patoms2dict
+from hilde.structure.structure import patoms2dict
 from hilde.tasks import fireworks as fw
 from hilde.templates.aims import setup_aims
 
@@ -36,7 +31,8 @@ parser.add_argument("-rcmd", "--remote_command",
                     help="command used to run aims on the remote machine")
 parser.add_argument("-wd", "--workdir", default=".",
                     help="directory used to calculate the individual atom calculations")
-parser.add_argument("--no_kerberos", action="store_true", help="If set do not use gss_api authentication")
+parser.add_argument("--no_kerberos", action="store_true",
+                    help="If set do not use gss_api authentication")
 args = parser.parse_args()
 
 db_path = os.getcwd() + '/test.db'
@@ -82,11 +78,22 @@ except KeyError:
 if not found or not has_fc:
     # set up the LaunchPad and reset it
     launchpad = LaunchPad()
+    try:
+        query = {"name": "WF_Ex_Si", "state": "COMPLETED"}
+        wf_ids = launchpad.get_wf_ids(query=query, limit=100)
+        for wf_id in wf_ids:
+            launchpad.delete_wf(wf_id)
+        query = {"name": "WF_Ex_Si", "state": "FIZZLED"}
+        wf_ids = launchpad.get_wf_ids(query=query, limit=100)
+        for wf_id in wf_ids:
+            launchpad.delete_wf(wf_id)
+    except:
+        pass
     # create the Firework consisting of a single task
     args_init = [atoms, smatrix, workdir]
     calc_mods = {"command": args.remote_command, "species_dir": args.remote_species_dir}
     spec_qad = {"_queueadapter": {"nodes": 1, "queue": "express", "walltime": "00:05:00"}}
-    kwargs_cm = { "calc_mods" : calc_mods, "spec_qad" : spec_qad}
+    kwargs_cm = {"calc_mods" : calc_mods, "spec_qad" : spec_qad}
     args_fc = [atoms, smatrix]
     args_db = [atoms, db_path]
     # Initialize the displacements with phonopy
@@ -95,7 +102,7 @@ if not found or not has_fc:
                    name="initialize_phonopy")
     fw2 = Firework(PyTask({"func": fw.calculate_multiple.name,
                            "kwargs": kwargs_cm,
-                          "inputs": ["atom_dicts", "workdirs"]}),
+                           "inputs": ["atom_dicts", "workdirs"]}),
                    name="setup_calcs")
     anal_task_list = []
     anal_task_list.append(PyTask({"func": fw.calc_phonopy_force_constants.name,
@@ -105,20 +112,20 @@ if not found or not has_fc:
                                   "args": [],
                                   "inputs": ["phonon_dict"]}))
     anal_task_list.append(PyTask({"func": fw.calc_phonopy_dos.name,
-                                  "args": [[45,45,45]],
+                                  "args": [[45, 45, 45]],
                                   "inputs": ["phonon_dict"]}))
     anal_task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
                                   "args": args_db,
                                   "inputs": ["phonon_dict"]}))
     fw3 = Firework(anal_task_list, name="analysis_and_saving")
 
-    workflow = Workflow([fw1, fw2, fw3], {fw1:[fw2], fw2:[fw3]})
+    workflow = Workflow([fw1, fw2, fw3], {fw1:[fw2], fw2:[fw3]}, name="WF_Ex_Si")
     launchpad.add_wf(workflow)
     rapidfire(launchpad, nlaunches=2)
     qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=2, remote_host=args.remote_host,
                    remote_user=args.remote_user, remote_password=args.remote_password,
-                   remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"],
-                   remote_setup=False, reserve=True, gss_auth=not args.no_kerberos)
+                   remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], reserve=True,
+                   gss_auth=not args.no_kerberos)
     rapidfire(launchpad, nlaunches=1)
 
 phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),

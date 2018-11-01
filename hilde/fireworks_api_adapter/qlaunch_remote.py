@@ -11,12 +11,6 @@ except ImportError:
 else:
     HAS_FABRIC = True
 
-from fireworks.fw_config import QUEUEADAPTER_LOC, CONFIG_FILE_DIR, FWORKER_LOC, LAUNCHPAD_LOC
-from fireworks.core.fworker import FWorker
-from fireworks.core.launchpad import LaunchPad
-from fireworks.queue.queue_launcher import rapidfire, launch_rocket_to_queue
-from fireworks.utilities.fw_serializers import load_object_from_file
-
 __authors__ = "Anubhav Jain, Shyue Ping Ong, Adapted by Thomas Purcell for use in HiLDe"
 __copyright__ = "Copyright 2013, The Materials Project"
 __version__ = "0.1"
@@ -43,7 +37,6 @@ def qlaunch_remote(command,
                    maxjobs_block=None,
                    nlaunches=None,
                    sleep=None,
-                   timeout=None,
                    fw_id=None,
                    silencer=False,
                    reserve=False,
@@ -53,7 +46,6 @@ def qlaunch_remote(command,
                    remote_user=None,
                    remote_password=None,
                    remote_shell='/bin/bash -l -c',
-                   remote_setup=False,
                    daemon=0
                   ):
     '''
@@ -69,8 +61,6 @@ def qlaunch_remote(command,
             num_launches (int or "infinite"; default 0 is all jobs in DB)
         sleep: int
             sleep time between loops
-        timeout: int
-            timeout (secs) after which to quit (default None)
         fw_id: int
             specific fw_id to run in reservation mode
         silencer: bool
@@ -90,22 +80,11 @@ def qlaunch_remote(command,
             you do passwordless ssh.
         remote_shell: str
             Shell command to use on remote host for running submission.
-        remote_setup: bool
-            Setup the remote config dir using files in the directory specified by config_dir.
         daemon: int
             Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon
             mode.
     '''
     assert remote_host is not "localhost"
-    try:
-        import argcomplete
-        argcomplete.autocomplete(parser)
-        # This supports bash autocompletion. To enable this, pip install
-        # argcomplete, activate global completion, or add
-        #      eval "$(register-python-argcomplete qlaunch)"
-        # into your .bash_profile or .bashrc
-    except ImportError:
-        pass
 
     if not HAS_FABRIC:
         print("Remote options require the Fabric package v2+ to be installed!")

@@ -1,7 +1,7 @@
 ''' An example of how to use FireWorks in conjunction with HilDe'''
+import os
 from ase.build import bulk
 from ase.calculators.emt import EMT
-import os
 
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.utility_functions import get_smatrix, setup_workdir
@@ -32,24 +32,38 @@ found = False
 
 # set up the LaunchPad and reset it
 launchpad = LaunchPad()
-launchpad.reset('', require_password=False)
-
+try:
+    query = {"name": "Ex_WF_Ni", "state": "COMPLETED"}
+    wf_ids = launchpad.get_wf_ids(query=query, limit=100)
+    for wf_id in wf_ids:
+        launchpad.delete_wf(wf_id)
+    query = {"name": "Ex_WF_Ni", "state": "FIZZLED"}
+    wf_ids = launchpad.get_wf_ids(query=query, limit=100)
+    for wf_id in wf_ids:
+        launchpad.delete_wf(wf_id)
+except:
+    pass
 # create the Firework consisting of a single task
 args_init = [atoms, smatrix, workdir]
 args_fc = [atoms, smatrix]
 args_db = [atoms, db_path]
 # Initialize the displacements with phonopy
 fw1 = Firework(PyTask({"func": fw.initialize_phonopy.name,
-                       "args": args_init}))
+                       "args": args_init}),
+               name="initialize_phonopy")
 fw2 = Firework(PyTask({"func": fw.calculate_multiple.name,
-                      "inputs": ["atom_dicts", "workdirs"]}))
+                       "inputs": ["atom_dicts", "workdirs"]}),
+               name="setup_calcs")
 fw3 = Firework(PyTask({"func": fw.calc_phonopy_force_constants.name,
                        "args": args_fc,
-                       "inputs": ["calc_atoms"]}))
+                       "inputs": ["calc_atoms"]}),
+               name="get_fc")
 fw4 = Firework(PyTask({"func": fw.add_phonon_to_db.name,
                        "args": args_db,
-                       "inputs": ["phonon_dict"]}))
-workflow = Workflow([fw1, fw2, fw3, fw4], {fw1:[fw2], fw2:[fw3], fw3:[fw4]})
+                       "inputs": ["phonon_dict"]}),
+               name="add_to_db")
+workflow = Workflow([fw1, fw2, fw3, fw4], {fw1:[fw2], fw2:[fw3], fw3:[fw4]},
+                    name="Ex_WF_Ni")
 
 launchpad.add_wf(workflow)
 

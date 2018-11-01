@@ -25,7 +25,7 @@ def calculate(atoms_dict, workdir, out_spec):
 
 calculate.name = f'{module_name}.{calculate.__name__}'
 
-def calculate_multiple(atom_dicts, workdirs, calc_mods={}, spec_qad={}):
+def calculate_multiple(atom_dicts, workdirs, calc_mods=None, spec_qad=None):
     '''
     A wrapper function that generate FireWorks for a set of atoms and associated work
     directories
@@ -43,14 +43,17 @@ def calculate_multiple(atom_dicts, workdirs, calc_mods={}, spec_qad={}):
             as detours (Adds child FireWorks to the one calling this function and transfers
             its current children to the new FireWorks)
     '''
-    __name__ = f'{module_name}.{calculate_multiple.__name__}'
     firework_detours = []
+    if calc_mods is None:
+        calc_mods = {}
+    if spec_qad is None:
+        spec_qad = {}
     for i, cell in enumerate(atom_dicts):
-        for cm, val in calc_mods.items():
-            if cm in cell:
-                cell[cm] = val
+        for key, val in calc_mods.items():
+            if key in cell:
+                cell[key] = val
             else:
-                cell['calculator_parameters'][cm] = val
+                cell['calculator_parameters'][key] = val
         task = PyTask({"func": calculate.name,
                        "args": [cell, workdirs[i], "calc_atoms"]})
         firework_detours.append(Firework(task, name=f"calc_{i}", spec=spec_qad))

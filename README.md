@@ -10,7 +10,7 @@ and edit according to system.
 
 **New Features**
 * Wrapper for `phono3py`
-  * Preprocess and re-creation of Phono3py objects from precomputed force 
+  * Preprocess and re-creation of Phono3py objects from precomputed force
   constants, see examples
 * Wrapper for `phonopy`
   * Preprocess and (some) postprocess, see examples
@@ -42,12 +42,12 @@ cp Dockerfile requirements.txt docker
 cd docker
 docker login registry.gitlab.com
 docker build -t registry.gitlab.com/floyd4k/hilde .
-docker push registry.gitlab.com/floyd4k/hilde 
+docker push registry.gitlab.com/floyd4k/hilde
 ```
 **Setup of FireWorks on Computational Resources**
 * FireWorks on the clusters
   * Download/clone from https://github.com/materialsproject/fireworks.git and move to that directory
-  * Modify fw\_tuotirals/woker/my\_fworker.yaml and fw\_tuotirals/woker/my\_launchpad.yaml and copy 
+  * Modify fw\_tuotirals/woker/my\_fworker.yaml and fw\_tuotirals/woker/my\_launchpad.yaml and copy
   them to $HOME/.fireworks
   * Modify the correctfw\_tuotirals/queue\_???.yaml file for your submission system
    and copy it to $HOME/.fireworks/my\_qadapter.yaml
@@ -59,4 +59,8 @@ docker push registry.gitlab.com/floyd4k/hilde
 * Connections between computers
   * Passwordless connections are perferd
   * If this is not possible you can pass the password as a command line argument, (delete history afterwards)
-
+* FireWorks Etiquette
+  * Name all Fireworks/WorkFlows
+  * If you are using a shared launchpad only use lpad reset if everyone is okay with that
+  * Keep the launch pad clean, once Workflows and FireWorks are complete/you don't need them,
+  delete them
