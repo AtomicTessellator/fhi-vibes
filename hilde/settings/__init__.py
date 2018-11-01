@@ -2,8 +2,8 @@ from hilde.helpers.config import ClassDict, ConfigDict
 from hilde.helpers.hash import hashfunc
 
 class Settings(ConfigDict):
-    """ Class to hold the settings parsed from highaims.conf (or similar)"""
-    def __init__(self, config_files='highaims.conf'):
+    """ Class to hold the settings parsed from highaims.cfg (or similar)"""
+    def __init__(self, config_files='highaims.cfg'):
         super().__init__(config_files=config_files)
 
     def get_hash(self, short = True):

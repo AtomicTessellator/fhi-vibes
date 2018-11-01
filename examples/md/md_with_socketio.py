@@ -16,7 +16,7 @@ from hilde.helpers.paths import cwd
 
 # Read settings
 port = 27182
-settings = Settings("../../hilde.conf")
+settings = Settings("../../hilde.cfg")
 species_dir = str(Path(settings.machine.basissetloc) / "light")
 command = settings.machine.aims_command
 tmp_dir = Path("./tmp")

@@ -22,7 +22,7 @@ def make_workdir(smat, volume):
     workdirec.mkdir(exist_ok=True)
     return workdirec
 
-settings = Settings('../../hilde.conf')
+settings = Settings('../../hilde.cfg')
 aims_settings = {
     'command': settings.machine.aims_command,
     'species_dir': str(Path(settings.machine.basissetloc) / 'light'),

@@ -16,7 +16,7 @@ def setup_aims(custom_settings={}, workdir=None):
 
     """
     try:
-        settings = Settings('../../hilde.conf')
+        settings = Settings('../../hilde.cfg')
         command = settings.machine.aims_command
         species_dir = Path(settings.machine.basissetloc) / 'light'
     except:

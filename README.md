@@ -4,7 +4,7 @@
 
 **Basic Setup**
 
-`cp hilde.conf.template hilde.conf`
+`cp hilde.cfg.template hilde.cfg`
 
 and edit according to system.
 

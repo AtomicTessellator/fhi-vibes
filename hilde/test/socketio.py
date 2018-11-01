@@ -14,7 +14,7 @@ from hilde.settings import Settings
 from hilde.helpers.paths import cwd
 
 port = 27182
-st = Settings('hilde.conf')
+st = Settings('hilde.cfg')
 species_dir = str(Path(st.machine.basissetloc) / 'light')
 command = st.machine.aims_command
 tmp_dir = Path('./test/tmp')

@@ -8,7 +8,7 @@ from pprint import pprint
 from helpers.paths import cwd
 from settings import Settings
 
-st = Settings('hilde.conf')
+st = Settings('hilde.cfg')
 st.print()
 
 database_dir = str(Path(st.database.location) / st.database.name)

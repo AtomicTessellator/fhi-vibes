@@ -35,7 +35,7 @@ parser.add_argument("-wd", "--workdir", default=".",
                     help="directory used to calculate the individual atom calculations")
 args = parser.parse_args()
 # Get the settings for the calculation and set up the cell
-st = Settings('../../hilde.conf')
+st = Settings('../../hilde.cfg')
 if st.database.name.startswith('postgres'):
     db_path = st.database.name
 else:

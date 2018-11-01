@@ -19,7 +19,7 @@ vol = atoms.get_volume()
 base_folder = Path(f'{atoms.sysname}').absolute()
 
 # aims
-settings = Settings('../../hilde.conf')
+settings = Settings('../../hilde.cfg')
 
 command = settings.machine.aims_command
 species_dir = str(Path(settings.machine.basissetloc) / 'light')

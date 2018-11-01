@@ -11,8 +11,8 @@
 testcases/
 data/*
 
-# Files derived from templates:
-*.conf
+# hilde config file
+hilde.cfg
 
 # Python
 *.ipynb_checkpoints
