@@ -48,10 +48,6 @@ def qlaunch_remote(command,
                    silencer=False,
                    reserve=False,
                    gss_auth=True,
-                   launchpad_file=None,
-                   fworker_file=None,
-                   queueadapter_file=None,
-                   config_dir=CONFIG_FILE_DIR,
                    remote_host='localhost',
                    remote_config_dir=['~/.fireworks'],
                    remote_user=None,
@@ -115,44 +111,7 @@ def qlaunch_remote(command,
         print("Remote options require the Fabric package v2+ to be installed!")
         sys.exit(-1)
 
-    if not launchpad_file and os.path.exists(
-            os.path.join(config_dir, 'my_launchpad.yaml')):
-        launchpad_file = os.path.join(config_dir, 'my_launchpad.yaml')
-    elif not launchpad_file:
-        launchpad_file = LAUNCHPAD_LOC
-
-    if not fworker_file and os.path.exists(
-            os.path.join(config_dir, 'my_fworker.yaml')):
-        fworker_file = os.path.join(config_dir, 'my_fworker.yaml')
-    elif not fworker_file:
-        fworker_file = FWORKER_LOC
-
-    if not queueadapter_file and os.path.exists(
-            os.path.join(config_dir, 'my_qadapter.yaml')):
-        queueadapter_file = os.path.join(config_dir, 'my_qadapter.yaml')
-    elif not queueadapter_file:
-        queueadapter_file = QUEUEADAPTER_LOC
-
-    if remote_setup:
-        for h in remote_host:
-            conf = fabric.Config()
-            conf.run.shell = remote_shell
-            with fabric.Connection(
-                    host=h,
-                    user=remote_user,
-                    config=fabric.Config({'run': {'shell': remote_shell}}),
-                    connect_kwargs={'password': remote_password,
-                                    "gss_auth": gss_auth}) as conn:
-                for r in remote_config_dir:
-                    r = os.path.expanduser(r)
-                    conn.run("mkdir -p {}".format(r))
-                    for f in os.listdir(config_dir):
-                        if os.path.isfile(f):
-                            conn.put(f, os.path.join(r, f))
     non_default = []
-    convert_input_to_param("launchpad_file", launchpad_file, non_default)
-    convert_input_to_param("fworker_file", fworker_file, non_default)
-    convert_input_to_param("queueadapter_file", queueadapter_file, non_default)
     if command is "rapidfire":
         convert_input_to_param("maxjobs_queue", maxjobs_queue, non_default)
         convert_input_to_param("maxjobs_block", maxjobs_block, non_default)

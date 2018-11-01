@@ -20,12 +20,15 @@ def calculate(atoms_dict, workdir, out_spec):
         include the calculated results (pushes it to the end of a list)
     '''
     atoms = dict2patoms(atoms_dict)
+    print(atoms.calc.command)
+    print(atoms.calc.parameters)
+    print(workdir)
     temp_atoms = calc_hilde(atoms, atoms.get_calculator(), workdir)
     return FWAction(mod_spec=[{'_push': {out_spec: patoms2dict(temp_atoms)}}])
 
 calculate.name = f'{module_name}.{calculate.__name__}'
 
-def calculate_multiple(atom_dicts, workdirs, calc_mods={}):
+def calculate_multiple(atom_dicts, workdirs, calc_mods={}, spec_qad={}):
     '''
     A wrapper function that generate FireWorks for a set of atoms and associated work
     directories
@@ -36,6 +39,8 @@ def calculate_multiple(atom_dicts, workdirs, calc_mods={}):
             A list of the paths to perform the calculations
         calc_mods: dict
             A dictionary describing all modifications needed for the calculator
+        spec_qad: dict
+            Updated spec for job submission
         Returns: FWAction
             A FWAction that will add the single point force calculations to the workflow
             as detours (Adds child FireWorks to the one calling this function and transfers
@@ -51,7 +56,7 @@ def calculate_multiple(atom_dicts, workdirs, calc_mods={}):
                 cell['calculator_parameters'][cm] = val
         task = PyTask({"func": calculate.name,
                        "args": [cell, workdirs[i], "calc_atoms"]})
-        firework_detours.append(Firework(task))
+        firework_detours.append(Firework(task, name=f"calc_{i}", spec=spec_qad))
     return FWAction(detours=firework_detours)
 
 calculate_multiple.name = f'{module_name}.{calculate_multiple.__name__}'

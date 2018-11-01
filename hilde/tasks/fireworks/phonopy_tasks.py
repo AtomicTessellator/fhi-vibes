@@ -41,7 +41,7 @@ def initialize_phonopy(atoms_ideal, smatrix, workdir, symprec=1e-5):
     return FWAction(update_spec={"atom_dicts": atom_dicts, "workdirs": workdirs})
 
 
-def calc_phonopy_force_constants(atoms_ideal, smatrix, calc_atoms, calc_mods={}, symprec=1e-5):
+def calc_phonopy_force_constants(atoms_ideal, smatrix, calc_atoms, symprec=1e-5):
     '''
     A wrapper function to calculate 2nd order force constants with phonopy where
     the displacement cells were calculated in its parent FireWork and adds the
@@ -60,14 +60,9 @@ def calc_phonopy_force_constants(atoms_ideal, smatrix, calc_atoms, calc_mods={},
     Returns: FWAction
         A FWAction that will store the calculated phonopy objects in the MongoDB for FireWorks
     '''
-    print("in")
     atoms = dict2patoms(atoms_ideal)
     disp_cells = [dict2patoms(ca) for ca in calc_atoms]
     disp_cells = sorted(disp_cells, key=lambda x: x.info[displacement_id_str])
-    # print("change")
-    # for dc in disp_cells:
-    #     dc._calc.command = calc_mods["command"]
-    #     dc._calc.parameters["species_dir"] = calc_mods["species_dir"]
     smatrix = np.array(smatrix).reshape(3, 3)
     phonon, _, _ = ph.preprocess(atoms, smatrix.T, symprec=symprec)
     phonon.set_forces([cell.get_forces() for cell in disp_cells])

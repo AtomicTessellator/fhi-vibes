@@ -37,9 +37,11 @@ parser.add_argument("-rcmd", "--remote_command",
                     help="command used to run aims on the remote machine")
 parser.add_argument("-wd", "--workdir", default=".",
                     help="directory used to calculate the individual atom calculations")
+parser.add_argument("--no_kerberos", action="store_true", help="If set do not use gss_api authentication")
 args = parser.parse_args()
+
 # Get the settings for the calculation and set up the cell
-db_path = os.getcwd() + 'test.db'
+db_path = os.getcwd() + '/test.db'
 print(f'database: {db_path}')
 
 aims_settings = {
@@ -53,8 +55,9 @@ aims_settings = {
 }
 aims = setup_aims(aims_settings)
 atoms = read_structure('si.in')
+# Distortion done to illustrate submitting multiple jobs to the queue at once
+atoms.positions[0][0] += 1e-2
 atoms.set_calculator(aims)
-# workdir = setup_workdir(atoms, "/u/tpurcell/git/hilde/examples/fireworks", False)
 workdir = setup_workdir(atoms, args.workdir, False)
 smatrix = get_smatrix(atoms, n_target=64)
 atoms_hash, calc_hash = hash_atoms(atoms)
@@ -81,43 +84,44 @@ except KeyError:
 if not found or not has_fc:
     # set up the LaunchPad and reset it
     launchpad = LaunchPad()
-    launchpad.reset('', require_password=False)
-
     # create the Firework consisting of a single task
     args_init = [atoms, smatrix, workdir]
     calc_mods = {"command": args.remote_command, "species_dir": args.remote_species_dir}
-    kwargs_cm = { "calc_mods" : calc_mods}
-    calc_mods = {"command": aims.command, "species_dir": aims.parameters["species_dir"]}
-    kwargs_fc = { "calc_mods" : calc_mods}
+    spec_qad = {"_queueadapter": {"nodes": 1, "queue": "express", "walltime": "00:05:00"}}
+    kwargs_cm = { "calc_mods" : calc_mods, "spec_qad" : spec_qad}
     args_fc = [atoms, smatrix]
     args_db = [atoms, db_path]
     # Initialize the displacements with phonopy
     fw1 = Firework(PyTask({"func": fw.initialize_phonopy.name,
-                           "args": args_init}))
+                           "args": args_init}),
+                   name="initialize_phonopy")
     fw2 = Firework(PyTask({"func": fw.calculate_multiple.name,
                            "kwargs": kwargs_cm,
-                          "inputs": ["atom_dicts", "workdirs"]}))
-    fw3 = Firework(PyTask({"func": fw.calc_phonopy_force_constants.name,
-                           "args": args_fc,
-                           "kwargs": kwargs_fc,
-                           "inputs": ["calc_atoms"]}))
-    fw4 = Firework(PyTask({"func": fw.calc_phonopy_band_structure.name,
-                           "args": [],
-                           "inputs": ["phonon_dict"]}))
-    fw5 = Firework(PyTask({"func": fw.calc_phonopy_dos.name,
-                           "args": [[45,45,45]],
-                           "inputs": ["phonon_dict"]}))
-    fw6 = Firework(PyTask({"func": fw.add_phonon_to_db.name,
-                           "args": args_db,
-                           "inputs": ["phonon_dict"]}))
-    workflow = Workflow([fw1, fw2, fw3, fw4, fw5, fw6], {fw1:[fw2], fw2:[fw3], fw3:[fw4], fw4:[fw5], fw5:[fw6]})
+                          "inputs": ["atom_dicts", "workdirs"]}),
+                   name="setup_calcs")
+    anal_task_list = []
+    anal_task_list.append(PyTask({"func": fw.calc_phonopy_force_constants.name,
+                                  "args": args_fc,
+                                  "inputs": ["calc_atoms"]}))
+    anal_task_list.append(PyTask({"func": fw.calc_phonopy_band_structure.name,
+                                  "args": [],
+                                  "inputs": ["phonon_dict"]}))
+    anal_task_list.append(PyTask({"func": fw.calc_phonopy_dos.name,
+                                  "args": [[45,45,45]],
+                                  "inputs": ["phonon_dict"]}))
+    anal_task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
+                                  "args": args_db,
+                                  "inputs": ["phonon_dict"]}))
+    fw3 = Firework(anal_task_list, name="analysis_and_saving")
+
+    workflow = Workflow([fw1, fw2, fw3], {fw1:[fw2], fw2:[fw3]})
     launchpad.add_wf(workflow)
     rapidfire(launchpad, nlaunches=2)
-    qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=1, remote_host=args.remote_host,
+    qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=2, remote_host=args.remote_host,
                    remote_user=args.remote_user, remote_password=args.remote_password,
-                   remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], remote_setup=True,
-                   reserve=True)
-    rapidfire(launchpad, nlaunches=4)
+                   remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"],
+                   remote_setup=False, reserve=True, gss_auth=not args.no_kerberos)
+    rapidfire(launchpad, nlaunches=1)
 
 phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
                                   ("atoms_hash", "=", atoms_hash),
