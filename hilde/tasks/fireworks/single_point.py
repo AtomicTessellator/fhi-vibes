@@ -25,7 +25,7 @@ def calculate(atoms_dict, workdir, out_spec):
 
 calculate.name = f'{module_name}.{calculate.__name__}'
 
-def calculate_multiple(atom_dicts, workdirs, calc_modifiers={}):
+def calculate_multiple(atom_dicts, workdirs, calc_mods={}):
     '''
     A wrapper function that generate FireWorks for a set of atoms and associated work
     directories
@@ -34,7 +34,7 @@ def calculate_multiple(atom_dicts, workdirs, calc_modifiers={}):
             A list of dictionary representing atoms objects for the calculation
         workdirs: list of str
             A list of the paths to perform the calculations
-        calc_modifiers: dict
+        calc_mods: dict
             A dictionary describing all modifications needed for the calculator
         Returns: FWAction
             A FWAction that will add the single point force calculations to the workflow
@@ -44,7 +44,7 @@ def calculate_multiple(atom_dicts, workdirs, calc_modifiers={}):
     __name__ = f'{module_name}.{calculate_multiple.__name__}'
     firework_detours = []
     for i, cell in enumerate(atom_dicts):
-        for cm, val in calc_modifiers.items():
+        for cm, val in calc_mods.items():
             if cm in cell:
                 cell[cm] = val
             else:

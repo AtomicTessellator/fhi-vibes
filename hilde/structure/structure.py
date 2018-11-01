@@ -42,6 +42,7 @@ def patoms2dict(atoms):
         atoms_dict['command'] = atoms.calc.command
     except:
         pass
+    atoms_dict['results'] = atoms.calc.results
     return atoms_dict
 
 def dict2patoms(atoms_dict):
@@ -58,6 +59,8 @@ def dict2patoms(atoms_dict):
         atoms.info = atoms_dict['info']
     if "command" in atoms_dict:
         atoms.calc.command = atoms_dict['command']
+    if "results" in atoms_dict:
+        atoms.calc.results = atoms_dict["results"]
     return atoms
 
 class pAtoms(Atoms):

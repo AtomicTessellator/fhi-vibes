@@ -43,6 +43,7 @@ db_path = os.getcwd() + 'test.db'
 print(f'database: {db_path}')
 
 aims_settings = {
+    'species_type' : "light",
     'output_level': 'MD_light',
     'relativistic': 'atomic_zora scalar',
     'xc': 'pw-lda',
@@ -85,9 +86,9 @@ if not found or not has_fc:
     # create the Firework consisting of a single task
     args_init = [atoms, smatrix, workdir]
     calc_mods = {"command": args.remote_command, "species_dir": args.remote_species_dir}
-    kwargs_cm = { "calc_modifiers" : calc_mods}
+    kwargs_cm = { "calc_mods" : calc_mods}
     calc_mods = {"command": aims.command, "species_dir": aims.parameters["species_dir"]}
-    kwargs_fc = { "calc_modifiers" : calc_mods}
+    kwargs_fc = { "calc_mods" : calc_mods}
     args_fc = [atoms, smatrix]
     args_db = [atoms, db_path]
     # Initialize the displacements with phonopy
@@ -111,11 +112,11 @@ if not found or not has_fc:
                            "inputs": ["phonon_dict"]}))
     workflow = Workflow([fw1, fw2, fw3, fw4, fw5, fw6], {fw1:[fw2], fw2:[fw3], fw3:[fw4], fw4:[fw5], fw5:[fw6]})
     launchpad.add_wf(workflow)
-    rapidfire(launchpad, nlaunches=3)
-    # qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=1, remote_host=args.remote_host,
-    #                remote_user=args.remote_user, remote_password=args.remote_password,
-    #                remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], remote_setup=True,
-    #                reserve=True)
+    rapidfire(launchpad, nlaunches=2)
+    qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=1, remote_host=args.remote_host,
+                   remote_user=args.remote_user, remote_password=args.remote_password,
+                   remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], remote_setup=True,
+                   reserve=True)
     rapidfire(launchpad, nlaunches=4)
 
 phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
