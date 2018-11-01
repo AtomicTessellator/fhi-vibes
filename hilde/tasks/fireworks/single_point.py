@@ -20,9 +20,6 @@ def calculate(atoms_dict, workdir, out_spec):
         include the calculated results (pushes it to the end of a list)
     '''
     atoms = dict2patoms(atoms_dict)
-    print(atoms.calc.command)
-    print(atoms.calc.parameters)
-    print(workdir)
     temp_atoms = calc_hilde(atoms, atoms.get_calculator(), workdir)
     return FWAction(mod_spec=[{'_push': {out_spec: patoms2dict(temp_atoms)}}])
 

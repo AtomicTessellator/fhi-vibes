@@ -34,7 +34,7 @@ and edit according to system.
   to create a new supercell with a user defined symmetry block added to it
 * FireWorks integration
   * Functions that can be used with PyTask to use FireWorks as a job manager
-
+  * Jobs can now be submitted to the queue from a local machine and have the results processed locally
 **Setup of Docker Images to Speed Up Testing**
 ```
 mkdir -p docker
@@ -44,3 +44,19 @@ docker login registry.gitlab.com
 docker build -t registry.gitlab.com/floyd4k/hilde .
 docker push registry.gitlab.com/floyd4k/hilde 
 ```
+**Setup of FireWorks on Computational Resources**
+* FireWorks on the clusters
+  * Download/clone from https://github.com/materialsproject/fireworks.git and move to that directory
+  * Modify fw\_tuotirals/woker/my\_fworker.yaml and fw\_tuotirals/woker/my\_launchpad.yaml and copy 
+  them to $HOME/.fireworks
+  * Modify the correctfw\_tuotirals/queue\_???.yaml file for your submission system
+   and copy it to $HOME/.fireworks/my\_qadapter.yaml
+  * Keep all PyTask functions up to date on all machines, there are no consistency checks
+* Setup a MongoDB database for fireworks
+  * Best to have it always accessible by all machines that need it
+  * Check with the cluster management on what solution they'd prefer
+  * Modify all my\_launchpad.yaml files such that they point to the database
+* Connections between computers
+  * Passwordless connections are perferd
+  * If this is not possible you can pass the password as a command line argument, (delete history afterwards)
+
