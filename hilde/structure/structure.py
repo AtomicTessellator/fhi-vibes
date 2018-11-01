@@ -258,6 +258,3 @@ class pAtoms(Atoms):
         new_structure = pAtoms(Atoms(cell=newcell, scaled_positions=scaled,
                         numbers=self.numbers, pbc=True))
         return new_structure
-
-    def set_calc_id(self, id_val):
-        self.calc_id = id_val

@@ -1,12 +1,12 @@
 ''' An example of how to use FireWorks in conjunction with HilDe'''
 from argparse import ArgumentParser
+import os
 from pathlib import Path
 
 from ase.build import bulk
 from ase.calculators.emt import EMT
 
 from fireworks import Firework, LaunchPad, PyTask, Workflow
-from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from fireworks.utilities.fw_serializers import load_object_from_file
 
@@ -31,20 +31,18 @@ parser.add_argument("-rp", "--remote_password",
                     help="Password for remote host (if necessary). For "
                          "best operation, it is recommended that you do "
                          "passwordless ssh.")
+parser.add_argument("-rsd", "--remote_species_dir",
+                    help="directory of basis set files for aims on the remote machine")
+parser.add_argument("-rcmd", "--remote_command",
+                    help="command used to run aims on the remote machine")
 parser.add_argument("-wd", "--workdir", default=".",
                     help="directory used to calculate the individual atom calculations")
 args = parser.parse_args()
 # Get the settings for the calculation and set up the cell
-st = Settings('../../hilde.conf')
-if st.database.name.startswith('postgres'):
-    db_path = st.database.name
-else:
-    db_path = str(Path(st.database.location) / st.database.name)
+db_path = os.getcwd() + 'test.db'
 print(f'database: {db_path}')
 
 aims_settings = {
-    # 'command': st.machine.aims_command,
-    'species_dir': str(Path(st.machine.basissetloc) / 'light'),
     'output_level': 'MD_light',
     'relativistic': 'atomic_zora scalar',
     'xc': 'pw-lda',
@@ -83,17 +81,18 @@ if not found or not has_fc:
     # set up the LaunchPad and reset it
     launchpad = LaunchPad()
     launchpad.reset('', require_password=False)
-    queueadapter = load_object_from_file(st.FireWorks.queueadapter_file)
-    fworker = FWorker.from_file(st.FireWorks.fworker_file) if st.FireWorks.fworker_file else FWorker()
 
     # create the Firework consisting of a single task
     args_init = [atoms, smatrix, workdir]
+    calc_mods = {"command" : args.remote_command, "species_dir" : args.remote_species_dir}
+    kwargs_cm = { "calc_modifiers" : calc_mods}
     args_fc = [atoms, smatrix]
     args_db = [atoms, db_path]
     # Initialize the displacements with phonopy
     fw1 = Firework(PyTask({"func": fw.initialize_phonopy.name,
                            "args": args_init}))
     fw2 = Firework(PyTask({"func": fw.calculate_multiple.name,
+                           "kwargs": kwargs_cm,
                           "inputs": ["atom_dicts", "workdirs"]}))
     fw3 = Firework(PyTask({"func": fw.calc_phonopy_force_constants.name,
                            "args": args_fc,
@@ -110,11 +109,11 @@ if not found or not has_fc:
     workflow = Workflow([fw1, fw2, fw3, fw4, fw5, fw6], {fw1:[fw2], fw2:[fw3], fw3:[fw4], fw4:[fw5], fw5:[fw6]})
     launchpad.add_wf(workflow)
     rapidfire(launchpad, nlaunches=2)
-    qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=2, remote_host=args.remote_host,
+    qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=1, remote_host=args.remote_host,
                    remote_user=args.remote_user, remote_password=args.remote_password,
                    remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], remote_setup=True,
                    reserve=True)
-    rapidfire(launchpad, nlaunches=3)
+    rapidfire(launchpad, nlaunches=4)
 
 phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
                                   ("atoms_hash", "=", atoms_hash),
