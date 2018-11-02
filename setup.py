@@ -15,7 +15,7 @@ setup(
     version="0.1",
     description="Haber Institute Lattice Dynamics Package",
     author="Florian Knoop, Thomas Purcell",
-    author_email="knoop@fhi-berlin.mpg.de",
+    author_email="knoop@fhi-berlin.mpg.de, purcell@fhi-berlin.mpg.de",
     license="Unlicense",
     # install_requires=['numpy', 'phonopy', 'spglib'],
     packages=setuptools.find_packages(),
@@ -26,5 +26,11 @@ setup(
         "hilde/scripts/make_supercell",
         "hilde/scripts/refine_geometry",
     ],
+    entry_points={
+        'console_scripts': [
+            'qlaunch_hilde = hilde.fireworks_api_adapter.scripts.qlaunch_run:qlaunch',
+            'rlaunch_hilde = hilde.fireworks_api_adapter.scripts.rlaunch_run:rlaunch'
+        ]
+    },
     zip_safe=False,
 )

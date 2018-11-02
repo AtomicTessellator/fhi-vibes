@@ -67,8 +67,9 @@ workflow = Workflow([fw1, fw2, fw3, fw4], {fw1:[fw2], fw2:[fw3], fw3:[fw4]},
 
 launchpad.add_wf(workflow)
 
-with cwd(workdir / 'fireworks', mkdir=True):
-    rapidfire(launchpad)
+print(workflow.fws)
+# with cwd(workdir / 'fireworks', mkdir=True):
+#     rapidfire(launchpad)
 
 phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
                                   ("atoms_hash", "=", atoms_hash),

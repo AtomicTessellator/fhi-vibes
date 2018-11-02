@@ -37,7 +37,7 @@ def qlaunch_remote(command,
                    maxjobs_block=None,
                    nlaunches=None,
                    sleep=None,
-                   fw_id=None,
+                   fw_ids=None,
                    silencer=False,
                    reserve=False,
                    gss_auth=True,
@@ -46,8 +46,7 @@ def qlaunch_remote(command,
                    remote_user=None,
                    remote_password=None,
                    remote_shell='/bin/bash -l -c',
-                   daemon=0
-                  ):
+                   daemon=0):
     '''
     This function adapts the python definition of qlaunch in fireworks to a python function
     Args:
@@ -61,8 +60,8 @@ def qlaunch_remote(command,
             num_launches (int or "infinite"; default 0 is all jobs in DB)
         sleep: int
             sleep time between loops
-        fw_id: int
-            specific fw_id to run in reservation mode
+        fw_ids: list of int
+            specific fw_ids to run in reservation mode
         silencer: bool
             shortcut to mute log messages
         reserve: bool
@@ -91,11 +90,14 @@ def qlaunch_remote(command,
         sys.exit(-1)
 
     non_default = []
-    if command is "rapidfire":
+    id_list
+    if command is "rapidfire" and not fw_ids:
         convert_input_to_param("maxjobs_queue", maxjobs_queue, non_default)
         convert_input_to_param("maxjobs_block", maxjobs_block, non_default)
         convert_input_to_param("nlaunches", nlaunches, non_default)
         convert_input_to_param("sleep", sleep, non_default)
+    elif command is "rapidfire":
+        comand = "singleshot"
     else:
         convert_input_to_param("fw_id", fw_id, non_default)
 
