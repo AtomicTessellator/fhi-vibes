@@ -615,10 +615,13 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         values = np.array([None for i in range(len(self.columnnames)-6)])
         values[len(self.columnnames)-8] = '{}'
         values[len(self.columnnames)-7] = 'null'
+        if 'force_constants' in columns and not 'natoms_in_sc' in columns:
+            columns.append('natoms_in_sc')
         if columns == 'all':
             columnindex = list(range(len(self.columnnames)-7))
         else:
             columnindex = [c for c in range(0, len(self.columnnames)-7) if self.columnnames[c] in columns]
+        print(columns)
         if include_data:
             columnindex.append(len(self.columnnames)-7)
         check_sort = ['id'
