@@ -8,7 +8,6 @@ from ase.calculators.aims import Aims
 from ase.calculators.socketio import SocketIOCalculator
 from ase.md.verlet import VelocityVerlet
 from ase.md.velocitydistribution import PhononHarmonics
-from ase.calculators.calculator import kptdensity2monkhorstpack
 from ase import units
 from hilde.settings import Settings
 from hilde.helpers.paths import cwd
@@ -23,17 +22,14 @@ tmp_dir = Path("./tmp")
 tmp_dir.mkdir(parents=True, exist_ok=True)
 
 # Read input files
-atoms = read("si.conv.in", "0", "aims")
-force_constants = np.loadtxt("force_constants.dat")
+atoms = read("Al.in.supercell", "0", "aims")
+force_constants = np.loadtxt("force_constants_Al.dat")
 
 # Some parameters
 temp = 100 * units.kB
 
 # Logging
-log_settings = {
-    "trajectory": str(tmp_dir / "md.aims.traj"),
-    "logfile": tmp_dir / "md.aims.log",
-}
+log_settings = {"trajectory": str(tmp_dir / "md.aims.traj"), "logfile": "md.aims.log"}
 
 # DFT
 aims_settings = {
@@ -44,7 +40,7 @@ aims_settings = {
     "xc": "pw-lda",
     "k_grid": [2, 2, 2],
     "sc_accuracy_rho": 1e-4,
-    "compute_forces": True
+    "compute_forces": True,
 }
 
 calc = Aims(**aims_settings)
