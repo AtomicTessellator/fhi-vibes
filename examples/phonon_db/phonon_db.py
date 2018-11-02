@@ -11,13 +11,14 @@ from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import phono as ph
 
 # Get the settings for the calculation and set up the cell
-db_path = "test.db"
+db_path = "test.json"
 print(f"database: {db_path}")
 
 atoms = bulk("Al")
 atoms.set_calculator(EMT())
 
 smatrix = 1 * np.array([[-1, 1, 1], [1, -1, 1], [1, 1, -1]])
+phonon, sc, disp_scs = ph.preprocess(atoms, smatrix)
 
 # connect to the database and check if the calculation was already done
 db = connect(db_path)
@@ -46,7 +47,6 @@ except KeyError:
     # if not perform the calculations
     print("not found in database, compute")
 
-    phonon, sc, disp_scs = ph.preprocess(atoms, smatrix)
     force_sets = [sc.get_forces() for sc in disp_scs]
 
     phonon.set_forces(force_sets)
@@ -75,12 +75,14 @@ row = list(
             ("calc_hash", "=", calc_hash),
             ("is_results", "=", True),
         ],
-        columns=["id", "qmesh", "tp_T", "tp_S", "tp_A", "tp_Cv"],
+        columns=["id", "qmesh", "tp_T", "tp_S", "tp_A", "tp_Cv", "force_constants"],
     )
 )[0]
 
-
 thermalProps = [row.tp_T[30], row.tp_A[30], row.tp_S[30], row.tp_Cv[30]]
+
+force_constants = row.force_constants
+phonon = ph.prepare_phonopy(atoms, smatrix, fc2=force_constants)
 
 print(
     f"The thermal properties for this set of calculations "
@@ -88,9 +90,12 @@ print(
 )
 print(thermalProps)
 
+# Save some data
+force_constants = ph.get_force_constants(phonon)
+np.savetxt("force_constants_Al.dat", force_constants)
+sc.write("Al.in.supercell")
 
 assert 20 < thermalProps[3] < 30
-
 
 # print(f"Recalculating the thermal properties with a mesh of [90, 90, 90]")
 # phonon = db.get_phonon(
