@@ -22,8 +22,8 @@ tmp_dir = Path("./tmp")
 tmp_dir.mkdir(parents=True, exist_ok=True)
 
 # Read input files
-atoms = read("Al.in.supercell", "0", "aims")
-force_constants = np.loadtxt("force_constants_Al.dat")
+atoms = read("Si.in.supercell", "0", "aims")
+force_constants = np.loadtxt("force_constants_Si.dat")
 
 # Some parameters
 temp = 100 * units.kB
