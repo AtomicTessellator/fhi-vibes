@@ -122,11 +122,11 @@ if not found or not has_fc:
     workflow = Workflow([fw1, fw2, fw3], {fw1:[fw2], fw2:[fw3]}, name="WF_Ex_Si")
     launchpad.add_wf(workflow)
     rapidfire(launchpad, nlaunches=2)
-    # qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=2, remote_host=args.remote_host,
-    #                remote_user=args.remote_user, remote_password=args.remote_password,
-    #                remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], reserve=True,
-    #                gss_auth=not args.no_kerberos)
-    # rapidfire(launchpad, nlaunches=1)
+    qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=2, remote_host=args.remote_host,
+                   remote_user=args.remote_user, remote_password=args.remote_password,
+                   remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], reserve=True,
+                   gss_auth=not args.no_kerberos)
+    rapidfire(launchpad, nlaunches=1)
 
 phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
                                   ("atoms_hash", "=", atoms_hash),

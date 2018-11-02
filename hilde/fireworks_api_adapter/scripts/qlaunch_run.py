@@ -186,10 +186,15 @@ def qlaunch():
                         if os.path.isfile(f):
                             conn.put(f, os.path.join(r, f))
     non_default = []
-    for k in ["maxjobs_queue", "maxjobs_block", "nlaunches", "sleep", "firework_ids"]:
+    for k in ["maxjobs_queue", "maxjobs_block", "nlaunches", "sleep"]:
         v = getattr(args, k, None)
         if v != rapid_parser.get_default(k):
             non_default.append("--{} {}".format(k, v))
+    val = getattr(args, "firework_ids", None)
+    if val != rapid_parser.get_default("firework_ids"):
+        non_default.append("--{} {}".format("firework_ids", val[0]))
+        for v in val[1:]:
+            non_default[-1] += " {}".format(v)
     non_default = " ".join(non_default)
 
     pre_non_default = []

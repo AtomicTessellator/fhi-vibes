@@ -8,7 +8,8 @@ from monty.os import cd, makedirs_p
 from fireworks.core.fworker import FWorker
 from fireworks.fw_config import SUBMIT_SCRIPT_NAME, ALWAYS_CREATE_NEW_BLOCK, QUEUE_RETRY_ATTEMPTS, \
     QUEUE_UPDATE_INTERVAL, QSTAT_FREQUENCY, RAPIDFIRE_SLEEP_SECS, QUEUE_JOBNAME_MAXLEN
-from fireworks.queue.queue_launcher import launch_rocket_to_queue
+from fireworks.queue.queue_launcher import launch_rocket_to_queue, _njobs_in_dir, \
+    _get_number_of_jobs_in_queue, setup_offline_job
 from fireworks.utilities.fw_serializers import load_object
 from fireworks.utilities.fw_utilities import get_fw_logger, log_exception, create_datestamp_dir, get_slug
 
