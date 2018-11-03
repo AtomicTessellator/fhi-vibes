@@ -11,7 +11,7 @@ from hilde.tasks import fireworks as fw
 from hilde.helpers.paths import cwd
 
 from fireworks import Firework, LaunchPad, PyTask, Workflow
-from fireworks.core.rocket_launcher import rapidfire
+from fireworks.core.rocket_launcher import rapidfire, launch_rocket
 
 db_path = (os.getcwd() + '/test.db')
 print(f'database: {db_path}')
@@ -37,14 +37,24 @@ try:
     wf_ids = launchpad.get_wf_ids(query=query, limit=100)
     for wf_id in wf_ids:
         launchpad.delete_wf(wf_id)
+except:
+  pass
+try:
     query = {"name": "Ex_WF_Ni", "state": "FIZZLED"}
     wf_ids = launchpad.get_wf_ids(query=query, limit=100)
     for wf_id in wf_ids:
         launchpad.delete_wf(wf_id)
 except:
     pass
+try:
+    query = {"name": "Ex_WF_Ni", "state": "READY"}
+    wf_ids = launchpad.get_wf_ids(query=query, limit=100)
+    for wf_id in wf_ids:
+        launchpad.delete_wf(wf_id)
+except:
+    pass
 # create the Firework consisting of a single task
-args_init = [atoms, smatrix, workdir]
+args_init = [smatrix, workdir, atoms]
 args_fc = [atoms, smatrix]
 args_db = [atoms, db_path]
 # Initialize the displacements with phonopy
@@ -64,12 +74,16 @@ fw4 = Firework(PyTask({"func": fw.add_phonon_to_db.name,
                name="add_to_db")
 workflow = Workflow([fw1, fw2, fw3, fw4], {fw1:[fw2], fw2:[fw3], fw3:[fw4]},
                     name="Ex_WF_Ni")
-
 launchpad.add_wf(workflow)
+print(workflow)
 
-print(workflow.fws)
 with cwd(workdir / 'fireworks', mkdir=True):
-    rapidfire(launchpad)
+    launch_rocket(launchpad)
+    launch_rocket(launchpad)
+    print(workflow)
+    launch_rocket(launchpad)
+    launch_rocket(launchpad)
+    launch_rocket(launchpad)
 
 phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
                                   ("atoms_hash", "=", atoms_hash),

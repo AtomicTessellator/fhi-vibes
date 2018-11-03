@@ -12,6 +12,7 @@
   	* To access from your local machine use an ssh tunnel
   	  * ssh -f -N -L local_port:VM_Host:port_on_VM username@mpcdf_cluster_host
   	  * Example: ssh -f -N -L 27017:tpfwdb.esc.rzg.mpg.de:27017 tpurcell@draco.mpcdf.mpg.de
+
 * Setting up passwordless login to mpcdf clusters on FHI laptops
   * Kerberos client setup
   	* setup instructions: https://www.mpcdf.mpg.de/services/desktop-support/configuring-your-pc
@@ -25,7 +26,7 @@
   		* Add: ipp-garching.mpg.de mpcdf.mpg.de to CellAlias file
   		* PAM set up is optional
   * Initializing token
-  	* kinit username@IPP-GARCHING.MPG.DE
+  	* kinit username@IPP-GARCHING.MPG.DE may ask for a password here, if no keychain is used
   	* connection should now be passwordless
   * Giving hostnames to FireWorks
   	* Always give full name so not draco.mpcdf.mpg.de but draco01.mpcdf.mpg.de

@@ -90,7 +90,6 @@ def qlaunch_remote(command,
         sys.exit(-1)
 
     non_default = []
-    id_list
     if command is "rapidfire" and not fw_ids:
         convert_input_to_param("maxjobs_queue", maxjobs_queue, non_default)
         convert_input_to_param("maxjobs_block", maxjobs_block, non_default)

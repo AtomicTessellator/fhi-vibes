@@ -11,7 +11,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers.utility_functions import get_smatrix, setup_workdir
 from hilde.parsers import read_structure
 from hilde.phonon_db.phonon_db import connect
-from hilde.structure.structure import patoms2dict
+from hilde.structure.structure import patoms2dict, calc2dict
 from hilde.tasks import fireworks as fw
 from hilde.templates.aims import setup_aims
 
@@ -83,17 +83,29 @@ if not found or not has_fc:
         wf_ids = launchpad.get_wf_ids(query=query, limit=100)
         for wf_id in wf_ids:
             launchpad.delete_wf(wf_id)
+    except:
+        pass
+    try:
         query = {"name": "WF_Ex_Si", "state": "FIZZLED"}
         wf_ids = launchpad.get_wf_ids(query=query, limit=100)
         for wf_id in wf_ids:
             launchpad.delete_wf(wf_id)
     except:
         pass
+    try:
+        query = {"name": "WF_Ex_Si", "state": "READY"}
+        wf_ids = launchpad.get_wf_ids(query=query, limit=100)
+        for wf_id in wf_ids:
+            launchpad.delete_wf(wf_id)
+    except:
+        pass
     # create the Firework consisting of a single task
-    args_init = [atoms, smatrix, workdir]
-    calc_mods = {"command": args.remote_command, "species_dir": args.remote_species_dir}
+    args_init = [smatrix, workdir, atoms]
+    calc = calc2dict(atoms.calc)
+    calc["command"] = args.remote_command
+    calc["calculator_parameters"]["species_dir"] = args.remote_species_dir
     spec_qad = {"_queueadapter": {"nodes": 1, "queue": "express", "walltime": "00:05:00"}}
-    kwargs_cm = {"calc_mods" : calc_mods, "spec_qad" : spec_qad}
+    kwargs_cm = {"calculator": calc, "spec_qad" : spec_qad}
     args_fc = [atoms, smatrix]
     args_db = [atoms, db_path]
     # Initialize the displacements with phonopy
@@ -102,7 +114,7 @@ if not found or not has_fc:
                    name="initialize_phonopy")
     fw2 = Firework(PyTask({"func": fw.calculate_multiple.name,
                            "kwargs": kwargs_cm,
-                           "inputs": ["atom_dicts", "workdirs"]}),
+                           "inputs": ["workdirs", "atom_dicts"]}),
                    name="setup_calcs")
     anal_task_list = []
     anal_task_list.append(PyTask({"func": fw.calc_phonopy_force_constants.name,

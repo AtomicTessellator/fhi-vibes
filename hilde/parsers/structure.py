@@ -1,10 +1,14 @@
+import numpy as np
+
 from hilde.structure import pAtoms
 from hilde.konstanten.symmetry import symprec
 from ase.io import read as ase_read
 
 # Parse geometry.in file
 def read_structure(fname, symprec=symprec, format='aims'):
-    return pAtoms(ase_read(fname, 0, format), symprec=symprec)
+    atoms = ase_read(fname, 0, format)
+    sym_block = read_aims_sym(fname) if format is 'aims' else []
+    return pAtoms(atoms, symprec=symprec, sym_block=sym_block)
 
 
 def read_aims(fname, symprec=symprec):
@@ -73,3 +77,13 @@ def read_lammps_output(fname):
     print('** Please use hilde.parsers.read_output instead of ' +
           'read_lammps_output')
     return ase_read(fname, ':', 'lammps')
+
+def read_aims_sym(fname):
+    geo_lines =  open(fname).readlines()
+    geo_lines_fw = [line.split(" ")[0] for line in geo_lines]
+    try:
+        start_line = geo_lines_fw.index("symmetry_n_params")
+        return geo_lines[start_line:]
+    except ValueError:
+        pass
+    return None

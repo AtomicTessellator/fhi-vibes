@@ -116,6 +116,9 @@ def qlaunch():
                         help="Setup the remote config dir using files in "
                              "the directory specified by -c.",
                         action="store_true")
+    parser.add_argument("-rgss", "--gss_auth",
+                        help="use gss_api authorization",
+                        action="store_true")
     parser.add_argument("-d", "--daemon",
                         help="Daemon mode. Command is repeated every x "
                              "seconds. Defaults to 0, which means non-daemon "
@@ -178,7 +181,8 @@ def qlaunch():
                     host=h,
                     user=args.remote_user,
                     config=fabric.Config({'run': {'shell': args.remote_shell}}),
-                    connect_kwargs={'password': args.remote_password}) as conn:
+                    connect_kwargs={'password': args.remote_password,
+                                    "gss_auth": args.gss_auth}) as conn:
                 for r in args.remote_config_dir:
                     r = os.path.expanduser(r)
                     conn.run("mkdir -p {}".format(r))
@@ -212,7 +216,8 @@ def qlaunch():
                         host=h,
                         user=args.remote_user,
                         config=fabric.Config({'run': {'shell': args.remote_shell}}),
-                        connect_kwargs={'password': args.remote_password}) as conn:
+                        connect_kwargs={'password': args.remote_password,
+                                    "gss_auth": args.gss_auth}) as conn:
                     for r in args.remote_config_dir:
                         r = os.path.expanduser(r)
                         with conn.cd(r):

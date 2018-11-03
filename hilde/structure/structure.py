@@ -27,6 +27,20 @@ from hilde.konstanten.symmetry import symprec
 from hilde.helpers.maths import clean_matrix
 from hilde.konstanten.numerics import loose_tol
 
+def calc2dict(calc):
+    ''' Converts an ase calculator calc into a dict'''
+    if calc is None:
+        return {}
+    calc_dict = {}
+    calc_dict['calculator'] = calc.name.lower()
+    calc_dict['calculator_parameters'] = calc.todict()
+    try:
+        calc_dict['command'] = calc.command
+    except:
+        pass
+    calc_dict['results'] = calc.results
+    return calc_dict
+
 def patoms2dict(atoms):
     '''
     Converts a pAtoms object into a dict
@@ -38,11 +52,9 @@ def patoms2dict(atoms):
     '''
     atoms_dict = atoms2dict(atoms)
     atoms_dict['info'] = atoms.info
-    try:
-        atoms_dict['command'] = atoms.calc.command
-    except:
-        pass
-    atoms_dict['results'] = atoms.calc.results
+    atoms_dict['sym_block'] = atoms.symmetry_block
+    for key, val in calc2dict(atoms.calc).items():
+        atoms_dict[key] = val
     return atoms_dict
 
 def dict2patoms(atoms_dict):
@@ -54,16 +66,22 @@ def dict2patoms(atoms_dict):
     Returns: pAtoms
         The corresponding pAtoms object
     '''
-    atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=True))
+    try:
+        atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=True))
+    except AttributeError:
+        atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=False))
     if "info" in atoms_dict:
         atoms.info = atoms_dict['info']
+    if 'sym_block' in atoms_dict:
+        atoms.symmetry_block = atoms_dict['sym_block']
     if "command" in atoms_dict:
         atoms.calc.command = atoms_dict['command']
     if "results" in atoms_dict:
         atoms.calc.results = atoms_dict["results"]
-    for key, val in atoms.calc.results.items():
-        if isinstance(val, list):
-            atoms.calc.results[key] = np.array(val)
+    if atoms.calc:
+        for key, val in atoms.calc.results.items():
+            if isinstance(val, list):
+                atoms.calc.results[key] = np.array(val)
     return atoms
 
 class pAtoms(Atoms):
@@ -71,7 +89,8 @@ class pAtoms(Atoms):
                  ase_atoms=None,
                  phonopy_atoms=None,
                  symprec = symprec,
-                 tags = [],
+                 tags=[],
+                 sym_block=None,
                  **kwargs):
 
         if ase_atoms:
@@ -109,7 +128,7 @@ class pAtoms(Atoms):
         # Constraints:
         self.constraints_pos = [None for ii in range(self.Natoms)]
         self.constraints_lv  = [None, None, None]
-        self.symmetry_block  = []
+        self.symmetry_block  = [] if sym_block is None else sym_block
         self.calc_id = None
     def copy(self):
         new_atoms = super().copy()

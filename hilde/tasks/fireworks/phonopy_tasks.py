@@ -11,7 +11,7 @@ from hilde.structure.structure import patoms2dict, dict2patoms, pAtoms
 from hilde.tasks.calculate import setup_multiple
 
 module_name = __name__
-def initialize_phonopy(atoms_ideal, smatrix, workdir, symprec=1e-5):
+def initialize_phonopy(smatrix, workdir, atoms_ideal, symprec=1e-5):
     '''
     A wrapper function to initialize all phonopy calculations and add the new
     FireWorks as detours in the workflow
@@ -41,7 +41,7 @@ def initialize_phonopy(atoms_ideal, smatrix, workdir, symprec=1e-5):
     return FWAction(update_spec={"atom_dicts": atom_dicts, "workdirs": workdirs})
 
 
-def calc_phonopy_force_constants(atoms_ideal, smatrix, calc_atoms, symprec=1e-5):
+def calc_phonopy_force_constants(smatrix, atoms_ideal, calc_atoms, symprec=1e-5):
     '''
     A wrapper function to calculate 2nd order force constants with phonopy where
     the displacement cells were calculated in its parent FireWork and adds the
@@ -138,7 +138,7 @@ def calc_phonopy_thermal_prop(mesh, temps, phonon_dict):
     to_fw = add_keys(phonon_dict, phonon2dict(phonon))
     return FWAction(update_spec={"phonon_dict": to_fw})
 
-def add_phonon_to_db(atoms_ideal, db_path, phonon_dict):
+def add_phonon_to_db(db_path, atoms_ideal, phonon_dict):
     """
     Adds a phonon dictionary to a database defined by db_path
     Args:
@@ -151,7 +151,6 @@ def add_phonon_to_db(atoms_ideal, db_path, phonon_dict):
     """
     atoms = dict2patoms(atoms_ideal)
     atoms_hash, calc_hash = hash_atoms(atoms)
-    phonon = PhononRow(phonon_dict).to_phonon()
     try:
         db = connect(db_path)
         try:
@@ -162,12 +161,12 @@ def add_phonon_to_db(atoms_ideal, db_path, phonon_dict):
             if not rows:
                 raise KeyError
             for row in rows:
-                db.update(row.id, phonon=phonon_dict, has_fc=not phonon.get_force_constants() is None)
+                db.update(row.id, phonon=phonon_dict, has_fc="force_constatns" in phonon_dict)
         except KeyError:
             db.write(phonon_dict,
                      atoms_hash=atoms_hash,
                      calc_hash=calc_hash,
-                     has_fc=(phonon.get_force_constants() is not None))
+                     has_fc="force_constatns" in phonon_dict)
     except ValueError:
         print(f"Fireworker could not access the database {db_path}")
     return FWAction(stored_data={'phonopy_calc': phonon_dict})
