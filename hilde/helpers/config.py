@@ -26,7 +26,7 @@ class Config(configparser.ConfigParser):
 
 class ConfigDict(ClassDict):
     """Dictionary that holds the configuration settings"""
-    def __init__(self, config_files=['highaims.cfg'],
+    def __init__(self, config_files=['hilde.cfg'],
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
