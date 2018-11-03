@@ -161,12 +161,12 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict):
             if not rows:
                 raise KeyError
             for row in rows:
-                db.update(row.id, phonon=phonon_dict, has_fc="force_constatns" in phonon_dict)
+                db.update(row.id, phonon=phonon_dict, has_fc=("force_constants" in phonon_dict))
         except KeyError:
             db.write(phonon_dict,
                      atoms_hash=atoms_hash,
                      calc_hash=calc_hash,
-                     has_fc="force_constatns" in phonon_dict)
+                     has_fc=("force_constants" in phonon_dict))
     except ValueError:
         print(f"Fireworker could not access the database {db_path}")
     return FWAction(stored_data={'phonopy_calc': phonon_dict})

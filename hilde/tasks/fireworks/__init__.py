@@ -14,6 +14,6 @@ from .single_point import calculate_multiple
 
 from .utility_tasks import mod_calc
 from .utility_tasks import add_result_to_spec
-from .utility_tasks import move_atoms_to_prev_atoms
+from .utility_tasks import transfer_spec
 from .utility_tasks import check_convergence
 from .utility_tasks import get_relaxed_structure

@@ -1,6 +1,6 @@
 from fireworks import FWAction, PyTask, Firework
 from hilde.parsers.structure import read_structure
-from hilde.structure.structure import patoms2dict
+from hilde.structure.structure import patoms2dict, dict2patoms
 from hilde.tasks import fireworks as fw
 module_name = __name__
 
@@ -17,8 +17,8 @@ def mod_calc(param_key, calc, new_val, spec_key=None):
 def add_result_to_spec(result_key, spec_key, atoms_calc):
     return FWAction(update_spec={spec_key:atoms_calc["results"][result_key]})
 
-def move_atoms_to_prev_atoms(atoms_dict):
-    return FWAction(update_spec={"prev_atoms":atoms_dict})
+def transfer_spec(key, val):
+    return FWAction(update_spec={key: val})
 
 def check_convergence(prop_spec,
                       atoms_spec,
@@ -78,6 +78,6 @@ def get_relaxed_structure(new_struct_fname, out_atoms_spec, cur_atoms):
 
 mod_calc.name = f'{module_name}.{mod_calc.__name__}'
 add_result_to_spec.name = f'{module_name}.{add_result_to_spec.__name__}'
-move_atoms_to_prev_atoms.name = f'{module_name}.{move_atoms_to_prev_atoms.__name__}'
+transfer_spec.name = f'{module_name}.{transfer_spec.__name__}'
 check_convergence.name = f'{module_name}.{check_convergence.__name__}'
 get_relaxed_structure.name = f'{module_name}.{get_relaxed_structure.__name__}'

@@ -2,7 +2,7 @@
 from fireworks import FWAction, PyTask, Firework
 from hilde.structure.structure import patoms2dict, dict2patoms
 from hilde.tasks.calculate import calculate as calc_hilde
-
+from hilde.tasks import fireworks as fw
 module_name = __name__
 
 def calculate(workdir, out_spec, atoms_dict, calc=None):
@@ -29,8 +29,6 @@ def calculate(workdir, out_spec, atoms_dict, calc=None):
     temp_atoms = calc_hilde(atoms, atoms.get_calculator(), workdir)
     return FWAction(mod_spec=[{'_push': {out_spec: patoms2dict(temp_atoms)}}])
 
-calculate.name = f'{module_name}.{calculate.__name__}'
-
 def calculate_multiple(workdirs, atom_dicts, calculator=None, out_spec="calc_atoms", spec_qad=None):
     '''
     A wrapper function that generate FireWorks for a set of atoms and associated work
@@ -53,9 +51,10 @@ def calculate_multiple(workdirs, atom_dicts, calculator=None, out_spec="calc_ato
     if spec_qad is None:
         spec_qad = {}
     for i, cell in enumerate(atom_dicts):
-        task = PyTask({"func": calculate.name,
+        task = PyTask({"func": fw.calculate.name,
                        "args": [workdirs[i], out_spec, cell, calculator]})
         firework_detours.append(Firework(task, name=f"calc_{i}", spec=spec_qad))
     return FWAction(detours=firework_detours)
 
+calculate.name = f'{module_name}.{calculate.__name__}'
 calculate_multiple.name = f'{module_name}.{calculate_multiple.__name__}'

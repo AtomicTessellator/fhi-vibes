@@ -40,7 +40,7 @@ aims_relax_settings_light = {
     "relativistic": "atomic_zora scalar",
     "include_spin_orbit": "non_self_consistent",
     "symmetry_reduced_k_grid": "false.",
-    "relax_geometry": "trm 1E2",
+    "relax_geometry": "trm 1E-2",
     "relax_unit_cell": "full",
     "occupation_type": "gaussian 0.01",
     "mixer": "pulay",
@@ -59,7 +59,7 @@ aims_relax_settings_tight = {
     "relativistic": "atomic_zora scalar",
     "include_spin_orbit": "non_self_consistent",
     "symmetry_reduced_k_grid": "false.",
-    "relax_geometry": "trm 1E2",
+    "relax_geometry": "trm 1E-2",
     "relax_unit_cell": "full",
     "occupation_type": "gaussian 0.01",
     "mixer": "pulay",
@@ -78,8 +78,6 @@ aims_force_settings = {
     "relativistic": "atomic_zora scalar",
     "include_spin_orbit": "non_self_consistent",
     "symmetry_reduced_k_grid": "false.",
-    "relax_geometry": "trm 1E-2",
-    "relax_unit_cell": "full",
     "occupation_type": "gaussian 0.01",
     "mixer": "pulay",
     "n_max_pulay": 8,
@@ -199,13 +197,16 @@ def gen_initialize_phonopy_fw(atoms,
             task_list.append(PyTask({"func": fw.mod_calc.name,
                                      "args": [key],
                                      "inputs": ["calculator",key]}))
-
+    kwargs_calc = {"spec_qad": spec_qad, "out_spec": "phonon_calcs"} #, "pass_spec": [atoms_spec]}
+    task_list.append(PyTask({"func": fw.transfer_spec.name,
+                             "args": [atoms_spec],
+                             "inputs": [atoms_spec]}))
     task_list.append(PyTask({"func": fw.initialize_phonopy.name,
                              "args": args_phono,
                              "inputs": inputs_phono}))
     task_list.append(PyTask({"func": fw.calculate_multiple.name,
                              "inputs": inputs_calc,
-                             "kwargs": {"spec_qad": spec_qad, "out_spec": "phonon_calcs"}}))
+                             "kwargs": kwargs_calc}))
     return Firework(task_list, name=name)
 
 def gen_analyze_phonopy_fw(atoms,
@@ -229,7 +230,7 @@ def gen_analyze_phonopy_fw(atoms,
                              "args": args_fc,
                              "inputs": inputs_fc}))
     task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
-                             "args": db_name,
+                             "args": [db_name],
                              "inputs": [atoms_spec, "phonon_dict"]}))
     return Firework(task_list, name=name)
 
