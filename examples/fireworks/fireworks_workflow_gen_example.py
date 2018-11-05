@@ -7,6 +7,7 @@ from fireworks.core.rocket_launcher import rapidfire, launch_rocket
 
 from hilde.fireworks_api_adapter.qlaunch_remote import qlaunch_remote
 from hilde.helpers.brillouinzone import get_bands_and_labels
+from hilde.helpers.hash import hash_atoms
 from hilde.helpers.paths import cwd
 from hilde.helpers.utility_functions import get_smatrix, setup_workdir
 from hilde.parsers import read_structure
@@ -33,6 +34,7 @@ parser.add_argument("--no_kerberos", action="store_true",
                     help="If set do not use gss_api authentication")
 args = parser.parse_args()
 atoms = read_structure('si.in')
+atoms_hash, _ = hash_atoms(atoms)
 smatrix = get_smatrix(atoms, n_target=64)
 launchpad = LaunchPad()
 try:
@@ -83,7 +85,7 @@ qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=0, remote_host=args.rem
 db_path = "postgresql://hilde:hilde@localhost:5432/phonopy_db"
 db = connect(db_path)
 phonon = db.get_phonon(1e-2, selection=[("supercell_matrix", "=", smatrix),
-                                  ("numbers", "=", atoms.numbers),
+                                  ("original_atoms_hash", "=", atoms_hash),
                                   ("has_fc", "=", True)])
 bands, labels = get_bands_and_labels(atoms)
 phonon.set_band_structure(bands)

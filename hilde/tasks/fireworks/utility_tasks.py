@@ -78,7 +78,7 @@ def get_relaxed_structure(new_struct_fname, out_atoms_spec, cur_atoms):
         new_atoms = dict2patoms(cur_atoms)
     return FWAction(update_spec={out_atoms_spec: patoms2dict(new_atoms)})
 
-def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, symprec=1e-5):
+def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, symprec=1e-5,**kwargs):
     """
     Adds a phonon dictionary to a database defined by db_path
     Args:
@@ -102,13 +102,14 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, symprec=1e-5):
             if not rows:
                 raise KeyError
             for row in rows:
-                db.update(row.id, phonon=phonon_dict, has_fc=("force_constants" in phonon_dict))
+                db.update(row.id, phonon=phonon_dict, has_fc=("force_constants" in phonon_dict), **kwargs)
         except KeyError:
             db.write(phonon_dict,
                      symprec=symprec,
                      atoms_hash=atoms_hash,
                      calc_hash=calc_hash,
-                     has_fc=("force_constants" in phonon_dict))
+                     has_fc=("force_constants" in phonon_dict),
+                     **kwargs)
     except ValueError:
         print(f"Fireworker could not access the database {db_path}")
     return FWAction(stored_data={'phonopy_calc': phonon_dict})

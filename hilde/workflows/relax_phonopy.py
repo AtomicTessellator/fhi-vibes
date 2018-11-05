@@ -133,8 +133,8 @@ def gen_relax_fw(atoms,
     calc = setup_aims(calc_settings)
     atoms.set_calculator(calc)
     workdir = setup_workdir(atoms, workdir, False)
+    atoms_hash, calc_hash = hash_atoms(atoms)
     atoms = patoms2dict(atoms)
-
     task_list = []
     args_calc = [workdir, "temporary_atoms_push"]
     inputs_calc = []
@@ -163,7 +163,8 @@ def gen_relax_fw(atoms,
                             "inputs": [in_atoms_spec]}))
     task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
                              "args": [db_name],
-                             "inputs": [in_atoms_spec, out_atoms_spec]}))
+                             "inputs": [in_atoms_spec, out_atoms_spec],
+                             "kwargs": {"fw_name": name, "original_atoms_hash": atoms_hash}}))
     return Firework(task_list, name=name)
 
 def gen_initialize_phonopy_fw(atoms,
@@ -218,6 +219,7 @@ def gen_analyze_phonopy_fw(atoms,
                            symprec=1e-5,
                            name="analyze_phono",
                            from_db=False):
+    atoms_hash, calc_hash = hash_atoms(atoms)
     atoms = patoms2dict(atoms)
 
     args_fc = [smatrix]
@@ -234,7 +236,8 @@ def gen_analyze_phonopy_fw(atoms,
     task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
                              "args": [db_name],
                              "kwargs": {"symprec": symprec},
-                             "inputs": [atoms_spec, "phonon_dict"]}))
+                             "inputs": [atoms_spec, "phonon_dict"],
+                             "kwargs": {"fw_name": name, "original_atoms_hash": atoms_hash}}))
     return Firework(task_list, name=name)
 
 def gen_relax_phonopy_wf(geo_in_file,
