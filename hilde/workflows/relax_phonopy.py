@@ -233,6 +233,7 @@ def gen_analyze_phonopy_fw(atoms,
                              "inputs": inputs_fc}))
     task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
                              "args": [db_name],
+                             "kwargs": {"symprec": symprec},
                              "inputs": [atoms_spec, "phonon_dict"]}))
     return Firework(task_list, name=name)
 
