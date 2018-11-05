@@ -1,4 +1,6 @@
 from fireworks import FWAction, PyTask, Firework
+from hilde.helpers.hash import hash_atoms
+from hilde.phonon_db.phonon_db import connect
 from hilde.parsers.structure import read_structure
 from hilde.structure.structure import patoms2dict, dict2patoms
 from hilde.tasks import fireworks as fw
@@ -76,7 +78,7 @@ def get_relaxed_structure(new_struct_fname, out_atoms_spec, cur_atoms):
         new_atoms = dict2patoms(cur_atoms)
     return FWAction(update_spec={out_atoms_spec: patoms2dict(new_atoms)})
 
-def add_phonon_to_db(db_path, atoms_ideal, phonon_dict):
+def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, symprec=1e-5):
     """
     Adds a phonon dictionary to a database defined by db_path
     Args:
