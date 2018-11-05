@@ -35,6 +35,7 @@ and edit according to system.
 * FireWorks integration
   * Functions that can be used with PyTask to use FireWorks as a job manager
   * Jobs can now be submitted to the queue from a local machine and have the results processed locally
+
 **Setup of Docker Images to Speed Up Testing**
 ```
 mkdir -p docker
