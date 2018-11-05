@@ -56,6 +56,13 @@ try:
         launchpad.delete_wf(wf_id)
 except:
     pass
+try:
+    query = {"name": "example_SI_wf_fill", "state": "RESERVED"}
+    wf_ids = launchpad.get_wf_ids(query=query, limit=100)
+    for wf_id in wf_ids:
+        launchpad.delete_wf(wf_id)
+except:
+    pass
 wf = gen_relax_phonopy_wf("si.in",
                           "postgresql://hilde:hilde@130.183.206.193:5432/phonopy_db",
                           "example_SI_wf_fill",
@@ -72,15 +79,13 @@ qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=0, remote_host=args.rem
                remote_user=args.remote_user, remote_password=args.remote_password,
                remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], reserve=True,
                gss_auth=not args.no_kerberos)
-rapidfire(launchpad)
 
 db_path = "postgresql://hilde:hilde@localhost:5432/phonopy_db"
 db = connect(db_path)
-phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
+phonon = db.get_phonon(1e-2, selection=[("supercell_matrix", "=", smatrix),
                                   ("numbers", "=", atoms.numbers),
                                   ("has_fc", "=", True)])
-print(phonon.primitive)
-bands, labels = get_bands_and_labels(phonon.primitive)
+bands, labels = get_bands_and_labels(atoms)
 phonon.set_band_structure(bands)
 plt = phonon.plot_band_structure(labels=labels)
 plt.ylabel('Frequency [THz]')

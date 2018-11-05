@@ -102,6 +102,7 @@ init_statements = [
     "INSERT INTO information VALUES ('version', '{}')".format(VERSION)]
 
 check_keys = ['id',
+              'numbers',
               'energy',
               'magmom',
               'ctime',
@@ -260,7 +261,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                   row.ctime,
                   mtime,
                   row.user,
-                  encode(row.numbers),
+                  encode(row.get('numbers')),
                   blob(row.positions),
                   blob(row.cell),
                   int(np.dot(row.pbc, [1, 2, 4])),
@@ -356,10 +357,9 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                'ctime': values[2],
                'mtime': values[3],
                'user': values[4],
-               'numbers': decode(values[5], np.int32),
+               'numbers': jsonio.decode(values[5]),
                'positions': deblob(values[6], shape=(-1, 3)),
                'cell': deblob(values[7], shape=(3, 3))}
-
         if values[8] is not None:
             dct['pbc'] = (values[8] & np.array([1, 2, 4])).astype(bool)
         if values[9] is not None:

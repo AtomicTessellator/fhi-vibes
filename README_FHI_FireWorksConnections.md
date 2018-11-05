@@ -24,7 +24,9 @@
 		  	* openafs-krb5
 		  	* libpam-krb5
 		  	* libpam-afs-session
-  		* Add: ipp-garching.mpg.de mpcdf.mpg.de to CellAlias file
+        * once krb5-kds is installed and the /etc/krb5.conf file is updated run kdb5_util create -s
+          then run sudo dpkg-reconfigure krb5-kdc
+      * Add: ipp-garching.mpg.de mpcdf.mpg.de to CellAlias file
   		* PAM set up is optional
   * Initializing token
   	* kinit username@IPP-GARCHING.MPG.DE may ask for a password here, if no keychain is used
