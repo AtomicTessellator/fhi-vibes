@@ -138,42 +138,8 @@ def calc_phonopy_thermal_prop(mesh, temps, phonon_dict):
     to_fw = add_keys(phonon_dict, phonon2dict(phonon))
     return FWAction(update_spec={"phonon_dict": to_fw})
 
-def add_phonon_to_db(db_path, atoms_ideal, phonon_dict):
-    """
-    Adds a phonon dictionary to a database defined by db_path
-    Args:
-        phonon: dict
-            A dictionary representation of the phonopy object to be added to the database
-        atoms_ideal: dict generated from patoms2dict
-            The dictionary representation of the atoms or pAtoms object of the undisplayed atoms
-        db_path: str
-            String to the database path
-    """
-    atoms = dict2patoms(atoms_ideal)
-    atoms_hash, calc_hash = hash_atoms(atoms)
-    try:
-        db = connect(db_path)
-        try:
-            rows = list(db.select(selection=[("supercell_matrix", "=", phonon_dict["supercell_matrix"]),
-                                             ("atoms_hash", "=", atoms_hash),
-                                             ("calc_hash", "=", calc_hash)
-                                            ]))
-            if not rows:
-                raise KeyError
-            for row in rows:
-                db.update(row.id, phonon=phonon_dict, has_fc=("force_constants" in phonon_dict))
-        except KeyError:
-            db.write(phonon_dict,
-                     atoms_hash=atoms_hash,
-                     calc_hash=calc_hash,
-                     has_fc=("force_constants" in phonon_dict))
-    except ValueError:
-        print(f"Fireworker could not access the database {db_path}")
-    return FWAction(stored_data={'phonopy_calc': phonon_dict})
-
 initialize_phonopy.name = f'{module_name}.{initialize_phonopy.__name__}'
 calc_phonopy_force_constants.name = f'{module_name}.{calc_phonopy_force_constants.__name__}'
 calc_phonopy_band_structure.name = f'{module_name}.{calc_phonopy_band_structure.__name__}'
 calc_phonopy_dos.name = f'{module_name}.{calc_phonopy_dos.__name__}'
 calc_phonopy_thermal_prop.name = f'{module_name}.{calc_phonopy_thermal_prop.__name__}'
-add_phonon_to_db.name = f'{module_name}.{add_phonon_to_db.__name__}'

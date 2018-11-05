@@ -11,7 +11,7 @@ from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import phono as ph
 
 # Get the settings for the calculation and set up the cell
-db_path = "test.db"
+db_path = "postgresql://hilde:hilde@localhost:5432/phonopy_db"
 print(f"database: {db_path}")
 
 atoms = bulk("Al")

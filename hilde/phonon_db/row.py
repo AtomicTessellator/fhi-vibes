@@ -84,7 +84,7 @@ class PhononRow(AtomsRow):
         self.__dict__.update(kvp)
         self.__dict__.update(dct)
 
-    def to_phonon(self):
+    def to_phonon(self, symprec=1e-5):
         '''
         Converts the row back into a phonopy object
         Returns:
@@ -92,7 +92,7 @@ class PhononRow(AtomsRow):
         '''
         phonon = Phonopy(to_phonopy_atoms(pAtoms(ase_atoms=self.toatoms())),
                          supercell_matrix=np.array(self.supercell_matrix).reshape(3, 3),
-                         symprec=1e-5,
+                         symprec=symprec,
                          is_symmetry=True,
                          factor=15.633302,
                          log_level=0

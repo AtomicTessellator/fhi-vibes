@@ -76,8 +76,44 @@ def get_relaxed_structure(new_struct_fname, out_atoms_spec, cur_atoms):
         new_atoms = dict2patoms(cur_atoms)
     return FWAction(update_spec={out_atoms_spec: patoms2dict(new_atoms)})
 
+def add_phonon_to_db(db_path, atoms_ideal, phonon_dict):
+    """
+    Adds a phonon dictionary to a database defined by db_path
+    Args:
+        phonon: dict
+            A dictionary representation of the phonopy object to be added to the database
+        atoms_ideal: dict generated from patoms2dict
+            The dictionary representation of the atoms or pAtoms object of the undisplayed atoms
+        db_path: str
+            String to the database path
+    """
+    atoms = dict2patoms(atoms_ideal)
+    atoms_hash, calc_hash = hash_atoms(atoms)
+    try:
+        db = connect(db_path)
+        try:
+            rows = list(db.select(selection=[("supercell_matrix", "=", phonon_dict["supercell_matrix"]),
+                                             ("symprec","=", symprec),
+                                             ("atoms_hash", "=", atoms_hash),
+                                             ("calc_hash", "=", calc_hash)
+                                            ]))
+            if not rows:
+                raise KeyError
+            for row in rows:
+                db.update(row.id, phonon=phonon_dict, has_fc=("force_constants" in phonon_dict))
+        except KeyError:
+            db.write(phonon_dict,
+                     symprec=symprec,
+                     atoms_hash=atoms_hash,
+                     calc_hash=calc_hash,
+                     has_fc=("force_constants" in phonon_dict))
+    except ValueError:
+        print(f"Fireworker could not access the database {db_path}")
+    return FWAction(stored_data={'phonopy_calc': phonon_dict})
+
 mod_calc.name = f'{module_name}.{mod_calc.__name__}'
 add_result_to_spec.name = f'{module_name}.{add_result_to_spec.__name__}'
 transfer_spec.name = f'{module_name}.{transfer_spec.__name__}'
 check_convergence.name = f'{module_name}.{check_convergence.__name__}'
 get_relaxed_structure.name = f'{module_name}.{get_relaxed_structure.__name__}'
+add_phonon_to_db.name = f'{module_name}.{add_phonon_to_db.__name__}'
