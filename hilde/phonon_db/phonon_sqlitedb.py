@@ -498,7 +498,8 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                     assert self.version >= 6, 'Update your db-file'
                 elif key == 'supercell_matrix':
                     value = self.encode(list(np.asarray(value).flatten()))
-
+                elif key == 'numbers':
+                    value = self.blob(value)
                 where.append('systems.{}{}?'.format(key, op))
                 args.append(value)
             elif key in ['tp_A', 'tp_S', 'tp_Cv']:

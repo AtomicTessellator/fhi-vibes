@@ -3,7 +3,6 @@ import numpy as np
 from fireworks import FWAction
 
 from hilde.helpers.brillouinzone import get_bands_and_labels
-from hilde.helpers.hash import hash_atoms
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon2dict, PhononRow
 from hilde.phonopy import phono as ph, displacement_id_str
