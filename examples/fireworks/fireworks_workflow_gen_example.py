@@ -76,15 +76,6 @@ rapidfire(launchpad)
 
 db_path = "postgresql://hilde:hilde@localhost:5432/phonopy_db"
 db = connect(db_path)
-rows = list(
-        db.select(
-            selection=[
-                ("supercell_matrix", "=", smatrix),
-                ("has_fc", "=", True),
-            ]
-        )
-    )
-print(rows[0].has_fc)
 phonon = db.get_phonon(selection=[("supercell_matrix", "=", smatrix),
                                   ("numbers", "=", atoms.numbers),
                                   ("has_fc", "=", True)])
