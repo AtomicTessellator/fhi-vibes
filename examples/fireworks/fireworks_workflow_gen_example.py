@@ -39,10 +39,10 @@ parser.add_argument("--no_kerberos", action="store_true",
 args = parser.parse_args()
 
 if args.remote_species_dir:
-    aims_kgrid_conv_settings["aims_command"] = args.remote_command
-    aims_relax_settings_light["aims_command"] = args.remote_command
-    aims_relax_settings_tight["aims_command"] = args.remote_command
-    aims_force_settings["aims_command"] = args.remote_command
+    aims_kgrid_conv_settings["species_dir"] = args.remote_species_dir
+    aims_relax_settings_light["species_dir"] = args.remote_species_dir
+    aims_relax_settings_tight["species_dir"] = args.remote_species_dir
+    aims_force_settings["species_dir"] = args.remote_species_dir
 if args.remote_command:
     aims_kgrid_conv_settings["aims_command"] = args.remote_command
     aims_relax_settings_light["aims_command"] = args.remote_command
