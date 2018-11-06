@@ -36,6 +36,8 @@ parser.add_argument("-wd", "--workdir", default=".",
                     help="directory used to calculate the individual atom calculations")
 parser.add_argument("--no_kerberos", action="store_true",
                     help="If set do not use gss_api authentication")
+parser.add_argument('-g', '--geometry', default='geometry.in',
+                    help="The input geometry file")
 args = parser.parse_args()
 
 if args.remote_species_dir:
@@ -49,7 +51,7 @@ if args.remote_command:
     aims_relax_settings_tight["aims_command"] = args.remote_command
     aims_force_settings["aims_command"] = args.remote_command
 
-atoms = read_structure('si.in')
+atoms = read_structure(args.geometry)
 atoms_hash, _ = hash_atoms(atoms)
 smatrix = get_smatrix(atoms, n_target=64)
 launchpad = LaunchPad()
@@ -81,9 +83,9 @@ try:
         launchpad.delete_wf(wf_id)
 except:
     pass
-wf = gen_relax_phonopy_wf("si.in",
+wf = gen_relax_phonopy_wf(args.geometry,
                           "postgresql://hilde:hilde@130.183.206.193:5432/phonopy_db",
-                          f"Si_{atoms_hash}",
+                          f"{atoms.get_chemical_formula()}_{atoms_hash}",
                           args.workdir,
                           "atoms_cur",
                           smatrix,
