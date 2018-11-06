@@ -162,9 +162,9 @@ def gen_relax_fw(atoms,
                             "args": [str(workdir/"geometry.in.next_step"), out_atoms_spec],
                             "inputs": [in_atoms_spec]}))
     task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
-                             "args": [db_name, atoms_hash],
+                             "args": [db_name],
                              "inputs": [in_atoms_spec, out_atoms_spec],
-                             "kwargs": {"fw_name": name}}))
+                             "kwargs": {"fw_name": name, "original_atoms_hash": atoms_hash}}))
     return Firework(task_list, name=name)
 
 def gen_initialize_phonopy_fw(atoms,
@@ -234,10 +234,9 @@ def gen_analyze_phonopy_fw(atoms,
                              "args": args_fc,
                              "inputs": inputs_fc}))
     task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
-                             "args": [db_name, atoms_hash],
-                             "kwargs": {"symprec": symprec},
+                             "args": [db_name],
                              "inputs": [atoms_spec, "phonon_dict"],
-                             "kwargs": {"fw_name": name}}))
+                             "kwargs": {"symprec": symprec, "fw_name": name, "original_atoms_hash": atoms_hash}}))
     return Firework(task_list, name=name)
 
 def gen_relax_phonopy_wf(geo_in_file,

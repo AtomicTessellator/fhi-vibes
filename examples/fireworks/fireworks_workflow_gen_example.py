@@ -56,28 +56,28 @@ atoms_hash, _ = hash_atoms(atoms)
 smatrix = get_smatrix(atoms, n_target=64)
 launchpad = LaunchPad()
 try:
-    query = {"name": f"Si_{atoms_hash}", "state": "COMPLETED"}
+    query = {"name": f"{atoms.get_chemical_formula()}_{atoms_hash}", "state": "COMPLETED"}
     wf_ids = launchpad.get_wf_ids(query=query, limit=100)
     for wf_id in wf_ids:
         launchpad.delete_wf(wf_id)
 except:
   pass
 try:
-    query = {"name": f"Si_{atoms_hash}", "state": "FIZZLED"}
+    query = {"name": f"{atoms.get_chemical_formula()}_{atoms_hash}", "state": "FIZZLED"}
     wf_ids = launchpad.get_wf_ids(query=query, limit=100)
     for wf_id in wf_ids:
         launchpad.delete_wf(wf_id)
 except:
     pass
 try:
-    query = {"name": f"Si_{atoms_hash}", "state": "READY"}
+    query = {"name": f"{atoms.get_chemical_formula()}_{atoms_hash}", "state": "READY"}
     wf_ids = launchpad.get_wf_ids(query=query, limit=100)
     for wf_id in wf_ids:
         launchpad.delete_wf(wf_id)
 except:
     pass
 try:
-    query = {"name": f"Si_{atoms_hash}", "state": "RESERVED"}
+    query = {"name": f"{atoms.get_chemical_formula()}_{atoms_hash}", "state": "RESERVED"}
     wf_ids = launchpad.get_wf_ids(query=query, limit=100)
     for wf_id in wf_ids:
         launchpad.delete_wf(wf_id)

@@ -97,7 +97,7 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict,symprec=1e-5, **kwargs):
                      ("symprec", "=", symprec),
                      ("atoms_hash", "=", atoms_hash),
                      ("calc_hash", "=", calc_hash)]
-        if **kwargs is not None and "original_atoms_hash" in **kwargs:
+        if (kwargs is not None) and ("original_atoms_hash" in kwargs):
             selection.append(original_atoms_hash)
         try:
             rows = list(db.select(selection=selection))
