@@ -93,12 +93,13 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict,symprec=1e-5, **kwargs):
     atoms_hash, calc_hash = hash_atoms(atoms)
     try:
         db = connect(db_path)
-        selection = [("supercell_matrix", "=", phonon_dict["supercell_matrix"]),
-                     ("symprec", "=", symprec),
+        selection = [("symprec", "=", symprec),
                      ("atoms_hash", "=", atoms_hash),
                      ("calc_hash", "=", calc_hash)]
         if (kwargs is not None) and ("original_atoms_hash" in kwargs):
-            selection.append(original_atoms_hash)
+            selection.append(("original_atoms_hash", "=", kwargs["original_atoms_hash"]))
+        if (kwargs is not None) and ("supercell_matrix" in phonon_dict):
+            selection.append(("supercell_matrix", "=", phonon_dict["supercell_matrix"]))
         try:
             rows = list(db.select(selection=selection))
             if not rows:

@@ -205,7 +205,8 @@ def gen_initialize_phonopy_fw(atoms,
                              "inputs": [atoms_spec]}))
     task_list.append(PyTask({"func": fw.initialize_phonopy.name,
                              "args": args_phono,
-                             "inputs": inputs_phono}))
+                             "inputs": inputs_phono,
+                             "kwargs": {"symprec": symprec}}))
     task_list.append(PyTask({"func": fw.calculate_multiple.name,
                              "inputs": inputs_calc,
                              "kwargs": kwargs_calc}))
