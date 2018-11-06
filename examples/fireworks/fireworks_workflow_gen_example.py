@@ -89,7 +89,6 @@ wf = gen_relax_phonopy_wf(args.geometry,
                           args.workdir,
                           "atoms_cur",
                           smatrix,
-                          symprec=1e-2,
                           kgrid_conv=aims_kgrid_conv_settings,
                           relax_light=aims_relax_settings_light,
                           relax_tight=aims_relax_settings_tight,
@@ -106,7 +105,7 @@ qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=0, remote_host=args.rem
 
 db_path = "postgresql://hilde:hilde@localhost:5432/phonopy_db"
 db = connect(db_path)
-phonon = db.get_phonon(1e-2, selection=[("supercell_matrix", "=", smatrix),
+phonon = db.get_phonon(1e-5, selection=[("supercell_matrix", "=", smatrix),
                                   ("original_atoms_hash", "=", atoms_hash),
                                   ("has_fc", "=", True)])
 bands, labels = get_bands_and_labels(atoms)

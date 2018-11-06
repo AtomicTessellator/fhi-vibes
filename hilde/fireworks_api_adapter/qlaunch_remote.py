@@ -38,6 +38,7 @@ def qlaunch_remote(command,
                    nlaunches=None,
                    sleep=None,
                    fw_ids=None,
+                   wflow=None,
                    silencer=False,
                    reserve=False,
                    gss_auth=True,
@@ -99,6 +100,7 @@ def qlaunch_remote(command,
         comand = "singleshot"
     else:
         convert_input_to_param("fw_id", fw_id, non_default)
+        convert_input_to_param("wflow", wflow.root_fw_ids, non_default)
 
     non_default = " ".join(non_default)
 

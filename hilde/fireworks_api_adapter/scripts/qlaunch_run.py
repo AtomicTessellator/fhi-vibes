@@ -68,7 +68,7 @@ def do_launch(args):
                   nlaunches=args.nlaunches, njobs_queue=args.maxjobs_queue,
                   njobs_block=args.maxjobs_block, sleep_time=args.sleep,
                   reserve=args.reserve, strm_lvl=args.loglvl, timeout=args.timeout,
-                  fill_mode=args.fill_mode, fw_ids=args.firework_ids)
+                  fill_mode=args.fill_mode, fw_ids=args.firework_ids, wflow=args.wflow)
     else:
         launch_rocket_to_queue(launchpad, fworker, queueadapter,
                                args.launch_dir, args.reserve, args.loglvl, False, args.fill_mode)
@@ -141,6 +141,9 @@ def qlaunch():
     rapid_parser.add_argument('-ids', '--firework_ids', nargs='+',
                               help='A list of specific ids to run',
                               type=int, default=[])
+    rapid_parser.add_argument('-wf', '--wflow', nargs='+',
+                              help='A list of the root fw ids of a workflow',
+                              type=int, default=[])
     rapid_parser.add_argument('-m', '--maxjobs_queue',
                               help='maximum jobs to keep in queue for this user', default=0,
                               type=int)
@@ -197,6 +200,11 @@ def qlaunch():
     val = getattr(args, "firework_ids", None)
     if val != rapid_parser.get_default("firework_ids"):
         non_default.append("--{} {}".format("firework_ids", val[0]))
+        for v in val[1:]:
+            non_default[-1] += " {}".format(v)
+    val = getattr(args, "wflow", None)
+    if val != rapid_parser.get_default("wflow"):
+        non_default.append("--{} {}".format("wflow", val[0]))
         for v in val[1:]:
             non_default[-1] += " {}".format(v)
     non_default = " ".join(non_default)

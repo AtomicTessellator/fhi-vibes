@@ -20,7 +20,7 @@ __maintainer__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
 __date__ = 'Dec 12, 2012'
 
-def rapidfire(launchpad, fworker, qadapter, fw_ids=None, launch_dir='.', nlaunches=0, njobs_queue=0,
+def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow=None, launch_dir='.', nlaunches=0, njobs_queue=0,
               njobs_block=500, sleep_time=None, reserve=False, strm_lvl='INFO', timeout=None,
               fill_mode=False):
     """
@@ -31,6 +31,7 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, launch_dir='.', nlaunch
         fworker (FWorker)
         qadapter (QueueAdapterBase)
         fw_ids(list of ints): a list fw_ids to launch (len(fw_ids) == nlaunches)
+        wflow (WorkFlow): the workflow this qlauncher is supposed to run
         launch_dir (str): directory where we want to write the blocks
         nlaunches (int): total number of launches desired; "infinite" for loop, 0 for one round
         njobs_queue (int): stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit
@@ -45,6 +46,7 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, launch_dir='.', nlaunch
     if fw_ids and len(fw_ids) != nlaunches:
         print("WARNING: Setting nlaunches to the length of fw_ids.")
         nlaunches = len(fw_ids)
+    wflow = launchpad.get_wf_by_fw_id(wflow[0])
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     launch_dir = os.path.abspath(launch_dir)
     nlaunches = -1 if nlaunches == 'infinite' else int(nlaunches)
@@ -91,7 +93,7 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, launch_dir='.', nlaunch
                 if _njobs_in_dir(block_dir) >= njobs_block:
                     l_logger.info('Block got bigger than {} jobs.'.format(njobs_block))
                     block_dir = create_datestamp_dir(launch_dir, l_logger)
-
+                print(wflow.fws())
                 # launch a single job
                 if fw_ids:
                     return_code = launch_rocket_to_queue(launchpad, fworker, qadapter, block_dir,
@@ -127,6 +129,5 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, launch_dir='.', nlaunch
             l_logger.info('Finished a round of launches, sleeping for {} secs'.format(sleep_time))
             time.sleep(sleep_time)
             l_logger.info('Checking for Rockets to run...')
-
     except:
         log_exception(l_logger, 'Error with queue launcher rapid fire!')
