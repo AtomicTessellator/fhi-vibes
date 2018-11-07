@@ -20,7 +20,17 @@ __maintainer__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
 __date__ = 'Dec 12, 2012'
 
-def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow=None, launch_dir='.', nlaunches=0, njobs_queue=0,
+def get_ordred_fw_ids(wflow):
+    fw_ids_ordered = wflow.leaf_fw_ids
+    parent_links = wflow.links.parent_links
+    for fw_id in fw_ids_ordered:
+        parents = parent_links[fw_id] if fw_id in parent_links else []
+        for parent in parents[::-1]:
+            if parent not in fw_ids_ordered:
+                fw_ids_ordered.append(parent)
+    return fw_ids_ordered[::-1]
+
+def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow_id=None, launch_dir='.', nlaunches=0, njobs_queue=0,
               njobs_block=500, sleep_time=None, reserve=False, strm_lvl='INFO', timeout=None,
               fill_mode=False):
     """
@@ -46,9 +56,6 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow=None, launch_dir=
     if fw_ids and len(fw_ids) != nlaunches:
         print("WARNING: Setting nlaunches to the length of fw_ids.")
         nlaunches = len(fw_ids)
-    print(wflow)
-    if wflow and len(wflow) > 0:
-        wflow = launchpad.get_wf_by_fw_id(wflow[0])
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     launch_dir = os.path.abspath(launch_dir)
     nlaunches = -1 if nlaunches == 'infinite' else int(nlaunches)
@@ -95,13 +102,19 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow=None, launch_dir=
                 if _njobs_in_dir(block_dir) >= njobs_block:
                     l_logger.info('Block got bigger than {} jobs.'.format(njobs_block))
                     block_dir = create_datestamp_dir(launch_dir, l_logger)
-                if wflow:
-                    print(wflow.fws())
+                return_code = None
                 # launch a single job
                 if fw_ids:
                     return_code = launch_rocket_to_queue(launchpad, fworker, qadapter, block_dir,
                                                          reserve, strm_lvl, True, fill_mode,
                                                          fw_ids[num_launched])
+                elif wflow_id:
+                    wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+                    nlaunches = len(wflow.fws)
+                    wflow_ids = get_ordred_fw_ids(wflow)
+                    return_code = launch_rocket_to_queue(launchpad, fworker, qadapter, block_dir,
+                                                         reserve, strm_lvl, True, fill_mode,
+                                                         wflow_ids[num_launched])
                 else:
                     return_code = launch_rocket_to_queue(launchpad, fworker, qadapter, block_dir,
                                                          reserve, strm_lvl, True, fill_mode)

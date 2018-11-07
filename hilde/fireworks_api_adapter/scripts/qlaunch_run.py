@@ -68,7 +68,7 @@ def do_launch(args):
                   nlaunches=args.nlaunches, njobs_queue=args.maxjobs_queue,
                   njobs_block=args.maxjobs_block, sleep_time=args.sleep,
                   reserve=args.reserve, strm_lvl=args.loglvl, timeout=args.timeout,
-                  fill_mode=args.fill_mode, fw_ids=args.firework_ids, wflow=args.wflow)
+                  fill_mode=args.fill_mode, fw_ids=args.firework_ids, wflow_id=args.wflow)
     else:
         launch_rocket_to_queue(launchpad, fworker, queueadapter,
                                args.launch_dir, args.reserve, args.loglvl, False, args.fill_mode)
