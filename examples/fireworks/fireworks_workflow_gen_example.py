@@ -95,13 +95,13 @@ wf = gen_relax_phonopy_wf(args.geometry,
                           force_calc=aims_force_settings,
                           spec_qad_kgrid={"_queueadapter" : {"walltime" : "00:10:00"} },
                           spec_qad_relax={"_queueadapter" : {"walltime" : "00:10:00"} },
-                          spec_qad_forces={"_queueadapter" : {"nodes" : 3} })
+                          spec_qad_forces={"_queueadapter" : {"nodes" : 3,"walltime" : "00:10:00"} })
 
 launchpad.add_wf(wf)
 qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=0, remote_host=args.remote_host,
                remote_user=args.remote_user, remote_password=args.remote_password,
                remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], reserve=True,
-               gss_auth=not args.no_kerberos)
+               gss_auth=not args.no_kerberos, wflow=wf)
 
 db_path = "postgresql://hilde:hilde@localhost:5432/phonopy_db"
 db = connect(db_path)

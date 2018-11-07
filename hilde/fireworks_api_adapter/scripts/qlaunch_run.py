@@ -62,7 +62,7 @@ def do_launch(args):
         args.fworker_file) if args.fworker_file else FWorker()
     queueadapter = load_object_from_file(args.queueadapter_file)
     args.loglvl = 'CRITICAL' if args.silencer else args.loglvl
-
+    print(args.wflow)
     if args.command == 'rapidfire':
         rapidfire(launchpad, fworker=fworker, qadapter=queueadapter, launch_dir=args.launch_dir,
                   nlaunches=args.nlaunches, njobs_queue=args.maxjobs_queue,
@@ -202,6 +202,7 @@ def qlaunch():
         non_default.append("--{} {}".format("firework_ids", val[0]))
         for v in val[1:]:
             non_default[-1] += " {}".format(v)
+    print(args.wflow)
     val = getattr(args, "wflow", None)
     if val != rapid_parser.get_default("wflow"):
         non_default.append("--{} {}".format("wflow", val[0]))

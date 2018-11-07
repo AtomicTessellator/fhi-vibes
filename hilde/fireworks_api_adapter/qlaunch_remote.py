@@ -100,7 +100,7 @@ def qlaunch_remote(command,
         comand = "singleshot"
     else:
         convert_input_to_param("fw_id", fw_id, non_default)
-        convert_input_to_param("wflow", wflow.root_fw_ids, non_default)
+        convert_input_to_param("wflow", wflow.root_fw_ids(), non_default)
 
     non_default = " ".join(non_default)
 
@@ -123,7 +123,7 @@ def qlaunch_remote(command,
                 for r in remote_config_dir:
                     r = os.path.expanduser(r)
                     with conn.cd(r):
-                        conn.run("qlaunch {} {} {}".format(
+                        conn.run("qlaunch_hilde {} {} {}".format(
                             pre_non_default, command, non_default))
         if interval > 0:
             print("Next run in {} seconds... Press Ctrl-C to exit at any "

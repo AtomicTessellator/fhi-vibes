@@ -46,7 +46,9 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow=None, launch_dir=
     if fw_ids and len(fw_ids) != nlaunches:
         print("WARNING: Setting nlaunches to the length of fw_ids.")
         nlaunches = len(fw_ids)
-    wflow = launchpad.get_wf_by_fw_id(wflow[0])
+    print(wflow)
+    if wflow and len(wflow) > 0:
+        wflow = launchpad.get_wf_by_fw_id(wflow[0])
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     launch_dir = os.path.abspath(launch_dir)
     nlaunches = -1 if nlaunches == 'infinite' else int(nlaunches)
@@ -93,7 +95,8 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow=None, launch_dir=
                 if _njobs_in_dir(block_dir) >= njobs_block:
                     l_logger.info('Block got bigger than {} jobs.'.format(njobs_block))
                     block_dir = create_datestamp_dir(launch_dir, l_logger)
-                print(wflow.fws())
+                if wflow:
+                    print(wflow.fws())
                 # launch a single job
                 if fw_ids:
                     return_code = launch_rocket_to_queue(launchpad, fworker, qadapter, block_dir,
