@@ -22,11 +22,11 @@ else:
 
 from fireworks.fw_config import QUEUEADAPTER_LOC, CONFIG_FILE_DIR, FWORKER_LOC, LAUNCHPAD_LOC
 from fireworks.core.fworker import FWorker
-from fireworks.core.launchpad import LaunchPad
 from fireworks.queue.queue_launcher import launch_rocket_to_queue
 from fireworks.utilities.fw_serializers import load_object_from_file
 
 from hilde.fireworks_api_adapter.queue_launcher import rapidfire
+from hilde.fireworks_api_adapter.launchpad import LaunchPad_hilde as LaunchPad
 
 __authors__ = "Anubhav Jain, Shyue Ping Ong. Modified by Thomas Purcell to redirect rapidfire"
 __copyright__ = "Copyright 2013, The Materials Project, Modifications 2.11.2018"
@@ -62,7 +62,7 @@ def do_launch(args):
         args.fworker_file) if args.fworker_file else FWorker()
     queueadapter = load_object_from_file(args.queueadapter_file)
     args.loglvl = 'CRITICAL' if args.silencer else args.loglvl
-    print(args.wflow)
+    print(type(launchpad))
     if args.command == 'rapidfire':
         rapidfire(launchpad, fworker=fworker, qadapter=queueadapter, launch_dir=args.launch_dir,
                   nlaunches=args.nlaunches, njobs_queue=args.maxjobs_queue,
