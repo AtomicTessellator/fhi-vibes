@@ -2,10 +2,12 @@ from argparse import ArgumentParser
 import numpy as np
 import os
 
-from fireworks import Firework, LaunchPad, PyTask, Workflow
-from fireworks.core.rocket_launcher import rapidfire, launch_rocket
+from fireworks import Firework, PyTask, Workflow
+from fireworks.core.rocket_launcher import launch_rocket
 
+from hilde.fireworks_api_adapter.launchpad import LaunchPad_hilde
 from hilde.fireworks_api_adapter.qlaunch_remote import qlaunch_remote
+from hilde.fireworks_api_adapter.rocket_launcher import rapidfire
 from hilde.helpers.brillouinzone import get_bands_and_labels
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.paths import cwd
@@ -54,7 +56,7 @@ if args.remote_command:
 atoms = read_structure(args.geometry)
 atoms_hash, _ = hash_atoms(atoms)
 smatrix = get_smatrix(atoms, n_target=64)
-launchpad = LaunchPad()
+launchpad = LaunchPad_hilde()
 try:
     query = {"name": f"{atoms.get_chemical_formula()}_{atoms_hash}", "state": "COMPLETED"}
     wf_ids = launchpad.get_wf_ids(query=query, limit=100)
@@ -69,13 +71,13 @@ try:
         launchpad.delete_wf(wf_id)
 except:
     pass
-try:
-    query = {"name": f"{atoms.get_chemical_formula()}_{atoms_hash}", "state": "READY"}
-    wf_ids = launchpad.get_wf_ids(query=query, limit=100)
-    for wf_id in wf_ids:
-        launchpad.delete_wf(wf_id)
-except:
-    pass
+# try:
+#     query = {"name": f"{atoms.get_chemical_formula()}_{atoms_hash}", "state": "READY"}
+#     wf_ids = launchpad.get_wf_ids(query=query, limit=100)
+#     for wf_id in wf_ids:
+#         launchpad.delete_wf(wf_id)
+# except:
+#     pass
 try:
     query = {"name": f"{atoms.get_chemical_formula()}_{atoms_hash}", "state": "RESERVED"}
     wf_ids = launchpad.get_wf_ids(query=query, limit=100)
@@ -103,13 +105,14 @@ qlaunch_remote("rapidfire", maxjobs_queue=250, nlaunches=0, remote_host=args.rem
                remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"], reserve=True,
                gss_auth=not args.no_kerberos, wflow=wf)
 
-db_path = "postgresql://hilde:hilde@localhost:5432/phonopy_db"
-db = connect(db_path)
-phonon = db.get_phonon(1e-5, selection=[("supercell_matrix", "=", smatrix),
-                                  ("original_atoms_hash", "=", atoms_hash),
-                                  ("has_fc", "=", True)])
-bands, labels = get_bands_and_labels(atoms)
-phonon.set_band_structure(bands)
-plt = phonon.plot_band_structure(labels=labels)
-plt.ylabel('Frequency [THz]')
-plt.savefig('phonon_dispersion.pdf')
+
+# db_path = "postgresql://hilde:hilde@localhost:5432/phonopy_db"
+# db = connect(db_path)
+# phonon = db.get_phonon(1e-5, selection=[("supercell_matrix", "=", smatrix),
+#                                   ("original_atoms_hash", "=", atoms_hash),
+#                                   ("has_fc", "=", True)])
+# bands, labels = get_bands_and_labels(atoms)
+# phonon.set_band_structure(bands)
+# plt = phonon.plot_band_structure(labels=labels)
+# plt.ylabel('Frequency [THz]')
+# plt.savefig('phonon_dispersion.pdf')

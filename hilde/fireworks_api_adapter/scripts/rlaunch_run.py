@@ -64,6 +64,8 @@ def rlaunch():
                               action="store_true")
     rapid_parser.add_argument('-ids', '--firework_ids', nargs='+', help='A list of specific ids to run',
                               type=int, default=[])
+    rapid_parser.add_argument('-wflow', '--wflow', nargs='+', help='The root processes of a WorkFlow',
+                              type=int, default=[])
 
     multi_parser.add_argument('num_jobs', help='the number of jobs to run in parallel', type=int)
     multi_parser.add_argument('--nlaunches', help='number of FireWorks to run in series per '
@@ -143,7 +145,7 @@ def rlaunch():
         rapidfire(launchpad, fworker=fworker, m_dir=None, nlaunches=args.nlaunches,
                   max_loops=args.max_loops, sleep_time=args.sleep, strm_lvl=args.loglvl,
                   timeout=args.timeout, local_redirect=args.local_redirect,
-                  fw_ids=args.firework_ids)
+                  fw_ids=args.firework_ids, wflow_id=args.wflow)
     elif args.command == 'multi':
         total_node_list = None
         if args.nodefile:

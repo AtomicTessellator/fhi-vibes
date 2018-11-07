@@ -96,12 +96,16 @@ def qlaunch_remote(command,
         convert_input_to_param("maxjobs_block", maxjobs_block, non_default)
         convert_input_to_param("nlaunches", nlaunches, non_default)
         convert_input_to_param("sleep", sleep, non_default)
-    elif command is "rapidfire":
-        comand = "singleshot"
+        if fw_ids:
+            non_default.append("--{} {}".format("firework_ids", fw_ids[0]))
+            for fw in fw_ids[1:]:
+                non_default[-1] += " {}".format(fw)
+        if wflow:
+            non_default.append("--{} {}".format("wflow", wflow.root_fw_ids[0]))
+            for fw in wflow.root_fw_ids[1:]:
+                non_default[-1] += " {}".format(fw)
     else:
         convert_input_to_param("fw_id", fw_id, non_default)
-        convert_input_to_param("wflow", wflow.root_fw_ids(), non_default)
-
     non_default = " ".join(non_default)
 
     pre_non_default = []
@@ -110,7 +114,7 @@ def qlaunch_remote(command,
     if reserve:
         pre_non_default.append("--reserve")
     pre_non_default = " ".join(pre_non_default)
-
+    print("qlaunch_hilde {} {} {}".format(pre_non_default, command, non_default))
     interval = daemon
     while True:
         for h in remote_host:

@@ -23,9 +23,20 @@ __maintainer__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
 __date__ = 'Feb 22, 2013'
 
-def rapidfire(launchpad, fw_ids=None, fworker=None, m_dir=None, nlaunches=0, max_loops=-1,
+def get_ordred_fw_ids(wflow):
+    '''Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow'''
+    fw_ids_ordered = wflow.leaf_fw_ids
+    parent_links = wflow.links.parent_links
+    for fw_id in fw_ids_ordered:
+        parents = parent_links[fw_id] if fw_id in parent_links else []
+        for parent in parents[::-1]:
+            if parent not in fw_ids_ordered:
+                fw_ids_ordered.append(parent)
+    return fw_ids_ordered[::-1]
+
+def rapidfire(launchpad, fworker=None, m_dir=None, nlaunches=0, max_loops=-1,
               sleep_time=None, strm_lvl='INFO', timeout=None, local_redirect=False,
-              pdb_on_exception=False):
+              pdb_on_exception=False, fw_ids=None, wflow_id=None):
     """
     Keeps running Rockets in m_dir until we reach an error. Automatically creates subdirectories
     for each Rocket. Usually stops when we run out of FireWorks from the LaunchPad.
@@ -33,7 +44,6 @@ def rapidfire(launchpad, fw_ids=None, fworker=None, m_dir=None, nlaunches=0, max
     Args:
         launchpad (LaunchPad)
         fworker (FWorker object)
-        fw_ids (list of ints): list of FireWorks to run
         m_dir (str): the directory in which to loop Rocket running
         nlaunches (int): 0 means 'until completion', -1 or "infinite" means to loop until max_loops
         max_loops (int): maximum number of loops (default -1 is infinite)
@@ -41,6 +51,8 @@ def rapidfire(launchpad, fw_ids=None, fworker=None, m_dir=None, nlaunches=0, max
         strm_lvl (str): level at which to output logs to stdout
         timeout (int): of seconds after which to stop the rapidfire process
         local_redirect (bool): redirect standard input and output to local file
+        fw_ids (list of ints): list of FireWorks to run
+        wflow_id (list of ints): list of ids of the root nodes of a workflow
     """
     if fw_ids and len(fw_ids) != nlaunches:
         print("WARNING: Setting nlaunches to the length of fw_ids.")
@@ -72,6 +84,13 @@ def rapidfire(launchpad, fw_ids=None, fworker=None, m_dir=None, nlaunches=0, max
                         rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                    pdb_on_exception=pdb_on_exception,
                                                    fw_id=fw_ids[num_launched])
+                    elif wflow:
+                        wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+                        nlaunches = len(wflow.fws)
+                        wflow_ids = get_ordred_fw_ids(wflow)
+                        rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
+                                                   pdb_on_exception=pdb_on_exception,
+                                                   fw_id=wflow_ids[num_launched].fw_id)
                     else:
                         rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                    pdb_on_exception=pdb_on_exception)
@@ -80,6 +99,13 @@ def rapidfire(launchpad, fw_ids=None, fworker=None, m_dir=None, nlaunches=0, max
                     rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                pdb_on_exception=pdb_on_exception,
                                                fw_id=fw_ids[num_launched])
+                elif wflow:
+                    wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+                    nlaunches = len(wflow.fws)
+                    wflow_ids = get_ordred_fw_ids(wflow)
+                    rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
+                                               pdb_on_exception=pdb_on_exception,
+                                               fw_id=wflow_ids[num_launched].fw_id)
                 else:
                     rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                pdb_on_exception=pdb_on_exception)

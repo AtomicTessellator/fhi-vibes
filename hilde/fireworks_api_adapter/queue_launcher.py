@@ -21,6 +21,7 @@ __email__ = 'ajain@lbl.gov'
 __date__ = 'Dec 12, 2012'
 
 def get_ordred_fw_ids(wflow):
+    '''Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow'''
     fw_ids_ordered = wflow.leaf_fw_ids
     parent_links = wflow.links.parent_links
     for fw_id in fw_ids_ordered:
@@ -30,9 +31,9 @@ def get_ordred_fw_ids(wflow):
                 fw_ids_ordered.append(parent)
     return fw_ids_ordered[::-1]
 
-def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow_id=None, launch_dir='.', nlaunches=0, njobs_queue=0,
+def rapidfire(launchpad, fworker, qadapter, launch_dir='.', nlaunches=0, njobs_queue=0,
               njobs_block=500, sleep_time=None, reserve=False, strm_lvl='INFO', timeout=None,
-              fill_mode=False):
+              fill_mode=False, fw_ids=None, wflow_id=None):
     """
     Submit many jobs to the queue.
 
@@ -40,7 +41,6 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow_id=None, launch_d
         launchpad (LaunchPad)
         fworker (FWorker)
         qadapter (QueueAdapterBase)
-        fw_ids(list of ints): a list fw_ids to launch (len(fw_ids) == nlaunches)
         wflow (WorkFlow): the workflow this qlauncher is supposed to run
         launch_dir (str): directory where we want to write the blocks
         nlaunches (int): total number of launches desired; "infinite" for loop, 0 for one round
@@ -52,6 +52,8 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow_id=None, launch_d
         timeout (int): # of seconds after which to stop the rapidfire process
         fill_mode (bool): whether to submit jobs even when there is nothing to run (only in
             non-reservation mode)
+        fw_ids(list of ints): a list fw_ids to launch (len(fw_ids) == nlaunches)
+        wflow_id(list of ints): a list fw_ids that are a root of the workflow
     """
     if fw_ids and len(fw_ids) != nlaunches:
         print("WARNING: Setting nlaunches to the length of fw_ids.")
@@ -67,7 +69,7 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow_id=None, launch_d
 
     num_launched = 0
     start_time = datetime.now()
-
+    wflow_ids = None
     try:
         l_logger.info('getting queue adapter')
 
@@ -83,7 +85,7 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow_id=None, launch_d
             jobs_in_queue = _get_number_of_jobs_in_queue(qadapter, njobs_queue, l_logger)
             job_counter = 0  # this is for QSTAT_FREQUENCY option
 
-            while (launchpad.run_exists(fworker) or
+            while (launchpad.run_exists(fworker, ids=wflow_ids) or
                    (fill_mode and not reserve)):
 
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
