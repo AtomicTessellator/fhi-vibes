@@ -12,13 +12,14 @@ import signal
 import sys
 
 from fireworks.fw_config import LAUNCHPAD_LOC, FWORKER_LOC, CONFIG_FILE_DIR
-from fireworks.core.launchpad import LaunchPad
 from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import launch_rocket
 from fireworks.utilities.fw_utilities import get_my_host, get_my_ip, get_fw_logger
 from fireworks.features.multi_launcher import launch_multiprocess
 
+from hilde.fireworks_api_adapter.launchpad import LaunchPad_hilde as LaunchPad
 from hilde.fireworks_api_adapter.rocket_launcher import rapidfire
+
 __author__ = 'Anubhav Jain, Modified by Thomas Purcell Nov. 2, 2018'
 __credits__ = 'Xiaohui Qu, Shyam Dwaraknath'
 __copyright__ = 'Copyright 2013, The Materials Project'

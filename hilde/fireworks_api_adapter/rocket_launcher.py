@@ -72,9 +72,14 @@ def rapidfire(launchpad, fworker=None, m_dir=None, nlaunches=0, max_loops=-1,
         return (timeout is None or
                 (datetime.now() - start_time).total_seconds() < timeout)
 
+    wflow_ids = None
     while num_loops != max_loops and time_ok():
         skip_check = False  # this is used to speed operation
-        while (skip_check or launchpad.run_exists(fworker)) and time_ok():
+        if wflow_id:
+            wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+            nlaunches = len(wflow.fws)
+            wflow_ids = get_ordred_fw_ids(wflow)
+        while (skip_check or launchpad.run_exists(fworker, wflow_ids)) and time_ok():
             os.chdir(curdir)
             launcher_dir = create_datestamp_dir(curdir, l_logger, prefix='launcher_')
             os.chdir(launcher_dir)
@@ -90,7 +95,7 @@ def rapidfire(launchpad, fworker=None, m_dir=None, nlaunches=0, max_loops=-1,
                         wflow_ids = get_ordred_fw_ids(wflow)
                         rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                    pdb_on_exception=pdb_on_exception,
-                                                   fw_id=wflow_ids[num_launched].fw_id)
+                                                   fw_id=wflow_ids[num_launched])
                     else:
                         rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                    pdb_on_exception=pdb_on_exception)
@@ -105,7 +110,7 @@ def rapidfire(launchpad, fworker=None, m_dir=None, nlaunches=0, max_loops=-1,
                     wflow_ids = get_ordred_fw_ids(wflow)
                     rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                pdb_on_exception=pdb_on_exception,
-                                               fw_id=wflow_ids[num_launched].fw_id)
+                                               fw_id=wflow_ids[num_launched])
                 else:
                     rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                pdb_on_exception=pdb_on_exception)

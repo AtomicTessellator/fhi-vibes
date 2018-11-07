@@ -95,8 +95,10 @@ def gen_kgrid_conv_fw(atoms,
                       final_atoms_spec,
                       name="k_grid_conv",
                       spec_qad={},
+                      calc=None,
                       calc_settings=aims_kgrid_conv_settings):
-    calc = setup_aims(calc_settings)
+    if calc is None:
+        calc = setup_aims(calc_settings)
     atoms.set_calculator(calc)
     workdir = setup_workdir(atoms, workdir, False)
     workdirs = [str(workdir/f'{0:05d}'), str(workdir/f'{1:05d}')]
@@ -125,12 +127,14 @@ def gen_relax_fw(atoms,
                  workdir,
                  in_atoms_spec,
                  out_atoms_spec,
+                 calc=None,
                  up_calc_from_db=None,
                  name="relax",
                  spec_qad={},
                  from_db=False,
                  calc_settings=aims_relax_settings_light):
-    calc = setup_aims(calc_settings)
+    if calc is None:
+        calc = setup_aims(calc_settings)
     atoms.set_calculator(calc)
     workdir = setup_workdir(atoms, workdir, False)
     atoms_hash, calc_hash = hash_atoms(atoms)
@@ -170,14 +174,16 @@ def gen_relax_fw(atoms,
 def gen_initialize_phonopy_fw(atoms,
                               smatrix,
                               workdir,
-                              atoms_spec,
+                              atoms_spec=None,
+                              calc=None,
                               symprec=1e-5,
                               up_calc_from_db=None,
                               name="init_phono",
                               spec_qad={},
                               from_db=False,
                               calc_settings=aims_force_settings):
-    calc = setup_aims(calc_settings)
+    if calc is None:
+        calc = setup_aims(calc_settings)
     atoms.set_calculator(calc)
     workdir = setup_workdir(atoms, workdir, False)
     atoms = patoms2dict(atoms)
@@ -199,10 +205,11 @@ def gen_initialize_phonopy_fw(atoms,
             task_list.append(PyTask({"func": fw.mod_calc.name,
                                      "args": [key],
                                      "inputs": ["calculator",key]}))
-    kwargs_calc = {"spec_qad": spec_qad, "out_spec": "phonon_calcs"} #, "pass_spec": [atoms_spec]}
-    task_list.append(PyTask({"func": fw.transfer_spec.name,
-                             "args": [atoms_spec],
-                             "inputs": [atoms_spec]}))
+    kwargs_calc = {"spec_qad": spec_qad, "out_spec": "phonon_calcs"}
+    if atoms_spec:
+        task_list.append(PyTask({"func": fw.transfer_spec.name,
+                                 "args": [atoms_spec],
+                                 "inputs": [atoms_spec]}))
     task_list.append(PyTask({"func": fw.initialize_phonopy.name,
                              "args": args_phono,
                              "inputs": inputs_phono,
@@ -216,7 +223,7 @@ def gen_analyze_phonopy_fw(atoms,
                            db_name,
                            smatrix,
                            workdir,
-                           atoms_spec,
+                           atoms_spec=None,
                            symprec=1e-5,
                            name="analyze_phono",
                            from_db=False):
@@ -224,19 +231,23 @@ def gen_analyze_phonopy_fw(atoms,
     atoms = patoms2dict(atoms)
 
     args_fc = [smatrix]
+    args_to_db = [db_name]
     if from_db:
         inputs_fc = [atoms_spec, "phonon_calcs"]
+        inputs_to_db = [atoms_spec, "phonon_dict"]
     else:
         args_fc.append(atoms)
+        args_to_db.append(atoms)
         inputs_fc = ["phonon_calcs"]
+        inputs_to_db = ["phonon_dict"]
 
     task_list = []
     task_list.append(PyTask({"func": fw.calc_phonopy_force_constants.name,
                              "args": args_fc,
                              "inputs": inputs_fc}))
     task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
-                             "args": [db_name],
-                             "inputs": [atoms_spec, "phonon_dict"],
+                             "args": args_to_db,
+                             "inputs": inputs_to_db,
                              "kwargs": {"symprec": symprec, "fw_name": name, "original_atoms_hash": atoms_hash}}))
     return Firework(task_list, name=name)
 

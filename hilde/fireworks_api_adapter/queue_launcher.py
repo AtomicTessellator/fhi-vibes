@@ -79,7 +79,6 @@ def rapidfire(launchpad, fworker, qadapter, launch_dir='.', nlaunches=0, njobs_q
             l_logger.info('Found previous block, using {}'.format(block_dir))
         else:
             block_dir = create_datestamp_dir(launch_dir, l_logger)
-        wflow_ids = None
         while True:
             # get number of jobs in queue
             jobs_in_queue = _get_number_of_jobs_in_queue(qadapter, njobs_queue, l_logger)
