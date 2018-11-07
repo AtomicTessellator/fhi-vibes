@@ -77,13 +77,16 @@ def rapidfire(launchpad, fworker, qadapter, fw_ids=None, wflow_id=None, launch_d
             l_logger.info('Found previous block, using {}'.format(block_dir))
         else:
             block_dir = create_datestamp_dir(launch_dir, l_logger)
-
+        wflow_ids = None
         while True:
             # get number of jobs in queue
             jobs_in_queue = _get_number_of_jobs_in_queue(qadapter, njobs_queue, l_logger)
             job_counter = 0  # this is for QSTAT_FREQUENCY option
-
-            while (launchpad.run_exists(fworker) or
+            if wflow_id:
+                wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+                nlaunches = len(wflow.fws)
+                wflow_ids = get_ordred_fw_ids(wflow)
+            while (launchpad.run_exists(fworker, ids=wflow_ids) or
                    (fill_mode and not reserve)):
 
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
