@@ -41,6 +41,8 @@ def qlaunch_remote(command,
                    wflow=None,
                    silencer=False,
                    reserve=False,
+                   launcher_dir=None,
+                   loglvl=None,
                    gss_auth=True,
                    remote_host='localhost',
                    remote_config_dir=['~/.fireworks'],
@@ -91,7 +93,9 @@ def qlaunch_remote(command,
         sys.exit(-1)
 
     non_default = []
-    if command is "rapidfire" and not fw_ids:
+    convert_input_to_param("launch_dir", launcher_dir, non_default)
+    convert_input_to_param("loglvl", loglvl, non_default)
+    if command is "rapidfire":
         convert_input_to_param("maxjobs_queue", maxjobs_queue, non_default)
         convert_input_to_param("maxjobs_block", maxjobs_block, non_default)
         convert_input_to_param("nlaunches", nlaunches, non_default)

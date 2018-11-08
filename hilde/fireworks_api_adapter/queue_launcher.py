@@ -13,6 +13,7 @@ from fireworks.queue.queue_launcher import launch_rocket_to_queue, _njobs_in_dir
 from fireworks.utilities.fw_serializers import load_object
 from fireworks.utilities.fw_utilities import get_fw_logger, log_exception, create_datestamp_dir, get_slug
 
+from .combined_launcher import get_ordred_fw_ids
 __author__ = 'Anubhav Jain, Michael Kocher, Modified by Thomas Purcell'
 __copyright__ = 'Copyright 2012, The Materials Project, Modified 2.11.2018'
 __version__ = '0.1'
@@ -20,16 +21,6 @@ __maintainer__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
 __date__ = 'Dec 12, 2012'
 
-def get_ordred_fw_ids(wflow):
-    '''Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow'''
-    fw_ids_ordered = wflow.leaf_fw_ids
-    parent_links = wflow.links.parent_links
-    for fw_id in fw_ids_ordered:
-        parents = parent_links[fw_id] if fw_id in parent_links else []
-        for parent in parents[::-1]:
-            if parent not in fw_ids_ordered:
-                fw_ids_ordered.append(parent)
-    return fw_ids_ordered[::-1]
 
 def rapidfire(launchpad, fworker, qadapter, launch_dir='.', nlaunches=0, njobs_queue=0,
               njobs_block=500, sleep_time=None, reserve=False, strm_lvl='INFO', timeout=None,
@@ -69,7 +60,6 @@ def rapidfire(launchpad, fworker, qadapter, launch_dir='.', nlaunches=0, njobs_q
 
     num_launched = 0
     start_time = datetime.now()
-    wflow_ids = None
     try:
         l_logger.info('getting queue adapter')
 
@@ -86,8 +76,8 @@ def rapidfire(launchpad, fworker, qadapter, launch_dir='.', nlaunches=0, njobs_q
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
-                wflow_ids = get_ordred_fw_ids(wflow)
-            while (launchpad.run_exists(fworker, ids=wflow_ids) or
+                fw_ids = get_ordred_fw_ids(wflow)
+            while(launchpad.run_exists(fworker, ids=fw_ids) or
                    (fill_mode and not reserve)):
 
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
@@ -115,10 +105,10 @@ def rapidfire(launchpad, fworker, qadapter, launch_dir='.', nlaunches=0, njobs_q
                 elif wflow_id:
                     wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                     nlaunches = len(wflow.fws)
-                    wflow_ids = get_ordred_fw_ids(wflow)
+                    fw_ids = get_ordred_fw_ids(wflow)
                     return_code = launch_rocket_to_queue(launchpad, fworker, qadapter, block_dir,
                                                          reserve, strm_lvl, True, fill_mode,
-                                                         wflow_ids[num_launched])
+                                                         fw_ids[num_launched])
                 else:
                     return_code = launch_rocket_to_queue(launchpad, fworker, qadapter, block_dir,
                                                          reserve, strm_lvl, True, fill_mode)
