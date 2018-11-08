@@ -111,6 +111,7 @@ def schema_update(sql):
 
     arrays_1D = ['initial_magmoms',
                  'initial_charges',
+                 'numbers'
                  'masses',
                  'tags',
                  'momenta',

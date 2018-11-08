@@ -30,7 +30,7 @@ init_statements = [
     ctime REAL,
     mtime REAL,
     username TEXT,
-    numbers TEXT,  -- stuff that defines an Atoms object
+    numbers BLOB,  -- stuff that defines an Atoms object
     positions BLOB,
     cell BLOB,
     pbc INTEGER,
@@ -261,7 +261,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                   row.ctime,
                   mtime,
                   row.user,
-                  encode(row.get('numbers')),
+                  blob(row.get('numbers')),
                   blob(row.positions),
                   blob(row.cell),
                   int(np.dot(row.pbc, [1, 2, 4])),
@@ -352,12 +352,13 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         decode = self.decode
 
         values = self._old2new(values)
+        print(type(values[5]))
         dct = {'id': values[0],
                'unique_id': values[1],
                'ctime': values[2],
                'mtime': values[3],
                'user': values[4],
-               'numbers': jsonio.decode(values[5]),
+               'numbers': deblob(values[5]),
                'positions': deblob(values[6], shape=(-1, 3)),
                'cell': deblob(values[7], shape=(3, 3))}
         if values[8] is not None:
