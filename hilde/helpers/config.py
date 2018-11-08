@@ -32,7 +32,7 @@ class Config(configparser.ConfigParser):
                 return self.get(*args, **kwargs)
 
 
-class ConfigDict(AttrDict):
+class ConfigDict(AttributeDict):
     """Dictionary that holds the configuration settings"""
 
     def __init__(self, config_files=["hilde.cfg"], *args, **kwargs):
