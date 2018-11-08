@@ -358,7 +358,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                'ctime': values[2],
                'mtime': values[3],
                'user': values[4],
-               'numbers': deblob(values[5]),
+               'numbers': deblob(values[5], dtype=np.int32),
                'positions': deblob(values[6], shape=(-1, 3)),
                'cell': deblob(values[7], shape=(3, 3))}
         if values[8] is not None:
