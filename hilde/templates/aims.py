@@ -5,7 +5,9 @@ from ase.calculators.aims import Aims
 from hilde.settings import Settings
 
 
-def setup_aims(custom_settings={}, workdir=None, config_file="../../hilde.cfg"):
+def setup_aims(
+    port=None, custom_settings={}, workdir=None, config_file="../../hilde.cfg"
+):
     """Set up an aims calculator.
 
     Args:
@@ -28,6 +30,9 @@ def setup_aims(custom_settings={}, workdir=None, config_file="../../hilde.cfg"):
         del (custom_settings["species_type"])
 
     default_settings = settings.ase_settings
+
+    if port is not None:
+        custom_settings.update({"use_pimd_wrapper": ("localhost", port)})
 
     aims_settings = {**default_settings, **custom_settings}
 
