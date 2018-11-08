@@ -2,9 +2,10 @@
 from fireworks import FWAction, PyTask, Firework
 from hilde.structure.structure import patoms2dict, dict2patoms
 from hilde.tasks.calculate import calculate as calc_hilde
-
+from hilde.tasks import fireworks as fw
 module_name = __name__
-def calculate(atoms_dict, workdir, out_spec):
+
+def calculate(workdir, out_spec, atoms_dict, calc=None):
     '''
     A wrapper function for calculate to work within FireWorks
     Args:
@@ -15,17 +16,20 @@ def calculate(atoms_dict, workdir, out_spec):
         out_spec: str
             A key in the analysis' FireWork's spec to add the calculated
             results
+        calc: dict
+            Dictionary of the ase calculator
     Returns: FWAction
         A FWAction that will modify the spec of the analysis FireWork to
         include the calculated results (pushes it to the end of a list)
     '''
+    if calc:
+        for key, val in calc.items():
+            atoms_dict[key] = val
     atoms = dict2patoms(atoms_dict)
     temp_atoms = calc_hilde(atoms, atoms.get_calculator(), workdir)
     return FWAction(mod_spec=[{'_push': {out_spec: patoms2dict(temp_atoms)}}])
 
-calculate.name = f'{module_name}.{calculate.__name__}'
-
-def calculate_multiple(atom_dicts, workdirs, calc_mods=None, spec_qad=None):
+def calculate_multiple(workdirs, atom_dicts, calculator=None, out_spec="calc_atoms", spec_qad=None):
     '''
     A wrapper function that generate FireWorks for a set of atoms and associated work
     directories
@@ -44,19 +48,13 @@ def calculate_multiple(atom_dicts, workdirs, calc_mods=None, spec_qad=None):
             its current children to the new FireWorks)
     '''
     firework_detours = []
-    if calc_mods is None:
-        calc_mods = {}
     if spec_qad is None:
         spec_qad = {}
     for i, cell in enumerate(atom_dicts):
-        for key, val in calc_mods.items():
-            if key in cell:
-                cell[key] = val
-            else:
-                cell['calculator_parameters'][key] = val
-        task = PyTask({"func": calculate.name,
-                       "args": [cell, workdirs[i], "calc_atoms"]})
+        task = PyTask({"func": fw.calculate.name,
+                       "args": [workdirs[i], out_spec, cell, calculator]})
         firework_detours.append(Firework(task, name=f"calc_{i}", spec=spec_qad))
     return FWAction(detours=firework_detours)
 
+calculate.name = f'{module_name}.{calculate.__name__}'
 calculate_multiple.name = f'{module_name}.{calculate_multiple.__name__}'

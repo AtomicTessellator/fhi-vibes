@@ -109,8 +109,7 @@ def schema_update(sql):
                   'SERIAL PRIMARY KEY')]:
         sql = sql.replace(a, b)
 
-    arrays_1D = ['numbers',
-                 'initial_magmoms',
+    arrays_1D = ['initial_magmoms',
                  'initial_charges',
                  'masses',
                  'tags',

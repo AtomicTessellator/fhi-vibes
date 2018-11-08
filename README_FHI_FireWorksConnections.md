@@ -11,7 +11,9 @@
   	* Accessible from the mpcdf clusters only
   	* To access from your local machine use an ssh tunnel
   	  * ssh -f -N -L local_port:VM_Host:port_on_VM username@mpcdf_cluster_host
-  	  * Example: ssh -f -N -L 27017:tpfwdb.esc.rzg.mpg.de:27017 tpurcell@draco.mpcdf.mpg.de
+      * Example: ssh -f -N -L 27017:tpfwdb.esc.rzg.mpg.de:27017 tpurcell@draco.mpcdf.mpg.de
+  	  * Example: ssh -f -N -L 5432:tpfwdb.esc.rzg.mpg.de:5432 tpurcell@draco.mpcdf.mpg.de
+
 * Setting up passwordless login to mpcdf clusters on FHI laptops
   * Kerberos client setup
   	* setup instructions: https://www.mpcdf.mpg.de/services/desktop-support/configuring-your-pc
@@ -22,11 +24,27 @@
 		  	* openafs-krb5
 		  	* libpam-krb5
 		  	* libpam-afs-session
-  		* Add: ipp-garching.mpg.de mpcdf.mpg.de to CellAlias file
+        * once krb5-kds is installed and the /etc/krb5.conf file is updated run kdb5_util create -s
+          then run sudo dpkg-reconfigure krb5-kdc
+      * Add: ipp-garching.mpg.de mpcdf.mpg.de to CellAlias file
   		* PAM set up is optional
   * Initializing token
-  	* kinit username@IPP-GARCHING.MPG.DE
+  	* kinit username@IPP-GARCHING.MPG.DE may ask for a password here, if no keychain is used
   	* connection should now be passwordless
+
+* Connecting to the clusters via FireWorks
+  * Need fabric 2 and paramiko for remote connections to work
+  * Need python-gssapi package to connect with Kerberos (NOT gssapi package)
+    * If you are not using a Linux Machine this maybe different
   * Giving hostnames to FireWorks
   	* Always give full name so not draco.mpcdf.mpg.de but draco01.mpcdf.mpg.de
+
+* PostgreSQL Server:
+  * VM Machine credentials
+    * username: postgres
+    * password: HiLDe_DB
+  * DB Credentials:
+    * user: hilde
+    * password: hilde
+    * database: phonopy_db
 

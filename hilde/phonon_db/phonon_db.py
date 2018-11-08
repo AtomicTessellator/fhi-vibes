@@ -210,7 +210,7 @@ class PhononDatabase(Database):
     #     check(key_value_pairs)
     #     return 1
 
-    def get_phonon(self, selection=None, **kwarg):
+    def get_phonon(self, symprec, selection=None, **kwarg):
         '''
         Gets a phonopy object from a database row
         Args:
@@ -220,7 +220,7 @@ class PhononDatabase(Database):
             the phonopy object of the row
         '''
         row = self.get(selection, **kwarg)
-        return row.to_phonon()
+        return row.to_phonon(symprec)
 
     @parallel_function
     @lock

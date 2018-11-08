@@ -16,13 +16,16 @@ def setup_aims(custom_settings={}, workdir=None):
 
     """
     try:
+        command = custom_settings['aims_command']
+        species_dir = custom_settings['species_dir'] + "/" + custom_settings['species_type']
+        del(custom_settings['species_dir'])
+        del(custom_settings['species_type'])
+    except:
         settings = Settings('../../hilde.cfg')
         command = settings.machine.aims_command
         species_dir = Path(settings.machine.basissetloc) / custom_settings['species_type']
         del(custom_settings['species_type'])
-    except:
-        command = custom_settings['aims_command']
-        species_dir = custom_settings['species_dir']
+
     default_settings = {
         'aims_command': command,
         'outfilename' : "aims.out",
