@@ -9,6 +9,9 @@
 and edit according to system.
 
 **New Features**
+* Watchdogs:
+  * supervise e.g. an MD to estimate when the walltime will be reached.
+    Example in `examples/md/md_with_watchdog.ipynb`
 * Wrapper for `phono3py`
   * Preprocess and re-creation of Phono3py objects from precomputed force
   constants, see examples

@@ -4,7 +4,7 @@ from time import time
 
 
 class WallTimeWatchdog:
-    def __init__(self, walltime, history=5, buffer=5):
+    def __init__(self, walltime, history=10, buffer=5):
         """ Watchdog that controls the walltime everytime it is called
 
         Args:
@@ -16,6 +16,7 @@ class WallTimeWatchdog:
         """
 
         self.buffer = buffer
+        self.start_time = time()
         self.walltime = walltime + time()
         self.history = [time()]
 
@@ -28,17 +29,40 @@ class WallTimeWatchdog:
             bool: Are we approaching the walltime?
         """
 
-        hist = self.history
+        # update history
         self.history.append(time())
 
-        time_increment_per_step = (hist[-1] - hist[0]) / (len(hist) - 1)
+        # is sufficient time left?
+        time_is_up = time() + self.buffer_time > self.walltime
 
-        # delete last step
+        # delete last step from history
         if len(self.history) > self.max_depth:
             self.history = self.history[1:]
 
-        time_left = self.walltime - time()
+        # return information if time is up
+        return time_is_up
 
-        projected_time = time() + time_increment_per_step * self.buffer
+    @property
+    def increment_per_step(self):
+        """ compute increment per step based on history """
+        hist = self.history
 
-        return projected_time > self.walltime
+        if len(hist) < 2:
+            return 0
+
+        return (hist[-1] - hist[0]) / (len(hist) - 1)
+
+    @property
+    def time_left(self):
+        return self.walltime - time()
+
+    @property
+    def buffer_time(self):
+        """ approximate additional time the number of buffer steps would need """
+        return self.increment_per_step * self.buffer
+
+    @property
+    def elapsed(self):
+        """ Return elapsed time since start """
+        return time() - self.start_time
+
