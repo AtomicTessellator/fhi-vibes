@@ -1,4 +1,4 @@
-from hilde.helpers.config import ClassDict, ConfigDict
+from hilde.helpers.config import AttributeDict, ConfigDict
 from hilde.helpers.hash import hashfunc
 
 class Settings(ConfigDict):
@@ -13,7 +13,7 @@ class Settings(ConfigDict):
         handler_setup = {**self.machine, **self.watchdog, **self.database, 'k_grid': self.dft.k_grid}
         if choose:
             handler_setup = {**handler_setup, **self[choose]}
-        return ClassDict(handler_setup)
+        return AttributeDict(handler_setup)
 
     def print(self):
         print(self.get_string())

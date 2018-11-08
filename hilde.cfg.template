@@ -1,4 +1,4 @@
-# Task Settings:
+# Task Settings
 [DEFAULT]
 
 # System specific stuff
@@ -7,25 +7,34 @@ verbose = True
 home_dir = /some/path/to/hilde
 
 [machine]
- aimsbin:          /some/path/to/FHIaims/bin/aims.x
- basissetloc:      /some/path/to/FHIaims/aimsfiles/species_defaults
- aflowbin:         /some/path/to/bin/aflow
- pythonbin:        python3.6
- machine:          local
- mpi_command:      orterun -n
- queue:            express
- omp_queue:        short
- multiproc:        1
- nodes:            4
- aims_command:     ${mpi_command} ${nodes} ${aimsbin}
- email :           None
+ aimsbin =          /some/path/to/FHIaims/bin/aims.x
+ basissetloc =      /some/path/to/FHIaims/aimsfiles/species_defaults
+ pythonbin =        python3.7
+ mpi_command =      orterun
+ aims_command =     ${mpi_command} ${aimsbin}
+ outfilename =      aims.out
 
 [database]
- location:     ${common:home_dir}/examples/phonon_db
- name:         test.db
+ location =      ${common:home_dir}/examples/phonon_db
+ name =          test.db
+ 
+# information to build a default control.in
+[basisset]
+type = light
 
-# Default structure
-[structure]
- geometry = ${common:home_dir}/hilde/test/geometry.in
- symprec: 1e-5
- use_conventional: False
+[control]
+xc =             pw-lda
+relativistic =   atomic_zora scalar
+k_grid =         [2, 2, 2]
+output_level =   MD_light
+
+# this if for ase, no need to adjust
+[ase_settings]
+# for the control.in
+xc =           ${control:xc}
+relativistic = ${control:relativistic}
+k_grid =       ${control:k_grid}
+output_level = ${control:output_level}
+# to run the job
+aims_command = ${machine:aims_command}
+species_dir =  ${machine:basissetloc}/${basisset:type}

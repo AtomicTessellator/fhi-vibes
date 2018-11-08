@@ -9,6 +9,9 @@
 and edit according to system.
 
 **New Features**
+* Watchdogs:
+  * supervise e.g. an MD to estimate when the walltime will be reached.
+    Example in `examples/md/md_with_watchdog.ipynb`
 * Wrapper for `phono3py`
   * Preprocess and re-creation of Phono3py objects from precomputed force
   constants, see examples
@@ -35,6 +38,7 @@ and edit according to system.
 * FireWorks integration
   * Functions that can be used with PyTask to use FireWorks as a job manager
   * Jobs can now be submitted to the queue from a local machine and have the results processed locally
+
 **Setup of Docker Images to Speed Up Testing**
 ```
 mkdir -p docker

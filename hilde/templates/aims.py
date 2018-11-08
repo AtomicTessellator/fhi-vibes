@@ -4,41 +4,38 @@ from pathlib import Path
 from ase.calculators.aims import Aims
 from hilde.settings import Settings
 
-def setup_aims(custom_settings={}, workdir=None):
+
+def setup_aims(
+    port=None, custom_settings={}, workdir=None, config_file="../../hilde.cfg"
+):
     """Set up an aims calculator.
 
     Args:
         custom_settings (dict): Settings that replace the minimal defaults
         workdir (str): directory to work in
+        config_file (str): path to config file
 
     Returns:
         Aims: ASE calculator object
 
     """
-    try:
-        command = custom_settings['aims_command']
-        species_dir = custom_settings['species_dir'] + "/" + custom_settings['species_type']
-        del(custom_settings['species_dir'])
-        del(custom_settings['species_type'])
-    except:
-        settings = Settings('../../hilde.cfg')
-        command = settings.machine.aims_command
-        species_dir = Path(settings.machine.basissetloc) / custom_settings['species_type']
-        del(custom_settings['species_type'])
 
-    default_settings = {
-        'aims_command': command,
-        'outfilename' : "aims.out",
-        'species_dir': str(species_dir),
-        'output_level': 'MD_light',
-        'relativistic': 'atomic_zora scalar',
-        'xc': 'pw-lda',
-        'k_grid': 3 * [2],
-    }
+    settings = Settings(config_file)
+    # Check if basisset type is supposed to be changed by custom settings
+    if "species_type" in custom_settings:
+        species_type = custom_settings["species_type"]
+        species_dir = str(Path(settings.machine.basissetloc) / species_type)
+        custom_settings["species_dir"] = species_dir
+        del (custom_settings["species_type"])
+
+    default_settings = settings.ase_settings
+
+    if port is not None:
+        custom_settings.update({"use_pimd_wrapper": ("localhost", port)})
+
     aims_settings = {**default_settings, **custom_settings}
 
     if workdir:
-        return Aims(label=Path(workdir).absolute(),
-                    **aims_settings)
+        return Aims(label=Path(workdir).absolute(), **aims_settings)
     else:
         return Aims(**aims_settings)
