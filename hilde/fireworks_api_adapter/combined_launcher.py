@@ -174,12 +174,7 @@ def rapidfire(launchpad,
                         block_dir = create_datestamp_dir(launch_dir, l_logger)
                 return_code = None
                 # launch a single job
-                if fw_ids:
-                    fw_id = fw_ids[num_launched]
-                elif wflow_id:
-                    wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
-                    nlaunches = len(wflow.fws)
-                    fw_ids = get_ordred_fw_ids(wflow)
+                if fw_ids or wflow_id:
                     fw_id = fw_ids[num_launched]
                 else:
                     fw_id = launchpad._get_a_fw_to_run(fworker.query, fw_id=None).fw_id
@@ -199,6 +194,10 @@ def rapidfire(launchpad,
                     kwargs['fw_id'] = fw_id
                 print(fw_id, fw_ids)
                 return_code = rlaunch(*args, **kwargs)
+                if wflow_id:
+                    wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+                    nlaunches = len(wflow.fws)
+                    fw_ids = get_ordred_fw_ids(wflow)
                 if use_queue:
                     num_launched += 1
                 elif return_code is None:

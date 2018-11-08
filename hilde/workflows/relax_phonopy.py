@@ -125,7 +125,7 @@ def gen_relax_fw(atoms,
         inputs_calc.append(in_atoms_spec)
     else:
         args_calc.append(atoms)
-    kwargs_to_db = {"fw_name": name, "original_atoms_hash": atoms_hash, "calc_hash": calc_hash}
+    kwargs_to_db = {"fw_name": name, "original_atoms_hash": atoms_hash}
     if up_calc_from_db:
         inputs_calc.append("calculator")
         task_list.append(PyTask({"func": fw.mod_calc.name,

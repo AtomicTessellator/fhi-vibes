@@ -38,31 +38,31 @@ class LaunchPadHilde(LaunchPad):
 
     def clean_up_wflow(self, name):
         '''Cleans up the launchpad (removes instances of a Workflow) from the LaunchPad'''
-        try:
-            query = {"name": name, "state": "COMPLETED"}
-            wf_ids = self.get_wf_ids(query=query, limit=100)
-            for wf_id in wf_ids:
-                self.delete_wf(wf_id)
-        except:
-            pass
-        try:
-            query = {"name": name, "state": "FIZZLED"}
-            wf_ids = self.get_wf_ids(query=query, limit=100)
-            for wf_id in wf_ids:
-                self.delete_wf(wf_id)
-        except:
-            pass
-        try:
-            query = {"name": name, "state": "READY"}
-            wf_ids = self.get_wf_ids(query=query, limit=100)
-            for wf_id in wf_ids:
-                self.delete_wf(wf_id)
-        except:
-            pass
-        try:
-            query = {"name": name, "state": "RESERVED"}
-            wf_ids = self.get_wf_ids(query=query, limit=100)
-            for wf_id in wf_ids:
-                self.delete_wf(wf_id)
-        except:
-            pass
+        # try:
+        #     query = {"name": name, "state": "COMPLETED"}
+        #     wf_ids = self.get_wf_ids(query=query, limit=100)
+        #     for wf_id in wf_ids:
+        #         self.delete_wf(wf_id)
+        # except:
+        #     pass
+        # try:
+        #     query = {"name": name, "state": "FIZZLED"}
+        #     wf_ids = self.get_wf_ids(query=query, limit=100)
+        #     for wf_id in wf_ids:
+        #         self.delete_wf(wf_id)
+        # except:
+        #     pass
+        # try:
+        #     query = {"name": name, "state": "READY"}
+        #     wf_ids = self.get_wf_ids(query=query, limit=100)
+        #     for wf_id in wf_ids:
+        #         self.delete_wf(wf_id)
+        # except:
+        #     pass
+        # try:
+        #     query = {"name": name, "state": "RESERVED"}
+        #     wf_ids = self.get_wf_ids(query=query, limit=100)
+        #     for wf_id in wf_ids:
+        #         self.delete_wf(wf_id)
+        # except:
+        #     pass

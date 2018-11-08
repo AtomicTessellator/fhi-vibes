@@ -53,7 +53,7 @@ if args.remote_command:
 # Get aims settings
 atoms = read_structure(args.geometry)
 atoms_hash, _ = hash_atoms(atoms)
-smatrix = get_smatrix(atoms, n_target=64)
+smatrix = get_smatrix(atoms, n_target=8)
 launchpad = LaunchPadHilde()
 # Clean up launchpad
 launchpad.clean_up_wflow(f"{atoms.get_chemical_formula()}_{atoms_hash}")
@@ -63,19 +63,18 @@ wf = gen_relax_phonopy_wf(args.geometry,
                           "postgresql://hilde:hilde@localhost:5432/phonopy_db",
                           f"{atoms.get_chemical_formula()}_{atoms_hash}",
                           args.workdir,
-                          "atoms_cur",
                           smatrix,
                           kgrid_conv=aims_kgrid_conv_settings,
                           relax_light=aims_relax_settings_light,
                           relax_tight=aims_relax_settings_tight,
                           force_calc=aims_force_settings,
-                          spec_qad_kgrid={"_queueadapter": {"walltime": "00:10:00"}},
-                          spec_qad_relax={"_queueadapter": {"walltime": "00:10:00"}},
-                          spec_qad_forces={"_queueadapter": {"nodes": 3, "walltime": "00:10:00"}})
+                          spec_qad_kgrid={"_queueadapter": {"walltime": "00:02:00"}},
+                          spec_qad_relax={"_queueadapter": {"walltime": "00:02:00"}},
+                          spec_qad_forces={"_queueadapter": {"walltime": "00:03:00"}})
 
 launchpad.add_wf(wf)
 rapidfire(launchpad, launch_dir='.', nlaunches=0, njobs_queue=250, wflow=wf, njobs_block=500,
-          sleep_time=None, reserve=True, remote_host=args.remote_host,
+          sleep_time=15, reserve=True, remote_host=args.remote_host,
           remote_user=args.remote_user, remote_password=args.remote_password,
           remote_config_dir=["/u/tpurcell/git/hilde/examples/fireworks"],
           gss_auth=not args.no_kerberos)

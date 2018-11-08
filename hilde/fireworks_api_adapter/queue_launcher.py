@@ -87,7 +87,6 @@ def rapidfire(launchpad,
                 nlaunches = len(wflow.fws)
                 fw_ids = get_ordred_fw_ids(wflow)
             while(launchpad.run_exists(fworker, ids=fw_ids) or(fill_mode and not reserve)):
-
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
                     l_logger.info("Timeout reached.")
                     break
@@ -106,14 +105,7 @@ def rapidfire(launchpad,
                     block_dir = create_datestamp_dir(launch_dir, l_logger)
                 return_code = None
                 # launch a single job
-                if fw_ids:
-                    return_code = launch_rocket_to_queue(launchpad, fworker, qadapter, block_dir,
-                                                         reserve, strm_lvl, True, fill_mode,
-                                                         fw_ids[num_launched])
-                elif wflow_id:
-                    wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
-                    nlaunches = len(wflow.fws)
-                    fw_ids = get_ordred_fw_ids(wflow)
+                if fw_ids or wflow_id:
                     return_code = launch_rocket_to_queue(launchpad, fworker, qadapter, block_dir,
                                                          reserve, strm_lvl, True, fill_mode,
                                                          fw_ids[num_launched])
@@ -125,6 +117,11 @@ def rapidfire(launchpad,
                     break
                 elif not return_code:
                     raise RuntimeError("Launch unsuccessful!")
+
+                if wflow_id:
+                    wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+                    nlaunches = len(wflow.fws)
+                    fw_ids = get_ordred_fw_ids(wflow)
                 num_launched += 1
                 if nlaunches > 0 and num_launched == nlaunches:
                     l_logger.info('Launched allowed number of '
@@ -140,8 +137,8 @@ def rapidfire(launchpad,
                     jobs_in_queue = _get_number_of_jobs_in_queue(qadapter, njobs_queue, l_logger)
 
             if (nlaunches > 0 and num_launched == nlaunches) or \
-                    (timeout and (datetime.now() - start_time).total_seconds()
-                     >= timeout) or (nlaunches == 0 and not launchpad.future_run_exists(fworker)):
+                    (timeout and (datetime.now() - start_time).total_seconds() >= timeout) or \
+                    (nlaunches == 0 and not launchpad.future_run_exists(fworker, ids=fw_ids)):
                 break
 
             l_logger.info('Finished a round of launches, sleeping for {} secs'.format(sleep_time))

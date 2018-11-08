@@ -31,6 +31,11 @@
   * Initializing token
   	* kinit username@IPP-GARCHING.MPG.DE may ask for a password here, if no keychain is used
   	* connection should now be passwordless
+
+* Connecting to the clusters via FireWorks
+  * Need fabric 2 and paramiko for remote connections to work
+  * Need python-gssapi package to connect with Kerberos (NOT gssapi package)
+    * If you are not using a Linux Machine this maybe different
   * Giving hostnames to FireWorks
   	* Always give full name so not draco.mpcdf.mpg.de but draco01.mpcdf.mpg.de
 

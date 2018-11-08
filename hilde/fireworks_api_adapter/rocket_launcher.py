@@ -66,19 +66,13 @@ def rapidfire(launchpad, fworker=None, m_dir=None, nlaunches=0, max_loops=-1,
             nlaunches = len(wflow.fws)
             fw_ids = get_ordred_fw_ids(wflow)
         while (skip_check or launchpad.run_exists(fworker, ids=fw_ids)) and time_ok():
+            print("start")
             os.chdir(curdir)
             launcher_dir = create_datestamp_dir(curdir, l_logger, prefix='launcher_')
             os.chdir(launcher_dir)
             if local_redirect:
                 with redirect_local():
-                    if fw_ids:
-                        rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
-                                                   pdb_on_exception=pdb_on_exception,
-                                                   fw_id=fw_ids[num_launched])
-                    elif wflow:
-                        wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
-                        nlaunches = len(wflow.fws)
-                        fw_ids = get_ordred_fw_ids(wflow)
+                    if fw_ids or wflow_id:
                         rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                    pdb_on_exception=pdb_on_exception,
                                                    fw_id=fw_ids[num_launched])
@@ -86,21 +80,17 @@ def rapidfire(launchpad, fworker=None, m_dir=None, nlaunches=0, max_loops=-1,
                         rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                    pdb_on_exception=pdb_on_exception)
             else:
-                if fw_ids:
-                    rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
-                                               pdb_on_exception=pdb_on_exception,
-                                               fw_id=fw_ids[num_launched])
-                elif wflow:
-                    wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
-                    nlaunches = len(wflow.fws)
-                    fw_ids = get_ordred_fw_ids(wflow)
+                if fw_ids or wflow_id:
                     rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                pdb_on_exception=pdb_on_exception,
                                                fw_id=fw_ids[num_launched])
                 else:
                     rocket_ran = launch_rocket(launchpad, fworker, strm_lvl=strm_lvl,
                                                pdb_on_exception=pdb_on_exception)
-
+            if wflow_id:
+                wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+                nlaunches = len(wflow.fws)
+                fw_ids = get_ordred_fw_ids(wflow)
             if rocket_ran:
                 num_launched += 1
             elif not os.listdir(launcher_dir):
@@ -116,11 +106,13 @@ def rapidfire(launchpad, fworker=None, m_dir=None, nlaunches=0, max_loops=-1,
                 # dynamic WF
                 time.sleep(0.15)
                 skip_check = False
+            print("end_1", fw_ids, skip_check, launchpad.run_exists(fworker, ids=fw_ids))
         if nlaunches == 0:
-            if not launchpad.future_run_exists(fworker):
+            if not launchpad.future_run_exists(fworker, ids=fw_ids):
                 break
         elif num_launched == nlaunches:
             break
+        print("end_2")
         log_multi(l_logger, 'Sleeping for {} secs'.format(sleep_time))
         time.sleep(sleep_time)
         num_loops += 1
