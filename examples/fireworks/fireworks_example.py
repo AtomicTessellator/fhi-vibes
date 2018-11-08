@@ -3,18 +3,16 @@ import os
 from ase.build import bulk
 from ase.calculators.emt import EMT
 
-from hilde.fireworks_api_adapter.launchpad import LaunchPad_hilde
+from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.fireworks_api_adapter.rocket_launcher import rapidfire
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.paths import cwd
-from hilde.helpers.utility_functions import get_smatrix, setup_workdir
+from hilde.helpers.utility_functions import get_smatrix
 from hilde.phonon_db.phonon_db import connect
-from hilde.structure.structure import pAtoms, patoms2dict, calc2dict
-from hilde.tasks import fireworks as fw
+from hilde.structure.structure import pAtoms
 from hilde.workflows.relax_phonopy import gen_initialize_phonopy_fw, gen_analyze_phonopy_fw
 
-from fireworks import Firework, PyTask, Workflow
-from fireworks.core.rocket_launcher import launch_rocket
+from fireworks import Workflow
 
 db_name = (os.getcwd() + '/test.db')
 print(f'database: {db_name}')
@@ -32,29 +30,8 @@ has_fc = False
 found = False
 
 # set up the LaunchPad and reset it
-launchpad = LaunchPad_hilde()
-try:
-    query = {"name": "Ex_WF_Ni", "state": "COMPLETED"}
-    wf_ids = launchpad.get_wf_ids(query=query, limit=100)
-    for wf_id in wf_ids:
-        launchpad.delete_wf(wf_id)
-except:
-  pass
-try:
-    query = {"name": "Ex_WF_Ni", "state": "FIZZLED"}
-    wf_ids = launchpad.get_wf_ids(query=query, limit=100)
-    for wf_id in wf_ids:
-        launchpad.delete_wf(wf_id)
-except:
-    pass
-try:
-    query = {"name": "Ex_WF_Ni", "state": "READY"}
-    wf_ids = launchpad.get_wf_ids(query=query, limit=100)
-    for wf_id in wf_ids:
-        launchpad.delete_wf(wf_id)
-except:
-    pass
-
+launchpad = LaunchPadHilde()
+launchpad.clean_up_wflow("Ex_WF_Ni")
 fw_get_forces = gen_initialize_phonopy_fw(atoms,
                                           smatrix,
                                           workdir,
@@ -63,8 +40,7 @@ fw_get_forces = gen_initialize_phonopy_fw(atoms,
                                           name="ex_Ni_get_force")
 fw_analyze = gen_analyze_phonopy_fw(atoms,
                                     db_name,
-                                    smatrix,
-                                    workdir)
+                                    smatrix)
 
 workflow = Workflow([fw_get_forces, fw_analyze], {fw_get_forces: fw_analyze},
                     name="Ex_WF_Ni")

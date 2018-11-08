@@ -1,3 +1,4 @@
+'''Used to combine a queue and rocket launcher based on which FireTasks are in a WorkFlow'''
 import os
 import glob
 import time
@@ -12,7 +13,8 @@ from fireworks.fw_config import SUBMIT_SCRIPT_NAME, ALWAYS_CREATE_NEW_BLOCK, QUE
 from fireworks.queue.queue_launcher import launch_rocket_to_queue, _njobs_in_dir, \
     _get_number_of_jobs_in_queue, setup_offline_job
 from fireworks.utilities.fw_serializers import load_object
-from fireworks.utilities.fw_utilities import get_fw_logger, log_exception, create_datestamp_dir, get_slug
+from fireworks.utilities.fw_utilities import (get_fw_logger, log_exception, create_datestamp_dir,
+                                              get_slug)
 
 from hilde.fireworks_api_adapter.qlaunch_remote import qlaunch_remote
 from hilde.tasks import fireworks as fw
@@ -28,17 +30,34 @@ def get_ordred_fw_ids(wflow):
                 fw_ids_ordered.append(parent)
     return fw_ids_ordered[::-1]
 
-def use_queue_launch(fw, tasks2queue):
-    for task in fw.spec["_tasks"]:
+def use_queue_launch(fire_work, tasks2queue):
+    '''Determines if a particular FireWork should be ran on a cluster'''
+    for task in fire_work.spec["_tasks"]:
         if task["func"] in tasks2queue:
             return True
     return False
 
-def rapidfire(launchpad, fworker=None, qadapter=None, launch_dir='.', nlaunches=0, njobs_queue=0,
-              njobs_block=500, sleep_time=None, reserve=False, strm_lvl='INFO', timeout=None,
-              fill_mode=False, fw_ids=None, wflow=None, tasks2queue=[fw.calculate.name],
-              gss_auth=True, remote_host='localhost', remote_config_dir=['~/.fireworks'],
-              remote_user=None, remote_password=None, remote_shell='/bin/bash -l -c', daemon=0):
+def rapidfire(launchpad,
+              fworker=None,
+              qadapter=None,
+              launch_dir='.',
+              nlaunches=0,
+              njobs_queue=0,
+              njobs_block=500,
+              sleep_time=None,
+              reserve=False,
+              strm_lvl='INFO',
+              timeout=None,
+              fill_mode=False,
+              fw_ids=None,
+              wflow=None,
+              tasks2queue=None,
+              gss_auth=True,
+              remote_host='localhost',
+              remote_config_dir=None,
+              remote_user=None,
+              remote_password=None,
+              remote_shell='/bin/bash -l -c', daemon=0):
     """
     Submit many jobs to the queue.
 
@@ -49,8 +68,10 @@ def rapidfire(launchpad, fworker=None, qadapter=None, launch_dir='.', nlaunches=
         wflow (WorkFlow): the workflow this qlauncher is supposed to run
         launch_dir (str): directory where we want to write the blocks
         nlaunches (int): total number of launches desired; "infinite" for loop, 0 for one round
-        njobs_queue (int): stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit
-        njobs_block (int): automatically write a new block when njobs_block jobs are in a single block
+        njobs_queue (int): stops submitting jobs when njobs_queue jobs are in the queue, 0 for
+                           no limit
+        njobs_block (int): automatically write a new block when njobs_block jobs are in a
+                           single block
         sleep_time (int): secs to sleep between rapidfire loop iterations
         reserve (bool): Whether to queue in reservation mode
         strm_lvl (str): level at which to stream log messages
@@ -60,6 +81,10 @@ def rapidfire(launchpad, fworker=None, qadapter=None, launch_dir='.', nlaunches=
         fw_ids(list of ints): a list fw_ids to launch (len(fw_ids) == nlaunches)
         wflow_id(list of ints): a list fw_ids that are a root of the workflow
     """
+    if tasks2queue is None:
+        tasks2queue = [fw.calculate.name]
+    if remote_config_dir is None:
+        remote_config_dir = ['~/.fireworks']
     r_args = [launchpad]
     r_kwargs = {"fworker": fworker, "strm_lvl": strm_lvl, "pdb_on_exception": False}
     if wflow:
@@ -68,7 +93,8 @@ def rapidfire(launchpad, fworker=None, qadapter=None, launch_dir='.', nlaunches=
         qlaunch = launch_rocket_to_queue
         remote = False
         if not fworker or not qadapter:
-            raise AttributeError("For a direct launch_rocket_to_queue fworker and qadapter need to be specified")
+            raise AttributeError("For a direct launch_rocket_to_queue fworker and qadapter " +
+                                 "need to be specified")
         q_args = [launchpad, fworker, qadapter]
         q_kwargs = {"launcher_dir": launch_dir, "reserve": reserve, "strm_lvl": strm_lvl,
                     "create_launcher_dir": True, "fill_mode": fill_mode}

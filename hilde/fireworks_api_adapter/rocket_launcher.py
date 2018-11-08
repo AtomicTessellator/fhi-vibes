@@ -1,20 +1,15 @@
+"""This module contains a modified rapid-fire mode."""
 # coding: utf-8
-
 from __future__ import unicode_literals
-
-"""
-This module contains methods for launching Rockets, both singly and in rapid-fire mode.
-"""
-
+from datetime import datetime
 import os
 import time
-from datetime import datetime
 
-from fireworks.fw_config import RAPIDFIRE_SLEEP_SECS, FWORKER_LOC
-from fireworks.core.fworker import FWorker
-from fireworks.core.rocket import Rocket
+
+from fireworks.fw_config import RAPIDFIRE_SLEEP_SECS
 from fireworks.core.rocket_launcher import launch_rocket, get_fworker
-from fireworks.utilities.fw_utilities import get_fw_logger, create_datestamp_dir, log_multi, redirect_local
+from fireworks.utilities.fw_utilities import (get_fw_logger, create_datestamp_dir, log_multi,
+                                              redirect_local)
 
 from .combined_launcher import get_ordred_fw_ids
 
@@ -117,7 +112,8 @@ def rapidfire(launchpad, fworker=None, m_dir=None, nlaunches=0, max_loops=-1,
             if launchpad.run_exists(fworker, ids=fw_ids):
                 skip_check = True  # don't wait, pull the next FW right away
             else:
-                # add a small amount of buffer breathing time for DB to refresh in case we have a dynamic WF
+                # add a small amount of buffer breathing time for DB to refresh in case we have a
+                # dynamic WF
                 time.sleep(0.15)
                 skip_check = False
         if nlaunches == 0:

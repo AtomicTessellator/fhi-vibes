@@ -1,3 +1,4 @@
+'''Python API for qlaunch to connect to remote hosts'''
 import os
 import sys
 import time
@@ -38,6 +39,7 @@ def qlaunch_remote(command,
                    nlaunches=None,
                    sleep=None,
                    fw_ids=None,
+                   fw_id=None,
                    wflow=None,
                    silencer=False,
                    reserve=False,
@@ -45,7 +47,7 @@ def qlaunch_remote(command,
                    loglvl=None,
                    gss_auth=True,
                    remote_host='localhost',
-                   remote_config_dir=['~/.fireworks'],
+                   remote_config_dir=None,
                    remote_user=None,
                    remote_password=None,
                    remote_shell='/bin/bash -l -c',
@@ -91,7 +93,8 @@ def qlaunch_remote(command,
     if not HAS_FABRIC:
         print("Remote options require the Fabric package v2+ to be installed!")
         sys.exit(-1)
-
+    if remote_config_dir is None:
+        remote_config_dir = ['~/.fireworks']
     non_default = []
     convert_input_to_param("launch_dir", launcher_dir, non_default)
     convert_input_to_param("loglvl", loglvl, non_default)
@@ -102,12 +105,12 @@ def qlaunch_remote(command,
         convert_input_to_param("sleep", sleep, non_default)
         if fw_ids:
             non_default.append("--{} {}".format("firework_ids", fw_ids[0]))
-            for fw in fw_ids[1:]:
-                non_default[-1] += " {}".format(fw)
+            for fire_work in fw_ids[1:]:
+                non_default[-1] += " {}".format(fire_work)
         if wflow:
             non_default.append("--{} {}".format("wflow", wflow.root_fw_ids[0]))
-            for fw in wflow.root_fw_ids[1:]:
-                non_default[-1] += " {}".format(fw)
+            for fire_work in wflow.root_fw_ids[1:]:
+                non_default[-1] += " {}".format(fire_work)
     else:
         convert_input_to_param("fw_id", fw_id, non_default)
     non_default = " ".join(non_default)
@@ -118,19 +121,18 @@ def qlaunch_remote(command,
     if reserve:
         pre_non_default.append("--reserve")
     pre_non_default = " ".join(pre_non_default)
-    print("qlaunch_hilde {} {} {}".format(pre_non_default, command, non_default))
+    print(f"qlaunch_hilde {pre_non_default} {command} {non_default}")
     interval = daemon
     while True:
-        for h in remote_host:
-            with fabric.Connection(
-                    host=h,
-                    user=remote_user,
-                    config=fabric.Config({'run': {'shell': remote_shell}}),
-                    connect_kwargs={'password': remote_password,
-                                    "gss_auth": gss_auth}) as conn:
-                for r in remote_config_dir:
-                    r = os.path.expanduser(r)
-                    with conn.cd(r):
+        for host in remote_host:
+            with fabric.Connection(host=host,
+                                   user=remote_user,
+                                   config=fabric.Config({'run': {'shell': remote_shell}}),
+                                   connect_kwargs={'password': remote_password,
+                                                   "gss_auth": gss_auth}) as conn:
+                for remote in remote_config_dir:
+                    remote = os.path.expanduser(remote)
+                    with conn.cd(remote):
                         conn.run("qlaunch_hilde {} {} {}".format(
                             pre_non_default, command, non_default))
         if interval > 0:

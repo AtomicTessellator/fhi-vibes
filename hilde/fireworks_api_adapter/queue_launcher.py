@@ -1,17 +1,14 @@
+'''A modified version of queue launcher to allow for a rapidfire over a single Workflow'''
 import os
 import glob
 import time
 from datetime import datetime
 
-from monty.os import cd, makedirs_p
-
-from fireworks.core.fworker import FWorker
-from fireworks.fw_config import SUBMIT_SCRIPT_NAME, ALWAYS_CREATE_NEW_BLOCK, QUEUE_RETRY_ATTEMPTS, \
-    QUEUE_UPDATE_INTERVAL, QSTAT_FREQUENCY, RAPIDFIRE_SLEEP_SECS, QUEUE_JOBNAME_MAXLEN
-from fireworks.queue.queue_launcher import launch_rocket_to_queue, _njobs_in_dir, \
-    _get_number_of_jobs_in_queue, setup_offline_job
-from fireworks.utilities.fw_serializers import load_object
-from fireworks.utilities.fw_utilities import get_fw_logger, log_exception, create_datestamp_dir, get_slug
+from fireworks.fw_config import (ALWAYS_CREATE_NEW_BLOCK, QUEUE_UPDATE_INTERVAL, QSTAT_FREQUENCY,
+                                 RAPIDFIRE_SLEEP_SECS)
+from fireworks.queue.queue_launcher import (launch_rocket_to_queue, _njobs_in_dir,
+                                            _get_number_of_jobs_in_queue)
+from fireworks.utilities.fw_utilities import get_fw_logger, log_exception, create_datestamp_dir
 
 from .combined_launcher import get_ordred_fw_ids
 __author__ = 'Anubhav Jain, Michael Kocher, Modified by Thomas Purcell'
@@ -22,9 +19,20 @@ __email__ = 'ajain@lbl.gov'
 __date__ = 'Dec 12, 2012'
 
 
-def rapidfire(launchpad, fworker, qadapter, launch_dir='.', nlaunches=0, njobs_queue=0,
-              njobs_block=500, sleep_time=None, reserve=False, strm_lvl='INFO', timeout=None,
-              fill_mode=False, fw_ids=None, wflow_id=None):
+def rapidfire(launchpad,
+              fworker,
+              qadapter,
+              launch_dir='.',
+              nlaunches=0,
+              njobs_queue=0,
+              njobs_block=500,
+              sleep_time=None,
+              reserve=False,
+              strm_lvl='INFO',
+              timeout=None,
+              fill_mode=False,
+              fw_ids=None,
+              wflow_id=None):
     """
     Submit many jobs to the queue.
 
@@ -32,17 +40,18 @@ def rapidfire(launchpad, fworker, qadapter, launch_dir='.', nlaunches=0, njobs_q
         launchpad (LaunchPad)
         fworker (FWorker)
         qadapter (QueueAdapterBase)
-        wflow (WorkFlow): the workflow this qlauncher is supposed to run
         launch_dir (str): directory where we want to write the blocks
         nlaunches (int): total number of launches desired; "infinite" for loop, 0 for one round
-        njobs_queue (int): stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit
-        njobs_block (int): automatically write a new block when njobs_block jobs are in a single block
+        njobs_queue (int): stops submitting jobs when njobs_queue jobs are in the queue, 0 for no
+                           limit
+        njobs_block (int): automatically write a new block when njobs_block jobs are in a single
+                           block
         sleep_time (int): secs to sleep between rapidfire loop iterations
         reserve (bool): Whether to queue in reservation mode
         strm_lvl (str): level at which to stream log messages
         timeout (int): # of seconds after which to stop the rapidfire process
         fill_mode (bool): whether to submit jobs even when there is nothing to run (only in
-            non-reservation mode)
+                          non-reservation mode)
         fw_ids(list of ints): a list fw_ids to launch (len(fw_ids) == nlaunches)
         wflow_id(list of ints): a list fw_ids that are a root of the workflow
     """
@@ -77,8 +86,7 @@ def rapidfire(launchpad, fworker, qadapter, launch_dir='.', nlaunches=0, njobs_q
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
                 fw_ids = get_ordred_fw_ids(wflow)
-            while(launchpad.run_exists(fworker, ids=fw_ids) or
-                   (fill_mode and not reserve)):
+            while(launchpad.run_exists(fworker, ids=fw_ids) or(fill_mode and not reserve)):
 
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
                     l_logger.info("Timeout reached.")
