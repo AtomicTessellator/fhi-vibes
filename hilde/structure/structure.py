@@ -133,6 +133,7 @@ class pAtoms(Atoms):
     def copy(self):
         new_atoms = super().copy()
         new_atoms.spacegroup = copy(self.spacegroup)
+        new_atoms.symmetry_block = atoms.symmetry_block
         return new_atoms
 
     @property

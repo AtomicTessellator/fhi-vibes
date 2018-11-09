@@ -84,7 +84,8 @@ db_path = "postgresql://hilde:hilde@localhost:5432/phonopy_db"
 db = connect(db_path)
 phonon = db.get_phonon(1e-5, selection=[("supercell_matrix", "=", smatrix),
                                         ("original_atoms_hash", "=", atoms_hash),
-                                        ("has_fc", "=", True)])
+                                        ("has_fc", "=", True),
+                                        ("calc_type", "=", "phonons")])
 bands, labels = get_bands_and_labels(atoms)
 phonon.set_band_structure(bands)
 plt = phonon.plot_band_structure(labels=labels)
