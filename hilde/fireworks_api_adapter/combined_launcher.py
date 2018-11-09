@@ -25,7 +25,7 @@ def get_ordred_fw_ids(wflow):
     parent_links = wflow.links.parent_links
     for fw_id in fw_ids_ordered:
         parents = parent_links[fw_id] if fw_id in parent_links else []
-        for parent in parents[::-1]:
+        for parent in sorted(parents)[::-1]:
             if parent not in fw_ids_ordered:
                 fw_ids_ordered.append(parent)
     return fw_ids_ordered[::-1]

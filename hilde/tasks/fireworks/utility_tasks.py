@@ -95,7 +95,8 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict,symprec=1e-5, **kwargs):
         db = connect(db_path)
         selection = [("symprec", "=", symprec),
                      ("atoms_hash", "=", atoms_hash),
-                     ("calc_hash", "=", calc_hash)]
+                     ("calc_hash", "=", calc_hash),
+                     ("calc_type", "=", calc_type)]
         if (kwargs is not None) and ("original_atoms_hash" in kwargs):
             selection.append(("original_atoms_hash", "=", kwargs["original_atoms_hash"]))
         if (kwargs is not None) and ("supercell_matrix" in phonon_dict):

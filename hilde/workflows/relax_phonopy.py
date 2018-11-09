@@ -75,7 +75,7 @@ def gen_relax_fw(atoms,
                  workdir,
                  in_atoms_spec,
                  out_atoms_spec,
-                 db_label='relax'
+                 db_label='relax',
                  calc=None,
                  up_calc_from_db=None,
                  name="relax",
@@ -238,7 +238,7 @@ def gen_analyze_phonopy_fw(atoms,
                            db_name,
                            smatrix,
                            atoms_spec=None,
-                           db_label="phonons"
+                           db_label="phonons",
                            symprec=1e-5,
                            name="analyze_phono",
                            from_db=False):

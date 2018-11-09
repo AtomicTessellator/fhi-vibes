@@ -36,7 +36,6 @@ def setup_aims(
     if port is not None:
         custom_settings.update({"use_pimd_wrapper": ("localhost", port)})
     aims_settings = {**default_settings, **custom_settings}
-    print(default_settings['aims_command'], custom_settings['aims_command'], aims_settings['aims_command'])
 
     if workdir:
         return Aims(label=Path(workdir).absolute(), **aims_settings)
