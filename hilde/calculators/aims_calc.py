@@ -2,10 +2,10 @@ import os
 from ase.calculators.aims import Aims as ASEAims
 
 class Aims(ASEAims):
-	def __init__(self, *args, **kwargs):
-		super(Aims, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(Aims, self).__init__(*args, **kwargs)
 
-	def write_input(self, atoms, properties=None, system_changes=None,
+    def write_input(self, atoms, properties=None, system_changes=None,
                     ghosts=None, scaled=False):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
