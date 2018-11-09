@@ -14,8 +14,8 @@ all_tests:
     - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
     - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
     - $jtest $CI_PROJECT_DIR/examples/md/md.ipynb
-
-devel:
-  script:
     - python $CI_PROJECT_DIR/tests/hashes/hashes.py
+
+# devel:
+#   script:
 
