@@ -352,7 +352,6 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         decode = self.decode
 
         values = self._old2new(values)
-        print(type(values[5]))
         dct = {'id': values[0],
                'unique_id': values[1],
                'ctime': values[2],
