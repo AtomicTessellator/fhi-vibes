@@ -3,10 +3,9 @@
 
 import json
 from pathlib import Path
-# from ase.db.row import atoms2dict
+from ase.db.row import atoms2dict
 from ase.io.jsonio import MyEncoder
 from ase.calculators.calculator import all_properties
-from .input_exchange import patoms2dict as atoms2dict
 
 
 def get_json(obj):
@@ -26,7 +25,8 @@ def atoms2json(
 
     # remove unwanted keys from atomsdict
     for name in ignore_keys:
-        atomsdict.pop(name)
+        if name in atomsdict:
+            atomsdict.pop(name)
 
     calcdict = {}
 

@@ -16,7 +16,7 @@ def hashfunc(string, empty_str=""):
 def hash_atoms(
     atoms,
     ignore_results=True,
-    ignore_keys=["unique_id"],
+    ignore_keys=["unique_id", "info"],
     ignore_calc_params=[],
     ignore_file=None,
 ):
