@@ -9,11 +9,11 @@ all_tests:
   script:
     - $jtest $CI_PROJECT_DIR/examples/phonons/phonopy.ipynb
     - $jtest $CI_PROJECT_DIR/examples/phono3py/phono3py.ipynb
-      #    - python $CI_PROJECT_DIR/examples/fireworks/fireworks_example.py
     - python $CI_PROJECT_DIR/examples/hiphive/hiphive_al.py
     - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
     - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
     - $jtest $CI_PROJECT_DIR/examples/md/md.ipynb
+    - python $CI_PROJECT_DIR/tests/fireworks_test.py
     - python $CI_PROJECT_DIR/tests/hashes/hashes.py
 
 # devel:
