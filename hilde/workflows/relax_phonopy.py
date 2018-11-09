@@ -44,7 +44,7 @@ def gen_kgrid_conv_fw(atoms,
         A FireWork that will do a kgrid convergence for your system
     '''
     if calc is None:
-        calc = setup_aims(calc_settings)
+        calc = setup_aims(custom_settings=calc_settings)
     if not spec_qad:
         spec_qad = {}
     atoms.set_calculator(calc)
@@ -75,6 +75,7 @@ def gen_relax_fw(atoms,
                  workdir,
                  in_atoms_spec,
                  out_atoms_spec,
+                 db_label='relax'
                  calc=None,
                  up_calc_from_db=None,
                  name="relax",
@@ -94,6 +95,8 @@ def gen_relax_fw(atoms,
             spec for the FireWorks database (launchpad) where the input atoms should be obtained
         out_atoms_spec: str
             spec for the FireWorks database where the relaxed atoms will be stored
+        db_label: str
+            Label describing the calculation type
         calc: ase calculator
             The calculator that will be modified for the convergence
         up_calc_from_db: list of strs
@@ -111,7 +114,7 @@ def gen_relax_fw(atoms,
         A FireWork that will relax a structure with a given set of parameters
     '''
     if calc is None:
-        calc = setup_aims(calc_settings)
+        calc = setup_aims(custom_settings=calc_settings)
     if not spec_qad:
         spec_qad = {}
     atoms.set_calculator(calc)
@@ -125,7 +128,7 @@ def gen_relax_fw(atoms,
         inputs_calc.append(in_atoms_spec)
     else:
         args_calc.append(atoms)
-    kwargs_to_db = {"fw_name": name, "original_atoms_hash": atoms_hash}
+    kwargs_to_db = {"fw_name": name, "original_atoms_hash": atoms_hash,"calc_type": db_label}
     if up_calc_from_db:
         inputs_calc.append("calculator")
         task_list.append(PyTask({"func": fw.mod_calc.name,
@@ -193,7 +196,7 @@ def gen_initialize_phonopy_fw(atoms,
         the Workflow
     '''
     if calc is None:
-        calc = setup_aims(calc_settings)
+        calc = setup_aims(custom_settings=calc_settings)
     if not spec_qad:
         spec_qad = {}
     atoms.set_calculator(calc)
@@ -235,6 +238,7 @@ def gen_analyze_phonopy_fw(atoms,
                            db_name,
                            smatrix,
                            atoms_spec=None,
+                           db_label="phonons"
                            symprec=1e-5,
                            name="analyze_phono",
                            from_db=False):
@@ -249,6 +253,8 @@ def gen_analyze_phonopy_fw(atoms,
             The supercell matrix for the phonon calculations
         atoms_spec: str
             spec for the FireWorks database (launchpad) where the input atoms should be obtained
+        db_label: str
+            Label describing the calculation type
         symprec: float
             precision used to determine the symmetry in phonopy
         name: str:
@@ -271,7 +277,10 @@ def gen_analyze_phonopy_fw(atoms,
         args_to_db.append(atoms)
         inputs_fc = ["phonon_calcs"]
         inputs_to_db = ["phonon_dict"]
-    kwargs_to_db = {"symprec": symprec, "fw_name": name, "original_atoms_hash": atoms_hash}
+    kwargs_to_db = {"symprec": symprec,
+                    "fw_name": name,
+                    "original_atoms_hash": atoms_hash,
+                    "calc_type": db_label}
     task_list = []
     task_list.append(PyTask({"func": fw.calc_phonopy_force_constants.name,
                              "args": args_fc,
@@ -352,6 +361,7 @@ def gen_relax_phonopy_wf(geo_in_file,
                        workdir + "/light_relax/",
                        "kgrid_atoms",
                        "light_relax_atoms",
+                       db_label="light_relax",
                        up_calc_from_db=["k_grid"],
                        name=f"light_relax_{name}",
                        spec_qad=spec_qad_relax,
@@ -362,6 +372,7 @@ def gen_relax_phonopy_wf(geo_in_file,
                        workdir + "/tight_relax/",
                        "light_relax_atoms",
                        "tight_relax_atoms",
+                       db_label="tight_relax",
                        up_calc_from_db=["k_grid"],
                        name=f"tight_relax_{name}",
                        spec_qad=spec_qad_relax,
@@ -381,6 +392,7 @@ def gen_relax_phonopy_wf(geo_in_file,
                                  db_name_local,
                                  smatrix,
                                  "tight_relax_atoms",
+                                 db_label="phonons",
                                  symprec=symprec,
                                  name=f"analyze_phono_{name}",
                                  from_db=True)

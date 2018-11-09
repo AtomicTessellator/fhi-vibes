@@ -24,7 +24,10 @@ def setup_aims(
     # Check if basisset type is supposed to be changed by custom settings
     if "species_type" in custom_settings:
         species_type = custom_settings["species_type"]
-        species_dir = str(Path(settings.machine.basissetloc) / species_type)
+        if "species_dir" not in custom_settings:
+            species_dir = str(Path(settings.machine.basissetloc / species_type) )
+        else:
+            species_dir = custom_settings["species_dir"] + "/" + species_type
         custom_settings["species_dir"] = species_dir
         del (custom_settings["species_type"])
 
@@ -32,8 +35,8 @@ def setup_aims(
 
     if port is not None:
         custom_settings.update({"use_pimd_wrapper": ("localhost", port)})
-
     aims_settings = {**default_settings, **custom_settings}
+    print(default_settings['aims_command'], custom_settings['aims_command'], aims_settings['aims_command'])
 
     if workdir:
         return Aims(label=Path(workdir).absolute(), **aims_settings)

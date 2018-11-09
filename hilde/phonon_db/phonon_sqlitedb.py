@@ -623,7 +623,6 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             columnindex = list(range(len(self.columnnames)-7))
         else:
             columnindex = [c for c in range(0, len(self.columnnames)-7) if self.columnnames[c] in columns]
-        print(columns)
         if include_data:
             columnindex.append(len(self.columnnames)-7)
         check_sort = ['id'

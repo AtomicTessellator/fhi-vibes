@@ -161,9 +161,6 @@ class Spacegroup:
             #
             # Have all symmetry ops been found?
             if self.n_symops != len(matchlist):
-                print(self.n_symops == len(matchlist))
-                print(type(self.n_symops))
-                print(type(len(matchlist)))
                 print(f'*Number of symops:                              {self.n_symops}')
                 print(f'*Symops found by comparing spglib and aflowsym: {len(matchlist)}')
                 exit('*Error in Spacegroup.setup() ')
