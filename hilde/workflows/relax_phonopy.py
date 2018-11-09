@@ -4,7 +4,7 @@ from fireworks import Firework, PyTask, Workflow
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.utility_functions import setup_workdir
 from hilde.parsers import read_structure
-from hilde.structure.structure import patoms2dict, calc2dict
+from hilde.helpers.input_exchange import patoms2dict, calc2dict
 from hilde.tasks import fireworks as fw
 from hilde.tasks.fireworks import mutate_kgrid
 from hilde.templates.aims import setup_aims
