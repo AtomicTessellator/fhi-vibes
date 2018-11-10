@@ -3,7 +3,7 @@
 from pathlib import Path
 from configparser import ConfigParser
 from hashlib import sha1 as hash_sha
-from .atoms2json import atoms2json
+from .fileformats import atoms2json
 
 
 def hashfunc(string, empty_str=""):
@@ -16,7 +16,7 @@ def hashfunc(string, empty_str=""):
 def hash_atoms(
     atoms,
     ignore_results=True,
-    ignore_keys=["unique_id"],
+    ignore_keys=["unique_id", "info"],
     ignore_calc_params=[],
     ignore_file=None,
 ):
