@@ -43,6 +43,8 @@ def gen_kgrid_conv_fw(atoms,
     Returns: FireWork
         A FireWork that will do a kgrid convergence for your system
     '''
+    if calc_settings is None:
+        calc_settings = {}
     if calc is None:
         calc = setup_aims(custom_settings=calc_settings)
     if not spec_qad:
@@ -113,6 +115,8 @@ def gen_relax_fw(atoms,
     Returns: FireWork
         A FireWork that will relax a structure with a given set of parameters
     '''
+    if calc_settings is None:
+        calc_settings = {}
     if calc is None:
         calc = setup_aims(custom_settings=calc_settings)
     if not spec_qad:
@@ -195,6 +199,8 @@ def gen_initialize_phonopy_fw(atoms,
         A FireWork that will initialize a phonopy calculation and add the force calculations to
         the Workflow
     '''
+    if calc_settings is None:
+        calc_settings = {}
     if calc is None:
         calc = setup_aims(custom_settings=calc_settings)
     if not spec_qad:

@@ -31,7 +31,6 @@ def setup_aims(
             species_dir = custom_settings["species_dir"] + "/" + species_type
         custom_settings["species_dir"] = species_dir
         del (custom_settings["species_type"])
-
     default_settings = settings.ase_settings
 
     if port is not None:

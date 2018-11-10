@@ -1,6 +1,6 @@
 import os
 from ase.calculators.aims import Aims as ASEAims
-
+from ase.calculators.calculator import FileIOCalculator
 class Aims(ASEAims):
     def __init__(self, *args, **kwargs):
         super(Aims, self).__init__(*args, **kwargs)

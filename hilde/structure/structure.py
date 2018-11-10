@@ -19,6 +19,7 @@ from ase.atoms import Atoms
 from ase.db.row import atoms2dict, AtomsRow
 from .misc import get_sysname
 from . import io
+from hilde.calculators.aims_calc import Aims
 from hilde.helpers.maths import clean_matrix
 from hilde.konstanten.symmetry import symprec
 from hilde.konstanten.numerics import loose_tol

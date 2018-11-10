@@ -5,7 +5,7 @@ import numpy as np
 from ase.db.row import atoms2dict, AtomsRow
 
 from hilde.structure import pAtoms
-
+from hilde.calculators.aims_calc import Aims
 
 def calc2dict(calc):
     """ Converts an ase calculator calc into a dict"""
@@ -60,6 +60,10 @@ def dict2patoms(atoms_dict):
         atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=True))
     except AttributeError:
         atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=False))
+
+    if atoms_dict['calculator'] == "aims":
+        atoms.calc = Aims(aims_command=atoms_dict['command'],
+                          **atoms_dict['calculator_parameters'])
 
     # Attach missing information
     if "info" in atoms_dict:
