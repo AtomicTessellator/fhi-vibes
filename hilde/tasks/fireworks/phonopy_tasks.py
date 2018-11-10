@@ -27,6 +27,7 @@ def initialize_phonopy(smatrix, workdir, atoms_ideal, symprec=1e-5):
         A FWAction that will update the spec of the FireWorks to include the proper atom_dicts
         and workdirs
     '''
+    print("Initializing phonopy calculations")
     atoms = dict2patoms(atoms_ideal)
     smatrix = np.array(smatrix).reshape(3, 3)
     _, _, supercells_with_disps = ph.preprocess(atoms, smatrix.T, symprec=symprec)
@@ -59,6 +60,7 @@ def calc_phonopy_force_constants(smatrix, atoms_ideal, calc_atoms, symprec=1e-5)
     Returns: FWAction
         A FWAction that will store the calculated phonopy objects in the MongoDB for FireWorks
     '''
+    print("Calculating harmonic force constants")
     atoms = dict2patoms(atoms_ideal)
     disp_cells = [dict2patoms(ca) for ca in calc_atoms]
     disp_cells = sorted(disp_cells, key=lambda x: x.info[displacement_id_str])
@@ -93,6 +95,7 @@ def calc_phonopy_band_structure(phonon_dict):
     Returns:
         updated spec for the phonon_dict including the calculated properties
     '''
+    print("Calculating harmonic band structure")
     phonon = PhononRow(phonon_dict).to_phonon()
     supercell = pAtoms(phonopy_atoms=phonon.get_supercell())
     bands, _ = get_bands_and_labels(supercell)
@@ -111,6 +114,7 @@ def calc_phonopy_dos(mesh, phonon_dict):
     Returns:
         updated spec for the phonon_dict including the calculated properties
     '''
+    print("Calculating harmonic DOS")
     phonon = PhononRow(phonon_dict).to_phonon()
     phonon.set_mesh(mesh)
     phonon.set_total_DOS(freq_pitch=.1,
@@ -131,6 +135,7 @@ def calc_phonopy_thermal_prop(mesh, temps, phonon_dict):
     Returns:
         updated spec for the phonon_dict including the calculated properties
     '''
+    print("Calculating harmonic thermal properties")
     phonon = PhononRow(phonon_dict).to_phonon()
     phonon.set_mesh(mesh)
     phonon.set_thermal_properties(temperatures=temps)

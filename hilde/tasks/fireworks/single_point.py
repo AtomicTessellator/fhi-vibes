@@ -22,6 +22,7 @@ def calculate(workdir, out_spec, atoms_dict, calc=None):
         A FWAction that will modify the spec of the analysis FireWork to
         include the calculated results (pushes it to the end of a list)
     '''
+    print(f"Beginning single point calc in {workdir}")
     if calc:
         for key, val in calc.items():
             atoms_dict[key] = val
@@ -47,6 +48,7 @@ def calculate_multiple(workdirs, atom_dicts, calculator=None, out_spec="calc_ato
             as detours (Adds child FireWorks to the one calling this function and transfers
             its current children to the new FireWorks)
     '''
+    print(f"Setting up calculations in {workdirs}, and appending their Fireworks to the workflow")
     firework_detours = []
     if spec_qad is None:
         spec_qad = {}
