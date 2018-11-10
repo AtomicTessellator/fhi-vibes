@@ -8,3 +8,6 @@ FK: It would be neat if atoms.calc.write(..) would accept a directory to write t
   -> I added a cd() that can change directory intermediately (in helpers.paths)
 TP: All data structures that go into the database need to have some standardized/reversible method to convert it into a database acceptable data format. We should try to standardize the data types to make this easier
 FK: f2py is blind to optional values! (defaults to 0)
+
+Modules/Files tat should be removed:
+* hilde/helpers/utility_functions.py

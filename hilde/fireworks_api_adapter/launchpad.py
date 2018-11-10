@@ -4,8 +4,8 @@ class LaunchPadHilde(LaunchPad):
     '''
     The modified Launchpad that manges the FireWorks database
     '''
-    def __init__(self, *args, **kwargs):
-        super(LaunchPadHilde, self).__init__(*args, **kwargs)
+    def __init__(self, *args, strm_lvl="CRITICAL", **kwargs):
+        super(LaunchPadHilde, self).__init__(*args, strm_lvl='CRITICAL', **kwargs)
 
     def run_exists(self, fworker=None, ids=None):
         """

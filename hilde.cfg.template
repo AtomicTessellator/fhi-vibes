@@ -38,3 +38,8 @@ output_level = ${control:output_level}
 # to run the job
 aims_command = ${machine:aims_command}
 species_dir =  ${machine:basissetloc}/${basisset:type}
+
+[ignore_params]
+output_level = False
+aims_command = False
+use_pimd_wrapper = False

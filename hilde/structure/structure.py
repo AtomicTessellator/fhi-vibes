@@ -13,19 +13,16 @@ Contains routines to manipulate structures, such as
  Future speed considerations:
    - make symmetry dataset an attribute to reduce no. of calls
 """
-import datetime
-from math import sqrt, pi, cos, sin #faster than numpy for scalars
-import itertools
-from copy import copy, deepcopy
+from copy import copy
 import numpy as np
 from ase.atoms import Atoms
 from ase.db.row import atoms2dict, AtomsRow
-from .symmetry import Spacegroup
 from .misc import get_sysname
 from . import io
-from hilde.konstanten.symmetry import symprec
 from hilde.helpers.maths import clean_matrix
+from hilde.konstanten.symmetry import symprec
 from hilde.konstanten.numerics import loose_tol
+from .symmetry import Spacegroup
 
 def calc2dict(calc):
     ''' Converts an ase calculator calc into a dict'''

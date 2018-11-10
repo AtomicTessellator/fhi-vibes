@@ -14,7 +14,7 @@ from hilde.workflows.relax_phonopy import gen_initialize_phonopy_fw, gen_analyze
 
 from fireworks import Workflow
 
-db_name = (os.getcwd() + '/test.db')
+db_name = (os.getcwd() + '/test.json')
 print(f'database: {db_name}')
 
 atoms = pAtoms(bulk('Ni', 'fcc', a=3.5))
@@ -52,7 +52,8 @@ with cwd(workdir + '/fireworks', mkdir=True):
 phonon = db.get_phonon(1e-5, selection=[("supercell_matrix", "=", smatrix),
                                         ("atoms_hash", "=", atoms_hash),
                                         ("calc_hash", "=", calc_hash),
-                                        ("has_fc", "=", True)])
+                                        ("has_fc", "=", True),
+                                        ("calc_type", "=", "phonons")])
 
 phonon.set_mesh(3 * [3])
 _, _, frequencies, _ = phonon.get_mesh()

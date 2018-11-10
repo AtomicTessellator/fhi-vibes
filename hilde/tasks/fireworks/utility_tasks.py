@@ -2,7 +2,7 @@ from fireworks import FWAction, PyTask, Firework
 from hilde.helpers.hash import hash_atoms
 from hilde.phonon_db.phonon_db import connect
 from hilde.parsers.structure import read_structure
-from hilde.structure.structure import patoms2dict, dict2patoms
+from hilde.helpers.input_exchange import patoms2dict, dict2patoms
 from hilde.tasks import fireworks as fw
 module_name = __name__
 
@@ -30,6 +30,7 @@ def check_convergence(prop_spec,
                       workdir,
                       atoms_dicts,
                       criteria=0.01):
+    print(f"Checking convergence criteria, threshold value is {criteria}")
     loss_toks = loss_function.rsplit('.', 1)
     mut_toks = mutate_function.rsplit('.', 1)
     if len(loss_toks) == 2:
@@ -49,8 +50,10 @@ def check_convergence(prop_spec,
         mut_func = getattr(builtins, mut_toks[0])
 
     if loss_func(atoms_dicts[-1], atoms_dicts[-2], criteria=criteria):
+        print("Convergence criteria met")
         _, cur_val = mut_func(atoms_dicts[-2])
         return FWAction(update_spec={prop_spec: cur_val, final_atoms_spec: atoms_dicts[-1]})
+    print("Convergence criteria not met. Mutating system and running another iteration")
 
     new_atoms, _ = mut_func(atoms_dicts[-1])
     new_workdir = "/".join(workdir.split("/")[:-1]) + f'/{int(workdir.split("/")[-1])+1:05d}'
@@ -89,6 +92,7 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type='calc', sympre
         db_path: str
             String to the database path
     """
+    print(f"Adding phonon calculations to the database {db_path}")
     atoms = dict2patoms(atoms_ideal)
     atoms_hash, calc_hash = hash_atoms(atoms)
     try:
@@ -106,13 +110,17 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type='calc', sympre
             if not rows:
                 raise KeyError
             for row in rows:
-                db.update(row.id, phonon=phonon_dict, has_fc=("force_constants" in phonon_dict), **kwargs)
+                db.update(row.id, phonon=phonon_dict,
+                          has_fc=("force_constants" in phonon_dict),
+                          calc_type=calc_type,
+                          **kwargs)
         except KeyError:
             db.write(phonon_dict,
                      symprec=symprec,
                      atoms_hash=atoms_hash,
                      calc_hash=calc_hash,
                      has_fc=("force_constants" in phonon_dict),
+                     calc_type=calc_type,
                      **kwargs)
     except ValueError:
         print(f"Fireworker could not access the database {db_path}")
