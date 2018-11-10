@@ -17,6 +17,11 @@ class Aims(ASEAims):
         if not have_lattice_vectors and have_k_grid:
             raise RuntimeError('Found k-grid but no lattice vectors!')
         # write_aims(os.path.join(self.directory, 'geometry.in'), atoms, scaled, ghosts)
+        if "sym_block" in self.parameters:
+            atoms.symmetry_block = self.parameters['sym_block']
+            del(self.parameters['sym_block'])
+        else:
+            atoms.symmetry_block = []
         atoms.write(os.path.join(self.directory, 'geometry.in'))
         self.write_control(atoms, os.path.join(self.directory, 'control.in'))
         self.write_species(atoms, os.path.join(self.directory, 'control.in'))

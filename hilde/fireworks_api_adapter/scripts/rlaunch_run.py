@@ -96,7 +96,7 @@ def rlaunch():
                                                    '(used if -l, -w unspecified)',
                         default=CONFIG_FILE_DIR)
 
-    parser.add_argument('--loglvl', help='level to print log messages', default='CRITICAL')
+    parser.add_argument('--loglvl', help='level to print log messages', default='INFO')
     parser.add_argument('-s', '--silencer', help='shortcut to mute log messages', action='store_true')
 
     try:
