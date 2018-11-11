@@ -4,6 +4,8 @@ from ase.calculators.calculator import FileIOCalculator
 class Aims(ASEAims):
     def __init__(self, *args, **kwargs):
         super(Aims, self).__init__(*args, **kwargs)
+        if "sym_block" in kwargs:
+            self.parameters["sym_block"] = kwargs["sym_block"]
 
     def write_input(self, atoms, properties=None, system_changes=None,
                     ghosts=None, scaled=False):

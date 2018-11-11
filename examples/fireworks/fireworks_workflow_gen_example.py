@@ -52,6 +52,9 @@ if args.remote_command:
 
 # Get aims settings
 atoms = read_structure(args.geometry)
+if atoms.symmetry_block:
+    aims_relax_settings_light['sym_block'] = atoms.symmetry_block
+    aims_relax_settings_tight['sym_block'] = atoms.symmetry_block
 atoms_hash, _ = hash_atoms(atoms)
 smatrix = get_smatrix(atoms, n_target=8)
 launchpad = LaunchPadHilde()
