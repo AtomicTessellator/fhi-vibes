@@ -1,3 +1,5 @@
+MD: {dt: 0.09822694788464063, fs: 0.09822694788464063, kg: 6.0221408585491615e+26,
+  md-type: VelocityVerlet, timestep: 0.09822694788464063, type: molecular-dynamics}
 atoms:
   masses: [15.999, 1.008, 1.008]
   numbers: [8, 1, 1]
@@ -9,5 +11,3 @@ atoms:
 calculator:
   name: EMT
   params: {}
-md: {dt: 0.09822694788464063, fs: 0.09822694788464063, kg: 6.0221408585491615e+26,
-  md-type: VelocityVerlet, timestep: 0.09822694788464063, type: molecular-dynamics}
