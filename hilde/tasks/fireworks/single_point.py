@@ -1,6 +1,6 @@
 ''' Define FireTasks for electronic structure calculations '''
 from fireworks import FWAction, PyTask, Firework
-from hilde.helpers.input_exchange import patoms2dict, dict2patoms
+from hilde.helpers.converters import patoms2dict, dict2patoms
 from hilde.tasks.calculate import calculate as calc_hilde
 from hilde.tasks import fireworks as fw
 module_name = __name__

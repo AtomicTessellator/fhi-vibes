@@ -33,7 +33,7 @@
                                 0.0
                             ]
                         ],
-                        "unique_id": "f868dfa1047a854a7da994dd79285cab",
+                        "unique_id": "4ddbdbdba4c4338234adf0720dec1ba6",
                         "pbc": [
                             true,
                             true,
@@ -68,7 +68,7 @@
             {
                 "func": "__main__.calc_to_db",
                 "args": [
-                    "/home/purcell/git/hilde/examples/fireworks/fireworks_tutorial/test.db"
+                    "/home/knoop/local/hilde/examples/fireworks/fireworks_tutorial/test.db"
                 ],
                 "inputs": [
                     "calc_atoms"
@@ -78,8 +78,8 @@
         ]
     },
     "fw_id": 1,
-    "created_on": "2018-11-10T08:39:31.347882",
-    "updated_on": "2018-11-10T08:39:31.675567",
+    "created_on": "2018-11-13T09:35:24.579781",
+    "updated_on": "2018-11-13T09:35:24.584171",
     "launches": [
         {
             "fworker": {
@@ -89,8 +89,8 @@
                 "env": {}
             },
             "fw_id": 1,
-            "launch_dir": "/home/purcell/git/hilde/examples/fireworks/fireworks_tutorial",
-            "host": "theobook151",
+            "launch_dir": "/home/knoop/local/hilde/examples/fireworks/fireworks_tutorial",
+            "host": "theobook135",
             "ip": "127.0.1.1",
             "trackers": [],
             "action": null,
@@ -98,8 +98,8 @@
             "state_history": [
                 {
                     "state": "RUNNING",
-                    "created_on": "2018-11-10T08:39:31.641811",
-                    "updated_on": "2018-11-10T08:39:31.641827"
+                    "created_on": "2018-11-13T09:35:24.583601",
+                    "updated_on": "2018-11-13T09:35:24.583603"
                 }
             ],
             "launch_id": 1

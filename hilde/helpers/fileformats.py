@@ -3,53 +3,57 @@
 
 import json
 from pathlib import Path
-from ase.db.row import atoms2dict
-from ase.io.jsonio import MyEncoder
-from ase.calculators.calculator import all_properties
+import yaml
+import numpy as np
 
 
-def get_json(obj):
-    "Return json representation of obj"
-    return json.dumps(obj, cls=MyEncoder, sort_keys=True)
+def to_yaml(obj, file, mode="a"):
+    """ Dump a python object ot file """
+    with open(file, mode) as f:
+        yaml.dump(obj, f)
 
 
-def atoms2json(
-    atoms, ignore_results=False, ignore_keys=["unique_id"], ignore_calc_params=[]
-):
-    """ return json representation of atoms and calculator objects.
-        possibility to remove certain keys from the atoms dictionary, e.g. for hashing
-    """
+def list2str(lis):
+    """convert list to string"""
+    return "[{}]".format(", ".join([str(el) for el in lis]))
 
-    # dictionary contains all the information in atoms object
-    atomsdict = atoms2dict(atoms)
 
-    # remove unwanted keys from atomsdict
-    for name in ignore_keys:
-        if name in atomsdict:
-            atomsdict.pop(name)
+class NumpyEncoder(json.JSONEncoder):
+    """ Decode numerical objects that json cannot parse by default"""
 
-    calcdict = {}
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, (np.int32, np.int64)):
+            return int(obj)
+        if isinstance(obj, complex):
+            return (float(obj.real), float(obj.imag))
+        return super().default(self, obj)
 
-    # move physical properties from atomsdict to calcdict if they are wanted
-    for key in all_properties:
-        if key in atomsdict:
-            value = atomsdict.pop(key)
-            if not ignore_results:
-                calcdict[key] = value
 
-    # clean calculator entries
-    if "calculator_parameters" in atomsdict:
-        calculator_params = atomsdict["calculator_parameters"]
-        for name in [key for key in calculator_params  if key in ignore_calc_params]:
-            calculator_params.pop(name)
+def from_json(f):
+    """ return from json file """
 
-        if "species_dir" in calculator_params:
-            calculator_params["species_dir"] = Path(
-                calculator_params["species_dir"]
-            ).parts[-1]
+    with Path(f).open() as f:
+        return json.load(f)
 
-    for name in ["calculator", "calculator_parameters"]:
-        if name in atomsdict:
-            calcdict[name] = atomsdict.pop(name)
 
-    return get_json(atomsdict), get_json(calcdict)
+def to_json(obj, f, indent=1):
+    """ write array (or similar) to json file """
+
+    with Path(f).open("w") as f:
+        json.dump(obj, f, cls=NumpyEncoder, indent=indent)
+
+
+def append_to_json_array(obj, f, indent=1):
+    """ append contents to existing json array """
+
+    if not Path(f).exists():
+        to_json([obj], f, indent=indent)
+        return
+
+    new_array = from_json(f)
+
+    new_array.append(obj)
+
+    to_json(new_array, f, indent=indent)

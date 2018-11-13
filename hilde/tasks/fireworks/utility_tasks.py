@@ -2,7 +2,7 @@ from fireworks import FWAction, PyTask, Firework
 from hilde.helpers.hash import hash_atoms
 from hilde.phonon_db.phonon_db import connect
 from hilde.parsers.structure import read_structure
-from hilde.helpers.input_exchange import patoms2dict, dict2patoms
+from hilde.helpers.converters import patoms2dict, dict2patoms
 from hilde.tasks import fireworks as fw
 module_name = __name__
 
