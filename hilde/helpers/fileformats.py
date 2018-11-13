@@ -27,6 +27,12 @@ class NumpyEncoder(json.JSONEncoder):
 
 def to_yaml(obj, file, mode="a"):
     """ Dump a python object ot file """
+
+    # backup
+    if mode == "w":
+        if Path(file).exists():
+            Path(file).rename(f"{file}.bak")
+
     with open(file, mode) as f:
         yaml.dump(obj, f)
 

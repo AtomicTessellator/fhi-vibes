@@ -5,6 +5,20 @@ from ase import units as u
 from hilde.helpers.fileformats import to_yaml, from_yaml
 
 
+def step2file(atoms, md, file="md_trajectory.yaml"):
+    """ Save the current state of MD to file """
+
+    to_yaml([step2dict(atoms, md)], file)
+
+
+def metadata2file(atoms, calc, md, file="md_metadata.yaml"):
+    """ save MD metadata to file """
+
+    metadata = metadata2dict(atoms, calc, md)
+
+    to_yaml(metadata, file, mode="w")
+
+
 def step2dict(atoms, md):
     """ extract information from md step and convet to plain dict """
 
