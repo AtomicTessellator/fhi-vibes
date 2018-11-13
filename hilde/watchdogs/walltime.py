@@ -25,7 +25,7 @@ class WallTimeWatchdog:
         self.max_depth = history
 
         if log is not None:
-            self.logfile = Path(log).absolute()
+            self.logfile = Path(log)
 
     def __call__(self):
         """ Call the watchdog
