@@ -7,6 +7,7 @@ before_script:
 
 all_tests:
   script:
+    - python $CI_PROJECT_DIR/tests/run_md.py
     - $jtest $CI_PROJECT_DIR/examples/phonons/phonopy.ipynb
     - $jtest $CI_PROJECT_DIR/examples/phono3py/phono3py.ipynb
     - python $CI_PROJECT_DIR/examples/hiphive/hiphive_al.py
