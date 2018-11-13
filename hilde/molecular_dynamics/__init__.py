@@ -2,9 +2,10 @@
 
 from pathlib import Path
 from ase.calculators.socketio import SocketIOCalculator
-from hilde.trajectory import step2file
+from hilde.trajectory import step2file, metadata2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
+
 
 def run_md(
     atoms,
@@ -13,6 +14,7 @@ def run_md(
     trajectory="trajectory.yaml",
     socketio_port=None,
     walltime=1800,
+    watchdog=None,
     workdir=".",
 ):
     """ run and MD for a specific time
@@ -27,20 +29,26 @@ def run_md(
         workdir (str, optional): Defaults to '.'.
     """
 
-    if Path(trajectory).exists():
-        print('* restart not yet supported')
+    if watchdog is None:
+        watchdog = Watchdog(walltime=walltime)
 
-
-    watchdog = Watchdog(walltime=walltime)
+    trajectory = Path(trajectory).absolute()
+    if trajectory.exists():
+        print("* restart not yet supported")
 
     if socketio_port is None:
         socket_calc = None
     else:
         socket_calc = calc
+    atoms.calc = calc
 
-    with SocketIOCalculator(socket_calc, port=socketio_port) as calc, cwd(workdir):
-        atoms.calc = calc
+    with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
+        workdir, mkdir=True
+    ):
+
+        if socketio_port is not None:
+            atoms.calc = iocalc
 
         while watchdog() == False:
-            step2file(atoms, calc, trajectory)
+            step2file(atoms, atoms.calc, md, trajectory)
             md.run(1)

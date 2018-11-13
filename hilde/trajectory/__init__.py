@@ -5,10 +5,10 @@ from ase import units as u
 from hilde.helpers.fileformats import to_yaml, from_yaml
 
 
-def step2file(atoms, md, file="md_trajectory.yaml"):
+def step2file(atoms, calc, md, file="md_trajectory.yaml"):
     """ Save the current state of MD to file """
 
-    to_yaml([step2dict(atoms, md)], file)
+    to_yaml([step2dict(atoms, calc, md)], file)
 
 
 def metadata2file(atoms, calc, md, file="md_metadata.yaml"):
@@ -19,7 +19,7 @@ def metadata2file(atoms, calc, md, file="md_metadata.yaml"):
     to_yaml(metadata, file, mode="w")
 
 
-def step2dict(atoms, md):
+def step2dict(atoms, calc, md):
     """ extract information from md step and convet to plain dict """
 
     # info from MD algorithm
@@ -33,11 +33,12 @@ def step2dict(atoms, md):
 
     # calculated values
     calc_dict = {}
-    calc = atoms.calc
     # convert numpy arrays into ordinary lists
     for key, val in calc.results.items():
         if isinstance(val, np.ndarray):
             calc_dict[key] = val.tolist()
+        elif isinstance(val, np.float):
+            calc_dict[key] = float(val)
         else:
             calc_dict[key] = val
 
