@@ -7,12 +7,6 @@ import yaml
 import numpy as np
 
 
-def to_yaml(obj, file, mode="a"):
-    """ Dump a python object ot file """
-    with open(file, mode) as f:
-        yaml.dump(obj, f)
-
-
 def list2str(lis):
     """convert list to string"""
     return "[{}]".format(", ".join([str(el) for el in lis]))
@@ -31,10 +25,22 @@ class NumpyEncoder(json.JSONEncoder):
         return super().default(self, obj)
 
 
-def from_json(f):
+def to_yaml(obj, file, mode="a"):
+    """ Dump a python object ot file """
+    with open(file, mode) as f:
+        yaml.dump(obj, f)
+
+
+def from_yaml(file):
+    """ return from yaml file """
+    with Path(file).open() as f:
+        return yaml.load(f)
+
+
+def from_json(file):
     """ return from json file """
 
-    with Path(f).open() as f:
+    with Path(file).open() as f:
         return json.load(f)
 
 
@@ -53,7 +59,6 @@ def append_to_json_array(obj, f, indent=1):
         return
 
     new_array = from_json(f)
-
     new_array.append(obj)
 
     to_json(new_array, f, indent=indent)
