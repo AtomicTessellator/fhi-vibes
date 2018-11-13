@@ -1,4 +1,5 @@
 atoms:
+  masses: [15.999, 1.008, 1.008]
   numbers: [8, 1, 1]
   positions:
   - [0.05, 0.0, 0.119262]
@@ -8,5 +9,5 @@ atoms:
 calculator:
   name: EMT
   params: {}
-md: {fs: 0.09822694788464063, md-type: VelocityVerlet, timestep: 0.09822694788464063,
-  type: molecular-dynamics}
+md: {dt: 0.09822694788464063, fs: 0.09822694788464063, kg: 6.0221408585491615e+26,
+  md-type: VelocityVerlet, timestep: 0.09822694788464063, type: molecular-dynamics}
