@@ -21,15 +21,15 @@ setup(
     packages=setuptools.find_packages(),
     ext_modules=[ext],
     scripts=[
-        "hilde/scripts/geometry_info",
         "hilde/scripts/get_relaxation_info",
         "hilde/scripts/make_supercell",
-        "hilde/scripts/refine_geometry",
     ],
     entry_points={
-        'console_scripts': [
-            'qlaunch_hilde = hilde.fireworks_api_adapter.scripts.qlaunch_run:qlaunch',
-            'rlaunch_hilde = hilde.fireworks_api_adapter.scripts.rlaunch_run:rlaunch'
+        "console_scripts": [
+            "geometry_info = hilde.scripts.geometry_info:main",
+            "refine_geometry = hilde.scripts.refine_geometry:main",
+            "qlaunch_hilde = hilde.fireworks_api_adapter.scripts.qlaunch_run:qlaunch",
+            "rlaunch_hilde = hilde.fireworks_api_adapter.scripts.rlaunch_run:rlaunch",
         ]
     },
     zip_safe=False,
