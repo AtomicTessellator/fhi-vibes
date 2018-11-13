@@ -16,7 +16,7 @@ def metadata2file(atoms, calc, md, file="md_metadata.yaml"):
 
     metadata = metadata2dict(atoms, calc, md)
 
-    to_yaml(metadata, file, mode="w")
+    to_yaml([metadata], file, mode="w")
 
 
 def step2dict(atoms, calc, md):
