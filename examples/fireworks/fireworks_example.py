@@ -14,7 +14,7 @@ from hilde.workflows.relax_phonopy import gen_initialize_phonopy_fw, gen_analyze
 
 from fireworks import Workflow
 
-db_name = (os.getcwd() + '/test.json')
+db_name = (os.getcwd() + '/test.db')
 print(f'database: {db_name}')
 
 atoms = pAtoms(bulk('Ni', 'fcc', a=3.5))
@@ -49,11 +49,11 @@ launchpad.add_wf(workflow)
 with cwd(workdir + '/fireworks', mkdir=True):
     rapidfire(launchpad, wflow_id=workflow.root_fw_ids)
 
-phonon = db.get_phonon(1e-5, selection=[("supercell_matrix", "=", smatrix),
-                                        ("atoms_hash", "=", atoms_hash),
-                                        ("calc_hash", "=", calc_hash),
-                                        ("has_fc", "=", True),
-                                        ("calc_type", "=", "phonons")])
+phonon = db.get_phonon(selection=[("sc_matrix_2", "=", smatrix),
+                                  ("atoms_hash", "=", atoms_hash),
+                                  ("calc_hash", "=", calc_hash),
+                                  ("has_fc2", "=", True),
+                                  ("calc_type", "=", "phonons")])
 
 phonon.set_mesh(3 * [3])
 _, _, frequencies, _ = phonon.get_mesh()

@@ -23,6 +23,8 @@ def calculate(workdir, out_spec, atoms_dict, calc=None):
         include the calculated results (pushes it to the end of a list)
     '''
     print(f"Beginning single point calc in {workdir}")
+    if atoms_dict is None:
+        return FWAction(mod_spec=[{'_push': {out_spec: None}}])
     if calc:
         for key, val in calc.items():
             atoms_dict[key] = val

@@ -14,12 +14,12 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
     '''
     A modified ASE JSONDatabase to include phonopy objects, For missing functions see ase.db.jsondb
     '''
-    def _write(self, phonon, key_value_pairs, data, id):
+    def _write(self, row, key_value_pairs, data, id):
         '''
         Writes a phonopy object to the database
         Args:
-            phonon: phonopy object
-                phonopy object to be added to the database
+            row: PhononRow object
+                PhononRow object to be added to the database
             key_values_pairs: dict
                 additional keys to be added to the database
             data: str
@@ -29,7 +29,7 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         Returns:
             id: the id of the row
         '''
-        PhononDatabase._write(self, phonon, key_value_pairs, data)
+        PhononDatabase._write(self, row, key_value_pairs, data)
         bigdct = {}
         ids = []
         nextid = 1
@@ -38,19 +38,12 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                 bigdct, ids, nextid = self._read_json()
             except (SyntaxError, ValueError):
                 pass
-        mtime = now()
-        if isinstance(phonon, PhononRow):
-            row = phonon
-        else:
-            row = PhononRow(phonon)
-            row.ctime = mtime
-            row.user = os.getenv('USER')
         dct = {}
         for key in row.__dict__:
             if key[0] == '_' or key in row._keys or key == 'id':
                 continue
             dct[key] = row[key]
-        dct['mtime'] = mtime
+        dct['mtime'] = now()
         if key_value_pairs:
             dct['key_value_pairs'] = key_value_pairs
         if data:
@@ -170,7 +163,10 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                         assert op is ops['=']
                         temp = val
                 for key, op, val in cmps:
-                    if key == 'supercell_matrix':
+                    if key == 'sc_matrix_2':
+                        if not isinstance(val, list):
+                            val = list(val.flatten())
+                    if key == 'sc_matrix_3':
                         if not isinstance(val, list):
                             val = list(val.flatten())
                     if key == 'tp_T':

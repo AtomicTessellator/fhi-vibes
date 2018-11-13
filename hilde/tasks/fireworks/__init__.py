@@ -8,6 +8,10 @@ from .phonopy_tasks import calc_phonopy_dos
 from .phonopy_tasks import calc_phonopy_force_constants
 from .phonopy_tasks import calc_phonopy_thermal_prop
 
+from .phono3py_tasks import initialize_phono3py
+from .phono3py_tasks import calc_phono3py_force_constants
+from .phono3py_tasks import calc_phono3py_kappa
+
 from .single_point import calculate
 from .single_point import calculate_multiple
 

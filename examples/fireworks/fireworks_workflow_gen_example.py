@@ -1,9 +1,10 @@
 '''Example for generating/submitting a full relaxation->full phonon workflow'''
 from argparse import ArgumentParser
+from pathlib import Path
 
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.fireworks_api_adapter.combined_launcher import rapidfire
-from hilde.helpers.brillouinzone import get_bands_and_labels
+from hilde.helpers.brillouinzone import get_bands_and_labels, get_sp_points
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.utility_functions import get_smatrix
 from hilde.parsers import read_structure
@@ -52,11 +53,10 @@ if args.remote_command:
 
 # Get aims settings
 atoms = read_structure(args.geometry)
-if atoms.symmetry_block:
-    aims_relax_settings_light['sym_block'] = atoms.symmetry_block
-    aims_relax_settings_tight['sym_block'] = atoms.symmetry_block
+aims_relax_settings_light['sym_block'] = atoms.symmetry_block
+aims_relax_settings_tight['sym_block'] = atoms.symmetry_block
 atoms_hash, _ = hash_atoms(atoms)
-smatrix = get_smatrix(atoms, n_target=8)
+smatrix = get_smatrix(atoms, n_target=96)
 launchpad = LaunchPadHilde()
 # Clean up launchpad
 launchpad.clean_up_wflow(f"{atoms.get_chemical_formula()}_{atoms_hash}")
@@ -72,9 +72,8 @@ wf = gen_relax_phonopy_wf(args.geometry,
                           relax_tight=aims_relax_settings_tight,
                           force_calc=aims_force_settings,
                           spec_qad_kgrid={"_queueadapter": {"walltime": "00:02:00"}},
-                          spec_qad_relax={"_queueadapter": {"walltime": "00:02:00"}},
-                          spec_qad_forces={"_queueadapter": {"walltime": "00:03:00"}})
-
+                          spec_qad_relax={"_queueadapter": {"nodes": 10, "walltime": "00:30:00"}},
+                          spec_qad_forces={"_queueadapter": {"nodes": 32, "walltime": "00:30:00"}})
 launchpad.add_wf(wf)
 rapidfire(launchpad, launch_dir='.', nlaunches=0, njobs_queue=250, wflow=wf, njobs_block=500,
           sleep_time=15, reserve=True, remote_host=args.remote_host,
@@ -94,3 +93,12 @@ phonon.set_band_structure(bands)
 plt = phonon.plot_band_structure(labels=labels)
 plt.ylabel('Frequency [THz]')
 plt.savefig('phonon_dispersion.pdf')
+
+# Create animation*.ascii files that can be used to animate the phonons.
+animation_dir = Path('animation')
+animation_dir.mkdir(exist_ok=True)
+q_points = get_sp_points(atoms)
+for key, value in q_points.items():
+    filename = str(animation_dir/"animation_{}.ascii".format(key.lstrip('\\')))
+    phonon.write_animation(q_point=value, filename=filename)
+print(f'Animation files saved in animation')

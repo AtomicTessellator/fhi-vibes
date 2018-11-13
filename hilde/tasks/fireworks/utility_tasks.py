@@ -110,8 +110,8 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type='calc', sympre
             if not rows:
                 raise KeyError
             for row in rows:
-                db.update(row.id, phonon=phonon_dict,
-                          has_fc=("force_constants" in phonon_dict),
+                db.update(row.id, dct=phonon_dict,
+                          has_fc=("fc_2" in phonon_dict),
                           calc_type=calc_type,
                           **kwargs)
         except KeyError:
@@ -119,12 +119,13 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type='calc', sympre
                      symprec=symprec,
                      atoms_hash=atoms_hash,
                      calc_hash=calc_hash,
-                     has_fc=("force_constants" in phonon_dict),
+                     has_fc2=("fc_2" in phonon_dict),
+                     has_fc3=("fc_3" in phonon_dict),
                      calc_type=calc_type,
                      **kwargs)
     except ValueError:
         print(f"Fireworker could not access the database {db_path}")
-    return FWAction(stored_data={'phonopy_calc': phonon_dict})
+    return FWAction(update_spec={"phonon_dict": {}})
 
 mod_calc.name = f'{module_name}.{mod_calc.__name__}'
 add_result_to_spec.name = f'{module_name}.{add_result_to_spec.__name__}'

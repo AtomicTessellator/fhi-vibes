@@ -119,15 +119,17 @@ def schema_update(sql):
                  'dipole',
                  'magmoms',
                  'charges',
-                 'thermal_prop_T',
-                 'thermal_prop_A',
-                 'thermal_prop_S',
-                 'thermal_prop_Cv'
+                 'tp_T',
+                 'tp_A',
+                 'tp_S',
+                 'tp_Cv'
                 ]
 
-    arrays_2D = ['positions', 'cell', 'forces']
+    arrays_2D = ['positions', 'cell', 'forces', 'tp_kappa']
 
-    arrays_4D = ['force_constants']
+    arrays_4D = ['fc_2']
+
+    arrays_6D = ['fc_3']
 
     txt2jsonb = ['calculator_parameters',
                  'key_value_pairs',
@@ -135,7 +137,8 @@ def schema_update(sql):
                  'qpoints',
                  'phonon_bs_fp',
                  'phonon_dos_fp',
-                 "supercell_matrix"
+                 "sc_matrix_2"
+                 "sc_matrix_3"
                 ]
 
     for column in arrays_1D:
@@ -152,6 +155,9 @@ def schema_update(sql):
     for column in arrays_4D:
         sql = sql.replace('{} BLOB,'.format(column),
                           '{} DOUBLE PRECISION[][][][],'.format(column))
+    for column in arrays_6D:
+        sql = sql.replace('{} BLOB,'.format(column),
+                          '{} DOUBLE PRECISION[][][][][][],'.format(column))
 
     for column in txt2jsonb:
         sql = sql.replace('{} TEXT,'.format(column),

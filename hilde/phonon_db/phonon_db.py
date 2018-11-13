@@ -9,7 +9,7 @@ import numpy as np
 
 # Import ase
 from ase.utils import Lock, basestring, PurePath
-from ase.db.core import Database, lock, parse_selection, str_represents
+from ase.db.core import Database, lock, parse_selection, str_represents, now
 from ase.calculators.calculator import all_properties, all_changes
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
 from ase.data import atomic_numbers
@@ -206,11 +206,11 @@ class PhononDatabase(Database):
         self.serial = serial
         self._metadata = None  # decription of columns and other stuff
 
-    # def _write(self, atoms, key_value_pairs, data, id=None):
-    #     check(key_value_pairs)
-    #     return 1
+    def _write(self, row, key_value_pairs, data, id=None):
+        check(key_value_pairs)
+        return 1
 
-    def get_phonon(self, symprec, selection=None, **kwarg):
+    def get_phonon(self, selection=None, **kwarg):
         '''
         Gets a phonopy object from a database row
         Args:
@@ -220,11 +220,23 @@ class PhononDatabase(Database):
             the phonopy object of the row
         '''
         row = self.get(selection, **kwarg)
-        return row.to_phonon(symprec)
+        return row.to_phonon()
+
+    def get_phonon3(self, selection=None, **kwarg):
+        '''
+        Gets a phonopy object from a database row
+        Args:
+            selection: selection criteria for the database query
+            kwargs   : additional selection criteria not stored in selection
+        Returns:
+            the phonopy object of the row
+        '''
+        row = self.get(selection, **kwarg)
+        return row.to_phonon3()
 
     @parallel_function
     @lock
-    def update(self, id, phonon=None, delete_keys=[], data=None, **add_key_value_pairs):
+    def update(self, id, dct=None, phonon3=None, phonon=None, delete_keys=[], data=None, **add_key_value_pairs):
         """Update and/or delete key-value pairs of row(s).
 
         id: int
@@ -252,20 +264,22 @@ class PhononDatabase(Database):
 
         check(add_key_value_pairs)
 
-        row = self._get_row(id)
-
-        if phonon:
-            oldrow = row
+        oldrow = self._get_row(id)
+        if phonon3:
+            row = PhononRow(phonon3=phonon3, phonon=phonon)
+        elif phonon:
             row = PhononRow(phonon)
+        elif dct:
+            row = PhononRow(dct)
 
-            # Copy over data, kvp, ctime, user and id
-            row._data = oldrow._data
-            kvp = oldrow.key_value_pairs
-            row.__dict__.update(kvp)
-            row._keys = list(kvp)
-            row.ctime = oldrow.ctime
-            row.user = oldrow.user
-            row.id = id
+        # Copy over data, kvp, ctime, user and id
+        row._data = oldrow._data
+        kvp = oldrow.key_value_pairs
+        row.__dict__.update(kvp)
+        row._keys = list(kvp)
+        row.ctime = oldrow.ctime
+        row.user = oldrow.user
+        row.id = id
 
         kvp = row.key_value_pairs
 
@@ -287,6 +301,40 @@ class PhononDatabase(Database):
         self._write(row, kvp, data, row.id)
 
         return m, n
+
+    def write(self, dct=None, phonon3=None, phonon=None, key_value_pairs={}, data={}, id=None, **kwargs):
+        """Write atoms to database with key-value pairs.
+
+        atoms: Atoms object
+            Write atomic numbers, positions, unit cell and boundary
+            conditions.  If a calculator is attached, write also already
+            calculated properties such as the energy and forces.
+        key_value_pairs: dict
+            Dictionary of key-value pairs.  Values must be strings or numbers.
+        data: dict
+            Extra stuff (not for searching).
+        id: int
+            Overwrite existing row.
+
+        Key-value pairs can also be set using keyword arguments::
+
+            connection.write(atoms, name='ABC', frequency=42.0)
+
+        Returns integer id of the new row.
+        """
+        if phonon3:
+            row = PhononRow(phonon3=phonon3, phonon=phonon)
+        elif phonon:
+            row = PhononRow(phonon)
+        elif dct:
+            row = PhononRow(dct)
+        row.user = os.getenv('USER')
+        row.ctime = now()
+        kvp = dict(key_value_pairs)  # modify a copy
+        kvp.update(kwargs)
+
+        id = self._write(row, kvp, data, id)
+        return id
 
     @parallel_generator
     def select(self,

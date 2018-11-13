@@ -40,7 +40,7 @@ aims_relax_settings_tight = {
     "relativistic": "atomic_zora scalar",
     "include_spin_orbit": "non_self_consistent",
     "symmetry_reduced_k_grid": "false.",
-    "relax_geometry": "trm 1E-1",
+    "relax_geometry": "trm 5E-3",
     "relax_unit_cell": "full",
     "occupation_type": "gaussian 0.01",
     "mixer": "pulay",

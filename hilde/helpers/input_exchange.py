@@ -31,7 +31,8 @@ def patoms2dict(atoms):
     Returns: atoms_dict (dict)
         The dictionary of atoms
     """
-
+    if atoms is None:
+        return atoms
     atoms_dict = atoms2dict(atoms)
 
     # add information that is missing after using ase.atoms2dict
@@ -56,12 +57,14 @@ def dict2patoms(atoms_dict):
     Returns: pAtoms
         The corresponding pAtoms object
     """
+    if atoms_dict is None:
+        return None
     try:
         atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=True))
     except AttributeError:
         atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=False))
 
-    if atoms_dict['calculator'] == "aims":
+    if "calculator" in atoms_dict and atoms_dict['calculator'] == "aims":
         atoms.calc = Aims(aims_command=atoms_dict['command'],
                           **atoms_dict['calculator_parameters'])
 

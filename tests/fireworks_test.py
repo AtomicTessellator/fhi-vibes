@@ -50,12 +50,11 @@ launchpad.add_wf(workflow)
 rapidfire(launchpad, wflow_id=workflow.root_fw_ids)
 
 phonon = db.get_phonon(
-    1e-5,
     selection=[
-        ("supercell_matrix", "=", smatrix),
+        ("sc_matrix_2", "=", smatrix),
         ("atoms_hash", "=", atoms_hash),
         ("calc_hash", "=", calc_hash),
-        ("has_fc", "=", True),
+        ("has_fc2", "=", True),
     ],
 )
 

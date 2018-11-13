@@ -50,9 +50,12 @@ init_statements = [
     magmoms BLOB,
     magmom REAL,
     charges BLOB,
-    natoms_in_sc INTEGER,
-    supercell_matrix TEXT,
-    force_constants BLOB,
+    natoms_in_sc_2 INTEGER,
+    natoms_in_sc_3 INTEGER,
+    sc_matrix_2 TEXT,
+    sc_matrix_3 TEXT,
+    fc_2 BLOB,
+    fc_3 BLOB,
     qmesh TEXT,
     phonon_dos_fp TEXT,
     qpoints TEXT,
@@ -63,6 +66,8 @@ init_statements = [
     tp_A TEXT,
     tp_S TEXT,
     tp_Cv TEXT,
+    tp_kappa TEXT,
+    symprec FLOAT,
     key_value_pairs TEXT,  -- key-value pairs and data as json
     data TEXT,
     natoms INTEGER,  -- stuff for making queries faster
@@ -102,7 +107,6 @@ init_statements = [
     "INSERT INTO information VALUES ('version', '{}')".format(VERSION)]
 
 check_keys = ['id',
-              'numbers',
               'energy',
               'magmom',
               'ctime',
@@ -116,7 +120,8 @@ check_keys = ['id',
               'volume',
               'mass',
               'charge',
-              'supercell_matrix'
+              'sc_matrix_2',
+              'sc_matrix_3'
              ]
 
 def hexify(array):
@@ -214,12 +219,12 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             array.shape = shape
         return array
 
-    def _write(self, phonon, key_value_pairs, data, id):
+    def _write(self, row, key_value_pairs, data, id):
         '''
         Writes a phonopy object to the database. Modifications from ASE are related to phonopy
         Args:
-            phonon: phonopy object
-                phonopy object to be added to the database
+            row: PhononRow object
+                The PhononRow object to be added to the database
             key_values_pairs: dict
                 additional keys to be added to the database
             data: str
@@ -229,7 +234,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         Returns:
             id: the id of the row
         '''
-        PhononDatabase._write(self, phonon, key_value_pairs, data)
+        PhononDatabase._write(self, row, key_value_pairs, data)
         encode = self.encode
         con = self.connection or self._connect()
         self._initialize(con)
@@ -238,12 +243,6 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         blob = self.blob
         text_key_values = []
         number_key_values = []
-        if not isinstance(phonon, PhononRow):
-            row = PhononRow(phonon)
-            row.ctime = mtime
-            row.user = os.getenv('USER')
-        else:
-            row = phonon
         if id:
             self._delete(cur, [id], ['keys', 'text_key_values',
                                      'number_key_values', 'species'])
@@ -288,9 +287,12 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                    blob(row.get('magmoms')),
                    row.get('magmom'),
                    blob(row.get('charges')),
-                   row.get('natoms_in_sc'),
-                   encode(row.get('supercell_matrix')),
-                   blob(row.get("force_constants")),
+                   row.get('natoms_in_sc_2'),
+                   row.get('natoms_in_sc_3'),
+                   encode(row.get('sc_matrix_2')),
+                   encode(row.get('sc_matrix_3')),
+                   blob(row.get("fc_2")),
+                   blob(row.get("fc_3")),
                    encode(row.get("qmesh")),
                    encode(row.get("phonon_dos_fp")),
                    encode(row.get("qpoints")),
@@ -301,6 +303,8 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                    hexify(row.get("tp_A")),
                    hexify(row.get("tp_S")),
                    hexify(row.get("tp_Cv")),
+                   hexify(row.get("tp_kappa")),
+                   row.get("symprec"),
                    encode(key_value_pairs),
                    data,
                    len(row.numbers),
@@ -395,31 +399,41 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if values[24] is not None:
             dct['charges'] = deblob(values[24])
         if values[25] is not None:
-            dct['natoms_in_sc'] = values[25]
+            dct['natoms_in_sc_2'] = values[25]
         if values[26] is not None:
-            dct['supercell_matrix'] = decode(values[26])
+            dct['natoms_in_sc_3'] = values[26]
         if values[27] is not None:
-            dct['force_constants'] = deblob(values[27], shape=(values[25], values[25], 3, 3))
+            dct['sc_matrix_2'] = decode(values[27])
         if values[28] is not None:
-            dct['qmesh'] = jsonio.decode(values[28])
+            dct['sc_matrix_3'] = decode(values[28])
         if values[29] is not None:
-            dct['phonon_dos_fp'] = decode(values[29])
+            dct['fc_2'] = deblob(values[29], shape=(values[25], values[25], 3, 3))
         if values[30] is not None:
-            dct['qpoints'] = decode(values[30])
+            dct['fc_3'] = deblob(values[30], shape=(values[26], values[26], values[26], 3, 3, 3))
         if values[31] is not None:
-            dct['phonon_bs_fp'] = decode(values[31])
+            dct['qmesh'] = jsonio.decode(values[31])
         if values[32] is not None:
-            dct['tp_ZPE'] = values[32]
+            dct['phonon_dos_fp'] = decode(values[32])
         if values[33] is not None:
-            dct['tp_high_T_S'] = values[33]
+            dct['qpoints'] = decode(values[33])
         if values[34] is not None:
-            dct['tp_T'] = dehexify(values[34])
+            dct['phonon_bs_fp'] = decode(values[34])
         if values[35] is not None:
-            dct['tp_A'] = dehexify(values[35])
+            dct['tp_ZPE'] = values[35]
         if values[36] is not None:
-            dct['tp_S'] = dehexify(values[36])
+            dct['tp_high_T_S'] = values[36]
         if values[37] is not None:
-            dct['tp_Cv'] = dehexify(values[37])
+            dct['tp_T'] = dehexify(values[37])
+        if values[38] is not None:
+            dct['tp_A'] = dehexify(values[38])
+        if values[39] is not None:
+            dct['tp_S'] = dehexify(values[39])
+        if values[40] is not None:
+            dct['tp_Cv'] = dehexify(values[40])
+        if values[41] is not None:
+            dct['tp_kappa'] = dehexify(values[41], shape=(-1,6))
+        if values[42] is not None:
+            dct['symprec'] = values[42]
         if values[len(self.columnnames)-8] != '{}':
             dct['key_value_pairs'] = decode(values[len(self.columnnames)-8])
         if len(values) >= len(self.columnnames)-6 and values[len(self.columnnames)-7] != 'null':
@@ -496,13 +510,13 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                     value = int(np.dot([x == 'T' for x in value], [1, 2, 4]))
                 elif key == 'magmom':
                     assert self.version >= 6, 'Update your db-file'
-                elif key == 'supercell_matrix':
+                elif key == 'sc_matrix_2':
                     value = self.encode(list(np.asarray(value).flatten()))
-                elif key == 'numbers':
+                elif key == 'sc_matrix_3':
                     value = self.encode(list(np.asarray(value).flatten()))
                 where.append('systems.{}{}?'.format(key, op))
                 args.append(value)
-            elif key in ['tp_A', 'tp_S', 'tp_Cv']:
+            elif key in ['tp_A', 'tp_S', 'tp_Cv', 'tp_kappa']:
                 if temp is None:
                     raise ValeError("If selecting with a thermal property a temperature must also be given.")
                 op_actual = op
@@ -616,8 +630,10 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         values = np.array([None for i in range(len(self.columnnames)-6)])
         values[len(self.columnnames)-8] = '{}'
         values[len(self.columnnames)-7] = 'null'
-        if 'force_constants' in columns and not 'natoms_in_sc' in columns:
-            columns.append('natoms_in_sc')
+        if 'fc_2' in columns and not 'natoms_in_sc_2' in columns:
+            columns.append('natoms_in_sc_2')
+        if 'fc_3' in columns and not 'natoms_in_sc_3' in columns:
+            columns.append('natoms_in_sc_3')
         if columns == 'all':
             columnindex = list(range(len(self.columnnames)-7))
         else:

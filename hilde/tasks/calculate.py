@@ -31,6 +31,8 @@ def calculate(atoms, calculator, workdir):
     Returns:
         int: 1 when error happened, otherwise None
     """
+    if atoms is None:
+        return atoms
     calc_atoms = atoms.copy()
     calc_atoms.calc = calculator
     with cwd(workdir, mkdir=True):
@@ -206,6 +208,8 @@ def setup_multiple(cells, calculator, workdir, mkdir):
     workdirs = []
     for cell, wdir in cells_and_workdirs(cells, workdir):
         workdirs.append(wdir)
+        if cell is None:
+            continue
         cell.set_calculator(calculator)
         if mkdir:
             with cwd(wdir, mkdir=True):

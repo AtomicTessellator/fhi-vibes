@@ -68,7 +68,8 @@ def preprocess(atoms,
                q_mesh=[11, 11, 11],
                disp=0.03,
                cutoff_pair_distance=10.,
-               symprec=1e-5):
+               symprec=1e-5,
+               log_level=2):
     """
     Set up a Phono3py object and generate all the necessary supercells
 
@@ -89,7 +90,8 @@ def preprocess(atoms,
                                q_mesh=q_mesh,
                                disp=disp,
                                cutoff_pair_distance=cutoff_pair_distance,
-                               symprec=symprec)
+                               symprec=symprec,
+                               log_level=log_level)
 
     # phonpoy supercells
     fc2_supercell = to_pAtoms(phonon3.get_phonon_supercell(),

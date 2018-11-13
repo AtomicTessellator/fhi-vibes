@@ -4,7 +4,7 @@ from fireworks import FWAction
 
 from hilde.helpers.brillouinzone import get_bands_and_labels
 from hilde.phonon_db.phonon_db import connect
-from hilde.phonon_db.row import phonon2dict, PhononRow
+from hilde.phonon_db.row import phonon_to_dict, PhononRow
 from hilde.phonopy import phono as ph, displacement_id_str
 from hilde.helpers.input_exchange import patoms2dict, dict2patoms, pAtoms
 from hilde.tasks.calculate import setup_multiple
@@ -68,7 +68,7 @@ def calc_phonopy_force_constants(smatrix, atoms_ideal, calc_atoms, symprec=1e-5)
     phonon, _, _ = ph.preprocess(atoms, smatrix.T, symprec=symprec)
     phonon.set_forces([cell.get_forces() for cell in disp_cells])
     phonon.produce_force_constants()
-    return FWAction(update_spec={"phonon_dict": phonon2dict(phonon)})
+    return FWAction(update_spec={"phonon_dict": phonon_to_dict(phonon)})
 
 def add_keys(phonon_dict, fw_dict):
     '''
@@ -100,7 +100,7 @@ def calc_phonopy_band_structure(phonon_dict):
     supercell = pAtoms(phonopy_atoms=phonon.get_supercell())
     bands, _ = get_bands_and_labels(supercell)
     phonon.set_band_structure(bands)
-    to_fw = add_keys(phonon_dict, phonon2dict(phonon, True))
+    to_fw = add_keys(phonon_dict, phonon_to_dict(phonon, True))
     return FWAction(update_spec={"phonon_dict": to_fw})
 
 def calc_phonopy_dos(mesh, phonon_dict):
@@ -119,7 +119,7 @@ def calc_phonopy_dos(mesh, phonon_dict):
     phonon.set_mesh(mesh)
     phonon.set_total_DOS(freq_pitch=.1,
                          tetrahedron_method=True)
-    to_fw = add_keys(phonon_dict, phonon2dict(phonon))
+    to_fw = add_keys(phonon_dict, phonon_to_dict(phonon))
     return FWAction(update_spec={"phonon_dict": to_fw})
 
 def calc_phonopy_thermal_prop(mesh, temps, phonon_dict):
@@ -139,7 +139,7 @@ def calc_phonopy_thermal_prop(mesh, temps, phonon_dict):
     phonon = PhononRow(phonon_dict).to_phonon()
     phonon.set_mesh(mesh)
     phonon.set_thermal_properties(temperatures=temps)
-    to_fw = add_keys(phonon_dict, phonon2dict(phonon))
+    to_fw = add_keys(phonon_dict, phonon_to_dict(phonon))
     return FWAction(update_spec={"phonon_dict": to_fw})
 
 initialize_phonopy.name = f'{module_name}.{initialize_phonopy.__name__}'
