@@ -26,7 +26,10 @@ def step2dict(atoms, calc, md):
     md_dict = {"nsteps": md.nsteps, "dt": md.dt}
 
     # structure
-    atoms_dict = {"positions": atoms.positions.tolist()}
+    atoms_dict = {
+        "positions": atoms.positions.tolist(),
+        "velocities": atoms.get_velocities().tolist(),
+    }
     # if periodic system, append lattice
     if any(atoms.pbc):
         atoms_dict.update({"cell": atoms.cell.tolist()})
