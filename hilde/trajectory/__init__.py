@@ -1,4 +1,10 @@
-""" tools for storing MD trajectories """
+""" tools for storing MD trajectories 
+
+Logic:
+* save md metadata to new trajectory
+* append each md step afterwards
+
+"""
 
 import numpy as np
 from ase import units as u
@@ -9,7 +15,7 @@ from .reader import reader
 def step2file(atoms, calc, md, file="md_trajectory.yaml", NPT=False):
     """ Save the current state of MD to file """
 
-    to_yaml([step2dict(atoms, calc, md, NPT)], file)
+    to_yaml(step2dict(atoms, calc, md, NPT), file)
 
 
 def metadata2file(atoms, calc, md, file="md_metadata.yaml"):
@@ -17,7 +23,7 @@ def metadata2file(atoms, calc, md, file="md_metadata.yaml"):
 
     metadata = metadata2dict(atoms, calc, md)
 
-    to_yaml([metadata], file, mode="w")
+    to_yaml(metadata, file, mode="w")
 
 
 def step2dict(atoms, calc, md, NPT=False):
@@ -64,6 +70,7 @@ def metadata2dict(atoms, calc, md):
         "masses": md.masses.T.tolist()[0],
         "positions": atoms.positions.tolist(),
     }
+
     # if periodic system, append lattice
     if any(atoms.pbc):
         atoms_dict.update({"cell": atoms.cell.tolist()})

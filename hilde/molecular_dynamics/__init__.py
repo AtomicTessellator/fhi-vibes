@@ -50,9 +50,6 @@ def run_md(
     if watchdog is None:
         watchdog = Watchdog(walltime=walltime)
 
-    if metadata is not None:
-        metadata2file(atoms, calc, md, file=metadata)
-
     trajectory = Path(trajectory).absolute()
 
     if socketio_port is None:
@@ -68,8 +65,9 @@ def run_md(
         if socketio_port is not None:
             atoms.calc = iocalc
 
-        # log very initial step
+        # log very initial step and metadata
         if md.nsteps == 0:
+            metadata2file(atoms, calc, md, file=trajectory)
             step2file(atoms, atoms.calc, md, trajectory)
 
         # store MD metadata locally

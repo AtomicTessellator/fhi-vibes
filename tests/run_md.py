@@ -5,6 +5,7 @@
 
 
 from time import time
+from pathlib import Path
 
 from ase.build import bulk
 from ase.md.verlet import VelocityVerlet
@@ -12,7 +13,7 @@ from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase import units
 from ase.calculators.emt import EMT
 
-from hilde.molecular_dynamics import run_md
+from hilde.molecular_dynamics import run_md, prepare_from_trajectory
 
 # In[2]:
 atoms = bulk("Al") * (4, 4, 4)
@@ -23,9 +24,15 @@ calc = EMT()
 # In[4]:
 T = 100 * units.kB
 
-MaxwellBoltzmannDistribution(atoms, temp=T)
-
 md = VelocityVerlet(atoms, timestep=4 * units.fs, logfile="md.log")
+
+trajectory = Path("trajectory.yaml").absolute()
+
+# either take last step or prepare new MD run
+if trajectory.exists():
+    prepare_from_trajectory(atoms, md)
+else:
+    MaxwellBoltzmannDistribution(atoms, temp=T)
 
 
 # In[5]:

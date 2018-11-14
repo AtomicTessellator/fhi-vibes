@@ -28,9 +28,6 @@ def reader(file, metadata):
     calculator_data = metadata["calculator"]
     pre_atoms_dict = metadata["atoms"]
 
-    # only one of symbols or numbers is needed
-    del pre_atoms_dict["symbols"]
-
     pbc = False
     if "cell" in pre_atoms_dict:
         pbc = True

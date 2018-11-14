@@ -9,7 +9,7 @@ import numpy as np
 try:
     from yaml import CSafeLoader as Loader, CDumper as Dumper
 except ImportError:
-    from yaml import Loader, Dumper
+    from yaml import SafeLoader as Loader, Dumper
 
 
 def list2str(lis):
@@ -36,16 +36,21 @@ def to_yaml(obj, file, mode="a"):
     # backup
     if mode == "w":
         if Path(file).exists():
+            if "traj" in file:
+                raise Exception("Possibly overwriting a trajectory, please check")
             Path(file).rename(f"{file}.bak")
 
     with open(file, mode) as f:
+        if "a" in mode:
+            f.write("---\n")
         yaml.dump(obj, f)
 
 
 def from_yaml(file):
     """ return from yaml file """
     with Path(file).open() as f:
-        return yaml.load(f, Loader=Loader)
+        stream = yaml.load_all(f, Loader=Loader)
+        return [elem for elem in stream]
 
 
 def from_json(file):
