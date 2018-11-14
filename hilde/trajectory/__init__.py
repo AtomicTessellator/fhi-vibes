@@ -6,10 +6,10 @@ from hilde.helpers.fileformats import to_yaml, from_yaml
 from .reader import reader
 
 
-def step2file(atoms, calc, md, file="md_trajectory.yaml"):
+def step2file(atoms, calc, md, file="md_trajectory.yaml", NPT=False):
     """ Save the current state of MD to file """
 
-    to_yaml([step2dict(atoms, calc, md)], file)
+    to_yaml([step2dict(atoms, calc, md, NPT)], file)
 
 
 def metadata2file(atoms, calc, md, file="md_metadata.yaml"):
@@ -20,23 +20,20 @@ def metadata2file(atoms, calc, md, file="md_metadata.yaml"):
     to_yaml([metadata], file, mode="w")
 
 
-def step2dict(atoms, calc, md):
+def step2dict(atoms, calc, md, NPT=False):
     """ extract information from md step and convet to plain dict """
 
     # info from MD algorithm
     md_dict = {"nsteps": md.nsteps, "dt": md.dt}
 
     # structure
-    atoms_dict = {
-        "numbers": atoms.numbers.tolist(),
-        "positions": atoms.positions.tolist(),
-    }
+    atoms_dict = {"positions": atoms.positions.tolist()}
 
     if atoms.get_velocities() is not None:
         atoms_dict.update({"velocities": atoms.get_velocities().tolist()})
 
     # if periodic system, append lattice
-    if any(atoms.pbc):
+    if NPT and any(atoms.pbc):
         atoms_dict.update({"cell": atoms.cell.tolist()})
 
     # calculated values
@@ -74,7 +71,7 @@ def metadata2dict(atoms, calc, md):
     params = calc.todict()
     for key, val in params.items():
         if isinstance(val, tuple):
-            params['key'] = list(val)
+            params["key"] = list(val)
 
     calc_dict = {"name": calc.__class__.__name__, "params": params}
 
