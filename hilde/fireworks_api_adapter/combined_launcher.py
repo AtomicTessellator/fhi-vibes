@@ -154,9 +154,7 @@ def rapidfire(launchpad,
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
                 fw_ids = get_ordred_fw_ids(wflow)
-            while (skip_check or launchpad.run_exists(fworker, ids=fw_ids) or
-                   (fill_mode and not reserve)):
-
+            while (skip_check or launchpad.run_exists(fworker, ids=fw_ids) or (fill_mode and not reserve)):
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
                     l_logger.info("Timeout reached.")
                     break
@@ -178,6 +176,7 @@ def rapidfire(launchpad,
                     fw_id = fw_ids[num_launched]
                 else:
                     fw_id = launchpad._get_a_fw_to_run(fworker.query, fw_id=None).fw_id
+                print(fw_id, fw_ids)
                 use_queue = use_queue_launch(launchpad.get_fw_by_id(fw_id), tasks2queue)
                 if use_queue:
                     rlaunch = qlaunch
@@ -192,7 +191,6 @@ def rapidfire(launchpad,
                     args = r_args
                     kwargs = r_kwargs
                     kwargs['fw_id'] = fw_id
-                print(fw_id, fw_ids)
                 return_code = rlaunch(*args, **kwargs)
                 if wflow_id:
                     wflow = launchpad.get_wf_by_fw_id(wflow_id[0])

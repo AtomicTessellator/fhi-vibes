@@ -51,17 +51,24 @@ docker push registry.gitlab.com/flokno/hilde
 **Setup of FireWorks on Computational Resources**
 * FireWorks on the clusters
   * Download/clone from https://github.com/materialsproject/fireworks.git and move to that directory
-  * Modify fw\_tuotirals/woker/my\_fworker.yaml and fw\_tuotirals/woker/my\_launchpad.yaml and copy
-  them to $HOME/.fireworks
+  * Modify fw\_tuotirals/woker/my\_fworker.yaml and fw\_tuotirals/woker/my\_launchpad.yaml and
+    copy them to $HOME/.fireworks
+    * If your connection to the MongoDB is not secure (limited IP/port Access) set up a user/password for it and place those credentials in my_launchpad.yaml
+    * Do not use your cluster/computer credentials for this
   * Modify the correctfw\_tuotirals/queue\_???.yaml file for your submission system
-   and copy it to $HOME/.fireworks/my\_qadapter.yaml
+    and copy it to $HOME/.fireworks/my\_qadapter.yaml
+  * Find the FireWorks install directory with lpad version and modify
+    $FW_INSTALL_DIR/fireworks/fw_config.py:
+    * LAUNCHPAD_LOC: $HOME/.fireworks/my_launchpad.yaml
+    * FWORKER_LOC: $HOME/.fireworks/my_fworker.yaml
+    * QUEUEADAPTER_LOC:$HOME/.fireworks/my_qadapter.yaml
   * Keep all PyTask functions up to date on all machines, there are no consistency checks
 * Setup a MongoDB database for fireworks
   * Best to have it always accessible by all machines that need it
   * Check with the cluster management on what solution they'd prefer
   * Modify all my\_launchpad.yaml files such that they point to the database
 * Connections between computers
-  * Passwordless connections are perferd
+  * Passwordless connections are preferred
   * If this is not possible you can pass the password as a command line argument, (delete history afterwards)
 * FireWorks Etiquette
   * Name all Fireworks/WorkFlows
