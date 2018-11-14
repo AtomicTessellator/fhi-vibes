@@ -7,7 +7,7 @@ import yaml
 import numpy as np
 
 try:
-    from yaml import CLoader as Loader, CDumper as Dumper
+    from yaml import CSafeLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
 
@@ -55,21 +55,21 @@ def from_json(file):
         return json.load(f)
 
 
-def to_json(obj, f, indent=1):
+def to_json(obj, file, indent=1):
     """ write array (or similar) to json file """
 
-    with Path(f).open("w") as f:
+    with Path(file).open("w") as f:
         json.dump(obj, f, cls=NumpyEncoder, indent=indent)
 
 
-def append_to_json_array(obj, f, indent=1):
+def append_to_json_array(obj, file, indent=1):
     """ append contents to existing json array """
 
-    if not Path(f).exists():
-        to_json([obj], f, indent=indent)
+    if not Path(file).exists():
+        to_json([obj], file, indent=indent)
         return
 
-    new_array = from_json(f)
+    new_array = from_json(file)
     new_array.append(obj)
 
-    to_json(new_array, f, indent=indent)
+    to_json(new_array, file, indent=indent)
