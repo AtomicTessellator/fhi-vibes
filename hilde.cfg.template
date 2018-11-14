@@ -5,6 +5,7 @@
 [common]
 verbose = True
 home_dir = /some/path/to/hilde
+email = you@something.com
 
 [machine]
  aimsbin =          /some/path/to/FHIaims/bin/aims.x
