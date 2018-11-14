@@ -56,14 +56,24 @@ def from_yaml(file):
 def from_json(file):
     """ return from json file """
 
-    with Path(file).open() as f:
-        return json.load(f)
+    blobs = Path(file).read_text().split('---')
+
+    return [json.loads(blob) for blob in blobs if blob.strip()]
 
 
-def to_json(obj, file, indent=1):
-    """ write array (or similar) to json file """
+def to_json(obj, file, mode="a", indent=1):
+    """ Dump a python object to json file """
 
-    with Path(file).open("w") as f:
+    # backup
+    if mode == "w":
+        if Path(file).exists():
+            if "traj" in file:
+                raise Exception("Possibly overwriting a trajectory, please check")
+            Path(file).rename(f"{file}.bak")
+
+    with open(file, mode) as f:
+        if "a" in mode:
+            f.write("\n---\n")
         json.dump(obj, f, cls=NumpyEncoder, indent=indent)
 
 
