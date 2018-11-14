@@ -65,7 +65,6 @@ def metadata2dict(atoms, calc, md):
 
     # structure
     atoms_dict = {
-        "numbers": atoms.numbers.tolist(),
         "symbols": [f"{sym}" for sym in atoms.symbols],
         "masses": md.masses.T.tolist()[0],
         "positions": atoms.positions.tolist(),
@@ -78,7 +77,7 @@ def metadata2dict(atoms, calc, md):
     params = calc.todict()
     for key, val in params.items():
         if isinstance(val, tuple):
-            params["key"] = list(val)
+            params[key] = list(val)
 
     calc_dict = {"name": calc.__class__.__name__, "params": params}
 
