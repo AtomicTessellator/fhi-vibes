@@ -9,6 +9,11 @@
 and edit according to system.
 
 **New Features**
+* YAML Trajectories:
+  * save MD trajectories as YAML with tools in `hilde.trajectories`
+  * example in `hilde/examples/trajectory/trajectory_yaml.ipynb`
+* Emails:
+  * send notifications via email with `hilde.helpers.notifications.send_simple_mail`
 * Watchdogs:
   * supervise e.g. an MD to estimate when the walltime will be reached.
     Example in `examples/md/md_with_watchdog.ipynb`
