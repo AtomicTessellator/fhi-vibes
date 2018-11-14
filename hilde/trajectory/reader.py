@@ -26,7 +26,6 @@ def reader(file, metadata):
         raise Exception("Only json and yaml supported")
 
     calculator_data = metadata["calculator"]
-
     pre_atoms_dict = metadata["atoms"]
 
     # only one of symbols or numbers is needed
@@ -38,12 +37,13 @@ def reader(file, metadata):
 
     trajectory = []
     for obj in pre_trajectory:
-
+        # Atoms
         velocities = obj["atoms"].pop("velocities")
         atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
         atoms = Atoms(**atoms_dict, pbc=pbc)
         atoms.set_velocities(velocities)
 
+        # Calculator
         results = obj["calculator"]
         calc = SinglePointCalculator(atoms, **results)
         calc.name = calculator_data["name"]

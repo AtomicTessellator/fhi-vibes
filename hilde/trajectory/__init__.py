@@ -71,6 +71,11 @@ def metadata2dict(atoms, calc, md):
     if any(atoms.pbc):
         atoms_dict.update({"cell": atoms.cell.tolist()})
 
-    calc_dict = {"name": calc.__class__.__name__, "params": calc.todict()}
+    params = calc.todict()
+    for key, val in params.items():
+        if isinstance(val, tuple):
+            params['key'] = list(val)
+
+    calc_dict = {"name": calc.__class__.__name__, "params": params}
 
     return {"MD": md_dict, "atoms": atoms_dict, "calculator": calc_dict}
