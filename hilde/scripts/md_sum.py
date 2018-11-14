@@ -41,7 +41,10 @@ def main():
 def plot_temperature(time, temperatures, running_avg=50):
     """ Plot the nuclear temperature and save to pdf """
     import pandas as pd
+    import matplotlib
     from hilde.helpers.plotting import tableau_colors as tc
+
+    matplotlib.use('pdf')
 
     data = pd.Series(temperatures, time)
 
