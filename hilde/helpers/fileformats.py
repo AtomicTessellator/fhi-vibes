@@ -6,6 +6,11 @@ from pathlib import Path
 import yaml
 import numpy as np
 
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
 
 def list2str(lis):
     """convert list to string"""
@@ -40,7 +45,7 @@ def to_yaml(obj, file, mode="a"):
 def from_yaml(file):
     """ return from yaml file """
     with Path(file).open() as f:
-        return yaml.load(f)
+        return yaml.load(f, Loader=Loader)
 
 
 def from_json(file):
