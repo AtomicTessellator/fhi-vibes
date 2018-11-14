@@ -3,6 +3,7 @@
 import numpy as np
 from ase import units as u
 from hilde.helpers.fileformats import to_yaml, from_yaml
+from .reader import reader
 
 
 def step2file(atoms, calc, md, file="md_trajectory.yaml"):
@@ -26,7 +27,10 @@ def step2dict(atoms, calc, md):
     md_dict = {"nsteps": md.nsteps, "dt": md.dt}
 
     # structure
-    atoms_dict = {"positions": atoms.positions.tolist()}
+    atoms_dict = {
+        "numbers": atoms.numbers.tolist(),
+        "positions": atoms.positions.tolist(),
+    }
 
     if atoms.get_velocities() is not None:
         atoms_dict.update({"velocities": atoms.get_velocities().tolist()})
