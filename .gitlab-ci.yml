@@ -2,8 +2,8 @@ image: registry.gitlab.com/flokno/hilde:latest
 
 before_script:
   - pip install .
-  - service mongodb start --ipv6
   - jtest="jupyter nbconvert --execute"
+  - service mongodb start --ipv6
 
 all_tests:
   script:
@@ -16,6 +16,7 @@ all_tests:
     - $jtest $CI_PROJECT_DIR/examples/md/md.ipynb
     - python $CI_PROJECT_DIR/tests/fireworks_test.py
     - python $CI_PROJECT_DIR/tests/hashes/hashes.py
+    - $jtest $CI_PROJECT_DIR/examples/trajectory/pretty_json.ipynb
 
 # devel:
 #   script:

@@ -3,7 +3,7 @@
 from pathlib import Path
 from warnings import warn
 from ase.calculators.socketio import SocketIOCalculator
-from hilde.trajectory import step2file, metadata2file, from_yaml
+from hilde.trajectory import step2file, metadata2file, last_from_yaml
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 
@@ -13,8 +13,7 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml"):
 
     trajectory = Path(trajectory).absolute()
     if trajectory.exists():
-        traj = from_yaml(trajectory)
-        last_atoms = traj[-1]
+        last_atoms = last_from_yaml(trajectory)
         md.nsteps = last_atoms["MD"]["nsteps"]
 
         atoms.set_positions(last_atoms["atoms"]["positions"])

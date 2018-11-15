@@ -11,6 +11,8 @@ def reader(file, metadata):
     """ convert information in trajectory and metadata files to atoms objects
      and return them """
 
+    raise Exception('under construction')
+
     if str(file).endswith("json"):
         pre_trajectory = from_json(file)
     elif str(file).endswith("yaml"):
