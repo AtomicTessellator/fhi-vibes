@@ -3,7 +3,7 @@
 from pathlib import Path
 from warnings import warn
 from ase.calculators.socketio import SocketIOCalculator
-from hilde.trajectory import step2file, metadata2file, last_from_yaml
+from hilde.trajectory.md import step2file, metadata2file, last_from_yaml
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 
