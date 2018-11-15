@@ -25,55 +25,11 @@ from fireworks.core.fworker import FWorker
 from fireworks.queue.queue_launcher import launch_rocket_to_queue
 from fireworks.utilities.fw_serializers import load_object_from_file
 
-from hilde.fireworks_api_adapter.queue_launcher import rapidfire_queue
-from hilde.fireworks_api_adapter.queue_launcher import rapidfire_queue
+from hilde.fireworks_api_adapter.cueue_launcher import rapidfire
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde as LaunchPad
 
-__authors__ = "Anubhav Jain, Shyue Ping Ong. Modified by Thomas Purcell to redirect rapidfire"
-__copyright__ = "Copyright 2013, The Materials Project, Modifications 2.11.2018"
-__version__ = "0.1"
-__maintainer__ = "Anubhav Jain"
-__email__ = "ajain@lbl.gov"
-__date__ = "Jan 14, 2013"
 
-
-def do_launch(args):
-    if not args.launchpad_file and os.path.exists(
-            os.path.join(args.config_dir, 'my_launchpad.yaml')):
-        args.launchpad_file = os.path.join(args.config_dir, 'my_launchpad.yaml')
-    elif not args.launchpad_file:
-        args.launchpad_file = LAUNCHPAD_LOC
-
-    if not args.fworker_file and os.path.exists(
-            os.path.join(args.config_dir, 'my_fworker.yaml')):
-        args.fworker_file = os.path.join(args.config_dir, 'my_fworker.yaml')
-    elif not args.fworker_file:
-        args.fworker_file = FWORKER_LOC
-
-    if not args.queueadapter_file and os.path.exists(
-            os.path.join(args.config_dir, 'my_qadapter.yaml')):
-        args.queueadapter_file = os.path.join(args.config_dir, 'my_qadapter.yaml')
-    elif not args.queueadapter_file:
-        args.queueadapter_file = QUEUEADAPTER_LOC
-
-    launchpad = LaunchPad.from_file(
-        args.launchpad_file) if args.launchpad_file else LaunchPad(
-        strm_lvl=args.loglvl)
-    fworker = FWorker.from_file(
-        args.fworker_file) if args.fworker_file else FWorker()
-    queueadapter = load_object_from_file(args.queueadapter_file)
-    args.loglvl = 'CRITICAL' if args.silencer else args.loglvl
-    if args.command == 'rapidfire':
-        rapidfire(launchpad, fworker=fworker, qadapter=queueadapter, launch_dir=args.launch_dir,
-                  nlaunches=args.nlaunches, njobs_queue=args.maxjobs_queue,
-                  njobs_block=args.maxjobs_block, sleep_time=args.sleep,
-                  reserve=args.reserve, strm_lvl=args.loglvl, timeout=args.timeout,
-                  fill_mode=args.fill_mode, fw_ids=args.firework_ids, wflow_id=args.wflow)
-    else:
-        launch_rocket_to_queue(launchpad, fworker, queueadapter,
-                               args.launch_dir, args.reserve, args.loglvl, False, args.fill_mode)
-
-def qlaunch():
+def claunch():
     m_description = 'This program is used to submit jobs to a queueing system. ' \
                     'Details of the job and queue interaction are handled by the ' \
                     'mandatory queue adapter file parameter. The "rapidfire" option ' \
@@ -192,14 +148,14 @@ def qlaunch():
     else:
         queueadapter = None
 
-    def rapidfire(
+    rapidfire(
         launchpad,
         fworker=fworker,
         qadapter=qadapter,
         launch_dir=args.launch_dir,
         nlaunches=args.nlaunches,
-        njobs_queue=args.,
-        njobs_block=500,
+        njobs_queue=args.maxjobs_queue,
+        njobs_block=maxjobs_block,
         sleep_time=args.sleep,
         reserve=args.reserve,
         strm_lvl=args.loglvl,
