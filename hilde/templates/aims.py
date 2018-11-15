@@ -1,5 +1,4 @@
 """ Provide an aims calculator without much ado """
-
 from pathlib import Path
 # from ase.calculators.aims import Aims
 from hilde.calculators.aims_calc import Aims

@@ -9,6 +9,7 @@ from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict, PhononRow
 from hilde.phonopy import phono as ph, displacement_id_str
 from hilde.helpers.input_exchange import patoms2dict, dict2patoms, pAtoms
 from hilde.tasks.calculate import setup_multiple
+from .utility_tasks import add_phonon_to_db
 
 ph3 = il.import_module('hilde.phono3py.phono3')
 
@@ -45,7 +46,6 @@ def initialize_phono3py(phono3py_settings, workdir, atoms_ideal, symprec=1e-5):
             cell.info[displacement_id_str] = i
     atom_dicts = [patoms2dict(cell) for cell in scs2+scs3]
     return FWAction(update_spec={"atom_dicts": atom_dicts, "workdirs": workdirs})
-
 
 def calc_phono3py_force_constants(phono3py_settings, atoms_ideal, calc_atoms, symprec=1e-5):
     '''
@@ -84,7 +84,7 @@ def calc_phono3py_force_constants(phono3py_settings, atoms_ideal, calc_atoms, sy
     fc3_forces = ph3.get_forces(fc3_cells)
     phonon3.produce_fc2(fc2_forces)
     phonon3.produce_fc3(fc3_forces)
-    return FWAction(update_spec={"phonon_dict": phonon3_to_dict(phonon3)})
+    return phonon3
 
 def add_keys(phonon3_dict, fw_dict):
     '''
@@ -102,7 +102,7 @@ def add_keys(phonon3_dict, fw_dict):
             fw_dict[key] = phonon_dict[key]
     return fw_dict
 
-def calc_phono3py_kappa(temps, phonon3_dict, mesh=[11,11,11]):
+def calc_phono3py_kappa(phonon3, temps, mesh=[11,11,11]):
     '''
     Calculates the phonon dispersion using the phonopy force constants
     Args:
@@ -112,11 +112,35 @@ def calc_phono3py_kappa(temps, phonon3_dict, mesh=[11,11,11]):
         updated spec for the phonon_dict including the calculated properties
     '''
     print("Calculating harmonic band structure")
-    phonon3 = PhononRow(dct=phonon_dict).to_phonon3(mesh=mesh)
     phonon3.run_thermal_conductivity(write_kappa=True, temperatures=temps)
     to_fw = add_keys(phonon_dict, phonon_to_dict(phonon, True))
     return FWAction(update_spec={"phonon_dict": to_fw})
 
+def analyze_phono3py(
+        db_path,
+        phono3py_settings,
+        atoms_ideal,
+        calc_atoms,
+        symprec=1e-5,
+        temps=None,
+        mesh=None,
+        calc_type='calc',
+        **kwargs
+    ):
+    phonon3 = calc_phono3py_force_constants(phono3py_settings, atoms_ideal, calc_atoms, symprec)
+    if temps is not None:
+        if mesh is None:
+            calc_phono3py_kappa(phonon3, temps)
+        else:
+            calc_phono3py_kappa(phonon3, temps, mesh)
+    phonon_dict = phonon3_to_dict(phonon3)
+    print(phonon_dict["fc_3"].shape)
+    del(phonon_dict["fc_3"])
+    db_args = [db_path, atoms_ideal, phonon_dict, calc_type, symprec]
+    return add_phonon_to_db(*db_args, **kwargs)
+
+
 initialize_phono3py.name = f'{module_name}.{initialize_phono3py.__name__}'
 calc_phono3py_force_constants.name = f'{module_name}.{calc_phono3py_force_constants.__name__}'
 calc_phono3py_kappa.name = f'{module_name}.{calc_phono3py_kappa.__name__}'
+analyze_phono3py.name = f'{module_name}.{analyze_phono3py.__name__}'

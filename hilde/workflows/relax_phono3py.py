@@ -8,13 +8,16 @@ from hilde.helpers.input_exchange import patoms2dict, calc2dict
 from hilde.tasks import fireworks as fw
 from hilde.tasks.fireworks import mutate_kgrid
 from hilde.templates.aims import setup_aims
+from hilde.workflows.gen_relax_fw import *
+from hilde.workflows.gen_phonopy_fw import *
+from hilde.workflows.gen_phono3py_fw import *
 
-def gen_relax_phonopy_wf(geo_in_file,
+def gen_relax_phono3py_wf(geo_in_file,
                          db_name_remote,
                          db_name_local,
                          name,
                          workdir,
-                         smatrix,
+                         phono3py_settings,
                          symprec=1e-5,
                          kgrid_conv=None,
                          relax_light=None,
@@ -22,7 +25,10 @@ def gen_relax_phonopy_wf(geo_in_file,
                          force_calc=None,
                          spec_qad_kgrid=None,
                          spec_qad_relax=None,
-                         spec_qad_forces=None):
+                         spec_qad_forces=None,
+                         temps=None,
+                         mesh=None,
+                         hilde_cfg="../../hilde.cfg"):
     '''
     Creates a Workflow to relax a structure and find its phonon properties
     Args:
@@ -73,7 +79,8 @@ def gen_relax_phonopy_wf(geo_in_file,
                             "kgrid_atoms",
                             name=f"k_grid_conv_{name}",
                             spec_qad=spec_qad_kgrid,
-                            calc_settings=kgrid_conv)
+                            calc_settings=kgrid_conv,
+                            hilde_cfg=hilde_cfg)
     fw2 = gen_relax_fw(atoms,
                        db_name_remote,
                        workdir + "/light_relax/",
@@ -84,7 +91,8 @@ def gen_relax_phonopy_wf(geo_in_file,
                        name=f"light_relax_{name}",
                        spec_qad=spec_qad_relax,
                        from_db=False,
-                       calc_settings=relax_light)
+                       calc_settings=relax_light,
+                       hilde_cfg=hilde_cfg)
     fw3 = gen_relax_fw(atoms,
                        db_name_remote,
                        workdir + "/tight_relax/",
@@ -95,25 +103,27 @@ def gen_relax_phonopy_wf(geo_in_file,
                        name=f"tight_relax_{name}",
                        spec_qad=spec_qad_relax,
                        from_db=True,
-                       calc_settings=relax_tight)
-    fw4 = gen_initialize_phonopy_fw(atoms,
-                                    smatrix,
-                                    workdir + "/force_calcs/",
-                                    "tight_relax_atoms",
-                                    symprec=symprec,
-                                    up_calc_from_db=["k_grid"],
-                                    name=f"init_phono_{name}",
-                                    spec_qad=spec_qad_forces,
-                                    from_db=True,
-                                    calc_settings=force_calc)
-    fw5 = gen_analyze_phonopy_fw(atoms,
-                                 db_name_local,
-                                 smatrix,
-                                 "tight_relax_atoms",
-                                 db_label="phonons",
-                                 symprec=symprec,
-                                 name=f"analyze_phono_{name}",
-                                 from_db=True)
+                       calc_settings=relax_tight,
+                       hilde_cfg=hilde_cfg)
+    fw4 = gen_initialize_phono3py_fw(atoms,
+                                     phono3py_settings,
+                                     workdir + "/force_calcs/",
+                                     "tight_relax_atoms",
+                                     symprec=symprec,
+                                     up_calc_from_db=["k_grid"],
+                                     name=f"init_phono_{name}",
+                                     spec_qad=spec_qad_forces,
+                                     from_db=True,
+                                     calc_settings=force_calc,
+                                     hilde_cfg=hilde_cfg)
+    fw5 = gen_analyze_phono3py_fw(atoms,
+                                  db_name_local,
+                                  phono3py_settings,
+                                  "tight_relax_atoms",
+                                  db_label="phonons",
+                                  symprec=symprec,
+                                  name=f"analyze_phono_{name}",
+                                  from_db=True)
     workflow = Workflow([fw1, fw2, fw3, fw4, fw5], {fw1:[fw2], fw2:[fw3], fw3:[fw4], fw4:[fw5]},
                         name=name)
     return workflow

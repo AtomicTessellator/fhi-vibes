@@ -5,6 +5,9 @@ from hilde.tasks.calculate import calculate as calc_hilde
 from hilde.tasks import fireworks as fw
 module_name = __name__
 
+def calculate_none(out_spec):
+    return FWAction(mod_spec=[{'_push': {out_spec: None}}])
+
 def calculate(workdir, out_spec, atoms_dict, calc=None):
     '''
     A wrapper function for calculate to work within FireWorks
@@ -23,8 +26,6 @@ def calculate(workdir, out_spec, atoms_dict, calc=None):
         include the calculated results (pushes it to the end of a list)
     '''
     print(f"Beginning single point calc in {workdir}")
-    if atoms_dict is None:
-        return FWAction(mod_spec=[{'_push': {out_spec: None}}])
     if calc:
         for key, val in calc.items():
             atoms_dict[key] = val
@@ -55,10 +56,15 @@ def calculate_multiple(workdirs, atom_dicts, calculator=None, out_spec="calc_ato
     if spec_qad is None:
         spec_qad = {}
     for i, cell in enumerate(atom_dicts):
-        task = PyTask({"func": fw.calculate.name,
-                       "args": [workdirs[i], out_spec, cell, calculator]})
+        if cell is None:
+            task = PyTask({"func": fw.calculate_none.name,
+                           "args": [out_spec]})
+        else:
+            task = PyTask({"func": fw.calculate.name,
+                           "args": [workdirs[i], out_spec, cell, calculator]})
         firework_detours.append(Firework(task, name=f"calc_{i}", spec=spec_qad))
     return FWAction(detours=firework_detours)
 
 calculate.name = f'{module_name}.{calculate.__name__}'
+calculate_none.name = f'{module_name}.{calculate_none.__name__}'
 calculate_multiple.name = f'{module_name}.{calculate_multiple.__name__}'
