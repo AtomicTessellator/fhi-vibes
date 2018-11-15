@@ -3,10 +3,9 @@ image: registry.gitlab.com/flokno/hilde:latest
 before_script:
   - pip install .
   - jtest="jupyter nbconvert --execute"
+  - service mongodb start --ipv6
 
 all_tests:
-  before_script:
-    - service mongodb start --ipv6
   script:
     - python $CI_PROJECT_DIR/tests/run_md.py
     - $jtest $CI_PROJECT_DIR/examples/phonons/phonopy.ipynb

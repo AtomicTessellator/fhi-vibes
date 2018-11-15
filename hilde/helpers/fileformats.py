@@ -52,7 +52,7 @@ def to_yaml(obj, file, mode="a", use_json=True):
         yaml.dump(obj, f)
 
 
-def from_yaml(file, use_json=False):
+def from_yaml(file, use_json=True):
     """ return from yaml file """
     with Path(file).open() as f:
         if use_json:
@@ -122,6 +122,9 @@ def to_json(obj, file, mode="a", indent=1):
 
     if isinstance(obj, dict):
         rep = dict2json(obj)
+    elif isinstance(obj, list) and isinstance(obj[0], dict):
+        reps = [dict2json(elem) for elem in obj]
+        rep = "[" + ",\n".join(reps) + "]"
     else:
         rep = json.dumps(obj, cls=NumpyEncoder, indent=indent)
 

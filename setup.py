@@ -28,6 +28,7 @@ setup(
         "console_scripts": [
             "geometry_info = hilde.scripts.geometry_info:main",
             "md_sum= hilde.scripts.md_sum:main",
+            "yaml2json= hilde.scripts.yaml2json:main",
             "refine_geometry = hilde.scripts.refine_geometry:main",
             "qlaunch_hilde = hilde.fireworks_api_adapter.scripts.qlaunch_run:qlaunch",
             "rlaunch_hilde = hilde.fireworks_api_adapter.scripts.rlaunch_run:rlaunch",
