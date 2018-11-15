@@ -11,8 +11,10 @@ from .phonopy_tasks import calc_phonopy_thermal_prop
 from .phono3py_tasks import initialize_phono3py
 from .phono3py_tasks import calc_phono3py_force_constants
 from .phono3py_tasks import calc_phono3py_kappa
+from .phono3py_tasks import analyze_phono3py
 
 from .single_point import calculate
+from .single_point import calculate_none
 from .single_point import calculate_multiple
 
 from .utility_tasks import add_phonon_to_db

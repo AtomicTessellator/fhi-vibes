@@ -135,7 +135,7 @@ def analyze_phono3py(
             calc_phono3py_kappa(phonon3, temps, mesh)
     phonon_dict = phonon3_to_dict(phonon3)
     print(phonon_dict["fc_3"].shape)
-    del(phonon_dict["fc_3"])
+    # del(phonon_dict["fc_3"])
     db_args = [db_path, atoms_ideal, phonon_dict, calc_type, symprec]
     return add_phonon_to_db(*db_args, **kwargs)
 
