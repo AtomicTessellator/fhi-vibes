@@ -8,7 +8,7 @@ Logic:
 
 import numpy as np
 from ase import units as u
-from hilde.helpers.fileformats import to_yaml, from_yaml
+from hilde.helpers.fileformats import to_yaml, from_yaml, last_from_yaml
 from .reader import reader
 
 
