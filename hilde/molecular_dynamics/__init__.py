@@ -31,7 +31,6 @@ def run_md(
     metadata="md_metadata.yaml",
     socketio_port=None,
     walltime=1800,
-    watchdog=None,
     workdir=".",
 ):
     """ run and MD for a specific time
@@ -46,8 +45,7 @@ def run_md(
         workdir (str, optional): Defaults to '.'.
     """
 
-    if watchdog is None:
-        watchdog = Watchdog(walltime=walltime)
+    watchdog = Watchdog(walltime=walltime)
 
     trajectory = Path(trajectory).absolute()
 
