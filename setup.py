@@ -30,6 +30,7 @@ setup(
         'console_scripts': [
             'qlaunch_hilde = hilde.fireworks_api_adapter.scripts.qlaunch_run:qlaunch',
             'rlaunch_hilde = hilde.fireworks_api_adapter.scripts.rlaunch_run:rlaunch'
+            'claunch_hilde = hilde.fireworks_api_adapter.scripts.claunch_run:claunch'
         ]
     },
     zip_safe=False,

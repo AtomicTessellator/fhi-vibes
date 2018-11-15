@@ -87,7 +87,10 @@ def rapidfire(launchpad,
         remote_config_dir = ['~/.fireworks']
     r_args = [launchpad]
     r_kwargs = {"fworker": fworker, "strm_lvl": strm_lvl, "pdb_on_exception": False}
-    if wflow:
+    if isinstance(wflow, list):
+        wflow_id = wflow
+        wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+    elif wflow:
         wflow_id = wflow.root_fw_ids
     if remote_host is 'localhost':
         qlaunch = launch_rocket_to_queue
