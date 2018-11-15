@@ -925,7 +925,7 @@ class Spacegroup:
             if self.symbol.startswith("C"):
                 transf[2] = [0, 0, 1]
                 a, b = sorted(lengths[:2])
-                sorted_dic = sorted([{'vec': cell[i],
+                sorted_dic = sorted([{'vec': latt[i],
                                       'length': lengths[i],
                                       'orig_index': i} for i in [0, 1]],
                                     key=lambda k: k['length'])
