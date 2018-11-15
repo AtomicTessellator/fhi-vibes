@@ -50,3 +50,7 @@ def main():
     else:
         prim_cell.write(fname + ".prim", scaled=scaled_pos)
         print(f"  primitive cell written to:    {fname}.prim")
+
+
+if __name__ == "__main__":
+    main()

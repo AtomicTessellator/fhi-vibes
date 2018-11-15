@@ -20,13 +20,11 @@ setup(
     # install_requires=['numpy', 'phonopy', 'spglib'],
     packages=setuptools.find_packages(),
     ext_modules=[ext],
-    scripts=[
-        "hilde/scripts/get_relaxation_info",
-        "hilde/scripts/make_supercell",
-    ],
     entry_points={
         "console_scripts": [
             "geometry_info = hilde.scripts.geometry_info:main",
+            "get_relaxation_info = hilde.scripts.get_relaxation_info:main",
+            "make_supercell = hilde.scripts.make_supercell:main",
             "md_sum= hilde.scripts.md_sum:main",
             "yaml2json= hilde.scripts.yaml2json:main",
             "refine_geometry = hilde.scripts.refine_geometry:main",
