@@ -755,7 +755,7 @@ class Spacegroup:
                        delta = b * c * cos(alpha) / (2 * a ** 2)
                        zeta = mu - 0.25 + (1 - b * cos(alpha) / c)\
                            / (4 * sin(alpha) ** 2)
-                       eta = 0.5 + 2 * zexamples/fireworks/fireworks_tutorial/FireWorks_Tutorials.ipynbeta * c * cos(alpha) / b
+                       eta = 0.5 + 2 * zeta * c * cos(alpha) / b
                        phi = 1 + zeta - 2 * mu
                        psi = eta - 2 * delta
                        kpoints = {'\\Gamma': np.array([0.0, 0.0, 0.0]),
