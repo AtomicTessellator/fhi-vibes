@@ -1,34 +1,25 @@
 """ read YAML trajectories """
 
-from pathlib import Path
+import json
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
-from hilde.helpers.fileformats import from_json
 from hilde.helpers.fileformats import from_yaml
 
 
-def reader(file, metadata):
+def reader(file):
     """ convert information in trajectory and metadata files to atoms objects
      and return them """
 
-    raise Exception('under construction')
-
-    if str(file).endswith("json"):
-        pre_trajectory = from_json(file)
-    elif str(file).endswith("yaml"):
-        pre_trajectory = from_yaml(file)
-    else:
-        raise Exception("Only json and yaml supported")
-
-    if str(metadata).endswith("json"):
-        metadata = from_json(metadata)
-    elif str(metadata).endswith("yaml"):
-        metadata = from_yaml(metadata)
-    else:
-        raise Exception("Only json and yaml supported")
+    try:
+        metadata, *pre_trajectory = from_yaml(file, use_json=True)
+    except json.decoder.JSONDecodeError:
+        metadata, *pre_trajectory = from_yaml(file, use_json=False)
 
     calculator_data = metadata["calculator"]
     pre_atoms_dict = metadata["atoms"]
+
+    if "numbers" in pre_atoms_dict and "symbols" in pre_atoms_dict:
+        del pre_atoms_dict["symbols"]
 
     pbc = False
     if "cell" in pre_atoms_dict:
@@ -37,10 +28,16 @@ def reader(file, metadata):
     trajectory = []
     for obj in pre_trajectory:
         # Atoms
-        velocities = obj["atoms"].pop("velocities")
+        try:
+            velocities = obj["atoms"].pop("velocities")
+        except KeyError:
+            velocities = None
+
         atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
         atoms = Atoms(**atoms_dict, pbc=pbc)
-        atoms.set_velocities(velocities)
+
+        if velocities is not None:
+            atoms.set_velocities(velocities)
 
         # Calculator
         results = obj["calculator"]
