@@ -1,7 +1,26 @@
-# Task Settings
-[DEFAULT]
+# information to build a default control.in
+[control]
+xc =                        pbesol
+relativistic =              atomic_zora scalar
+k_grid =                    [2, 2, 2]
+vdw_correction_hirshfeld =  True
+sc_accuracy_rho =           1e-5
+output_level =              MD_light
+compute_forces =            True
+compute_analytical_stress = False
 
-# System specific stuff
+[basisset]
+type = light
+
+# For running MD
+[md]
+temperature = 300
+# timestep in fs
+timestep =    5
+maxsteps =    2500
+
+
+# System informations, ADJUST!
 [common]
 verbose = True
 home_dir = /some/path/to/hilde
@@ -18,29 +37,36 @@ email = you@something.com
 [database]
  location =      ${common:home_dir}/examples/phonon_db
  name =          test.db
- 
-# information to build a default control.in
-[basisset]
-type = light
 
-[control]
-xc =             pw-lda
-relativistic =   atomic_zora scalar
-k_grid =         [2, 2, 2]
-output_level =   MD_light
+[cluster] 
+# 1800s = 30 minutes
+# 14400 = 4h
+# 86400 = 1d
+walltime = 1800
 
+
+##############################################################################
 # this if for ase, no need to adjust
 [ase_settings]
 # for the control.in
-xc =           ${control:xc}
-relativistic = ${control:relativistic}
-k_grid =       ${control:k_grid}
-output_level = ${control:output_level}
-# to run the job
-aims_command = ${machine:aims_command}
-species_dir =  ${machine:basissetloc}/${basisset:type}
+xc =               ${control:xc}
+relativistic =     ${control:relativistic}
+sc_accuracy_rho =  ${control:sc_accuracy_rho}
+k_grid =           ${control:k_grid}
+
+vdw_correction_hirshfeld = ${control:vdw_correction_hirshfeld}
+
+compute_forces =            ${control:compute_forces}
+compute_analytical_stress = ${control:compute_analytical_stress}
+
+output_level =     ${control:output_level}
+
+aims_command =     ${machine:aims_command}
+species_dir =      ${machine:basissetloc}/${basisset:type}
 
 [ignore_params]
-output_level = False
-aims_command = False
-use_pimd_wrapper = False
+output_level = True
+aims_command = True
+use_pimd_wrapper = True
+
+
