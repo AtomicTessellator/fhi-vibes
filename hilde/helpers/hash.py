@@ -27,18 +27,11 @@ def hash_atoms(
         if fil.exists():
             configparser = ConfigParser()
             configparser.read(fil)
+            ignores = configparser["hash_ignore"]
 
-            ignore_keys += [
-                key
-                for key in configparser["atoms"]
-                if not configparser.getboolean("atoms", key)
-            ]
+            ignore_keys += [key for key in ignores if not ignores.getboolean(key)]
 
-            ignore_calc_params = [
-                key
-                for key in configparser["calculator"]
-                if not configparser.getboolean("calculator", key)
-            ]
+            ignore_calc_params = [key for key in ignores if not ignores.getboolean(key)]
 
     atomsjson, calcjson = atoms2json(
         atoms, ignore_results, ignore_keys, ignore_calc_params

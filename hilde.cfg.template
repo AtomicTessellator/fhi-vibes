@@ -65,7 +65,7 @@ walltime = 1800
 
 
 ##############################################################################
-[ignore_params]
+[hash_ignore]
 output_level = True
 aims_command = True
 use_pimd_wrapper = True

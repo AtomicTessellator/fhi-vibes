@@ -5,11 +5,13 @@ from hilde.helpers.hash import hash_atoms
 
 atoms = bulk("Si") * (2, 2, 2)
 
-calc = setup_aims(config_file="hilde.cfg.template")
+config_file = './tests/hashes/hash.cfg'
+
+calc = setup_aims(config_file=config_file)
 
 atoms.calc = calc
 
-atomshash, calchash = hash_atoms(atoms, ignore_file="./tests/hashes/ignore.cfg")
+atomshash, calchash = hash_atoms(atoms, ignore_file=config_file)
 
 assert atomshash == "28f353b5fe7a2367f240e1bfa79d8d77b5b3e07e", atomshash
-assert calchash == "f9a422aaf59f768726a2936448c775aac8032380", calchash
+assert calchash == "fe6fd13301cc9523988c9b0df38393cf4fbdd242", calchash
