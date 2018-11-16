@@ -41,7 +41,7 @@ def relax(
         output (str, optional): Defaults to "geometry.in.relaxed". [description]
 
     Returns:
-        [type]: [description]
+        [bool]: converged
     """
 
     bfgs_settings = {"logfile": logfile, "maxstep": maxstep}
@@ -63,6 +63,7 @@ def relax(
         socket_calc = None
     else:
         socket_calc = calc
+
     atoms.calc = calc
 
     if unit_cell:
@@ -74,7 +75,7 @@ def relax(
         workdir, mkdir=True
     ):
         if socketio_port is not None:
-            opt_atoms.calc = iocalc
+            atoms.calc = iocalc
 
         opt = BFGS(opt_atoms, **bfgs_settings)
 
