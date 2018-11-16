@@ -122,7 +122,7 @@ def schema_update(sql):
                  'tp_T',
                  'tp_A',
                  'tp_S',
-                 'tp_Cv'
+                 'tp_Cv',
                 ]
 
     arrays_2D = ['positions', 'cell', 'forces', 'tp_kappa']
@@ -137,8 +137,8 @@ def schema_update(sql):
                  'qpoints',
                  'phonon_bs_fp',
                  'phonon_dos_fp',
-                 "sc_matrix_2"
-                 "sc_matrix_3"
+                 # "sc_matrix_2",
+                 # "sc_matrix_3",
                 ]
 
     for column in arrays_1D:

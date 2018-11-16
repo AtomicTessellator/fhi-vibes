@@ -403,9 +403,9 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if values[26] is not None:
             dct['natoms_in_sc_3'] = values[26]
         if values[27] is not None:
-            dct['sc_matrix_2'] = decode(values[27])
+            dct['sc_matrix_2'] = jsonio.decode(values[27])
         if values[28] is not None:
-            dct['sc_matrix_3'] = decode(values[28])
+            dct['sc_matrix_3'] = jsonio.decode(values[28])
         if values[29] is not None:
             dct['fc_2'] = deblob(values[29], shape=(values[25], values[25], 3, 3))
         if values[30] is not None:

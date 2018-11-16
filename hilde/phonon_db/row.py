@@ -3,6 +3,7 @@ A file defining a row object for the phonon database
 """
 import numpy as np
 from ase.db.row import AtomsRow, atoms2dict
+from ase.io.jsonio import decode
 from phonopy import Phonopy
 from phono3py.phonon3 import Phono3py
 

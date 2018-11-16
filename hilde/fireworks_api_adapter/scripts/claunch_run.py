@@ -25,9 +25,9 @@ from fireworks.core.fworker import FWorker
 from fireworks.queue.queue_launcher import launch_rocket_to_queue
 from fireworks.utilities.fw_serializers import load_object_from_file
 
-from hilde.fireworks_api_adapter.cueue_launcher import rapidfire
+from hilde.fireworks_api_adapter.combined_launcher import rapidfire
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde as LaunchPad
-
+from hilde.tasks import fireworks as fw
 
 def claunch():
     m_description = 'This program is used to submit jobs to a queueing system. ' \
@@ -151,11 +151,11 @@ def claunch():
     rapidfire(
         launchpad,
         fworker=fworker,
-        qadapter=qadapter,
+        qadapter=queueadapter,
         launch_dir=args.launch_dir,
         nlaunches=args.nlaunches,
         njobs_queue=args.maxjobs_queue,
-        njobs_block=maxjobs_block,
+        njobs_block=args.maxjobs_block,
         sleep_time=args.sleep,
         reserve=args.reserve,
         strm_lvl=args.loglvl,

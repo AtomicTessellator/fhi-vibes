@@ -89,7 +89,11 @@ def rapidfire(launchpad,
     r_kwargs = {"fworker": fworker, "strm_lvl": strm_lvl, "pdb_on_exception": False}
     if isinstance(wflow, list):
         wflow_id = wflow
-        wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+        if len(wflow_id) == 0:
+            wflow_id = None
+            wflow = None
+        else:
+            wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
     elif wflow:
         wflow_id = wflow.root_fw_ids
     if remote_host is 'localhost':
@@ -149,6 +153,7 @@ def rapidfire(launchpad,
                 block_dir = create_datestamp_dir(launch_dir, l_logger)
             q_kwargs['launcher_dir'] = block_dir
         while True:
+            print("looping")
             if remote_host is 'localhost':
                 # get number of jobs in queue
                 jobs_in_queue = _get_number_of_jobs_in_queue(qadapter, njobs_queue, l_logger)
@@ -178,7 +183,7 @@ def rapidfire(launchpad,
                 if fw_ids or wflow_id:
                     fw_id = fw_ids[num_launched]
                 else:
-                    fw_id = launchpad._get_a_fw_to_run(fworker.query, fw_id=None).fw_id
+                    fw_id = launchpad._get_a_fw_to_run(fworker.query, fw_id=None, checkout=False).fw_id
                 print(fw_id, fw_ids)
                 use_queue = use_queue_launch(launchpad.get_fw_by_id(fw_id), tasks2queue)
                 if use_queue:
