@@ -28,7 +28,7 @@ temperature = 300
 timestep =    5
 maxsteps =    2500
 workdir = md
-trajectory =  ${md}/trajectory.yaml
+trajectory =  ${workdir}/trajectory.yaml
 
 # For relaxation   -> can be split of in separate config file
 [relaxation]

@@ -1,42 +1,20 @@
-from ase.io import read, write
-from ase.constraints import UnitCellFilter
-from ase.optimize import BFGS, FIRE
-from ase.optimize.gpmin.gpmin import GPMin
-from ase.build import make_supercell
-from ase.calculators.socketio import SocketIOCalculator
+from ase.io import read
+from hilde.settings import Settings
+from hilde.helpers.k_grid import update_k_grid
+from hilde.relaxation.bfgs import relax
 from hilde.templates.aims import setup_aims
 
-atoms = read("../si.in", 0, "aims")
+atoms = read("geometry.in")
 
-spos = atoms.get_scaled_positions()
-atoms.cell = atoms.cell * 1.1
-atoms.set_scaled_positions(spos)
+settings = Settings(["hilde.cfg", "relax.cfg"])
 
-atoms.write("geometry.in", "aims")
+calc = setup_aims(settings=settings)
 
-port = 27182
-calc = setup_aims(
-    custom_settings={
-        "use_pimd_wrapper": ("localhost", port),
-        "compute_forces": True,
-        "compute_analytical_stress": True,
-        "use_symmetric_forces": True
-    },
-    workdir="tmp",
+update_k_grid(atoms, calc, settings.control_kpt.density)
+
+relax(
+    atoms,
+    calc,
+    socketio_port=settings.socketio.port,
+    **settings.relaxation
 )
-
-opt_atoms =  UnitCellFilter(atoms)
-
-optimizer = BFGS
-
-# can be used as soon as MR 998 is merged to ASE
-# with SocketIOCalculator(calc, log="socketio.log", port=port) as calc:
-with SocketIOCalculator(calc, log=open("socketio.log", 'w'), port=port) as calc:
-    atoms.set_calculator(calc)
-    opt = optimizer(opt_atoms, logfile="relax.log")
-    for _ in opt.irun(fmax=0.01, steps=20):
-        print(atoms.get_scaled_positions())
-        print(atoms.cell)
-        print()
-
-atoms.write("geometry.out", "aims")
