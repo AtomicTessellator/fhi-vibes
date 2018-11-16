@@ -1,4 +1,6 @@
 Notable changes:
 
+16.11.: major changes and simplifications for the config files
+15.11.: yaml/json hybrid trajectories
 14.11.: Email support
 04.11.: change the layout of hilde.cfg, PLEASE ADAPT!

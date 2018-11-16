@@ -54,6 +54,8 @@ docker build -t registry.gitlab.com/flokno/hilde .
 docker push registry.gitlab.com/flokno/hilde
 ```
 **Setup of FireWorks on Computational Resources**
+
+See also: `doc/README_FHI_FireWorksConnections.md`
 * FireWorks on the clusters
   * Download/clone from https://github.com/materialsproject/fireworks.git and move to that directory
   * Modify fw\_tuotirals/woker/my\_fworker.yaml and fw\_tuotirals/woker/my\_launchpad.yaml and copy
