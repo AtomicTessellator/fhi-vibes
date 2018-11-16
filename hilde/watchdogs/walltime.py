@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 class WallTimeWatchdog:
-    def __init__(self, walltime, history=10, buffer=3, log="watchdog.log"):
+    def __init__(self, walltime, history=10, buffer=5, log="watchdog.log"):
         """ Watchdog that controls the walltime everytime it is called
 
         Args:
