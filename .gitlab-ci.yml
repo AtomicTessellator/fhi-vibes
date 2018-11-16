@@ -9,6 +9,8 @@ all_tests:
   script:
     - python $CI_PROJECT_DIR/tests/hashes/hashes.py
     - python $CI_PROJECT_DIR/tests/run_md.py
+    - $jtest $CI_PROJECT_DIR/examples/trajectory/pretty_json.ipynb
+    - $jtest $CI_PROJECT_DIR/examples/trajectory/read_trajectory.ipynb
     - $jtest $CI_PROJECT_DIR/examples/phonons/phonopy.ipynb
     - $jtest $CI_PROJECT_DIR/examples/phono3py/phono3py.ipynb
     - python $CI_PROJECT_DIR/examples/hiphive/hiphive_al.py
@@ -16,7 +18,6 @@ all_tests:
     - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
     - $jtest $CI_PROJECT_DIR/examples/md/md.ipynb
     - python $CI_PROJECT_DIR/tests/fireworks_test.py
-    - $jtest $CI_PROJECT_DIR/examples/trajectory/pretty_json.ipynb
 
 # devel:
 #   script:
