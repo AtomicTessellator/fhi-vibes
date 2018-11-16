@@ -11,7 +11,37 @@ from hilde.helpers.fileformats import to_yaml, from_yaml, last_from_yaml
 from .reader import reader
 
 
-def step2dict(atoms, calc, append_cell=False):
+def input2dict(atoms, calc=None):
+    """ convert metadata information to plain dict """
+
+    if calc is None:
+        calc = atoms.calc
+
+    # structure
+    atoms_dict = {
+        "symbols": [f"{sym}" for sym in atoms.symbols],
+        "masses": atoms.get_masses().tolist(),
+        "positions": atoms.positions.tolist(),
+    }
+
+    # if periodic system, append lattice
+    if any(atoms.pbc):
+        atoms_dict.update({"cell": atoms.cell.tolist()})
+
+    if calc is None:
+        return {"atoms": atoms_dict, "calculator": {}}
+
+    params = calc.todict()
+    for key, val in params.items():
+        if isinstance(val, tuple):
+            params[key] = list(val)
+
+    calc_dict = {"name": calc.__class__.__name__, "params": params}
+
+    return {"atoms": atoms_dict, "calculator": calc_dict}
+
+
+def results2dict(atoms, calc, append_cell=False):
     """ extract information from atoms and calculator and convert to plain dict """
 
     # structure
@@ -36,28 +66,3 @@ def step2dict(atoms, calc, append_cell=False):
             calc_dict[key] = val
 
     return {"atoms": atoms_dict, "calculator": calc_dict}
-
-
-def metadata2dict(atoms, calc):
-    """ convert metadata information to plain dict """
-
-    # structure
-    atoms_dict = {
-        "symbols": [f"{sym}" for sym in atoms.symbols],
-        "masses": atoms.get_masses().tolist(),
-        "positions": atoms.positions.tolist(),
-    }
-
-    # if periodic system, append lattice
-    if any(atoms.pbc):
-        atoms_dict.update({"cell": atoms.cell.tolist()})
-
-    params = calc.todict()
-    for key, val in params.items():
-        if isinstance(val, tuple):
-            params[key] = list(val)
-
-    calc_dict = {"name": calc.__class__.__name__, "params": params}
-
-    return {"atoms": atoms_dict, "calculator": calc_dict}
-

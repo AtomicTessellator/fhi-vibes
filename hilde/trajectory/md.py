@@ -8,7 +8,7 @@ Logic:
 
 import numpy as np
 from ase import units as u
-from . import metadata2dict as _metadata2dict, step2dict as _step2dict
+from . import input2dict, results2dict
 from hilde.helpers.fileformats import to_yaml, from_yaml, last_from_yaml
 
 
@@ -32,7 +32,7 @@ def step2dict(atoms, calc, md, NPT=False):
     # info from MD algorithm
     md_dict = {"nsteps": md.nsteps, "dt": md.dt}
 
-    return {"MD": md_dict, **_step2dict(atoms, calc, append_cell=NPT)}
+    return {"MD": md_dict, **results2dict(atoms, calc, append_cell=NPT)}
 
 
 def metadata2dict(atoms, calc, md):
@@ -42,4 +42,4 @@ def metadata2dict(atoms, calc, md):
     # save time and mass unit
     md_dict.update({"fs": u.fs, "dt": md.dt, "kg": u.kg})
 
-    return {"MD": md_dict, **_metadata2dict(atoms, calc)}
+    return {"MD": md_dict, **input2dict(atoms, calc)}
