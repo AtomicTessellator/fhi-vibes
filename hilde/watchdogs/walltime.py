@@ -83,25 +83,18 @@ class WallTimeWatchdog:
 
         info_str = ""
         if self.n_calls == 0:
-            info_str = f"\n# Walltime Watchdog \n"
+            info_str = f"# Walltime Watchdog \n"
             info_str += f"#   walltime:     {self.time_left:.0f}s\n"
             info_str += f"#   buffer steps: {self.buffer}\n"
-            info_str += "# {:17s} {:>7s} " + " ".join(
+            info_str += f"# {'Time':17s} " + " ".join(
                 f"{s:>10s}"
-                for s in (
-                    "Time",
-                    "n_calls",
-                    "increment",
-                    "buffer_time",
-                    "time_left",
-                    "elapsed",
-                )
+                for s in ("n_call", "increment", "buffer_time", "time_left", "elapsed")
             )
             info_str += "\n"
 
         timestr = strftime("%Y/%m/%d %H:%M:%S")
 
-        info_str = f"{timestr} " + " ".join(
+        info_str += f"{timestr} " + " ".join(
             f"{s:10.1f}"
             for s in (
                 self.n_calls,

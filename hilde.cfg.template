@@ -3,31 +3,40 @@
 xc =                        pbesol
 relativistic =              atomic_zora scalar
 k_grid =                    [2, 2, 2]
-vdw_correction_hirshfeld =  True
-sc_accuracy_rho =           1e-5
-output_level =              MD_light
+vdw_correction_hirshfeld =  False
+
 compute_forces =            False
 compute_analytical_stress = False
 
+output_level =              MD_light
+
 # OPTIONAL for using helpers.k_grid.update_k_grid
-kptdensity =                3.5
+[control_kpt]
+density =                   3.5
+
+[basisset]
+type = light
 
 [socketio]
 use  = False
 port = 12345
 
-[basisset]
-type = light
-
-# For running (and storing) MD
+# For running (and storing) MD -> can be split of in separate config file
 [md]
 temperature = 300
 # timestep in fs
 timestep =    5
 maxsteps =    2500
+workdir = md
+trajectory =  ${md}/trajectory.yaml
 
-trajectory =  trajectory.yaml
-metadata =    md_metadata.yaml
+# For relaxation   -> can be split of in separate config file
+[relaxation]
+fmax =     0.01
+maxstep =  0.2
+maxsteps = 20
+workdir =    relax
+trajectory = ${workdir}/trajectory.yaml
 
 
 # System informations, ADJUST!
@@ -56,24 +65,6 @@ walltime = 1800
 
 
 ##############################################################################
-# this if for ase, no need to adjust
-[ase_settings]
-# for the control.in
-xc =               ${control:xc}
-relativistic =     ${control:relativistic}
-sc_accuracy_rho =  ${control:sc_accuracy_rho}
-k_grid =           ${control:k_grid}
-
-vdw_correction_hirshfeld = ${control:vdw_correction_hirshfeld}
-
-compute_forces =            ${control:compute_forces}
-compute_analytical_stress = ${control:compute_analytical_stress}
-
-output_level =     ${control:output_level}
-
-aims_command =     ${machine:aims_command}
-species_dir =      ${machine:basissetloc}/${basisset:type}
-
 [ignore_params]
 output_level = True
 aims_command = True

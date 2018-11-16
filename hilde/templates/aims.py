@@ -1,6 +1,6 @@
 """ Provide an aims calculator without much ado """
 
-from pathlib import Path
+from os import path
 from ase.calculators.aims import Aims
 from hilde.settings import Settings
 
@@ -23,28 +23,31 @@ def setup_aims(
     if settings is None:
         settings = Settings(config_file)
 
-    default_settings = settings.ase_settings
+    default_settings = {**settings.control}
+    ase_settings = {
+        "aims_command": settings.machine.aims_command,
+        "species_dir": path.join(settings.machine.basissetloc, settings.basisset.type),
+    }
 
     # Check if basisset type is supposed to be changed by custom settings
     if "species_type" in custom_settings:
         species_type = custom_settings["species_type"]
         if "species_dir" not in custom_settings:
-            species_dir = str(Path(settings.machine.basissetloc / species_type))
+            species_dir = path.join(settings.machine.basissetloc, species_type)
         else:
-            species_dir = custom_settings["species_dir"] + "/" + species_type
+            species_dir = path.join(custom_settings["species_dir"], species_type)
 
         custom_settings["species_dir"] = species_dir
         del (custom_settings["species_type"])
 
-    if "use_socketio" in custom_settings or settings.socketio.use:
+    if "socketio" in settings and settings.socketio.port is not None:
         custom_settings.update(
             {"use_pimd_wrapper": ("localhost", settings.socketio.port)}
         )
         if "use_socketio" in custom_settings:
-            del custom_settings['use_socketio']
+            del custom_settings["use_socketio"]
 
-
-    aims_settings = {**default_settings, **custom_settings}
+    aims_settings = {**default_settings, **custom_settings, **ase_settings}
 
     if workdir:
         return Aims(label=Path(workdir).absolute(), **aims_settings)
