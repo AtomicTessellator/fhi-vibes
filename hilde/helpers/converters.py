@@ -74,7 +74,7 @@ def dict2results(atoms_dict, calc_dict=None):
     """ convert dictionaries into atoms and calculator objects """
 
     pbc = False
-    if "cell" in pre_atoms_dict:
+    if "cell" in atoms_dict:
         pbc = True
 
     try:
