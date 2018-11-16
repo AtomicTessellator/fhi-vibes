@@ -89,9 +89,14 @@ def dict2results(atoms_dict, calc_dict=None):
 
     # Calculator
     if calc_dict is not None:
-        calc = SinglePointCalculator(atoms, **calc_dict)
+        results = {}
+        if "results" in calc_dict:
+            results = calc_dict.pop("results")
+
+        calc = SinglePointCalculator(atoms, **results)
         calc.name = calc_dict["name"]
-        calc.parameters.update(calc_dict["params"])
+        if "params" in calc_dict:
+            calc.parameters.update(calc_dict["params"])
     else:
         calc = None
 

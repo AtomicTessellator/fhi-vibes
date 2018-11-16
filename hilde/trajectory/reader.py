@@ -24,9 +24,11 @@ def reader(file):
 
     trajectory = []
     for obj in pre_trajectory:
-        # Atoms
-        atoms_dict = {**pre_atoms_dict, **obj['atoms']}
-        calc_dict = {**pre_calc_dict , **obj['calculator']}
+
+        atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
+
+        # remember that the results need to go to a dedicated results dict in calc
+        calc_dict = {**pre_calc_dict, "results": obj["calculator"]}
 
         atoms = dict2results(atoms_dict, calc_dict)
 
