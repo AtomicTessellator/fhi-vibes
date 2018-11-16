@@ -6,7 +6,7 @@ from hilde.settings import Settings
 
 
 def setup_aims(
-    port=None, custom_settings={}, workdir=None, config_file="../../hilde.cfg"
+    custom_settings={}, workdir=None, settings=None, config_file="../../hilde.cfg"
 ):
     """Set up an aims calculator.
 
@@ -20,21 +20,30 @@ def setup_aims(
 
     """
 
-    settings = Settings(config_file)
+    if settings is None:
+        settings = Settings(config_file)
+
+    default_settings = settings.ase_settings
+
     # Check if basisset type is supposed to be changed by custom settings
     if "species_type" in custom_settings:
         species_type = custom_settings["species_type"]
         if "species_dir" not in custom_settings:
-            species_dir = str(Path(settings.machine.basissetloc / species_type) )
+            species_dir = str(Path(settings.machine.basissetloc / species_type))
         else:
             species_dir = custom_settings["species_dir"] + "/" + species_type
+
         custom_settings["species_dir"] = species_dir
         del (custom_settings["species_type"])
 
-    default_settings = settings.ase_settings
+    if "use_socketio" in custom_settings or settings.socketio.use:
+        custom_settings.update(
+            {"use_pimd_wrapper": ("localhost", settings.socketio.port)}
+        )
+        if "use_socketio" in custom_settings:
+            del custom_settings['use_socketio']
 
-    if port is not None:
-        custom_settings.update({"use_pimd_wrapper": ("localhost", port)})
+
     aims_settings = {**default_settings, **custom_settings}
 
     if workdir:

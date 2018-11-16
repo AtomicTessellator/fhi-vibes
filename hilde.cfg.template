@@ -6,18 +6,25 @@ k_grid =                    [2, 2, 2]
 vdw_correction_hirshfeld =  True
 sc_accuracy_rho =           1e-5
 output_level =              MD_light
-compute_forces =            True
+compute_forces =            False
 compute_analytical_stress = False
+
+[socketio]
+use  = False
+port = 12345
 
 [basisset]
 type = light
 
-# For running MD
+# For running (and storing) MD
 [md]
 temperature = 300
 # timestep in fs
 timestep =    5
 maxsteps =    2500
+
+trajectory =  trajectory.yaml
+metadata =    md_metadata.yaml
 
 
 # System informations, ADJUST!
