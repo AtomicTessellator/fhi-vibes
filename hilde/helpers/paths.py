@@ -23,13 +23,8 @@ def cwd(path, mkdir=False, debug=False):
         return
 
     os.chdir(path)
-    try:
-        yield
-    except Exception as inst:
-        print(inst)
-        print('Exception caught: ', sys.exc_info()[0])
-    finally:
-        os.chdir(CWD)
+    yield
+    os.chdir(CWD)
 
 # would be nice to have?
 # def decor_cwd(path, mkdir=False, debug=False):

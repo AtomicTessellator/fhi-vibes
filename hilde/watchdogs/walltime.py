@@ -86,13 +86,32 @@ class WallTimeWatchdog:
             info_str = f"\n# Walltime Watchdog \n"
             info_str += f"#   walltime:     {self.time_left:.0f}s\n"
             info_str += f"#   buffer steps: {self.buffer}\n"
-            info_str += "# {:17s} {:>7s} {:>10s} {:>10s} {:>10s}\n".format(
-                "Time", "n_calls", "increment", "buffer_time", "time_left"
+            info_str += "# {:17s} {:>7s} " + " ".join(
+                f"{s:>10s}"
+                for s in (
+                    "Time",
+                    "n_calls",
+                    "increment",
+                    "buffer_time",
+                    "time_left",
+                    "elapsed",
+                )
             )
+            info_str += "\n"
 
         timestr = strftime("%Y/%m/%d %H:%M:%S")
-        info = (self.n_calls, self.increment_per_step, self.buffer_time, self.time_left)
-        info_str += "{} {:7d} {:10.1f} {:10.1f} {:10.1f}\n".format(timestr, *info)
+
+        info_str = f"{timestr} " + " ".join(
+            f"{s:10.1f}"
+            for s in (
+                self.n_calls,
+                self.increment_per_step,
+                self.buffer_time,
+                self.time_left,
+                self.elapsed,
+            )
+        )
+        info_str += "\n"
 
         with self.logfile.open("a") as f:
             f.write(info_str)

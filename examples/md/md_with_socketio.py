@@ -13,14 +13,14 @@ atoms = read("Si.in.supercell", "0", "aims")
 force_constants = np.loadtxt("force_constants_Si.dat")
 
 # use template aims calculator (taking settings from hilde.cfg) and custom settings
-port = 1234
+port = 12345
 custom_settings = {
     "use_pimd_wrapper": ("localhost", port),
     "sc_accuracy_rho": 1e-4,
     "compute_forces": True,
 }
 
-calc = setup_aims(custom_settings, workdir="aims_tmp")
+calc = setup_aims(custom_settings=custom_settings, workdir="aims_tmp")
 
 # initialize positions + velocities at 100K
 PhononHarmonics(atoms, force_constants, temp=100 * units.kB, quantum=False)

@@ -9,6 +9,9 @@ output_level =              MD_light
 compute_forces =            False
 compute_analytical_stress = False
 
+# OPTIONAL for using helpers.k_grid.update_k_grid
+kptdensity =                3.5
+
 [socketio]
 use  = False
 port = 12345

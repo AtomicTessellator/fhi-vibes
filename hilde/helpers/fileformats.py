@@ -30,7 +30,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 def backup(file):
     if Path(file).exists():
-        if "traj" in file:
+        if "traj" in str(file):
             raise Exception("Possibly overwriting a trajectory, please check")
         Path(file).rename(f"{file}.bak")
 

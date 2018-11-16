@@ -23,12 +23,13 @@ def input2dict(atoms, calc=None):
     atoms_dict = {
         "symbols": [f"{sym}" for sym in atoms.symbols],
         "masses": atoms.get_masses().tolist(),
-        "positions": atoms.positions.tolist(),
     }
 
-    # if periodic system, append lattice
+    # if periodic system, append lattice (before positions)
     if any(atoms.pbc):
         atoms_dict.update({"cell": atoms.cell.tolist()})
+
+    atoms_dict.update({"positions": atoms.positions.tolist()})
 
     if calc is None:
         return {"atoms": atoms_dict, "calculator": {}}
@@ -47,14 +48,15 @@ def results2dict(atoms, calc, append_cell=False):
     """ extract information from atoms and calculator and convert to plain dict """
 
     # structure
-    atoms_dict = {"positions": atoms.positions.tolist()}
-
-    if atoms.get_velocities() is not None:
-        atoms_dict.update({"velocities": atoms.get_velocities().tolist()})
-
+    atoms_dict = {}
     # if periodic system, append lattice
     if append_cell and any(atoms.pbc):
         atoms_dict.update({"cell": atoms.cell.tolist()})
+
+    atoms_dict.update({"positions": atoms.positions.tolist()})
+
+    if atoms.get_velocities() is not None:
+        atoms_dict.update({"velocities": atoms.get_velocities().tolist()})
 
     # calculated values
     calc_dict = {}
