@@ -2,7 +2,6 @@ from pathlib import Path
 import numpy as np
 
 from ase.constraints import UnitCellFilter
-from ase.optimize import BFGS
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
@@ -13,6 +12,7 @@ from hilde.trajectory.relaxation import metadata2file, step2file
 def relax(
     atoms,
     calc,
+    linesearch=True,
     fmax=0.01,
     maxstep=0.2,
     unit_cell=True,
@@ -43,6 +43,11 @@ def relax(
     Returns:
         [bool]: converged
     """
+
+    if linesearch:
+        from ase.optimize.bfgslinesearch import BFGSLineSearch as BFGS
+    else:
+        from ase.optimize.bfgs import BFGS
 
     bfgs_settings = {"logfile": logfile, "maxstep": maxstep}
 
@@ -88,6 +93,6 @@ def relax(
             if watchdog():
                 break
 
-    atoms.write(output, format="aims", scaled=True)
+        atoms.write(output, format="aims", scaled=True)
 
     return converged
