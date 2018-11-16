@@ -93,7 +93,7 @@ def dict2json(dct, indent=0, outer=True):
             rep = f"\n{2*ind}[{rep[1:]}"
             rep += "]"
         else:
-            rep = json.dumps(val)
+            rep = json.dumps(val, cls=NumpyEncoder)
 
         parts.append(f'{ind}"{key}": {rep}')
 
