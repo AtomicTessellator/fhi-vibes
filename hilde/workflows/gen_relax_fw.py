@@ -1,4 +1,4 @@
-'''Generates a Workflow to relax a structure and calculate its harmonic force constants'''
+"""Generates a Workflow to relax a structure and calculate its harmonic force constants"""
 from fireworks import Firework, PyTask, Workflow
 
 from hilde.helpers.hash import hash_atoms
@@ -9,17 +9,20 @@ from hilde.tasks import fireworks as fw
 from hilde.tasks.fireworks import mutate_kgrid
 from hilde.templates.aims import setup_aims
 
-def gen_kgrid_conv_fw(atoms,
-                      workdir,
-                      atoms_spec,
-                      final_atoms_spec,
-                      name="k_grid_conv",
-                      spec_qad=None,
-                      calc=None,
-                      calc_settings=None,
-                      criteria=1e-3,
-                      hilde_cfg="../../hilde.cfg"):
-    '''
+
+def gen_kgrid_conv_fw(
+    atoms,
+    workdir,
+    atoms_spec,
+    final_atoms_spec,
+    name="k_grid_conv",
+    spec_qad=None,
+    calc=None,
+    calc_settings=None,
+    criteria=1e-3,
+    hilde_cfg="../../hilde.cfg",
+):
+    """
     Generates a k_grid convergence FireWork
     Args:
         atoms: pAtoms
@@ -43,7 +46,7 @@ def gen_kgrid_conv_fw(atoms,
             Convergence threshold
     Returns: FireWork
         A FireWork that will do a kgrid convergence for your system
-    '''
+    """
     if calc_settings is None:
         calc_settings = {}
     if calc is None:
@@ -52,41 +55,64 @@ def gen_kgrid_conv_fw(atoms,
         spec_qad = {}
     atoms.set_calculator(calc)
     workdir = setup_workdir(atoms, workdir, False)
-    workdirs = [str(workdir/f'{0:05d}'), str(workdir/f'{1:05d}')]
+    workdirs = [str(workdir / f"{0:05d}"), str(workdir / f"{1:05d}")]
     atoms_dicts = [patoms2dict(atoms), mutate_kgrid(patoms2dict(atoms))[0]]
     task_list = []
-    task_list.append(PyTask({"func": fw.calculate.name,
-                             "args": [workdirs[0], atoms_spec, atoms_dicts[0]],
-                             "spec": spec_qad}))
-    task_list.append(PyTask({"func": fw.calculate.name,
-                             "args": [workdirs[1], atoms_spec, atoms_dicts[1]],
-                             "spec": spec_qad}))
-    conv_args = ["k_grid",
-                 atoms_spec,
-                 final_atoms_spec,
-                 fw.energy_diff.name,
-                 fw.mutate_kgrid.name,
-                 workdirs[1]]
-    task_list.append(PyTask({"func": fw.check_convergence.name,
-                             "args": conv_args,
-                             "inputs": [atoms_spec],
-                             "kwargs": {"criteria": criteria}}))
+    task_list.append(
+        PyTask(
+            {
+                "func": fw.calculate.name,
+                "args": [workdirs[0], atoms_spec, atoms_dicts[0]],
+                "spec": spec_qad,
+            }
+        )
+    )
+    task_list.append(
+        PyTask(
+            {
+                "func": fw.calculate.name,
+                "args": [workdirs[1], atoms_spec, atoms_dicts[1]],
+                "spec": spec_qad,
+            }
+        )
+    )
+    conv_args = [
+        "k_grid",
+        atoms_spec,
+        final_atoms_spec,
+        fw.energy_diff.name,
+        fw.mutate_kgrid.name,
+        workdirs[1],
+    ]
+    task_list.append(
+        PyTask(
+            {
+                "func": fw.check_convergence.name,
+                "args": conv_args,
+                "inputs": [atoms_spec],
+                "kwargs": {"criteria": criteria},
+            }
+        )
+    )
     return Firework(task_list, name=name)
 
-def gen_relax_fw(atoms,
-                 db_name,
-                 workdir,
-                 in_atoms_spec,
-                 out_atoms_spec,
-                 db_label='relax',
-                 calc=None,
-                 up_calc_from_db=None,
-                 name="relax",
-                 spec_qad=None,
-                 from_db=False,
-                 calc_settings=None,
-                 hilde_cfg="../../hilde.cfg"):
-    '''
+
+def gen_relax_fw(
+    atoms,
+    db_name,
+    workdir,
+    in_atoms_spec,
+    out_atoms_spec,
+    db_label="relax",
+    calc=None,
+    up_calc_from_db=None,
+    name="relax",
+    spec_qad=None,
+    from_db=False,
+    calc_settings=None,
+    hilde_cfg="../../hilde.cfg",
+):
+    """
     Generates a relaxation FireWork
     Args:
         atoms: pAtoms
@@ -116,7 +142,7 @@ def gen_relax_fw(atoms,
             A dictionary of custom settings that should be used to make an aims calculator
     Returns: FireWork
         A FireWork that will relax a structure with a given set of parameters
-    '''
+    """
     if calc_settings is None:
         calc_settings = {}
     if calc is None:
@@ -134,27 +160,49 @@ def gen_relax_fw(atoms,
         inputs_calc.append(in_atoms_spec)
     else:
         args_calc.append(atoms)
-    kwargs_to_db = {"fw_name": name, "original_atoms_hash": atoms_hash,"calc_type": db_label}
+    kwargs_to_db = {"fw_name": name, "original_atoms_hash": atoms_hash, "calc_type": db_label}
     if up_calc_from_db:
         inputs_calc.append("calculator")
-        task_list.append(PyTask({"func": fw.mod_calc.name,
-                                 "args": [up_calc_from_db[0], calc2dict(calc)],
-                                 "inputs": [up_calc_from_db[0]],
-                                 "kwargs": {"spec_key": up_calc_from_db[0]}}))
+        task_list.append(
+            PyTask(
+                {
+                    "func": fw.mod_calc.name,
+                    "args": [up_calc_from_db[0], calc2dict(calc)],
+                    "inputs": [up_calc_from_db[0]],
+                    "kwargs": {"spec_key": up_calc_from_db[0]},
+                }
+            )
+        )
         for key in up_calc_from_db[1:]:
-            task_list.append(PyTask({"func": fw.mod_calc.name,
-                                     "args": [key],
-                                     "inputs": ["calculator", key],
-                                     "kwargs": {"spec_key": key}}))
+            task_list.append(
+                PyTask(
+                    {
+                        "func": fw.mod_calc.name,
+                        "args": [key],
+                        "inputs": ["calculator", key],
+                        "kwargs": {"spec_key": key},
+                    }
+                )
+            )
 
-    task_list.append(PyTask({"func": fw.calculate.name,
-                             "args": args_calc,
-                             "inputs": inputs_calc}))
-    task_list.append(PyTask({"func": fw.get_relaxed_structure.name,
-                             "args": [str(workdir/"geometry.in.next_step"), out_atoms_spec],
-                             "inputs": [in_atoms_spec]}))
-    task_list.append(PyTask({"func": fw.add_phonon_to_db.name,
-                             "args": [db_name],
-                             "inputs": [in_atoms_spec, out_atoms_spec],
-                             "kwargs": kwargs_to_db}))
+    task_list.append(PyTask({"func": fw.calculate.name, "args": args_calc, "inputs": inputs_calc}))
+    task_list.append(
+        PyTask(
+            {
+                "func": fw.get_relaxed_structure.name,
+                "args": [str(workdir / "geometry.in.next_step"), out_atoms_spec],
+                "inputs": [in_atoms_spec],
+            }
+        )
+    )
+    task_list.append(
+        PyTask(
+            {
+                "func": fw.add_phonon_to_db.name,
+                "args": [db_name],
+                "inputs": [in_atoms_spec, out_atoms_spec],
+                "kwargs": kwargs_to_db,
+            }
+        )
+    )
     return Firework(task_list, name=name, spec=spec_qad)

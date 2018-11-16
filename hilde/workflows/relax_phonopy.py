@@ -1,4 +1,4 @@
-'''Generates a Workflow to relax a structure and calculate its harmonic force constants'''
+"""Generates a Workflow to relax a structure and calculate its harmonic force constants"""
 from fireworks import Firework, PyTask, Workflow
 
 from hilde.helpers.hash import hash_atoms
@@ -10,6 +10,7 @@ from hilde.tasks.fireworks import mutate_kgrid
 from hilde.templates.aims import setup_aims
 from hilde.workflows.gen_relax_fw import gen_kgrid_conv_fw, gen_relax_fw
 from hilde.workflows.gen_phonopy_fw import gen_initialize_phonopy_fw, gen_analyze_phonopy_fw
+
 
 def gen_relax_phonopy_wf(
     geo_in_file,
@@ -28,7 +29,7 @@ def gen_relax_phonopy_wf(
     spec_qad_forces=None,
     hilde_cfg="../../hilde.cfg",
 ):
-    '''
+    """
     Creates a Workflow to relax a structure and find its phonon properties
     Args:
         geo_in_files: str
@@ -64,7 +65,7 @@ def gen_relax_phonopy_wf(
             file) for the force calculations
     Returns: Workflow
         A Workflow that will relax a structure and calculated its phonons
-    '''
+    """
     if not spec_qad_kgrid:
         spec_qad_kgrid = {}
     if not spec_qad_relax:
@@ -80,7 +81,7 @@ def gen_relax_phonopy_wf(
         name=f"k_grid_conv_{name}",
         spec_qad=spec_qad_kgrid,
         calc_settings=kgrid_conv,
-        hilde_cfg=hilde_cfg
+        hilde_cfg=hilde_cfg,
     )
     fw2 = gen_relax_fw(
         atoms,
@@ -94,7 +95,7 @@ def gen_relax_phonopy_wf(
         spec_qad=spec_qad_relax,
         from_db=False,
         calc_settings=relax_light,
-        hilde_cfg=hilde_cfg
+        hilde_cfg=hilde_cfg,
     )
     fw3 = gen_relax_fw(
         atoms,
@@ -108,7 +109,7 @@ def gen_relax_phonopy_wf(
         spec_qad=spec_qad_relax,
         from_db=True,
         calc_settings=relax_tight,
-        hilde_cfg=hilde_cfg
+        hilde_cfg=hilde_cfg,
     )
     fw4 = gen_initialize_phonopy_fw(
         atoms,
@@ -121,7 +122,7 @@ def gen_relax_phonopy_wf(
         spec_qad=spec_qad_forces,
         from_db=True,
         calc_settings=force_calc,
-        hilde_cfg=hilde_cfg
+        hilde_cfg=hilde_cfg,
     )
     fw5 = gen_analyze_phonopy_fw(
         atoms,
@@ -131,8 +132,9 @@ def gen_relax_phonopy_wf(
         db_label="phonons",
         symprec=symprec,
         name=f"analyze_phono_{name}",
-        from_db=True
+        from_db=True,
     )
-    workflow = Workflow([fw1, fw2, fw3, fw4, fw5], {fw1:[fw2], fw2:[fw3], fw3:[fw4], fw4:[fw5]},
-                        name=name)
+    workflow = Workflow(
+        [fw1, fw2, fw3, fw4, fw5], {fw1: [fw2], fw2: [fw3], fw3: [fw4], fw4: [fw5]}, name=name
+    )
     return workflow

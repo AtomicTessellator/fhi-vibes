@@ -13,6 +13,7 @@ from ase.db.core import Database, lock, parse_selection, str_represents, now
 from ase.calculators.calculator import all_properties, all_changes
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
 from ase.data import atomic_numbers
+
 try:
     from ase.symbols import string2symbols
 except ModuleNotFoundError:
@@ -24,107 +25,141 @@ from hilde.phonon_db.row import PhononRow
 # File largely copied from ase.db.core modified to use PhononRows over AtomsRow
 
 default_key_descriptions = {
-    'id': ('ID', 'Uniqe row ID', ''),
-    'age': ('Age', 'Time since creation', ''),
-    'formula': ('Formula', 'Chemical formula', ''),
-    'user': ('Username', '', ''),
-    'calculator': ('Calculator', 'ASE-calculator name', ''),
-    'energy': ('Energy', 'Total energy', 'eV'),
-    'fmax': ('Maximum force', '', 'eV/Ang'),
-    'smax': ('Maximum stress', '', '`\\text{eV/Ang}^3`'),
-    'pbc': ('PBC', 'Periodic boundary conditions', ''),
-    'charge': ('Charge', '', '|e|'),
-    'mass': ('Mass', '', 'au'),
-    'magmom': ('Magnetic moment', '', 'au'),
-    'unique_id': ('Unique ID', '', ''),
-    'volume': ('Volume', 'Volume of unit-cell', '`\\text{Ang}^3`')}
+    "id": ("ID", "Uniqe row ID", ""),
+    "age": ("Age", "Time since creation", ""),
+    "formula": ("Formula", "Chemical formula", ""),
+    "user": ("Username", "", ""),
+    "calculator": ("Calculator", "ASE-calculator name", ""),
+    "energy": ("Energy", "Total energy", "eV"),
+    "fmax": ("Maximum force", "", "eV/Ang"),
+    "smax": ("Maximum stress", "", "`\\text{eV/Ang}^3`"),
+    "pbc": ("PBC", "Periodic boundary conditions", ""),
+    "charge": ("Charge", "", "|e|"),
+    "mass": ("Mass", "", "au"),
+    "magmom": ("Magnetic moment", "", "au"),
+    "unique_id": ("Unique ID", "", ""),
+    "volume": ("Volume", "Volume of unit-cell", "`\\text{Ang}^3`"),
+}
 
-reserved_keys = set(all_properties +
-                    all_changes +
-                    list(atomic_numbers) +
-                    ['id', 'unique_id', 'ctime', 'mtime', 'user',
-                     'momenta', 'constraints', 'natoms', 'formula', 'age',
-                     'calculator', 'calculator_parameters',
-                     'key_value_pairs', 'data'])
+reserved_keys = set(
+    all_properties
+    + all_changes
+    + list(atomic_numbers)
+    + [
+        "id",
+        "unique_id",
+        "ctime",
+        "mtime",
+        "user",
+        "momenta",
+        "constraints",
+        "natoms",
+        "formula",
+        "age",
+        "calculator",
+        "calculator_parameters",
+        "key_value_pairs",
+        "data",
+    ]
+)
 
 
-seconds = {'s': 1,
-           'm': 60,
-           'h': 3600,
-           'd': 86400,
-           'w': 604800,
-           'M': 2629800,
-           'y': 31557600}
+seconds = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604_800, "M": 2_629_800, "y": 31_557_600}
 
-longwords = {'s': 'second',
-             'm': 'minute',
-             'h': 'hour',
-             'd': 'day',
-             'w': 'week',
-             'M': 'month',
-             'y': 'year'}
+longwords = {
+    "s": "second",
+    "m": "minute",
+    "h": "hour",
+    "d": "day",
+    "w": "week",
+    "M": "month",
+    "y": "year",
+}
 
-ops = {'<': operator.lt,
-       '<=': operator.le,
-       '=': operator.eq,
-       '>=': operator.ge,
-       '>': operator.gt,
-       '!=': operator.ne}
+ops = {
+    "<": operator.lt,
+    "<=": operator.le,
+    "=": operator.eq,
+    ">=": operator.ge,
+    ">": operator.gt,
+    "!=": operator.ne,
+}
 
-invop = {'<': '>=', '<=': '>', '>=': '<', '>': '<=', '=': '!=', '!=': '='}
+invop = {"<": ">=", "<=": ">", ">=": "<", ">": "<=", "=": "!=", "!=": "="}
 
-word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
+word = re.compile("[_a-zA-Z][_0-9a-zA-Z]*$")
 
-reserved_keys = set(all_properties +
-                    all_changes +
-                    list(atomic_numbers) +
-                    ['id', 'unique_id', 'ctime', 'mtime', 'user',
-                     'momenta', 'constraints', 'natoms', 'formula', 'age',
-                     'calculator', 'calculator_parameters',
-                     'key_value_pairs', 'data'])
+reserved_keys = set(
+    all_properties
+    + all_changes
+    + list(atomic_numbers)
+    + [
+        "id",
+        "unique_id",
+        "ctime",
+        "mtime",
+        "user",
+        "momenta",
+        "constraints",
+        "natoms",
+        "formula",
+        "age",
+        "calculator",
+        "calculator_parameters",
+        "key_value_pairs",
+        "data",
+    ]
+)
 
-numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms', 'natoms_in_Sc'])
-numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms', 'natoms_in_Sc'])
+numeric_keys = set(["id", "energy", "magmom", "charge", "natoms", "natoms_in_Sc"])
+numeric_keys = set(["id", "energy", "magmom", "charge", "natoms", "natoms_in_Sc"])
+
 
 def check(key_value_pairs):
-    '''
+    """
     Checks the key value pairs to makes sure they are of the right format
-    '''
+    """
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
-            raise ValueError('Bad key: {}'.format(key))
+            raise ValueError("Bad key: {}".format(key))
         try:
             string2symbols(key)
         except ValueError:
             pass
         else:
             warnings.warn(
-                'It is best not to use keys ({0}) that are also a '
+                "It is best not to use keys ({0}) that are also a "
                 'chemical formula.  If you do a "db.select({0!r})",'
-                'you will not find rows with your key.  Instead, you wil get '
-                'rows containing the atoms in the formula!'.format(key))
+                "you will not find rows with your key.  Instead, you wil get "
+                "rows containing the atoms in the formula!".format(key)
+            )
         if not isinstance(value, (numbers.Real, basestring, np.bool_)):
             print(value)
-            raise ValueError('Bad value for {!r}: {}'.format(key, value))
+            raise ValueError("Bad value for {!r}: {}".format(key, value))
         if isinstance(value, basestring):
             for t in [int, float]:
                 if str_represents(value, t):
                     raise ValueError(
-                        'Value ' + value + ' is put in as string ' +
-                        'but can be interpreted as ' +
-                        '{}! Please convert '.format(t.__name__) +
-                        'to {} using '.format(t.__name__) +
-                        '{}(value) before '.format(t.__name__) +
-                        'writing to the database OR change ' +
-                        'to a different string.')
+                        "Value "
+                        + value
+                        + " is put in as string "
+                        + "but can be interpreted as "
+                        + "{}! Please convert ".format(t.__name__)
+                        + "to {} using ".format(t.__name__)
+                        + "{}(value) before ".format(t.__name__)
+                        + "writing to the database OR change "
+                        + "to a different string."
+                    )
 
-def connect(name,
-            db_type='extract_from_name',
-            create_indices=True,
-            use_lock_file=True,
-            append=True,
-            serial=False
-           ):
+
+def connect(
+    name,
+    db_type="extract_from_name",
+    create_indices=True,
+    use_lock_file=True,
+    append=True,
+    serial=False,
+):
     """Create connection to database.
     Modified to link to PhononDatabase types
     name: str
@@ -142,18 +177,17 @@ def connect(name,
 
     name = str(name)
 
-    if db_type == 'extract_from_name':
+    if db_type == "extract_from_name":
         if name is None:
             db_type = None
         elif not isinstance(name, basestring):
-            db_type = 'json'
-        elif (name.startswith('postgresql:/') or
-              name.startswith('postgres:/')):
-            db_type = 'postgresql'
+            db_type = "json"
+        elif name.startswith("postgresql:/") or name.startswith("postgres:/"):
+            db_type = "postgresql"
         else:
             db_type = os.path.splitext(name)[1][1:]
-            if db_type == '':
-                raise ValueError('No file extension or database type given')
+            if db_type == "":
+                raise ValueError("No file extension or database type given")
 
     if db_type is None:
         return Database()
@@ -161,28 +195,27 @@ def connect(name,
     if not append and world.rank == 0 and os.path.isfile(name):
         os.remove(name)
 
-
-    if db_type != 'postgresql':
+    if db_type != "postgresql":
         name = os.path.abspath(name)
 
-    if db_type == 'json':
+    if db_type == "json":
         from hilde.phonon_db.phonon_jsondb import PhononJSONDatabase
+
         return PhononJSONDatabase(name, use_lock_file=use_lock_file, serial=serial)
-    if db_type == 'db':
+    if db_type == "db":
         from hilde.phonon_db.phonon_sqlitedb import PhononSQLite3Database
-        return PhononSQLite3Database(name,
-                                     create_indices,
-                                     use_lock_file,
-                                     serial=serial
-                                    )
-    if db_type == 'postgresql':
+
+        return PhononSQLite3Database(name, create_indices, use_lock_file, serial=serial)
+    if db_type == "postgresql":
         from hilde.phonon_db.phonon_postgresqldb import PhononPostgreSQLDatabase
+
         return PhononPostgreSQLDatabase(name)
-    raise ValueError('Unknown database type: ' + type)
+    raise ValueError("Unknown database type: " + type)
 
 
 class PhononDatabase(Database):
     """Base class for all databases."""
+
     def __init__(self, filename=None, create_indices=True, use_lock_file=False, serial=False):
         """Database object.
         Args:
@@ -200,7 +233,7 @@ class PhononDatabase(Database):
         self.filename = filename
         self.create_indices = create_indices
         if use_lock_file and isinstance(filename, basestring):
-            self.lock = Lock(filename + '.lock', world=DummyMPI())
+            self.lock = Lock(filename + ".lock", world=DummyMPI())
         else:
             self.lock = None
         self.serial = serial
@@ -211,32 +244,41 @@ class PhononDatabase(Database):
         return 1
 
     def get_phonon(self, selection=None, **kwarg):
-        '''
+        """
         Gets a phonopy object from a database row
         Args:
             selection: selection criteria for the database query
             kwargs   : additional selection criteria not stored in selection
         Returns:
             the phonopy object of the row
-        '''
+        """
         row = self.get(selection, **kwarg)
         return row.to_phonon()
 
     def get_phonon3(self, selection=None, **kwarg):
-        '''
+        """
         Gets a phonopy object from a database row
         Args:
             selection: selection criteria for the database query
             kwargs   : additional selection criteria not stored in selection
         Returns:
             the phonopy object of the row
-        '''
+        """
         row = self.get(selection, **kwarg)
         return row.to_phonon3()
 
     @parallel_function
     @lock
-    def update(self, id, dct=None, phonon3=None, phonon=None, delete_keys=[], data=None, **add_key_value_pairs):
+    def update(
+        self,
+        id,
+        dct=None,
+        phonon3=None,
+        phonon=None,
+        delete_keys=[],
+        data=None,
+        **add_key_value_pairs,
+    ):
         """Update and/or delete key-value pairs of row(s).
 
         id: int
@@ -254,13 +296,15 @@ class PhononDatabase(Database):
         """
         if not isinstance(id, numbers.Integral):
             if isinstance(id, list):
-                err = ('First argument must be an int and not a list.\n'
-                       'Do something like this instead:\n\n'
-                       'with db:\n'
-                       '    for id in ids:\n'
-                       '        db.update(id, ...)')
+                err = (
+                    "First argument must be an int and not a list.\n"
+                    "Do something like this instead:\n\n"
+                    "with db:\n"
+                    "    for id in ids:\n"
+                    "        db.update(id, ...)"
+                )
                 raise ValueError(err)
-            raise TypeError('id must be an int')
+            raise TypeError("id must be an int")
 
         check(add_key_value_pairs)
 
@@ -292,7 +336,7 @@ class PhononDatabase(Database):
         m += len(kvp)
 
         moredata = data
-        data = row.get('data', {})
+        data = row.get("data", {})
         if moredata:
             data.update(moredata)
         if not data:
@@ -302,7 +346,9 @@ class PhononDatabase(Database):
 
         return m, n
 
-    def write(self, dct=None, phonon3=None, phonon=None, key_value_pairs={}, data={}, id=None, **kwargs):
+    def write(
+        self, dct=None, phonon3=None, phonon=None, key_value_pairs={}, data={}, id=None, **kwargs
+    ):
         """Write atoms to database with key-value pairs.
 
         atoms: Atoms object
@@ -328,7 +374,7 @@ class PhononDatabase(Database):
             row = PhononRow(phonon)
         elif dct:
             row = PhononRow(dct)
-        row.user = os.getenv('USER')
+        row.user = os.getenv("USER")
         row.ctime = now()
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
@@ -337,18 +383,19 @@ class PhononDatabase(Database):
         return id
 
     @parallel_generator
-    def select(self,
-               selection=None,
-               filter=None,
-               explain=False,
-               verbosity=1,
-               limit=None,
-               offset=0,
-               sort=None,
-               include_data=True,
-               columns='all',
-               **kwargs
-              ):
+    def select(
+        self,
+        selection=None,
+        filter=None,
+        explain=False,
+        verbosity=1,
+        limit=None,
+        offset=0,
+        sort=None,
+        include_data=True,
+        columns="all",
+        **kwargs,
+    ):
         """Select rows.
 
         Return PhononRow iterator with results.  Selection is done
@@ -386,17 +433,23 @@ class PhononDatabase(Database):
             queries can be speeded up by setting columns=['id', 'energy'].
         """
         if sort:
-            if sort == 'age':
-                sort = '-ctime'
-            elif sort == '-age':
-                sort = 'ctime'
-            elif sort.lstrip('-') == 'user':
-                sort += 'name'
+            if sort == "age":
+                sort = "-ctime"
+            elif sort == "-age":
+                sort = "ctime"
+            elif sort.lstrip("-") == "user":
+                sort += "name"
         keys, cmps = parse_selection(selection, **kwargs)
-        for row in self._select(keys, cmps, explain=explain,
-                                verbosity=verbosity,
-                                limit=limit, offset=offset, sort=sort,
-                                include_data=include_data,
-                                columns=columns):
+        for row in self._select(
+            keys,
+            cmps,
+            explain=explain,
+            verbosity=verbosity,
+            limit=limit,
+            offset=offset,
+            sort=sort,
+            include_data=include_data,
+            columns=columns,
+        ):
             if filter is None or filter(row):
                 yield row

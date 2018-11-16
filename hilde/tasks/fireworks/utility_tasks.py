@@ -4,35 +4,42 @@ from hilde.phonon_db.phonon_db import connect
 from hilde.parsers.structure import read_structure
 from hilde.helpers.input_exchange import patoms2dict, dict2patoms
 from hilde.tasks import fireworks as fw
+
 module_name = __name__
+
 
 def mod_calc(param_key, calc, new_val, spec_key=None):
     if param_key is "command":
         calc[param_key] = new_val
     else:
         calc["calculator_parameters"][param_key] = new_val
-    up_spec = {"calculator" : calc}
+    up_spec = {"calculator": calc}
     if spec_key:
         up_spec[spec_key] = new_val
     return FWAction(update_spec=up_spec)
 
+
 def add_result_to_spec(result_key, spec_key, atoms_calc):
-    return FWAction(update_spec={spec_key:atoms_calc["results"][result_key]})
+    return FWAction(update_spec={spec_key: atoms_calc["results"][result_key]})
+
 
 def transfer_spec(key, val):
     return FWAction(update_spec={key: val})
 
-def check_convergence(prop_spec,
-                      atoms_spec,
-                      final_atoms_spec,
-                      loss_function,
-                      mutate_function,
-                      workdir,
-                      atoms_dicts,
-                      criteria=0.01):
+
+def check_convergence(
+    prop_spec,
+    atoms_spec,
+    final_atoms_spec,
+    loss_function,
+    mutate_function,
+    workdir,
+    atoms_dicts,
+    criteria=0.01,
+):
     print(f"Checking convergence criteria, threshold value is {criteria}")
-    loss_toks = loss_function.rsplit('.', 1)
-    mut_toks = mutate_function.rsplit('.', 1)
+    loss_toks = loss_function.rsplit(".", 1)
+    mut_toks = mutate_function.rsplit(".", 1)
     if len(loss_toks) == 2:
         modname, funcname = loss_toks
         mod = __import__(modname, globals(), locals(), [str(funcname)], 0)
@@ -57,31 +64,40 @@ def check_convergence(prop_spec,
 
     new_atoms, _ = mut_func(atoms_dicts[-1])
     new_workdir = "/".join(workdir.split("/")[:-1]) + f'/{int(workdir.split("/")[-1])+1:05d}'
-    check_conv_args = [prop_spec,
-                       atoms_spec,
-                       final_atoms_spec,
-                       loss_function,
-                       mutate_function,
-                       new_workdir]
-    task_list = [PyTask({"func": fw.calculate.name,
-                         "args": [new_workdir, atoms_spec, new_atoms]})]
-    task_list.append(PyTask({"func": fw.check_convergence.name,
-                             "args": check_conv_args,
-                             "inputs": [atoms_spec],
-                             "kwargs": {"criteria": criteria}}))
+    check_conv_args = [
+        prop_spec,
+        atoms_spec,
+        final_atoms_spec,
+        loss_function,
+        mutate_function,
+        new_workdir,
+    ]
+    task_list = [PyTask({"func": fw.calculate.name, "args": [new_workdir, atoms_spec, new_atoms]})]
+    task_list.append(
+        PyTask(
+            {
+                "func": fw.check_convergence.name,
+                "args": check_conv_args,
+                "inputs": [atoms_spec],
+                "kwargs": {"criteria": criteria},
+            }
+        )
+    )
     new_firework = Firework(task_list, name="converging", spec={atoms_spec: atoms_dicts})
     return FWAction(detours=[new_firework])
+
 
 def get_relaxed_structure(new_struct_fname, out_atoms_spec, cur_atoms):
     try:
         new_atoms = read_structure(new_struct_fname)
-        new_atoms.sym_block = cur_atoms['sym_block']
+        new_atoms.sym_block = cur_atoms["sym_block"]
     except:
         print("WARNING: new structure not found, using current atoms")
         new_atoms = dict2patoms(cur_atoms)
     return FWAction(update_spec={out_atoms_spec: patoms2dict(new_atoms)})
 
-def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type='calc', symprec=1e-5, **kwargs):
+
+def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type="calc", symprec=1e-5, **kwargs):
     """
     Adds a phonon dictionary to a database defined by db_path
     Args:
@@ -97,10 +113,12 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type='calc', sympre
     atoms_hash, calc_hash = hash_atoms(atoms)
     try:
         db = connect(db_path)
-        selection = [("symprec", "=", symprec),
-                     ("atoms_hash", "=", atoms_hash),
-                     ("calc_hash", "=", calc_hash),
-                     ("calc_type", "=", calc_type)]
+        selection = [
+            ("symprec", "=", symprec),
+            ("atoms_hash", "=", atoms_hash),
+            ("calc_hash", "=", calc_hash),
+            ("calc_type", "=", calc_type),
+        ]
         if (kwargs is not None) and ("original_atoms_hash" in kwargs):
             selection.append(("original_atoms_hash", "=", kwargs["original_atoms_hash"]))
         if (kwargs is not None) and ("supercell_matrix" in phonon_dict):
@@ -110,26 +128,32 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type='calc', sympre
             if not rows:
                 raise KeyError
             for row in rows:
-                db.update(row.id, dct=phonon_dict,
-                          has_fc=("fc_2" in phonon_dict),
-                          calc_type=calc_type,
-                          **kwargs)
+                db.update(
+                    row.id,
+                    dct=phonon_dict,
+                    has_fc=("fc_2" in phonon_dict),
+                    calc_type=calc_type,
+                    **kwargs,
+                )
         except KeyError:
-            db.write(phonon_dict,
-                     symprec=symprec,
-                     atoms_hash=atoms_hash,
-                     calc_hash=calc_hash,
-                     has_fc2=("fc_2" in phonon_dict),
-                     has_fc3=("fc_3" in phonon_dict),
-                     calc_type=calc_type,
-                     **kwargs)
+            db.write(
+                phonon_dict,
+                symprec=symprec,
+                atoms_hash=atoms_hash,
+                calc_hash=calc_hash,
+                has_fc2=("fc_2" in phonon_dict),
+                has_fc3=("fc_3" in phonon_dict),
+                calc_type=calc_type,
+                **kwargs,
+            )
     except ValueError:
         print(f"Fireworker could not access the database {db_path}")
     return FWAction(update_spec={"phonon_dict": {}})
 
-mod_calc.name = f'{module_name}.{mod_calc.__name__}'
-add_result_to_spec.name = f'{module_name}.{add_result_to_spec.__name__}'
-transfer_spec.name = f'{module_name}.{transfer_spec.__name__}'
-check_convergence.name = f'{module_name}.{check_convergence.__name__}'
-get_relaxed_structure.name = f'{module_name}.{get_relaxed_structure.__name__}'
-add_phonon_to_db.name = f'{module_name}.{add_phonon_to_db.__name__}'
+
+mod_calc.name = f"{module_name}.{mod_calc.__name__}"
+add_result_to_spec.name = f"{module_name}.{add_result_to_spec.__name__}"
+transfer_spec.name = f"{module_name}.{transfer_spec.__name__}"
+check_convergence.name = f"{module_name}.{check_convergence.__name__}"
+get_relaxed_structure.name = f"{module_name}.{get_relaxed_structure.__name__}"
+add_phonon_to_db.name = f"{module_name}.{add_phonon_to_db.__name__}"

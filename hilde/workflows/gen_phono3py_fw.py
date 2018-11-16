@@ -1,4 +1,4 @@
-'''Generates a Workflow to relax a structure and calculate its harmonic force constants'''
+"""Generates a Workflow to relax a structure and calculate its harmonic force constants"""
 from fireworks import Firework, PyTask, Workflow
 
 from hilde.helpers.hash import hash_atoms
@@ -9,19 +9,22 @@ from hilde.tasks import fireworks as fw
 from hilde.tasks.fireworks import mutate_kgrid
 from hilde.templates.aims import setup_aims
 
-def gen_initialize_phono3py_fw(atoms,
-                              phono3py_settings,
-                              workdir,
-                              atoms_spec=None,
-                              calc=None,
-                              symprec=1e-5,
-                              up_calc_from_db=None,
-                              name="init_phono",
-                              spec_qad=None,
-                              from_db=False,
-                              calc_settings=None,
-                              hilde_cfg="../../hilde.cfg"):
-    '''
+
+def gen_initialize_phono3py_fw(
+    atoms,
+    phono3py_settings,
+    workdir,
+    atoms_spec=None,
+    calc=None,
+    symprec=1e-5,
+    up_calc_from_db=None,
+    name="init_phono",
+    spec_qad=None,
+    from_db=False,
+    calc_settings=None,
+    hilde_cfg="../../hilde.cfg",
+):
+    """
     Generates a FireWork to initialize the phonon calculations
     Args:
         atoms: pAtoms
@@ -50,7 +53,7 @@ def gen_initialize_phono3py_fw(atoms,
     Returns: FireWork
         A FireWork that will initialize a phonopy calculation and add the force calculations to
         the Workflow
-    '''
+    """
     if calc_settings is None:
         calc_settings = {}
     if calc is None:
@@ -71,39 +74,53 @@ def gen_initialize_phono3py_fw(atoms,
         args_phono.append(atoms)
     if up_calc_from_db:
         inputs_calc.append("calculator")
-        task_list.append(PyTask({"func": fw.mod_calc.name,
-                                 "args": [up_calc_from_db[0], calc2dict(calc)],
-                                 "inputs": [up_calc_from_db[0]]}))
+        task_list.append(
+            PyTask(
+                {
+                    "func": fw.mod_calc.name,
+                    "args": [up_calc_from_db[0], calc2dict(calc)],
+                    "inputs": [up_calc_from_db[0]],
+                }
+            )
+        )
         for key in up_calc_from_db[1:]:
-            task_list.append(PyTask({"func": fw.mod_calc.name,
-                                     "args": [key],
-                                     "inputs": ["calculator", key]}))
+            task_list.append(
+                PyTask({"func": fw.mod_calc.name, "args": [key], "inputs": ["calculator", key]})
+            )
     kwargs_calc = {"spec_qad": spec_qad, "out_spec": "phonon_calcs"}
     if atoms_spec:
-        task_list.append(PyTask({"func": fw.transfer_spec.name,
-                                 "args": [atoms_spec],
-                                 "inputs": [atoms_spec]}))
-    task_list.append(PyTask({"func": fw.initialize_phono3py.name,
-                             "args": args_phono,
-                             "inputs": inputs_phono,
-                             "kwargs": {"symprec": symprec}}))
-    task_list.append(PyTask({"func": fw.calculate_multiple.name,
-                             "inputs": inputs_calc,
-                             "kwargs": kwargs_calc}))
+        task_list.append(
+            PyTask({"func": fw.transfer_spec.name, "args": [atoms_spec], "inputs": [atoms_spec]})
+        )
+    task_list.append(
+        PyTask(
+            {
+                "func": fw.initialize_phono3py.name,
+                "args": args_phono,
+                "inputs": inputs_phono,
+                "kwargs": {"symprec": symprec},
+            }
+        )
+    )
+    task_list.append(
+        PyTask({"func": fw.calculate_multiple.name, "inputs": inputs_calc, "kwargs": kwargs_calc})
+    )
     return Firework(task_list, name=name)
 
 
-def gen_analyze_phono3py_fw(atoms,
-                            db_name,
-                            phono3py_settings,
-                            atoms_spec=None,
-                            db_label="phonons",
-                            symprec=1e-5,
-                            name="analyze_phono",
-                            from_db=False,
-                            temps=None,
-                            mesh=None):
-    '''
+def gen_analyze_phono3py_fw(
+    atoms,
+    db_name,
+    phono3py_settings,
+    atoms_spec=None,
+    db_label="phonons",
+    symprec=1e-5,
+    name="analyze_phono",
+    from_db=False,
+    temps=None,
+    mesh=None,
+):
+    """
     Generates a FireWork to calculate the second order force constants
     Args:
         atoms: pAtoms
@@ -125,7 +142,7 @@ def gen_analyze_phono3py_fw(atoms,
     Returns: FireWork
         A FireWork that will initialize a phonopy calculation and add the force calculations to
         the Workflow
-    '''
+    """
     atoms_hash, _ = hash_atoms(atoms)
     atoms = patoms2dict(atoms)
     args = [db_name, phono3py_settings]
@@ -143,8 +160,7 @@ def gen_analyze_phono3py_fw(atoms,
         "mesh": mesh,
     }
     task_list = []
-    task_list.append(PyTask({"func": fw.analyze_phono3py.name,
-                             "args": args,
-                             "inputs": inputs,
-                             "kwargs": kwargs}))
+    task_list.append(
+        PyTask({"func": fw.analyze_phono3py.name, "args": args, "inputs": inputs, "kwargs": kwargs})
+    )
     return Firework(task_list, name=name)
