@@ -4,6 +4,7 @@ import json
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from hilde.helpers.fileformats import from_yaml
+from hilde.helpers.converters import dict2results
 
 
 def reader(file):
@@ -21,31 +22,13 @@ def reader(file):
     if "numbers" in pre_atoms_dict and "symbols" in pre_atoms_dict:
         del pre_atoms_dict["symbols"]
 
-    pbc = False
-    if "cell" in pre_atoms_dict:
-        pbc = True
-
     trajectory = []
     for obj in pre_trajectory:
         # Atoms
-        try:
-            velocities = obj["atoms"].pop("velocities")
-        except KeyError:
-            velocities = None
+        atoms_dict = obj['atoms']
+        calc_dict = {**calculator_data, **obj['calculator']}
 
-        atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
-        atoms = Atoms(**atoms_dict, pbc=pbc)
-
-        if velocities is not None:
-            atoms.set_velocities(velocities)
-
-        # Calculator
-        results = obj["calculator"]
-        calc = SinglePointCalculator(atoms, **results)
-        calc.name = calculator_data["name"]
-        calc.parameters.update(calculator_data["params"])
-
-        atoms.calc = calc
+        atoms = dict2results(atoms_dict, calc_dict)
 
         trajectory.append(atoms)
 

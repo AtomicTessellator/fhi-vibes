@@ -7,8 +7,97 @@ import numpy as np
 from ase.db.row import atoms2dict, AtomsRow
 from ase.io.jsonio import MyEncoder
 from ase.calculators.calculator import all_properties
+from ase.atoms import Atoms
+from ase.calculators.singlepoint import SinglePointCalculator
 
 from hilde.structure import pAtoms
+
+
+def input2dict(atoms, calc=None):
+    """ convert metadata information to plain dict """
+
+    if calc is None:
+        calc = atoms.calc
+
+    # structure
+    atoms_dict = {
+        "symbols": [f"{sym}" for sym in atoms.symbols],
+        "masses": atoms.get_masses().tolist(),
+        "positions": atoms.positions.tolist(),
+    }
+
+    # if periodic system, append lattice
+    if any(atoms.pbc):
+        atoms_dict.update({"cell": atoms.cell.tolist()})
+
+    if calc is None:
+        return {"atoms": atoms_dict, "calculator": {}}
+
+    params = calc.todict()
+    for key, val in params.items():
+        if isinstance(val, tuple):
+            params[key] = list(val)
+
+    calc_dict = {"name": calc.__class__.__name__, "params": params}
+
+    return {"atoms": atoms_dict, "calculator": calc_dict}
+
+
+def results2dict(atoms, calc, append_cell=False):
+    """ extract information from atoms and calculator and convert to plain dict """
+
+    # structure
+    atoms_dict = {"positions": atoms.positions.tolist()}
+
+    if atoms.get_velocities() is not None:
+        atoms_dict.update({"velocities": atoms.get_velocities().tolist()})
+
+    # if periodic system, append lattice
+    if append_cell and any(atoms.pbc):
+        atoms_dict.update({"cell": atoms.cell.tolist()})
+
+    # calculated values
+    calc_dict = {}
+    # convert numpy arrays into ordinary lists
+    for key, val in calc.results.items():
+        if isinstance(val, np.ndarray):
+            calc_dict[key] = val.tolist()
+        elif isinstance(val, np.float):
+            calc_dict[key] = float(val)
+        else:
+            calc_dict[key] = val
+
+    return {"atoms": atoms_dict, "calculator": calc_dict}
+
+
+def dict2results(atoms_dict, calc_dict=None):
+    """ convert dictionaries into atoms and calculator objects """
+
+    pbc = False
+    if "cell" in pre_atoms_dict:
+        pbc = True
+
+    try:
+        velocities = atoms_dict.pop("velocities")
+    except KeyError:
+        velocities = None
+
+    atoms = Atoms(**atoms_dict, pbc=pbc)
+
+    if velocities is not None:
+        atoms.set_velocities(velocities)
+
+    # Calculator
+    if calc_dict is not None:
+        calc = SinglePointCalculator(atoms, **calc_dict)
+        calc.name = calc_dict["name"]
+        calc.parameters.update(calc_dict["params"])
+    else:
+        calc = None
+
+    atoms.calc = calc
+
+    return atoms
 
 
 def calc2dict(calc):
