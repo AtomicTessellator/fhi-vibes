@@ -17,7 +17,7 @@ home_dir = /some/path/to/hilde
 [database]
  location =      ${common:home_dir}/examples/phonon_db
  name =          test.db
- 
+
 # information to build a default control.in
 [basisset]
 type = light
@@ -43,3 +43,17 @@ species_dir =  ${machine:basissetloc}/${basisset:type}
 output_level = False
 aims_command = False
 use_pimd_wrapper = False
+
+[fireworks_settings]
+launch_dir="."
+nlaunches = 0
+njobs_queue = 250
+njobs_block = 500
+sleep_time = 60
+reserve = True
+remote_user = mpcdf_user
+remote_config_dir = /u/${remote_user}/.fireworks
+tasks2queue = [hilde_calc.name]
+gss_auth = True
+remote_draco_host = draco01.mpcdf.mpg.de
+remote_cobra_host = cobra01i.mpcdf.mpg.de

@@ -182,7 +182,6 @@ def rapidfire(
                 block_dir = create_datestamp_dir(launch_dir, l_logger)
             q_kwargs["launcher_dir"] = block_dir
         while True:
-            print("looping")
             if remote_host is "localhost":
                 # get number of jobs in queue
                 jobs_in_queue = _get_number_of_jobs_in_queue(qadapter, njobs_queue, l_logger)
