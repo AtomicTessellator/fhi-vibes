@@ -1,11 +1,12 @@
-'''Python API for qlaunch to connect to remote hosts'''
+"""Python API for qlaunch to connect to remote hosts"""
 import os
 import sys
 import time
 
 try:
     import fabric
-    if int(fabric.__version__.split('.')[0]) < 2:
+
+    if int(fabric.__version__.split(".")[0]) < 2:
         raise ImportError
 except ImportError:
     HAS_FABRIC = False
@@ -19,8 +20,9 @@ __maintainer__ = "Anubhav Jain"
 __email__ = "ajain@lbl.gov"
 __date__ = "Jan 14, 2013, Adaptation: October 31, 2018"
 
+
 def convert_input_to_param(param_name, param, param_list):
-    '''
+    """
     Converts a function input into a qlaunch parameter
     Args:
         param_name: str
@@ -29,30 +31,34 @@ def convert_input_to_param(param_name, param, param_list):
             value of the parameter
     Returns: str
         command argument str for qlaunch
-    '''
+    """
     if param is not None:
         param_list.append(f"--{param_name} {param}")
     return param_list
-def qlaunch_remote(command,
-                   maxjobs_queue=None,
-                   maxjobs_block=None,
-                   nlaunches=None,
-                   sleep=None,
-                   fw_ids=None,
-                   fw_id=None,
-                   wflow=None,
-                   silencer=True,
-                   reserve=False,
-                   launcher_dir=None,
-                   loglvl=None,
-                   gss_auth=True,
-                   remote_host='localhost',
-                   remote_config_dir=None,
-                   remote_user=None,
-                   remote_password=None,
-                   remote_shell='/bin/bash -l -c',
-                   daemon=0):
-    '''
+
+
+def qlaunch_remote(
+    command,
+    maxjobs_queue=None,
+    maxjobs_block=None,
+    nlaunches=None,
+    sleep=None,
+    fw_ids=None,
+    fw_id=None,
+    wflow=None,
+    silencer=False,
+    reserve=False,
+    launcher_dir=None,
+    loglvl=None,
+    gss_auth=True,
+    remote_host="localhost",
+    remote_config_dir=None,
+    remote_user=None,
+    remote_password=None,
+    remote_shell="/bin/bash -l -c",
+    daemon=0,
+):
+    """
     This function adapts the python definition of qlaunch in fireworks to a python function
     Args:
         command: str ("singleshot" or "rappidfire")
@@ -87,17 +93,16 @@ def qlaunch_remote(command,
         daemon: int
             Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon
             mode.
-    '''
+    """
     assert remote_host is not "localhost"
 
     if not HAS_FABRIC:
         print("Remote options require the Fabric package v2+ to be installed!")
         sys.exit(-1)
     if remote_config_dir is None:
-        remote_config_dir = ['~/.fireworks']
+        remote_config_dir = ["~/.fireworks"]
     non_default = []
     convert_input_to_param("launch_dir", launcher_dir, non_default)
-    convert_input_to_param("loglvl", loglvl, non_default)
     if command is "rapidfire":
         convert_input_to_param("maxjobs_queue", maxjobs_queue, non_default)
         convert_input_to_param("maxjobs_block", maxjobs_block, non_default)
@@ -125,19 +130,20 @@ def qlaunch_remote(command,
     interval = daemon
     while True:
         for host in remote_host:
-            with fabric.Connection(host=host,
-                                   user=remote_user,
-                                   config=fabric.Config({'run': {'shell': remote_shell}}),
-                                   connect_kwargs={'password': remote_password,
-                                                   "gss_auth": gss_auth}) as conn:
+            with fabric.Connection(
+                host=host,
+                user=remote_user,
+                config=fabric.Config({"run": {"shell": remote_shell}}),
+                connect_kwargs={"password": remote_password, "gss_auth": gss_auth},
+            ) as conn:
                 for remote in remote_config_dir:
                     remote = os.path.expanduser(remote)
                     with conn.cd(remote):
-                        conn.run("qlaunch_hilde {} {} {}".format(
-                            pre_non_default, command, non_default))
+                        conn.run(
+                            "qlaunch_hilde {} {} {}".format(pre_non_default, command, non_default)
+                        )
         if interval > 0:
-            print("Next run in {} seconds... Press Ctrl-C to exit at any "
-                  "time.".format(interval))
+            print("Next run in {} seconds... Press Ctrl-C to exit at any " "time.".format(interval))
             time.sleep(daemon)
         else:
             break

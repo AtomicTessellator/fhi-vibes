@@ -7,8 +7,8 @@
   	* con01.rzg.mpg.de
   	* Need to have an ssh-key from those servers to get access
   	* For an account speak to the administrator
-  * MongoDB port: 27017
-  	* Accessible from the mpcdf clusters only
+  * MongoDB port: 27017 (individual ports will be given by the Administrator)
+  	* Accessible from the mpcdf machines only
   	* To access from your local machine use an ssh tunnel
   	  * ssh -f -N -L local_port:VM_Host:port_on_VM username@mpcdf_cluster_host
       * Example: ssh -f -N -L 27017:tpfwdb.esc.rzg.mpg.de:27017 tpurcell@draco.mpcdf.mpg.de
@@ -29,7 +29,7 @@
       * Add: ipp-garching.mpg.de mpcdf.mpg.de to CellAlias file
   		* PAM set up is optional
   * Initializing token
-  	* kinit username@IPP-GARCHING.MPG.DE may ask for a password here, if no keychain is used
+  	* kinit username@IPP-GARCHING.MPG.DE may ask for a password here, if no key-chain is used
   	* connection should now be passwordless
 
 * Connecting to the clusters via FireWorks

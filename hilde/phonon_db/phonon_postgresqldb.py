@@ -1,7 +1,7 @@
-'''
+"""
 This file is a copy of ase's postgresql class, it is copied so the function
 overrides from PhononSQLite3Database persist
-'''
+"""
 import json
 
 import numpy as np
@@ -20,13 +20,15 @@ from hilde.phonon_db.phonon_sqlitedb import index_statements
 from hilde.phonon_db.phonon_sqlitedb import VERSION
 from hilde.phonon_db.phonon_sqlitedb import PhononSQLite3Database
 
+
 class PhononPostgreSQLDatabase(PhononSQLite3Database):
-    '''
+    """
     The copy of the ASE PostgreSQLDatabase to override PhononSQLite3Database
     functions
-    '''
-    type = 'postgresql'
-    default = 'DEFAULT'
+    """
+
+    type = "postgresql"
+    default = "DEFAULT"
 
     def encode(self, obj):
         return ase.io.jsonio.encode(remove_nan_and_inf(obj))
@@ -64,33 +66,37 @@ class PhononPostgreSQLDatabase(PhononSQLite3Database):
 
         cur = con.cursor()
         cur.execute("show search_path;")
-        schema = cur.fetchone()[0].split(', ')
+        schema = cur.fetchone()[0].split(", ")
         if schema[0] == '"$user"':
             schema = schema[1]
         else:
             schema = schema[0]
 
-        cur.execute("""
+        cur.execute(
+            """
         SELECT EXISTS(select * from information_schema.tables where
         table_name='information' and table_schema='{}');
-        """.format(schema))
+        """.format(
+                schema
+            )
+        )
 
         if not cur.fetchone()[0]:  # information schema doesn't exist.
             # Initialize database:
-            sql = ';\n'.join(init_statements)
+            sql = ";\n".join(init_statements)
             sql = schema_update(sql)
             cur.execute(sql)
             if self.create_indices:
-                cur.execute(';\n'.join(index_statements))
-                cur.execute(';\n'.join(jsonb_indices))
+                cur.execute(";\n".join(index_statements))
+                cur.execute(";\n".join(jsonb_indices))
             con.commit()
             self.version = VERSION
         else:
-            cur.execute('select * from information;')
+            cur.execute("select * from information;")
             for name, value in cur.fetchall():
-                if name == 'version':
+                if name == "version":
                     self.version = int(value)
-                elif name == 'metadata':
+                elif name == "metadata":
                     self._metadata = json.loads(value)
 
         assert 5 < self.version <= VERSION
@@ -98,63 +104,69 @@ class PhononPostgreSQLDatabase(PhononSQLite3Database):
         self.initialized = True
 
     def get_last_id(self, cur):
-        cur.execute('SELECT last_value FROM systems_id_seq')
+        cur.execute("SELECT last_value FROM systems_id_seq")
         id = cur.fetchone()[0]
         return int(id)
 
 
 def schema_update(sql):
-    for a, b in [('REAL', 'DOUBLE PRECISION'),
-                 ('INTEGER PRIMARY KEY AUTOINCREMENT',
-                  'SERIAL PRIMARY KEY')]:
+    for a, b in [
+        ("REAL", "DOUBLE PRECISION"),
+        ("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY"),
+    ]:
         sql = sql.replace(a, b)
 
-    arrays_1D = ['numbers',
-                 'initial_magmoms',
-                 'initial_charges',
-                 'masses',
-                 'tags',
-                 'momenta',
-                 'stress',
-                 'dipole',
-                 'magmoms',
-                 'charges',
-                 'thermal_prop_T',
-                 'thermal_prop_A',
-                 'thermal_prop_S',
-                 'thermal_prop_Cv'
-                ]
+    arrays_1D = [
+        "numbers",
+        "initial_magmoms",
+        "initial_charges",
+        "masses",
+        "tags",
+        "momenta",
+        "stress",
+        "dipole",
+        "magmoms",
+        "charges",
+        "tp_T",
+        "tp_A",
+        "tp_S",
+        "tp_Cv",
+    ]
 
-    arrays_2D = ['positions', 'cell', 'forces']
+    arrays_2D = ["positions", "cell", "forces", "tp_kappa"]
 
-    arrays_4D = ['force_constants']
+    arrays_4D = ["fc_2"]
 
-    txt2jsonb = ['calculator_parameters',
-                 'key_value_pairs',
-                 'data',
-                 'qpoints',
-                 'phonon_bs_fp',
-                 'phonon_dos_fp',
-                 "supercell_matrix"
-                ]
+    arrays_6D = ["fc_3"]
+
+    txt2jsonb = [
+        "calculator_parameters",
+        "key_value_pairs",
+        "data",
+        "qpoints",
+        "phonon_bs_fp",
+        "phonon_dos_fp",
+        # "sc_matrix_2",
+        # "sc_matrix_3",
+    ]
 
     for column in arrays_1D:
-        if column in ['numbers', 'tags']:
-            dtype = 'INTEGER'
+        if column in ["numbers", "tags"]:
+            dtype = "INTEGER"
         else:
-            dtype = 'DOUBLE PRECISION'
-        sql = sql.replace('{} BLOB,'.format(column),
-                          '{} {}[],'.format(column, dtype))
+            dtype = "DOUBLE PRECISION"
+        sql = sql.replace("{} BLOB,".format(column), "{} {}[],".format(column, dtype))
     for column in arrays_2D:
-        sql = sql.replace('{} BLOB,'.format(column),
-                          '{} DOUBLE PRECISION[][],'.format(column))
+        sql = sql.replace("{} BLOB,".format(column), "{} DOUBLE PRECISION[][],".format(column))
 
     for column in arrays_4D:
-        sql = sql.replace('{} BLOB,'.format(column),
-                          '{} DOUBLE PRECISION[][][][],'.format(column))
+        sql = sql.replace("{} BLOB,".format(column), "{} DOUBLE PRECISION[][][][],".format(column))
+    for column in arrays_6D:
+        sql = sql.replace(
+            "{} BLOB,".format(column), "{} DOUBLE PRECISION[][][][][][],".format(column)
+        )
 
     for column in txt2jsonb:
-        sql = sql.replace('{} TEXT,'.format(column),
-                          '{} JSONB,'.format(column))
+        sql = sql.replace("{} TEXT,".format(column), "{} JSONB,".format(column))
 
     return sql

@@ -4,21 +4,22 @@ from fireworks import Firework, PyTask, Workflow
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.utility_functions import setup_workdir
 from hilde.parsers import read_structure
-from hilde.helpers.converters import patoms2dict, calc2dict
+from hilde.helpers.input_exchange import patoms2dict, calc2dict
 from hilde.tasks import fireworks as fw
 from hilde.tasks.fireworks import mutate_kgrid
 from hilde.templates.aims import setup_aims
-from hilde.workflows.gen_relax_fw import gen_kgrid_conv_fw, gen_relax_fw
-from hilde.workflows.gen_phonopy_fw import gen_initialize_phonopy_fw, gen_analyze_phonopy_fw
+from hilde.workflows.gen_relax_fw import *
+from hilde.workflows.gen_phonopy_fw import *
+from hilde.workflows.gen_phono3py_fw import *
 
 
-def gen_relax_phonopy_wf(
+def gen_relax_phono3py_wf(
     geo_in_file,
     db_name_remote,
     db_name_local,
     name,
     workdir,
-    smatrix,
+    phono3py_settings,
     symprec=1e-5,
     kgrid_conv=None,
     relax_light=None,
@@ -27,6 +28,8 @@ def gen_relax_phonopy_wf(
     spec_qad_kgrid=None,
     spec_qad_relax=None,
     spec_qad_forces=None,
+    temps=None,
+    mesh=None,
     hilde_cfg="../../hilde.cfg",
 ):
     """
@@ -111,9 +114,9 @@ def gen_relax_phonopy_wf(
         calc_settings=relax_tight,
         hilde_cfg=hilde_cfg,
     )
-    fw4 = gen_initialize_phonopy_fw(
+    fw4 = gen_initialize_phono3py_fw(
         atoms,
-        smatrix,
+        phono3py_settings,
         workdir + "/force_calcs/",
         "tight_relax_atoms",
         symprec=symprec,
@@ -124,10 +127,10 @@ def gen_relax_phonopy_wf(
         calc_settings=force_calc,
         hilde_cfg=hilde_cfg,
     )
-    fw5 = gen_analyze_phonopy_fw(
+    fw5 = gen_analyze_phono3py_fw(
         atoms,
         db_name_local,
-        smatrix,
+        phono3py_settings,
         "tight_relax_atoms",
         db_label="phonons",
         symprec=symprec,

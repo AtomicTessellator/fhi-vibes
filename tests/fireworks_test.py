@@ -10,7 +10,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers.utility_functions import get_smatrix
 from hilde.phonon_db.phonon_db import connect
 from hilde.structure.structure import pAtoms
-from hilde.workflows.relax_phonopy import (
+from hilde.workflows.gen_phonopy_fw import (
     gen_initialize_phonopy_fw,
     gen_analyze_phonopy_fw,
 )
@@ -50,12 +50,11 @@ launchpad.add_wf(workflow)
 rapidfire(launchpad, wflow_id=workflow.root_fw_ids)
 
 phonon = db.get_phonon(
-    1e-5,
     selection=[
-        ("supercell_matrix", "=", smatrix),
+        ("sc_matrix_2", "=", smatrix),
         ("atoms_hash", "=", atoms_hash),
         ("calc_hash", "=", calc_hash),
-        ("has_fc", "=", True),
+        ("has_fc2", "=", True),
     ],
 )
 

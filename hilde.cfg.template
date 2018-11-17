@@ -14,7 +14,7 @@ output_level =              MD_light
 [control_kpt]
 density =                   3.5
 
-[basisset]
+[basilsset]
 type = light
 
 [socketio]
@@ -38,17 +38,28 @@ email = you@something.com
  location =      ${common:home_dir}/examples/phonon_db
  name =          test.db
 
-[cluster] 
+[cluster]
 # 1800s = 30 minutes
 # 14400 = 4h
 # 86400 = 1d
 walltime = 1800
 
+[fireworks_settings]
+launch_dir="."
+nlaunches = 0
+njobs_queue = 250
+njobs_block = 500
+sleep_time = 60
+reserve = True
+remote_user = mpcdf_user
+remote_config_dir = /u/${remote_user}/.fireworks
+tasks2queue = [hilde_calc.name]
+gss_auth = True
+remote_draco_host = draco01.mpcdf.mpg.de
+remote_cobra_host = cobra01i.mpcdf.mpg.de
 
 ##############################################################################
 [hash_ignore]
 output_level = True
 aims_command = True
 use_pimd_wrapper = True
-
-

@@ -11,15 +11,16 @@ from hilde.phonon_db.row import PhononRow
 
 
 class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
-    '''
+    """
     A modified ASE JSONDatabase to include phonopy objects, For missing functions see ase.db.jsondb
-    '''
-    def _write(self, phonon, key_value_pairs, data, id):
-        '''
+    """
+
+    def _write(self, row, key_value_pairs, data, id):
+        """
         Writes a phonopy object to the database
         Args:
-            phonon: phonopy object
-                phonopy object to be added to the database
+            row: PhononRow object
+                PhononRow object to be added to the database
             key_values_pairs: dict
                 additional keys to be added to the database
             data: str
@@ -28,36 +29,29 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                 ID for the phonopy object in the database
         Returns:
             id: the id of the row
-        '''
-        PhononDatabase._write(self, phonon, key_value_pairs, data)
+        """
+        PhononDatabase._write(self, row, key_value_pairs, data)
         bigdct = {}
         ids = []
         nextid = 1
-        if (isinstance(self.filename, basestring) and os.path.isfile(self.filename)):
+        if isinstance(self.filename, basestring) and os.path.isfile(self.filename):
             try:
                 bigdct, ids, nextid = self._read_json()
             except (SyntaxError, ValueError):
                 pass
-        mtime = now()
-        if isinstance(phonon, PhononRow):
-            row = phonon
-        else:
-            row = PhononRow(phonon)
-            row.ctime = mtime
-            row.user = os.getenv('USER')
         dct = {}
         for key in row.__dict__:
-            if key[0] == '_' or key in row._keys or key == 'id':
+            if key[0] == "_" or key in row._keys or key == "id":
                 continue
             dct[key] = row[key]
-        dct['mtime'] = mtime
+        dct["mtime"] = now()
         if key_value_pairs:
-            dct['key_value_pairs'] = key_value_pairs
+            dct["key_value_pairs"] = key_value_pairs
         if data:
-            dct['data'] = data
-        constraints = row.get('constraints')
+            dct["data"] = data
+        constraints = row.get("constraints")
         if constraints:
-            dct['constraints'] = constraints
+            dct["constraints"] = constraints
         if id is None:
             id = nextid
             ids.append(id)
@@ -74,21 +68,22 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
             assert len(ids) == 1
             id = ids[0]
         dct = bigdct[id]
-        dct['id'] = id
+        dct["id"] = id
         return PhononRow(dct)
 
-    def _select(self,
-                keys,
-                cmps,
-                explain=False,
-                verbosity=0,
-                limit=None,
-                offset=0,
-                sort=None,
-                include_data=True,
-                columns='all'
-               ):
-        '''
+    def _select(
+        self,
+        keys,
+        cmps,
+        explain=False,
+        verbosity=0,
+        limit=None,
+        offset=0,
+        sort=None,
+        include_data=True,
+        columns="all",
+    ):
+        """
         Command to access a row in the database
         Args:
             keys: list of strs
@@ -113,12 +108,12 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                 queries can be speeded up by setting columns=['id', 'energy'].
             Yields:
                 a row from the database that matches the query
-            '''
+            """
         if explain:
-            yield {'explain': (0, 0, 0, 'scan table')}
+            yield {"explain": (0, 0, 0, "scan table")}
             return
         if sort:
-            if sort[0] == '-':
+            if sort[0] == "-":
                 reverse = True
                 sort = sort[1:]
             else:
@@ -140,7 +135,7 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
             rows += missing
 
             if limit:
-                rows = rows[offset:offset + limit]
+                rows = rows[offset : offset + limit]
             for key, row in rows:
                 yield row
             return
@@ -157,7 +152,7 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                 return
             dct = bigdct[id]
             if not include_data:
-                dct.pop('data', None)
+                dct.pop("data", None)
             row = PhononRow(dct)
             row.id = id
             for key in keys:
@@ -166,24 +161,27 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
             else:
                 temp = None
                 for key, op, val in cmps:
-                    if key == 'tp_T':
-                        assert op is ops['=']
+                    if key == "tp_T":
+                        assert op is ops["="]
                         temp = val
                 for key, op, val in cmps:
-                    if key == 'supercell_matrix':
+                    if key == "sc_matrix_2":
                         if not isinstance(val, list):
                             val = list(val.flatten())
-                    if key == 'tp_T':
+                    if key == "sc_matrix_3":
+                        if not isinstance(val, list):
+                            val = list(val.flatten())
+                    if key == "tp_T":
                         continue
                     elif isinstance(key, int):
                         value = np.equal(row.numbers, key).sum()
-                    elif key in ['tp_A', 'tp_S', 'tpCv']:
-                        value = row.get(key)[np.where(row.get('tp_T') == temp)[0]]
+                    elif key in ["tp_A", "tp_S", "tpCv"]:
+                        value = row.get(key)[np.where(row.get("tp_T") == temp)[0]]
                     else:
                         value = row.get(key)
-                        if key == 'pbc':
-                            assert op in [ops['='], ops['!=']]
-                            value = ''.join('FT'[x] for x in value)
+                        if key == "pbc":
+                            assert op in [ops["="], ops["!="]]
+                            value = "".join("FT"[x] for x in value)
                     if value is None or not op(value, val):
                         break
                 else:
