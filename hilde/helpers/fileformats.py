@@ -81,7 +81,11 @@ def dict2json(dct, indent=0, outer=True):
         elif isinstance(val, dict):
             # recursive formatting
             rep = f"{{\n{dict2json(val, 2, False)}}}"
-        elif isinstance(val, list) and len(list_dim(val)) == 2:
+        elif (
+            isinstance(val, list)
+            and len(list_dim(val)) == 2
+            and type(val[0][0]) == float
+        ):
             # this is most likely positions, velocities, forces, etc. -> format!
             rep = [
                 " [{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem)
