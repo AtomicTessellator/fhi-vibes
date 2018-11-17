@@ -17,12 +17,12 @@
 
 
 
-  Date     :  20181117, Time     :  005346.181
-  Time zero on CPU 1             :   0.159880000000000E-01  s.
-  Internal wall clock time zero  :           311648026.181  s.
+  Date     :  20181117, Time     :  012157.375
+  Time zero on CPU 1             :   0.173260000000000E-01  s.
+  Internal wall clock time zero  :           311649717.375  s.
 
   FHI-aims created a unique identifier for this run for later identification
-  aims_uuid : 3B79A413-90D6-4F46-A325-91EFB07308CC
+  aims_uuid : 8B637737-9255-418B-AE4A-7AA6BE0F4360
 
   Build configuration of the current instance of FHI-aims
   -------------------------------------------------------
@@ -77,13 +77,12 @@
   #===============================================================================
   # FHI-aims file: ./control.in
   # Created using the Atomic Simulation Environment (ASE)
-  # Sat Nov 17 00:53:46 2018
+  # Sat Nov 17 01:21:57 2018
   #
   # List of parameters used to initialize the calculator:
   #     xc : pbesol
   #     relativistic : atomic_zora scalar
   #     k_grid : [2, 2, 2]
-  #     vdw_correction_hirshfeld : True
   #     output_level : MD_light
   #     compute_forces : True
   #     compute_analytical_stress : False
@@ -95,7 +94,6 @@
   xc                                 pbesol
   relativistic                       atomic_zora scalar
   k_grid                             2 2 2
-  vdw_correction_hirshfeld
   output_level                       MD_light
   compute_forces                     .true.
   compute_analytical_stress          .false.
@@ -201,7 +199,7 @@
   #=======================================================
   # FHI-aims file: ./geometry.in
   # Created using the Atomic Simulation Environment (ASE)
-  # Sat Nov 17 00:53:46 2018
+  # Sat Nov 17 01:21:57 2018
   #=======================================================
   lattice_vector 5.4399999999999995 0.0000000000000000 0.0000000000000000
   lattice_vector 0.0000000000000000 5.4399999999999995 0.0000000000000000
@@ -346,8 +344,6 @@
   Using density matrix based charge density update.
   Using packed matrix style: index .
   Defaulting to use time-reversal symmetry for k-point grid.
-  Using the following vdw_convergence_threshold for supercell sums
-  over the Tkatchenko-Scheffler correction:  0.100000E-05 eV.
 ------------------------------------------------------------
 
 
@@ -509,8 +505,8 @@
   Preparing densities etc. for the partition functions (integrals / Hartree potential).
 
   Preparations completed.
-  max(cpu_time)          :      0.140 s.
-  Wall clock time (cpu1) :      0.142 s.
+  max(cpu_time)          :      0.122 s.
+  Wall clock time (cpu1) :      0.121 s.
 ------------------------------------------------------------
 
 ************************** W A R N I N G *******************************
@@ -525,7 +521,7 @@
 ------------------------------------------------------------
           Begin self-consistency loop: Initialization.
 
-          Date     :  20181117, Time     :  005346.370
+          Date     :  20181117, Time     :  012157.546
 ------------------------------------------------------------
 
   Initializing index lists of integration centers etc. from given atomic structure:
@@ -587,9 +583,9 @@
   | Maximal number of non-zero basis functions:      463 in task     3
   Allocating        0.184 MB for KS_eigenvector
   Integrating Hamiltonian matrix: batch-based integration.
-  Time summed over all CPUs for integration: real work        1.510 s, elapsed        1.529 s
+  Time summed over all CPUs for integration: real work        1.459 s, elapsed        1.464 s
   Integrating overlap matrix.
-  Time summed over all CPUs for integration: real work        0.934 s, elapsed        0.950 s
+  Time summed over all CPUs for integration: real work        0.888 s, elapsed        0.893 s
   Decreasing sparse matrix size:
    Tolerance:  9.999999824516700E-014
    Hamiltonian matrix
@@ -604,9 +600,9 @@
   Solving generalized eigenproblem
   Transforming overlap matrix and checking for singularities.
   Updating Kohn-Sham eigenvalues and eigenfunctions.
+  Solving real generalised eigenvalue problem by standard LAPACK (fast)
   Overlap matrix is nonsingular:
   | Lowest eigenvalue at k-point        1:  0.120206E-02
-  Solving real generalised eigenvalue problem by standard LAPACK (fast)
   Updating Kohn-Sham eigenvalues and eigenfunctions.
   Solving real generalised eigenvalue problem by standard LAPACK (fast)
 
@@ -721,7 +717,6 @@
   | XC potential correction       :         212.23914714 Ha        5775.32103870 eV
   | Free-atom electrostatic energy:       -1054.42481607 Ha      -28692.35909650 eV
   | Hartree energy correction     :           0.00000000 Ha           0.00000000 eV
-  | vdW energy correction         :           0.00000000 Ha           0.00000000 eV
   | Entropy correction            :          -0.00000000 Ha          -0.00000000 eV
   | ---------------------------
   | Total energy                  :       -2318.71702309 Ha      -63095.50046193 eV
@@ -740,14 +735,14 @@
   Max. number of atoms included in rho_multipole:            8
 
   End scf initialization - timings             :  max(cpu_time)    wall_clock(cpu1)
-  | Time for scf. initialization               :        1.031 s           1.032 s
-  | Boundary condition initialization          :        0.057 s           0.057 s
-  | Integration                                :        0.624 s           0.623 s
-  | Solution of K.-S. eqns.                    :        0.019 s           0.019 s
-  | Grid partitioning                          :        0.046 s           0.046 s
-  | Preloading free-atom quantities on grid    :        0.001 s           0.002 s
-  | Free-atom superposition energy             :        0.060 s           0.059 s
-  | Total energy evaluation                    :        0.000 s           0.001 s
+  | Time for scf. initialization               :        0.983 s           0.983 s
+  | Boundary condition initialization          :        0.051 s           0.051 s
+  | Integration                                :        0.593 s           0.593 s
+  | Solution of K.-S. eqns.                    :        0.016 s           0.015 s
+  | Grid partitioning                          :        0.047 s           0.047 s
+  | Preloading free-atom quantities on grid    :        0.001 s           0.001 s
+  | Free-atom superposition energy             :        0.040 s           0.040 s
+  | Total energy evaluation                    :        0.000 s           0.000 s
 
   Partial memory accounting:
   | Current value for overall tracked memory usage on task 0  :           3.194 MB
@@ -757,17 +752,17 @@
   The "true" memory usage will be greater.
 ------------------------------------------------------------
 Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |       CPU time |     Clock time
-  SCF    1 :  0.21E-01 |  0.22E+00 |   0.36E+02 |  0.56E+00 |             . |        2.108 s |        2.108 s
-  SCF    2 :  0.21E-01 |  0.11E+00 |   0.26E+02 |  0.12E+00 |             . |        2.031 s |        2.030 s
-  SCF    3 :  0.19E-01 |  0.16E-01 |  -0.15E+02 |  0.16E-01 |             . |        1.787 s |        1.786 s
-  SCF    4 :  0.19E-01 |  0.37E-02 |   0.11E+01 |  0.37E-03 |             . |        1.789 s |        1.790 s
-  SCF    5 :  0.19E-01 |  0.10E-02 |  -0.10E+01 |  0.82E-03 |             . |        1.880 s |        1.879 s
-  SCF    6 :  0.20E-01 |  0.10E-03 |  -0.47E-01 |  0.51E-05 |             . |        2.076 s |        2.076 s
-  SCF    7 :  0.20E-01 |  0.31E-04 |  -0.18E-01 | -0.87E-06 |             . |        2.283 s |        2.284 s
-  SCF    8 :  0.20E-01 |  0.48E-05 |   0.14E-02 | -0.46E-06 |             . |        2.010 s |        2.010 s
-  SCF    9 :  0.20E-01 |  0.19E-05 |  -0.88E-03 |  0.32E-07 |             . |        1.844 s |        1.844 s
-  SCF   10 :  0.20E-01 |  0.31E-06 |   0.79E-04 |  0.31E-07 |             . |        1.928 s |        1.928 s
-  SCF   11 :  0.20E-01 |  0.70E-07 |   0.14E-04 | -0.50E-08 |      0.54E-01 |       10.626 s |       10.627 s
+  SCF    1 :  0.21E-01 |  0.22E+00 |   0.36E+02 |  0.56E+00 |             . |        1.942 s |        1.942 s
+  SCF    2 :  0.21E-01 |  0.11E+00 |   0.26E+02 |  0.12E+00 |             . |        2.117 s |        2.118 s
+  SCF    3 :  0.19E-01 |  0.16E-01 |  -0.15E+02 |  0.16E-01 |             . |        1.834 s |        1.835 s
+  SCF    4 :  0.19E-01 |  0.37E-02 |   0.11E+01 |  0.37E-03 |             . |        1.769 s |        1.769 s
+  SCF    5 :  0.19E-01 |  0.10E-02 |  -0.10E+01 |  0.82E-03 |             . |        1.757 s |        1.757 s
+  SCF    6 :  0.20E-01 |  0.10E-03 |  -0.47E-01 |  0.51E-05 |             . |        1.774 s |        1.774 s
+  SCF    7 :  0.20E-01 |  0.31E-04 |  -0.18E-01 | -0.87E-06 |             . |        1.780 s |        1.781 s
+  SCF    8 :  0.20E-01 |  0.48E-05 |   0.14E-02 | -0.46E-06 |             . |        1.787 s |        1.787 s
+  SCF    9 :  0.20E-01 |  0.19E-05 |  -0.88E-03 |  0.32E-07 |             . |        1.789 s |        1.789 s
+  SCF   10 :  0.20E-01 |  0.31E-06 |   0.79E-04 |  0.31E-07 |             . |        1.787 s |        1.787 s
+  SCF   11 :  0.20E-01 |  0.70E-07 |   0.14E-04 | -0.50E-08 |      0.54E-01 |        7.962 s |        7.962 s
 
   Total energy components:
   | Sum of eigenvalues            :       -1312.10904534 Ha      -35704.30373858 eV
@@ -775,7 +770,6 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |   
   | XC potential correction       :         212.44129016 Ha        5780.82163032 eV
   | Free-atom electrostatic energy:       -1054.42481607 Ha      -28692.35909650 eV
   | Hartree energy correction     :          -1.75722893 Ha         -47.81663201 eV
-  | vdW energy correction         :           0.00000000 Ha           0.00000000 eV
   | Entropy correction            :          -0.00000000 Ha          -0.00000000 eV
   | ---------------------------
   | Total energy                  :       -2318.69110211 Ha      -63094.79511630 eV
@@ -809,56 +803,31 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |   
 
   Self-consistency cycle converged.
 
-
-  Converging periodic supercell size for vdw calculation.
-  Convergence accuracy (and time!) can be adjusted using the vdw_convergence_threshold keyword.
-
-  Total energy components:
-  | Sum of eigenvalues            :       -1312.10904534 Ha      -35704.30373858 eV
-  | XC energy correction          :        -162.84130194 Ha       -4431.13727955 eV
-  | XC potential correction       :         212.44129016 Ha        5780.82163032 eV
-  | Free-atom electrostatic energy:       -1054.42481607 Ha      -28692.35909650 eV
-  | Hartree energy correction     :          -1.75722893 Ha         -47.81663201 eV
-  | vdW energy correction         :          -0.03913740 Ha          -1.06498291 eV
-  | Entropy correction            :          -0.00000000 Ha          -0.00000000 eV
-  | ---------------------------
-  | Total energy                  :       -2318.73023951 Ha      -63095.86009921 eV
-  | Total energy, T -> 0          :       -2318.73023951 Ha      -63095.86009921 eV  <-- do not rely on this value for anything but (periodic) metals
-  | Electronic free energy        :       -2318.73023951 Ha      -63095.86009921 eV
-
-  Derived energy quantities:
-  | Kinetic energy                :        2327.99887227 Ha       63348.07242889 eV
-  | Electrostatic energy          :       -4483.84867244 Ha     -122011.73026565 eV
-  | Energy correction for multipole
-  | error in Hartree potential    :           0.06043363 Ha           1.64448288 eV
-  | Sum of eigenvalues per atom                           :       -4463.03796732 eV
-  | Total energy (T->0) per atom                          :       -7886.98251240 eV  <-- do not rely on this value for anything but (periodic) metals
-  | Electronic free energy per atom                       :       -7886.98251240 eV
   Removing unitary transformations (pure translations, rotations) from forces on atoms.
   Atomic forces before filtering:
   | Net force on center of mass :  -0.143866E-06  0.877244E-09 -0.156335E-07 eV/A
   Atomic forces after filtering:
-  | Net force on center of mass :  -0.557519E-17 -0.111504E-16  0.000000E+00 eV/A
+  | Net force on center of mass :  -0.223008E-16  0.000000E+00  0.000000E+00 eV/A
 
   Energy and forces in a compact form:
-  | Total energy uncorrected      :         -0.630958600992121E+05 eV
-  | Total energy corrected        :         -0.630958600992121E+05 eV  <-- do not rely on this value for anything but (periodic) metals
-  | Electronic free energy        :         -0.630958600992121E+05 eV
+  | Total energy uncorrected      :         -0.630947951163021E+05 eV
+  | Total energy corrected        :         -0.630947951163021E+05 eV  <-- do not rely on this value for anything but (periodic) metals
+  | Electronic free energy        :         -0.630947951163021E+05 eV
   Total atomic forces (unitary forces cleaned) [eV/Ang]:
-  |   1         -0.132820958304889E+00          0.686649738045745E-08          0.623364508540199E-09
-  |   2         -0.202423307059003E-01          0.628724490348268E-08          0.440198735130199E-09
-  |   3          0.490368086734650E-02         -0.262574185202014E-08         -0.878477364278356E-08
-  |   4          0.490367550765656E-02         -0.152265420156571E-08         -0.173240580707980E-08
-  |   5          0.360381034489208E-01          0.259376424020691E-01          0.259376503040613E-01
-  |   6          0.360380959477757E-01         -0.259376468417324E-01         -0.259376424173870E-01
-  |   7          0.355898666659862E-01         -0.252172895255124E-01          0.252172873303132E-01
-  |   8          0.355898665731034E-01          0.252172849598295E-01         -0.252172857633712E-01
+  |   1         -0.133695014208210E+00          0.666480800831471E-08          0.421675129918584E-09
+  |   2         -0.201415707277518E-01          0.689232368516867E-08          0.104527752972002E-08
+  |   3          0.500745266583590E-02         -0.282742718737959E-08         -0.817969435908308E-08
+  |   4          0.500744730614595E-02         -0.917574932405223E-09         -0.193409115644444E-08
+  |   5          0.361786608646722E-01          0.259217903787324E-01          0.259217982807246E-01
+  |   6          0.361786533635331E-01         -0.259217952217630E-01         -0.259217907974176E-01
+  |   7          0.357321854143287E-01         -0.252007545205849E-01          0.252007519219695E-01
+  |   8          0.357321853214459E-01          0.252007495514859E-01         -0.252007507584436E-01
 
   Removing unitary transformations (pure translations, rotations) from forces on atoms.
   Atomic forces before filtering:
-  | Net force on center of mass :  -0.557519E-17 -0.111504E-16  0.000000E+00 eV/A
+  | Net force on center of mass :  -0.223008E-16  0.000000E+00  0.000000E+00 eV/A
   Atomic forces after filtering:
-  | Net force on center of mass :  -0.557519E-17 -0.557519E-17  0.000000E+00 eV/A
+  | Net force on center of mass :  -0.223008E-16  0.000000E+00  0.000000E+00 eV/A
   @ DRIVER - WARNING: the stress tensor will not be computed
  ------------------------------------------------------------------------
  Atomic structure that was used in the preceding time step of the wrapper
@@ -886,8 +855,8 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |   
   The following output summarizes some interesting total energy values
   at the end of a run (AFTER all relaxation, molecular dynamics, etc.).
 
-  | Total energy of the DFT / Hartree-Fock s.c.f. calculation      :         -63095.860099212 eV
-  | Final zero-broadening corrected energy (caution - metals only) :         -63095.860099212 eV
+  | Total energy of the DFT / Hartree-Fock s.c.f. calculation      :         -63094.795116302 eV
+  | Final zero-broadening corrected energy (caution - metals only) :         -63094.795116302 eV
   | For reference only, the value of 1 Hartree used in FHI-aims is :             27.211384500 eV
   | For reference only, the overall average (free atom contribution
   | + realspace contribution) of the electrostatic potential after
@@ -944,28 +913,27 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |   
 
 ------------------------------------------------------------
           Leaving FHI-aims.
-          Date     :  20181117, Time     :  005418.488
+          Date     :  20181117, Time     :  012224.880
 
           Computational steps:
           | Number of self-consistency cycles          :           11
           | Number of SCF (re)initializations          :            1
 
           Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)
-          | Total time                                 :       32.304 s          32.307 s
-          | Preparation time                           :        0.140 s           0.142 s
-          | Boundary condition initalization           :        0.057 s           0.057 s
-          | Grid partitioning                          :        0.046 s           0.046 s
-          | Preloading free-atom quantities on grid    :        0.001 s           0.002 s
-          | Free-atom superposition energy             :        0.060 s           0.059 s
-          | Total time for integrations                :        5.026 s           5.026 s
-          | Total time for solution of K.-S. equations :        0.085 s           0.084 s
-          | Total time for density & force components  :       15.198 s          15.200 s
-          | Total time for mixing & preconditioning    :        3.154 s           3.155 s
-          | Total time for Hartree multipole update    :        0.017 s           0.015 s
-          | Total time for Hartree multipole sum       :        7.520 s           7.520 s
-          | Total time for total energy evaluation     :        0.001 s           0.002 s
+          | Total time                                 :       27.503 s          27.505 s
+          | Preparation time                           :        0.122 s           0.121 s
+          | Boundary condition initalization           :        0.051 s           0.051 s
+          | Grid partitioning                          :        0.047 s           0.047 s
+          | Preloading free-atom quantities on grid    :        0.001 s           0.001 s
+          | Free-atom superposition energy             :        0.040 s           0.040 s
+          | Total time for integrations                :        4.745 s           4.744 s
+          | Total time for solution of K.-S. equations :        0.079 s           0.080 s
+          | Total time for density & force components  :       12.483 s          12.484 s
+          | Total time for mixing & preconditioning    :        2.730 s           2.732 s
+          | Total time for Hartree multipole update    :        0.016 s           0.016 s
+          | Total time for Hartree multipole sum       :        6.849 s           6.850 s
+          | Total time for total energy evaluation     :        0.001 s           0.001 s
           | Total time for scaled ZORA corrections     :        0.000 s           0.000 s
-          | Total time for vdW correction              :        0.673 s           0.673 s
 
           Partial memory accounting:
           | Residual value for overall tracked memory usage across tasks :     0.000000 MB (should be 0.000000 MB)
