@@ -18,26 +18,7 @@ density =                   3.5
 type = light
 
 [socketio]
-use  = False
-port = 12345
-
-# For running (and storing) MD -> can be split of in separate config file
-[md]
-temperature = 300
-# timestep in fs
-timestep =    5
-maxsteps =    2500
-workdir = md
-trajectory =  ${workdir}/trajectory.yaml
-
-# For relaxation   -> can be split of in separate config file
-[relaxation]
-fmax =     0.01
-maxstep =  0.2
-maxsteps = 20
-workdir =    relax
-trajectory = ${workdir}/trajectory.yaml
-
+port = None
 
 # System informations, ADJUST!
 [common]
