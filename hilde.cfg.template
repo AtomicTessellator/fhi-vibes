@@ -55,8 +55,8 @@ remote_user = mpcdf_user
 remote_config_dir = /u/${remote_user}/.fireworks
 tasks2queue = [hilde_calc.name]
 gss_auth = True
-remote_draco_host = draco01.mpcdf.mpg.de
-remote_cobra_host = cobra01i.mpcdf.mpg.de
+remote_host = draco01.mpcdf.mpg.de
+#remote_host = cobra01i.mpcdf.mpg.de
 
 ##############################################################################
 [hash_ignore]

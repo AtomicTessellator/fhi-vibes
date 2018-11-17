@@ -6,7 +6,7 @@ from hilde.helpers.brillouinzone import get_bands_and_labels
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict, PhononRow
 from hilde.phonopy import phono as ph, displacement_id_str
-from hilde.helpers.converters import patoms2dict, dict2patoms, pAtoms
+from hilde.helpers.converters import atoms2dict, dict2atoms, pAtoms
 from hilde.tasks.calculate import setup_multiple
 
 module_name = __name__
@@ -17,8 +17,8 @@ def initialize_phonopy(smatrix, workdir, atoms_ideal, symprec=1e-5):
     A wrapper function to initialize all phonopy calculations and add the new
     FireWorks as detours in the workflow
     Args:
-        atoms_ideal: dict generated from patoms2dict
-            The dictionary representation of the atoms or pAtoms object of the ndisplaced atoms
+        atoms_ideal: dict generated from atoms2dict
+            The dictionary representation of the atoms or Atoms object of the ndisplaced atoms
         smatrix: list
             The supercell matrix of the calculation
         workdir: str
@@ -30,7 +30,7 @@ def initialize_phonopy(smatrix, workdir, atoms_ideal, symprec=1e-5):
         and workdirs
     """
     print("Initializing phonopy calculations")
-    atoms = dict2patoms(atoms_ideal)
+    atoms = dict2atoms(atoms_ideal)
     smatrix = np.array(smatrix).reshape(3, 3)
     _, _, supercells_with_disps = ph.preprocess(atoms, smatrix.T, symprec=symprec)
     supercells_with_disps, workdirs = setup_multiple(
@@ -38,7 +38,7 @@ def initialize_phonopy(smatrix, workdir, atoms_ideal, symprec=1e-5):
     )
     for i, cell in enumerate(supercells_with_disps):
         cell.info[displacement_id_str] = i
-    atom_dicts = [patoms2dict(cell) for cell in supercells_with_disps]
+    atom_dicts = [atoms2dict(cell) for cell in supercells_with_disps]
     return FWAction(update_spec={"atom_dicts": atom_dicts, "workdirs": workdirs})
 
 
@@ -48,8 +48,8 @@ def calc_phonopy_force_constants(smatrix, atoms_ideal, calc_atoms, symprec=1e-5)
     the displacement cells were calculated in its parent FireWork and adds the
     results to a phonon_db
     Args:
-        atoms_ideal: dict generated from patoms2dict
-            The dictionary representation of the atoms or pAtoms object of the undisplayed atoms
+        atoms_ideal: dict generated from atoms2dict
+            The dictionary representation of the atoms or Atoms object of the undisplayed atoms
         smatrix: list
             The supercell matrix of the calculation
         db_path: str
@@ -62,8 +62,8 @@ def calc_phonopy_force_constants(smatrix, atoms_ideal, calc_atoms, symprec=1e-5)
         A FWAction that will store the calculated phonopy objects in the MongoDB for FireWorks
     """
     print("Calculating harmonic force constants")
-    atoms = dict2patoms(atoms_ideal)
-    disp_cells = [dict2patoms(ca) for ca in calc_atoms]
+    atoms = dict2atoms(atoms_ideal)
+    disp_cells = [dict2atoms(ca) for ca in calc_atoms]
     disp_cells = sorted(disp_cells, key=lambda x: x.info[displacement_id_str])
     smatrix = np.array(smatrix).reshape(3, 3)
     phonon, _, _ = ph.preprocess(atoms, smatrix.T, symprec=symprec)

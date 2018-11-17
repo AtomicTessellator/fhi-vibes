@@ -12,7 +12,7 @@ import hilde.phonopy.phono as ph
 def phonopy(
     atoms,
     calc,
-    supercell_matrix,
+    supercell_matrix=None,
     displacement=0.01,
     trajectory="phonopy_trajectory.yaml",
     socketio_port=None,
@@ -23,7 +23,8 @@ def phonopy(
     fingerprint_file="fingerprint.dat",
 ):
     """ perform a full phonopy calculation """
-
+    if supercell_matrix is None:
+        raise ValueError("The supercell matrix must be defined")
     watchdog = Watchdog(walltime=walltime)
 
     trajectory = Path(trajectory).absolute()
@@ -61,13 +62,13 @@ def phonopy(
             if socketio_port is not None:
                 calc = iocalc
 
-            calculation_atoms.calc = calc
 
             # save inputs and supercell
             metadata2file(atoms, calc, phonon, trajectory)
             supercell.write(supercell_file, format="aims", scaled=True)
 
             for ii, cell in enumerate(scs):
+                calculation_atoms.calc = calc
 
                 if cell is None:
                     continue

@@ -2,7 +2,7 @@ from fireworks import FWAction, PyTask, Firework
 from hilde.helpers.hash import hash_atoms
 from hilde.phonon_db.phonon_db import connect
 from hilde.parsers.structure import read_structure
-from hilde.helpers.converters import patoms2dict, dict2patoms
+from hilde.helpers.converters import atoms2dict, dict2atoms
 from hilde.tasks import fireworks as fw
 
 module_name = __name__
@@ -93,8 +93,8 @@ def get_relaxed_structure(new_struct_fname, out_atoms_spec, cur_atoms):
         new_atoms.sym_block = cur_atoms["sym_block"]
     except:
         print("WARNING: new structure not found, using current atoms")
-        new_atoms = dict2patoms(cur_atoms)
-    return FWAction(update_spec={out_atoms_spec: patoms2dict(new_atoms)})
+        new_atoms = dict2atoms(cur_atoms)
+    return FWAction(update_spec={out_atoms_spec: atoms2dict(new_atoms)})
 
 
 def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type="calc", symprec=1e-5, **kwargs):
@@ -103,13 +103,13 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type="calc", sympre
     Args:
         phonon: dict
             A dictionary representation of the phonopy object to be added to the database
-        atoms_ideal: dict generated from patoms2dict
-            The dictionary representation of the atoms or pAtoms object of the undisplayed atoms
+        atoms_ideal: dict generated from atoms2dict
+            The dictionary representation of the atoms or Atoms object of the undisplayed atoms
         db_path: str
             String to the database path
     """
     print(f"Adding phonon calculations to the database {db_path}")
-    atoms = dict2patoms(atoms_ideal)
+    atoms = dict2atoms(atoms_ideal)
     atoms_hash, calc_hash = hash_atoms(atoms)
     try:
         db = connect(db_path)

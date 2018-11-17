@@ -8,9 +8,9 @@ from hilde.helpers.input_exchange import patoms2dict, calc2dict
 from hilde.tasks import fireworks as fw
 from hilde.tasks.fireworks import mutate_kgrid
 from hilde.templates.aims import setup_aims
-from hilde.workflows.gen_relax_fw import *
-from hilde.workflows.gen_phonopy_fw import *
-from hilde.workflows.gen_phono3py_fw import *
+from hilde.workflows.gen_relax_fw import gen_kgrid_conv_fw, gen_relax_fw
+from hilde.workflows.gen_phonopy_fw import gen_initialize_phonopy_fw, gen_analyze_phonopy_fw
+from hilde.workflows.gen_phono3py_fw import gen_initialize_phono3py_fw, gen_analyze_phono3py_fw
 
 
 def gen_relax_phono3py_wf(

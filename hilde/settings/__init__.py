@@ -6,9 +6,9 @@ class Settings(ConfigDict):
     def __init__(self, config_files='highaims.cfg'):
         super().__init__(config_files=config_files)
         if "fw_settings" in self:
-            self.fw_settings.remote_host = self.make_list(self.fw_settings.remote_host)
-            self.fw_settings.remote_config_dir = self.make_list(self.fw_settings.remote_config_dir)
-            self.fw_settings.tasks2queue = self.make_list(self.fw_settings.tasks2queue)
+            self.fw_settings.remote_host = list(self.fw_settings.remote_host)
+            self.fw_settings.remote_config_dir = list(self.fw_settings.remote_config_dir)
+            self.fw_settings.tasks2queue = list(self.fw_settings.tasks2queue)
 
 
     def get_hash(self, short = True):
@@ -22,6 +22,3 @@ class Settings(ConfigDict):
 
     def print(self):
         print(self.get_string())
-
-    def make_list(val):
-        return val.split(",")

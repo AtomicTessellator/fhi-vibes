@@ -1,6 +1,6 @@
 """ Define FireTasks for electronic structure calculations """
 from fireworks import FWAction, PyTask, Firework
-from hilde.helpers.converters import patoms2dict, dict2patoms
+from hilde.helpers.converters import atoms2dict, dict2atoms
 from hilde.tasks.calculate import calculate as calc_hilde
 from hilde.tasks import fireworks as fw
 
@@ -15,8 +15,8 @@ def calculate(workdir, out_spec, atoms_dict, calc=None):
     """
     A wrapper function for calculate to work within FireWorks
     Args:
-        atoms_dict: dict generated from patoms2dict
-            The dictionary representation of the atoms or pAtoms object
+        atoms_dict: dict generated from atoms2dict
+            The dictionary representation of the atoms or Atoms object
         workdir: str
             The base work directory for the calculation
         out_spec: str
@@ -32,9 +32,9 @@ def calculate(workdir, out_spec, atoms_dict, calc=None):
     if calc:
         for key, val in calc.items():
             atoms_dict[key] = val
-    atoms = dict2patoms(atoms_dict)
+    atoms = dict2atoms(atoms_dict)
     temp_atoms = calc_hilde(atoms, atoms.get_calculator(), workdir)
-    return FWAction(mod_spec=[{"_push": {out_spec: patoms2dict(temp_atoms)}}])
+    return FWAction(mod_spec=[{"_push": {out_spec: atoms2dict(temp_atoms)}}])
 
 
 def calculate_multiple(workdirs, atom_dicts, calculator=None, out_spec="calc_atoms", spec_qad=None):

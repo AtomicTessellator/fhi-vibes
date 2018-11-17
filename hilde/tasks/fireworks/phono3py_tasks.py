@@ -15,7 +15,6 @@ ph3 = il.import_module("hilde.phono3py.phono3")
 
 module_name = __name__
 
-
 def initialize_phono3py(phono3py_settings, workdir, atoms_ideal, symprec=1e-5):
     """
     A wrapper function to initialize all phonopy calculations and add the new

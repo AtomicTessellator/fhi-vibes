@@ -4,7 +4,8 @@
 import json
 from pathlib import Path
 import numpy as np
-from ase.db.row import atoms2dict, AtomsRow
+from ase.db.row import atoms2dict as ase_atoms2dict
+from ase.db.row import AtomsRow
 from ase.io.jsonio import MyEncoder
 from ase.calculators.calculator import all_properties
 from ase.atoms import Atoms
@@ -39,7 +40,11 @@ def input2dict(atoms, calc=None):
         if isinstance(val, tuple):
             params[key] = list(val)
 
-    calc_dict = {"name": calc.__class__.__name__, "params": params}
+    calc_dict = {"calculator": calc.__class__.__name__, "calculator_parameters": params}
+    try:
+        calc_dict['command'] = calc.command
+    except AttributeError:
+        pass
 
     return {"atoms": atoms_dict, "calculator": calc_dict}
 
@@ -47,7 +52,6 @@ def input2dict(atoms, calc=None):
 def results2dict(atoms, calc, append_cell=False):
     """ extract information from atoms and calculator and convert to plain dict """
 
-    # structure
     atoms_dict = {}
     # if periodic system, append lattice
     if append_cell and any(atoms.pbc):
@@ -96,9 +100,11 @@ def dict2results(atoms_dict, calc_dict=None):
             results = calc_dict.pop("results")
 
         calc = SinglePointCalculator(atoms, **results)
-        calc.name = calc_dict["name"]
-        if "params" in calc_dict:
-            calc.parameters.update(calc_dict["params"])
+        calc.name = calc_dict["calculator"].lower()
+        if "calculator_parameters" in calc_dict:
+            calc.parameters.update(calc_dict["calculator_parameters"])
+        if "command" in calc_dict:
+            calc.command = calc_dict['command']
     else:
         calc = None
 
@@ -122,7 +128,7 @@ def calc2dict(calc):
     return calc_dict
 
 
-def patoms2dict(atoms):
+def atoms2dict(atoms):
     """
     Converts a pAtoms object into a dict
     Args:
@@ -132,13 +138,10 @@ def patoms2dict(atoms):
         The dictionary of atoms
     """
 
-    atoms_dict = atoms2dict(atoms)
+    atoms_dict = ase_atoms2dict(atoms)
 
     # add information that is missing after using ase.atoms2dict
     atoms_dict["info"] = atoms.info
-
-    if hasattr(atoms, "symmetry_block"):
-        atoms_dict["sym_block"] = atoms.symmetry_block
 
     # attach calculator
     for key, val in calc2dict(atoms.calc).items():
@@ -147,7 +150,7 @@ def patoms2dict(atoms):
     return atoms_dict
 
 
-def dict2patoms(atoms_dict):
+def dict2atoms(atoms_dict):
     """
     Converts a dict into a pAtoms object
     Args:
@@ -157,15 +160,13 @@ def dict2patoms(atoms_dict):
         The corresponding pAtoms object
     """
     try:
-        atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=True))
+        atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=True)
     except AttributeError:
-        atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=False))
+        atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=False)
 
     # Attach missing information
     if "info" in atoms_dict:
         atoms.info = atoms_dict["info"]
-    if "sym_block" in atoms_dict:
-        atoms.symmetry_block = atoms_dict["sym_block"]
     if "command" in atoms_dict:
         atoms.calc.command = atoms_dict["command"]
     if "results" in atoms_dict:
@@ -193,7 +194,7 @@ def atoms2json(
     """
 
     # dictionary contains all the information in atoms object
-    atomsdict = atoms2dict(atoms)
+    atomsdict = ase_atoms2dict(atoms)
 
     # remove unwanted keys from atomsdict
     for name in ignore_keys:
