@@ -9,6 +9,10 @@
 and edit according to system.
 
 **New Features**
+* Phonopy workflow with input and output files
+  * see hilde/examples/phonopy
+* Relaxation workflow with config file and output files
+  * see hilde/examples/relaxation
 * YAML Trajectories:
   * save MD trajectories as YAML with tools in `hilde.trajectories`
   * example in `hilde/examples/trajectory/trajectory_yaml.ipynb`
