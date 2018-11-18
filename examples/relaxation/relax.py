@@ -4,7 +4,7 @@ from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.helpers.k_grid import update_k_grid
 from hilde.relaxation.bfgs import relax
 from hilde.settings import Settings
-from hilde.tasks.fireworks.general_py_task import func_to_fire_works
+from hilde.tasks.fireworks.general_py_task import atoms_func_to_fireworks
 from hilde.templates.aims import setup_aims
 
 atoms = read("geometry.in")
@@ -24,7 +24,7 @@ if not settings.fw_relax.use_fw:
     )
 else:
     fw_settings = settings.fw_relax
-    fw = func_to_fire_works(
+    fw = atoms_func_to_fireworks(
         "hilde.relaxation.bfgs.relax",
         "hilde.tasks.fireworks.fw_action_outs.cont_md_out_fw_action",
         settings.relaxation,

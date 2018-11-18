@@ -3,11 +3,80 @@ import numpy as np
 
 from ase.calculators.socketio import SocketIOCalculator
 
-from hilde.watchdogs import WallTimeWatchdog as Watchdog
+from hilde.helpers.converters import dict2atoms
 from hilde.helpers.paths import cwd
-from hilde.trajectory.phonopy import metadata2file, step2file
+from hilde.phonon_db.row import PhononRow
 import hilde.phonopy.phono as ph
+from hilde.trajectory.phonopy import metadata2file, step2file
+from hilde.watchdogs import WallTimeWatchdog as Watchdog
 
+def initialize_phonopy(
+    atoms,
+    calc,
+    supercell_matrix=None,
+    displacement=0.01,
+    trajectory="phonopy_trajectory.yaml",
+    socketio_port=None,
+    walltime=1800,
+    workdir=".",
+    force_constants_file="force_constants.dat",
+    supercell_file="geometry.in.supercell",
+    fingerprint_file="fingerprint.dat",
+):
+    """ perform a full phonopy calculation """
+    if supercell_matrix is None:
+        raise ValueError("The supercell matrix must be defined")
+
+    if "compute_forces" in calc.parameters:
+        calc.parameters["compute_forces"] = True
+
+    if socketio_port is None:
+        socket_calc = None
+    else:
+        socket_calc = calc
+
+    # get a correctly shaped supercell matrix
+    if np.size(supercell_matrix) == 1:
+        supercell_matrix = supercell_matrix * np.eye(3)
+    elif np.size(supercell_matrix) == 3:
+        supercell_matrix = np.diag(supercell_matrix)
+    elif np.size(supercell_matrix) == 9:
+        supercell_matrix = np.asarray(supercell_matrix).reshape((3, 3))
+    else:
+        raise Exception(
+            f"Supercell matrix must have 1, 3, 9 elements, has {len(supercell_matrix)}"
+        )
+
+    # preprocess
+    return ph.preprocess(atoms, supercell_matrix, displacement)
+
+
+def analyze_phonpy(
+    phonon,
+    calculated_atoms,
+    trajectory="phonopy_trajectory.yaml",
+    workdir=".",
+    force_constants_file="force_constants.dat",
+    supercell_file="geometry.in.supercell",
+    fingerprint_file="fingerprint.dat",
+    **kwargs
+):
+    calculated_atoms = sorted(calculated_atoms, key=lambda x: x['info']['displacement_id'])
+    force_sets = []
+    for cell in calculated_atoms:
+        force_sets.append(dict2atoms(cell).get_forces())
+    phonon = PhononRow(phonon).to_phonon()
+    if 'displacement' in kwargs:
+        disp = kwargs["displacement"]
+    else:
+        disp = 0.01
+    phonon.generate_displacements(
+        distance=disp, is_plusminus="auto", is_diagonal=True
+    )
+    with cwd(workdir):
+        # compute and save force constants
+        force_constants = ph.get_force_constants(phonon, force_sets)
+        np.savetxt(force_constants_file, force_constants)
 
 def phonopy(
     atoms,

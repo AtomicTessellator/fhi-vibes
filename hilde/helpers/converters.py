@@ -31,7 +31,7 @@ def input2dict(atoms, calc=None):
         atoms_dict.update({"cell": atoms.cell.tolist()})
 
     atoms_dict.update({"positions": atoms.positions.tolist()})
-
+    atoms_dict['info'] = atoms.info
     if calc is None:
         return {"atoms": atoms_dict, "calculator": {}}
 

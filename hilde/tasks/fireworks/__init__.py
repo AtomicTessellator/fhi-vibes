@@ -25,3 +25,4 @@ from .utility_tasks import mod_calc
 from .utility_tasks import transfer_spec
 
 from .general_py_task import general_ase_calc_fxn_as_pytask
+from .general_py_task import general_fxn_as_pytask

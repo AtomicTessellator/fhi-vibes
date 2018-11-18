@@ -7,7 +7,7 @@ from hilde.tasks import fireworks as fw
 
 module_name = __name__
 
-def func_to_fire_works(func, func_fw_out, func_kwargs, atoms, calc, fw_settings, update_calc_settings=None):
+def atoms_func_to_fireworks(func, func_fw_out, func_kwargs, atoms, calc, fw_settings, update_calc_settings=None):
     '''
     '''
     if not isinstance(atoms, dict):
@@ -47,6 +47,19 @@ def func_to_fire_works(func, func_fw_out, func_kwargs, atoms, calc, fw_settings,
     )
     return Firework(task, name=fw_settings["fw_name"])
 
+def gen_func_to_fireworks(func_path, func_fw_out_path, args, inputs, kwargs, fw_settings):
+    if "fw_settings" not in kwargs:
+        kwargs["fw_settings"] = dict(fw_settings)
+    task = PyTask(
+        {
+            "func": fw.general_fxn_as_pytask.name,
+            "args": [func_path, func_fw_out_path, *args],
+            "inputs": inputs,
+            "kwargs": dict(kwargs),
+        }
+    )
+    return Firework(task, name=fw_settings["fw_name"])
+
 def get_func(func_path):
     toks = func_path.rsplit('.', 1)
     if len(toks) == 2:
@@ -70,4 +83,16 @@ def general_ase_calc_fxn_as_pytask(func_path, func_fw_out_path, func_kwargs,  at
 
     return func_fw_out(atoms_dict, calc, outputs, func_path, func_fw_out_path, func_kwargs, fw_settings)
 
+def general_fxn_as_pytask(func_path, func_fw_out_path, *args, fw_settings=None, **kwargs):
+    if fw_settings is None:
+        fw_settings = {}
+    func = get_func(func_path)
+    func_fw_out = get_func(func_fw_out_path)
+
+    outputs = func(*args, **kwargs)
+
+    return func_fw_out(func_path, func_fw_out_path, *args, fw_settings=None, **kwargs)
+
+
 general_ase_calc_fxn_as_pytask.name = f"{module_name}.{general_ase_calc_fxn_as_pytask.__name__}"
+general_fxn_as_pytask.name = f"{module_name}.{general_fxn_as_pytask.__name__}"

@@ -20,7 +20,7 @@ def cells_and_workdirs(cells, base_dir):
         yield cell, workdir
 
 
-def calculate(atoms, calculator, workdir):
+def calculate(atoms, calculator, workdir='.'):
     """Short summary.
     Perform a dft calculation with ASE
     Args:
