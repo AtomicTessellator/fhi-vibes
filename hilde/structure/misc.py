@@ -6,12 +6,12 @@ def get_sysname(atoms, spacegroup=None):
         Either the chemical formula, or the chemical formula enriched by spacegroup information"""
 
         chemical_formula      = atoms.get_chemical_formula()
-        # if there is no spacegroup
-        if spacegroup is None and atoms.spacegroup is None:
-            return chemical_formula
 
-        if spacegroup is None and atoms.spacegroup is not None:
+        if spacegroup is None and hasattr(atoms, 'spacegroup'):
             spacegroup = atoms.spacegroup
+
+        if spacegroup is None:
+            return chemical_formula
 
         sg_number             = spacegroup.number
         wyckoff_pos           = spacegroup.wyckoffs

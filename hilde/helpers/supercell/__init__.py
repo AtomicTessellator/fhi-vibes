@@ -1,7 +1,8 @@
 import numpy as np
 from . import supercell as sc
 from ase.build.supercells import make_supercell as ase_make_supercell
-from hilde.structure import pAtoms
+from ase.spacegroup import get_spacegroup
+from hilde.structure.misc import get_sysname
 from hilde.helpers.geometry import get_cubicness
 from warnings import warn
 
@@ -38,7 +39,7 @@ def make_cubic_supercell(
         verbose (boolean): be verbose (for debugging)
 
     Returns:
-        (pAtoms, np.ndarray): supercell, supercell_matrix
+        (Atoms, np.ndarray): supercell, supercell_matrix
 
     """
 
@@ -54,18 +55,13 @@ def make_cubic_supercell(
     )
 
     supercell = make_supercell(
-        prim_cell, smatrix, tag=("smatrix", list(smatrix.flatten()))
+        prim_cell, smatrix, info={"smatrix": smatrix.flatten().tolist()}
     )
 
-    if (
-        hasattr(prim_cell, "spacegroup")
-        and supercell.spacegroup
-        and prim_cell.spacegroup
-    ):
-        n_sc = supercell.spacegroup.number
-        n_at = prim_cell.spacegroup.number
-        if n_sc != n_at:
-            warn("Spacegroup of supercell: " + f"{n_sc} |= {n_at} of reference cell.")
+    n_sc = get_spacegroup(supercell).no
+    n_at = get_spacegroup(prim_cell).no
+    if n_sc != n_at:
+        warn("Spacegroup of supercell: " + f"{n_sc} |= {n_at} of reference cell.")
 
     cub_ness = get_cubicness(supercell.cell)
     if cub_ness < 0.8:
@@ -73,15 +69,13 @@ def make_cubic_supercell(
             "**Warning: Cubicness of supercell is "
             + f"{cub_ness:.3f} ({cub_ness**3:.3f})"
         )
-        print(f"**-> Sytems: {prim_cell.sysname}, target size {target_size}")
+        print(f"**-> Sytems: {get_sysname(prim_cell)}, target size {target_size}")
     return supercell, smatrix
 
 
-def make_supercell(*args, tag=None, **kwargs):
+def make_supercell(*args, info={}, **kwargs):
     """ Wrap the make_supercell() function from ase.build """
-    supercell = pAtoms(
-        ase_atoms=ase_make_supercell(*args, **kwargs), tags=["supercell"]
-    )
-    if tag:
-        supercell.tags.append(tag)
+    supercell = ase_make_supercell(*args, **kwargs)
+    supercell.info.update(info)
+
     return supercell
