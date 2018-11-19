@@ -73,8 +73,8 @@ except KeyError:
     scs3_computed = calculate_multiple(scs3, atoms.calc, f'{atoms.sysname}/fc3')
     fc3_forces = ph3.get_forces(scs3_computed)
     print(len(fc2_forces), len(fc3_forces))
-    for force in fc3_forces:
-        print(force)
+    # for force in fc3_forces:
+    #     print(force)
     phonon3.produce_fc2(fc2_forces)
     phonon3.produce_fc3(fc3_forces)
     phonon3.run_thermal_conductivity(write_kappa=True)
@@ -132,5 +132,5 @@ phonon3 = db.get_phonon3(selection=[
         ])
 force_constants = phonon3.get_fc2().swapaxes(1, 2).reshape(2 * (3 * row.natoms_in_sc_2,))
 np.savetxt("force_constants_Al.dat", force_constants)
-sc2.write("Al.in.supercell")
+sc2.write("Al.in.supercell", format='aims')
 assert 20 < thermalProps[3] < 30
