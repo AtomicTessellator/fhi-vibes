@@ -128,5 +128,5 @@ def postprocess(
     force_constants = ph.get_force_constants(phonon, force_sets)
     np.savetxt(Path(workdir) / force_constants_file, force_constants)
 
-    with open(pickle_file, "w") as fp:
+    with open(pickle_file, "wb") as fp:
         pickle.dump(phonon, fp)
