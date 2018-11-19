@@ -79,7 +79,7 @@ if "phonopy" in workflow:
                 kwargs[key] = workflow.phonopy[key]
         fw_list.append(
             gen_func_to_fireworks(
-                "hilde.phonopy.workflow.analyze_phonopy",
+                "hilde.phonopy.workflow.postprocess",
                 "hilde.tasks.fireworks.fw_action_outs.return_null_general",
                 [],
                 ["phonon", fw_settings.phonopy_fw["mod_spec_add"]],

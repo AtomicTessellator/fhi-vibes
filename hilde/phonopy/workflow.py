@@ -17,10 +17,11 @@ from hilde.trajectory import reader as traj_reader
 from hilde.helpers.k_grid import update_k_grid
 
 def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01, workdir="."):
-    phonon, supercell, scs = initialize_phonopy(atoms, supercell_matrix, displacement)
+    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
     for sc in scs:
         sc.calc = calc
     return phonon, supercell, scs
+
 def phonopy(
     atoms,
     calc,

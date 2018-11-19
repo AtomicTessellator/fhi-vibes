@@ -52,7 +52,7 @@ else:
         if key in settings.phonopy:
             kwargs[key] = settings.phonopy[key]
     anal_fw = gen_func_to_fireworks(
-        "hilde.phonopy.workflow.analyze_phonopy",
+        "hilde.phonopy.workflow.postprocess",
         "hilde.tasks.fireworks.fw_action_outs.return_null_general",
         [],
         ["phonon", fw_settings["mod_spec_add"]],
