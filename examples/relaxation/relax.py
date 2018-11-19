@@ -1,8 +1,7 @@
 from ase.io import read
-
+from hilde.settings import Settings
 from hilde.helpers.k_grid import update_k_grid
 from hilde.relaxation.bfgs import relax
-from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
 
 atoms = read("geometry.in")
