@@ -17,12 +17,12 @@
 
 
 
-  Date     :  20181119, Time     :  145653.308
-  Time zero on CPU 1             :   0.226400000000000E-01  s.
-  Internal wall clock time zero  :           311871413.308  s.
+  Date     :  20181119, Time     :  154522.251
+  Time zero on CPU 1             :   0.175430000000000E-01  s.
+  Internal wall clock time zero  :           311874322.251  s.
 
   FHI-aims created a unique identifier for this run for later identification
-  aims_uuid : A1387290-8E16-426C-AD08-BB8161C1BA9A
+  aims_uuid : F5B8177A-7A0D-4267-A7AE-D788D93490D8
 
   Build configuration of the current instance of FHI-aims
   -------------------------------------------------------
@@ -77,7 +77,7 @@
   #===============================================================================
   # FHI-aims file: ./control.in
   # Created using the Atomic Simulation Environment (ASE)
-  # Mon Nov 19 14:56:53 2018
+  # Mon Nov 19 15:45:22 2018
   #
   # List of parameters used to initialize the calculator:
   #     xc : pbesol
@@ -88,8 +88,8 @@
   #     compute_analytical_stress : False
   #     sc_accuracy_rho : 1e-06
   #     charge_mix_param : 0.5
-  #     use_pimd_wrapper : ('localhost', 12345)
   #     species_dir : /home/knoop/FHIaims/aimsfiles/species_defaults/light
+  #     use_pimd_wrapper : ('localhost', 12345)
   #===============================================================================
   xc                                 pbesol
   relativistic                       atomic_zora scalar
@@ -198,7 +198,7 @@
   
   #=====================================================
   # libflo:  geometry.in
-  #   Date:    2018-11-19 14:56:53
+  #   Date:    2018-11-19 15:45:22
   #=====================================================
   #   Material:          Si8
   #   No. atoms:         8
@@ -507,8 +507,8 @@
   Preparing densities etc. for the partition functions (integrals / Hartree potential).
 
   Preparations completed.
-  max(cpu_time)          :      0.134 s.
-  Wall clock time (cpu1) :      0.134 s.
+  max(cpu_time)          :      0.121 s.
+  Wall clock time (cpu1) :      0.121 s.
 ------------------------------------------------------------
 
 ************************** W A R N I N G *******************************
@@ -523,7 +523,7 @@
 ------------------------------------------------------------
           Begin self-consistency loop: Initialization.
 
-          Date     :  20181119, Time     :  145653.494
+          Date     :  20181119, Time     :  154522.422
 ------------------------------------------------------------
 
   Initializing index lists of integration centers etc. from given atomic structure:
@@ -585,9 +585,9 @@
   | Maximal number of non-zero basis functions:      463 in task     3
   Allocating        0.184 MB for KS_eigenvector
   Integrating Hamiltonian matrix: batch-based integration.
-  Time summed over all CPUs for integration: real work        1.548 s, elapsed        1.582 s
+  Time summed over all CPUs for integration: real work        1.520 s, elapsed        1.531 s
   Integrating overlap matrix.
-  Time summed over all CPUs for integration: real work        0.953 s, elapsed        0.984 s
+  Time summed over all CPUs for integration: real work        1.025 s, elapsed        1.030 s
   Decreasing sparse matrix size:
    Tolerance:  9.999999824516700E-014
    Hamiltonian matrix
@@ -602,9 +602,9 @@
   Solving generalized eigenproblem
   Updating Kohn-Sham eigenvalues and eigenfunctions.
   Transforming overlap matrix and checking for singularities.
-  Solving real generalised eigenvalue problem by standard LAPACK (fast)
   Overlap matrix is nonsingular:
   | Lowest eigenvalue at k-point        1:  0.120206E-02
+  Solving real generalised eigenvalue problem by standard LAPACK (fast)
   Updating Kohn-Sham eigenvalues and eigenfunctions.
   Solving real generalised eigenvalue problem by standard LAPACK (fast)
 
@@ -737,13 +737,13 @@
   Max. number of atoms included in rho_multipole:            8
 
   End scf initialization - timings             :  max(cpu_time)    wall_clock(cpu1)
-  | Time for scf. initialization               :        1.075 s           1.075 s
-  | Boundary condition initialization          :        0.055 s           0.056 s
-  | Integration                                :        0.645 s           0.645 s
-  | Solution of K.-S. eqns.                    :        0.021 s           0.021 s
-  | Grid partitioning                          :        0.046 s           0.046 s
+  | Time for scf. initialization               :        1.033 s           1.033 s
+  | Boundary condition initialization          :        0.053 s           0.053 s
+  | Integration                                :        0.644 s           0.644 s
+  | Solution of K.-S. eqns.                    :        0.016 s           0.016 s
+  | Grid partitioning                          :        0.045 s           0.045 s
   | Preloading free-atom quantities on grid    :        0.001 s           0.001 s
-  | Free-atom superposition energy             :        0.061 s           0.062 s
+  | Free-atom superposition energy             :        0.041 s           0.041 s
   | Total energy evaluation                    :        0.000 s           0.000 s
 
   Partial memory accounting:
@@ -754,17 +754,17 @@
   The "true" memory usage will be greater.
 ------------------------------------------------------------
 Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |       CPU time |     Clock time
-  SCF    1 :  0.21E-01 |  0.22E+00 |   0.36E+02 |  0.56E+00 |             . |        2.534 s |        2.535 s
-  SCF    2 :  0.21E-01 |  0.11E+00 |   0.26E+02 |  0.12E+00 |             . |        2.979 s |        2.979 s
-  SCF    3 :  0.19E-01 |  0.16E-01 |  -0.15E+02 |  0.16E-01 |             . |        2.082 s |        2.082 s
-  SCF    4 :  0.19E-01 |  0.37E-02 |   0.11E+01 |  0.37E-03 |             . |        2.443 s |        2.443 s
-  SCF    5 :  0.19E-01 |  0.10E-02 |  -0.10E+01 |  0.82E-03 |             . |        2.870 s |        2.871 s
-  SCF    6 :  0.20E-01 |  0.10E-03 |  -0.47E-01 |  0.51E-05 |             . |        2.504 s |        2.505 s
-  SCF    7 :  0.20E-01 |  0.31E-04 |  -0.18E-01 | -0.87E-06 |             . |        2.584 s |        2.583 s
-  SCF    8 :  0.20E-01 |  0.48E-05 |   0.14E-02 | -0.46E-06 |             . |        2.535 s |        2.534 s
-  SCF    9 :  0.20E-01 |  0.19E-05 |  -0.88E-03 |  0.32E-07 |             . |        2.187 s |        2.187 s
-  SCF   10 :  0.20E-01 |  0.31E-06 |   0.79E-04 |  0.31E-07 |             . |        2.894 s |        2.894 s
-  SCF   11 :  0.20E-01 |  0.70E-07 |   0.14E-04 | -0.50E-08 |      0.54E-01 |       11.180 s |       11.184 s
+  SCF    1 :  0.21E-01 |  0.22E+00 |   0.36E+02 |  0.56E+00 |             . |        2.084 s |        2.083 s
+  SCF    2 :  0.21E-01 |  0.11E+00 |   0.26E+02 |  0.12E+00 |             . |        2.002 s |        2.002 s
+  SCF    3 :  0.19E-01 |  0.16E-01 |  -0.15E+02 |  0.16E-01 |             . |        1.978 s |        1.978 s
+  SCF    4 :  0.19E-01 |  0.37E-02 |   0.11E+01 |  0.37E-03 |             . |        1.862 s |        1.861 s
+  SCF    5 :  0.19E-01 |  0.10E-02 |  -0.10E+01 |  0.82E-03 |             . |        2.025 s |        2.025 s
+  SCF    6 :  0.20E-01 |  0.10E-03 |  -0.47E-01 |  0.51E-05 |             . |        2.267 s |        2.268 s
+  SCF    7 :  0.20E-01 |  0.31E-04 |  -0.18E-01 | -0.87E-06 |             . |        1.847 s |        1.847 s
+  SCF    8 :  0.20E-01 |  0.48E-05 |   0.14E-02 | -0.46E-06 |             . |        1.848 s |        1.847 s
+  SCF    9 :  0.20E-01 |  0.19E-05 |  -0.88E-03 |  0.32E-07 |             . |        1.835 s |        1.835 s
+  SCF   10 :  0.20E-01 |  0.31E-06 |   0.79E-04 |  0.31E-07 |             . |        1.840 s |        1.841 s
+  SCF   11 :  0.20E-01 |  0.70E-07 |   0.14E-04 | -0.50E-08 |      0.54E-01 |        8.822 s |        8.822 s
 
   Total energy components:
   | Sum of eigenvalues            :       -1312.10904534 Ha      -35704.30373858 eV
@@ -915,26 +915,26 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |   
 
 ------------------------------------------------------------
           Leaving FHI-aims.
-          Date     :  20181119, Time     :  145731.420
+          Date     :  20181119, Time     :  154551.920
 
           Computational steps:
           | Number of self-consistency cycles          :           11
           | Number of SCF (re)initializations          :            1
 
           Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)
-          | Total time                                 :       38.098 s          38.112 s
-          | Preparation time                           :        0.134 s           0.134 s
-          | Boundary condition initalization           :        0.055 s           0.056 s
-          | Grid partitioning                          :        0.046 s           0.046 s
+          | Total time                                 :       29.664 s          29.669 s
+          | Preparation time                           :        0.121 s           0.121 s
+          | Boundary condition initalization           :        0.053 s           0.053 s
+          | Grid partitioning                          :        0.045 s           0.045 s
           | Preloading free-atom quantities on grid    :        0.001 s           0.001 s
-          | Free-atom superposition energy             :        0.061 s           0.062 s
-          | Total time for integrations                :        6.241 s           6.242 s
-          | Total time for solution of K.-S. equations :        0.112 s           0.111 s
-          | Total time for density & force components  :       17.457 s          17.459 s
-          | Total time for mixing & preconditioning    :        4.168 s           4.169 s
-          | Total time for Hartree multipole update    :        0.025 s           0.027 s
-          | Total time for Hartree multipole sum       :        9.451 s           9.452 s
-          | Total time for total energy evaluation     :        0.001 s           0.000 s
+          | Free-atom superposition energy             :        0.041 s           0.041 s
+          | Total time for integrations                :        5.039 s           5.039 s
+          | Total time for solution of K.-S. equations :        0.081 s           0.082 s
+          | Total time for density & force components  :       13.936 s          13.934 s
+          | Total time for mixing & preconditioning    :        2.802 s           2.805 s
+          | Total time for Hartree multipole update    :        0.015 s           0.014 s
+          | Total time for Hartree multipole sum       :        7.193 s           7.191 s
+          | Total time for total energy evaluation     :        0.001 s           0.001 s
           | Total time for scaled ZORA corrections     :        0.000 s           0.000 s
 
           Partial memory accounting:
