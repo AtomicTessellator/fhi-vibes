@@ -178,6 +178,7 @@ def general_ase_calc_fxn_as_pytask(
 
     for key, val in calc_dict.items():
         atoms_dict[key] = val
+    del(atoms_dict['results'])
     atoms = dict2atoms(atoms_dict)
 
     outputs = func(atoms, atoms.calc, **func_kwargs)

@@ -7,7 +7,6 @@ from hilde.tasks import fireworks as fw
 
 module_name = __name__
 
-
 def mod_calc(param_key, calc, new_val, spec_key=None):
     if param_key is "command":
         calc[param_key] = new_val

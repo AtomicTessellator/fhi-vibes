@@ -32,23 +32,31 @@ if fw_settings['serial']:
     )
     lp.add_wf(fw)
 else:
+    kwargs_init = {"supercell_matrix": settings.phonopy.supercell_matrix}
+    for key in ["displacement", "workdir"]:
+        if key in settings.phonopy:
+            kwargs_init[key] = settings.phonopy[key]
+
     init_fw = atoms_func_to_fireworks(
-        "hilde.phonopy.workflow.initialize_phonopy",
+        "hilde.phonopy.workflow.initialize_phonopy_attach_calc",
         "hilde.tasks.fireworks.fw_action_outs.fw_out_initialize_phonopy",
-        settings.phonopy,
+        kwargs_init,
         atoms,
         calc,
         fw_settings=fw_settings,
         update_calc_settings=None,
     )
-    kwargs = settings.phonopy
-    kwargs["fireworks"] = True
+    kwargs = {"fireworks": True}
+    anal_keys = ["trajectory", "workdir", "force_constant_file", "displacement"]
+    for key in anal_keys:
+        if key in settings.phonopy:
+            kwargs[key] = settings.phonopy[key]
     anal_fw = gen_func_to_fireworks(
-        "hilde.phonopy.workflow.analyze_phonpy",
+        "hilde.phonopy.workflow.analyze_phonopy",
         "hilde.tasks.fireworks.fw_action_outs.return_null_general",
         [],
         ["phonon", fw_settings["mod_spec_add"]],
-        settings.phonopy,
+        kwargs,
         fw_settings,
     )
     wf = Workflow([init_fw, anal_fw], {init_fw: [anal_fw]})

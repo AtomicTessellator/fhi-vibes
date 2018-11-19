@@ -35,7 +35,7 @@ def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, 
     next_step = last_step_dict['opt']['nsteps'] + 1
 
     if outputs:
-        return FWAction(update_spec={fw_settings["out_spec"]: atoms})
+        return FWAction(update_spec={fw_settings["out_spec_atoms"]: atoms, fw_settings["out_spec_calc"]: calc})
     del(calc['results']['forces'])
     fw_settings["fw_name"] = fw_settings["fw_base_name"]+ str(next_step)
 
