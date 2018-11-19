@@ -80,7 +80,7 @@ def dict2json(dct, indent=0, outer=True):
             rep = f'"{val}"'
         elif isinstance(val, dict):
             # recursive formatting
-            rep = f"{{\n{dict2json(val, 2, False)}}}"
+            rep = f"{{\n{dict2json(val, 2*(1 + indent // 2), False)}}}"
         elif (
             isinstance(val, list)
             and len(list_dim(val)) == 2
