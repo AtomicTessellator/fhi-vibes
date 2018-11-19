@@ -87,7 +87,10 @@ def preprocess(
 
     supercell = to_Atoms(
         phonon.get_supercell(),
-        info={"supercell": True, "supercell_matrix": supercell_matrix.tolist()},
+        info={
+            "supercell": True,
+            "supercell_matrix": np.asarray(supercell_matrix).flatten().tolist(),
+        },
     )
 
     scells = phonon.get_supercells_with_displacements()
