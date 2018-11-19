@@ -38,15 +38,17 @@ def step2dict(atoms, calc, displacement_id):
 def metadata2dict(atoms, calc, obj):
     """ convert metadata information to plain dict """
 
+    prim_data = input2dict(atoms)
+
     obj_dict = {
         "supercell_matrix": obj.get_supercell_matrix().astype(int).tolist(),
         "symprec": float(obj._symprec),
         "displacements": obj._displacements,
         "displacement_dataset": obj.get_displacement_dataset(),
+        "primitive": prim_data["atoms"],
     }
 
-    prim_data = input2dict(atoms)
     supercell = to_Atoms(obj.get_supercell())
     supercell_data = input2dict(supercell, calc)
 
-    return {"phonopy": obj_dict, "primitive": prim_data["atoms"], **supercell_data}
+    return {"phonopy": obj_dict, **supercell_data}
