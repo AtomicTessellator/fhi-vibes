@@ -14,12 +14,14 @@ import hilde.phonopy.phono as ph
 from hilde.trajectory.phonopy import metadata2file, step2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.trajectory import reader as traj_reader
+from hilde.helpers.k_grid import update_k_grid
 
 
 def phonopy(
     atoms,
     calc,
     supercell_matrix,
+    kpt_density=None,
     displacement=0.01,
     trajectory="phonopy_trajectory.yaml",
     socketio_port=None,
@@ -48,6 +50,9 @@ def phonopy(
 
     # grab first geometry for computation
     calculation_atoms = scs[0].copy()
+
+    if kpt_density is not None:
+        update_k_grid(calculation_atoms, calc, kpt_density)
 
     force_sets = []
     with cwd(workdir, mkdir=True):
