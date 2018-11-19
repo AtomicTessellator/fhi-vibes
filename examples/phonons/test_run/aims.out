@@ -17,12 +17,12 @@
 
 
 
-  Date     :  20181117, Time     :  012157.375
-  Time zero on CPU 1             :   0.173260000000000E-01  s.
-  Internal wall clock time zero  :           311649717.375  s.
+  Date     :  20181119, Time     :  145653.308
+  Time zero on CPU 1             :   0.226400000000000E-01  s.
+  Internal wall clock time zero  :           311871413.308  s.
 
   FHI-aims created a unique identifier for this run for later identification
-  aims_uuid : 8B637737-9255-418B-AE4A-7AA6BE0F4360
+  aims_uuid : A1387290-8E16-426C-AD08-BB8161C1BA9A
 
   Build configuration of the current instance of FHI-aims
   -------------------------------------------------------
@@ -77,7 +77,7 @@
   #===============================================================================
   # FHI-aims file: ./control.in
   # Created using the Atomic Simulation Environment (ASE)
-  # Sat Nov 17 01:21:57 2018
+  # Mon Nov 19 14:56:53 2018
   #
   # List of parameters used to initialize the calculator:
   #     xc : pbesol
@@ -196,22 +196,24 @@
   in the first line of geometry.in .
   -----------------------------------------------------------------------
   
-  #=======================================================
-  # FHI-aims file: ./geometry.in
-  # Created using the Atomic Simulation Environment (ASE)
-  # Sat Nov 17 01:21:57 2018
-  #=======================================================
-  lattice_vector 5.4399999999999995 0.0000000000000000 0.0000000000000000
-  lattice_vector 0.0000000000000000 5.4399999999999995 0.0000000000000000
-  lattice_vector 0.0000000000000000 0.0000000000000000 5.4399999999999995
-  atom 0.0100000000000000 0.0000000000000000 0.0000000000000000 Si
-  atom 5.4399999999999995 2.7199999999999998 2.7199999999999998 Si
-  atom 2.7199999999999998 0.0000000000000000 2.7199999999999998 Si
-  atom 2.7199999999999998 2.7199999999999998 0.0000000000000000 Si
-  atom 1.3599999999999999 1.3599999999999999 1.3599999999999999 Si
-  atom 1.3599999999999997 4.0800000000000001 4.0800000000000001 Si
-  atom 4.0800000000000001 1.3599999999999999 4.0800000000000001 Si
-  atom 4.0800000000000001 4.0800000000000001 1.3599999999999999 Si
+  #=====================================================
+  # libflo:  geometry.in
+  #   Date:    2018-11-19 14:56:53
+  #=====================================================
+  #   Material:          Si8
+  #   No. atoms:         8
+  #   Unit cell volume:  160.989184 AA^3
+    lattice_vector  5.44000000000000e+00  0.00000000000000e+00  0.00000000000000e+00
+    lattice_vector  0.00000000000000e+00  5.44000000000000e+00  0.00000000000000e+00
+    lattice_vector  0.00000000000000e+00  0.00000000000000e+00  5.44000000000000e+00
+    atom_frac   1.83823529411765e-03  0.00000000000000e+00  0.00000000000000e+00  Si
+    atom_frac   0.00000000000000e+00  5.00000000000000e-01  5.00000000000000e-01  Si
+    atom_frac   5.00000000000000e-01  0.00000000000000e+00  5.00000000000000e-01  Si
+    atom_frac   5.00000000000000e-01  5.00000000000000e-01  0.00000000000000e+00  Si
+    atom_frac   2.50000000000000e-01  2.50000000000000e-01  2.50000000000000e-01  Si
+    atom_frac   2.50000000000000e-01  7.50000000000000e-01  7.50000000000000e-01  Si
+    atom_frac   7.50000000000000e-01  2.50000000000000e-01  7.50000000000000e-01  Si
+    atom_frac   7.50000000000000e-01  7.50000000000000e-01  2.50000000000000e-01  Si
   
   -----------------------------------------------------------------------
   Completed first pass over input file geometry.in .
@@ -361,7 +363,7 @@
   | Atomic structure:
   |       Atom                x [A]            y [A]            z [A]
   |    1: Species Si            0.01000000        0.00000000        0.00000000
-  |    2: Species Si            5.44000000        2.72000000        2.72000000
+  |    2: Species Si            0.00000000        2.72000000        2.72000000
   |    3: Species Si            2.72000000        0.00000000        2.72000000
   |    4: Species Si            2.72000000        2.72000000        0.00000000
   |    5: Species Si            1.36000000        1.36000000        1.36000000
@@ -377,7 +379,7 @@
   | The smallest distance between any two atoms is         2.34982978 AA.
   |
   | The first atom of this pair is atom number                      1 .
-  | The second atom of this pair is atom number                     6 .
+  | The second atom of this pair is atom number                     5 .
   | Wigner-Seitz cell of the first atom image           0     0     0 .
   | (The Wigner-Seitz cell of the second atom is 0 0 0  by definition.)
 
@@ -505,8 +507,8 @@
   Preparing densities etc. for the partition functions (integrals / Hartree potential).
 
   Preparations completed.
-  max(cpu_time)          :      0.122 s.
-  Wall clock time (cpu1) :      0.121 s.
+  max(cpu_time)          :      0.134 s.
+  Wall clock time (cpu1) :      0.134 s.
 ------------------------------------------------------------
 
 ************************** W A R N I N G *******************************
@@ -521,7 +523,7 @@
 ------------------------------------------------------------
           Begin self-consistency loop: Initialization.
 
-          Date     :  20181117, Time     :  012157.546
+          Date     :  20181119, Time     :  145653.494
 ------------------------------------------------------------
 
   Initializing index lists of integration centers etc. from given atomic structure:
@@ -583,9 +585,9 @@
   | Maximal number of non-zero basis functions:      463 in task     3
   Allocating        0.184 MB for KS_eigenvector
   Integrating Hamiltonian matrix: batch-based integration.
-  Time summed over all CPUs for integration: real work        1.459 s, elapsed        1.464 s
+  Time summed over all CPUs for integration: real work        1.548 s, elapsed        1.582 s
   Integrating overlap matrix.
-  Time summed over all CPUs for integration: real work        0.888 s, elapsed        0.893 s
+  Time summed over all CPUs for integration: real work        0.953 s, elapsed        0.984 s
   Decreasing sparse matrix size:
    Tolerance:  9.999999824516700E-014
    Hamiltonian matrix
@@ -598,8 +600,8 @@
 
   Updating Kohn-Sham eigenvalues, eigenvectors, occupation numbers, and Fermi level.
   Solving generalized eigenproblem
-  Transforming overlap matrix and checking for singularities.
   Updating Kohn-Sham eigenvalues and eigenfunctions.
+  Transforming overlap matrix and checking for singularities.
   Solving real generalised eigenvalue problem by standard LAPACK (fast)
   Overlap matrix is nonsingular:
   | Lowest eigenvalue at k-point        1:  0.120206E-02
@@ -735,13 +737,13 @@
   Max. number of atoms included in rho_multipole:            8
 
   End scf initialization - timings             :  max(cpu_time)    wall_clock(cpu1)
-  | Time for scf. initialization               :        0.983 s           0.983 s
-  | Boundary condition initialization          :        0.051 s           0.051 s
-  | Integration                                :        0.593 s           0.593 s
-  | Solution of K.-S. eqns.                    :        0.016 s           0.015 s
-  | Grid partitioning                          :        0.047 s           0.047 s
+  | Time for scf. initialization               :        1.075 s           1.075 s
+  | Boundary condition initialization          :        0.055 s           0.056 s
+  | Integration                                :        0.645 s           0.645 s
+  | Solution of K.-S. eqns.                    :        0.021 s           0.021 s
+  | Grid partitioning                          :        0.046 s           0.046 s
   | Preloading free-atom quantities on grid    :        0.001 s           0.001 s
-  | Free-atom superposition energy             :        0.040 s           0.040 s
+  | Free-atom superposition energy             :        0.061 s           0.062 s
   | Total energy evaluation                    :        0.000 s           0.000 s
 
   Partial memory accounting:
@@ -752,17 +754,17 @@
   The "true" memory usage will be greater.
 ------------------------------------------------------------
 Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |       CPU time |     Clock time
-  SCF    1 :  0.21E-01 |  0.22E+00 |   0.36E+02 |  0.56E+00 |             . |        1.942 s |        1.942 s
-  SCF    2 :  0.21E-01 |  0.11E+00 |   0.26E+02 |  0.12E+00 |             . |        2.117 s |        2.118 s
-  SCF    3 :  0.19E-01 |  0.16E-01 |  -0.15E+02 |  0.16E-01 |             . |        1.834 s |        1.835 s
-  SCF    4 :  0.19E-01 |  0.37E-02 |   0.11E+01 |  0.37E-03 |             . |        1.769 s |        1.769 s
-  SCF    5 :  0.19E-01 |  0.10E-02 |  -0.10E+01 |  0.82E-03 |             . |        1.757 s |        1.757 s
-  SCF    6 :  0.20E-01 |  0.10E-03 |  -0.47E-01 |  0.51E-05 |             . |        1.774 s |        1.774 s
-  SCF    7 :  0.20E-01 |  0.31E-04 |  -0.18E-01 | -0.87E-06 |             . |        1.780 s |        1.781 s
-  SCF    8 :  0.20E-01 |  0.48E-05 |   0.14E-02 | -0.46E-06 |             . |        1.787 s |        1.787 s
-  SCF    9 :  0.20E-01 |  0.19E-05 |  -0.88E-03 |  0.32E-07 |             . |        1.789 s |        1.789 s
-  SCF   10 :  0.20E-01 |  0.31E-06 |   0.79E-04 |  0.31E-07 |             . |        1.787 s |        1.787 s
-  SCF   11 :  0.20E-01 |  0.70E-07 |   0.14E-04 | -0.50E-08 |      0.54E-01 |        7.962 s |        7.962 s
+  SCF    1 :  0.21E-01 |  0.22E+00 |   0.36E+02 |  0.56E+00 |             . |        2.534 s |        2.535 s
+  SCF    2 :  0.21E-01 |  0.11E+00 |   0.26E+02 |  0.12E+00 |             . |        2.979 s |        2.979 s
+  SCF    3 :  0.19E-01 |  0.16E-01 |  -0.15E+02 |  0.16E-01 |             . |        2.082 s |        2.082 s
+  SCF    4 :  0.19E-01 |  0.37E-02 |   0.11E+01 |  0.37E-03 |             . |        2.443 s |        2.443 s
+  SCF    5 :  0.19E-01 |  0.10E-02 |  -0.10E+01 |  0.82E-03 |             . |        2.870 s |        2.871 s
+  SCF    6 :  0.20E-01 |  0.10E-03 |  -0.47E-01 |  0.51E-05 |             . |        2.504 s |        2.505 s
+  SCF    7 :  0.20E-01 |  0.31E-04 |  -0.18E-01 | -0.87E-06 |             . |        2.584 s |        2.583 s
+  SCF    8 :  0.20E-01 |  0.48E-05 |   0.14E-02 | -0.46E-06 |             . |        2.535 s |        2.534 s
+  SCF    9 :  0.20E-01 |  0.19E-05 |  -0.88E-03 |  0.32E-07 |             . |        2.187 s |        2.187 s
+  SCF   10 :  0.20E-01 |  0.31E-06 |   0.79E-04 |  0.31E-07 |             . |        2.894 s |        2.894 s
+  SCF   11 :  0.20E-01 |  0.70E-07 |   0.14E-04 | -0.50E-08 |      0.54E-01 |       11.180 s |       11.184 s
 
   Total energy components:
   | Sum of eigenvalues            :       -1312.10904534 Ha      -35704.30373858 eV
@@ -805,29 +807,29 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |   
 
   Removing unitary transformations (pure translations, rotations) from forces on atoms.
   Atomic forces before filtering:
-  | Net force on center of mass :  -0.143866E-06  0.877244E-09 -0.156335E-07 eV/A
+  | Net force on center of mass :  -0.143815E-06  0.822178E-09 -0.156789E-07 eV/A
   Atomic forces after filtering:
-  | Net force on center of mass :  -0.223008E-16  0.000000E+00  0.000000E+00 eV/A
+  | Net force on center of mass :   0.223008E-16 -0.557519E-17  0.557519E-17 eV/A
 
   Energy and forces in a compact form:
   | Total energy uncorrected      :         -0.630947951163021E+05 eV
   | Total energy corrected        :         -0.630947951163021E+05 eV  <-- do not rely on this value for anything but (periodic) metals
   | Electronic free energy        :         -0.630947951163021E+05 eV
   Total atomic forces (unitary forces cleaned) [eV/Ang]:
-  |   1         -0.133695014208210E+00          0.666480800831471E-08          0.421675129918584E-09
-  |   2         -0.201415707277518E-01          0.689232368516867E-08          0.104527752972002E-08
-  |   3          0.500745266583590E-02         -0.282742718737959E-08         -0.817969435908308E-08
-  |   4          0.500744730614595E-02         -0.917574932405223E-09         -0.193409115644444E-08
-  |   5          0.361786608646722E-01          0.259217903787324E-01          0.259217982807246E-01
-  |   6          0.361786533635331E-01         -0.259217952217630E-01         -0.259217907974176E-01
-  |   7          0.357321854143287E-01         -0.252007545205849E-01          0.252007519219695E-01
-  |   8          0.357321853214459E-01          0.252007495514859E-01         -0.252007507584436E-01
+  |   1         -0.133695014244141E+00          0.664638842036343E-08          0.449568172698921E-09
+  |   2         -0.201415707377672E-01          0.690648617908369E-08          0.103238311073145E-08
+  |   3          0.500745273093376E-02         -0.279889564121980E-08         -0.821554469826434E-08
+  |   4          0.500744732507875E-02         -0.104095927844445E-08         -0.188953394468513E-08
+  |   5          0.361786608653627E-01          0.259217903856978E-01          0.259217983362588E-01
+  |   6          0.361786533529603E-01         -0.259217951575971E-01         -0.259217907827335E-01
+  |   7          0.357321854149898E-01         -0.252007544592254E-01          0.252007518802139E-01
+  |   8          0.357321852925827E-01          0.252007495181049E-01         -0.252007508106118E-01
 
   Removing unitary transformations (pure translations, rotations) from forces on atoms.
   Atomic forces before filtering:
-  | Net force on center of mass :  -0.223008E-16  0.000000E+00  0.000000E+00 eV/A
+  | Net force on center of mass :   0.223008E-16 -0.557519E-17  0.557519E-17 eV/A
   Atomic forces after filtering:
-  | Net force on center of mass :  -0.223008E-16  0.000000E+00  0.000000E+00 eV/A
+  | Net force on center of mass :   0.223008E-16 -0.557519E-17  0.557519E-17 eV/A
   @ DRIVER - WARNING: the stress tensor will not be computed
  ------------------------------------------------------------------------
  Atomic structure that was used in the preceding time step of the wrapper
@@ -913,26 +915,26 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |   
 
 ------------------------------------------------------------
           Leaving FHI-aims.
-          Date     :  20181117, Time     :  012224.880
+          Date     :  20181119, Time     :  145731.420
 
           Computational steps:
           | Number of self-consistency cycles          :           11
           | Number of SCF (re)initializations          :            1
 
           Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)
-          | Total time                                 :       27.503 s          27.505 s
-          | Preparation time                           :        0.122 s           0.121 s
-          | Boundary condition initalization           :        0.051 s           0.051 s
-          | Grid partitioning                          :        0.047 s           0.047 s
+          | Total time                                 :       38.098 s          38.112 s
+          | Preparation time                           :        0.134 s           0.134 s
+          | Boundary condition initalization           :        0.055 s           0.056 s
+          | Grid partitioning                          :        0.046 s           0.046 s
           | Preloading free-atom quantities on grid    :        0.001 s           0.001 s
-          | Free-atom superposition energy             :        0.040 s           0.040 s
-          | Total time for integrations                :        4.745 s           4.744 s
-          | Total time for solution of K.-S. equations :        0.079 s           0.080 s
-          | Total time for density & force components  :       12.483 s          12.484 s
-          | Total time for mixing & preconditioning    :        2.730 s           2.732 s
-          | Total time for Hartree multipole update    :        0.016 s           0.016 s
-          | Total time for Hartree multipole sum       :        6.849 s           6.850 s
-          | Total time for total energy evaluation     :        0.001 s           0.001 s
+          | Free-atom superposition energy             :        0.061 s           0.062 s
+          | Total time for integrations                :        6.241 s           6.242 s
+          | Total time for solution of K.-S. equations :        0.112 s           0.111 s
+          | Total time for density & force components  :       17.457 s          17.459 s
+          | Total time for mixing & preconditioning    :        4.168 s           4.169 s
+          | Total time for Hartree multipole update    :        0.025 s           0.027 s
+          | Total time for Hartree multipole sum       :        9.451 s           9.452 s
+          | Total time for total energy evaluation     :        0.001 s           0.000 s
           | Total time for scaled ZORA corrections     :        0.000 s           0.000 s
 
           Partial memory accounting:
