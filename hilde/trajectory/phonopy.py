@@ -9,6 +9,7 @@ Logic:
 import numpy as np
 from . import input2dict, results2dict
 from hilde.helpers.fileformats import to_yaml, from_yaml, last_from_yaml
+from hilde.structure.convert import to_Atoms
 
 
 def step2file(atoms, calc, displacement_id, file="phonopy_trajectory.yaml"):
@@ -44,4 +45,8 @@ def metadata2dict(atoms, calc, obj):
         "displacement_dataset": obj.get_displacement_dataset(),
     }
 
-    return {"phonopy": obj_dict, **input2dict(atoms, calc)}
+    prim_data = input2dict(atoms)
+    supercell = to_Atoms(obj.get_supercell())
+    supercell_data = input2dict(supercell, calc)
+
+    return {"phonopy": obj_dict, "primitive": prim_data["atoms"], **supercell_data}

@@ -11,6 +11,7 @@ import hilde.phonopy.phono as ph
 from hilde.trajectory.phonopy import metadata2file, step2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 
+
 def initialize_phonopy(
     atoms,
     calc,
@@ -72,10 +73,25 @@ def analyze_phonpy(
     else:
         raise ValueError("Either calculated_atoms or trajectory must be defined")
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
+    **kwargs,
+):
+    calculated_atoms = sorted(
+        calculated_atoms, key=lambda x: x["info"]["displacement_id"]
+    )
+    force_sets = []
+    for cell in calculated_atoms:
+        force_sets.append(dict2atoms(cell).get_forces())
+    phonon = PhononRow(phonon).to_phonon()
+    if "displacement" in kwargs:
+        disp = kwargs["displacement"]
+    else:
+        disp = 0.01
+    phonon.generate_displacements(distance=disp, is_plusminus="auto", is_diagonal=True)
     with cwd(workdir):
         # compute and save force constants
         force_constants = ph.get_force_constants(phonon, force_sets)
         np.savetxt(force_constants_file, force_constants)
+
 
 def phonopy(
     atoms,
@@ -100,12 +116,12 @@ def phonopy(
 
     with cwd(workdir, mkdir=True):
         with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
-            if socketio_port is not None:
-                calc = iocalc
-
             # save inputs and supercell
             metadata2file(atoms, calc, phonon, trajectory)
             supercell.write(supercell_file, format="aims", scaled=True)
+
+            if socketio_port is not None:
+                calc = iocalc
 
             for ii, cell in enumerate(scs):
                 calculation_atoms.calc = calc

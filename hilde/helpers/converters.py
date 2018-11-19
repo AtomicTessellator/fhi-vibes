@@ -31,7 +31,10 @@ def input2dict(atoms, calc=None):
         atoms_dict.update({"cell": atoms.cell.tolist()})
 
     atoms_dict.update({"positions": atoms.positions.tolist()})
-    atoms_dict['info'] = atoms.info
+
+    if atoms.info != {}:
+        atoms_dict.update({"info": atoms.info})
+
     if calc is None:
         return {"atoms": atoms_dict, "calculator": {}}
 
@@ -41,10 +44,8 @@ def input2dict(atoms, calc=None):
             params[key] = list(val)
 
     calc_dict = {"calculator": calc.__class__.__name__, "calculator_parameters": params}
-    try:
-        calc_dict['command'] = calc.command
-    except AttributeError:
-        pass
+    if hasattr(calc_dict, "command"):
+        calc_dict.update({"command": calc.command})
 
     return {"atoms": atoms_dict, "calculator": calc_dict}
 
@@ -104,7 +105,7 @@ def dict2results(atoms_dict, calc_dict=None):
         if "calculator_parameters" in calc_dict:
             calc.parameters.update(calc_dict["calculator_parameters"])
         if "command" in calc_dict:
-            calc.command = calc_dict['command']
+            calc.command = calc_dict["command"]
     else:
         calc = None
 
