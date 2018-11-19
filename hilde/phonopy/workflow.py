@@ -1,5 +1,8 @@
+""" Provide a full highlevel phonopy workflow """
+
 from os.path import isfile
 from pathlib import Path
+import pickle
 import numpy as np
 
 from ase.calculators.socketio import SocketIOCalculator
@@ -13,26 +16,6 @@ from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.trajectory import reader as traj_reader
 
 
-def initialize_phonopy(atoms, supercell_matrix, displacement=0.01):
-    """ run the phonopy preprocess and check if supercell matrix is correctly shaped """
-
-    # get a correctly shaped supercell matrix
-    if np.size(supercell_matrix) == 1:
-        supercell_matrix = supercell_matrix * np.eye(3)
-    elif np.size(supercell_matrix) == 3:
-        supercell_matrix = np.diag(supercell_matrix)
-    elif np.size(supercell_matrix) == 9:
-        supercell_matrix = np.asarray(supercell_matrix).reshape((3, 3))
-    else:
-        raise Exception(
-            "Supercell matrix must have 1, 3, 9 elements, has {}".format(
-                np.size(supercell_matrix)
-            )
-        )
-
-    return ph.preprocess(atoms, supercell_matrix, displacement)
-
-
 def phonopy(
     atoms,
     calc,
@@ -44,7 +27,8 @@ def phonopy(
     workdir=".",
     force_constants_file="force_constants.dat",
     supercell_file="geometry.in.supercell",
-#    fingerprint_file="fingerprint.dat",
+    pickle_file="phonon.pick",
+    #    fingerprint_file="fingerprint.dat",
 ):
     """ perform a full phonopy calculation """
 
@@ -52,7 +36,7 @@ def phonopy(
 
     watchdog = Watchdog(walltime=walltime)
 
-    phonon, supercell, scs = initialize_phonopy(atoms, supercell_matrix, displacement)
+    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
 
     if "compute_forces" in calc.parameters:
         calc.parameters["compute_forces"] = True
@@ -89,31 +73,30 @@ def phonopy(
 
                 if watchdog():
                     break
-        # # compute and save force constants
-        # force_constants = ph.get_force_constants(phonon, force_sets)
-        # np.savetxt(force_constants_file, force_constants)
 
-    analyze_phonopy(
+    postprocess(
         phonon,
         trajectory=trajectory,
         workdir=workdir,
         force_constants_file=force_constants_file,
-#        supercell_file=supercell_file,
-#        fingerprint_file=fingerprint_file,
+        pickle_file=pickle_file,
+        #        supercell_file=supercell_file,
+        #        fingerprint_file=fingerprint_file,
     )
 
 
-def analyze_phonopy(
+def postprocess(
     phonon,
     calculated_atoms=None,
     trajectory="phonopy_trajectory.yaml",
     workdir=".",
     force_constants_file="force_constants.dat",
-#    supercell_file="geometry.in.supercell",
-#    fingerprint_file="fingerprint.dat",
+    #    supercell_file="geometry.in.supercell",
+    #    fingerprint_file="fingerprint.dat",
     displacement=0.01,
     fireworks=False,
-#    **kwargs,
+    pickle_file="phonon.pick"
+    #    **kwargs,
 ):
     """ Phonopy postprocess """
 
@@ -136,8 +119,9 @@ def analyze_phonopy(
 
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
 
-
     # compute and save force constants
     force_constants = ph.get_force_constants(phonon, force_sets)
     np.savetxt(Path(workdir) / force_constants_file, force_constants)
 
+    with open(pickle_file, "w") as fp:
+        pickle.dump(phonon, fp)
