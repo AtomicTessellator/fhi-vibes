@@ -6,7 +6,8 @@ from collections import namedtuple
 import numpy as np
 from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
-from hilde.phonopy import to_pAtoms, enumerate_displacements
+from hilde.phonopy import enumerate_displacements
+from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 
 
 def prepare_phono3py(atoms,
@@ -39,7 +40,7 @@ def prepare_phono3py(atoms,
         Phono3py(): a phono3py object
 
     """
-    ph_atoms = atoms.to_phonopy_atoms()
+    ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
     phonon3 = Phono3py(ph_atoms,
                        supercell_matrix=fc3_supercell_matrix,
@@ -94,19 +95,21 @@ def preprocess(atoms,
                                log_level=log_level)
 
     # phonpoy supercells
-    fc2_supercell = to_pAtoms(phonon3.get_phonon_supercell(),
-                              fc2_supercell_matrix,
-                              symprec=symprec)
+    fc2_supercell = to_Atoms(
+        phonon3.get_phonon_supercell(),
+        info={"supercell": True, "supercell_matrix": fc2_supercell_matrix.tolist()},
+    )
 
-    fc3_supercell = to_pAtoms(phonon3.get_supercell(),
-                              fc3_supercell_matrix,
-                              symprec=symprec)
+    fc3_supercell = to_Atoms(
+        phonon3.get_supercell(),
+        info={"supercell": True, "supercell_matrix": fc3_supercell_matrix.tolist()},
+    )
 
     scells = phonon3.get_phonon_supercells_with_displacements()
-    fc2_supercells_with_disps = to_pAtoms(scells, fc2_supercell_matrix)
+    fc2_supercells_with_disps = [to_Atoms(cell) for cell in scells]
 
     scells = phonon3.get_supercells_with_displacements()
-    fc3_supercells_with_disps = to_pAtoms(scells, fc3_supercell_matrix)
+    fc3_supercells_with_disps = [to_Atoms(cell) for cell in scells]
 
     enumerate_displacements([*fc2_supercells_with_disps,
                              *fc3_supercells_with_disps])

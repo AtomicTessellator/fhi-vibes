@@ -19,13 +19,21 @@ def to_spglib_cell(structure):
     return (lattice, positions, number)
 
 
-def to_Atoms(structure, pbc=True):
+def to_Atoms(structure, info={}, pbc=True):
+    """ convert structure to ase.Atoms """
+
+    if structure is None:
+        return None
+
     atoms_dict = {
         "symbols": structure.get_chemical_symbols(),
         "cell": structure.get_cell(),
         "masses": structure.get_masses(),
         "positions": structure.get_positions(),
         "pbc": pbc,
+        "info": info,
     }
 
-    return Atoms(**atoms_dict)
+    atoms = Atoms(**atoms_dict)
+
+    return atoms

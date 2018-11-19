@@ -1,4 +1,5 @@
 import datetime
+import numpy as np
 from scipy.linalg import norm
 from hilde.konstanten.io import n_geom_digits
 from hilde.konstanten.symmetry import symprec
@@ -14,7 +15,7 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
             scaled = True
 
     if decorated:
-        string  = '#=====================================================\n'
+        string ='#=====================================================\n'
         string += f'# libflo:  geometry.in \n'
         #string += '#   Material: {:s}\n'.format(cell.get_chemical_formula())
         string += f"#   Date:    {datetime.datetime.now().isoformat(' ', timespec='seconds')}\n"
@@ -38,7 +39,7 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
 
         # string += '\n'
     else:
-        string  = ''
+        string = ''
     # Write lattice
     # if decorated and cell.pbc:
     #     string += '# Lattice:\n'
@@ -77,13 +78,13 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
         #     string += '\n# Scaled positions:\n'
         #
         positions = clean_matrix(cell.get_scaled_positions(wrap=wrap))
-        atompos   = 'atom_frac'
+        atompos = 'atom_frac'
     else:
         # if decorated:
         #     string += '\n# Cartesian positions:\n'
         #
         positions = clean_matrix(cell.get_positions())
-        atompos   = 'atom'
+        atompos = 'atom'
     #
     if velocities:
         vels = cell.get_velocities()
@@ -116,9 +117,10 @@ def inform(cell, spacegroup=None, dft=False, fname=None, verbosity=0):
     print(f'\nGeometry info for:')
     print(f'  input geometry:    {get_sysname(cell)}')
     if fname: print(f'  from:              {fname}')
-    print(f'  Symmetry prec.:    {cell.symprec}')
-    print(f'  Number of atoms:   {cell.n_atoms}')
-    print(f"  Species:           {', '.join(cell.get_unique_symbols()[0])}")
+    if hasattr(cell, 'symprec'):
+        print(f'  Symmetry prec.:    {cell.symprec}')
+    print(f'  Number of atoms:   {len(cell)}')
+    print(f"  Species:           {', '.join(np.unique(cell.symbols))}")
     print(f'  Periodicity:       {cell.pbc}')
     if any(cell.pbc):
         print(f'  Lattice:  ')
@@ -141,15 +143,16 @@ def inform(cell, spacegroup=None, dft=False, fname=None, verbosity=0):
         for vec in sds.spglib_std_lattice:
             print(f'    {vec}')
 
+    # Info
+    for ii, (key, val) in enumerate(cell.info.items()):
+        print(f'  {key:10s}: {val}')
+
     # lengths and angles
     la = cell.get_cell_lengths_and_angles()
     print('\nCell lengths and angles [\u212B, °]:')
     print('  a, b, c: {}'.format(' '.join([f'{l:11.4f}' for l in la[:3]])))
     print('  \u03B1, \u03B2, \u03B3: {}'.format(' '.join([f'{l:11.4f}' for l in la[3:]])))
     print(f'  Volume:  {cell.get_volume():11.4f} \u212B**3')
-
-    for (ii, tag) in enumerate(tag for tag in cell.tags if tag):
-        print(f'  Tag {ii+1:2}:                {tag}')
 
     if hasattr(cell, 'dft_calculation') and dft:
         print(f'  DFT calc performed:    yes')
