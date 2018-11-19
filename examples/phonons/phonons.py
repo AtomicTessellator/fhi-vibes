@@ -19,39 +19,4 @@ calc = setup_aims(settings=settings)
 
 update_k_grid(atoms, calc, settings.control_kpt.density)
 
-if settings.fw_phonon.use_fw:
-    fw_settings = settings.fw_phonon
-    lp = LaunchPadHilde.from_file("/home/purcell/.fireworks/my_launchpad.yaml")
-    if fw_settings['serial']:
-        fw = atoms_func_to_fireworks(
-            "hilde.phonopy.workflow.phonopy",
-            "hilde.tasks.fireworks.fw_action_outs.return_null_atoms",
-            settings.phonopy,
-            atoms,
-            calc,
-            fw_settings,
-            update_calc_settings=None,
-        )
-        lp.add_wf(fw)
-    else:
-        init_fw = atoms_func_to_fireworks(
-            "hilde.phonopy.workflow.initialize_phonopy",
-            "hilde.tasks.fireworks.fw_action_outs.fw_out_initialize_phonopy",
-            settings.phonopy,
-            atoms,
-            calc,
-            fw_settings,
-            update_calc_settings=None,
-        )
-        anal_fw = gen_func_to_fireworks(
-            "hilde.phonopy.workflow.analyze_phonpy",
-            "hilde.tasks.fireworks.fw_action_outs.return_null_general",
-            [],
-            ["phonon", fw_settings["mod_spec_add"]],
-            settings.phonopy,
-            fw_settings,
-        )
-        wf = Workflow([init_fw, anal_fw], {init_fw: [anal_fw]})
-        lp.add_wf(wf)
-else:
-    phonopy(atoms, calc, socketio_port=settings.socketio.port, **settings.phonopy)
+phonopy(atoms, calc, socketio_port=settings.socketio.port, **settings.phonopy)
