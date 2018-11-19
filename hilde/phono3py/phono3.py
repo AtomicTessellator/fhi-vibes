@@ -133,6 +133,7 @@ def preprocess(
         "fc2_supercell",
         "fc3_supercell",
         "fc2_supercells_with_displacements",
+        "fc3_supercells_with_displacements",
     )
     pp = namedtuple("phono3py_preprocess", " ".join(cols))
 
