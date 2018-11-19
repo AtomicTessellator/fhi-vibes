@@ -1,8 +1,9 @@
 import datetime
+from scipy.linalg import norm
 from hilde.konstanten.io import n_geom_digits
 from hilde.konstanten.symmetry import symprec
 from hilde.helpers.maths import clean_matrix
-from scipy.linalg import norm
+from hilde.structure.misc import get_sysname
 
 def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=True):
     """ print the string that is geometry.in """
@@ -113,7 +114,7 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
 def inform(cell, spacegroup=None, dft=False, fname=None, verbosity=0):
     # Structure info:
     print(f'\nGeometry info for:')
-    print(f'  input geometry:    {cell.sysname}')
+    print(f'  input geometry:    {get_sysname(cell)}')
     if fname: print(f'  from:              {fname}')
     print(f'  Symmetry prec.:    {cell.symprec}')
     print(f'  Number of atoms:   {cell.n_atoms}')
@@ -126,7 +127,7 @@ def inform(cell, spacegroup=None, dft=False, fname=None, verbosity=0):
 
     print(f'')
 
-    if spacegroup is None and cell.spacegroup is not None:
+    if spacegroup is None and hasattr(cell, 'spacegroup'):
         spacegroup = cell.spacegroup
 
     if spacegroup:

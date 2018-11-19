@@ -55,7 +55,7 @@ def make_cubic_supercell(
     )
 
     supercell = make_supercell(
-        prim_cell, smatrix, info={"smatrix": smatrix.flatten().tolist()}
+        prim_cell, smatrix, info={"supercell_matrix": smatrix.flatten().tolist()}
     )
 
     n_sc = get_spacegroup(supercell).no

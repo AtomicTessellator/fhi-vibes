@@ -20,7 +20,9 @@ all_tests:
     - $jtest $CI_PROJECT_DIR/examples/md/md.ipynb
     - python $CI_PROJECT_DIR/tests/fireworks_test.py
 
-# devel:
-#   script:
+devel:
+  script:
+    - python $CI_PROJECT_DIR/examples/material_fingerprints/material_fingerprints.py
+
 
 
