@@ -1,9 +1,10 @@
+from os.path import isfile
 from pathlib import Path
 import numpy as np
 
 from ase.calculators.socketio import SocketIOCalculator
 
-from hilde.helpers.converters import dict2atoms
+from hilde.helpers.converters import dict2results, dict2atoms
 from hilde.helpers.paths import cwd
 from hilde.phonon_db.row import PhononRow
 import hilde.phonopy.phono as ph
@@ -15,13 +16,8 @@ def initialize_phonopy(
     calc,
     supercell_matrix=None,
     displacement=0.01,
-    trajectory="phonopy_trajectory.yaml",
     socketio_port=None,
-    walltime=1800,
-    workdir=".",
-    force_constants_file="force_constants.dat",
-    supercell_file="geometry.in.supercell",
-    fingerprint_file="fingerprint.dat",
+    **kwargs
 ):
     """ perform a full phonopy calculation """
     if supercell_matrix is None:
@@ -46,33 +42,36 @@ def initialize_phonopy(
         raise Exception(
             f"Supercell matrix must have 1, 3, 9 elements, has {len(supercell_matrix)}"
         )
-
-    # preprocess
     return ph.preprocess(atoms, supercell_matrix, displacement)
 
 
 def analyze_phonpy(
     phonon,
-    calculated_atoms,
+    calculated_atoms=None,
     trajectory="phonopy_trajectory.yaml",
     workdir=".",
     force_constants_file="force_constants.dat",
     supercell_file="geometry.in.supercell",
     fingerprint_file="fingerprint.dat",
+    displacement=0.01,
+    fireworks=False,
     **kwargs
 ):
-    calculated_atoms = sorted(calculated_atoms, key=lambda x: x['info']['displacement_id'])
-    force_sets = []
-    for cell in calculated_atoms:
-        force_sets.append(dict2atoms(cell).get_forces())
-    phonon = PhononRow(phonon).to_phonon()
-    if 'displacement' in kwargs:
-        disp = kwargs["displacement"]
+    if fireworks:
+        phonon = PhononRow(phonon).to_phonon()
+        phonon.generate_displacements(
+            distance=displacement, is_plusminus="auto", is_diagonal=True
+        )
+    if calculated_atoms:
+        if fireworks:
+            calculated_atoms = [dict2atoms(cell) for cell in calculated_atoms]
+        calculated_atoms = sorted(calculated_atoms, key=lambda x: x.info['displacement_id'])
+    elif isfile(trajectory):
+        traj = from_yaml(trajectory)
+        calculated_atoms = [dict2results(el) for el in traj[1:]]
     else:
-        disp = 0.01
-    phonon.generate_displacements(
-        distance=disp, is_plusminus="auto", is_diagonal=True
-    )
+        raise ValueError("Either calculated_atoms or trajectory must be defined")
+    force_sets = [atoms.get_forces() for atoms in calculated_atoms]
     with cwd(workdir):
         # compute and save force constants
         force_constants = ph.get_force_constants(phonon, force_sets)
@@ -92,34 +91,7 @@ def phonopy(
     fingerprint_file="fingerprint.dat",
 ):
     """ perform a full phonopy calculation """
-    if supercell_matrix is None:
-        raise ValueError("The supercell matrix must be defined")
-    watchdog = Watchdog(walltime=walltime)
-
-    trajectory = Path(trajectory).absolute()
-
-    if "compute_forces" in calc.parameters:
-        calc.parameters["compute_forces"] = True
-
-    if socketio_port is None:
-        socket_calc = None
-    else:
-        socket_calc = calc
-
-    # get a correctly shaped supercell matrix
-    if np.size(supercell_matrix) == 1:
-        supercell_matrix = supercell_matrix * np.eye(3)
-    elif np.size(supercell_matrix) == 3:
-        supercell_matrix = np.diag(supercell_matrix)
-    elif np.size(supercell_matrix) == 9:
-        supercell_matrix = np.asarray(supercell_matrix).reshape((3, 3))
-    else:
-        raise Exception(
-            f"Supercell matrix must have 1, 3, 9 elements, has {len(supercell_matrix)}"
-        )
-
-    # preprocess
-    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
+    phonon, supercell, scs = initialize_phonopy(atoms, calc, supercell_matrix, displacement, socketio_port)
 
     # grab first geometry for computation
     calculation_atoms = scs[0].copy()
@@ -130,7 +102,6 @@ def phonopy(
         with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
             if socketio_port is not None:
                 calc = iocalc
-
 
             # save inputs and supercell
             metadata2file(atoms, calc, phonon, trajectory)
@@ -150,7 +121,15 @@ def phonopy(
 
                 if watchdog():
                     break
+        # # compute and save force constants
+        # force_constants = ph.get_force_constants(phonon, force_sets)
+        # np.savetxt(force_constants_file, force_constants)
 
-        # compute and save force constants
-        force_constants = ph.get_force_constants(phonon, force_sets)
-        np.savetxt(force_constants_file, force_constants)
+    analyze_phonpy(
+        phonon,
+        trajectory,
+        workdir,
+        force_constants_file,
+        supercell_file,
+        fingerprint_file
+    )

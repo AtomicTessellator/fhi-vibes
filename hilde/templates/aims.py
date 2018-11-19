@@ -48,8 +48,7 @@ def setup_aims(
         )
         if "use_socketio" in custom_settings:
             del custom_settings["use_socketio"]
-
-    aims_settings = {**default_settings, **custom_settings, **ase_settings}
+    aims_settings = {**default_settings, **ase_settings, **custom_settings}
 
     if workdir:
         return Aims(label=Path(workdir).absolute(), **aims_settings)

@@ -137,7 +137,6 @@ def atoms2dict(atoms):
     Returns: atoms_dict (dict)
         The dictionary of atoms
     """
-
     atoms_dict = ase_atoms2dict(atoms)
 
     # add information that is missing after using ase.atoms2dict

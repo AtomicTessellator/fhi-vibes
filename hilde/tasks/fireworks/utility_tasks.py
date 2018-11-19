@@ -18,6 +18,16 @@ def mod_calc(param_key, calc, new_val, spec_key=None):
         up_spec[spec_key] = new_val
     return FWAction(update_spec=up_spec)
 
+def update_calc_in_db(calc_spec, update_calc_params, calc):
+    for key, val in update_calc_params.items():
+        if key == "command":
+            calc[key] = val
+        else:
+            if val is None and key in calc["calculator_parameters"]:
+                del(calc["calculator_parameters"][key])
+            elif val is not None:
+                calc["calculator_parameters"][key] = val
+    return FWAction(update_spec={calc_spec: calc})
 
 def add_result_to_spec(result_key, spec_key, atoms_calc):
     return FWAction(update_spec={spec_key: atoms_calc["results"][result_key]})
@@ -152,6 +162,7 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type="calc", sympre
 
 
 mod_calc.name = f"{module_name}.{mod_calc.__name__}"
+update_calc_in_db.name = f"{module_name}.{update_calc_in_db.__name__}"
 add_result_to_spec.name = f"{module_name}.{add_result_to_spec.__name__}"
 transfer_spec.name = f"{module_name}.{transfer_spec.__name__}"
 check_convergence.name = f"{module_name}.{check_convergence.__name__}"
