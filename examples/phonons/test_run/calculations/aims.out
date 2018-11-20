@@ -17,12 +17,12 @@
 
 
 
-  Date     :  20181119, Time     :  154522.251
-  Time zero on CPU 1             :   0.175430000000000E-01  s.
-  Internal wall clock time zero  :           311874322.251  s.
+  Date     :  20181120, Time     :  180601.653
+  Time zero on CPU 1             :   0.158960000000000E-01  s.
+  Internal wall clock time zero  :           311969161.653  s.
 
   FHI-aims created a unique identifier for this run for later identification
-  aims_uuid : F5B8177A-7A0D-4267-A7AE-D788D93490D8
+  aims_uuid : A4ED2DED-3BBB-45F6-AC46-4150A34ED8DB
 
   Build configuration of the current instance of FHI-aims
   -------------------------------------------------------
@@ -77,7 +77,7 @@
   #===============================================================================
   # FHI-aims file: ./control.in
   # Created using the Atomic Simulation Environment (ASE)
-  # Mon Nov 19 15:45:22 2018
+  # Tue Nov 20 18:06:01 2018
   #
   # List of parameters used to initialize the calculator:
   #     xc : pbesol
@@ -196,24 +196,22 @@
   in the first line of geometry.in .
   -----------------------------------------------------------------------
   
-  #=====================================================
-  # libflo:  geometry.in
-  #   Date:    2018-11-19 15:45:22
-  #=====================================================
-  #   Material:          Si8
-  #   No. atoms:         8
-  #   Unit cell volume:  160.989184 AA^3
-    lattice_vector  5.44000000000000e+00  0.00000000000000e+00  0.00000000000000e+00
-    lattice_vector  0.00000000000000e+00  5.44000000000000e+00  0.00000000000000e+00
-    lattice_vector  0.00000000000000e+00  0.00000000000000e+00  5.44000000000000e+00
-    atom_frac   1.83823529411765e-03  0.00000000000000e+00  0.00000000000000e+00  Si
-    atom_frac   0.00000000000000e+00  5.00000000000000e-01  5.00000000000000e-01  Si
-    atom_frac   5.00000000000000e-01  0.00000000000000e+00  5.00000000000000e-01  Si
-    atom_frac   5.00000000000000e-01  5.00000000000000e-01  0.00000000000000e+00  Si
-    atom_frac   2.50000000000000e-01  2.50000000000000e-01  2.50000000000000e-01  Si
-    atom_frac   2.50000000000000e-01  7.50000000000000e-01  7.50000000000000e-01  Si
-    atom_frac   7.50000000000000e-01  2.50000000000000e-01  7.50000000000000e-01  Si
-    atom_frac   7.50000000000000e-01  7.50000000000000e-01  2.50000000000000e-01  Si
+  #=======================================================
+  # FHI-aims file: ./geometry.in
+  # Created using the Atomic Simulation Environment (ASE)
+  # Tue Nov 20 18:06:01 2018
+  #=======================================================
+  lattice_vector 5.4399999999999995 0.0000000000000001 0.0000000000000000
+  lattice_vector 0.0000000000000001 5.4399999999999995 0.0000000000000000
+  lattice_vector -0.0000000000000001 -0.0000000000000001 5.4399999999999995
+  atom 0.0100000000000000 0.0000000000000000 0.0000000000000000 Si
+  atom 5.4399999999999995 2.7199999999999998 2.7199999999999998 Si
+  atom 2.7199999999999998 0.0000000000000000 2.7199999999999998 Si
+  atom 2.7199999999999998 2.7199999999999998 0.0000000000000000 Si
+  atom 1.3599999999999999 1.3599999999999999 1.3599999999999999 Si
+  atom 1.3599999999999997 4.0800000000000001 4.0800000000000001 Si
+  atom 4.0800000000000001 1.3599999999999999 4.0800000000000001 Si
+  atom 4.0800000000000001 4.0800000000000001 1.3599999999999999 Si
   
   -----------------------------------------------------------------------
   Completed first pass over input file geometry.in .
@@ -359,11 +357,11 @@
   | Unit cell:
   |        5.44000000        0.00000000        0.00000000
   |        0.00000000        5.44000000        0.00000000
-  |        0.00000000        0.00000000        5.44000000
+  |       -0.00000000       -0.00000000        5.44000000
   | Atomic structure:
   |       Atom                x [A]            y [A]            z [A]
   |    1: Species Si            0.01000000        0.00000000        0.00000000
-  |    2: Species Si            0.00000000        2.72000000        2.72000000
+  |    2: Species Si            5.44000000        2.72000000        2.72000000
   |    3: Species Si            2.72000000        0.00000000        2.72000000
   |    4: Species Si            2.72000000        2.72000000        0.00000000
   |    5: Species Si            1.36000000        1.36000000        1.36000000
@@ -379,7 +377,7 @@
   | The smallest distance between any two atoms is         2.34982978 AA.
   |
   | The first atom of this pair is atom number                      1 .
-  | The second atom of this pair is atom number                     5 .
+  | The second atom of this pair is atom number                     6 .
   | Wigner-Seitz cell of the first atom image           0     0     0 .
   | (The Wigner-Seitz cell of the second atom is 0 0 0  by definition.)
 
@@ -393,7 +391,7 @@
   Quantities derived from the lattice vectors:
   | Reciprocal lattice vector 1:  1.154997  0.000000  0.000000
   | Reciprocal lattice vector 2:  0.000000  1.154997  0.000000
-  | Reciprocal lattice vector 3:  0.000000  0.000000  1.154997
+  | Reciprocal lattice vector 3: -0.000000 -0.000000  1.154997
   | Unit cell volume                               :   0.160989E+03  A^3
 
   Range separation radius for Ewald summation (hartree_convergence_parameter):      3.89607948 bohr.
@@ -507,8 +505,8 @@
   Preparing densities etc. for the partition functions (integrals / Hartree potential).
 
   Preparations completed.
-  max(cpu_time)          :      0.121 s.
-  Wall clock time (cpu1) :      0.121 s.
+  max(cpu_time)          :      0.131 s.
+  Wall clock time (cpu1) :      0.133 s.
 ------------------------------------------------------------
 
 ************************** W A R N I N G *******************************
@@ -523,7 +521,7 @@
 ------------------------------------------------------------
           Begin self-consistency loop: Initialization.
 
-          Date     :  20181119, Time     :  154522.422
+          Date     :  20181120, Time     :  180601.835
 ------------------------------------------------------------
 
   Initializing index lists of integration centers etc. from given atomic structure:
@@ -553,17 +551,17 @@
   | Size of matrix packed + index [n_hamiltonian_matrix_size] :      167241
   Partitioning the integration grid into batches with parallel hashing+maxmin method.
   | Number of batches:      512
-  | Maximal batch size:      90
-  | Minimal batch size:      85
+  | Maximal batch size:      93
+  | Minimal batch size:      82
   | Average batch size:      87.562
-  | Standard deviation of batch sizes:       1.493
+  | Standard deviation of batch sizes:       2.778
 
   Integration load balanced across     4 MPI tasks.
   Work distribution over tasks is as follows:
-  Task     0 has      11251 integration points.
-  Task     1 has      11210 integration points.
-  Task     2 has      11210 integration points.
-  Task     3 has      11161 integration points.
+  Task     0 has      11162 integration points.
+  Task     1 has      11209 integration points.
+  Task     2 has      11208 integration points.
+  Task     3 has      11253 integration points.
   Initializing partition tables, free-atom densities, potentials, etc. across the integration grid (initialize_grid_storage).
   | initialize_grid_storage: Actual outermost partition radius vs. multipole_radius_free
   | (-- VB: in principle, multipole_radius_free should be larger, hence this output)
@@ -571,7 +569,7 @@
   | Species        1: outer_partition_radius set to              5.000694715736543 AA .
   | The sparse table of interatomic distances needs        468.32 kbyte instead of      1071.65 kbyte of memory.
   | Net number of integration points:    44832
-  | of which are non-zero points    :    39268
+  | of which are non-zero points    :    39266
   | Numerical average free-atom electrostatic potential    :    -13.06160522 eV
   Renormalizing the initial density to the exact electron count on the 3D integration grid.
   | Initial density: Formal number of electrons (from input files) :     112.0000000000
@@ -579,19 +577,19 @@
   | Charge integration error                      :       0.0196908673
   | Normalization factor for density and gradient :       0.9998242196
   Obtaining max. number of non-zero basis functions in each batch (get_n_compute_maxes).
-  | Maximal number of non-zero basis functions:      470 in task     0
-  | Maximal number of non-zero basis functions:      461 in task     1
-  | Maximal number of non-zero basis functions:      457 in task     2
-  | Maximal number of non-zero basis functions:      463 in task     3
+  | Maximal number of non-zero basis functions:      475 in task     0
+  | Maximal number of non-zero basis functions:      467 in task     1
+  | Maximal number of non-zero basis functions:      464 in task     2
+  | Maximal number of non-zero basis functions:      459 in task     3
   Allocating        0.184 MB for KS_eigenvector
   Integrating Hamiltonian matrix: batch-based integration.
-  Time summed over all CPUs for integration: real work        1.520 s, elapsed        1.531 s
+  Time summed over all CPUs for integration: real work        1.527 s, elapsed        1.532 s
   Integrating overlap matrix.
-  Time summed over all CPUs for integration: real work        1.025 s, elapsed        1.030 s
+  Time summed over all CPUs for integration: real work        0.909 s, elapsed        0.921 s
   Decreasing sparse matrix size:
    Tolerance:  9.999999824516700E-014
    Hamiltonian matrix
-  | Array has   150106 nonzero elements out of   167241 elements
+  | Array has   150109 nonzero elements out of   167241 elements
   | Sparsity factor is 0.102
    Overlap matrix
   | Array has   145520 nonzero elements out of   167241 elements
@@ -737,34 +735,34 @@
   Max. number of atoms included in rho_multipole:            8
 
   End scf initialization - timings             :  max(cpu_time)    wall_clock(cpu1)
-  | Time for scf. initialization               :        1.033 s           1.033 s
-  | Boundary condition initialization          :        0.053 s           0.053 s
-  | Integration                                :        0.644 s           0.644 s
-  | Solution of K.-S. eqns.                    :        0.016 s           0.016 s
-  | Grid partitioning                          :        0.045 s           0.045 s
+  | Time for scf. initialization               :        1.021 s           1.021 s
+  | Boundary condition initialization          :        0.052 s           0.052 s
+  | Integration                                :        0.617 s           0.617 s
+  | Solution of K.-S. eqns.                    :        0.019 s           0.019 s
+  | Grid partitioning                          :        0.046 s           0.046 s
   | Preloading free-atom quantities on grid    :        0.001 s           0.001 s
-  | Free-atom superposition energy             :        0.041 s           0.041 s
+  | Free-atom superposition energy             :        0.049 s           0.049 s
   | Total energy evaluation                    :        0.000 s           0.000 s
 
   Partial memory accounting:
   | Current value for overall tracked memory usage on task 0  :           3.194 MB
-  | Peak value for overall tracked memory usage on task 0     :           6.662 MB after allocating wave_s
-  | Largest tracked array allocation on task 0 so far         :           1.767 MB  when allocating hamiltonian_shell
+  | Peak value for overall tracked memory usage on task 0     :           6.760 MB after allocating wave_s
+  | Largest tracked array allocation on task 0 so far         :           1.805 MB  when allocating hamiltonian_shell
   Note:  These values currently only include a subset of arrays which are explicitly tracked.
   The "true" memory usage will be greater.
 ------------------------------------------------------------
 Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |       CPU time |     Clock time
-  SCF    1 :  0.21E-01 |  0.22E+00 |   0.36E+02 |  0.56E+00 |             . |        2.084 s |        2.083 s
-  SCF    2 :  0.21E-01 |  0.11E+00 |   0.26E+02 |  0.12E+00 |             . |        2.002 s |        2.002 s
-  SCF    3 :  0.19E-01 |  0.16E-01 |  -0.15E+02 |  0.16E-01 |             . |        1.978 s |        1.978 s
-  SCF    4 :  0.19E-01 |  0.37E-02 |   0.11E+01 |  0.37E-03 |             . |        1.862 s |        1.861 s
-  SCF    5 :  0.19E-01 |  0.10E-02 |  -0.10E+01 |  0.82E-03 |             . |        2.025 s |        2.025 s
-  SCF    6 :  0.20E-01 |  0.10E-03 |  -0.47E-01 |  0.51E-05 |             . |        2.267 s |        2.268 s
-  SCF    7 :  0.20E-01 |  0.31E-04 |  -0.18E-01 | -0.87E-06 |             . |        1.847 s |        1.847 s
-  SCF    8 :  0.20E-01 |  0.48E-05 |   0.14E-02 | -0.46E-06 |             . |        1.848 s |        1.847 s
-  SCF    9 :  0.20E-01 |  0.19E-05 |  -0.88E-03 |  0.32E-07 |             . |        1.835 s |        1.835 s
-  SCF   10 :  0.20E-01 |  0.31E-06 |   0.79E-04 |  0.31E-07 |             . |        1.840 s |        1.841 s
-  SCF   11 :  0.20E-01 |  0.70E-07 |   0.14E-04 | -0.50E-08 |      0.54E-01 |        8.822 s |        8.822 s
+  SCF    1 :  0.21E-01 |  0.22E+00 |   0.36E+02 |  0.56E+00 |             . |        2.207 s |        2.207 s
+  SCF    2 :  0.21E-01 |  0.11E+00 |   0.26E+02 |  0.12E+00 |             . |        2.631 s |        2.631 s
+  SCF    3 :  0.19E-01 |  0.16E-01 |  -0.15E+02 |  0.16E-01 |             . |        2.907 s |        2.912 s
+  SCF    4 :  0.19E-01 |  0.37E-02 |   0.11E+01 |  0.37E-03 |             . |        2.691 s |        2.702 s
+  SCF    5 :  0.19E-01 |  0.10E-02 |  -0.10E+01 |  0.82E-03 |             . |        2.186 s |        2.186 s
+  SCF    6 :  0.20E-01 |  0.10E-03 |  -0.47E-01 |  0.51E-05 |             . |        2.071 s |        2.071 s
+  SCF    7 :  0.20E-01 |  0.31E-04 |  -0.18E-01 | -0.87E-06 |             . |        1.949 s |        1.948 s
+  SCF    8 :  0.20E-01 |  0.48E-05 |   0.14E-02 | -0.46E-06 |             . |        1.829 s |        1.829 s
+  SCF    9 :  0.20E-01 |  0.19E-05 |  -0.88E-03 |  0.32E-07 |             . |        2.076 s |        2.076 s
+  SCF   10 :  0.20E-01 |  0.31E-06 |   0.79E-04 |  0.31E-07 |             . |        2.012 s |        2.012 s
+  SCF   11 :  0.20E-01 |  0.70E-07 |   0.14E-04 | -0.50E-08 |      0.54E-01 |       15.252 s |       15.408 s
 
   Total energy components:
   | Sum of eigenvalues            :       -1312.10904534 Ha      -35704.30373858 eV
@@ -807,39 +805,39 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |   
 
   Removing unitary transformations (pure translations, rotations) from forces on atoms.
   Atomic forces before filtering:
-  | Net force on center of mass :  -0.143815E-06  0.822178E-09 -0.156789E-07 eV/A
+  | Net force on center of mass :  -0.138019E-06 -0.404423E-08  0.149704E-07 eV/A
   Atomic forces after filtering:
-  | Net force on center of mass :   0.223008E-16 -0.557519E-17  0.557519E-17 eV/A
+  | Net force on center of mass :   0.000000E+00 -0.557519E-17  0.111504E-16 eV/A
 
   Energy and forces in a compact form:
-  | Total energy uncorrected      :         -0.630947951163021E+05 eV
-  | Total energy corrected        :         -0.630947951163021E+05 eV  <-- do not rely on this value for anything but (periodic) metals
-  | Electronic free energy        :         -0.630947951163021E+05 eV
+  | Total energy uncorrected      :         -0.630947951163023E+05 eV
+  | Total energy corrected        :         -0.630947951163023E+05 eV  <-- do not rely on this value for anything but (periodic) metals
+  | Electronic free energy        :         -0.630947951163023E+05 eV
   Total atomic forces (unitary forces cleaned) [eV/Ang]:
-  |   1         -0.133695014244141E+00          0.664638842036343E-08          0.449568172698921E-09
-  |   2         -0.201415707377672E-01          0.690648617908369E-08          0.103238311073145E-08
-  |   3          0.500745273093376E-02         -0.279889564121980E-08         -0.821554469826434E-08
-  |   4          0.500744732507875E-02         -0.104095927844445E-08         -0.188953394468513E-08
-  |   5          0.361786608653627E-01          0.259217903856978E-01          0.259217983362588E-01
-  |   6          0.361786533529603E-01         -0.259217951575971E-01         -0.259217907827335E-01
-  |   7          0.357321854149898E-01         -0.252007544592254E-01          0.252007518802139E-01
-  |   8          0.357321852925827E-01          0.252007495181049E-01         -0.252007508106118E-01
+  |   1         -0.133695012191847E+00         -0.255853623781618E-08         -0.167799295338676E-07
+  |   2         -0.201415701239631E-01          0.191769255588692E-07          0.719633301000981E-08
+  |   3          0.500743512954979E-02         -0.125167360945851E-08         -0.212410590252863E-08
+  |   4          0.500745433669833E-02          0.515100200218629E-08         -0.944846172118168E-09
+  |   5          0.361786642567545E-01          0.259217960888453E-01          0.259217969836552E-01
+  |   6          0.361786636586810E-01         -0.259218180822613E-01         -0.259218004289150E-01
+  |   7          0.357321843067128E-01         -0.252007509779610E-01          0.252007520614314E-01
+  |   8          0.357321806274136E-01          0.252007524536593E-01         -0.252007359636229E-01
 
   Removing unitary transformations (pure translations, rotations) from forces on atoms.
   Atomic forces before filtering:
-  | Net force on center of mass :   0.223008E-16 -0.557519E-17  0.557519E-17 eV/A
+  | Net force on center of mass :   0.000000E+00 -0.557519E-17  0.111504E-16 eV/A
   Atomic forces after filtering:
-  | Net force on center of mass :   0.223008E-16 -0.557519E-17  0.557519E-17 eV/A
+  | Net force on center of mass :   0.000000E+00 -0.557519E-17  0.557519E-17 eV/A
   @ DRIVER - WARNING: the stress tensor will not be computed
  ------------------------------------------------------------------------
  Atomic structure that was used in the preceding time step of the wrapper
                          x [A]             y [A]             z [A]
   lattice_vector         5.43999999        0.00000000        0.00000000
   lattice_vector         0.00000000        5.43999999        0.00000000
-  lattice_vector         0.00000000        0.00000000        5.43999999
+  lattice_vector        -0.00000000       -0.00000000        5.43999999
 
             atom         0.01000000        0.00000000        0.00000000  Si
-            atom        -0.00000000        2.72000000        2.72000000  Si
+            atom         0.00000000        2.72000000        2.72000000  Si
             atom         2.72000000        0.00000000        2.72000000  Si
             atom         2.72000000        2.72000000        0.00000000  Si
             atom         1.36000000        1.36000000        1.36000000  Si
@@ -915,38 +913,38 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) | forces (eV/A) |   
 
 ------------------------------------------------------------
           Leaving FHI-aims.
-          Date     :  20181119, Time     :  154551.920
+          Date     :  20181120, Time     :  180640.897
 
           Computational steps:
           | Number of self-consistency cycles          :           11
           | Number of SCF (re)initializations          :            1
 
           Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)
-          | Total time                                 :       29.664 s          29.669 s
-          | Preparation time                           :        0.121 s           0.121 s
-          | Boundary condition initalization           :        0.053 s           0.053 s
-          | Grid partitioning                          :        0.045 s           0.045 s
+          | Total time                                 :       39.043 s          39.244 s
+          | Preparation time                           :        0.131 s           0.133 s
+          | Boundary condition initalization           :        0.052 s           0.052 s
+          | Grid partitioning                          :        0.046 s           0.046 s
           | Preloading free-atom quantities on grid    :        0.001 s           0.001 s
-          | Free-atom superposition energy             :        0.041 s           0.041 s
-          | Total time for integrations                :        5.039 s           5.039 s
-          | Total time for solution of K.-S. equations :        0.081 s           0.082 s
-          | Total time for density & force components  :       13.936 s          13.934 s
-          | Total time for mixing & preconditioning    :        2.802 s           2.805 s
-          | Total time for Hartree multipole update    :        0.015 s           0.014 s
-          | Total time for Hartree multipole sum       :        7.193 s           7.191 s
+          | Free-atom superposition energy             :        0.049 s           0.049 s
+          | Total time for integrations                :        6.102 s           6.104 s
+          | Total time for solution of K.-S. equations :        0.104 s           0.101 s
+          | Total time for density & force components  :       18.428 s          18.530 s
+          | Total time for mixing & preconditioning    :        3.308 s           3.311 s
+          | Total time for Hartree multipole update    :        0.021 s           0.020 s
+          | Total time for Hartree multipole sum       :       10.506 s          10.546 s
           | Total time for total energy evaluation     :        0.001 s           0.001 s
           | Total time for scaled ZORA corrections     :        0.000 s           0.000 s
 
           Partial memory accounting:
           | Residual value for overall tracked memory usage across tasks :     0.000000 MB (should be 0.000000 MB)
           | Peak values for overall tracked memory usage (after allocating d_wave):
-          |   Minimum:       11.446 MB (on task 3)
-          |   Maximum:       11.730 MB (on task 1)
-          |   Average:       11.571 MB
+          |   Minimum:       11.710 MB (on task 4)
+          |   Maximum:       12.068 MB (on task 1)
+          |   Average:       11.872 MB
           | Largest tracked array allocation (hessian_basis_wave):
-          |   Minimum:        1.974 MB (on task 3)
-          |   Maximum:        2.030 MB (on task 1)
-          |   Average:        1.999 MB
+          |   Minimum:        2.049 MB (on task 4)
+          |   Maximum:        2.120 MB (on task 1)
+          |   Average:        2.081 MB
           Note:  These values currently only include a subset of arrays which are explicitly tracked.
           The "true" memory usage will be greater.
 
