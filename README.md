@@ -9,6 +9,8 @@
 and edit according to system.
 
 **New Features**
+* Molecular dynamics workflow with input and output files
+  * see hilde/examples/md
 * Phonopy workflow with input and output files
   * see hilde/examples/phonopy
 * Relaxation workflow with config file and output files
