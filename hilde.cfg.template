@@ -18,7 +18,7 @@ density =                   3.5
 type = light
 
 [socketio]
-port = None
+port = null
 
 # System informations, ADJUST!
 [common]
