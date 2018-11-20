@@ -27,6 +27,7 @@ def phonopy(
     walltime=1800,
     workdir=".",
     force_constants_file="force_constants.dat",
+    primitive_file="geometry.in.primitive",
     supercell_file="geometry.in.supercell",
     pickle_file="phonon.pick",
     #    fingerprint_file="fingerprint.dat",
@@ -34,6 +35,7 @@ def phonopy(
     """ perform a full phonopy calculation """
 
     trajectory = Path(trajectory).absolute()
+    workdir = Path(workdir).absolute()
 
     watchdog = Watchdog(walltime=walltime)
 
@@ -54,11 +56,17 @@ def phonopy(
         update_k_grid(calculation_atoms, calc, kpt_density)
 
     force_sets = []
+
+    # save input geometries
     with cwd(workdir, mkdir=True):
+        atoms.write(primitive_file, format="aims", scaled=True)
+        supercell.write(supercell_file, format="aims", scaled=True)
+
+    # perform calculation
+    with cwd(workdir / "calculations", mkdir=True):
         with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
             # save inputs and supercell
             metadata2file(atoms, calc, phonon, trajectory)
-            supercell.write(supercell_file, format="aims", scaled=True)
 
             if socketio_port is not None:
                 calc = iocalc
@@ -95,6 +103,7 @@ def postprocess(
     trajectory="phonopy_trajectory.yaml",
     workdir=".",
     force_constants_file="force_constants.dat",
+    bandstrucuture_file="bandstructure.pdf",
     #    supercell_file="geometry.in.supercell",
     #    fingerprint_file="fingerprint.dat",
     displacement=0.01,
@@ -129,6 +138,9 @@ def postprocess(
 
     with (Path(workdir) / pickle_file).open("wb") as fp:
         pickle.dump(phonon, fp)
+
+    # save a plot of the bandstrucuture
+    ph.plot_bandstructure(phonon, Path(workdir) / bandstrucuture_file)
 
 
 def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):
