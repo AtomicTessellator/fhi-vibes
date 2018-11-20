@@ -4,6 +4,7 @@ from ase.build.supercells import make_supercell as ase_make_supercell
 from ase.spacegroup import get_spacegroup
 from hilde.structure.misc import get_sysname
 from hilde.helpers.geometry import get_cubicness
+from hilde.helpers.maths import clean_matrix
 from warnings import warn
 
 
@@ -76,6 +77,7 @@ def make_cubic_supercell(
 def make_supercell(*args, info={}, **kwargs):
     """ Wrap the make_supercell() function from ase.build """
     supercell = ase_make_supercell(*args, **kwargs)
+    supercell.cell = clean_matrix(supercell.cell)
     supercell.info.update(info)
 
     return supercell
