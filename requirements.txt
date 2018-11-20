@@ -7,5 +7,4 @@ spglib
 https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz  
 phonopy
 phono3py
-hiphive
 fireworks

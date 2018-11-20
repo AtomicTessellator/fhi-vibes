@@ -48,15 +48,7 @@ and edit according to system.
   * Functions that can be used with PyTask to use FireWorks as a job manager
   * Jobs can now be submitted to the queue from a local machine and have the results processed locally
 
-**Setup of Docker Images to Speed Up Testing**
-```
-mkdir -p docker
-cp Dockerfile requirements.txt docker
-cd docker
-docker login registry.gitlab.com
-docker build -t registry.gitlab.com/flokno/hilde .
-docker push registry.gitlab.com/flokno/hilde
-```
+
 **Setup of FireWorks on Computational Resources**
 
 See also: `doc/README_FHI_FireWorksConnections.md`

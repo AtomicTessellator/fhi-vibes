@@ -1,4 +1,4 @@
-image: registry.gitlab.com/flokno/hilde:latest
+image: registry.gitlab.com/flokno/hilde:reference
 
 before_script:
   - pip install .
@@ -17,7 +17,6 @@ all_tests:
 #    - python $CI_PROJECT_DIR/examples/hiphive/hiphive_al.py
     - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
     - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
-    - $jtest $CI_PROJECT_DIR/examples/md/md.ipynb
     - python $CI_PROJECT_DIR/tests/fireworks_test.py
     - python $CI_PROJECT_DIR/examples/material_fingerprints/material_fingerprints.py
 
