@@ -8,9 +8,6 @@ from collections import OrderedDict
 
 class AttributeDict(OrderedDict):
     def __getattr__(self, attr):
-        # JSON parses 'null' to None, not 'None'
-        if str(self[attr]).lower() == 'none':
-            return None
         return self[attr]
 
     def __setattr__(self, attr, value):
