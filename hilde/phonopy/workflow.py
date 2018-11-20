@@ -1,6 +1,5 @@
 """ Provide a full highlevel phonopy workflow """
 
-from os.path import isfile
 from pathlib import Path
 import pickle
 import numpy as np
@@ -15,14 +14,6 @@ from hilde.trajectory.phonopy import metadata2file, step2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.trajectory import reader as traj_reader
 from hilde.helpers.k_grid import update_k_grid
-
-
-def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):
-    """ phonopy preprocess returning supercells with attached calculator for FW """
-    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
-    for sc in scs:
-        sc.calc = calc
-    return phonon, supercell, scs
 
 
 def phonopy(
@@ -123,9 +114,9 @@ def postprocess(
         if fireworks:
             calculated_atoms = [dict2atoms(cell) for cell in calculated_atoms]
         calculated_atoms = sorted(
-            calculated_atoms, key=lambda x: x.info["displacement_id"]
+            calculated_atoms, key=lambda x: x.info[ph.displacement_id_str]
         )
-    elif isfile(trajectory):
+    elif Path(trajectory).is_file():
         calculated_atoms = traj_reader(trajectory)
     else:
         raise ValueError("Either calculated_atoms or trajectory must be defined")
@@ -138,3 +129,12 @@ def postprocess(
 
     with open(pickle_file, "wb") as fp:
         pickle.dump(phonon, fp)
+
+
+def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):
+    """ phonopy preprocess returning supercells with attached calculator for FW """
+    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
+    for sc in scs:
+        sc.calc = calc
+    return phonon, supercell, scs
+
