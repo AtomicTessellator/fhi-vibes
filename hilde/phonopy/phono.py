@@ -10,6 +10,7 @@ from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
 from hilde.phonopy import enumerate_displacements, displacement_id_str
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
+from hilde.helpers.maths import get_3x3_matrix
 
 default_disp = 0.01
 
@@ -34,19 +35,7 @@ def prepare_phonopy(
 
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
-    # get a correctly shaped supercell matrix
-    if np.size(supercell_matrix) == 1:
-        supercell_matrix = supercell_matrix * np.eye(3)
-    elif np.size(supercell_matrix) == 3:
-        supercell_matrix = np.diag(supercell_matrix)
-    elif np.size(supercell_matrix) == 9:
-        supercell_matrix = np.asarray(supercell_matrix).reshape((3, 3))
-    else:
-        raise Exception(
-            "Supercell matrix must have 1, 3, 9 elements, has {}".format(
-                np.size(supercell_matrix)
-            )
-        )
+    supercell_matrix = get_3x3_matrix(supercell_matrix)
 
     phonon = Phonopy(
         ph_atoms,

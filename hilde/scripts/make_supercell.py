@@ -8,6 +8,7 @@ from ase.io import read
 from hilde.structure.io import inform
 from hilde.helpers.supercell import make_cubic_supercell, make_supercell
 from hilde.helpers.geometry import get_cubicness
+from hilde.helpers.maths import get_3x3_matrix
 
 
 def print_matrix(matrix, indent=2):
@@ -25,7 +26,7 @@ def main():
     parser = argpars(description="Read geometry create supercell")
     parser.add_argument("geom", type=str, help="geometry input file")
     parser.add_argument("-n", type=int, help="target size")
-    parser.add_argument("-d", type=int, nargs=9, help="supercell matrix")
+    parser.add_argument("-d", type=int, nargs="+", help="supercell matrix")
     parser.add_argument("--deviation", type=float, default=0.2)
     parser.add_argument("--dry", action="store_true", help="Do not write output file")
     parser.add_argument("--format", default="aims")
@@ -44,7 +45,7 @@ def main():
         )
         print(f"  Found number of atoms:  {len(supercell)}")
     elif args.d:
-        smatrix = np.array(args.d).reshape(3, 3)
+        smatrix = get_3x3_matrix(args.d)
         supercell = make_supercell(cell, smatrix)
     else:
         exit("Please specify either a target cell size or a supercell matrix")
