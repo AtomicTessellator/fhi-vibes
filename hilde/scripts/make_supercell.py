@@ -37,13 +37,12 @@ def main():
     cell = read(fname, format=args.format)
     inform(cell)
 
-    print("\nSettings:")
     if args.n:
+        print("\nSettings:")
         print(f"  Target number of atoms: {args.n}")
         supercell, smatrix = make_cubic_supercell(
             cell, args.n, deviation=args.deviation
         )
-        print(f"  Found number of atoms:  {len(supercell)}")
     elif args.d:
         smatrix = get_3x3_matrix(args.d)
         supercell = make_supercell(cell, smatrix)
@@ -54,6 +53,8 @@ def main():
     print(" 1d: {}".format(np.array2string(smatrix.flatten(), separator=", ")))
     print(" 2d:")
     print_matrix(smatrix, indent=0)
+
+    print(f"\nNumber of atoms:  {len(supercell)}")
 
     print(f"\nSuperlattice:")
     print(supercell.cell)

@@ -22,7 +22,7 @@ def main():
     _, _, scs_ref = ph.preprocess(atoms, supercell_matrix=1)
 
     if args.dim is not None:
-        phonon, _, scs = ph.preprocess(atoms, supercell_matrix=args.dim)
+        phonon, sc, scs = ph.preprocess(atoms, supercell_matrix=args.dim)
     else:
         settings = Settings(args.config_file)
         phonon, _, scs = ph.preprocess(atoms, **settings.phonopy)
@@ -32,6 +32,7 @@ def main():
     sc_str = np.array2string(phonon.get_supercell_matrix().flatten(), separator=", ")
     print("Phonopy Information")
     print(f"  Supercell matrix:        {sc_str}")
+    print(f"  Number of atoms in SC:   {len(sc)}")
     print(f"  Number of displacements: {len(scs)} ({len(scs_ref)})")
 
 
