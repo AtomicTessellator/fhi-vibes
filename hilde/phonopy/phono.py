@@ -200,11 +200,6 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
     """
     Compute bandstructure for given path
 
-    Args:
-        phonon: Phonopy object
-        path: path in the Brillouin zone
-        force_sets: (optional)
-
     Returns:
         (qpoints, distances, frequencies, eigenvectors, labels)
 
@@ -217,3 +212,13 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
     phonon.set_band_structure(bands)
 
     return (*phonon.get_band_structure(), labels)
+
+
+def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
+    """ Plot bandstructure for given path and save to file """
+
+    *_, labels = get_bandstructure(phonon, paths, force_sets)
+
+    plt = phonon.plot_band_structure(labels=labels)
+
+    plt.savefig(file)
