@@ -67,7 +67,7 @@ def prepare_phonopy(
 
 
 def preprocess(
-    atoms, supercell_matrix, disp=default_disp, symprec=1e-5, trigonal=False
+    atoms, supercell_matrix, disp=default_disp, symprec=1e-5, trigonal=False, **kwargs
 ):
     """
     Creates a phonopy object from given input

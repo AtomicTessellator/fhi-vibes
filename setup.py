@@ -25,6 +25,7 @@ setup(
             "geometry_info = hilde.scripts.geometry_info:main",
             "get_relaxation_info = hilde.scripts.get_relaxation_info:main",
             "make_supercell = hilde.scripts.make_supercell:main",
+            "phonopy_info= hilde.scripts.phonopy_info:main",
             "md_sum= hilde.scripts.md_sum:main",
             "yaml2json= hilde.scripts.yaml2json:main",
             "refine_geometry = hilde.scripts.refine_geometry:main",
