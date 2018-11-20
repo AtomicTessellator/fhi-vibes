@@ -26,9 +26,10 @@ def phonopy(
     socketio_port=None,
     walltime=1800,
     workdir=".",
-    force_constants_file="force_constants.dat",
     primitive_file="geometry.in.primitive",
     supercell_file="geometry.in.supercell",
+    force_constants_file="force_constants.dat",
+    bandstructure_file="bandstructure.pdf",
     pickle_file="phonon.pick",
     #    fingerprint_file="fingerprint.dat",
 ):
@@ -91,8 +92,8 @@ def phonopy(
         trajectory=trajectory,
         workdir=workdir,
         force_constants_file=force_constants_file,
+        bandstructure_file=bandstructure_file,
         pickle_file=pickle_file,
-        #        supercell_file=supercell_file,
         #        fingerprint_file=fingerprint_file,
     )
 
@@ -103,12 +104,11 @@ def postprocess(
     trajectory="phonopy_trajectory.yaml",
     workdir=".",
     force_constants_file="force_constants.dat",
-    bandstrucuture_file="bandstructure.pdf",
-    #    supercell_file="geometry.in.supercell",
-    #    fingerprint_file="fingerprint.dat",
+    bandstructure_file="bandstructure.pdf",
     displacement=0.01,
     fireworks=False,
     pickle_file="phonon.pick"
+    #    fingerprint_file="fingerprint.dat",
     #    **kwargs,
 ):
     """ Phonopy postprocess """
@@ -140,7 +140,8 @@ def postprocess(
         pickle.dump(phonon, fp)
 
     # save a plot of the bandstrucuture
-    ph.plot_bandstructure(phonon, Path(workdir) / bandstrucuture_file)
+    if bandstructure_file is not None:
+        ph.plot_bandstructure(phonon, Path(workdir) / bandstructure_file)
 
 
 def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):
