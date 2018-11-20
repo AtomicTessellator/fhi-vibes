@@ -14,7 +14,7 @@ output_level =              MD_light
 [control_kpt]
 density =                   3.5
 
-[basilsset]
+[basissset]
 type = light
 
 [socketio]
