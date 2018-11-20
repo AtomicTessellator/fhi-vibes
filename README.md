@@ -8,6 +8,13 @@
 
 and edit according to system.
 
+** Config Files**
+
+`hilde` uses the Python `configparser` module for parsing configuration files. The
+parser is augmented by `JSON` so it understands any input on the right hand side that is
+valid `JSON`. The inputs get converted to Python objects according to [this conversion
+table](https://realpython.com/python-json/#serializing-json).
+
 **New Features**
 * Molecular dynamics workflow with input and output files
   * see hilde/examples/md
