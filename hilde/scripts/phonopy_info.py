@@ -25,7 +25,7 @@ def main():
         phonon, sc, scs = ph.preprocess(atoms, supercell_matrix=args.dim)
     else:
         settings = Settings(args.config_file)
-        phonon, _, scs = ph.preprocess(atoms, **settings.phonopy)
+        phonon, sc, scs = ph.preprocess(atoms, **settings.phonopy)
         print("Phonopy settings:")
         settings.print()
 
