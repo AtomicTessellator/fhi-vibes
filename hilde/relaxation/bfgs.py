@@ -49,11 +49,12 @@ def relax(
     else:
         from ase.optimize.bfgs import BFGS
 
-    bfgs_settings = {"logfile": logfile, "maxstep": maxstep}
-
     watchdog = Watchdog(walltime=walltime)
 
+    workdir = Path(workdir).absolute()
     trajectory = Path(trajectory).absolute()
+
+    bfgs_settings = {"logfile": str(workdir / logfile), "maxstep": maxstep}
 
     if "compute_forces" in calc.parameters:
         calc.parameters["compute_forces"] = True
@@ -77,7 +78,7 @@ def relax(
         opt_atoms = atoms
 
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
-        workdir, mkdir=True
+        workdir / "calculation", mkdir=True
     ):
         if socketio_port is not None:
             atoms.calc = iocalc
@@ -93,6 +94,7 @@ def relax(
             if watchdog():
                 break
 
+    with cwd(workdir):
         atoms.write(output, format="aims", scaled=True)
 
     return converged
