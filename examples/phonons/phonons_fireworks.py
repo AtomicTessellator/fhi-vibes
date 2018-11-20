@@ -24,7 +24,8 @@ if fw_settings['serial']:
     fw = atoms_func_to_fireworks(
         "hilde.phonopy.workflow.phonopy",
         "hilde.tasks.fireworks.fw_action_outs.return_null_atoms",
-        settings.phonopy,
+        dict(settings.phonopy),
+        dict(settings.phonopy),
         atoms,
         calc,
         fw_settings,
@@ -33,14 +34,15 @@ if fw_settings['serial']:
     lp.add_wf(fw)
 else:
     kwargs_init = {"supercell_matrix": settings.phonopy.supercell_matrix}
-    for key in ["displacement", "workdir"]:
-        if key in settings.phonopy:
-            kwargs_init[key] = settings.phonopy[key]
+    kwargs_init_fw_out = {"workdir": settings.phonopy.workdir}
+    if "displacement" in settings.phonopy:
+        kwargs_init["displacement"] = settings.phonopy["displacement"]
 
     init_fw = atoms_func_to_fireworks(
         "hilde.phonopy.workflow.initialize_phonopy_attach_calc",
         "hilde.tasks.fireworks.fw_action_outs.fw_out_initialize_phonopy",
         kwargs_init,
+        kwargs_init_fw_out,
         atoms,
         calc,
         fw_settings=fw_settings,

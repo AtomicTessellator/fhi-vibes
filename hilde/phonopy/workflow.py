@@ -7,13 +7,16 @@ import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.helpers.converters import dict2atoms
+from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.paths import cwd
+from hilde.phonon_db.database_api import update_phonon_db
 from hilde.phonon_db.row import PhononRow
 import hilde.phonopy.wrapper as ph
+from hilde.phonopy import displacement_id_str
+from hilde.structure.convert import to_Atoms
 from hilde.trajectory.phonopy import metadata2file, step2file
-from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.trajectory import reader as traj_reader
-from hilde.helpers.k_grid import update_k_grid
+from hilde.watchdogs import WallTimeWatchdog as Watchdog
 
 
 def phonopy(
@@ -31,6 +34,8 @@ def phonopy(
     force_constants_file="force_constants.dat",
     bandstructure_file="bandstructure.pdf",
     pickle_file="phonon.pick",
+    db_path=None,
+    **kwargs,
     #    fingerprint_file="fingerprint.dat",
 ):
     """ perform a full phonopy calculation """
@@ -92,7 +97,8 @@ def phonopy(
         force_constants_file=force_constants_file,
         bandstructure_file=bandstructure_file,
         pickle_file=pickle_file,
-        #        fingerprint_file=fingerprint_file,
+        **kwargs,
+        # fingerprint_file=fingerprint_file,
     )
 
 
@@ -105,9 +111,9 @@ def postprocess(
     bandstructure_file="bandstructure.pdf",
     displacement=0.01,
     fireworks=False,
-    pickle_file="phonon.pick"
-    #    fingerprint_file="fingerprint.dat",
-    #    **kwargs,
+    pickle_file="phonon.pick",
+    db_path=None,
+    **kwargs,
 ):
     """ Phonopy postprocess """
 
@@ -121,7 +127,7 @@ def postprocess(
         if fireworks:
             calculated_atoms = [dict2atoms(cell) for cell in calculated_atoms]
         calculated_atoms = sorted(
-            calculated_atoms, key=lambda x: x.info[ph.displacement_id_str]
+            calculated_atoms, key=lambda x: x.info[displacement_id_str]
         )
     elif Path(trajectory).is_file():
         calculated_atoms = traj_reader(trajectory)
@@ -136,6 +142,16 @@ def postprocess(
 
     with (Path(workdir) / pickle_file).open("wb") as fp:
         pickle.dump(phonon, fp)
+    if db_path:
+        update_phonon_db(
+            db_path,
+            to_Atoms(phonon.get_unitcell()),
+            phonon,
+            calc_type="phonons",
+            symprec=phonon._symprec,
+            sc_matrix_2=list(phonon.get_supercell_matrix().flatten()),
+            **kwargs
+        )
 
     # save a plot of the bandstrucuture
     if bandstructure_file is not None:

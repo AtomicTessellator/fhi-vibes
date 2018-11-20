@@ -28,6 +28,7 @@ if "relaxation" in workflow:
             "hilde.relaxation.bfgs.relax",
             "hilde.tasks.fireworks.fw_action_outs.cont_md_out_fw_action",
             dict(workflow.relaxation),
+            dict(workflow.relaxation),
             atoms,
             calc,
             fw_settings=dict(fw_settings.relaxation_fw),
@@ -47,6 +48,7 @@ if "phonopy" in workflow:
                 "hilde.phonopy.workflow.phonopy",
                 "hilde.tasks.fireworks.fw_action_outs.return_null_atoms",
                 dict(workflow.phonopy),
+                dict(workflow.phonopy),
                 fw_settings.phonopy_fw["init_in_spec_atoms"],
                 fw_settings.phonopy_fw["init_in_spec_calc"],
                 True,
@@ -56,15 +58,16 @@ if "phonopy" in workflow:
         )
     else:
         kwargs_init = {"supercell_matrix": workflow.phonopy.supercell_matrix}
-        for key in ["displacement", "workdir"]:
-            if key in workflow.phonopy:
-                kwargs_init[key] = workflow.phonopy[key]
+        kwargs_init_fw_out = {"workdir": workflow.phonopy.workdir}
+        if "displacement" in workflow.phonopy:
+            kwargs_init["displacement"] = workflow.phonopy["displacement"]
 
         fw_list.append(
             atoms_func_to_fireworks(
                 "hilde.phonopy.workflow.initialize_phonopy_attach_calc",
                 "hilde.tasks.fireworks.fw_action_outs.fw_out_initialize_phonopy",
                 kwargs_init,
+                kwargs_init_fw_out,
                 fw_settings.phonopy_fw["init_in_spec_atoms"],
                 fw_settings.phonopy_fw["init_in_spec_calc"],
                 atoms_calc_from_spec=True,

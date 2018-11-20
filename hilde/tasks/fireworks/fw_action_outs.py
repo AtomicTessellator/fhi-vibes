@@ -113,6 +113,7 @@ def fw_out_initialize_phonopy(atoms, calc, outputs, func, func_fw_out, func_kwar
                 "hilde.tasks.calculate.calculate",
                 "hilde.tasks.fireworks.fw_action_outs.mod_spec_add",
                 calc_kwargs,
+                calc_kwargs,
                 sc_dict,
                 calc_dict,
                 fw_settings=fw_settings,

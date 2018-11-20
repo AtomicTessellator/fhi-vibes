@@ -11,6 +11,7 @@ def atoms_func_to_fireworks(
     func,
     func_fw_out,
     func_kwargs,
+    func_fw_out_kwargs,
     atoms,
     calc,
     atoms_calc_from_spec=False,
@@ -64,6 +65,7 @@ def atoms_func_to_fireworks(
         func,
         func_fw_out,
         dict(func_kwargs),
+        dict(func_fw_out_kwargs),
     ]
 
     task_list = []
@@ -148,6 +150,7 @@ def general_ase_calc_fxn_as_pytask(
     func_path,
     func_fw_out_path,
     func_kwargs,
+    func_fw_out_kwargs,
     atoms_dict,
     calc_dict,
     fw_settings=None
@@ -183,7 +186,7 @@ def general_ase_calc_fxn_as_pytask(
 
     outputs = func(atoms, atoms.calc, **func_kwargs)
 
-    return func_fw_out(atoms_dict, calc_dict, outputs, func_path, func_fw_out_path, func_kwargs, fw_settings)
+    return func_fw_out(atoms_dict, calc_dict, outputs, func_path, func_fw_out_path, func_fw_out_kwargs, fw_settings)
 
 def general_fxn_as_pytask(func_path, func_fw_out_path, *args, fw_settings=None, **kwargs):
     '''
