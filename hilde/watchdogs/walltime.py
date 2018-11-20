@@ -75,7 +75,7 @@ class WallTimeWatchdog:
         """ Return elapsed time since start """
         return time() - self.start_time
 
-    def log(self):
+    def log(self, mode="a"):
         """ Log some timings """
 
         if self.logfile is None:
@@ -83,6 +83,7 @@ class WallTimeWatchdog:
 
         info_str = ""
         if self.n_calls == 0:
+            mode = "w"
             info_str = f"# Walltime Watchdog \n"
             info_str += f"#   walltime:     {self.time_left:.0f}s\n"
             info_str += f"#   buffer steps: {self.buffer}\n"
@@ -106,6 +107,6 @@ class WallTimeWatchdog:
         )
         info_str += "\n"
 
-        with self.logfile.open("a") as f:
+        with self.logfile.open(mode) as f:
             f.write(info_str)
 
