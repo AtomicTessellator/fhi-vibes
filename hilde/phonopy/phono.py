@@ -8,7 +8,7 @@ import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
-from hilde.phonopy import enumerate_displacements
+from hilde.phonopy import enumerate_displacements, displacement_id_str
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 
 default_disp = 0.01

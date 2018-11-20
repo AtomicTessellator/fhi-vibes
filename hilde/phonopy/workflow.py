@@ -127,7 +127,7 @@ def postprocess(
     force_constants = ph.get_force_constants(phonon, force_sets)
     np.savetxt(Path(workdir) / force_constants_file, force_constants)
 
-    with open(pickle_file, "wb") as fp:
+    with (Path(workdir) / pickle_file).open("wb") as fp:
         pickle.dump(phonon, fp)
 
 
@@ -137,4 +137,3 @@ def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0
     for sc in scs:
         sc.calc = calc
     return phonon, supercell, scs
-
