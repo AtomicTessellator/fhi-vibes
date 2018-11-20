@@ -1,65 +1,35 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-from time import time
-from pathlib import Path
-import numpy as np
-
-from ase.build import bulk
-from ase.md.verlet import VelocityVerlet
+from ase.io import read
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase import units
-from ase.calculators.emt import EMT
 
+from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
-from hilde.molecular_dynamics import run_md, prepare_from_trajectory
+from hilde.helpers.k_grid import update_k_grid
+from hilde.molecular_dynamics import run_md, setup_md
 
 
-# In[2]:
+def run(atoms, config_files):
+    "run and MD"
+    settings = Settings(config_files=config_files)
 
-# atoms = bulk('Si')
-atoms = bulk("Al") * (2, 2, 2)
+    calc = setup_aims(settings=settings)
 
-# In[3]:
+    update_k_grid(atoms, calc, settings.control_kpt.density)
 
-port = 12345
-aims = setup_aims(
-    config_file="../../../hilde.cfg",
-    custom_settings={
-        "compute_forces": True,
-        "k_grid": [2, 2, 2],
-        "sc_accuracy_rho": 1e-5,
-    },
-    port=port,
-)
+    atoms, md, prepared = setup_md(atoms, **settings.md)
 
-# In[4]:
+    if not prepared:
+        MaxwellBoltzmannDistribution(atoms, temp=settings.md.temperature * units.kB)
 
-calc = EMT()
-port = None
+    converged = run_md(
+        atoms, calc, md, socketio_port=settings.socketio.port, **settings.md
+    )
 
-# In[5]:
+    return converged
 
-T = 100 * units.kB
 
-md = VelocityVerlet(atoms, timestep=4 * units.fs, logfile="md.log")
+if __name__ == "__main__":
+    atoms = read("si.in", format="aims")
+    config_files = ["hilde.cfg", "md.cfg"]
 
-trajectory = Path("trajectory.yaml").absolute()
-
-# either take last step or prepare new MD run
-if trajectory.exists():
-    prepare_from_trajectory(atoms, md)
-else:
-    MaxwellBoltzmannDistribution(atoms, temp=T, rng=np.random.RandomState(1))
-
-# In[7]:
-
-walltime = 1
-
-stime = time()
-converged = run_md(
-    atoms, calc, md, maxsteps=200, walltime=walltime, workdir="aims", socketio_port=None
-)
-print(f"Finished in {time()-stime:.2f}s")
-print(f".. converged: {converged}")
+    run(atoms, config_files)
