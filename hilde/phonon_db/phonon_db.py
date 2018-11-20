@@ -134,7 +134,7 @@ def check(key_value_pairs):
                 "rows containing the atoms in the formula!".format(key)
             )
         if not isinstance(value, (numbers.Real, basestring, np.bool_)):
-            print(value)
+            print(key, value)
             raise ValueError("Bad value for {!r}: {}".format(key, value))
         if isinstance(value, basestring):
             for t in [int, float]:
@@ -378,7 +378,6 @@ class PhononDatabase(Database):
         row.ctime = now()
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
-
         id = self._write(row, kvp, data, id)
         return id
 

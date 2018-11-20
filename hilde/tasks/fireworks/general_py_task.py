@@ -82,8 +82,12 @@ def atoms_func_to_fireworks(
         )
     else:
         for key, val in update_calc_settings.items():
-            if key is "command":
+            if key == "command":
                 calc_dict["command"] = val
+            elif key == "basisset_type":
+                sd = calc_dict["calculator_parameters"]["species_dir"].split("/")
+                sd[-1] = val
+                calc_dict["calculator_parameters"]["species_dir"] = "/".join(sd)
             else:
                 if val is None and key in calc_dict["calculator_parameters"]:
                     del(calc_dict["calculator_parameters"][key])
@@ -186,7 +190,8 @@ def general_ase_calc_fxn_as_pytask(
 
     outputs = func(atoms, atoms.calc, **func_kwargs)
 
-    return func_fw_out(atoms_dict, calc_dict, outputs, func_path, func_fw_out_path, func_fw_out_kwargs, fw_settings)
+
+    return func_fw_out(atoms_dict, calc_dict, outputs, func_path, func_fw_out_path, func_kwargs, func_fw_out_kwargs, fw_settings)
 
 def general_fxn_as_pytask(func_path, func_fw_out_path, *args, fw_settings=None, **kwargs):
     '''

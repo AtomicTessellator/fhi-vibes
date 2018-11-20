@@ -10,6 +10,10 @@ module_name = __name__
 def mod_calc(param_key, calc, new_val, spec_key=None):
     if param_key is "command":
         calc[param_key] = new_val
+    elif key == "basisset_type":
+        sd = calc["calculator_parameters"]["species_dir"].split("/")
+        sd[-1] = val
+        calc["calculator_parameters"]["species_dir"] = "/".join(sd)
     else:
         calc["calculator_parameters"][param_key] = new_val
     up_spec = {"calculator": calc}
@@ -21,6 +25,10 @@ def update_calc_in_db(calc_spec, update_calc_params, calc):
     for key, val in update_calc_params.items():
         if key == "command":
             calc[key] = val
+        elif key == "basisset_type":
+            sd = calc["calculator_parameters"]["species_dir"].split("/")
+            sd[-1] = val
+            calc["calculator_parameters"]["species_dir"] = "/".join(sd)
         else:
             if val is None and key in calc["calculator_parameters"]:
                 del(calc["calculator_parameters"][key])
