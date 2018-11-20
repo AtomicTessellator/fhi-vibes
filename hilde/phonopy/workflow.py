@@ -38,7 +38,7 @@ def phonopy(
     trajectory = Path(trajectory).absolute()
     workdir = Path(workdir).absolute()
 
-    watchdog = Watchdog(walltime=walltime)
+    watchdog = Watchdog(walltime=walltime, buffer=1)
 
     phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
 
@@ -55,8 +55,6 @@ def phonopy(
 
     if kpt_density is not None:
         update_k_grid(calculation_atoms, calc, kpt_density)
-
-    force_sets = []
 
     # save input geometries
     with cwd(workdir, mkdir=True):
@@ -80,12 +78,12 @@ def phonopy(
 
                 # update calculation_atoms and compute force
                 calculation_atoms.positions = cell.positions
-                force_sets.append(calculation_atoms.get_forces())
+                _ = calculation_atoms.get_forces()
 
                 step2file(calculation_atoms, calculation_atoms.calc, ii, trajectory)
 
                 if watchdog():
-                    break
+                    raise ResourceWarning("**Watchdog: running out of time!")
 
     postprocess(
         phonon,
