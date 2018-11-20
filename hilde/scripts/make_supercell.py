@@ -26,7 +26,7 @@ def main():
     parser = argpars(description="Read geometry create supercell")
     parser.add_argument("geom", type=str, help="geometry input file")
     parser.add_argument("-n", type=int, help="target size")
-    parser.add_argument("-d", type=int, nargs="+", help="supercell matrix")
+    parser.add_argument("-d", "--dim", type=int, nargs="+", help="supercell matrix")
     parser.add_argument("--deviation", type=float, default=0.2)
     parser.add_argument("--dry", action="store_true", help="Do not write output file")
     parser.add_argument("--format", default="aims")
@@ -43,8 +43,8 @@ def main():
         supercell, smatrix = make_cubic_supercell(
             cell, args.n, deviation=args.deviation
         )
-    elif args.d:
-        smatrix = get_3x3_matrix(args.d)
+    elif args.dim:
+        smatrix = get_3x3_matrix(args.dim)
         supercell = make_supercell(cell, smatrix)
     else:
         exit("Please specify either a target cell size or a supercell matrix")
