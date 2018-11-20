@@ -47,7 +47,7 @@ def input2dict(atoms, calc=None):
     if hasattr(calc_dict, "command"):
         calc_dict.update({"command": calc.command})
 
-    return {"atoms": atoms_dict, "calculator": calc_dict}
+    return {"calculator": calc_dict, "atoms": atoms_dict}
 
 
 def results2dict(atoms, calc, append_cell=False):
