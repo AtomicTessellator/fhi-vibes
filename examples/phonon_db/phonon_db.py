@@ -14,8 +14,7 @@ from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import wrapper as ph
 from hilde.structure import pAtoms
 from hilde.tasks.calculate import calculate_multiple
-
-ph3 = il.import_module('hilde.phono3py.phono3')
+from hilde.phono3py import wrapper as ph3
 
 # Get the settings for the calculation and set up the cell
 db_path = "test.db"
@@ -36,7 +35,7 @@ phono3py_settings = {
     'log_level': 0,
     'q_mesh': q_mesh
 }
-il.reload(ph3)
+
 phonon3, sc2, sc3, scs2, scs3 = ph3.preprocess(**phono3py_settings)
 
 # connect to the database and check if the calculation was already done

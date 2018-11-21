@@ -9,9 +9,8 @@ from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict, PhononRow
 from hilde.phonopy import wrapper as ph, displacement_id_str
 from hilde.helpers.input_exchange import patoms2dict, dict2patoms, pAtoms
 from hilde.tasks.calculate import setup_multiple
+from hilde.phono3py import wrapper as ph3
 from .utility_tasks import add_phonon_to_db
-
-ph3 = il.import_module("hilde.phono3py.phono3")
 
 module_name = __name__
 
