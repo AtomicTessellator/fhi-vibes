@@ -13,10 +13,19 @@ def setup_md(
     timestep=None,
     friction=None,
     logfile=None,
-    trajectory="trajectory.yaml",
+    workdir=".",
+    trajectory=None,
     **kwargs,
 ):
     """ create and ase.md object with respective settings """
+
+    if trajectory is None:
+        trajectory = (Path(workdir) / "trajectory.yaml").absolute()
+    else:
+        trajectory = Path(trajectory).absolute()
+
+    if not Path(workdir).is_dir():
+        Path(workdir).mkdir()
 
     temp = temperature * u.fs
     dt = timestep * u.fs
