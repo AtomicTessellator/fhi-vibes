@@ -24,7 +24,7 @@ def run_md(
     walltime=1800,
     workdir=".",
     logfile=None,
-    restart_cmd=None,
+    restart_command=None,
     **kwargs,
 ):
     """ run and MD for a specific time
@@ -95,8 +95,8 @@ def run_md(
 
     # restart
     if md.nsteps < maxsteps:
-        if restart_cmd is not None:
-            print(f"restart with {restart_cmd}")
-            run(restart_cmd.split())
+        if restart_command is not None:
+            print(f"restart with {restart_command}")
+            run(restart_command.split())
     else:
         return True

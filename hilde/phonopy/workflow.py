@@ -47,7 +47,7 @@ def phonopy(
     pickle_file="phonon.pick",
     db_path=None,
     backup_settings=None,
-    restart_cmd=None,
+    restart_command=None,
     **kwargs,
     #    fingerprint_file="fingerprint.dat",
 ):
@@ -119,9 +119,9 @@ def phonopy(
     # backup and restart if necessary
     if ii < len(scs) - 1:
         backup_folder(calc_dir, target_folder=workdir)
-        if restart_cmd is not None:
-            print(f"restart with {restart_cmd}")
-            run(restart_cmd.split())
+        if restart_command is not None:
+            print(f"restart with {restart_command}")
+            run(restart_command.split())
         else:
             sys.exit("**Watchdog: running out of time! No restart script.")
 
