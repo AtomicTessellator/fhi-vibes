@@ -16,5 +16,6 @@ relax(
     atoms,
     calc,
     socketio_port=settings.socketio.port,
+    backup_settings=settings,
     **settings.relaxation
 )

@@ -16,5 +16,6 @@ phonopy(
     calc,
     socketio_port=settings.socketio.port,
     kpt_density=settings.control_kpt.density,
+    backup_settings=settings,
     **settings.phonopy
 )

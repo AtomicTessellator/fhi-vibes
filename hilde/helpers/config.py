@@ -52,9 +52,9 @@ class ConfigDict(AttributeDict):
                 val = config.getval(sec, key)
                 self[sec][key] = val
 
-    def write(self, filname="config.ini", pickle=False):
+    def write(self, filename="configuration.cfg", pickle=False):
         """write a settings object human readable and pickled"""
-        with open(filname, "w") as f:
+        with open(filename, "w") as f:
             timestr = time.strftime("%Y/%m/%d %H:%M:%S")
             f.write(f"# configfile written at {timestr}\n")
             f.write(self.get_string())
@@ -63,7 +63,7 @@ class ConfigDict(AttributeDict):
             import pickle
 
             # write pickled
-            with open(filname + ".pick", "wb") as f:
+            with open(filename + ".pick", "wb") as f:
                 pickle.dump(self, f)
 
     def get_string(self):
