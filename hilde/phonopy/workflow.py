@@ -28,6 +28,7 @@ def phonopy(
     bandstructure_file="bandstructure.pdf",
     pickle_file="phonon.pick",
     db_path=None,
+    backup_settings=None,
     **kwargs,
     #    fingerprint_file="fingerprint.dat",
 ):
@@ -58,6 +59,9 @@ def phonopy(
     with cwd(workdir, mkdir=True):
         atoms.write(primitive_file, format="aims", scaled=True)
         supercell.write(supercell_file, format="aims", scaled=True)
+
+        if backup_settings is not None:
+            backup_settings.write()
 
     # perform calculation
     with cwd(workdir / "calculations", mkdir=True):

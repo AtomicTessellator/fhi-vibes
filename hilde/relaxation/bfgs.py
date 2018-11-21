@@ -23,6 +23,8 @@ def relax(
     walltime=1800,
     workdir=".",
     output="geometry.in.relaxed",
+    backup_settings=None,
+    **kwargs
 ):
     """ run a BFGS relaxation
 
@@ -76,6 +78,10 @@ def relax(
         opt_atoms = UnitCellFilter(atoms)
     else:
         opt_atoms = atoms
+
+    if backup_settings is not None:
+        with cwd(workdir, mkdir=True):
+            backup_settings.write()
 
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
         workdir / "calculation", mkdir=True

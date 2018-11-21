@@ -11,4 +11,4 @@ settings = Settings(["phonopy.cfg"])
 
 calc = EMT()
 
-phonopy(atoms, calc, **settings.phonopy)
+phonopy(atoms, calc, **settings.phonopy, backup_settings=settings)
