@@ -3,6 +3,7 @@
 from pathlib import Path
 from ase import units as u
 from hilde.trajectory.md import last_from_yaml
+from .workflow import run_md
 
 
 def setup_md(
