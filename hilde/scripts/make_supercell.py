@@ -59,14 +59,15 @@ def main():
     print(f"\nSuperlattice:")
     print(supercell.cell)
     print(
-        f"Cubicness:  {get_cubicness(supercell.cell):.3f} "
-        + f"({get_cubicness(supercell.cell)**3:.3f})"
+        "\nCubicness:  {:.3f} ({:.3f})".format(
+            get_cubicness(supercell.cell), get_cubicness(supercell.cell) ** 3
+        )
     )
 
     if not args.dry:
         output_filename = f"{args.geom}.supercell"
         supercell.write(output_filename, scaled=False, format=args.format)
-        print(f"Supercell written to {output_filename}")
+        print(f"\nSupercell written to {output_filename}")
 
 
 if __name__ == "__main__":
