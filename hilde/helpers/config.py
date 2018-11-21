@@ -13,6 +13,9 @@ class AttributeDict(OrderedDict):
     def __setattr__(self, attr, value):
         self[attr] = value
 
+    def as_dict(self):
+        return dict(self)
+
 
 class Config(configparser.ConfigParser):
     """ConfigParser that has a slightly more clever get function."""

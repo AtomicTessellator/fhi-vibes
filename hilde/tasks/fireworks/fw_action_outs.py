@@ -4,8 +4,7 @@ from hilde.helpers.converters import calc2dict, atoms2dict
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.phonon_db.database_api import update_phonon_db
 from hilde.phonon_db.row import phonon_to_dict
-from hilde.tasks.fireworks.general_py_task import atoms_func_to_fireworks
-from hilde.tasks.fireworks.general_py_task import gen_func_to_fireworks
+from hilde.tasks.fireworks.general_py_task import generate_firework
 mod_name = __name__
 
 def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
@@ -49,7 +48,7 @@ def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, 
     del(calc['results']['forces'])
     fw_settings["fw_name"] = fw_settings["fw_base_name"]+ str(next_step)
 
-    fw = atoms_func_to_fireworks(func, func_fw_out, func_kwargs, func_fw_kwargs, atoms, calc, fw_settings=fw_settings)
+    fw = generate_firework(func, func_fw_out, func_kwargs, func_fw_kwargs, atoms, calc, fw_settings=fw_settings)
     return FWAction(detours=[fw])
 
 def return_null_atoms(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
@@ -119,7 +118,7 @@ def fw_out_initialize_phonopy(atoms, calc, outputs, func, func_fw_out, func_kwar
             sc_dict[key] = val
         calc_kwargs = { 'workdir': func_fw_kwargs['workdir'] + f"/{i:05d}"}
         detours.append(
-            atoms_func_to_fireworks(
+            generate_firework(
                 "hilde.tasks.calculate.calculate",
                 "hilde.tasks.fireworks.fw_action_outs.mod_spec_add",
                 calc_kwargs,

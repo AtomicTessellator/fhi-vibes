@@ -25,5 +25,5 @@ from .utility_tasks import mod_calc
 from .utility_tasks import transfer_spec
 from .utility_tasks import update_calc_in_db
 
-from .general_py_task import general_ase_calc_fxn_as_pytask
-from .general_py_task import general_fxn_as_pytask
+from .general_py_task import atoms_calculate_task
+from .general_py_task import general_function_task

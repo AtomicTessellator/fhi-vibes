@@ -3,7 +3,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.phonopy.workflow import phonopy
 from hilde.relaxation.bfgs import relax
 from hilde.settings import Settings
-from hilde.tasks.fireworks.general_py_task import atoms_func_to_fireworks, gen_func_to_fireworks
+from hilde.tasks.fireworks.general_py_task import generate_fireworks
 from hilde.templates.aims import setup_aims
 
 def get_step_fw(config_file, hilde_defaults_config_file, atoms):
@@ -33,7 +33,7 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
         else:
             db_kwargs = {}
         fw_list.append(
-            atoms_func_to_fireworks(
+            generate_fireworks(
                 "hilde.relaxation.bfgs.relax",
                 "hilde.tasks.fireworks.fw_action_outs.cont_md_out_fw_action",
                 dict(step_settings.function_kwargs),
@@ -51,13 +51,14 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
                 step_settings.function_kwargs["db_path"] = step_settings.db_storage.db_path
                 step_settings.function_kwargs["original_atom_hash"] = atoms_hash
             fw_list.append(
-                atoms_func_to_fireworks(
+                generate_fireworks(
                     "hilde.phonopy.workflow.phonopy",
                     "hilde.tasks.fireworks.fw_action_outs.return_null_atoms",
                     dict(step_settings.function_kwargs),
                     dict(step_settings.function_kwargs),
                     atoms,
                     calc,
+                    atoms_calc_from_spec= step_settings.fw.from_db,
                     fw_settings=dict(step_settings.fw),
                     update_calc_settings=dict(step_settings.control),
                 )
@@ -68,7 +69,7 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
             if "displacement" in step_settings.function_kwargs:
                 kwargs_init["displacement"] = step_settings.function_kwargs.displacement
             fw_list.append(
-                atoms_func_to_fireworks(
+                generate_fireworks(
                     "hilde.phonopy.workflow.initialize_phonopy_attach_calc",
                     "hilde.tasks.fireworks.fw_action_outs.fw_out_initialize_phonopy",
                     kwargs_init,
@@ -90,13 +91,13 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
                 if key in step_settings.function_kwargs:
                     kwargs[key] = step_settings.function_kwargs[key]
             fw_list.append(
-                gen_func_to_fireworks(
+                generate_fireworks(
                     "hilde.phonopy.workflow.postprocess",
                     "hilde.tasks.fireworks.fw_action_outs.return_null_general",
-                    [],
-                    ["phonon", step_settings.fw["mod_spec_add"]],
-                    kwargs,
-                    dict(step_settings.fw),
+                    args=[],
+                    inputs=["phonon", step_settings.fw["mod_spec_add"]],
+                    func_kwargs=kwargs,
+                    fw_settings=dict(step_settings.fw),
                 )
             )
     else:
