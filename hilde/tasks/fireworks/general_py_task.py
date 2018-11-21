@@ -20,7 +20,6 @@ def generate_firework(
     func_fw_out_kwargs=None,
     args=None,
     inputs=None,
-    launchpad=None
 ):
     '''
     A function that takes in a set of inputs and returns a Firework to perform that operation
@@ -134,9 +133,8 @@ def generate_firework(
                 }
             )
         )
-    if launchpad:
-        if isinstance(launchpad, str):
-            launchpad = LaunchPadHilde.from_file("/home/purcell/.fireworks/my_launchpad.yaml")
+    if fw_settings and "to_launcpad" in fw_settings and fw_settings["to_launcpad"]:
+        launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
         launchpad.add_wf(Firework(task_list, name=fw_settings["fw_name"]))
         return None
     return Firework(task_list, name=fw_settings["fw_name"])

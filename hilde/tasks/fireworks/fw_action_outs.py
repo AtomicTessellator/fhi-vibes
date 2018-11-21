@@ -47,8 +47,18 @@ def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, 
         return FWAction(update_spec={fw_settings["out_spec_atoms"]: atoms, fw_settings["out_spec_calc"]: calc})
     del(calc['results']['forces'])
     fw_settings["fw_name"] = fw_settings["fw_base_name"]+ str(next_step)
-
-    fw = generate_firework(func, func_fw_out, func_kwargs, func_fw_kwargs, atoms, calc, fw_settings=fw_settings)
+    if fw_settings["to_launcpad"]:
+        fw_settings["to_launcpad"] = False
+    new_traj_list = func_kwargs["trajectory"].split(".")
+    try:
+        temp_list = new_traj_list[-2].split("_")
+        temp_list[-1] = str(int(temp_list[-1]) + 1)
+        new_traj_list[-2] = "_".join(temp_list)
+        func_kwargs["trajectory"] = ".".join(new_traj_list)
+    except:
+        new_traj_list[-2] += "_restart_1"
+        func_kwargs["trajectory"] = ".".join(new_traj_list)
+    fw = generate_firework(func, func_fw_out, func_kwargs, atoms, calc, func_fw_out_kwargs=func_fw_kwargs, fw_settings=fw_settings)
     return FWAction(detours=[fw])
 
 def return_null_atoms(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):

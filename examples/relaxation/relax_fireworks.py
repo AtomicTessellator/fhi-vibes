@@ -24,5 +24,4 @@ generate_firework(
     calc,
     fw_settings=fw_settings,
     update_calc_settings=None,
-    launchpad="/home/purcell/.fireworks/my_launchpad.yaml"
 )
