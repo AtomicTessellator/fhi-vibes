@@ -51,8 +51,12 @@ def postprocess(
     force_constants = ph.get_force_constants(phonon, force_sets)
     np.savetxt(Path(workdir) / force_constants_file, force_constants)
 
+    # set the (default) bandstructure
+    ph.get_bandstructure(phonon)
+
     with (Path(workdir) / pickle_file).open("wb") as fp:
         pickle.dump(phonon, fp)
+
     if db_path:
         update_phonon_db(
             db_path,
