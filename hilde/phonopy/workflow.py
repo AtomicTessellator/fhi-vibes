@@ -9,7 +9,7 @@ from ase.calculators.socketio import SocketIOCalculator
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers.paths import cwd
 from hilde.phonon_db.row import PhononRow
-import hilde.phonopy.phono as ph
+import hilde.phonopy.wrapper as ph
 from hilde.trajectory.phonopy import metadata2file, step2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.trajectory import reader as traj_reader

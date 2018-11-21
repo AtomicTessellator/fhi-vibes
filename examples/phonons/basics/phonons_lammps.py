@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from hilde.parsers import read_structure
 from hilde.helpers.supercell import find_cubic_cell, make_supercell
-from hilde.phonopy import phono as ph
+from hilde.phonopy import wrapper as ph
 from hilde.tasks.calculate import calculate_multiple
 from hilde.templates.lammps import setup_lammps_si
 

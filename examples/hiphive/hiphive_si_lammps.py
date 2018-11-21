@@ -7,7 +7,7 @@ import numpy as np
 from hilde.helpers.supercell import make_cubic_supercell
 from hilde.materials_fp import get_phonon_bs_fingerprint_phononpy
 from hilde.parsers import read_structure
-from hilde.phonopy import phono as ph
+from hilde.phonopy import wrapper as ph
 from hilde.templates.lammps import setup_lammps_si
 from hilde.tasks.calculate import calculate_multiple
 from hilde.helpers.brillouinzone import get_bands_and_labels

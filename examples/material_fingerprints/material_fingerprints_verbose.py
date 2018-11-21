@@ -11,7 +11,7 @@ from hilde.materials_fp.material_fingerprint import to_dict
 from hilde.materials_fp.material_fingerprint import DOSFingerprint
 from hilde.materials_fp.material_fingerprint import BandStructureFingerprint
 from hilde.parsers import read_structure
-from hilde.phonopy import phono as ph
+from hilde.phonopy import wrapper as ph
 from hilde.settings import Settings
 from hilde.tasks.calculate import calculate_multiple
 from hilde.templates.aims import setup_aims

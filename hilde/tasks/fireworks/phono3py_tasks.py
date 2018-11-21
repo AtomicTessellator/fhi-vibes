@@ -6,7 +6,7 @@ import importlib as il
 from hilde.helpers.brillouinzone import get_bands_and_labels
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict, PhononRow
-from hilde.phonopy import phono as ph, displacement_id_str
+from hilde.phonopy import wrapper as ph, displacement_id_str
 from hilde.helpers.input_exchange import patoms2dict, dict2patoms, pAtoms
 from hilde.tasks.calculate import setup_multiple
 from .utility_tasks import add_phonon_to_db

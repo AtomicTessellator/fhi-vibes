@@ -6,7 +6,7 @@ import numpy as np
 from ase.build import bulk
 from ase.dft.kpoints import get_special_points
 from ase.calculators.emt import EMT
-from hilde.phonopy import phono as ph
+from hilde.phonopy import wrapper as ph
 from hilde.tasks.calculate import calculate_multiple
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.helpers.supercell import make_cubic_supercell

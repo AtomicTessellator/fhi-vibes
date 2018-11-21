@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 import numpy as np
 from ase.io import read
 from hilde.settings import Settings
-import hilde.phonopy.phono as ph
+import hilde.phonopy.wrapper as ph
 
 
 def main():

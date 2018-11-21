@@ -8,7 +8,7 @@
 
 and edit according to system.
 
-** Config Files**
+**Config Files**
 
 `hilde` uses the Python `configparser` module for parsing configuration files. The
 parser is augmented by `JSON` so it understands any input on the right hand side that is

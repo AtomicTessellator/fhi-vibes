@@ -11,7 +11,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers.brillouinzone import get_bands
 from hilde.helpers.supercell import make_cubic_supercell
 from hilde.phonon_db.phonon_db import connect
-from hilde.phonopy import phono as ph
+from hilde.phonopy import wrapper as ph
 from hilde.structure import pAtoms
 from hilde.tasks.calculate import calculate_multiple
 

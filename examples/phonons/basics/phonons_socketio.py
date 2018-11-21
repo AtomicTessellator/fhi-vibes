@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from hilde.parsers import read_structure
 from hilde.helpers.supercell import make_cubic_supercell
 from hilde.helpers import d2k
-from hilde.phonopy import phono as ph
+from hilde.phonopy import wrapper as ph
 from hilde.tasks.calculate import calculate_multiple_socketio
 from hilde.templates.aims import setup_aims
 import hilde.helpers.brillouinzone as bz

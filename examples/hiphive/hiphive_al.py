@@ -8,7 +8,7 @@ from ase.calculators.emt import EMT
 
 from hilde.structure import pAtoms
 from hilde.helpers.supercell import make_cubic_supercell
-from hilde.phonopy import phono as ph
+from hilde.phonopy import wrapper as ph
 from hilde.tasks.calculate import calculate_multiple
 from hilde.helpers.geometry import inscribed_sphere_in_box
 

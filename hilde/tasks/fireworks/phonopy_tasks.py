@@ -5,7 +5,7 @@ from fireworks import FWAction
 from hilde.helpers.brillouinzone import get_bands_and_labels
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict, PhononRow
-from hilde.phonopy import phono as ph, displacement_id_str
+from hilde.phonopy import wrapper as ph, displacement_id_str
 from hilde.helpers.converters import atoms2dict, dict2atoms, pAtoms
 from hilde.tasks.calculate import setup_multiple
 
