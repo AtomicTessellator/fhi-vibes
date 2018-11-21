@@ -18,6 +18,7 @@ for config_file in workflow.workflow.step_files.split(","):
 fw_dep = {}
 for i,fw in enumerate(fw_list[:-1]):
     fw_dep[fw] = fw_list[i+1]
+
 wf = Workflow(fw_list, fw_dep)
 lp = LaunchPadHilde(port=27019)
 lp.add_wf(wf)

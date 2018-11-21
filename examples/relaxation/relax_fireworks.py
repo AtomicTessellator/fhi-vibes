@@ -1,6 +1,5 @@
 from ase.io import read
 
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.helpers.k_grid import update_k_grid
 from hilde.relaxation.bfgs import relax
 from hilde.settings import Settings
@@ -17,10 +16,9 @@ calc = setup_aims(settings=settings)
 update_k_grid(atoms, calc, settings.control_kpt.density)
 
 fw_settings = dict(settings.fw_relax)
-fw = generate_firework(
+generate_firework(
     relax,
     cont_md_out_fw_action,
-    settings.relaxation,
     settings.relaxation,
     atoms,
     calc,

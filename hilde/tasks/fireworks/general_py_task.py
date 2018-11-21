@@ -12,12 +12,12 @@ def generate_firework(
     func,
     func_fw_out,
     func_kwargs=None,
-    func_fw_out_kwargs=None,
     atoms=None,
     calc=None,
     atoms_calc_from_spec=False,
     fw_settings=None,
     update_calc_settings=None,
+    func_fw_out_kwargs=None,
     args=None,
     inputs=None,
     launchpad=None
@@ -58,7 +58,8 @@ def generate_firework(
         fw_settings["fw_base_name"] = ""
     elif "fw_base_name" not in fw_settings:
         fw_settings["fw_base_name"] = fw_settings["fw_name"]
-
+    if not func_fw_out_kwargs:
+        func_fw_out_kwargs = func_kwargs
     task_list = []
     if atoms:
         if not isinstance(atoms, dict) and not isinstance(atoms, str):
@@ -127,7 +128,7 @@ def generate_firework(
             PyTask(
                 {
                     "func": fw.general_function_task.name,
-                    "args": [func_path, func_fw_out_path, *args],
+                    "args": [func, func_fw_out, *args],
                     "inputs": inputs,
                     "kwargs": kwargs,
                 }
