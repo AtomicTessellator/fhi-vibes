@@ -1,5 +1,6 @@
 """ run molecular dynamics simulations using the ASE classes """
 
+import shutil
 from pathlib import Path
 from subprocess import run
 from ase.calculators.socketio import SocketIOCalculator
@@ -9,12 +10,15 @@ from hilde.helpers.paths import cwd
 from hilde.helpers.compression import backup_folder
 
 
+_calc_dirname = "calculations"
+
+
 def run_md(
     atoms,
     calc,
     md,
     maxsteps=25000,
-    trajectory="trajectory.yaml",
+    trajectory=None,
     metadata="md_metadata.yaml",
     socketio_port=None,
     walltime=1800,
@@ -37,7 +41,11 @@ def run_md(
 
     watchdog = Watchdog(walltime=walltime)
 
-    trajectory = Path(trajectory).absolute()
+    if trajectory is None:
+        trajectory = (Path(workdir) / 'trajectory.yaml').absolute()
+    else:
+        trajectory = Path(trajectory).absolute()
+    calc_dir = Path(workdir) / _calc_dirname
 
     if socketio_port is None:
         socket_calc = None
@@ -50,11 +58,15 @@ def run_md(
     if logfile is not None:
         additional_files = [logfile]
 
-    if Path(workdir).exists():
-        backup_folder(workdir, additional_files=additional_files)
+    if calc_dir.exists():
+        backup_folder(
+            calc_dir,
+            target_folder=workdir,
+            additional_files=additional_files,
+        )
 
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
-        workdir, mkdir=True
+        calc_dir, mkdir=True
     ):
 
         if socketio_port is not None:
@@ -72,12 +84,19 @@ def run_md(
             md.run(1)
             step2file(atoms, atoms.calc, md, trajectory)
 
+    # backup and cleanup
+    backup_folder(
+        calc_dir,
+        target_folder=workdir,
+        additional_files=additional_files,
+    )
+
+    shutil.rmtree(calc_dir)
+
     # restart
     if md.nsteps < maxsteps:
         if restart_cmd is not None:
             print(f"restart with {restart_cmd}")
             run(restart_cmd.split())
     else:
-        # final backup
-        backup_folder(workdir, additional_files=additional_files)
         return True
