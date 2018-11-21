@@ -47,7 +47,7 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
         )
     elif step_settings.calculation_step.type == "phonons":
         if step_settings.fw['serial']:
-            if "db_path" in step_settings.db_storage:
+            if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
                 step_settings.function_kwargs["db_path"] = step_settings.db_storage.db_path
                 step_settings.function_kwargs["original_atom_hash"] = atoms_hash
             fw_list.append(
@@ -81,7 +81,7 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
                 )
             )
             kwargs = {"fireworks": True}
-            if "db_path" in step_settings.db_storage:
+            if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
                 kwargs["db_path"] = step_settings.db_storage.db_path
                 kwargs["original_atom_hash"] = atoms_hash
 
@@ -91,7 +91,7 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
                     kwargs[key] = step_settings.function_kwargs[key]
             fw_list.append(
                 generate_firework(
-                    "hilde.phonopy.workflow.postprocess",
+                    "hilde.phonopy.postprocess.postprocess",
                     "hilde.tasks.fireworks.fw_action_outs.return_null_general",
                     args=[],
                     inputs=["phonon", step_settings.fw["mod_spec_add"]],
