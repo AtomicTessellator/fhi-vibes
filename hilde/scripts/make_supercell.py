@@ -50,7 +50,8 @@ def main():
         exit("Please specify either a target cell size or a supercell matrix")
 
     print(f"\nSupercell matrix:")
-    print(" 1d: {}".format(np.array2string(smatrix.flatten(), separator=", ")))
+    print(" python:  {}".format(np.array2string(smatrix.flatten(), separator=", ")))
+    print(" cmdline: {}".format(' '.join([f'{el}' for el in smatrix.flatten()])))
     print(" 2d:")
     print_matrix(smatrix, indent=0)
 
