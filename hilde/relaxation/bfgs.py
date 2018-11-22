@@ -5,8 +5,12 @@ from ase.constraints import UnitCellFilter
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
-from hilde.helpers.paths import cwd
+from hilde.helpers.paths import cwd, move_to_dir
 from hilde.trajectory.relaxation import metadata2file, step2file
+from hilde.settings import default_config_name
+
+
+_calc_dirname = "calculation"
 
 
 def relax(
@@ -17,13 +21,12 @@ def relax(
     maxstep=0.2,
     unit_cell=True,
     maxsteps=100,
-    trajectory="bfgs_trajectory.yaml",
+    trajectory="trajectory.yaml",
     logfile="relax.log",
     socketio_port=None,
     walltime=1800,
     workdir=".",
     output="geometry.in.relaxed",
-    backup_settings=None,
     **kwargs
 ):
     """ run a BFGS relaxation
@@ -53,10 +56,15 @@ def relax(
 
     watchdog = Watchdog(walltime=walltime)
 
-    workdir = Path(workdir).absolute()
-    trajectory = Path(trajectory).absolute()
+    workdir = Path(workdir)
+    trajectory = (workdir / trajectory).absolute()
+    logfile = (workdir / logfile).absolute()
+    calc_dir = workdir / _calc_dirname
 
-    bfgs_settings = {"logfile": str(workdir / logfile), "maxstep": maxstep}
+    bfgs_settings = {"logfile": str(logfile), "maxstep": maxstep}
+
+    # backup configuration.cfg
+    move_to_dir(default_config_name, workdir)
 
     if "compute_forces" in calc.parameters:
         calc.parameters["compute_forces"] = True
@@ -79,12 +87,8 @@ def relax(
     else:
         opt_atoms = atoms
 
-    if backup_settings is not None:
-        with cwd(workdir, mkdir=True):
-            backup_settings.write()
-
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
-        workdir / "calculation", mkdir=True
+        calc_dir, mkdir=True
     ):
         if socketio_port is not None:
             atoms.calc = iocalc

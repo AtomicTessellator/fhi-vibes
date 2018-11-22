@@ -1,6 +1,10 @@
 import contextlib
-import os, sys
+import os
+import sys
 import functools
+from pathlib import Path
+from warnings import warn
+
 
 @contextlib.contextmanager
 def cwd(path, mkdir=False, debug=False):
@@ -25,6 +29,16 @@ def cwd(path, mkdir=False, debug=False):
     os.chdir(path)
     yield
     os.chdir(CWD)
+
+
+def move_to_dir(file, folder):
+    file = Path(file)
+    if file.exists():
+        folder.mkdir()
+        file.rename(folder / file)
+    else:
+        warn(f"** move_to_dir: {file} does not exist.")
+
 
 # would be nice to have?
 # def decor_cwd(path, mkdir=False, debug=False):
