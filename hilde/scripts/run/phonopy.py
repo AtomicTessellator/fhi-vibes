@@ -1,4 +1,4 @@
-from subprocess import run
+import subprocess as sp
 
 from ase.io import read
 
@@ -7,10 +7,9 @@ from hilde.settings import Settings, default_config_name
 from hilde.templates.aims import setup_aims
 
 
-def run(atoms, settings):
+def run(atoms, calc, settings):
     "run phonopy"
 
-    calc = setup_aims(settings=settings)
 
     completed = phonopy(
         atoms,
@@ -25,15 +24,16 @@ def run(atoms, settings):
 
 if __name__ == "__main__":
 
-    atoms = read("geometry.in", format="aims")
-
     settings = Settings(default_config_name, write=False)
 
-    converged = run(atoms, settings)
+    atoms = read("geometry.in", format="aims")
+    calc = setup_aims(settings=settings)
 
-    if not converged:
+    completed = run(atoms, calc, settings)
+
+    if not completed:
         if "restart" in settings:
-            run(settings.restart.command.split())
+            sp.run(settings.restart.command.split())
         else:
             print("Task not completed, please inspect and rerun.")
     else:

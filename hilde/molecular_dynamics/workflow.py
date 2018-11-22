@@ -7,7 +7,7 @@ from ase.calculators.socketio import SocketIOCalculator
 from hilde.trajectory.md import step2file, metadata2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd, move_to_dir
-from hilde.helpers.compression import backup_folder
+from hilde.helpers.compression import backup_folder as backup
 from hilde.settings import default_config_name
 
 
@@ -25,6 +25,7 @@ def run_md(
     socketio_port=None,
     walltime=1800,
     workdir=".",
+    backup_folder="backups",
     logfile="md.log",
     **kwargs,
 ):
@@ -46,6 +47,7 @@ def run_md(
     trajectory = (workdir / trajectory).absolute()
     logfile = workdir / logfile
     calc_dir = workdir / _calc_dirname
+    backup_folder = workdir / backup_folder
 
     # backup configuration.cfg
     if workdir.absolute() != Path().cwd():
@@ -77,8 +79,10 @@ def run_md(
         additional_files = [logfile]
 
     if calc_dir.exists():
-        backup_folder(
-            calc_dir, target_folder=workdir, additional_files=additional_files
+        backup(
+            calc_dir,
+            target_folder=backup_folder,
+            additional_files=additional_files,
         )
 
     something_happened = False
@@ -104,8 +108,10 @@ def run_md(
 
     # backup and cleanup if something new happened
     if something_happened:
-        backup_folder(
-            calc_dir, target_folder=workdir, additional_files=additional_files
+        backup(
+            calc_dir,
+            target_folder=backup_folder,
+            additional_files=additional_files,
         )
         shutil.rmtree(calc_dir)
 

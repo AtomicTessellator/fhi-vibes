@@ -9,7 +9,7 @@ from hilde.helpers.paths import cwd, move_to_dir
 import hilde.phonopy.wrapper as ph
 from hilde.trajectory.phonopy import metadata2file, step2file, last_from_yaml
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
-from hilde.helpers.compression import backup_folder
+from hilde.helpers.compression import backup_folder as backup
 from hilde.settings import default_config_name
 from .postprocess import postprocess
 
@@ -44,6 +44,7 @@ def phonopy(
     supercell_file="geometry.in.supercell",
     force_constants_file="force_constants.dat",
     pickle_file="phonon.pick",
+    backup_folder="backups",
     db_path=None,
     **kwargs,
     #    fingerprint_file="fingerprint.dat",
@@ -52,6 +53,7 @@ def phonopy(
 
     workdir = Path(workdir)
     trajectory = (workdir / trajectory).absolute()
+    backup_folder = workdir / backup_folder
     calc_dir = workdir / _calc_dirname
 
     watchdog = Watchdog(walltime=walltime, buffer=1)
@@ -114,7 +116,7 @@ def phonopy(
 
     # backup and restart if necessary
     if ii < len(scs) - 1:
-        backup_folder(calc_dir, target_folder=workdir)
+        backup_folder(calc_dir, target_folder=backup_folder)
         return False
 
     postprocess(
