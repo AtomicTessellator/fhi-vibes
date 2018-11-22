@@ -11,11 +11,13 @@ settings = Settings(["hilde.cfg", "phonopy.cfg"])
 
 calc = setup_aims(settings=settings)
 
-phonopy(
+completed = phonopy(
     atoms,
     calc,
     socketio_port=settings.socketio.port,
     kpt_density=settings.control_kpt.density,
-    backup_settings=settings,
     **settings.phonopy
 )
+
+if not completed:
+    print("Job not completed, check and rerun.")

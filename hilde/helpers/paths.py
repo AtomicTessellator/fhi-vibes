@@ -31,10 +31,10 @@ def cwd(path, mkdir=False, debug=False):
     os.chdir(CWD)
 
 
-def move_to_dir(file, folder):
+def move_to_dir(file, folder, exist_ok=False):
     file = Path(file)
     if file.exists():
-        folder.mkdir()
+        folder.mkdir(exist_ok=exist_ok)
         file.rename(folder / file)
     else:
         warn(f"** move_to_dir: {file} does not exist.")

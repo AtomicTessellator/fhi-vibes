@@ -19,7 +19,6 @@ def postprocess(
     trajectory="phonopy_trajectory.yaml",
     workdir=".",
     force_constants_file="force_constants.dat",
-    bandstructure_file="bandstructure.pdf",
     displacement=0.01,
     fireworks=False,
     pickle_file="phonon.pick",
@@ -67,10 +66,6 @@ def postprocess(
             sc_matrix_2=list(phonon.get_supercell_matrix().flatten()),
             **kwargs
         )
-
-    # save a plot of the bandstrucuture
-    if bandstructure_file is not None:
-        ph.plot_bandstructure(phonon, Path(workdir) / bandstructure_file)
 
 
 def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):

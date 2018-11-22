@@ -1,16 +1,16 @@
 """ Provide a full highlevel phonopy workflow """
 
-import sys
 from pathlib import Path
 
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.helpers.k_grid import update_k_grid
-from hilde.helpers.paths import cwd
+from hilde.helpers.paths import cwd, move_to_dir
 import hilde.phonopy.wrapper as ph
 from hilde.trajectory.phonopy import metadata2file, step2file, last_from_yaml
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.compression import backup_folder
+from hilde.settings import default_config_name
 from .postprocess import postprocess
 
 
@@ -36,30 +36,28 @@ def phonopy(
     supercell_matrix,
     kpt_density=None,
     displacement=0.01,
-    trajectory="phonopy_trajectory.yaml",
+    trajectory="trajectory.yaml",
     socketio_port=None,
     walltime=1800,
     workdir=".",
     primitive_file="geometry.in.primitive",
     supercell_file="geometry.in.supercell",
     force_constants_file="force_constants.dat",
-    bandstructure_file="bandstructure.pdf",
     pickle_file="phonon.pick",
     db_path=None,
-    backup_settings=None,
-    restart_command=None,
     **kwargs,
     #    fingerprint_file="fingerprint.dat",
 ):
     """ perform a full phonopy calculation """
 
-    trajectory = Path(trajectory).absolute()
-    calc_dir = Path(workdir) / _calc_dirname
+    workdir = Path(workdir)
+    trajectory = (workdir / trajectory).absolute()
+    calc_dir = workdir / _calc_dirname
 
     watchdog = Watchdog(walltime=walltime, buffer=1)
 
-    if Path(workdir).exists():
-        print(f"***Caution, directory {workdir} exists, chance of data loss.")
+    # backup configuration.cfg
+    move_to_dir(default_config_name, workdir, exist_ok=True)
 
     # Phonopy preprocess
     phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
@@ -82,10 +80,7 @@ def phonopy(
     # save input geometries and configuration
     with cwd(workdir, mkdir=True):
         atoms.write(primitive_file, format="aims", scaled=True)
-        supercell.write(supercell_file, format="aims", scaled=True)
-
-        if backup_settings is not None:
-            backup_settings.write()
+        supercell.write(supercell_file, format="aims", scaled=False)
 
     # perform calculation
     with cwd(calc_dir, mkdir=True):
@@ -119,23 +114,20 @@ def phonopy(
     # backup and restart if necessary
     if ii < len(scs) - 1:
         backup_folder(calc_dir, target_folder=workdir)
-        if restart_command is not None:
-            print(f"restart with {restart_command}")
-            run(restart_command.split())
-        else:
-            sys.exit("**Watchdog: running out of time! No restart script.")
+        return False
 
     postprocess(
         phonon,
         trajectory=trajectory,
         workdir=workdir,
         force_constants_file=force_constants_file,
-        bandstructure_file=bandstructure_file,
         pickle_file=pickle_file,
         db_path=db_path,
         **kwargs,
         # fingerprint_file=fingerprint_file,
     )
+
+    return True
 
 
 def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):
