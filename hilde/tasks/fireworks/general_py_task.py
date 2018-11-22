@@ -4,6 +4,7 @@ from fireworks import Firework, PyTask
 
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
+from hilde.helpers.k_grid import update_k_grid
 from hilde.tasks import fireworks as fw
 
 module_name = __name__
@@ -70,6 +71,9 @@ def generate_firework(
             calc_dict = calc2dict(calc)
         else:
             calc_dict = calc
+        if isinstance(calc_dict, dict):
+            for key, val in calc_dict.items():
+                atoms_dict[key] = val
 
         if not update_calc_settings:
             update_calc_settings = {}
@@ -91,6 +95,17 @@ def generate_firework(
                     }
                 )
             )
+            if "kpoint_density_spec" in fw_settings:
+                task_list.append(
+                    PyTask(
+                        {
+                            "func": fw.mod_calc.name,
+                            "args": ["k_grid_density"],
+                            "inputs": [calc_dict, fw_settings["kpoint_density_spec"], atoms_dict],
+                            "kwargs": {"spec_key": fw_settings["kpoint_density_spec"]}
+                        }
+                    )
+                )
         else:
             for key, val in update_calc_settings.items():
                 if key == "command":
@@ -99,11 +114,24 @@ def generate_firework(
                     sd = calc_dict["calculator_parameters"]["species_dir"].split("/")
                     sd[-1] = val
                     calc_dict["calculator_parameters"]["species_dir"] = "/".join(sd)
+                elif key == "k_grid_density":
+                    update_k_grid(atoms, calc, new_val)
                 else:
                     if val is None and key in calc_dict["calculator_parameters"]:
                         del(calc_dict["calculator_parameters"][key])
                     elif val is not None:
                         calc_dict["calculator_parameters"][key] = val
+            if "kpoint_density_spec" in fw_settings:
+                task_list.append(
+                    PyTask(
+                        {
+                            "func": fw.mod_calc.name,
+                            "args": ["k_grid_density", calc_dict],
+                            "inputs":[fw_settings["kpoint_density_spec"]],
+                            "kwargs": {"atoms": atoms_dict, "spec_key": fw_settings["kpoint_density_spec"]}
+                        }
+                    )
+                )
             pt_args += [atoms_dict, calc_dict]
             pt_inputs = []
         pt_kwargs = {"fw_settings": fw_settings}
@@ -187,6 +215,7 @@ def atoms_calculate_task(
     del(atoms_dict['results'])
     atoms = dict2atoms(atoms_dict)
 
+    print(atoms.calc.parameters)
     outputs = func(atoms, atoms.calc, **func_kwargs)
 
     return func_fw_out(atoms_dict, calc_dict, outputs, func_path, func_fw_out_path, func_kwargs, func_fw_out_kwargs, fw_settings)

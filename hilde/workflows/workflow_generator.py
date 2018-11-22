@@ -1,5 +1,5 @@
-from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.hash import hash_atoms
+from hilde.helpers.k_grid import update_k_grid
 from hilde.phonopy.workflow import phonopy
 from hilde.relaxation.bfgs import relax
 from hilde.settings import Settings
@@ -16,14 +16,14 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
     atoms.set_calculator(calc)
     atoms_hash, calc_hash = hash_atoms(atoms)
     fw_list = []
-    if not step_settings.fw.from_db:
+    if "from_db" not in step_settings.fw or not step_settings.fw.from_db:
         at = atoms
         cl = calc
     else:
         at = step_settings.fw.in_spec_atoms
         cl = step_settings.fw.in_spec_calc
     if step_settings.calculation_step.type == "relaxation":
-        if "db_path" in step_settings.db_storage:
+        if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
             db_kwargs = {
                 "db_path": step_settings.db_storage.db_path,
                 "calc_type": f"relaxation_{settings.basisset.type}",
@@ -43,6 +43,18 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
                 atoms_calc_from_spec= step_settings.fw.from_db,
                 fw_settings=step_settings.fw,
                 update_calc_settings=step_settings.control,
+            )
+        )
+    elif step_settings.calculation_step.type == "kgrid_opt":
+        fw_list.append(
+            generate_firework(
+                "hilde.auto_tune_params.k_grid.converge_kgrid.converge_kgrid",
+                "hilde.tasks.fireworks.fw_action_outs.kgrid_opt_fw_out",
+                step_settings.function_kwargs,
+                at,
+                cl,
+                fw_settings=step_settings.fw,
+                update_calc_settings=None,
             )
         )
     elif step_settings.calculation_step.type == "phonons":

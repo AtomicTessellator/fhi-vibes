@@ -1,21 +1,30 @@
 from fireworks import FWAction, PyTask, Firework
+from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.hash import hash_atoms
 from hilde.phonon_db.phonon_db import connect
 from hilde.parsers.structure import read_structure
-from hilde.helpers.converters import atoms2dict, dict2atoms
+from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
 from hilde.tasks import fireworks as fw
 
 module_name = __name__
 
-def mod_calc(param_key, calc, new_val, spec_key=None):
+def mod_calc(param_key, calc, new_val, atoms=None, spec_key=None):
     if param_key is "command":
         calc[param_key] = new_val
-    elif key == "basisset_type":
+    elif param_key == "basisset_type":
         sd = calc["calculator_parameters"]["species_dir"].split("/")
         sd[-1] = val
         calc["calculator_parameters"]["species_dir"] = "/".join(sd)
+    elif param_key == "k_grid_density":
+        for key, val in calc.items():
+            atoms[key] = val
+        atoms = dict2atoms(atoms)
+        calc = atoms.calc
+        update_k_grid(atoms, calc, new_val)
+        calc = calc2dict(atoms.calc)
     else:
         calc["calculator_parameters"][param_key] = new_val
+    print("mod_calc", calc)
     up_spec = {"calculator": calc}
     if spec_key:
         up_spec[spec_key] = new_val
@@ -29,20 +38,26 @@ def update_calc_in_db(calc_spec, update_calc_params, calc):
             sd = calc["calculator_parameters"]["species_dir"].split("/")
             sd[-1] = val
             calc["calculator_parameters"]["species_dir"] = "/".join(sd)
+        elif key == "k_grid_density":
+            for key, val in calc.items():
+                atoms[key] = val
+            atoms = dict2atoms(atoms)
+            calc = atoms.calc
+            update_k_grid(atoms, calc, new_val)
+            calc = calc2dict(atoms.calc)
         else:
             if val is None and key in calc["calculator_parameters"]:
                 del(calc["calculator_parameters"][key])
             elif val is not None:
+                print(calc)
                 calc["calculator_parameters"][key] = val
     return FWAction(update_spec={calc_spec: calc})
 
 def add_result_to_spec(result_key, spec_key, atoms_calc):
     return FWAction(update_spec={spec_key: atoms_calc["results"][result_key]})
 
-
 def transfer_spec(key, val):
     return FWAction(update_spec={key: val})
-
 
 def check_convergence(
     prop_spec,

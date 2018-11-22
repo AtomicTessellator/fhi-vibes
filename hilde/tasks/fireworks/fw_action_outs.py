@@ -61,6 +61,58 @@ def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, 
     fw = generate_firework(func, func_fw_out, func_kwargs, atoms, calc, func_fw_out_kwargs=func_fw_kwargs, fw_settings=fw_settings)
     return FWAction(detours=[fw])
 
+def kgrid_opt_fw_out(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
+    '''
+    A function that checks if an MD like calculation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the MD
+    Args:
+        atoms: ASE Atoms object
+            The original atoms at the start of this job
+        calc: ASE Calculator object
+            The original calculator
+        outputs:
+            The outputs from the function (assumes to be a single bool output)
+        func: str
+            Path to function that performs the MD like operation
+        func_fw_out: str
+            Path to this function
+        func_kwargs: dict
+            keyword arguments for func
+        fw_settings: dict
+            FireWorks specific settings
+    '''
+    last_step_dict = last_from_yaml(func_kwargs["trajectory"])
+    for key, val in last_step_dict['atoms'].items():
+        atoms[key] = val
+    calc["results"] = last_step_dict['calculator']
+    for key, val in calc.items():
+        atoms[key] = val
+    next_step = last_step_dict['opt']['nsteps'] + 1
+    print(outputs[0])
+    if outputs[0]:
+        up_spec = {
+            fw_settings["out_spec_k_den"]: outputs[1],
+            fw_settings["out_spec_atoms"]: atoms,
+            fw_settings["out_spec_calc"]: calc2dict(outputs[2]),
+        }
+        return FWAction(update_spec=up_spec)
+
+    fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(next_step)
+    if fw_settings["to_launcpad"]:
+        fw_settings["to_launcpad"] = False
+    new_traj_list = func_kwargs["trajectory"].split(".")
+    try:
+        temp_list = new_traj_list[-2].split("_")
+        temp_list[-1] = str(int(temp_list[-1]) + 1)
+        new_traj_list[-2] = "_".join(temp_list)
+        func_kwargs["trajectory"] = ".".join(new_traj_list)
+    except:
+        new_traj_list[-2] += "_restart_1"
+        func_kwargs["trajectory"] = ".".join(new_traj_list)
+    print(outputs[2].parameters['k_grid'])
+
+    fw = generate_firework(func, func_fw_out, func_kwargs, atoms, outputs[2], func_fw_out_kwargs=func_fw_kwargs, fw_settings=fw_settings)
+    return FWAction(detours=[fw])
+
 def return_null_atoms(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
     '''
     A function that does not change the FireWorks Workflow upon completion
@@ -121,6 +173,8 @@ def fw_out_initialize_phonopy(atoms, calc, outputs, func, func_fw_out, func_kwar
     '''
     detours = []
     calc_dict = calc
+    if "kpoint_density_spec" in fw_settings:
+        del(fw_settings["kpoint_density_spec"])
     for i,sc in enumerate(outputs[2]):
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
