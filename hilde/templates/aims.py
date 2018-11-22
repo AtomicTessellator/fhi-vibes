@@ -26,6 +26,7 @@ def setup_aims(
         settings = Settings(config_file)
 
     default_settings = {**settings.control}
+
     ase_settings = {
         "aims_command": settings.machine.aims_command,
         "species_dir": path.join(settings.machine.basissetloc, settings.basisset.type),

@@ -171,7 +171,7 @@ def claunch():
             "hilde.tasks.fireworks.single_point.calculate",
             "hilde.relaxation.bfgs.relax",
             "hilde.phonopy.workflow.phonopy",
-            "hilde.auto_tune_parameters.kgrid.converage_kgrid.converge_kgrid"
+            "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid",
         ],
         help="list of tasks to be sent to the queue",
     )

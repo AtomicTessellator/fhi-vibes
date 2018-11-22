@@ -24,7 +24,6 @@ def make_workdir(smat, volume):
 
 settings = Settings('../../hilde.cfg')
 aims_settings = {
-    'command': settings.machine.aims_command,
     'species_dir': str(Path(settings.machine.basissetloc) / 'light'),
     'output_level': 'MD_light',
     'relativistic': 'atomic_zora scalar',
@@ -80,7 +79,7 @@ for ii, eb in enumerate(elec_b):
 
 # Phonons
 # Set up the phonopy objects
-atoms = read_structure('../phonons/geometry.in')
+atoms = read_structure('geometry.in')
 vol = atoms.get_volume()
 smatrix = np.array([[-1, 1, 1],
                     [1, -1, 1],
@@ -93,7 +92,7 @@ phonon_calcs = [ph.preprocess(atoms, sm)+(make_workdir(sm, vol),) for sm in smat
 # Calculate the Forces
 fp_list = []
 for phonon, sc, scs, wd in phonon_calcs:
-    scs = calculate_multiple(scs, calc, wd, force=True)
+    scs = calculate_multiple(scs, calc, wd)
     phonon.set_forces([sc.get_forces() for sc in scs])
     phonon.produce_force_constants()
 

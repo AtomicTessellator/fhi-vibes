@@ -7,11 +7,14 @@ from hilde.tasks.fireworks.general_py_task import generate_firework
 from hilde.templates.aims import setup_aims
 
 def get_step_fw(config_file, hilde_defaults_config_file, atoms):
-    settings = Settings(hilde_defaults_config_file, write=False)
-    step_settings = Settings(config_file, write=False)
+    settings = Settings(hilde_defaults_config_file)
+    step_settings = Settings(config_file)
+
     if "basisset" in step_settings:
         step_settings.control["basisset_type"] = step_settings.basisset.type
+
     calc = setup_aims(settings=settings)
+
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
     atoms_hash, calc_hash = hash_atoms(atoms)
@@ -22,6 +25,14 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
     else:
         at = step_settings.fw.in_spec_atoms
         cl = step_settings.fw.in_spec_calc
+
+    if "fw_spec" in step_settings:
+        step_settings.fw["spec"] = dict(step_settings.fw.fw_spec)
+    else:
+        step_settings.fw["spec"] = {}
+    if "fw_spec_qadapter" in step_settings:
+        step_settings.fw["spec"]["_queueadapter"] = dict(step_settings.fw.fw_spec_qadapter)
+
     if step_settings.calculation_step.type == "relaxation":
         if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
             db_kwargs = {
@@ -48,7 +59,7 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
     elif step_settings.calculation_step.type == "kgrid_opt":
         fw_list.append(
             generate_firework(
-                "hilde.auto_tune_params.k_grid.converge_kgrid.converge_kgrid",
+                "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid",
                 "hilde.tasks.fireworks.fw_action_outs.kgrid_opt_fw_out",
                 step_settings.function_kwargs,
                 at,

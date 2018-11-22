@@ -9,7 +9,7 @@ import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
-from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
+from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy, to_dict
 from hilde.phonopy import enumerate_displacements, displacement_id_str
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.maths import get_3x3_matrix
@@ -224,9 +224,9 @@ def summarize_bandstructure(phonon, fp_file=None):
     if fp_file:
         print(f"Saving the fingerprint to {fp_file}")
         fp = get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
-        fp_dict = {}
-        for freq, pt in zip(fp[0], fp[2]):
-            fp_dict[pt] = freq.tolist()
+        fp_dict = to_dict(fp)
+        for key,val in fp_dict.items():
+            fp_dict[key] = val.tolist()
         with open(fp_file, 'w') as outfile:
             json.dump(fp_dict, outfile, indent=4)
     print(f"The maximum frequency is: {max_freq}")

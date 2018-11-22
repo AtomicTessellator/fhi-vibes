@@ -351,14 +351,24 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False):
     Returns: float
         The dot product
     """
+    if not isinstance(fp1, dict):
+        fp1_dict = to_dict(fp1)
+    else:
+        fp1_dict = fp1
+    if not isinstance(fp2, dict):
+        fp2_dict = to_dict(fp2)
+    else:
+        fp2_dict = fp2
     rescale = 1.0
-    if pt == "All":
+    if pt == 'All':
+        vec1 = np.array([pt[col] for pt in fp1_dict.values()]).flatten()
+        vec2 = np.array([pt[col] for pt in fp2_dict.values()]).flatten()
         if normalize:
-            rescale = np.linalg.norm(fp1[col].flatten()) * np.linalg.norm(fp2[col].flatten())
-        return np.dot(fp1[col].flatten(), fp2[col].flatten()) / rescale
+            rescale = np.linalg.norm(vec1) * np.linalg.norm(vec1)
+        return np.dot(vec1, vec2) / rescale
     if normalize:
-        rescale = np.linalg.norm(fp1[col][pt]) * np.linalg.norm(fp2[col][pt])
-    return np.dot(fp1[col][pt], fp2[col][pt]) / rescale
+        rescale = np.linalg.norm(fp1_dict[fp1[2][pt]][col]) * np.linalg.norm(fp2_dict[fp2[2][pt]][col])
+    return np.dot(fp1_dict[fp1[2][pt]][col], fp2_dict[fp2[2][pt]][col]) / rescale
 
 
 def to_dict(fp, to_mongo=False):
