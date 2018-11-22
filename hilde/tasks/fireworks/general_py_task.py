@@ -215,7 +215,6 @@ def atoms_calculate_task(
     del(atoms_dict['results'])
     atoms = dict2atoms(atoms_dict)
 
-    print(atoms.calc.parameters)
     outputs = func(atoms, atoms.calc, **func_kwargs)
 
     return func_fw_out(atoms_dict, calc_dict, outputs, func_path, func_fw_out_path, func_kwargs, func_fw_out_kwargs, fw_settings)

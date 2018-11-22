@@ -12,7 +12,7 @@ workflow = Settings(["workflow.cfg"])
 print(workflow)
 fw_list = []
 for config_file in workflow.workflow.step_files.split(","):
-    for fw in get_step_fw(config_file, "hilde.cfg", atoms):
+    for fw in get_step_fw(config_file, "../../../hilde.cfg", atoms):
         fw_list.append(fw)
 
 fw_dep = {}

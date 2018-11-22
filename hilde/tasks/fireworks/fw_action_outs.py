@@ -1,4 +1,5 @@
 from fireworks import FWAction
+from pathlib import Path
 
 from hilde.helpers.converters import calc2dict, atoms2dict
 from hilde.helpers.fileformats import last_from_yaml
@@ -26,7 +27,13 @@ def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, 
         fw_settings: dict
             FireWorks specific settings
     '''
-    last_step_dict = last_from_yaml(func_kwargs["trajectory"])
+    if "trajectory" in func_kwargs:
+        last_step_dict = last_from_yaml(func_kwargs["trajectory"])
+    elif "workdir" in func_kwargs:
+        last_step_dict = last_from_yaml(Path(func_kwargs["workdir"] + "/trajectory.yaml").absolute())
+    else:
+        last_step_dict = last_from_yaml(Path("./trajectory.yaml").absolute())
+
     for key, val in last_step_dict['atoms'].items():
         atoms[key] = val
     calc["results"] = last_step_dict['calculator']
@@ -47,9 +54,15 @@ def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, 
         return FWAction(update_spec={fw_settings["out_spec_atoms"]: atoms, fw_settings["out_spec_calc"]: calc})
     del(calc['results']['forces'])
     fw_settings["fw_name"] = fw_settings["fw_base_name"]+ str(next_step)
-    if fw_settings["to_launcpad"]:
+    if "to_launchpad" in fw_settings and fw_settings["to_launcpad"]:
         fw_settings["to_launcpad"] = False
-    new_traj_list = func_kwargs["trajectory"].split(".")
+    if "trajectory" in func_kwargs:
+        new_traj_list = func_kwargs["trajectory"].split(".")
+    elif "workdir" in func_kwargs:
+        new_traj_list = str(Path(func_kwargs["workdir"] + "/trajectory.yaml").absolute()).split(".")
+    else:
+        new_traj_list = str(Path("." + "/trajectory.yaml").absolute()).split(".")
+
     try:
         temp_list = new_traj_list[-2].split("_")
         temp_list[-1] = str(int(temp_list[-1]) + 1)
@@ -58,6 +71,12 @@ def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, 
     except:
         new_traj_list[-2] += "_restart_1"
         func_kwargs["trajectory"] = ".".join(new_traj_list)
+    fw = generate_firework(func, func_fw_out, func_kwargs, atoms, calc, func_fw_out_kwargs=func_fw_kwargs, fw_settings=fw_settings)
+    return FWAction(detours=[fw])
+
+def run_phonopy_fw_out(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
+    if outputs:
+        return FWAction()
     fw = generate_firework(func, func_fw_out, func_kwargs, atoms, calc, func_fw_out_kwargs=func_fw_kwargs, fw_settings=fw_settings)
     return FWAction(detours=[fw])
 
@@ -87,7 +106,6 @@ def kgrid_opt_fw_out(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_
     for key, val in calc.items():
         atoms[key] = val
     next_step = last_step_dict['opt']['nsteps'] + 1
-    print(outputs[0])
     if outputs[0]:
         up_spec = {
             fw_settings["out_spec_k_den"]: outputs[1],
@@ -108,7 +126,6 @@ def kgrid_opt_fw_out(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_
     except:
         new_traj_list[-2] += "_restart_1"
         func_kwargs["trajectory"] = ".".join(new_traj_list)
-    print(outputs[2].parameters['k_grid'])
 
     fw = generate_firework(func, func_fw_out, func_kwargs, atoms, outputs[2], func_fw_out_kwargs=func_fw_kwargs, fw_settings=fw_settings)
     return FWAction(detours=[fw])

@@ -9,7 +9,7 @@ from hilde.templates.aims import setup_aims
 
 atoms = read("geometry.in")
 
-settings = Settings(["hilde.cfg", "relax.cfg", "fireworks.cfg"])
+settings = Settings(["../../../hilde.cfg", "relax.cfg", "fireworks.cfg"])
 
 calc = setup_aims(settings=settings)
 

@@ -13,8 +13,8 @@ from hilde.templates.aims import setup_aims
 
 atoms = read("si.in")
 
-settings = Settings(["hilde.cfg", "phonopy.cfg"])
-fw_settings = dict(Settings(['fireworks.cfg']))['fw_phonon']
+settings = Settings(["phonopy.cfg", "../../../hilde.cfg"])
+fw_settings = dict(Settings(['fireworks.cfg'], write=False))['fw_phonon']
 calc = setup_aims(settings=settings)
 
 update_k_grid(atoms, calc, settings.control_kpt.density)
@@ -26,7 +26,7 @@ if fw_settings['serial']:
         settings.phonopy["original_atom_hash"] = atoms_hash
     fw = generate_firework(
         "hilde.phonopy.workflow.phonopy",
-        "hilde.tasks.fireworks.fw_action_outs.return_null_atoms",
+        "hilde.tasks.fireworks.fw_action_outs.run_phonopy_fw_out",
         dict(settings.phonopy),
         atoms,
         calc,

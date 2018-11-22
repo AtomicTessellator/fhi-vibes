@@ -7,8 +7,8 @@ from hilde.tasks.fireworks.general_py_task import generate_firework
 from hilde.templates.aims import setup_aims
 
 def get_step_fw(config_file, hilde_defaults_config_file, atoms):
-    settings = Settings(hilde_defaults_config_file)
-    step_settings = Settings(config_file)
+    settings = Settings(hilde_defaults_config_file, write=False)
+    step_settings = Settings(config_file, write=False)
     if "basisset" in step_settings:
         step_settings.control["basisset_type"] = step_settings.basisset.type
     calc = setup_aims(settings=settings)
@@ -65,7 +65,7 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
             fw_list.append(
                 generate_firework(
                     "hilde.phonopy.workflow.phonopy",
-                    "hilde.tasks.fireworks.fw_action_outs.return_null_atoms",
+                    "hilde.tasks.fireworks.fw_action_outs.run_phonopy_fw_out",
                     dict(step_settings.function_kwargs),
                     at,
                     cl,

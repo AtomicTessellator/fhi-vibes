@@ -24,7 +24,6 @@ def mod_calc(param_key, calc, new_val, atoms=None, spec_key=None):
         calc = calc2dict(atoms.calc)
     else:
         calc["calculator_parameters"][param_key] = new_val
-    print("mod_calc", calc)
     up_spec = {"calculator": calc}
     if spec_key:
         up_spec[spec_key] = new_val
@@ -49,7 +48,6 @@ def update_calc_in_db(calc_spec, update_calc_params, calc):
             if val is None and key in calc["calculator_parameters"]:
                 del(calc["calculator_parameters"][key])
             elif val is not None:
-                print(calc)
                 calc["calculator_parameters"][key] = val
     return FWAction(update_spec={calc_spec: calc})
 
