@@ -6,8 +6,9 @@ from subprocess import run
 from ase.calculators.socketio import SocketIOCalculator
 from hilde.trajectory.md import step2file, metadata2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
-from hilde.helpers.paths import cwd
+from hilde.helpers.paths import cwd, move_to_dir
 from hilde.helpers.compression import backup_folder
+from hilde.settings import default_config_name
 
 
 _calc_dirname = "calculations"
@@ -16,15 +17,15 @@ _calc_dirname = "calculations"
 def run_md(
     atoms,
     calc,
-    md,
+    md=None,
+    restart=True,
     maxsteps=25000,
-    trajectory=None,
+    trajectory="trajectory.yaml",
     metadata="md_metadata.yaml",
     socketio_port=None,
     walltime=1800,
     workdir=".",
-    logfile=None,
-    restart_command=None,
+    logfile="md.log",
     **kwargs,
 ):
     """ run and MD for a specific time
@@ -41,11 +42,27 @@ def run_md(
 
     watchdog = Watchdog(walltime=walltime)
 
-    if trajectory is None:
-        trajectory = (Path(workdir) / 'trajectory.yaml').absolute()
-    else:
-        trajectory = Path(trajectory).absolute()
-    calc_dir = Path(workdir) / _calc_dirname
+    workdir = Path(workdir)
+    trajectory = (workdir / trajectory).absolute()
+    logfile = workdir / logfile
+    calc_dir = workdir / _calc_dirname
+
+    # backup configuration.cfg
+    move_to_dir(default_config_name, workdir, exist_ok=True)
+
+    if restart:
+        from hilde.molecular_dynamics import setup_md
+
+        md_settings = {
+            **kwargs,
+            "logfile": str(logfile),
+            "trajectory": trajectory,
+            "workdir": workdir,
+        }
+        atoms, md, prepared = setup_md(atoms, **md_settings)
+
+    if md is None:
+        raise RuntimeError("ASE MD algorithm has to be given")
 
     if socketio_port is None:
         socket_calc = None
@@ -60,11 +77,10 @@ def run_md(
 
     if calc_dir.exists():
         backup_folder(
-            calc_dir,
-            target_folder=workdir,
-            additional_files=additional_files,
+            calc_dir, target_folder=workdir, additional_files=additional_files
         )
 
+    something_happened = False
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
         calc_dir, mkdir=True
     ):
@@ -81,22 +97,18 @@ def run_md(
         metadata2file(atoms, calc, md, file=metadata)
 
         while not watchdog() and md.nsteps < maxsteps:
+            something_happened = True
             md.run(1)
             step2file(atoms, atoms.calc, md, trajectory)
 
-    # backup and cleanup
-    backup_folder(
-        calc_dir,
-        target_folder=workdir,
-        additional_files=additional_files,
-    )
-
-    shutil.rmtree(calc_dir)
+    # backup and cleanup if something new happened
+    if something_happened:
+        backup_folder(
+            calc_dir, target_folder=workdir, additional_files=additional_files
+        )
+        shutil.rmtree(calc_dir)
 
     # restart
     if md.nsteps < maxsteps:
-        if restart_command is not None:
-            print(f"restart with {restart_command}")
-            run(restart_command.split())
-    else:
-        return True
+        return False
+    return True
