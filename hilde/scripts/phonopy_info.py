@@ -48,7 +48,7 @@ def main():
     args = parser.parse_args()
 
     suffix = Path(args.infile).suffix
-    if suffix == ".py":
+    if suffix == ".in":
         preprocess(args)
 
     elif suffix == ".pick" or suffix == ".gz":
