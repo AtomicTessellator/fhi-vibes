@@ -1,23 +1,16 @@
 """ Summarize output from ASE.md class (in md.log) """
 
-import json
 from argparse import ArgumentParser
-import numpy as np
-from ase.io import read
-from hilde.settings import Settings
-import hilde.phonopy.wrapper as ph
+from pathlib import Path
 
 
-def main():
-    """ main routine """
-    parser = ArgumentParser(description="convert yaml file to json")
-    parser.add_argument("geometry", help="primitive structure")
-    parser.add_argument("--dim", type=int, nargs="*", default=None)
-    parser.add_argument("--config_file", default="phonopy.cfg")
-    parser.add_argument("--format", default="aims")
-    args = parser.parse_args()
+def preprocess(args):
+    import numpy as np
+    from ase.io import read
+    from hilde.settings import Settings
+    import hilde.phonopy.wrapper as ph
 
-    atoms = read(args.geometry, format=args.format)
+    atoms = read(args.infile, format=args.format)
 
     _, _, scs_ref = ph.preprocess(atoms, supercell_matrix=1)
 
@@ -34,6 +27,32 @@ def main():
     print(f"  Supercell matrix:        {sc_str}")
     print(f"  Number of atoms in SC:   {len(sc)}")
     print(f"  Number of displacements: {len(scs)} ({len(scs_ref)})")
+
+
+def postprocess(args):
+    from hilde.helpers.pickletools import pread
+    from hilde.phonopy.wrapper import plot_bandstructure
+
+    phonon = pread(args.infile)
+
+    plot_bandstructure(phonon, file="bandstructure.pdf")
+
+
+def main():
+    """ main routine """
+    parser = ArgumentParser(description="information about phonopy task")
+    parser.add_argument("infile", help="primitive structure or pickled phonopy")
+    parser.add_argument("--dim", type=int, nargs="*", default=None)
+    parser.add_argument("--config_file", default="phonopy.cfg")
+    parser.add_argument("--format", default="aims")
+    args = parser.parse_args()
+
+    suffix = Path(args.infile).suffix
+    if suffix == ".py":
+        preprocess(args)
+
+    elif suffix == ".pick" or suffix == ".gz":
+        postprocess(args)
 
 
 if __name__ == "__main__":
