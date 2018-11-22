@@ -24,7 +24,7 @@ def run(atoms, settings):
 
 if __name__ == "__main__":
     atoms = read("si.in", format="aims")
-    settings = Settings(["hilde.cfg", "md.cfg"])
+    settings = Settings(["../../hilde.cfg", "md.cfg"])
 
     converged = run(atoms, settings)
 

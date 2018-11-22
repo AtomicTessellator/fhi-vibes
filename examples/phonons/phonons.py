@@ -7,7 +7,7 @@ from hilde.phonopy.workflow import phonopy
 
 atoms = read("si.in")
 
-settings = Settings(["hilde.cfg", "phonopy.cfg"])
+settings = Settings(["../../hilde.cfg", "phonopy.cfg"])
 
 calc = setup_aims(settings=settings)
 
