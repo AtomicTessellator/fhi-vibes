@@ -27,7 +27,6 @@ setup(
             "make_supercell = hilde.scripts.make_supercell:main",
             "phonopy_info= hilde.scripts.phonopy_info:main",
             "hilde_single_task= hilde.scripts.hilde_single_task:main",
-            "phonopy_plot_bandstructure= hilde.scripts.phonopy_plot_bandstructure:main",
             "md_sum= hilde.scripts.md_sum:main",
             "yaml2json= hilde.scripts.yaml2json:main",
             "refine_geometry = hilde.scripts.refine_geometry:main",
