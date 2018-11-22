@@ -60,7 +60,6 @@ def main():
     print(f"Run script written to: {script}")
 
     if "restart" in settings:
-        print(settings.restart.command.split()[-1], script.name)
         if settings.restart.command.split()[-1] != script.name:
             print(f"** Check restart command in {config_outfile}")
 
