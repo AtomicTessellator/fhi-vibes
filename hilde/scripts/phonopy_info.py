@@ -32,11 +32,12 @@ def preprocess(args):
 def postprocess(args):
     from hilde.helpers.pickletools import pread
     from hilde.phonopy.wrapper import plot_bandstructure
+    from hilde.phonopy.wrapper import smmerize_bandstructure
 
     phonon = pread(args.infile)
 
     plot_bandstructure(phonon, file="bandstructure.pdf")
-
+    smmerize_bandstructure(phonon, fp_file=args.fp_file)
 
 def main():
     """ main routine """
@@ -45,6 +46,7 @@ def main():
     parser.add_argument("--dim", type=int, nargs="*", default=None)
     parser.add_argument("--config_file", default="phonopy.cfg")
     parser.add_argument("--format", default="aims")
+    parser.add_argument("--fp_file", default=None, help="File to store the fingerprint")
     args = parser.parse_args()
 
     suffix = Path(args.infile).suffix

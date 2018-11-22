@@ -3,11 +3,13 @@ A leightweight wrapper for Phonopy()
 """
 
 from collections import namedtuple
+import json
 from pathlib import Path
 import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
+from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.phonopy import enumerate_displacements, displacement_id_str
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.maths import get_3x3_matrix
@@ -134,7 +136,6 @@ def _postprocess_init(phonon, force_sets=None):
         else:
             exit("** Cannot run postprocess, force_sets have not been provided.")
 
-
 def get_dos(
     phonon,
     q_mesh=[10, 10, 10],
@@ -163,7 +164,6 @@ def get_dos(
         tuple: (frequencies, DOS)
 
     """
-
     _postprocess_init(phonon, force_sets)
 
     phonon.set_mesh(q_mesh)
@@ -202,7 +202,6 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
     return (*phonon.get_band_structure(), labels)
 
-
 def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
     """ Plot bandstructure for given path and save to file """
 
@@ -211,3 +210,28 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
     plt = phonon.plot_band_structure(labels=labels)
 
     plt.savefig(file)
+
+def smmerize_bandstructure(phonon, fp_file=None):
+    get_bandstructure(phonon)
+
+    qpts = np.array(phonon.band_structure.qpoints).reshape(-1,3)
+
+    freq = np.array(phonon.band_structure.frequencies).reshape(qpts.shape[0], -1)
+
+    gamma_freq = freq[np.where((qpts == np.zeros(3)).all(-1))[0][0]]
+    max_freq = np.max(freq.flatten())
+
+    if fp_file:
+        print(f"Saving the fingerprint to {args.fp_file}")
+        fp = get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
+        fp_dict = {}
+        for freq, pt in zip(fp[0], fp[2]):
+            fp_dict[pt] = freq.tolist()
+        with open(args.fp_file, 'w') as outfile:
+            json.dump(fp_dict, outfile, indent=4)
+    print(f"The maximum frequency is: {max_freq}")
+    print(f"The frequencies at the gamma point are: {gamma_freq}")
+    return gamma_freq, max_freq
+
+if __name__ == "__main__":
+    main()
