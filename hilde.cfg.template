@@ -38,11 +38,6 @@ email = you@something.com
  location =      ${common:home_dir}/examples/phonon_db
  name =          test.db
 
-[cluster]
-# 1800s = 30 minutes
-# 14400 = 4h
-# 86400 = 1d
-walltime = 1800
 
 [fireworks_settings]
 launch_dir="."
@@ -58,8 +53,3 @@ gss_auth = True
 remote_host = draco01.mpcdf.mpg.de
 #remote_host = cobra01i.mpcdf.mpg.de
 
-##############################################################################
-[hash_ignore]
-output_level = True
-aims_command = True
-use_pimd_wrapper = True
