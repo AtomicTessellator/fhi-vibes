@@ -222,12 +222,12 @@ def summarize_bandstructure(phonon, fp_file=None):
     max_freq = np.max(freq.flatten())
 
     if fp_file:
-        print(f"Saving the fingerprint to {args.fp_file}")
+        print(f"Saving the fingerprint to {fp_file}")
         fp = get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
         fp_dict = {}
         for freq, pt in zip(fp[0], fp[2]):
             fp_dict[pt] = freq.tolist()
-        with open(args.fp_file, 'w') as outfile:
+        with open(fp_file, 'w') as outfile:
             json.dump(fp_dict, outfile, indent=4)
     print(f"The maximum frequency is: {max_freq}")
     print(f"The frequencies at the gamma point are: {gamma_freq}")
