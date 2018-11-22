@@ -211,7 +211,7 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
 
     plt.savefig(file)
 
-def smmerize_bandstructure(phonon, fp_file=None):
+def summarize_bandstructure(phonon, fp_file=None):
     get_bandstructure(phonon)
 
     qpts = np.array(phonon.band_structure.qpoints).reshape(-1,3)

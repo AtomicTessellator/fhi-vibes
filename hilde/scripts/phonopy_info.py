@@ -32,12 +32,12 @@ def preprocess(args):
 def postprocess(args):
     from hilde.helpers.pickletools import pread
     from hilde.phonopy.wrapper import plot_bandstructure
-    from hilde.phonopy.wrapper import smmerize_bandstructure
+    from hilde.phonopy.wrapper import summarize_bandstructure
 
     phonon = pread(args.infile)
 
     plot_bandstructure(phonon, file="bandstructure.pdf")
-    smmerize_bandstructure(phonon, fp_file=args.fp_file)
+    summarize_bandstructure(phonon, fp_file=args.fp_file)
 
 def main():
     """ main routine """
