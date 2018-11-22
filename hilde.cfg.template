@@ -38,6 +38,11 @@ email = you@something.com
  location =      ${common:home_dir}/examples/phonon_db
  name =          test.db
 
+[watchdog]
+# 1800s = 30 minutes
+# 14400 = 4h
+# 86400 = 1d
+walltime = 1800
 
 [fireworks_settings]
 launch_dir="."
