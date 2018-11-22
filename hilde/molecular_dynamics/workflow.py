@@ -48,7 +48,8 @@ def run_md(
     calc_dir = workdir / _calc_dirname
 
     # backup configuration.cfg
-    move_to_dir(default_config_name, workdir, exist_ok=True)
+    if workdir.absolute() != Path().cwd():
+        move_to_dir(default_config_name, workdir)
 
     if restart:
         from hilde.molecular_dynamics import setup_md

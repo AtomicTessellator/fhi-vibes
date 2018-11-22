@@ -64,7 +64,8 @@ def relax(
     bfgs_settings = {"logfile": str(logfile), "maxstep": maxstep}
 
     # backup configuration.cfg
-    move_to_dir(default_config_name, workdir)
+    if workdir.absolute() != Path().cwd():
+        move_to_dir(default_config_name, workdir)
 
     if "compute_forces" in calc.parameters:
         calc.parameters["compute_forces"] = True

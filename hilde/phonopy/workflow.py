@@ -57,7 +57,8 @@ def phonopy(
     watchdog = Watchdog(walltime=walltime, buffer=1)
 
     # backup configuration.cfg
-    move_to_dir(default_config_name, workdir, exist_ok=True)
+    if workdir.absolute() != Path().cwd():
+        move_to_dir(default_config_name, workdir, exist_ok=True)
 
     # Phonopy preprocess
     phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
