@@ -2,7 +2,7 @@
 
 from time import time, strftime
 from pathlib import Path
-
+from hilde.helpers.warnings import warn
 
 class WallTimeWatchdog:
     def __init__(self, walltime, history=10, buffer=5, log="watchdog.log"):
@@ -47,6 +47,9 @@ class WallTimeWatchdog:
         # log the step
         self.log()
         self.n_calls += 1
+
+        if time_is_up:
+            warn("** Watchdog: running out of time!")
 
         # return information if time is up
         return time_is_up
