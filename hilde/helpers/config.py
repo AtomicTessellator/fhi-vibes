@@ -6,6 +6,9 @@ import json
 from collections import OrderedDict
 
 
+default_config_name = "configuration.cfg"
+
+
 class AttributeDict(OrderedDict):
     def __getattr__(self, attr):
         return self[attr]
@@ -52,7 +55,7 @@ class ConfigDict(AttributeDict):
                 val = config.getval(sec, key)
                 self[sec][key] = val
 
-    def write(self, filename="configuration.cfg", pickle=False):
+    def write(self, filename=default_config_name, pickle=False):
         """write a settings object human readable and pickled"""
         with open(filename, "w") as f:
             timestr = time.strftime("%Y/%m/%d %H:%M:%S")
