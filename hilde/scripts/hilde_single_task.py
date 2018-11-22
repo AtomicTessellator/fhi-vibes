@@ -44,9 +44,9 @@ def main():
     if args.dry:
         exit()
 
-    outfile = Path(workdir) / default_config_name
-    settings.write(filename=outfile)
-    print(f"Settings written to:   {outfile}")
+    config_outfile = Path(workdir) / default_config_name
+    settings.write(filename=config_outfile)
+    print(f"Settings written to:   {config_outfile}")
 
     if args.geometry:
         outfile = Path(workdir) / "geometry.in"
@@ -55,8 +55,14 @@ def main():
 
     # copy run script
     run_script = Path(settings.common.home_dir) / f"hilde/scripts/run/{task}.py"
-    shutil.copy(run_script, Path(workdir) / "run.py")
-    print(f"Run script written to: {workdir}/run.py")
+    script = Path(workdir) / f"run_{task}.py"
+    shutil.copy(run_script, script)
+    print(f"Run script written to: {script}")
+
+    if "restart" in settings:
+        print(settings.restart.command.split()[-1], script.name)
+        if settings.restart.command.split()[-1] != script.name:
+            print(f"** Check restart command in {config_outfile}")
 
 
 if __name__ == "__main__":
