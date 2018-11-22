@@ -165,7 +165,13 @@ def generate_firework(
         launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
         launchpad.add_wf(Firework(task_list, name=fw_settings["fw_name"]))
         return None
-    return Firework(task_list, name=fw_settings["fw_name"])
+    if "fw_spec" in step_settings:
+        spec = dict(fw_settings['spec'])
+    else:
+        spec = {}
+    if "fw_spec_qadapter" in step_settings:
+        spec["_queueadapter"] = dict(fw_settings["spec_qadapter"])
+    return Firework(task_list, name=fw_settings["fw_name"], spec=fw_settings["spec"])
 
 def get_func(func_path):
     '''A function that takes in a path to a python function and returns that function'''

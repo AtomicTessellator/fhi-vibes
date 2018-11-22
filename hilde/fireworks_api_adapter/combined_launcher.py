@@ -50,7 +50,7 @@ def get_ordred_fw_ids(wflow):
 def use_queue_launch(fire_work, tasks2queue):
     """Determines if a particular FireWork should be ran on a cluster"""
     for task in fire_work.spec["_tasks"]:
-        if task["func"] in tasks2queue:
+        if task["args"][0] in tasks2queue:
             return True
     return False
 
@@ -103,7 +103,9 @@ def rapidfire(
         wflow_id(list of ints): a list fw_ids that are a root of the workflow
     """
     if tasks2queue is None:
-        tasks2queue = [fw.calculate.name]
+        tasks2queue = [
+            ""
+        ]
     if remote_config_dir is None:
         remote_config_dir = ["~/.fireworks"]
     r_args = [launchpad]
