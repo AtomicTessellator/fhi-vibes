@@ -53,7 +53,7 @@ class WallTimeWatchdog:
         self.n_calls += 1
 
         if time_is_up and self.verbose:
-            warn("** Watchdog: running out of time!")
+            warn("Watchdog: running out of time!")
 
         # return information if time is up
         return time_is_up

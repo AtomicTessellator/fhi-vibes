@@ -16,7 +16,7 @@ def main():
     parser.add_argument("--dry", action="store_true")
     args = parser.parse_args()
 
-    settings = Settings(args.config_files, write=False)
+    settings = Settings(args.config_files)
     print("Summary of settings:")
     settings.print()
 

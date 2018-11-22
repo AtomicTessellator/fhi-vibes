@@ -21,7 +21,7 @@ def run(atoms, calc, settings):
 
 if __name__ == "__main__":
 
-    settings = Settings(default_config_name, write=False)
+    settings = Settings(default_config_name)
 
     atoms = read('geometry.in', format='aims')
     calc = setup_aims(settings=settings)

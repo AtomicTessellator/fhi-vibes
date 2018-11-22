@@ -55,6 +55,8 @@ def main():
 
     elif suffix == ".pick" or suffix == ".gz":
         postprocess(args)
+    else:
+        print('*** Nothing happened.')
 
 
 if __name__ == "__main__":

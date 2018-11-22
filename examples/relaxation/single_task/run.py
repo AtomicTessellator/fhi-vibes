@@ -6,7 +6,7 @@ from hilde.templates.aims import setup_aims
 
 atoms = read("geometry.in")
 
-settings = Settings(default_config_name, write=False)
+settings = Settings(default_config_name)
 
 calc = setup_aims(settings=settings)
 

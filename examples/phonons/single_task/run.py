@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     atoms = read("geometry.in", format="aims")
 
-    settings = Settings(default_config_name, write=False)
+    settings = Settings(default_config_name)
 
     converged = run(atoms, settings)
 
