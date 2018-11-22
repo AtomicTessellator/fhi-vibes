@@ -23,6 +23,7 @@ def main():
     for task in supported_tasks:
         if task in settings:
             break
+    else:
         exit("Task could not be identified.")
 
     print(f"Task to be performed:  {task}")
@@ -48,15 +49,14 @@ def main():
     print(f"Settings written to:   {outfile}")
 
     if args.geometry:
-        outfile = Path(workdir) / args.geometry
+        outfile = Path(workdir) / "geometry.in"
         shutil.copy(args.geometry, outfile)
         print(f"Geometry written to:   {outfile}")
 
     # copy run script
-    run_script = Path(settings.common.home_dir) / f'hilde/scripts/run/{task}.py'
-    shutil.copy(run_script, Path(workdir) / 'run.py')
+    run_script = Path(settings.common.home_dir) / f"hilde/scripts/run/{task}.py"
+    shutil.copy(run_script, Path(workdir) / "run.py")
     print(f"Run script written to: {workdir}/run.py")
-
 
 
 if __name__ == "__main__":

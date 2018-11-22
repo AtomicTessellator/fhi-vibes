@@ -1,3 +1,3 @@
 """ general things """
 
-supported_tasks = ["relaxation", "phonop", "md"]
+supported_tasks = ["relaxation", "phonopy", "md"]
