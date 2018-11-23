@@ -31,13 +31,18 @@ def preprocess(args):
 
 def postprocess(args):
     from hilde.helpers.pickletools import pread
-    from hilde.phonopy.wrapper import plot_bandstructure
+    from hilde.phonopy.wrapper import plot_bandstructure, plot_bandstructure_and_dos
     from hilde.phonopy.wrapper import summarize_bandstructure
 
     phonon = pread(args.infile)
 
     plot_bandstructure(phonon, file="bandstructure.pdf")
+    if args.dos == "t":
+        plot_bandstructure_and_dos(phonon, file="bands_and_dos.pdf")
+    elif args.dos == "p":
+        plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
     summarize_bandstructure(phonon, fp_file=args.fp_file)
+
 
 def main():
     """ main routine """
@@ -47,6 +52,9 @@ def main():
     parser.add_argument("--config_file", default="phonopy.cfg")
     parser.add_argument("--format", default="aims")
     parser.add_argument("--fp_file", default=None, help="File to store the fingerprint")
+    parser.add_argument(
+        "--dos", nargs="?", const="t", default=None, help="plot dos as well"
+    )
     args = parser.parse_args()
 
     suffix = Path(args.infile).suffix
@@ -56,7 +64,7 @@ def main():
     elif suffix == ".pick" or suffix == ".gz":
         postprocess(args)
     else:
-        print('*** Nothing happened.')
+        print("*** Nothing happened.")
 
 
 if __name__ == "__main__":
