@@ -13,8 +13,10 @@ from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_ph
 from hilde.phonopy import enumerate_displacements, displacement_id_str
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.maths import get_3x3_matrix
+from hilde.spglib.wrapper import map_unique_to_atoms
 
 default_disp = 0.01
+default_q_mesh = [35, 35, 35]
 
 
 def prepare_phonopy(
@@ -136,9 +138,10 @@ def _postprocess_init(phonon, force_sets=None):
         else:
             exit("** Cannot run postprocess, force_sets have not been provided.")
 
+
 def get_dos(
     phonon,
-    q_mesh=[10, 10, 10],
+    q_mesh=default_q_mesh,
     freq_min=0,
     freq_max="auto",
     freq_pitch=0.1,
@@ -147,23 +150,8 @@ def get_dos(
     filename="total_dos.dat",
     force_sets=None,
 ):
-    """
-    Compute the DOS (and save to file)
-    Args:
-        phonon: Phonopy object
-        q_mesh: q mesh to evaluate D(q)
-        freq_min: freq. to start with [THz]
-        freq_max: freq. to stop with [THz]
-        freq_pitch: freq. step [THz]
-        tetrahedron_method: use the tetrahedron method
-        write: should a file be written?
-        filename: file that total DOS is written to
-        force_sets: give force_sets if force_constants are missing
+    """ Compute the DOS (and save to file) """
 
-    Returns:
-        tuple: (frequencies, DOS)
-
-    """
     _postprocess_init(phonon, force_sets)
 
     phonon.set_mesh(q_mesh)
@@ -202,6 +190,7 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
     return (*phonon.get_band_structure(), labels)
 
+
 def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
     """ Plot bandstructure for given path and save to file """
 
@@ -211,10 +200,33 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
 
     plt.savefig(file)
 
+
+def plot_bandstructure_and_dos(
+    phonon, q_mesh=default_q_mesh, partial=False, file="bands_and_dos.pdf"
+):
+    """ Plot bandstructure and PDOS """
+
+    *_, labels = get_bandstructure(phonon)
+
+    if partial:
+        phonon.set_mesh(q_mesh, is_eigenvectors=True, is_mesh_symmetry=False)
+        phonon.set_partial_DOS(tetrahedron_method=True)
+        pdos_indices = map_unique_to_atoms(phonon.get_primitive())
+    else:
+        phonon.set_mesh(q_mesh)
+        phonon.set_total_DOS(tetrahedron_method=True)
+        pdos_indices = None
+
+    plt = phonon.plot_band_structure_and_dos(pdos_indices=pdos_indices, labels=labels)
+    plt.savefig(file)
+
+
 def summarize_bandstructure(phonon, fp_file=None):
+    from hilde.konstanten.einheiten import THz_to_cm
+
     get_bandstructure(phonon)
 
-    qpts = np.array(phonon.band_structure.qpoints).reshape(-1,3)
+    qpts = np.array(phonon.band_structure.qpoints).reshape(-1, 3)
 
     freq = np.array(phonon.band_structure.frequencies).reshape(qpts.shape[0], -1)
 
@@ -229,9 +241,16 @@ def summarize_bandstructure(phonon, fp_file=None):
             fp_dict[key] = val.tolist()
         with open(fp_file, 'w') as outfile:
             json.dump(fp_dict, outfile, indent=4)
-    print(f"The maximum frequency is: {max_freq}")
-    print(f"The frequencies at the gamma point are: {gamma_freq}")
+
+    mf = max_freq
+    mf_cm = mf * THz_to_cm
+    print(f"The maximum frequency is: {mf:.3f} THz ({mf_cm:.3f} cm^-1)")
+    print(f"The frequencies at the gamma point are:")
+    print(f"              THz |        cm^-1")
+    for ii, freq in enumerate(gamma_freq):
+        print(f"{ii+1:3d}: {freq:-12.5f} | {freq*THz_to_cm:-12.5f}")
     return gamma_freq, max_freq
+
 
 if __name__ == "__main__":
     main()
