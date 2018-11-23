@@ -31,7 +31,7 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
     else:
         step_settings.fw["spec"] = {}
     if "fw_spec_qadapter" in step_settings:
-        step_settings.fw["spec"]["_queueadapter"] = dict(step_settings.fw.fw_spec_qadapter)
+        step_settings.fw["spec"]["_queueadapter"] = dict(step_settings.fw_spec_qadapter)
 
     if step_settings.calculation_step.type == "relaxation":
         if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
@@ -108,10 +108,13 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
                 kwargs["db_path"] = step_settings.db_storage.db_path
                 kwargs["original_atom_hash"] = atoms_hash
 
-            anal_keys = ["trajectory", "workdir", "force_constant_file", "displacement"]
+            anal_keys = ["trajectory", "analysis_workdir", "force_constant_file", "displacement"]
             for key in anal_keys:
                 if key in step_settings.function_kwargs:
                     kwargs[key] = step_settings.function_kwargs[key]
+            if "analysis_workdir" in kwargs:
+                kwargs["workdir"] = kwargs["analysis_workdir"]
+                del(kwargs["analysis_workdir"])
             fw_list.append(
                 generate_firework(
                     "hilde.phonopy.postprocess.postprocess",

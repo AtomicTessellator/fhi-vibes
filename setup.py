@@ -35,5 +35,6 @@ setup(
             'claunch_hilde = hilde.fireworks_api_adapter.scripts.claunch_run:claunch'
         ]
     },
+    data_files=[('config', ['hilde.cfg'])],
     zip_safe=False,
 )

@@ -2,7 +2,6 @@
 from hilde.helpers.config import ConfigDict, default_config_name
 from hilde.helpers.hash import hashfunc
 
-
 class Settings(ConfigDict):
     """ Class to hold the settings parsed from highaims.cfg (or similar)"""
 

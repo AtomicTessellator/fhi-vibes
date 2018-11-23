@@ -1,3 +1,4 @@
+from ase.symbols import Symbols
 from fireworks import FWAction
 from pathlib import Path
 
@@ -6,6 +7,7 @@ from hilde.helpers.fileformats import last_from_yaml
 from hilde.phonon_db.database_api import update_phonon_db
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.tasks.fireworks.general_py_task import generate_firework
+
 mod_name = __name__
 
 def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
@@ -198,6 +200,7 @@ def fw_out_initialize_phonopy(atoms, calc, outputs, func, func_fw_out, func_kwar
         for key, val in calc_dict.items():
             sc_dict[key] = val
         calc_kwargs = { 'workdir': func_fw_kwargs['workdir'] + f"/{i:05d}"}
+        fw_settings["fw_name"] = f"forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
         detours.append(
             generate_firework(
                 "hilde.tasks.calculate.calculate",
