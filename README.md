@@ -1,6 +1,16 @@
 **Installation**
 
-`python setup.py install --prefix /your/preferred/folder`
+External dependencies:
+
+```apt-get install gfortran liblapack-dev liblapacke-dev mongodb```
+
+Install the python requirements in `requirements.txt` _in order_:
+
+```cat requirements.txt | xargs -n 1 -L 1 pip install -U```
+
+Install Hilde:
+
+```python setup.py install --prefix /your/preferred/folder```
 
 **Basic Setup**
 
