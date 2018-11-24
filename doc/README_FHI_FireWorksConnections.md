@@ -9,10 +9,7 @@
   	* For an account speak to the administrator
   * MongoDB port: 27017 (individual ports will be given by the Administrator)
   	* Accessible from the mpcdf machines only
-  	* To access from your local machine use an ssh tunnel
-  	  * ssh -f -N -L local_port:VM_Host:port_on_VM username@mpcdf_cluster_host
-      * Example: ssh -f -N -L 27017:tpfwdb.esc.rzg.mpg.de:27017 tpurcell@draco.mpcdf.mpg.de
-  	  * Example: ssh -f -N -L 5432:tpfwdb.esc.rzg.mpg.de:5432 tpurcell@draco.mpcdf.mpg.de
+  	* To access from your local machine using the vpn
 
 * Setting up passwordless login to mpcdf clusters on FHI laptops
   * Kerberos client setup

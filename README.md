@@ -71,25 +71,32 @@ table](https://realpython.com/python-json/#serializing-json).
 **Setup of FireWorks on Computational Resources**
 
 See also: `doc/README_FHI_FireWorksConnections.md`
-* FireWorks on the clusters
+* Overview of Managing FireWorks Remotely
+  * FireWorks does not copy functions but only finds them in the PYTHONPATH
+  * To pass it functions give it the function_module.function_name as a str
+  * Functions that are run on the local machine
+    * All functions/files that set up FireWorks
+      * All scripts that initially call hilde.tasks.fireworks.generate_firework
+      * .cfg Files that define the steps (if used)
+      * All functions used by a Fireworks without a task that calls a function in task2queue list
+    * claunch_hilde and associated functions
+  * Function that are run on the remote machine
+    * All functions used by a Firework with a task that calls a function in task2queue
+    * qluanch_hilde and associated functions
+  * Functions that can run on both machines
+    * All FireWorks API functions
+    * All database accessors functions
+    * Spec modifying functions (hilde.tasks.fireworks.fw_action_outs)
+    * hilde.tasks.fireworks.generate_firework
+  * Machine specific settings such as the aims_command is handled dynamically
+    * It automatically changes when called on a machine
+    * Can always use local settings without an issue
+* Using FireWorks on the clusters
   * Download/clone from https://github.com/materialsproject/fireworks.git and move the FireWorks directory
-  * Modify fw\_tutorials/worker/my\_fworker.yaml and fw\_tutorials/worker/my\_launchpad.yaml and
-    copy them to $HOME/.fireworks
-    * If your connection to the MongoDB is not secure (limited IP/port Access) set up a user/password for it and place those credentials in my_launchpad.yaml
-    * Do not use your cluster/computer credentials for this
-  * Modify the correct fw\_tutorials/queue\_???.yaml file for your submission system
-    and copy it to $HOME/.fireworks/my\_qadapter.yaml
-  * Find the FireWorks install directory with lpad version and modify
-    $FW_INSTALL_DIR/fireworks/fw_config.py:
-    * LAUNCHPAD_LOC: $HOME/.fireworks/my_launchpad.yaml
-    * FWORKER_LOC: $HOME/.fireworks/my_fworker.yaml
-    * QUEUEADAPTER_LOC: $HOME/.fireworks/my_qadapter.yaml
-  * Keep all PyTask functions up to date on all machines, there are no consistency checks
-    within FireWorks
-* Setup a MongoDB database for fireworks
-  * Best to have it always accessible by all machines that need it
-  * Check with the cluster management on what solution they'd prefer
-  * Modify all my\_launchpad.yaml files such that they point to the database
+  * Modify fw\_tutorials/worker/my\_fworker.yaml and copy it to $HOME/.fireworks
+    * Probably do not need to do any modifications if running on similar environments
+    * Useful if you want to run specific jobs on specific machines without specified reservations
+  * Modify fw\_tutorials/worker/my\_launchpad.yaml and copy it to $HOME/.fireworks
     * host: Host to the DB server
       * If connected through an ssh tunnel use localhost
     * port: Port the DB server is listening on
@@ -98,6 +105,17 @@ See also: `doc/README_FHI_FireWorksConnections.md`
     * password: password used to access the database
     * logdir: default directory to store logs
     * strm_lvl: How much information the launchpad prints by default
+  * Modify the correct fw\_tutorials/queue\_???.yaml file for your submission system and copy it to $HOME/.fireworks/my\_qadapter.yaml
+    * Only used on clusters
+    * Set to minimal queue defaults (e.g. nodes=1)
+  * Find the FireWorks install directory with lpad version and modify
+    $FW_INSTALL_DIR/fireworks/fw_config.py:
+    * LAUNCHPAD_LOC: $HOME/.fireworks/my_launchpad.yaml
+    * FWORKER_LOC: $HOME/.fireworks/my_fworker.yaml
+    * QUEUEADAPTER_LOC: $HOME/.fireworks/my_qadapter.yaml
+* Setup a MongoDB database for fireworks
+  * Best to have it always accessible by all machines that need it
+  * Check with the cluster management on what solution they'd prefer
 * Connections between computers
   * Passwordless connections are preferred
   * If this is not possible you can pass the password as a command line argument, (delete
