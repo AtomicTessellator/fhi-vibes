@@ -1,14 +1,11 @@
-from ase.io import read
-from hilde.settings import Settings, default_config_name
+from hilde.settings import Settings
+from hilde.templates.aims import setup_aims
 from hilde.helpers.k_grid import update_k_grid
 from hilde.relaxation.bfgs import relax
-from hilde.templates.aims import setup_aims
 
-atoms = read("geometry.in")
+settings = Settings()
 
-settings = Settings(default_config_name)
-
-calc = setup_aims(settings=settings)
+atoms, calc = setup_aims(settings=settings)
 
 update_k_grid(atoms, calc, settings.control_kpt.density)
 
