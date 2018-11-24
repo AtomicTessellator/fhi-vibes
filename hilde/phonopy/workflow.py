@@ -56,6 +56,10 @@ def phonopy(
     backup_folder = workdir / backup_folder
     calc_dir = workdir / _calc_dirname
 
+    # make sure forces are computed
+    if calc.name == 'aims':
+        calc.parameters['compute_forces'] = True
+
     watchdog = Watchdog(walltime=walltime, buffer=1)
 
     # backup configuration.cfg

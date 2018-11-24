@@ -1,21 +1,4 @@
-# configfile written at 2018/11/22 12:32:01
-
-[control]
-xc:                  pbesol
-relativistic:        atomic_zora scalar
-k_grid:              [2, 2, 2]
-vdw_correction_hirshfeld: True
-sc_accuracy_rho:     0.0001
-output_level:        MD_light
-compute_forces:      True
-compute_analytical_stress: False
-charge_mix_param:    0.5
-
-[socketio]
-port:                12345
-
-[basisset]
-type:                light
+# configfile written at 2018/11/24 15:21:22
 
 [common]
 home_dir:            /home/knoop/local/hilde
@@ -24,17 +7,36 @@ email:               knoop@fhi-berlin.mpg.de
 [machine]
 aimsbin:             /home/knoop/FHIaims/bin/aims.x
 basissetloc:         /home/knoop/FHIaims/aimsfiles/species_defaults
-pythonbin:           python3.7
 mpi_command:         orterun
 aims_command:        orterun /home/knoop/FHIaims/bin/aims.x
-outfilename:         aims.out
+
+[socketio]
+port:                12345
 
 [database]
 location:            /home/knoop/local/hilde/examples/phonon_db
 name:                test.db
 
+[watchdog]
+walltime:            1800
+
+[geometry]
+file:                geometry.in
+
+[control]
+xc:                  pw-lda
+sc_accuracy_rho:     0.0001
+charge_mix_param:    0.5
+output_level:        MD_light
+
 [control_kpt]
 density:             .5
 
+[basisset]
+type:                light
+
 [phonopy]
 supercell_matrix:    [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+
+[restart]
+command:             python run_phonopy.py
