@@ -8,7 +8,7 @@ before_script:
 all_tests:
   script:
     - python $CI_PROJECT_DIR/tests/hashes/hashes.py
-    - cd $CI_PROJECT_DIR/tests/phonopy; python phonopy.py; cd ../..
+    - cd $CI_PROJECT_DIR/tests/phonopy; python run_phonopy.py; cd ../..
     - cd $CI_PROJECT_DIR/tests/md; python run_md.py; cd ../..
     - $jtest $CI_PROJECT_DIR/examples/trajectory/pretty_json.ipynb
     - $jtest $CI_PROJECT_DIR/examples/trajectory/read_trajectory.ipynb
