@@ -2,9 +2,11 @@ from ase.atoms import Atoms
 
 from fireworks import Firework, PyTask
 
+from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
 from hilde.helpers.k_grid import update_k_grid
+from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
 
 module_name = __name__
@@ -210,11 +212,11 @@ def atoms_calculate_task(
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 
-    default_settings = Settings()
+    default_settings = Settings(DEFAULT_CONFIG_FILE)
+    print(default_settings)
     calc_dict["command"] = default_settings.machine.aims_command
-    calc_dict["calculator_parameters"]["species_dir"] = "/".join(
-        default_settings.machine.basissetloc + calc_dict["species_dir"].split("/")[-1]
-    )
+    calc_dict["calculator_parameters"]["species_dir"] = str(default_settings.machine.basissetloc) + "/" + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
+
 
     for key, val in calc_dict.items():
         atoms_dict[key] = val
