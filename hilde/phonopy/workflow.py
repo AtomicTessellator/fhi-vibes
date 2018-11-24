@@ -70,7 +70,7 @@ def phonopy(
     phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
 
     # make sure forces are computed (aims only)
-    if "compute_forces" in calc.parameters:
+    if calc.name == "aims":
         calc.parameters["compute_forces"] = True
 
     if socketio_port is None:

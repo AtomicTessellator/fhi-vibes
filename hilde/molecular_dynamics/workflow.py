@@ -49,9 +49,13 @@ def run_md(
     calc_dir = workdir / _calc_dirname
     backup_folder = workdir / backup_folder
 
+    # make sure forces are computed (aims only)
+    if calc.name == "aims":
+        calc.parameters["compute_forces"] = True
+
     # backup configuration.cfg
-    if workdir.absolute() != Path().cwd():
-        move_to_dir(DEFAULT_SETTINGS_FILE, workdir)
+    # if workdir.absolute() != Path().cwd():
+    #     move_to_dir(DEFAULT_SETTINGS_FILE, workdir)
 
     if restart:
         from hilde.molecular_dynamics import setup_md
@@ -79,11 +83,7 @@ def run_md(
         additional_files = [logfile]
 
     if calc_dir.exists():
-        backup(
-            calc_dir,
-            target_folder=backup_folder,
-            additional_files=additional_files,
-        )
+        backup(calc_dir, target_folder=backup_folder, additional_files=additional_files)
 
     something_happened = False
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
@@ -108,11 +108,7 @@ def run_md(
 
     # backup and cleanup if something new happened
     if something_happened:
-        backup(
-            calc_dir,
-            target_folder=backup_folder,
-            additional_files=additional_files,
-        )
+        backup(calc_dir, target_folder=backup_folder, additional_files=additional_files)
         shutil.rmtree(calc_dir)
 
     # restart
