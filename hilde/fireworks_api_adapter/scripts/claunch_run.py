@@ -32,8 +32,21 @@ from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde as LaunchPad
 from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
 
-fw_settings = Settings(DEFAULT_CONFIG_FILE).fireworks_settings
-print(fw_settings)
+try:
+    fw_defaults = Settings(DEFAULT_CONFIG_FILE).fireworks_settings
+except KeyError:
+    fw_defaults = {
+        "nlaunches": 0,
+        "njobs_queue": 0,
+        "njobs_block": 500,
+        "sleep_time": None,
+        "tasks2queue": None,
+        "remote_host": "localhost",
+        "remote_config_dir": None,
+        "remote_user": None,
+        "remote_password": None,
+    }
+
 def claunch():
     m_description = (
         "This program is used to submit jobs to a queueing system. "
@@ -51,7 +64,7 @@ def claunch():
     parser.add_argument(
         "-rh",
         "--remote_host",
-        default=fw_settings.remote_host,
+        default=fw_defaults["remote_host"],
         nargs="*",
         help="Remote host to exec qlaunch. Right now, " "only supports running from a config dir.",
     )
@@ -59,7 +72,7 @@ def claunch():
         "-rc",
         "--remote_config_dir",
         nargs="+",
-        default=fw_settings.remote_config_dir,
+        default=fw_defaults["remote_config_dir"],
         help="Remote config dir location(s). Defaults to "
         "~/.fireworks. You can specify multiple "
         "locations if you have multiple configurations "
@@ -69,11 +82,11 @@ def claunch():
         "argparse may not be able to find "
         "the find command while it consumes args.",
     )
-    parser.add_argument("-ru", "--remote_user", default=fw_settings.remote_user, help="Username to login to remote host.")
+    parser.add_argument("-ru", "--remote_user", default=fw_defaults["remote_user"], help="Username to login to remote host.")
     parser.add_argument(
         "-rp",
         "--remote_password",
-        default=fw_settings.remote_password,
+        default=fw_defaults["remote_password"],
         help="Password for remote host (if necessary). For "
         "best operation, it is recommended that you do "
         "passwordless ssh.",
@@ -149,16 +162,16 @@ def claunch():
         "-m",
         "--maxjobs_queue",
         help="maximum jobs to keep in queue for this user",
-        default=fw_settings.njobs_queue,
+        default=fw_defaults["njobs_queue"],
         type=int,
     )
     parser.add_argument(
-        "-b", "--maxjobs_block", help="maximum jobs to put in a block", default=fw_settings.njobs_block, type=int
+        "-b", "--maxjobs_block", help="maximum jobs to put in a block", default=fw_defaults["njobs_block"], type=int
     )
     parser.add_argument(
         "--nlaunches",
         help='num_launches (int or "infinite"; default 0 is all jobs in DB)',
-        default=fw_settings.nlaunches,
+        default=fw_defaults["nlaunches"],
     )
     parser.add_argument(
         "--timeout",
@@ -166,13 +179,13 @@ def claunch():
         default=None,
         type=int,
     )
-    parser.add_argument("--sleep", help="sleep time between loops", default=fw_settings.sleep_time, type=int)
+    parser.add_argument("--sleep", help="sleep time between loops", default=fw_defaults["sleep_time"], type=int)
     parser.add_argument(
         "-tq",
         "--tasks_to_queue",
         nargs="+",
         type=str,
-        default=fw_settings.tasks2queue,
+        default=fw_defaults["tasks2queue"],
         help="list of tasks to be sent to the queue",
     )
 
