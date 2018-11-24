@@ -5,10 +5,10 @@ from pathlib import Path
 # from ase.calculators.aims import Aims
 from hilde.calculators.aims_calc import Aims
 from hilde.settings import Settings
-
+from hilde import DEFAULT_CONFIG_FILE
 
 def setup_aims(
-    custom_settings={}, workdir=None, settings=None, config_file="../../hilde.cfg"
+    custom_settings={}, workdir=None, settings=None, config_file=DEFAULT_CONFIG_FILE
 ):
     """Set up an aims calculator.
 

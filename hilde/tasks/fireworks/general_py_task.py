@@ -210,6 +210,12 @@ def atoms_calculate_task(
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 
+    default_settings = Settings()
+    calc_dict["command"] = default_settings.machine.aims_command
+    calc_dict["calculator_parameters"]["species_dir"] = "/".join(
+        default_settings.machine.basissetloc + calc_dict["species_dir"].split("/")[-1]
+    )
+
     for key, val in calc_dict.items():
         atoms_dict[key] = val
     del(atoms_dict['results'])
