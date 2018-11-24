@@ -4,9 +4,7 @@ import time
 import configparser
 import json
 from collections import OrderedDict
-
-
-default_config_name = "configuration.cfg"
+from hilde import DEFAULT_SETTINGS_FILE
 
 
 class AttributeDict(OrderedDict):
@@ -55,7 +53,7 @@ class ConfigDict(AttributeDict):
                 val = config.getval(sec, key)
                 self[sec][key] = val
 
-    def write(self, filename=default_config_name, pickle=False):
+    def write(self, filename=DEFAULT_SETTINGS_FILE, pickle=False):
         """write a settings object human readable and pickled"""
         with open(filename, "w") as f:
             timestr = time.strftime("%Y/%m/%d %H:%M:%S")
@@ -70,6 +68,7 @@ class ConfigDict(AttributeDict):
                 pickle.dump(self, f)
 
     def get_string(self):
+        """ return string representation for writing etc. """
         string = ""
         for sec in self:
             string += f"\n[{sec}]\n"
@@ -82,3 +81,11 @@ class ConfigDict(AttributeDict):
                     continue
                 string += "{:20s} {}\n".format(f"{key}:", elem)
         return string
+
+    def to_dict(self):
+        """ return as plain dictionary """
+        dct = {}
+        for key, val in self.items():
+            dct.update({key: dict(val)})
+
+        return dct
