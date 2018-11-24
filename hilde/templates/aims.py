@@ -62,14 +62,15 @@ def setup_aims(
     if "geometry" in settings:
         if "file" in settings.geometry:
             atoms = read(settings.geometry.file, format="aims")
-            return atoms, calc
 
-    # update k_grid
-    if "control_kpt" in settings.control:
-        update_k_grid(atoms, calc, settings.control_kpt.density)
+        # update k_grid
+        if "control_kpt" in settings:
+            update_k_grid(atoms, calc, settings.control_kpt.density)
 
     if not "k_grid" in calc.parameters:
         update_k_grid
         print("*** WARNING: no k_grid in aims calculator. Check!")
 
+    if "geometry" in settings:
+        return atoms, calc
     return calc
