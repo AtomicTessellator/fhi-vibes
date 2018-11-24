@@ -3,12 +3,14 @@ from os import path
 from pathlib import Path
 
 # from ase.calculators.aims import Aims
+from ase.io import read
 from hilde.calculators.aims_calc import Aims
 from hilde.settings import Settings
 from hilde import DEFAULT_CONFIG_FILE
 
+
 def setup_aims(
-    custom_settings={}, workdir=None, settings=None, config_file=DEFAULT_CONFIG_FILE
+    custom_settings={}, settings=None, workdir=None, config_file=DEFAULT_CONFIG_FILE
 ):
     """Set up an aims calculator.
 
@@ -52,6 +54,13 @@ def setup_aims(
     aims_settings = {**default_settings, **ase_settings, **custom_settings}
 
     if workdir:
-        return Aims(label=Path(workdir).absolute(), **aims_settings)
+        calc = Aims(label=Path(workdir).absolute(), **aims_settings)
     else:
-        return Aims(**aims_settings)
+        calc = Aims(**aims_settings)
+
+    if "geometry" in settings:
+        if "file" in settings.geometry:
+            atoms = read(settings.geometry.file, format="aims")
+            return atoms, calc
+
+    return calc
