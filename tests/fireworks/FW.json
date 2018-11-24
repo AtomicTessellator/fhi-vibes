@@ -1,0 +1,53 @@
+{
+    "spec": {
+        "_tasks": [
+            {
+                "func": "hilde.tasks.fireworks.general_py_task.general_function_task",
+                "args": [
+                    "__main__.print_message",
+                    "hilde.tasks.fireworks.fw_action_outs.return_null_general",
+                    "\n Connection successful \n"
+                ],
+                "inputs": [],
+                "kwargs": {
+                    "fw_settings": {
+                        "fw_name": "testing",
+                        "spec": {},
+                        "fw_base_name": "testing"
+                    }
+                },
+                "_fw_name": "PyTask"
+            }
+        ]
+    },
+    "fw_id": 3,
+    "created_on": "2018-11-24T12:58:46.257554",
+    "updated_on": "2018-11-24T12:59:50.937435",
+    "launches": [
+        {
+            "fworker": {
+                "name": "Automatically generated Worker",
+                "category": "",
+                "query": "{}",
+                "env": {}
+            },
+            "fw_id": 3,
+            "launch_dir": "/home/purcell/git/hilde/tests/fireworks",
+            "host": "theobook151",
+            "ip": "127.0.1.1",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-11-24T12:59:50.896549",
+                    "updated_on": "2018-11-24T12:59:50.896560"
+                }
+            ],
+            "launch_id": 4
+        }
+    ],
+    "state": "RUNNING",
+    "name": "testing"
+}

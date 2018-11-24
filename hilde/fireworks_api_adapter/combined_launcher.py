@@ -31,9 +31,12 @@ from fireworks.utilities.fw_utilities import (
     get_slug,
 )
 
+from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks_api_adapter.qlaunch_remote import qlaunch_remote
+from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
 
+fw_defaults = Settings(DEFAULT_CONFIG_FILE).fireworks_settings
 
 def get_ordred_fw_ids(wflow):
     """Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow"""
@@ -60,22 +63,22 @@ def rapidfire(
     fworker=None,
     qadapter=None,
     launch_dir=".",
-    nlaunches=0,
-    njobs_queue=0,
-    njobs_block=500,
-    sleep_time=None,
-    reserve=False,
+    nlaunches=fw_defaults.nlaunches,
+    njobs_queue=fw_defaults.njobs_queue,
+    njobs_block=fw_defaults.njobs_block,
+    sleep_time=fw_defaults.sleep_time,
+    reserve=True,
     strm_lvl="CRITICAL",
     timeout=None,
     fill_mode=False,
     fw_ids=None,
     wflow=None,
-    tasks2queue=None,
+    tasks2queue=fw_defaults.tasks2queue,
     gss_auth=True,
-    remote_host="localhost",
-    remote_config_dir=None,
-    remote_user=None,
-    remote_password=None,
+    remote_host=fw_defaults.remote_host,
+    remote_config_dir=fw_defaults.remote_config_dir,
+    remote_user=fw_defaults.remote_user,
+    remote_password=fw_defaults.remote_password,
     remote_shell="/bin/bash -l -c",
     daemon=0,
 ):
@@ -119,6 +122,8 @@ def rapidfire(
             wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
     elif wflow:
         wflow_id = wflow.root_fw_ids
+    else:
+        wflow_id = None
     if remote_host is "localhost":
         qlaunch = launch_rocket_to_queue
         remote = False

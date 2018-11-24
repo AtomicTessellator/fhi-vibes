@@ -2,6 +2,7 @@ from ase.io import read
 
 from fireworks import Workflow
 
+from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.settings import Settings
 from hilde.workflows.workflow_generator import get_step_fw
@@ -12,7 +13,7 @@ workflow = Settings(["workflow.cfg"])
 print(workflow)
 fw_list = []
 for config_file in workflow.workflow.step_files.split(","):
-    for fw in get_step_fw(config_file, "hilde.cfg", atoms):
+    for fw in get_step_fw(config_file, DEFAULT_CONFIG_FILE, atoms):
         fw_list.append(fw)
 
 fw_dep = {}

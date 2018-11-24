@@ -213,10 +213,10 @@ def atoms_calculate_task(
     func_fw_out = get_func(func_fw_out_path)
 
     default_settings = Settings(DEFAULT_CONFIG_FILE)
-    print(default_settings)
-    calc_dict["command"] = default_settings.machine.aims_command
-    calc_dict["calculator_parameters"]["species_dir"] = str(default_settings.machine.basissetloc) + "/" + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
-
+    if "command" in calc_dict:
+        calc_dict["command"] = default_settings.machine.aims_command
+    if "species_dir" in calc_dict["calculator_parameters"]:
+        calc_dict["calculator_parameters"]["species_dir"] = str(default_settings.machine.basissetloc) + "/" + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
 
     for key, val in calc_dict.items():
         atoms_dict[key] = val
