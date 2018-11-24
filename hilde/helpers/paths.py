@@ -1,6 +1,7 @@
 import contextlib
 import os
 import sys
+import shutil
 import functools
 from pathlib import Path
 from warnings import warn
@@ -31,6 +32,16 @@ def cwd(path, mkdir=False, debug=False):
     os.chdir(CWD)
 
 
+def move(file, dest, exist_ok=False):
+    file = Path(file)
+    if file.exists():
+        folder.mkdir(exist_ok=exist_ok)
+        file.rename(dest)
+    else:
+        warn(f"** move: {file} does not exist.")
+
+
+
 def move_to_dir(file, folder, exist_ok=False):
     file = Path(file)
     if file.exists():
@@ -38,6 +49,15 @@ def move_to_dir(file, folder, exist_ok=False):
         file.rename(folder / file)
     else:
         warn(f"** move_to_dir: {file} does not exist.")
+
+
+def copy_to_dir(file, folder, exist_ok=False):
+    file = Path(file)
+    if file.exists():
+        folder.mkdir(exist_ok=exist_ok)
+        shutil.copy(file, folder)
+    else:
+        warn(f"** copy_to_dir: {file} does not exist.")
 
 
 # would be nice to have?
