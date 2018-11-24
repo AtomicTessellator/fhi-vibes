@@ -7,7 +7,7 @@ from hilde.phonopy.workflow import phonopy
 
 atoms = bulk('Al')
 
-settings = Settings(["phonopy.cfg"])
+settings = Settings()
 
 calc = EMT()
 

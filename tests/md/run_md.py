@@ -7,27 +7,15 @@ from hilde.settings import Settings
 from hilde.molecular_dynamics import run_md, setup_md
 
 
-def run(atoms, settings):
-    "run and MD"
+atoms = bulk("Al") * (4, 4, 4)
+settings = Settings()
 
-    calc = EMT()
+calc = EMT()
 
-    MaxwellBoltzmannDistribution(atoms, temp=settings.md.temperature * units.kB)
+MaxwellBoltzmannDistribution(atoms, temp=settings.md.temperature * units.kB)
 
-    converged = run_md(atoms, calc, **settings.md)
+converged = run_md(atoms, calc, **settings.md)
 
-    return converged
-
-
-if __name__ == "__main__":
-
-    atoms = bulk("Al") * (4, 4, 4)
-
-    settings = Settings(config_files="md.cfg")
-
-    converged = run(atoms, settings)
-
-    if not converged:
-        from subprocess import run
-
-        run(settings.restart.command.split())
+if not converged:
+    from subprocess import run
+    run(settings.restart.command.split())
