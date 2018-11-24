@@ -1,15 +1,21 @@
 # information to build a default control.in
+[geometry]
+file = geometry.in
+
 [control]
+xc =              pw-lda
 sc_accuracy_rho = 1e-6
-compute_forces =  True
+output_level =    MD_light
 
 [control_kpt]
 density =         2
 
+[basisset]
+type = light
+
 [relaxation]
-fmax =       0.001
-linesearch = False
-maxstep =    0.2
+fmax =       0.01
+unit_cell = True
 maxsteps =   20
 
 workdir = test_run
