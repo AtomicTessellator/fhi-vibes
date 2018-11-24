@@ -7,6 +7,7 @@ from ase.io import read
 from hilde.calculators.aims_calc import Aims
 from hilde.settings import Settings
 from hilde import DEFAULT_CONFIG_FILE
+from hilde.helpers.k_grid import update_k_grid
 
 
 def setup_aims(
@@ -62,5 +63,13 @@ def setup_aims(
         if "file" in settings.geometry:
             atoms = read(settings.geometry.file, format="aims")
             return atoms, calc
+
+    # update k_grid
+    if "control_kpt" in settings.control:
+        update_k_grid(atoms, calc, settings.control_kpt.density)
+
+    if not "k_grid" in calc.parameters:
+        update_k_grid
+        print("*** WARNING: no k_grid in aims calculator. Check!")
 
     return calc
