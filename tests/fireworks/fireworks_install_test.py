@@ -28,7 +28,7 @@ print("*******Unmodified FireWorks is working locally*******")
 print("*******Testing the local version of HiLDe's FireWorks modifications*******")
 
 from hilde.tasks.fireworks.general_py_task import generate_firework
-from hilde.tasks.fireworks.fw_action_outs import return_null_general
+from hilde.tasks.fireworks.fw_action_outs import fireworks_no_mods_gen_function
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 
 launchpad = LaunchPadHilde.from_file(str(Path.home()) + "/.fireworks/my_launchpad.yaml")
@@ -36,7 +36,7 @@ launchpad = LaunchPadHilde.from_file(str(Path.home()) + "/.fireworks/my_launchpa
 # define four individual FireWorks used in the Workflow
 fw = generate_firework(
     print_message,
-    return_null_general,
+    fireworks_no_mods_gen_function,
     func_kwargs={},
     fw_settings={"fw_name": "testing", "spec":{}},
     args=["\nTesting HiLDe FireWorks API\n"],
@@ -88,7 +88,7 @@ fw_settings = {
 wd = "/u/tpurcell/.fireworks/Si/"
 fw = generate_firework(
     hilde_calc,
-    return_null_general,
+    fireworks_no_mods_gen_function,
     func_kwargs={"workdir": wd},
     atoms = Si,
     calc = Si.calc,
@@ -96,7 +96,7 @@ fw = generate_firework(
 )
 fw2 = generate_firework(
     print_message,
-    return_null_general,
+    fireworks_no_mods_gen_function,
     func_kwargs={},
     fw_settings={"fw_name": "testing", "spec":{}},
     args=["\n Connection successful \n"],

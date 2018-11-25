@@ -11,6 +11,7 @@ from hilde.tasks import fireworks as fw
 
 module_name = __name__
 
+
 def generate_firework(
     func,
     func_fw_out,
@@ -24,7 +25,7 @@ def generate_firework(
     args=None,
     inputs=None,
 ):
-    '''
+    """
     A function that takes in a set of inputs and returns a Firework to perform that operation
     Args:
         func: str or functions
@@ -46,9 +47,15 @@ def generate_firework(
             Settings used by fireworks to place objects in the right part of the MongoDB
         update_calc_settings: dict
             Used to update the Calculator parameters
+        func_fw_out_kwargs: dict
+            Keyword functions for the fw_out function
+        args: list
+            a list of function arguments for func
+        inputs: list
+            a list of spec keys to append to args (gets args from the MongoDB)
     Returns: Firework
         A Firework that will perform the desired operation on a set of atoms, and process the outputs for Fireworks
-    '''
+    """
     if not isinstance(func, str):
         func = f"{func.__module__}.{func.__name__}"
 
@@ -80,12 +87,7 @@ def generate_firework(
         if not update_calc_settings:
             update_calc_settings = {}
 
-        pt_args = [
-            func,
-            func_fw_out,
-            func_kwargs,
-            func_fw_out_kwargs,
-        ]
+        pt_args = [func, func_fw_out, func_kwargs, func_fw_out_kwargs]
         if atoms_calc_from_spec:
             pt_inputs = [atoms_dict, calc_dict]
             task_list.append(
@@ -93,7 +95,7 @@ def generate_firework(
                     {
                         "func": fw.update_calc_in_db.name,
                         "args": [calc_dict, update_calc_settings],
-                        "inputs":[calc_dict]
+                        "inputs": [calc_dict],
                     }
                 )
             )
@@ -103,8 +105,12 @@ def generate_firework(
                         {
                             "func": fw.mod_calc.name,
                             "args": ["k_grid_density"],
-                            "inputs": [calc_dict, fw_settings["kpoint_density_spec"], atoms_dict],
-                            "kwargs": {"spec_key": fw_settings["kpoint_density_spec"]}
+                            "inputs": [
+                                calc_dict,
+                                fw_settings["kpoint_density_spec"],
+                                atoms_dict,
+                            ],
+                            "kwargs": {"spec_key": fw_settings["kpoint_density_spec"]},
                         }
                     )
                 )
@@ -120,7 +126,7 @@ def generate_firework(
                     update_k_grid(atoms, calc, new_val)
                 else:
                     if val is None and key in calc_dict["calculator_parameters"]:
-                        del(calc_dict["calculator_parameters"][key])
+                        del (calc_dict["calculator_parameters"][key])
                     elif val is not None:
                         calc_dict["calculator_parameters"][key] = val
             if "kpoint_density_spec" in fw_settings:
@@ -129,8 +135,11 @@ def generate_firework(
                         {
                             "func": fw.mod_calc.name,
                             "args": ["k_grid_density", calc_dict],
-                            "inputs":[fw_settings["kpoint_density_spec"]],
-                            "kwargs": {"atoms": atoms_dict, "spec_key": fw_settings["kpoint_density_spec"]}
+                            "inputs": [fw_settings["kpoint_density_spec"]],
+                            "kwargs": {
+                                "atoms": atoms_dict,
+                                "spec_key": fw_settings["kpoint_density_spec"],
+                            },
                         }
                     )
                 )
@@ -143,7 +152,7 @@ def generate_firework(
                     "func": fw.atoms_calculate_task.name,
                     "args": pt_args,
                     "inputs": pt_inputs,
-                    "kwargs": pt_kwargs
+                    "kwargs": pt_kwargs,
                 }
             )
         )
@@ -169,15 +178,17 @@ def generate_firework(
         return None
     return Firework(task_list, name=fw_settings["fw_name"], spec=fw_settings["spec"])
 
+
 def get_func(func_path):
-    '''A function that takes in a path to a python function and returns that function'''
-    toks = func_path.rsplit('.', 1)
+    """A function that takes in a path to a python function and returns that function"""
+    toks = func_path.rsplit(".", 1)
     if len(toks) == 2:
         modname, funcname = toks
         mod = __import__(modname, globals(), locals(), [str(funcname)], 0)
         return getattr(mod, funcname)
     # Handle built in functions.
     return getattr(builtins, toks[0])
+
 
 def atoms_calculate_task(
     func_path,
@@ -186,9 +197,9 @@ def atoms_calculate_task(
     func_fw_out_kwargs,
     atoms_dict,
     calc_dict,
-    fw_settings=None
+    fw_settings=None,
 ):
-    '''
+    """
     A wrapper function that converts a general function that performs some operation on ASE Atoms/Calculators into a FireWorks style operation
     Args:
         func_path: str
@@ -205,7 +216,7 @@ def atoms_calculate_task(
             A dictionary describing the FireWorks specific settings used in func_fw_out
     Returns: FWAction
         The FWAction func_fw_out outputs
-    '''
+    """
     if fw_settings is None:
         fw_settings = {}
 
@@ -216,19 +227,35 @@ def atoms_calculate_task(
     if "command" in calc_dict:
         calc_dict["command"] = default_settings.machine.aims_command
     if "species_dir" in calc_dict["calculator_parameters"]:
-        calc_dict["calculator_parameters"]["species_dir"] = str(default_settings.machine.basissetloc) + "/" + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
+        calc_dict["calculator_parameters"]["species_dir"] = (
+            str(default_settings.machine.basissetloc)
+            + "/"
+            + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
+        )
 
     for key, val in calc_dict.items():
         atoms_dict[key] = val
-    del(atoms_dict['results'])
+    del (atoms_dict["results"])
     atoms = dict2atoms(atoms_dict)
 
     outputs = func(atoms, atoms.calc, **func_kwargs)
 
-    return func_fw_out(atoms_dict, calc_dict, outputs, func_path, func_fw_out_path, func_kwargs, func_fw_out_kwargs, fw_settings)
+    return func_fw_out(
+        atoms_dict,
+        calc_dict,
+        outputs,
+        func_path,
+        func_fw_out_path,
+        func_kwargs,
+        func_fw_out_kwargs,
+        fw_settings,
+    )
 
-def general_function_task(func_path, func_fw_out_path, *args, fw_settings=None, **kwargs):
-    '''
+
+def general_function_task(
+    func_path, func_fw_out_path, *args, fw_settings=None, **kwargs
+):
+    """
     A wrapper function that converts a general python function into a FireWorks style operation
     Args:
         func_path: str
@@ -243,7 +270,7 @@ def general_function_task(func_path, func_fw_out_path, *args, fw_settings=None, 
             A dict of key word arguments to pass to the func and func_fw_out
     Returns: FWAction
         The FWAction func_fw_out outputs
-    '''
+    """
     if fw_settings is None:
         fw_settings = {}
     func = get_func(func_path)

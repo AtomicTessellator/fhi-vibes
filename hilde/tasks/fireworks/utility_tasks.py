@@ -8,7 +8,17 @@ from hilde.tasks import fireworks as fw
 
 module_name = __name__
 
+
 def mod_calc(param_key, calc, new_val, atoms=None, spec_key=None):
+    '''
+    Function to modify a calculator within the MongoDB
+    Args:
+        param_key (str): key in the calculator dictionary to change
+        calc (dict): a dict representing an ASE Calculator
+        new_val: the new value calc[param_key] should be updated to
+        atoms (dict): A dict representing an ASE Atoms object
+        spec_key (str): The key in the MongoDB to update the new_val (used to pass the param down the Workflow)
+    '''
     if param_key is "command":
         calc[param_key] = new_val
     elif param_key == "basisset_type":
@@ -29,7 +39,14 @@ def mod_calc(param_key, calc, new_val, atoms=None, spec_key=None):
         up_spec[spec_key] = new_val
     return FWAction(update_spec=up_spec)
 
+
 def update_calc_in_db(calc_spec, update_calc_params, calc):
+    '''
+    Updates a calculator in the MongoDB with a new set of parameters
+    calc_spec (str): spec to store the new calculator
+    update_calc_params (dict): A dictionary describing the new parameters to update the calc with
+    calc (dict): A dict representing an ASE Calculator
+    '''
     for key, val in update_calc_params.items():
         if key == "command":
             calc[key] = val
@@ -46,16 +63,19 @@ def update_calc_in_db(calc_spec, update_calc_params, calc):
             calc = calc2dict(atoms.calc)
         else:
             if val is None and key in calc["calculator_parameters"]:
-                del(calc["calculator_parameters"][key])
+                del (calc["calculator_parameters"][key])
             elif val is not None:
                 calc["calculator_parameters"][key] = val
     return FWAction(update_spec={calc_spec: calc})
 
+
 def add_result_to_spec(result_key, spec_key, atoms_calc):
     return FWAction(update_spec={spec_key: atoms_calc["results"][result_key]})
 
+
 def transfer_spec(key, val):
     return FWAction(update_spec={key: val})
+
 
 def check_convergence(
     prop_spec,
@@ -89,11 +109,15 @@ def check_convergence(
     if loss_func(atoms_dicts[-1], atoms_dicts[-2], criteria=criteria):
         print("Convergence criteria met")
         _, cur_val = mut_func(atoms_dicts[-2])
-        return FWAction(update_spec={prop_spec: cur_val, final_atoms_spec: atoms_dicts[-1]})
+        return FWAction(
+            update_spec={prop_spec: cur_val, final_atoms_spec: atoms_dicts[-1]}
+        )
     print("Convergence criteria not met. Mutating system and running another iteration")
 
     new_atoms, _ = mut_func(atoms_dicts[-1])
-    new_workdir = "/".join(workdir.split("/")[:-1]) + f'/{int(workdir.split("/")[-1])+1:05d}'
+    new_workdir = (
+        "/".join(workdir.split("/")[:-1]) + f'/{int(workdir.split("/")[-1])+1:05d}'
+    )
     check_conv_args = [
         prop_spec,
         atoms_spec,
@@ -102,7 +126,11 @@ def check_convergence(
         mutate_function,
         new_workdir,
     ]
-    task_list = [PyTask({"func": fw.calculate.name, "args": [new_workdir, atoms_spec, new_atoms]})]
+    task_list = [
+        PyTask(
+            {"func": fw.calculate.name, "args": [new_workdir, atoms_spec, new_atoms]}
+        )
+    ]
     task_list.append(
         PyTask(
             {
@@ -113,7 +141,9 @@ def check_convergence(
             }
         )
     )
-    new_firework = Firework(task_list, name="converging", spec={atoms_spec: atoms_dicts})
+    new_firework = Firework(
+        task_list, name="converging", spec={atoms_spec: atoms_dicts}
+    )
     return FWAction(detours=[new_firework])
 
 
@@ -127,7 +157,9 @@ def get_relaxed_structure(new_struct_fname, out_atoms_spec, cur_atoms):
     return FWAction(update_spec={out_atoms_spec: atoms2dict(new_atoms)})
 
 
-def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type="calc", symprec=1e-5, **kwargs):
+def add_phonon_to_db(
+    db_path, atoms_ideal, phonon_dict, calc_type="calc", symprec=1e-5, **kwargs
+):
     """
     Adds a phonon dictionary to a database defined by db_path
     Args:
@@ -150,7 +182,9 @@ def add_phonon_to_db(db_path, atoms_ideal, phonon_dict, calc_type="calc", sympre
             ("calc_type", "=", calc_type),
         ]
         if (kwargs is not None) and ("original_atoms_hash" in kwargs):
-            selection.append(("original_atoms_hash", "=", kwargs["original_atoms_hash"]))
+            selection.append(
+                ("original_atoms_hash", "=", kwargs["original_atoms_hash"])
+            )
         if (kwargs is not None) and ("supercell_matrix" in phonon_dict):
             selection.append(("supercell_matrix", "=", phonon_dict["supercell_matrix"]))
         try:

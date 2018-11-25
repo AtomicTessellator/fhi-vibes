@@ -10,9 +10,12 @@ from hilde.tasks.fireworks.general_py_task import generate_firework
 
 mod_name = __name__
 
-def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
-    '''
-    A function that checks if an MD like calculation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the MD
+
+def check_relaxation_complete(
+    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+):
+    """
+    A function that checks if a relaxation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the relaxation
     Args:
         atoms: ASE Atoms object
             The original atoms at the start of this job
@@ -28,40 +31,44 @@ def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, 
             keyword arguments for func
         fw_settings: dict
             FireWorks specific settings
-    '''
+    """
     if "trajectory" in func_kwargs:
         last_step_dict = last_from_yaml(func_kwargs["trajectory"])
     elif "workdir" in func_kwargs:
-        last_step_dict = last_from_yaml(Path(func_kwargs["workdir"] + "/trajectory.yaml").absolute())
+        last_step_dict = last_from_yaml(
+            Path(func_kwargs["workdir"] + "/trajectory.yaml").absolute()
+        )
     else:
         last_step_dict = last_from_yaml(Path("./trajectory.yaml").absolute())
 
-    for key, val in last_step_dict['atoms'].items():
+    for key, val in last_step_dict["atoms"].items():
         atoms[key] = val
-    calc["results"] = last_step_dict['calculator']
+    calc["results"] = last_step_dict["calculator"]
     for key, val in calc.items():
         atoms[key] = val
-    next_step = last_step_dict['opt']['nsteps'] + 1
+    next_step = last_step_dict["opt"]["nsteps"] + 1
 
     if outputs:
         if "db_path" in func_fw_kwargs:
             db_path = func_fw_kwargs["db_path"]
-            del(func_fw_kwargs["db_path"])
-            update_phonon_db(
-                db_path,
-                atoms,
-                atoms,
-                **func_fw_kwargs
-            )
-        return FWAction(update_spec={fw_settings["out_spec_atoms"]: atoms, fw_settings["out_spec_calc"]: calc})
-    del(calc['results']['forces'])
-    fw_settings["fw_name"] = fw_settings["fw_base_name"]+ str(next_step)
+            del (func_fw_kwargs["db_path"])
+            update_phonon_db(db_path, atoms, atoms, **func_fw_kwargs)
+        return FWAction(
+            update_spec={
+                fw_settings["out_spec_atoms"]: atoms,
+                fw_settings["out_spec_calc"]: calc,
+            }
+        )
+    del (calc["results"]["forces"])
+    fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(next_step)
     if "to_launchpad" in fw_settings and fw_settings["to_launcpad"]:
         fw_settings["to_launcpad"] = False
     if "trajectory" in func_kwargs:
         new_traj_list = func_kwargs["trajectory"].split(".")
     elif "workdir" in func_kwargs:
-        new_traj_list = str(Path(func_kwargs["workdir"] + "/trajectory.yaml").absolute()).split(".")
+        new_traj_list = str(
+            Path(func_kwargs["workdir"] + "/trajectory.yaml").absolute()
+        ).split(".")
     else:
         new_traj_list = str(Path("." + "/trajectory.yaml").absolute()).split(".")
 
@@ -73,17 +80,57 @@ def cont_md_out_fw_action(atoms, calc, outputs, func, func_fw_out, func_kwargs, 
     except:
         new_traj_list[-2] += "_restart_1"
         func_kwargs["trajectory"] = ".".join(new_traj_list)
-    fw = generate_firework(func, func_fw_out, func_kwargs, atoms, calc, func_fw_out_kwargs=func_fw_kwargs, fw_settings=fw_settings)
+    fw = generate_firework(
+        func,
+        func_fw_out,
+        func_kwargs,
+        atoms,
+        calc,
+        func_fw_out_kwargs=func_fw_kwargs,
+        fw_settings=fw_settings,
+    )
     return FWAction(detours=[fw])
 
-def run_phonopy_fw_out(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
+
+def serial_phonopy_continue(
+    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+):
+    """
+    A function that checks if a set of force calculations are completed, and if not adds another Firework to the Workflow to continue the calculation
+    Args:
+        atoms: ASE Atoms object
+            The original atoms at the start of this job
+        calc: ASE Calculator object
+            The original calculator
+        outputs:
+            The outputs from the function (assumes to be a single bool output)
+        func: str
+            Path to function that performs the MD like operation
+        func_fw_out: str
+            Path to this function
+        func_kwargs: dict
+            keyword arguments for func
+        fw_settings: dict
+            FireWorks specific settings
+    """
     if outputs:
         return FWAction()
-    fw = generate_firework(func, func_fw_out, func_kwargs, atoms, calc, func_fw_out_kwargs=func_fw_kwargs, fw_settings=fw_settings)
+    fw = generate_firework(
+        func,
+        func_fw_out,
+        func_kwargs,
+        atoms,
+        calc,
+        func_fw_out_kwargs=func_fw_kwargs,
+        fw_settings=fw_settings,
+    )
     return FWAction(detours=[fw])
 
-def kgrid_opt_fw_out(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
-    '''
+
+def check_kgrid_opt_completion(
+    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+):
+    """
     A function that checks if an MD like calculation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the MD
     Args:
         atoms: ASE Atoms object
@@ -100,14 +147,14 @@ def kgrid_opt_fw_out(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_
             keyword arguments for func
         fw_settings: dict
             FireWorks specific settings
-    '''
+    """
     last_step_dict = last_from_yaml(func_kwargs["trajectory"])
-    for key, val in last_step_dict['atoms'].items():
+    for key, val in last_step_dict["atoms"].items():
         atoms[key] = val
-    calc["results"] = last_step_dict['calculator']
+    calc["results"] = last_step_dict["calculator"]
     for key, val in calc.items():
         atoms[key] = val
-    next_step = last_step_dict['opt']['nsteps'] + 1
+    next_step = last_step_dict["opt"]["nsteps"] + 1
     if outputs[0]:
         up_spec = {
             fw_settings["out_spec_k_den"]: outputs[1],
@@ -129,11 +176,22 @@ def kgrid_opt_fw_out(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_
         new_traj_list[-2] += "_restart_1"
         func_kwargs["trajectory"] = ".".join(new_traj_list)
 
-    fw = generate_firework(func, func_fw_out, func_kwargs, atoms, outputs[2], func_fw_out_kwargs=func_fw_kwargs, fw_settings=fw_settings)
+    fw = generate_firework(
+        func,
+        func_fw_out,
+        func_kwargs,
+        atoms,
+        outputs[2],
+        func_fw_out_kwargs=func_fw_kwargs,
+        fw_settings=fw_settings,
+    )
     return FWAction(detours=[fw])
 
-def return_null_atoms(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
-    '''
+
+def fireworks_no_mods(
+    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+):
+    """
     A function that does not change the FireWorks Workflow upon completion
     Args:
         atoms: ASE Atoms object
@@ -150,11 +208,12 @@ def return_null_atoms(atoms, calc, outputs, func, func_fw_out, func_kwargs, func
             keyword arguments for func
         fw_settings: dict
             FireWorks specific settings
-    '''
+    """
     return FWAction()
 
-def return_null_general(func, func_fw_out, *args, fw_settings=None, **kwargs):
-    '''
+
+def fireworks_no_mods_gen_function(func, func_fw_out, *args, fw_settings=None, **kwargs):
+    """
     A function that does not change the FireWorks Workflow upon completion
     Args:
         func: str
@@ -167,11 +226,14 @@ def return_null_general(func, func_fw_out, *args, fw_settings=None, **kwargs):
             FireWorks specific settings
         kwargs: dict
             keyword arguments for func
-    '''
+    """
     return FWAction()
 
-def fw_out_initialize_phonopy(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
-    '''
+
+def add_phonopy_force_calcs(
+    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+):
+    """
     A function that initializes and adds all phonopy force calculations to the FireWorks Workflow,
     and adds the Phonopy Object to the spec
     Args:
@@ -189,18 +251,20 @@ def fw_out_initialize_phonopy(atoms, calc, outputs, func, func_fw_out, func_kwar
             keyword arguments for func
         fw_settings: dict
             FireWorks specific settings
-    '''
+    """
     detours = []
     calc_dict = calc
     if "kpoint_density_spec" in fw_settings:
-        del(fw_settings["kpoint_density_spec"])
-    for i,sc in enumerate(outputs[2]):
+        del (fw_settings["kpoint_density_spec"])
+    for i, sc in enumerate(outputs[2]):
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
         for key, val in calc_dict.items():
             sc_dict[key] = val
-        calc_kwargs = { 'workdir': func_fw_kwargs['workdir'] + f"/{i:05d}"}
-        fw_settings["fw_name"] = f"forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
+        calc_kwargs = {"workdir": func_fw_kwargs["workdir"] + f"/{i:05d}"}
+        fw_settings[
+            "fw_name"
+        ] = f"forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
         detours.append(
             generate_firework(
                 "hilde.tasks.calculate.calculate",
@@ -215,8 +279,11 @@ def fw_out_initialize_phonopy(atoms, calc, outputs, func, func_fw_out, func_kwar
         )
     return FWAction(update_spec={"phonon": phonon_to_dict(outputs[0])}, detours=detours)
 
-def mod_spec_add(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings):
-    '''
+
+def mod_spec_add(
+    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+):
+    """
     A function that appends the current results to a specified spec in the MongoDB
     Args:
         atoms: ASE Atoms object
@@ -233,28 +300,6 @@ def mod_spec_add(atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_k
             keyword arguments for func
         fw_settings: dict
             FireWorks specific settings
-    '''
+    """
     atoms_dict = atoms2dict(outputs)
-    return FWAction(mod_spec=[{"_push": {fw_settings['mod_spec_add']: atoms_dict}}])
-
-def return_up_spec_at_cl_general(func, func_fw_out, func_args, func_kwargs, *args, fw_settings=None, at_spec=None, cl_spec=None, **kwargs):
-    '''
-    A function that appends the current results to a specified spec in the MongoDB
-    Args:
-        atoms: ASE Atoms object
-            The original atoms at the start of this job
-        calc: ASE Calculator object
-            The original calculator
-        outputs:
-            The outputs from the function (assumes to be a single bool output)
-        func: str
-            Path to function that performs the MD like operation
-        func_fw_out: str
-            Path to this function
-        func_kwargs: dict
-            keyword arguments for func
-        fw_settings: dict
-            FireWorks specific settings
-    '''
-    return FWAction(update_spec=up_spec)
-
+    return FWAction(mod_spec=[{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}])

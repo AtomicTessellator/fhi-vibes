@@ -26,7 +26,7 @@ if fw_settings['serial']:
         settings.phonopy["original_atom_hash"] = atoms_hash
     fw = generate_firework(
         "hilde.phonopy.workflow.phonopy",
-        "hilde.tasks.fireworks.fw_action_outs.run_phonopy_fw_out",
+        "hilde.tasks.fireworks.fw_action_outs.serial_phonopy_continue",
         dict(settings.phonopy),
         atoms,
         calc,
@@ -41,7 +41,7 @@ else:
         kwargs_init["displacement"] = settings.phonopy.displacement
     init_fw = generate_firework(
         "hilde.phonopy.workflow.initialize_phonopy_attach_calc",
-        "hilde.tasks.fireworks.fw_action_outs.fw_out_initialize_phonopy",
+        "hilde.tasks.fireworks.fw_action_outs.add_phonopy_force_calcs",
         kwargs_init,
         atoms,
         calc,
@@ -60,7 +60,7 @@ else:
             kwargs[key] = settings.phonopy[key]
     anal_fw = generate_firework(
         "hilde.phonopy.postprocess.postprocess",
-        "hilde.tasks.fireworks.fw_action_outs.return_null_general",
+        "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
         args=[],
         inputs=["phonon", fw_settings["mod_spec_add"]],
         func_kwargs=kwargs,

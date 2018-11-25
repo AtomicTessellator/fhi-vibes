@@ -6,6 +6,7 @@ from hilde.settings import Settings
 from hilde.tasks.fireworks.general_py_task import generate_firework
 from hilde.templates.aims import setup_aims
 
+
 def get_step_fw(step_settings, default_settings, atoms):
     if "basisset" in step_settings:
         step_settings.control["basisset_type"] = step_settings.basisset.type
@@ -43,12 +44,12 @@ def get_step_fw(step_settings, default_settings, atoms):
         fw_list.append(
             generate_firework(
                 "hilde.relaxation.bfgs.relax",
-                "hilde.tasks.fireworks.fw_action_outs.cont_md_out_fw_action",
+                "hilde.tasks.fireworks.fw_action_outs.check_relaxation_complete",
                 step_settings.function_kwargs,
                 at,
                 cl,
                 func_fw_out_kwargs=db_kwargs,
-                atoms_calc_from_spec= step_settings.fw.from_db,
+                atoms_calc_from_spec=step_settings.fw.from_db,
                 fw_settings=step_settings.fw,
                 update_calc_settings=step_settings.control,
             )
@@ -57,7 +58,7 @@ def get_step_fw(step_settings, default_settings, atoms):
         fw_list.append(
             generate_firework(
                 "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid",
-                "hilde.tasks.fireworks.fw_action_outs.kgrid_opt_fw_out",
+                "hilde.tasks.fireworks.fw_action_outs.check_kgrid_opt_completion",
                 step_settings.function_kwargs,
                 at,
                 cl,
@@ -66,36 +67,40 @@ def get_step_fw(step_settings, default_settings, atoms):
             )
         )
     elif step_settings.calculation_step.type == "phonons":
-        if step_settings.fw['serial']:
+        if step_settings.fw["serial"]:
             if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
-                step_settings.function_kwargs["db_path"] = step_settings.db_storage.db_path
+                step_settings.function_kwargs[
+                    "db_path"
+                ] = step_settings.db_storage.db_path
                 step_settings.function_kwargs["original_atom_hash"] = atoms_hash
             fw_list.append(
                 generate_firework(
                     "hilde.phonopy.workflow.phonopy",
-                    "hilde.tasks.fireworks.fw_action_outs.run_phonopy_fw_out",
+                    "hilde.tasks.fireworks.fw_action_outs.serial_phonopy_continue",
                     dict(step_settings.function_kwargs),
                     at,
                     cl,
-                    atoms_calc_from_spec= step_settings.fw.from_db,
+                    atoms_calc_from_spec=step_settings.fw.from_db,
                     fw_settings=step_settings.fw,
                     update_calc_settings=step_settings.control,
                 )
             )
         else:
-            kwargs_init = {"supercell_matrix": step_settings.function_kwargs.supercell_matrix}
+            kwargs_init = {
+                "supercell_matrix": step_settings.function_kwargs.supercell_matrix
+            }
             kwargs_init_fw_out = {"workdir": step_settings.function_kwargs.workdir}
             if "displacement" in step_settings.function_kwargs:
                 kwargs_init["displacement"] = step_settings.function_kwargs.displacement
             fw_list.append(
                 generate_firework(
                     "hilde.phonopy.workflow.initialize_phonopy_attach_calc",
-                    "hilde.tasks.fireworks.fw_action_outs.fw_out_initialize_phonopy",
+                    "hilde.tasks.fireworks.fw_action_outs.add_phonopy_force_calcs",
                     kwargs_init,
                     at,
                     cl,
                     func_fw_out_kwargs=kwargs_init_fw_out,
-                    atoms_calc_from_spec= step_settings.fw.from_db,
+                    atoms_calc_from_spec=step_settings.fw.from_db,
                     fw_settings=step_settings.fw,
                     update_calc_settings=step_settings.control,
                 )
@@ -105,17 +110,22 @@ def get_step_fw(step_settings, default_settings, atoms):
                 kwargs["db_path"] = step_settings.db_storage.db_path
                 kwargs["original_atom_hash"] = atoms_hash
 
-            anal_keys = ["trajectory", "analysis_workdir", "force_constant_file", "displacement"]
+            anal_keys = [
+                "trajectory",
+                "analysis_workdir",
+                "force_constant_file",
+                "displacement",
+            ]
             for key in anal_keys:
                 if key in step_settings.function_kwargs:
                     kwargs[key] = step_settings.function_kwargs[key]
             if "analysis_workdir" in kwargs:
                 kwargs["workdir"] = kwargs["analysis_workdir"]
-                del(kwargs["analysis_workdir"])
+                del (kwargs["analysis_workdir"])
             fw_list.append(
                 generate_firework(
                     "hilde.phonopy.postprocess.postprocess",
-                    "hilde.tasks.fireworks.fw_action_outs.return_null_general",
+                    "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
                     args=[],
                     inputs=["phonon", step_settings.fw["mod_spec_add"]],
                     func_kwargs=kwargs,
@@ -127,13 +137,14 @@ def get_step_fw(step_settings, default_settings, atoms):
 
     return fw_list
 
+
 def run_step(config_file, hilde_defaults_config_file, atoms):
     settings = Settings(hilde_defaults_config_file)
     step_settings = Settings(config_file)
     # reset default calculator values
     for key, val in step_settings.control.items():
         if val is None and key in settings.control:
-            del(settings.control[key])
+            del (settings.control[key])
         elif val is not None:
             settings.control[key] = val
     if "basisset" in step_settings:
@@ -149,12 +160,17 @@ def run_step(config_file, hilde_defaults_config_file, atoms):
             atoms,
             calc,
             socketio_port=settings.socketio.port,
-            **step_settings.function_kwargs
+            **step_settings.function_kwargs,
         )
     elif step_settings.calculation_step.type == "phonons":
         if "db_path" in step_settings.db_storage:
             step_settings.function_kwargs["db_path"] = step_settings.db_storage.db_path
             step_settings.function_kwargs["original_atom_hash"] = atoms_hash
-        phonopy(atoms, calc, socketio_port=settings.socketio.port, **step_settings.function_kwargs)
+        phonopy(
+            atoms,
+            calc,
+            socketio_port=settings.socketio.port,
+            **step_settings.function_kwargs,
+        )
     else:
         raise ValueError("Type not defiend")
