@@ -9,21 +9,23 @@ def print_message(message):
     print(message)
 
 # set up the LaunchPad and reset it
+print("*******Testing Local FireWorks Installation*******")
 print("Getting LaunchPad from file ~/.fireworks/my_launchpad.yaml.")
 
 launchpad = LaunchPad.from_file(str(Path.home()) + "/.fireworks/my_launchpad.yaml")
+print("*******Resetting LaunchPad*******")
 launchpad.reset('', require_password=False)
 
 # create the Firework consisting of a custom "Addition" task
-firework = Firework(AdditionTask(), spec={"input_array": [1, 2]})
+firework = Firework(AdditionTask(), spec={"input_array": [1, 2]}, name="AdditionTestLocal")
 
 # store workflow and launch it locally
 launchpad.add_wf(firework)
 launch_rocket(launchpad, FWorker())
 
-print("The native FireWorks installation is working, retrying with modified versions")
+print("*******Unmodified FireWorks is working locally*******")
 
-print("Testing the local version of HiLDe's FireWorks modification")
+print("*******Testing the local version of HiLDe's FireWorks modifications*******")
 
 from hilde.tasks.fireworks.general_py_task import generate_firework
 from hilde.tasks.fireworks.fw_action_outs import return_null_general
@@ -44,8 +46,9 @@ fw = generate_firework(
 # store workflow and launch it locally
 launchpad.add_wf(fw)
 launch_rocket(launchpad, FWorker())
+print("*******The local version of HiLDe's FireWorks modifications work*******")
 
-print("Testing the remote connection with FireWorks")
+print("*******Testing the remote connection with FireWorks*******")
 
 # Import modules from ase and fireworks
 import numpy as np
@@ -104,3 +107,5 @@ launchpad.add_wf(workflow)
 fworker = FWorker()
 
 rapidfire(launchpad, fworker, strm_lvl="INFO", reserve=True, gss_auth=True)
+
+print("\n\n*******All Tests Successful*******\n\n")
