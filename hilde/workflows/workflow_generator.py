@@ -6,14 +6,11 @@ from hilde.settings import Settings
 from hilde.tasks.fireworks.general_py_task import generate_firework
 from hilde.templates.aims import setup_aims
 
-def get_step_fw(config_file, hilde_defaults_config_file, atoms):
-    settings = Settings(hilde_defaults_config_file)
-    step_settings = Settings(config_file)
-
+def get_step_fw(step_settings, default_settings, atoms):
     if "basisset" in step_settings:
         step_settings.control["basisset_type"] = step_settings.basisset.type
 
-    calc = setup_aims(settings=settings)
+    calc = setup_aims(settings=default_settings)
 
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
@@ -37,7 +34,7 @@ def get_step_fw(config_file, hilde_defaults_config_file, atoms):
         if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
             db_kwargs = {
                 "db_path": step_settings.db_storage.db_path,
-                "calc_type": f"relaxation_{settings.basisset.type}",
+                "calc_type": f"relaxation_{default_settings.basisset.type}",
                 "symprec": 1e-5,
                 "original_atom_hash": atoms_hash,
             }
