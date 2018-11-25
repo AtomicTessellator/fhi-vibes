@@ -25,6 +25,12 @@ class LaunchPadHilde(LaunchPad):
 
     @classmethod
     def from_dict(cls, d):
+        """
+        Constructs a LaunchPad from a dict
+        Args:
+            cls: Class of the LaunchPad
+            d: dict describing it
+        """
         logdir = d.get("logdir", None)
         strm_lvl = d.get("strm_lvl", None)
         user_indices = d.get("user_indices", [])

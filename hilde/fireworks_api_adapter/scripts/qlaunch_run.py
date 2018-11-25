@@ -21,7 +21,12 @@ except ImportError:
 else:
     HAS_FABRIC = True
 
-from fireworks.fw_config import QUEUEADAPTER_LOC, CONFIG_FILE_DIR, FWORKER_LOC, LAUNCHPAD_LOC
+from fireworks.fw_config import (
+    QUEUEADAPTER_LOC,
+    CONFIG_FILE_DIR,
+    FWORKER_LOC,
+    LAUNCHPAD_LOC,
+)
 from fireworks.core.fworker import FWorker
 from fireworks.queue.queue_launcher import launch_rocket_to_queue
 from fireworks.utilities.fw_serializers import load_object_from_file
@@ -29,7 +34,9 @@ from fireworks.utilities.fw_serializers import load_object_from_file
 from hilde.fireworks_api_adapter.queue_launcher import rapidfire
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde as LaunchPad
 
-__authors__ = "Anubhav Jain, Shyue Ping Ong. Modified by Thomas Purcell to redirect rapidfire"
+__authors__ = (
+    "Anubhav Jain, Shyue Ping Ong. Modified by Thomas Purcell to redirect rapidfire"
+)
 __copyright__ = "Copyright 2013, The Materials Project, Modifications 2.11.2018"
 __version__ = "0.1"
 __maintainer__ = "Anubhav Jain"
@@ -38,6 +45,7 @@ __date__ = "Jan 14, 2013"
 
 
 def do_launch(args):
+    """ Launches the calculations with parameters defined in args"""
     if not args.launchpad_file and os.path.exists(
         os.path.join(args.config_dir, "my_launchpad.yaml")
     ):
@@ -45,7 +53,9 @@ def do_launch(args):
     elif not args.launchpad_file:
         args.launchpad_file = LAUNCHPAD_LOC
 
-    if not args.fworker_file and os.path.exists(os.path.join(args.config_dir, "my_fworker.yaml")):
+    if not args.fworker_file and os.path.exists(
+        os.path.join(args.config_dir, "my_fworker.yaml")
+    ):
         args.fworker_file = os.path.join(args.config_dir, "my_fworker.yaml")
     elif not args.fworker_file:
         args.fworker_file = FWORKER_LOC
@@ -96,6 +106,7 @@ def do_launch(args):
 
 
 def qlaunch():
+    """Defines the command qlaunch_hilde"""
     m_description = (
         "This program is used to submit jobs to a queueing system. "
         "Details of the job and queue interaction are handled by the "
@@ -109,14 +120,19 @@ def qlaunch():
 
     parser = ArgumentParser(description=m_description)
     subparsers = parser.add_subparsers(help="command", dest="command")
-    single_parser = subparsers.add_parser("singleshot", help="launch a single rocket to the queue")
-    rapid_parser = subparsers.add_parser("rapidfire", help="launch multiple rockets to the queue")
+    single_parser = subparsers.add_parser(
+        "singleshot", help="launch a single rocket to the queue"
+    )
+    rapid_parser = subparsers.add_parser(
+        "rapidfire", help="launch multiple rockets to the queue"
+    )
 
     parser.add_argument(
         "-rh",
         "--remote_host",
         nargs="*",
-        help="Remote host to exec qlaunch. Right now, " "only supports running from a config dir.",
+        help="Remote host to exec qlaunch. Right now, "
+        "only supports running from a config dir.",
     )
     parser.add_argument(
         "-rc",
@@ -132,7 +148,9 @@ def qlaunch():
         "the find command while it consumes args.",
         default=["~/.fireworks"],
     )
-    parser.add_argument("-ru", "--remote_user", help="Username to login to remote host.")
+    parser.add_argument(
+        "-ru", "--remote_user", help="Username to login to remote host."
+    )
     parser.add_argument(
         "-rp",
         "--remote_password",
@@ -150,7 +168,8 @@ def qlaunch():
     parser.add_argument(
         "-rs",
         "--remote_setup",
-        help="Setup the remote config dir using files in " "the directory specified by -c.",
+        help="Setup the remote config dir using files in "
+        "the directory specified by -c.",
         action="store_true",
     )
     parser.add_argument(
@@ -168,7 +187,9 @@ def qlaunch():
     parser.add_argument(
         "--launch_dir", help="directory to launch the job / rapid-fire", default="."
     )
-    parser.add_argument("--logdir", help="path to a directory for logging", default=None)
+    parser.add_argument(
+        "--logdir", help="path to a directory for logging", default=None
+    )
     parser.add_argument(
         "--loglvl", help="level to print log messages", default="CRITICAL", type=str
     )
@@ -215,7 +236,11 @@ def qlaunch():
         type=int,
     )
     rapid_parser.add_argument(
-        "-b", "--maxjobs_block", help="maximum jobs to put in a block", default=500, type=int
+        "-b",
+        "--maxjobs_block",
+        help="maximum jobs to put in a block",
+        default=500,
+        type=int,
     )
     rapid_parser.add_argument(
         "--nlaunches",
@@ -228,10 +253,16 @@ def qlaunch():
         default=None,
         type=int,
     )
-    rapid_parser.add_argument("--sleep", help="sleep time between loops", default=None, type=int)
+    rapid_parser.add_argument(
+        "--sleep", help="sleep time between loops", default=None, type=int
+    )
 
     single_parser.add_argument(
-        "-f", "--fw_id", help="specific fw_id to run in reservation mode", default=None, type=int
+        "-f",
+        "--fw_id",
+        help="specific fw_id to run in reservation mode",
+        default=None,
+        type=int,
     )
 
     try:
@@ -259,7 +290,10 @@ def qlaunch():
                 host=h,
                 user=args.remote_user,
                 config=fabric.Config({"run": {"shell": args.remote_shell}}),
-                connect_kwargs={"password": args.remote_password, "gss_auth": args.gss_auth},
+                connect_kwargs={
+                    "password": args.remote_password,
+                    "gss_auth": args.gss_auth,
+                },
             ) as conn:
                 for r in args.remote_config_dir:
                     r = os.path.expanduser(r)
@@ -299,7 +333,10 @@ def qlaunch():
                     host=h,
                     user=args.remote_user,
                     config=fabric.Config({"run": {"shell": args.remote_shell}}),
-                    connect_kwargs={"password": args.remote_password, "gss_auth": args.gss_auth},
+                    connect_kwargs={
+                        "password": args.remote_password,
+                        "gss_auth": args.gss_auth,
+                    },
                 ) as conn:
                     for r in args.remote_config_dir:
                         r = os.path.expanduser(r)
@@ -312,7 +349,10 @@ def qlaunch():
         else:
             do_launch(args)
         if interval > 0:
-            print("Next run in {} seconds... Press Ctrl-C to exit at any " "time.".format(interval))
+            print(
+                "Next run in {} seconds... Press Ctrl-C to exit at any "
+                "time.".format(interval)
+            )
             time.sleep(args.daemon)
         else:
             break

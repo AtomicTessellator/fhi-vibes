@@ -61,38 +61,22 @@ def qlaunch_remote(
     """
     This function adapts the python definition of qlaunch in fireworks to a python function
     Args:
-        command: str ("singleshot" or "rappidfire")
-            Whether to do a single shot or rapidfire command
-        maxjobs_queue: int
-            maximum jobs to keep in queue for this user'
-        maxjobs_block: int
-            maximum jobs to put in a block
-        nlaunches: int
-            num_launches (int or "infinite"; default 0 is all jobs in DB)
-        sleep: int
-            sleep time between loops
-        fw_ids: list of int
-            specific fw_ids to run in reservation mode
-        silencer: bool
-            shortcut to mute log messages
-        reserve: bool
-            reserve a fw
-        remote_host: str
-            Remote host to exec qlaunch. Right now, only supports running from a config dir.
-        remote_config_dir: list of str
-            Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple
-            locations if you have multiple configurations on the same cluster e.g., multiple
-            queues or FireWorkers.
-        remote_user: str
-            Username to login to remote host.
-        remote_password: str
-            Password for remote host (if necessary). For best operation, it is recommended that
-            you do passwordless ssh.
-        remote_shell: str
-            Shell command to use on remote host for running submission.
-        daemon: int
-            Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon
-            mode.
+        command (str): Whether to do a singleshot or rapidfire command
+        maxjobs_queue (int): maximum jobs to keep in queue for this user
+        maxjobs_block (int): maximum jobs to put in a block
+        nlaunches (int): maximum number of launches to perform (int or "infinite"; default 0 is all jobs in DB)
+        sleep (int): sleep time between loops
+        fw_ids (list of int): specific fw_ids to run in reservation mode
+        fw_id (int): ID of a specific FireWork to run in reservation mode
+        wflow (list of int or Workflow): specific Workflow to run in reservation mode
+        silencer (bool): shortcut to mute log messages
+        reserve (bool): reserve a fw
+        remote_host (str): Remote host to exec qlaunch. Right now, only supports running from a config dir.
+        remote_config_dir (list of str): Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple locations if you have multiple configurations on the same cluster e.g., multiple queues or FireWorkers.
+        remote_user (str): Username to login to remote host.
+        remote_password (str): Password for remote host (if necessary). For best operation, it is recommended that you do passwordless ssh.
+        remote_shell (str): Shell command to use on remote host for running submission.
+        daemon (int): Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode.
     """
     assert remote_host is not "localhost"
 
@@ -140,10 +124,15 @@ def qlaunch_remote(
                     remote = os.path.expanduser(remote)
                     with conn.cd(remote):
                         conn.run(
-                            "qlaunch_hilde {} {} {}".format(pre_non_default, command, non_default)
+                            "qlaunch_hilde {} {} {}".format(
+                                pre_non_default, command, non_default
+                            )
                         )
         if interval > 0:
-            print("Next run in {} seconds... Press Ctrl-C to exit at any " "time.".format(interval))
+            print(
+                "Next run in {} seconds... Press Ctrl-C to exit at any "
+                "time.".format(interval)
+            )
             time.sleep(daemon)
         else:
             break

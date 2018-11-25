@@ -21,7 +21,12 @@ except ImportError:
 else:
     HAS_FABRIC = True
 
-from fireworks.fw_config import QUEUEADAPTER_LOC, CONFIG_FILE_DIR, FWORKER_LOC, LAUNCHPAD_LOC
+from fireworks.fw_config import (
+    QUEUEADAPTER_LOC,
+    CONFIG_FILE_DIR,
+    FWORKER_LOC,
+    LAUNCHPAD_LOC,
+)
 from fireworks.core.fworker import FWorker
 from fireworks.queue.queue_launcher import launch_rocket_to_queue
 from fireworks.utilities.fw_serializers import load_object_from_file
@@ -47,7 +52,9 @@ except KeyError:
         "remote_password": None,
     }
 
+
 def claunch():
+    """Defines the command claunch_hidle"""
     m_description = (
         "This program is used to submit jobs to a queueing system. "
         "Details of the job and queue interaction are handled by the "
@@ -66,7 +73,8 @@ def claunch():
         "--remote_host",
         default=fw_defaults["remote_host"],
         nargs="*",
-        help="Remote host to exec qlaunch. Right now, " "only supports running from a config dir.",
+        help="Remote host to exec qlaunch. Right now, "
+        "only supports running from a config dir.",
     )
     parser.add_argument(
         "-rc",
@@ -82,7 +90,12 @@ def claunch():
         "argparse may not be able to find "
         "the find command while it consumes args.",
     )
-    parser.add_argument("-ru", "--remote_user", default=fw_defaults["remote_user"], help="Username to login to remote host.")
+    parser.add_argument(
+        "-ru",
+        "--remote_user",
+        default=fw_defaults["remote_user"],
+        help="Username to login to remote host.",
+    )
     parser.add_argument(
         "-rp",
         "--remote_password",
@@ -101,7 +114,8 @@ def claunch():
     parser.add_argument(
         "-rs",
         "--remote_setup",
-        help="Setup the remote config dir using files in " "the directory specified by -c.",
+        help="Setup the remote config dir using files in "
+        "the directory specified by -c.",
         action="store_true",
     )
     parser.add_argument(
@@ -119,7 +133,9 @@ def claunch():
     parser.add_argument(
         "--launch_dir", help="directory to launch the job / rapid-fire", default="."
     )
-    parser.add_argument("--logdir", help="path to a directory for logging", default=None)
+    parser.add_argument(
+        "--logdir", help="path to a directory for logging", default=None
+    )
     parser.add_argument(
         "--loglvl", help="level to print log messages", default="CRITICAL", type=str
     )
@@ -166,7 +182,11 @@ def claunch():
         type=int,
     )
     parser.add_argument(
-        "-b", "--maxjobs_block", help="maximum jobs to put in a block", default=fw_defaults["njobs_block"], type=int
+        "-b",
+        "--maxjobs_block",
+        help="maximum jobs to put in a block",
+        default=fw_defaults["njobs_block"],
+        type=int,
     )
     parser.add_argument(
         "--nlaunches",
@@ -179,7 +199,12 @@ def claunch():
         default=None,
         type=int,
     )
-    parser.add_argument("--sleep", help="sleep time between loops", default=fw_defaults["sleep_time"], type=int)
+    parser.add_argument(
+        "--sleep",
+        help="sleep time between loops",
+        default=fw_defaults["sleep_time"],
+        type=int,
+    )
     parser.add_argument(
         "-tq",
         "--tasks_to_queue",
@@ -209,7 +234,9 @@ def claunch():
     elif not args.launchpad_file:
         args.launchpad_file = LAUNCHPAD_LOC
 
-    if not args.fworker_file and os.path.exists(os.path.join(args.config_dir, "my_fworker.yaml")):
+    if not args.fworker_file and os.path.exists(
+        os.path.join(args.config_dir, "my_fworker.yaml")
+    ):
         args.fworker_file = os.path.join(args.config_dir, "my_fworker.yaml")
     elif not args.fworker_file:
         args.fworker_file = FWORKER_LOC

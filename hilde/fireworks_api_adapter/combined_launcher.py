@@ -51,6 +51,7 @@ except KeyError:
         "remote_password": None,
     }
 
+
 def get_ordred_fw_ids(wflow):
     """Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow"""
     fw_ids_ordered = wflow.leaf_fw_ids
@@ -97,12 +98,10 @@ def rapidfire(
 ):
     """
     Submit many jobs to the queue.
-
     Args:
         launchpad (LaunchPad)
         fworker (FWorker)
         qadapter (QueueAdapterBase)
-        wflow (WorkFlow): the workflow this qlauncher is supposed to run
         launch_dir (str): directory where we want to write the blocks
         nlaunches (int): total number of launches desired; "infinite" for loop, 0 for one round
         njobs_queue (int): stops submitting jobs when njobs_queue jobs are in the queue, 0 for
@@ -116,12 +115,18 @@ def rapidfire(
         fill_mode (bool): whether to submit jobs even when there is nothing to run (only in
             non-reservation mode)
         fw_ids(list of ints): a list fw_ids to launch (len(fw_ids) == nlaunches)
-        wflow_id(list of ints): a list fw_ids that are a root of the workflow
+        wflow (WorkFlow): the workflow this qlauncher is supposed to run
+        tasks2queue (List of str): List of functions to run on a remote queue
+        gss_auth (bool): True if GSS_API should be used to connect to the remote machine
+        remote_host(list of str): list of hosts to attempt to connect to
+        remote_config_dir (list of str): list of directories on the remote machines to find FireWorks configuration files
+        remote_user (str): username for the remote account
+        remote_password (str or None): Password for access to the remote account
+        remote_shell (str): Type of shell on the remote machine
+        daemon (int): Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode
     """
     if tasks2queue is None:
-        tasks2queue = [
-            ""
-        ]
+        tasks2queue = [""]
     if remote_config_dir is None:
         remote_config_dir = ["~/.fireworks"]
     r_args = [launchpad]
@@ -142,7 +147,8 @@ def rapidfire(
         remote = False
         if not fworker or not qadapter:
             raise AttributeError(
-                "For a direct launch_rocket_to_queue fworker and qadapter " + "need to be specified"
+                "For a direct launch_rocket_to_queue fworker and qadapter "
+                + "need to be specified"
             )
         q_args = [launchpad, fworker, qadapter]
         q_kwargs = {
@@ -181,11 +187,15 @@ def rapidfire(
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     launch_dir = os.path.abspath(launch_dir)
     nlaunches = -1 if nlaunches == "infinite" else int(nlaunches)
-    l_logger = get_fw_logger("queue.launcher", l_dir=launchpad.logdir, stream_level=strm_lvl)
+    l_logger = get_fw_logger(
+        "queue.launcher", l_dir=launchpad.logdir, stream_level=strm_lvl
+    )
 
     # make sure launch_dir exists:
     if not os.path.exists(launch_dir):
-        raise ValueError("Desired launch directory {} does not exist!".format(launch_dir))
+        raise ValueError(
+            "Desired launch directory {} does not exist!".format(launch_dir)
+        )
 
     num_launched = 0
     start_time = datetime.now()
@@ -194,7 +204,9 @@ def rapidfire(
         if remote_host is "localhost":
             l_logger.info("getting queue adapter")
 
-            prev_blocks = sorted(glob.glob(os.path.join(launch_dir, "block_*")), reverse=True)
+            prev_blocks = sorted(
+                glob.glob(os.path.join(launch_dir, "block_*")), reverse=True
+            )
             if prev_blocks and not ALWAYS_CREATE_NEW_BLOCK:
                 block_dir = os.path.abspath(os.path.join(launch_dir, prev_blocks[0]))
                 l_logger.info("Found previous block, using {}".format(block_dir))
@@ -204,7 +216,9 @@ def rapidfire(
         while True:
             if remote_host is "localhost":
                 # get number of jobs in queue
-                jobs_in_queue = _get_number_of_jobs_in_queue(qadapter, njobs_queue, l_logger)
+                jobs_in_queue = _get_number_of_jobs_in_queue(
+                    qadapter, njobs_queue, l_logger
+                )
                 job_counter = 0  # this is for QSTAT_FREQUENCY option
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
@@ -229,7 +243,9 @@ def rapidfire(
 
                     # switch to new block dir if it got too big
                     if _njobs_in_dir(block_dir) >= njobs_block:
-                        l_logger.info("Block got bigger than {} jobs.".format(njobs_block))
+                        l_logger.info(
+                            "Block got bigger than {} jobs.".format(njobs_block)
+                        )
                         block_dir = create_datestamp_dir(launch_dir, l_logger)
                 return_code = None
                 # launch a single job
@@ -269,11 +285,15 @@ def rapidfire(
                 else:
                     num_launched += 1
                 if nlaunches > 0 and num_launched == nlaunches:
-                    l_logger.info("Launched allowed number of " "jobs: {}".format(num_launched))
+                    l_logger.info(
+                        "Launched allowed number of " "jobs: {}".format(num_launched)
+                    )
                     break
                 # wait for the queue system to update
                 if remote_host is "localhost":
-                    l_logger.info("Sleeping for {} seconds...zzz...".format(QUEUE_UPDATE_INTERVAL))
+                    l_logger.info(
+                        "Sleeping for {} seconds...zzz...".format(QUEUE_UPDATE_INTERVAL)
+                    )
                     time.sleep(QUEUE_UPDATE_INTERVAL)
                 if not use_queue and launchpad.run_exists(fworker, ids=fw_ids):
                     skip_check = True
@@ -281,12 +301,16 @@ def rapidfire(
                     skip_check = False
             if (
                 (nlaunches > 0 and num_launched == nlaunches)
-                or (timeout and (datetime.now() - start_time).total_seconds() >= timeout)
+                or (
+                    timeout and (datetime.now() - start_time).total_seconds() >= timeout
+                )
                 or (nlaunches == 0 and not launchpad.future_run_exists(fworker))
             ):
                 break
 
-            l_logger.info("Finished a round of launches, sleeping for {} secs".format(sleep_time))
+            l_logger.info(
+                "Finished a round of launches, sleeping for {} secs".format(sleep_time)
+            )
             time.sleep(sleep_time)
             l_logger.info("Checking for Rockets to run...")
     except:

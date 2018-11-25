@@ -1,3 +1,4 @@
+"""Function that performs a k-grid optimization for a structure"""
 from pathlib import Path
 import numpy as np
 
@@ -9,10 +10,11 @@ from hilde.helpers.paths import cwd
 from hilde.trajectory.relaxation import metadata2file, step2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 
+
 def converge_kgrid(
     atoms,
     calc,
-    func=lambda x: x.calc.get_property('energy',x)/len(x),
+    func=lambda x: x.calc.get_property("energy", x) / len(x),
     loss_func=lambda x: x,
     dfunc_min=1e-4,
     even=True,
@@ -25,6 +27,25 @@ def converge_kgrid(
     workdir=".",
     kpts_density_init=1.0,
 ):
+    """
+    Converges the k-grid relative to some loss function
+    Args:
+        atoms: (ASE Atoms object) geometry of the system you are converging the k-grid on
+        calc: (ASE Calculator object) calculator for the k-grid convergence
+        func: (function) Function used to get the property the routine is trying to converge relative to the k-grid density
+        loss_func: (function) Function used to transform the property obtained in func into a score to compare agsint
+        dfunc_min: (float) Convergence criteria for the loss function
+        even: (bool) If True kgrid must be even valued
+        unit_cell: (bool) if True system is periodic
+        maxsteps: (int) maximum steps to run the optimization over
+        trajecotry: (str) file name to store the trajectory
+        logfile: (str) file name for the log file
+        socketio_port: (int) port number for interactions with the socket
+        walltime: (int) length of the wall time for the job in seconds
+        workdir: (str) working directory for the calculation
+        kpts_density_init: (float) initial k-point density
+    Returns: (bool) True if the convergence criteria is met
+    """
     watchdog = Watchdog(walltime=walltime)
 
     workdir = Path(workdir).absolute()

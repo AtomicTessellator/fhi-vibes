@@ -30,12 +30,13 @@ __date__ = "Feb 7, 2013"
 
 
 def handle_interrupt(signum, frame):
+    """Interrupt handler"""
     sys.stderr.write("Interruped by signal {:d}\n".format(signum))
     sys.exit(1)
 
 
 def rlaunch():
-
+    """Defines the command rlaunch_hilde"""
     m_description = (
         "This program launches one or more Rockets. A Rocket retrieves a job from the "
         'central database and runs it. The "single-shot" option launches a single Rocket, '
@@ -48,7 +49,9 @@ def rlaunch():
     rapid_parser = subparsers.add_parser(
         "rapidfire", help="launch multiple Rockets (loop until all FireWorks complete)"
     )
-    multi_parser = subparsers.add_parser("multi", help="launches multiple Rockets simultaneously")
+    multi_parser = subparsers.add_parser(
+        "multi", help="launches multiple Rockets simultaneously"
+    )
 
     single_parser.add_argument(
         "-f", "--fw_id", help="specific fw_id to run", default=None, type=int
@@ -103,7 +106,9 @@ def rlaunch():
         default=[],
     )
 
-    multi_parser.add_argument("num_jobs", help="the number of jobs to run in parallel", type=int)
+    multi_parser.add_argument(
+        "num_jobs", help="the number of jobs to run in parallel", type=int
+    )
     multi_parser.add_argument(
         "--nlaunches",
         help="number of FireWorks to run in series per "
@@ -132,7 +137,10 @@ def rlaunch():
         type=str,
     )
     multi_parser.add_argument(
-        "--ppn", help="processors per node (for populating FWData only)", default=1, type=int
+        "--ppn",
+        help="processors per node (for populating FWData only)",
+        default=1,
+        type=int,
     )
     multi_parser.add_argument(
         "--exclude_current_node",
@@ -150,7 +158,8 @@ def rlaunch():
     parser.add_argument(
         "-c",
         "--config_dir",
-        help="path to a directory containing the config file " "(used if -l, -w unspecified)",
+        help="path to a directory containing the config file "
+        "(used if -l, -w unspecified)",
         default=CONFIG_FILE_DIR,
     )
 
@@ -181,7 +190,9 @@ def rlaunch():
     elif not args.launchpad_file:
         args.launchpad_file = LAUNCHPAD_LOC
 
-    if not args.fworker_file and os.path.exists(os.path.join(args.config_dir, "my_fworker.yaml")):
+    if not args.fworker_file and os.path.exists(
+        os.path.join(args.config_dir, "my_fworker.yaml")
+    ):
         args.fworker_file = os.path.join(args.config_dir, "my_fworker.yaml")
     elif not args.fworker_file:
         args.fworker_file = FWORKER_LOC
@@ -243,7 +254,9 @@ def rlaunch():
             local_redirect=args.local_redirect,
         )
     else:
-        launch_rocket(launchpad, fworker, args.fw_id, args.loglvl, pdb_on_exception=args.pdb)
+        launch_rocket(
+            launchpad, fworker, args.fw_id, args.loglvl, pdb_on_exception=args.pdb
+        )
 
 
 if __name__ == "__main__":

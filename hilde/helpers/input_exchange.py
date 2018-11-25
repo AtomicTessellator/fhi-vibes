@@ -7,6 +7,7 @@ from ase.db.row import atoms2dict, AtomsRow
 from hilde.structure import pAtoms
 from hilde.calculators.aims_calc import Aims
 
+
 def calc2dict(calc):
     """ Converts an ase calculator calc into a dict"""
     if calc is None:
@@ -38,7 +39,7 @@ def patoms2dict(atoms):
     # add information that is missing after using ase.atoms2dict
     atoms_dict["info"] = atoms.info
 
-    if hasattr(atoms, 'symmetry_block'):
+    if hasattr(atoms, "symmetry_block"):
         atoms_dict["sym_block"] = atoms.symmetry_block
 
     # attach calculator
@@ -64,9 +65,10 @@ def dict2patoms(atoms_dict):
     except AttributeError:
         atoms = pAtoms(AtomsRow(atoms_dict).toatoms(attach_calculator=False))
 
-    if "calculator" in atoms_dict and atoms_dict['calculator'] == "aims":
-        atoms.calc = Aims(aims_command=atoms_dict['command'],
-                          **atoms_dict['calculator_parameters'])
+    if "calculator" in atoms_dict and atoms_dict["calculator"] == "aims":
+        atoms.calc = Aims(
+            aims_command=atoms_dict["command"], **atoms_dict["calculator_parameters"]
+        )
 
     # Attach missing information
     if "info" in atoms_dict:

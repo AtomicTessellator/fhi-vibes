@@ -61,7 +61,9 @@ def rapidfire(
         nlaunches = len(fw_ids)
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     curdir = m_dir if m_dir else os.getcwd()
-    l_logger = get_fw_logger("rocket.launcher", l_dir=launchpad.get_logdir(), stream_level=strm_lvl)
+    l_logger = get_fw_logger(
+        "rocket.launcher", l_dir=launchpad.get_logdir(), stream_level=strm_lvl
+    )
     nlaunches = -1 if nlaunches == "infinite" else int(nlaunches)
     fworker = get_fworker(fworker)
 
@@ -71,7 +73,9 @@ def rapidfire(
 
     def time_ok():
         # has the rapidfire run timed out?
-        return timeout is None or (datetime.now() - start_time).total_seconds() < timeout
+        return (
+            timeout is None or (datetime.now() - start_time).total_seconds() < timeout
+        )
 
     while num_loops != max_loops and time_ok():
         skip_check = False  # this is used to speed operation
@@ -95,7 +99,10 @@ def rapidfire(
                         )
                     else:
                         rocket_ran = launch_rocket(
-                            launchpad, fworker, strm_lvl=strm_lvl, pdb_on_exception=pdb_on_exception
+                            launchpad,
+                            fworker,
+                            strm_lvl=strm_lvl,
+                            pdb_on_exception=pdb_on_exception,
                         )
             else:
                 if fw_ids or wflow_id:
@@ -108,7 +115,10 @@ def rapidfire(
                     )
                 else:
                     rocket_ran = launch_rocket(
-                        launchpad, fworker, strm_lvl=strm_lvl, pdb_on_exception=pdb_on_exception
+                        launchpad,
+                        fworker,
+                        strm_lvl=strm_lvl,
+                        pdb_on_exception=pdb_on_exception,
                     )
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
