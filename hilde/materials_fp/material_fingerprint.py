@@ -470,9 +470,7 @@ class MaterialsFingerprint(object):
         Returns: float
             The dot product
         """
-        fp1_tup = dict2namedtuple(self.fingerprint)
-        fp2_tup = dict2namedtuple(fp2.fingerprint)
-        return scalar_product(fp1_tup, fp2_tup, col, pt, normalize)
+        return scalar_product(self.fingerprint, fp2.fingerprint, col, pt, normalize)
 
 
 class DOSFingerprint(MaterialsFingerprint):
