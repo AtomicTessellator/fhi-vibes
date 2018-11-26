@@ -67,7 +67,7 @@ anal_fw = generate_firework(
     func_kwargs=kwargs,
     fw_settings=fw_settings,
 )
-lp = LaunchPadHilde.from_file(str(Path.home() / ".fireworks/my_launchpad.yaml"))
+lp = LaunchPadHilde()
 lp.reset("", require_password=False)
 wf = Workflow([init_fw, anal_fw], {init_fw: [anal_fw]})
 lp.add_wf(wf)
