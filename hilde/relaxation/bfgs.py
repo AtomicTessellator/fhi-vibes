@@ -6,6 +6,7 @@ from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd, move
+from hilde.helpers.socketio import get_port
 from hilde.trajectory.relaxation import metadata2file, step2file
 from hilde.settings import DEFAULT_SETTINGS_FILE, DEFAULT_TEMP_SETTINGS_FILE
 
@@ -23,7 +24,6 @@ def relax(
     maxsteps=100,
     trajectory="trajectory.yaml",
     logfile="relax.log",
-    socketio_port=None,
     walltime=1800,
     workdir=".",
     output="geometry.in.relaxed",
@@ -74,6 +74,7 @@ def relax(
         else:
             calc.parameters["compute_analytical_stress"] = False
 
+    socketio_port = get_port(calc)
     if socketio_port is None:
         socket_calc = None
     else:

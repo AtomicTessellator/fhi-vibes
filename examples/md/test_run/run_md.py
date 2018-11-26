@@ -32,7 +32,7 @@ if not Path("trajectory.yaml").exists():
 
 
 # run the MD
-converged = run_md(atoms, calc, socketio_port=settings.socketio.port, **settings.md)
+converged = run_md(atoms, calc, **settings.md)
 
 
 if not converged:

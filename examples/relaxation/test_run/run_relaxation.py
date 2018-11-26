@@ -6,9 +6,7 @@ settings = Settings()
 
 atoms, calc = setup_aims(settings=settings)
 
-converged = relax(
-    atoms, calc, socketio_port=settings.socketio.port, **settings.relaxation
-)
+converged = relax(atoms, calc, **settings.relaxation)
 
 if converged:
     print("done.")

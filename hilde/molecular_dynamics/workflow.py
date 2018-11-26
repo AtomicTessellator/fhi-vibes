@@ -7,6 +7,7 @@ from ase.calculators.socketio import SocketIOCalculator
 from hilde.trajectory.md import step2file, metadata2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd, move_to_dir
+from hilde.helpers.socketio import get_port
 from hilde.helpers.compression import backup_folder as backup
 from hilde.settings import DEFAULT_SETTINGS_FILE
 
@@ -22,7 +23,6 @@ def run_md(
     maxsteps=25000,
     trajectory="trajectory.yaml",
     metadata="md_metadata.yaml",
-    socketio_port=None,
     walltime=1800,
     workdir=".",
     backup_folder="backups",
@@ -71,6 +71,7 @@ def run_md(
     if md is None:
         raise RuntimeError("ASE MD algorithm has to be given")
 
+    socketio_port = get_port(calc)
     if socketio_port is None:
         socket_calc = None
     else:
