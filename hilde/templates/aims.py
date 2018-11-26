@@ -12,7 +12,11 @@ from hilde.helpers.warnings import warn
 
 
 def setup_aims(
-    custom_settings={}, settings=None, workdir=None, config_file=DEFAULT_CONFIG_FILE
+    custom_settings={},
+    settings=None,
+    workdir=None,
+    config_file=DEFAULT_CONFIG_FILE,
+    output_level="MD_light",
 ):
     """Set up an aims calculator.
 
@@ -29,7 +33,10 @@ def setup_aims(
     if settings is None:
         settings = Settings(config_file)
 
-    default_settings = {**settings.control}
+    default_settings = {"output_level": output_level, **settings.control}
+
+    if not "output_level" in settings.control:
+        warn("output_level MD_light has been set.")
 
     if "relativistic" not in default_settings:
         default_settings.update({"relativistic": "atomic_zora scalar"})
