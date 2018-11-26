@@ -1,15 +1,21 @@
-[calculation_step]
-type = kgrid_opt
-
 [control]
+xc =              pw-lda
 sc_accuracy_rho = 1e-6
+output_level =    MD_light
 
 [control_kpt]
 density = 1
 
-[function_kwargs]
+[basisset]
+type = light
+
+[socketio]
+port = null
+
+[kgrid_opt]
 maxsteps =   20
-workdir =    /u/tpurcell/git/hilde/examples/workflow_examples/relaxation_phonopy_combined/test_run/kgrid
+#workdir =    /u/tpurcell/git/hilde/examples/workflow_examples/relaxation_phonopy_combined/test_run/kgrid
+workdir =    /home/purcell/git/hilde/examples/workflow_examples/relaxation_phonopy_combined/test_run/kgrid
 trajectory = ${workdir}/trajectory.yaml
 kpts_density_init = 1
 dfunc_min = 1e-2
@@ -20,7 +26,7 @@ unit_cell = True
 # socketio_port = None
 # walltime = 1800
 
-[fw]
+[fw_settings]
 fw_name = kgrid_opt
 fw_spec = null
 out_spec_k_den = kgrid

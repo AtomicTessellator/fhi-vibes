@@ -9,7 +9,7 @@ email = you@something.com
  basissetloc =      /some/path/to/FHIaims/aimsfiles/species_defaults
  mpi_command =      orterun
  aims_command =     ${mpi_command} ${aimsbin}
- 
+
 [database]
  location =      ${common:home_dir}/examples/phonon_db
  name =          test.db
@@ -29,9 +29,8 @@ njobs_queue = 250
 njobs_block = 500
 sleep_time = 60
 reserve = True
-remote_user = mpcdf_user
-remote_config_dir = /u/${remote_user}/.fireworks
-tasks2queue = hilde.tasks.fireworks.single_point.calculate,hilde.relaxation.bfgs.relax,hilde.phonopy.workflow.phonopy,hilde.auto_tune_parameters.kgrid.converage_kgrid.converge_kgrid
+remote_config_dir = ["/u/${remote_user}/.fireworks"]
+tasks2queue = ["hilde.tasks.fireworks.single_point.calculate", "hilde.relaxation.bfgs.relax", "hilde.phonopy.workflow.phonopy", "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid", "hilde.tasks.calculate.calculate" ]
 gss_auth = True
 remote_host = draco01.mpcdf.mpg.de
 #remote_host = cobra01i.mpcdf.mpg.de

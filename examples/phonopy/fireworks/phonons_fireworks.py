@@ -11,13 +11,17 @@ from hilde.settings import Settings
 from hilde.tasks.fireworks.general_py_task import generate_firework
 from hilde.templates.aims import setup_aims
 
-atoms = read("si.in")
+settings = Settings()
+fw_settings = dict(settings.fw_settings)
 
-settings = Settings(["phonopy.cfg", "../../../hilde.cfg"])
-fw_settings = dict(Settings(['fireworks.cfg'], write=False))['fw_phonon']
-calc = setup_aims(settings=settings)
+atoms, calc = setup_aims(settings=settings)
 
-update_k_grid(atoms, calc, settings.control_kpt.density)
+if "fw_spec" in settings:
+    fw_settings["spec"] = dict(settings.fw.fw_spec)
+else:
+    fw_settings["spec"] = {}
+if "fw_spec_qadapter" in settings:
+    fw_settings["spec"]["_queueadapter"] = dict(settings.fw_spec_qadapter)
 
 lp = LaunchPadHilde.from_file("/home/purcell/.fireworks/my_launchpad.yaml")
 if fw_settings['serial']:

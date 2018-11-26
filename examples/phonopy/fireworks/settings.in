@@ -1,0 +1,33 @@
+# config file to control phonopy workflow
+[geometry]
+file = geometry.in
+
+[control]
+xc =               pw-lda
+sc_accuracy_rho =  1e-4
+charge_mix_param = 0.5
+output_level =     MD_light
+
+[control_kpt]
+density =         .5
+
+[basisset]
+type = light
+
+[socketio]
+port = null
+
+[phonopy]
+supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+
+workdir =    test_run
+
+[restart]
+command = python run_phonopy.py
+
+[fw_settings]
+serial=False
+fw_name = relaxation_test
+fw_spec = null
+out_spec = "relaxed_atoms"
+mod_spec_add = "calculated_forces"

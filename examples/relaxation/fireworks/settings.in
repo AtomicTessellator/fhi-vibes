@@ -1,0 +1,30 @@
+# information to build a default control.in
+[geometry]
+file = geometry.in
+
+[control]
+xc =              pw-lda
+sc_accuracy_rho = 1e-6
+output_level =    MD_light
+
+[control_kpt]
+density =         2
+
+[basisset]
+type = light
+
+[socketio]
+port = null
+
+[relaxation]
+fmax =       0.01
+unit_cell = True
+maxsteps =   20
+
+workdir = test_run
+
+[fw_settings]
+fw_name = relaxation_test
+fw_spec = null
+out_spec_atoms = relaxed_atoms
+out_spec_calc = relaxed_calc

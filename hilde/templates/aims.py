@@ -34,7 +34,6 @@ def setup_aims(
         "aims_command": settings.machine.aims_command,
         "species_dir": path.join(settings.machine.basissetloc, settings.basisset.type),
     }
-
     # Check if basisset type is supposed to be changed by custom settings
     if "species_type" in custom_settings:
         species_type = custom_settings["species_type"]

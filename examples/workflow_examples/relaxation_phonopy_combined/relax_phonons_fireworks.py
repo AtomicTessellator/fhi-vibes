@@ -7,15 +7,13 @@ from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.settings import Settings
 from hilde.workflows.workflow_generator import get_step_fw
 
-atoms = read("geometry.in")
-
-workflow = Settings(["workflow.cfg"])
-default_settings = Settings(DEFAULT_CONFIG_FILE)
-print(default_settings)
+workflow = Settings(settings_file="workflow.in")
+atoms = read(workflow.geometry.file)
 fw_list = []
-for config_file in workflow.workflow.step_files.split(","):
-    step_settings = Settings(config_file)
-    for fw in get_step_fw(step_settings, default_settings, atoms):
+
+for step_file in workflow.workflow.step_files:
+    step_settings = Settings(settings_file=step_file)
+    for fw in get_step_fw(step_settings, atoms=atoms):
         fw_list.append(fw)
 
 fw_dep = {}

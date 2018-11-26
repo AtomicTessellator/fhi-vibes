@@ -253,7 +253,7 @@ def add_phonopy_force_calcs(
             FireWorks specific settings
     """
     detours = []
-    calc_dict = calc
+    calc_dict = calc2dict(outputs[3])
     if "kpoint_density_spec" in fw_settings:
         del (fw_settings["kpoint_density_spec"])
     for i, sc in enumerate(outputs[2]):
