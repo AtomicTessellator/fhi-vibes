@@ -11,10 +11,11 @@ atoms = read("geometry.in")
 
 workflow = Settings(["workflow.cfg"])
 default_settings = Settings(DEFAULT_CONFIG_FILE)
+print(default_settings)
 fw_list = []
 for config_file in workflow.workflow.step_files.split(","):
     step_settings = Settings(config_file)
-    for fw in get_step_fw(config_file, DEFAULT_CONFIG_FILE, atoms):
+    for fw in get_step_fw(step_settings, default_settings, atoms):
         fw_list.append(fw)
 
 fw_dep = {}

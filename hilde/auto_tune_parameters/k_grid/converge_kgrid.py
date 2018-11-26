@@ -5,7 +5,7 @@ import numpy as np
 from ase.constraints import UnitCellFilter
 from ase.calculators.socketio import SocketIOCalculator
 
-from hilde.auto_tune_params.k_grid.kpointoptimizer import KPointOptimizer
+from hilde.auto_tune_parameters.k_grid.kpointoptimizer import KPointOptimizer
 from hilde.helpers.paths import cwd
 from hilde.trajectory.relaxation import metadata2file, step2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog

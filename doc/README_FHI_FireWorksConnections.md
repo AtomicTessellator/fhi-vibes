@@ -36,6 +36,7 @@
   * Giving hostnames to FireWorks
   	* Always give full name so not draco.mpcdf.mpg.de but draco01.mpcdf.mpg.de
 * Testing your FireWorks Installation
+  * Use the script in $HILDE_HOME/tests/fireworks/fireworks_install_test.py
   * If you see *******All Tests Successful******* at the end then it is installed correctly
   * If you see *******Resetting LaunchPad******* at the end
     * Then there is a problem with your local connection to the LaunchPad
