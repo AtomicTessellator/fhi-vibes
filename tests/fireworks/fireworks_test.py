@@ -12,10 +12,7 @@ from hilde.helpers.utility_functions import get_smatrix
 from hilde.phonon_db.phonon_db import connect
 from hilde.structure.structure import pAtoms
 from hilde.tasks.fireworks.general_py_task import generate_firework
-from hilde.workflows.gen_phonopy_fw import (
-    gen_initialize_phonopy_fw,
-    gen_analyze_phonopy_fw,
-)
+
 from fireworks import Workflow
 
 db_name = (os.getcwd() + '/test.db')

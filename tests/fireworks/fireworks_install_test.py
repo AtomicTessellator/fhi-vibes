@@ -5,6 +5,8 @@ from fw_tutorials.firetask.addition_task import AdditionTask
 from pathlib import Path
 from sys import exit
 
+from hilde.settings import Settings
+
 def print_message(message):
     print(message)
 
@@ -68,7 +70,8 @@ from hilde.tasks.calculate import calculate as hilde_calc
 
 # Intialize Structures and database
 Si = bulk("Si", 'diamond')
-Si.set_calculator(setup_aims())
+settings = Settings()
+Si.set_calculator(setup_aims(settings=settings))
 
 # Port changes are for my setup
 launchpad = LaunchPadHilde.from_file(str(Path.home()) + "/.fireworks/my_launchpad.yaml")
