@@ -8,6 +8,7 @@ from hilde.calculators.aims_calc import Aims
 from hilde.settings import Settings
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.helpers.k_grid import update_k_grid
+from hilde.helpers.warnings import warn
 
 
 def setup_aims(
@@ -29,6 +30,10 @@ def setup_aims(
         settings = Settings(config_file)
 
     default_settings = {**settings.control}
+
+    if "relativistic" not in default_settings:
+        default_settings.update({"relativistic": "atomic_zora scalar"})
+        warn("relativistic flag not set in settings.in, set to atomic_zora scalar")
 
     ase_settings = {
         "aims_command": settings.machine.aims_command,
