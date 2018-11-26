@@ -38,7 +38,7 @@ from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
 
 try:
-    fw_defaults = Settings(DEFAULT_CONFIG_FILE).fireworks_settings
+    fw_defaults = Settings(DEFAULT_CONFIG_FILE).fireworks
 except KeyError:
     fw_defaults = {
         "nlaunches": 0,

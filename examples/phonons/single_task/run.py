@@ -3,7 +3,7 @@ from subprocess import run
 from ase.io import read
 
 from hilde.phonopy.workflow import phonopy
-from hilde.settings import Settings, default_config_name
+from hilde.settings import Settings, DEFAULT_SETTINGS_FILE
 from hilde.templates.aims import setup_aims
 
 
@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     atoms = read("geometry.in", format="aims")
 
-    settings = Settings(default_config_name)
+    settings = Settings(DEFAULT_SETTINGS_FILE)
 
     converged = run(atoms, settings)
 

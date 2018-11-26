@@ -6,7 +6,7 @@ from ase.io import read
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 from ase import units
 
-from hilde.settings import Settings, default_config_name
+from hilde.settings import Settings, DEFAULT_SETTINGS_FILE
 from hilde.templates.aims import setup_aims
 from hilde.molecular_dynamics import run_md, setup_md
 
@@ -21,7 +21,7 @@ def run(atoms, calc, settings):
 
 if __name__ == "__main__":
 
-    settings = Settings(default_config_name)
+    settings = Settings(DEFAULT_SETTINGS_FILE)
 
     atoms = read('geometry.in', format='aims')
     calc = setup_aims(settings=settings)
