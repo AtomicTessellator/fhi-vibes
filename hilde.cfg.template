@@ -10,9 +10,6 @@ email = you@something.com
  mpi_command =      orterun
  aims_command =     ${mpi_command} ${aimsbin}
  
-[socketio]
-port = 12345
-
 [database]
  location =      ${common:home_dir}/examples/phonon_db
  name =          test.db

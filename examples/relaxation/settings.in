@@ -13,6 +13,9 @@ density =         2
 [basisset]
 type = light
 
+[socketio]
+port = 12345
+
 [relaxation]
 fmax =       0.01
 unit_cell = True

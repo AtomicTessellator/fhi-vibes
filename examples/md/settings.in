@@ -13,6 +13,9 @@ density =         0.5
 [basisset]
 type = light
 
+[socketio]
+port = 12345
+
 [md]
 algorithm =   Verlet
 temperature = 100
