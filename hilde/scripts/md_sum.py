@@ -29,7 +29,7 @@ def main():
             e_kin.append(ek)
             e_pot.append(ep)
 
-    print(f"Simulation time:        {time[-1] - time[0]:.4f}ps")
+    print(f"Simulation time:        {time[-1] - time[0]:.4f} ps ({len(time)} steps)")
     print(f"Temperature:            {np.mean(temp):.2f} +/- {np.std(temp):.2f}K")
     print(f"Kinetic energy:         {np.mean(e_kin):.2f} +/- {np.std(e_kin):.2f}eV")
     print(f"Potential energy:       {np.mean(e_pot):.2f} +/- {np.std(e_pot):.2f}eV")
@@ -44,7 +44,7 @@ def plot_temperature(time, temperatures, running_avg=50):
     import matplotlib
     from hilde.helpers.plotting import tableau_colors as tc
 
-    matplotlib.use('pdf')
+    matplotlib.use("pdf")
 
     data = pd.Series(temperatures, time)
 

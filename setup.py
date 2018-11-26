@@ -26,6 +26,7 @@ setup(
             "get_relaxation_info = hilde.scripts.get_relaxation_info:main",
             "make_supercell = hilde.scripts.make_supercell:main",
             "phonopy_info= hilde.scripts.phonopy_info:main",
+            "create_samples= hilde.scripts.create_samples:main",
             "hilde_single_task= hilde.scripts.hilde_single_task:main",
             "md_sum= hilde.scripts.md_sum:main",
             "yaml2json= hilde.scripts.yaml2json:main",
