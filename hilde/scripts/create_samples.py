@@ -62,9 +62,11 @@ def main():
         sample.write(
             f"{args.geom}.{ii:03d}",
             velocities=True,
-            info_str=["created from force constants", "T = {args.temperature} K"],
+            info_str=["created from force constants", f"T = {args.temperature} K"],
             format=args.format,
         )
+
+        print(f"Temperature in sample: {sample.get_temperature():.3f}K")
 
 
 if __name__ == "__main__":
