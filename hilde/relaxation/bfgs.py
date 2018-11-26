@@ -5,10 +5,9 @@ from ase.constraints import UnitCellFilter
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
-from hilde.helpers.paths import cwd, move
+from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port
 from hilde.trajectory.relaxation import metadata2file, step2file
-from hilde.settings import DEFAULT_SETTINGS_FILE, DEFAULT_TEMP_SETTINGS_FILE
 
 
 _calc_dirname = "calculation"
@@ -63,9 +62,6 @@ def relax(
 
     bfgs_settings = {"logfile": str(logfile), "maxstep": maxstep}
 
-    # backup configuration.cfg
-    # if workdir.absolute() != Path().cwd():
-    #     move(DEFAULT_TEMP_SETTINGS_FILE, workdir / DEFAULT_SETTINGS_FILE)
 
     if calc.name == "aims":
         calc.parameters["compute_forces"] = True

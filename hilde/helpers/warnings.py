@@ -1,2 +1,2 @@
 def warn(message):
-    print(f'***{message}')
+    print(f"***{message}")

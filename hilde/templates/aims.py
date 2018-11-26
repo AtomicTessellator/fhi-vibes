@@ -8,10 +8,15 @@ from hilde.calculators.aims_calc import Aims
 from hilde.settings import Settings
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.helpers.k_grid import update_k_grid
+from hilde.helpers.warnings import warn
 
 
 def setup_aims(
-    custom_settings={}, settings=None, workdir=None, config_file=DEFAULT_CONFIG_FILE
+    custom_settings={},
+    settings=None,
+    workdir=None,
+    config_file=DEFAULT_CONFIG_FILE,
+    output_level="MD_light",
 ):
     """Set up an aims calculator.
 
@@ -28,7 +33,14 @@ def setup_aims(
     if settings is None:
         settings = Settings(config_file)
 
-    default_settings = {**settings.control}
+    default_settings = {"output_level": output_level, **settings.control}
+
+    if not "output_level" in settings.control:
+        warn("output_level MD_light has been set.")
+
+    if "relativistic" not in default_settings:
+        default_settings.update({"relativistic": "atomic_zora scalar"})
+        warn("relativistic flag not set in settings.in, set to atomic_zora scalar")
 
     ase_settings = {
         "aims_command": settings.machine.aims_command,
