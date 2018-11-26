@@ -3,6 +3,7 @@ import subprocess as sp
 from hilde.phonopy.workflow import phonopy
 from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
+from hilde.helpers.restarts import restart
 
 
 settings = Settings()
@@ -20,9 +21,6 @@ completed = phonopy(
 
 
 if not completed:
-    if "restart" in settings:
-        sp.run(settings.restart.command.split())
-    else:
-        print("Task not completed, please inspect and rerun.")
+    restart(settings)
 else:
     print("done.")

@@ -121,7 +121,7 @@ def phonopy(
 
     # backup and restart if necessary
     if ii < len(scs) - 1:
-        backup_folder(calc_dir, target_folder=backup_folder)
+        backup(calc_dir, target_folder=backup_folder)
         return False
 
     postprocess(

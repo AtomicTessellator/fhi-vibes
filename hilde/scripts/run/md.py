@@ -1,4 +1,3 @@
-import subprocess as sp
 from pathlib import Path
 import numpy as np
 
@@ -8,6 +7,7 @@ from ase import units
 from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
 from hilde.molecular_dynamics import run_md
+from hilde.helpers.restarts import restart
 
 
 settings = Settings()
@@ -36,9 +36,6 @@ converged = run_md(atoms, calc, **settings.md)
 
 
 if not converged:
-    if "restart" in settings:
-        sp.run(settings.restart.command.split())
-    else:
-        print("Task not completed, please inspect and rerun.")
+    restart(settings)
 else:
     print("done.")

@@ -12,4 +12,3 @@ if converged:
     print("done.")
 else:
     print("Relaxation not converged, please inspect.")
-

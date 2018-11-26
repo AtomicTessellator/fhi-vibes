@@ -2,14 +2,12 @@
 
 import shutil
 from pathlib import Path
-from subprocess import run
 from ase.calculators.socketio import SocketIOCalculator
 from hilde.trajectory.md import step2file, metadata2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
-from hilde.helpers.paths import cwd, move_to_dir
+from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port
 from hilde.helpers.compression import backup_folder as backup
-from hilde.settings import DEFAULT_SETTINGS_FILE
 
 
 _calc_dirname = "calculations"
@@ -53,9 +51,6 @@ def run_md(
     if calc.name == "aims":
         calc.parameters["compute_forces"] = True
 
-    # backup configuration.cfg
-    # if workdir.absolute() != Path().cwd():
-    #     move_to_dir(DEFAULT_SETTINGS_FILE, workdir)
 
     if restart:
         from hilde.molecular_dynamics import setup_md
@@ -66,10 +61,11 @@ def run_md(
             "trajectory": trajectory,
             "workdir": workdir,
         }
-        atoms, md, prepared = setup_md(atoms, **md_settings)
+        atoms, md, _= setup_md(atoms, **md_settings)
 
     if md is None:
         raise RuntimeError("ASE MD algorithm has to be given")
+
 
     socketio_port = get_port(calc)
     if socketio_port is None:

@@ -5,6 +5,7 @@ from ase import units
 
 from hilde.settings import Settings
 from hilde.molecular_dynamics import run_md, setup_md
+from hilde.helpers.restarts import restart
 
 
 atoms = bulk("Al") * (4, 4, 4)
@@ -17,5 +18,4 @@ MaxwellBoltzmannDistribution(atoms, temp=settings.md.temperature * units.kB)
 converged = run_md(atoms, calc, **settings.md)
 
 if not converged:
-    from subprocess import run
-    run(settings.restart.command.split())
+    restart(settings)
