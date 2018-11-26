@@ -25,6 +25,7 @@ def run_md(
     workdir=".",
     backup_folder="backups",
     logfile="md.log",
+    wf_extrapolation=True,
     **kwargs,
 ):
     """ run and MD for a specific time
@@ -48,9 +49,12 @@ def run_md(
     backup_folder = workdir / backup_folder
 
     # make sure forces are computed (aims only)
+    # use wavefunction extrapolation
     if calc.name == "aims":
         calc.parameters["compute_forces"] = True
 
+        if wf_extrapolation:
+            calc.parameters["wf_extrapolation"] = "quadratic"
 
     if restart:
         from hilde.molecular_dynamics import setup_md
@@ -61,11 +65,10 @@ def run_md(
             "trajectory": trajectory,
             "workdir": workdir,
         }
-        atoms, md, _= setup_md(atoms, **md_settings)
+        atoms, md, _ = setup_md(atoms, **md_settings)
 
     if md is None:
         raise RuntimeError("ASE MD algorithm has to be given")
-
 
     socketio_port = get_port(calc)
     if socketio_port is None:
