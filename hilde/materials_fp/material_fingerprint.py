@@ -364,7 +364,7 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False):
         vec1 = np.array([pt[col] for pt in fp1_dict.values()]).flatten()
         vec2 = np.array([pt[col] for pt in fp2_dict.values()]).flatten()
         if normalize:
-            rescale = np.linalg.norm(vec1) * np.linalg.norm(vec1)
+            rescale = np.linalg.norm(vec1) * np.linalg.norm(vec2)
         return np.dot(vec1, vec2) / rescale
     if normalize:
         rescale = np.linalg.norm(fp1_dict[fp1[2][pt]][col]) * np.linalg.norm(fp2_dict[fp2[2][pt]][col])
