@@ -3,20 +3,20 @@
 import shutil
 from argparse import ArgumentParser
 from pathlib import Path
-from hilde.settings import Settings, default_config_name
+from hilde.settings import Settings, DEFAULT_SETTINGS_FILE, DEFAULT_GEOMETRY_FILE
 from hilde import supported_tasks
 
 
 def main():
     """ main routine """
     parser = ArgumentParser(description="create a configuration file and workdir")
-    parser.add_argument("config_files", nargs="+", help="hilde.cfg etc.")
+    parser.add_argument("--settings", default=DEFAULT_SETTINGS_FILE, help="settings.in")
     parser.add_argument("-g", "--geometry", help="geometry file to use")
     parser.add_argument("-wd", "--workdir", help="name of the working directory")
     parser.add_argument("--dry", action="store_true")
     args = parser.parse_args()
 
-    settings = Settings(args.config_files)
+    settings = Settings(settings_file=args.settings)
     print("Summary of settings:")
     settings.print()
 
@@ -44,14 +44,22 @@ def main():
     if args.dry:
         exit()
 
-    config_outfile = Path(workdir) / default_config_name
+    config_outfile = Path(workdir) / DEFAULT_SETTINGS_FILE
     settings.write(filename=config_outfile)
     print(f"Settings written to:   {config_outfile}")
 
+    # geometry
+    if "file" in settings.geometry:
+        geometry = settings.geometry.file
+        outfile = Path(workdir) / geometry
+
     if args.geometry:
-        outfile = Path(workdir) / "geometry.in"
-        shutil.copy(args.geometry, outfile)
-        print(f"Geometry written to:   {outfile}")
+        geometry = args.geometry
+        outfile = Path(workdir) / DEFAULT_GEOMETRY_FILE
+        settings['geometry']['file'] = DEFAULT_GEOMETRY_FILE
+
+    shutil.copy(geometry, outfile)
+    print(f"Geometry written to:   {outfile}")
 
     # copy run script
     run_script = Path(settings.common.home_dir) / f"hilde/scripts/run/{task}.py"

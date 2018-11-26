@@ -1,0 +1,24 @@
+# information to build a default control.in
+[geometry]
+file = geometry.in
+
+[control]
+xc =              pw-lda
+sc_accuracy_rho = 1e-6
+output_level =    MD_light
+
+[control_kpt]
+density =         2
+
+[basisset]
+type = light
+
+[socketio]
+port = 12345
+
+[relaxation]
+fmax =       0.01
+unit_cell = True
+maxsteps =   20
+
+workdir = test_run

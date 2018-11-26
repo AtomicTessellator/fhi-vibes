@@ -11,7 +11,11 @@ atoms, calc = setup_aims(settings=settings)
 
 
 completed = phonopy(
-    atoms, calc, kpt_density=settings.control_kpt.density, **settings.phonopy
+    atoms,
+    calc,
+    socketio_port=settings.socketio.port,
+    kpt_density=settings.control_kpt.density,
+    **settings.phonopy
 )
 
 

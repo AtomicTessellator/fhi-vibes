@@ -1,25 +1,3 @@
-# information to build a default control.in
-[control]
-xc =                        pbesol
-relativistic =              atomic_zora scalar
-k_grid =                    [2, 2, 2]
-vdw_correction_hirshfeld =  False
-
-compute_forces =            False
-compute_analytical_stress = False
-
-output_level =              MD_light
-
-# OPTIONAL for using helpers.k_grid.update_k_grid
-[control_kpt]
-density =                   3.5
-
-[basisset]
-type = light
-
-[socketio]
-port = null
-
 # System informations, ADJUST!
 [common]
 verbose = True
@@ -29,23 +7,22 @@ email = you@something.com
 [machine]
  aimsbin =          /some/path/to/FHIaims/bin/aims.x
  basissetloc =      /some/path/to/FHIaims/aimsfiles/species_defaults
- pythonbin =        python3.6
  mpi_command =      orterun
  aims_command =     ${mpi_command} ${aimsbin}
- outfilename =      aims.out
-
+ 
 [database]
  location =      ${common:home_dir}/examples/phonon_db
  name =          test.db
  db_path =       ${location}/${name}
 #db_path =       postgresql://user:passwd@host:port/db_name
+
 [watchdog]
 # 1800s = 30 minutes
 # 14400 = 4h
 # 86400 = 1d
 walltime = 1800
 
-[fireworks_settings]
+[fireworks]
 launch_dir="."
 nlaunches = 0
 njobs_queue = 250

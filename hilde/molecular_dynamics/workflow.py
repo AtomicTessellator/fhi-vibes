@@ -7,8 +7,9 @@ from ase.calculators.socketio import SocketIOCalculator
 from hilde.trajectory.md import step2file, metadata2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd, move_to_dir
+from hilde.helpers.socketio import get_port
 from hilde.helpers.compression import backup_folder as backup
-from hilde.settings import default_config_name
+from hilde.settings import DEFAULT_SETTINGS_FILE
 
 
 _calc_dirname = "calculations"
@@ -22,7 +23,6 @@ def run_md(
     maxsteps=25000,
     trajectory="trajectory.yaml",
     metadata="md_metadata.yaml",
-    socketio_port=None,
     walltime=1800,
     workdir=".",
     backup_folder="backups",
@@ -49,9 +49,13 @@ def run_md(
     calc_dir = workdir / _calc_dirname
     backup_folder = workdir / backup_folder
 
+    # make sure forces are computed (aims only)
+    if calc.name == "aims":
+        calc.parameters["compute_forces"] = True
+
     # backup configuration.cfg
-    if workdir.absolute() != Path().cwd():
-        move_to_dir(default_config_name, workdir)
+    # if workdir.absolute() != Path().cwd():
+    #     move_to_dir(DEFAULT_SETTINGS_FILE, workdir)
 
     if restart:
         from hilde.molecular_dynamics import setup_md
@@ -67,6 +71,7 @@ def run_md(
     if md is None:
         raise RuntimeError("ASE MD algorithm has to be given")
 
+    socketio_port = get_port(calc)
     if socketio_port is None:
         socket_calc = None
     else:
@@ -79,11 +84,7 @@ def run_md(
         additional_files = [logfile]
 
     if calc_dir.exists():
-        backup(
-            calc_dir,
-            target_folder=backup_folder,
-            additional_files=additional_files,
-        )
+        backup(calc_dir, target_folder=backup_folder, additional_files=additional_files)
 
     something_happened = False
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
@@ -108,11 +109,7 @@ def run_md(
 
     # backup and cleanup if something new happened
     if something_happened:
-        backup(
-            calc_dir,
-            target_folder=backup_folder,
-            additional_files=additional_files,
-        )
+        backup(calc_dir, target_folder=backup_folder, additional_files=additional_files)
         shutil.rmtree(calc_dir)
 
     # restart

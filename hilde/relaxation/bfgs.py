@@ -5,9 +5,10 @@ from ase.constraints import UnitCellFilter
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
-from hilde.helpers.paths import cwd, move_to_dir
+from hilde.helpers.paths import cwd, move
+from hilde.helpers.socketio import get_port
 from hilde.trajectory.relaxation import metadata2file, step2file
-from hilde.settings import default_config_name
+from hilde.settings import DEFAULT_SETTINGS_FILE, DEFAULT_TEMP_SETTINGS_FILE
 
 
 _calc_dirname = "calculation"
@@ -16,14 +17,13 @@ _calc_dirname = "calculation"
 def relax(
     atoms,
     calc,
-    linesearch=True,
+    linesearch=False,
     fmax=0.01,
     maxstep=0.2,
     unit_cell=True,
     maxsteps=100,
     trajectory="trajectory.yaml",
     logfile="relax.log",
-    socketio_port=None,
     walltime=1800,
     workdir=".",
     output="geometry.in.relaxed",
@@ -64,18 +64,17 @@ def relax(
     bfgs_settings = {"logfile": str(logfile), "maxstep": maxstep}
 
     # backup configuration.cfg
-    if workdir.absolute() != Path().cwd():
-        move_to_dir(default_config_name, workdir)
+    # if workdir.absolute() != Path().cwd():
+    #     move(DEFAULT_TEMP_SETTINGS_FILE, workdir / DEFAULT_SETTINGS_FILE)
 
-    if "compute_forces" in calc.parameters:
+    if calc.name == "aims":
         calc.parameters["compute_forces"] = True
-
-    if "compute_analytical_stress" in calc.parameters:
         if unit_cell:
             calc.parameters["compute_analytical_stress"] = True
         else:
             calc.parameters["compute_analytical_stress"] = False
 
+    socketio_port = get_port(calc)
     if socketio_port is None:
         socket_calc = None
     else:

@@ -1,0 +1,12 @@
+[geometry]
+file:                geometry.in
+
+[control]
+xc:                  pw-lda
+k_grid:              [4, 4, 4]
+
+[basisset]
+type:                light
+
+[phonopy]
+supercell_matrix:    [-1, 1, 1, 1, -1, 1, 1, 1, -1]

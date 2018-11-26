@@ -10,7 +10,8 @@ import hilde.phonopy.wrapper as ph
 from hilde.trajectory.phonopy import metadata2file, step2file, last_from_yaml
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.compression import backup_folder as backup
-from hilde.settings import default_config_name
+from hilde.helpers.socketio import get_port
+from hilde.settings import DEFAULT_SETTINGS_FILE
 from .postprocess import postprocess
 
 
@@ -37,7 +38,6 @@ def phonopy(
     kpt_density=None,
     displacement=0.01,
     trajectory="trajectory.yaml",
-    socketio_port=None,
     walltime=1800,
     workdir=".",
     primitive_file="geometry.in.primitive",
@@ -56,19 +56,24 @@ def phonopy(
     backup_folder = workdir / backup_folder
     calc_dir = workdir / _calc_dirname
 
+    # make sure forces are computed
+    if calc.name == 'aims':
+        calc.parameters['compute_forces'] = True
+
     watchdog = Watchdog(walltime=walltime, buffer=1)
 
     # backup configuration.cfg
     if workdir.absolute() != Path().cwd():
-        move_to_dir(default_config_name, workdir, exist_ok=True)
+        move_to_dir(DEFAULT_SETTINGS_FILE, workdir, exist_ok=True)
 
     # Phonopy preprocess
     phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
 
     # make sure forces are computed (aims only)
-    if "compute_forces" in calc.parameters:
+    if calc.name == "aims":
         calc.parameters["compute_forces"] = True
 
+    socketio_port = get_port(calc)
     if socketio_port is None:
         socket_calc = None
     else:

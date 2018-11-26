@@ -3,12 +3,15 @@ from os import path
 from pathlib import Path
 
 # from ase.calculators.aims import Aims
+from ase.io import read
 from hilde.calculators.aims_calc import Aims
 from hilde.settings import Settings
 from hilde import DEFAULT_CONFIG_FILE
+from hilde.helpers.k_grid import update_k_grid
+
 
 def setup_aims(
-    custom_settings={}, workdir=None, settings=None, config_file=DEFAULT_CONFIG_FILE
+    custom_settings={}, settings=None, workdir=None, config_file=DEFAULT_CONFIG_FILE
 ):
     """Set up an aims calculator.
 
@@ -52,6 +55,22 @@ def setup_aims(
     aims_settings = {**default_settings, **ase_settings, **custom_settings}
 
     if workdir:
-        return Aims(label=Path(workdir).absolute(), **aims_settings)
+        calc = Aims(label=Path(workdir).absolute(), **aims_settings)
     else:
-        return Aims(**aims_settings)
+        calc = Aims(**aims_settings)
+
+    if "geometry" in settings:
+        if "file" in settings.geometry:
+            atoms = read(settings.geometry.file, format="aims")
+
+        # update k_grid
+        if "control_kpt" in settings:
+            update_k_grid(atoms, calc, settings.control_kpt.density)
+
+    if not "k_grid" in calc.parameters:
+        update_k_grid
+        print("*** WARNING: no k_grid in aims calculator. Check!")
+
+    if "geometry" in settings:
+        return atoms, calc
+    return calc

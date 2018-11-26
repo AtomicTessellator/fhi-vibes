@@ -51,5 +51,5 @@ def update_k_grid(atoms, calc, kptdensity, even=True):
 
     k_grid = d2k(atoms, kptdensity, even)
 
-    if "k_grid" in calc.parameters:
+    if calc.name == "aims":
         calc.parameters["k_grid"] = k_grid

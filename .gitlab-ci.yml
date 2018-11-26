@@ -8,11 +8,11 @@ before_script:
 all_tests:
   script:
     - python $CI_PROJECT_DIR/tests/hashes/hashes.py
-    - cd $CI_PROJECT_DIR/tests/phonopy; python phonons.py; cd ../..
+    - cd $CI_PROJECT_DIR/tests/phonopy; python run_phonopy.py; cd ../..
     - cd $CI_PROJECT_DIR/tests/md; python run_md.py; cd ../..
     - $jtest $CI_PROJECT_DIR/examples/trajectory/pretty_json.ipynb
     - $jtest $CI_PROJECT_DIR/examples/trajectory/read_trajectory.ipynb
-    - $jtest $CI_PROJECT_DIR/examples/phonons/phonopy.ipynb
+#    - $jtest $CI_PROJECT_DIR/examples/phonopy/basics/phonopy.ipynb
     - $jtest $CI_PROJECT_DIR/examples/phono3py/phono3py.ipynb
 #    - python $CI_PROJECT_DIR/examples/hiphive/hiphive_al.py
     - python $CI_PROJECT_DIR/examples/phonon_db/phonon_db.py
