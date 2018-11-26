@@ -8,24 +8,28 @@ Install the python requirements in `requirements.txt` _in order_:
 
 ```cat requirements.txt | xargs -n 1 -L 1 pip install -U```
 
-Install Hilde:
-
-```python setup.py install --prefix /your/preferred/folder```
-
-**Basic Setup**
+Configure and install Hilde:
 
 `cp hilde.cfg.template hilde.cfg`
 
 and edit according to system.
 
-**Config Files**
+```python setup.py install --prefix /your/preferred/folder```
 
-`hilde` uses the Python `configparser` module for parsing configuration files. The
+
+**Settings Files**
+
+`hilde` uses the Python `configparser` module for parsing settings files named 
+`settings.in` and the configuration file `hilde.cfg`. The
 parser is augmented by `JSON` so it understands any input on the right hand side that is
 valid `JSON`. The inputs get converted to Python objects according to [this conversion
 table](https://realpython.com/python-json/#serializing-json).
 
 **New Features**
+* Simplified Settings Files:
+  * Settings files named `settings.in` are automatically parsed when calling
+    `Settings()` within Hilde.
+  * The configuration file `hilde.cfg` gets installed to system.
 * Molecular dynamics workflow with input and output files
   * see hilde/examples/md
 * Phonopy workflow with input and output files
