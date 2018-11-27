@@ -1,16 +1,49 @@
+""" helps to find lattice points in supercell, match positions to images in the 
+unit cell etc. """
+
+from itertools import product
 import numpy as np
 import scipy.linalg as la
-from itertools import product
 from hilde.helpers.timer import Timer
 
 
-def assign_primitive_positions(atoms, supercell, tolerance=1e-5):
+def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
+    """ For a commensurate q_points we have
+
+        exp( 2\pi q . L_k ) = 1 for any k and L_k being the supercell lattice vectors
+
+        in other workds, q is a linear combination of G_k, where G_k are the inverse
+        lattice vectors of the supercell lattice. Only thos are counted which fit into
+        the inverse lattice of the primitive cell.
+        This means we have to call lattice_points.get_lattice_points with the inverse
+        lattices.
+
+    """
+
+    lattice = atoms.cell.T
+    superlattice = supercell.cell.T
+
+    inv_lattice = la.inv(lattice)
+    inv_superlattice = la.inv(superlattice)
+
+    inv_lattice_points = _get_lattice_points(inv_superlattice, inv_lattice, **kwargs)
+
+    return inv_lattice_points
+
+
+def assign_primitive_positions(in_atoms, in_supercell, tolerance=1e-5):
     """ write positions in the supercell as (i, L), where i is the respective index
         in the primitive cell and L is the lattice point """
 
     timer = Timer()
 
-    lattice_points = get_lattice_points(atoms.cell, supercell.cell)
+    atoms = in_atoms.copy()
+    atoms.wrap()
+
+    supercell = in_supercell.copy()
+    supercell.wrap()
+
+    lattice_points = get_lattice_points(atoms, supercell)
 
     # create all positions R = r_i + L
     all_positions = []
@@ -43,9 +76,9 @@ def assign_primitive_positions(atoms, supercell, tolerance=1e-5):
                         break
 
     # sanity checks:
-    if len(np.unique(matches, axis=0)) != len(supercell):
+    if len(np.unique(matches)) != len(supercell):
         for ii, _ in enumerate(supercell):
-            if ii not in match:
+            if ii not in matches:
                 print(f"Missing: {ii} {supercell.positions[ii]}")
 
     assert len(np.unique(indices, axis=0)) == len(supercell), (indices, len(supercell))
@@ -55,8 +88,13 @@ def assign_primitive_positions(atoms, supercell, tolerance=1e-5):
     return indices
 
 
-def get_lattice_points(
-    lattice, superlattice, tolerance=1e-5, sorted=True, verbose=False
+def get_lattice_points(atoms, supercell, **kwargs):
+    """ wrap _get_lattice_points """
+    return _get_lattice_points(atoms.cell, supercell.cell, **kwargs)
+
+
+def _get_lattice_points(
+    lattice, superlattice, tolerance=1e-1, sort=True, verbose=False
 ):
     """
         S = M . L
@@ -65,8 +103,7 @@ def get_lattice_points(
 
     timer = Timer()
 
-    inv_lattice = la.inv(lattice)  # .T
-    inv_superlattice = la.inv(superlattice)
+    inv_lattice = la.inv(lattice)
 
     supercell_matrix = np.round(superlattice @ inv_lattice).astype(int)
 
@@ -78,6 +115,10 @@ def get_lattice_points(
 
     if verbose:
         print(f"Maximum number of iterations: {max_iterations}")
+        # print(f"\nn_lattice_points:             {n_lattice_points}")
+        print(f"\nSupercell matrix:             \n{supercell_matrix}")
+        print(f"\nlattice:                      \n{lattice}")
+        print(f"\ninv_lattice:                  \n{inv_lattice}\n")
 
     # maximal distance = diagonal of the cell
     # points generated beyond this won't lie inside the supercell
@@ -104,14 +145,17 @@ def get_lattice_points(
         # attach to list if passed
         lattice_points.append(lp)
 
+    print(len(lattice_points), n_lattice_points)
+
     assert len(np.unique(lattice_points, axis=0)) == n_lattice_points, (
         len(np.unique(lattice_points, axis=0)),
         n_lattice_points,
+        lattice_points[:3]
     )
 
     timer(f"found {len(lattice_points)} lattice points")
 
-    if sorted:
+    if sort:
         return sorted(lattice_points, key=la.norm)
     return lattice_points
 
