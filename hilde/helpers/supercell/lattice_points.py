@@ -10,9 +10,7 @@ def assign_primitive_positions(atoms, supercell, tolerance=1e-5):
 
     timer = Timer()
 
-    lattice_points = sorted(
-        find_lattice_points(atoms.cell, supercell.cell), key=la.norm
-    )
+    lattice_points = get_lattice_points(atoms.cell, supercell.cell)
 
     # create all positions R = r_i + L
     all_positions = []
@@ -32,26 +30,34 @@ def assign_primitive_positions(atoms, supercell, tolerance=1e-5):
                     matches.append(jj)
                     break
 
-    # now check for twice the lattice points, those are probably outliers
+    # catch possibly unwrapped atoms
     for jj, spos in enumerate(supercell.positions):
         if jj in matches:
             continue
         for ii, pos in enumerate(atoms.positions):
             for LL, lp in enumerate(lattice_points):
-                if la.norm(spos - pos - 2 * lp) < tolerance:
-                    indices.append((ii, 0))
-                    matches.append(jj)
-                    break
+                for _, LP in enumerate(supercell.cell):
+                    if la.norm(spos - pos - lp - LP) < tolerance:
+                        indices.append((ii, LL))
+                        matches.append(jj)
+                        break
 
-    assert len(np.unique(matches, axis=0)) == len(supercell), (matches, len(supercell))
+    # sanity checks:
+    if len(np.unique(matches, axis=0)) != len(supercell):
+        for ii, _ in enumerate(supercell):
+            if ii not in match:
+                print(f"Missing: {ii} {supercell.positions[ii]}")
+
     assert len(np.unique(indices, axis=0)) == len(supercell), (indices, len(supercell))
 
-    timer("matched positions in supercell and primitive cell")
+    timer(f"matched {len(matches)} positions in supercell and primitive cell")
 
     return indices
 
 
-def find_lattice_points(lattice, superlattice, tolerance=1e-5, verbose=False):
+def get_lattice_points(
+    lattice, superlattice, tolerance=1e-5, sorted=True, verbose=False
+):
     """
         S = M . L
 
@@ -98,13 +104,15 @@ def find_lattice_points(lattice, superlattice, tolerance=1e-5, verbose=False):
         # attach to list if passed
         lattice_points.append(lp)
 
-    assert len(lattice_points) == n_lattice_points, (
-        len(lattice_points),
+    assert len(np.unique(lattice_points, axis=0)) == n_lattice_points, (
+        len(np.unique(lattice_points, axis=0)),
         n_lattice_points,
     )
 
     timer(f"found {len(lattice_points)} lattice points")
 
+    if sorted:
+        return sorted(lattice_points, key=la.norm)
     return lattice_points
 
 
