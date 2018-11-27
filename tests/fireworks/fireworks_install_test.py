@@ -108,7 +108,8 @@ fw2 = generate_firework(
 workflow = Workflow([fw, fw2], {fw: [fw2]})
 launchpad.add_wf(workflow)
 fworker = FWorker()
-
-rapidfire(launchpad, fworker, strm_lvl="INFO", reserve=True, gss_auth=True)
+controlpath = str(Path.home() / ".ssh/sockets" / (settings.fireworks.remote_user + "@$cobra.mpcdf.mpg.de-22"))
+print(f"Using the ssh ControlPath: {controlpath}")
+rapidfire(launchpad, fworker, strm_lvl="INFO", remote_host=['cobra01i.mpcdf.mpg.de'], reserve=True, controlpath=controlpath)
 
 print("\n\n*******All Tests Successful*******\n\n")

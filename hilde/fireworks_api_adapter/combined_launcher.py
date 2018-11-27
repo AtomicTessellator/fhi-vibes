@@ -89,6 +89,7 @@ def rapidfire(
     wflow=None,
     tasks2queue=fw_defaults["tasks2queue"],
     gss_auth=True,
+    controlpath=None,
     remote_host=fw_defaults["remote_host"],
     remote_config_dir=fw_defaults["remote_config_dir"],
     remote_user=fw_defaults["remote_user"],
@@ -165,6 +166,7 @@ def rapidfire(
         q_kwargs = {
             "reserve": reserve,
             "gss_auth": gss_auth,
+            "controlpath": controlpath,
             "remote_host": remote_host,
             "remote_config_dir": remote_config_dir,
             "remote_user": remote_user,

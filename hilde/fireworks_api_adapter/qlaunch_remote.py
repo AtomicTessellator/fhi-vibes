@@ -5,13 +5,19 @@ import time
 
 try:
     import fabric
-
     if int(fabric.__version__.split(".")[0]) < 2:
         raise ImportError
 except ImportError:
     HAS_FABRIC = False
+    SSH_MULTIPLEXING = False
 else:
     HAS_FABRIC = True
+    # If fabric 2 is present check if it allows for SSH multiplexing
+    from fabric.connection import SSHClient
+    if "controlpath" in SSHClient.connect.__doc__:
+        SSH_MULTIPLEXING = True
+    else:
+        SSH_MULTIPLEXING = False
 
 __authors__ = "Anubhav Jain, Shyue Ping Ong, Adapted by Thomas Purcell for use in HiLDe"
 __copyright__ = "Copyright 2013, The Materials Project"
@@ -51,6 +57,7 @@ def qlaunch_remote(
     launcher_dir=None,
     loglvl=None,
     gss_auth=True,
+    controlpath=None,
     remote_host="localhost",
     remote_config_dir=None,
     remote_user=None,
@@ -71,6 +78,10 @@ def qlaunch_remote(
         wflow (list of int or Workflow): specific Workflow to run in reservation mode
         silencer (bool): shortcut to mute log messages
         reserve (bool): reserve a fw
+        launcher_dir (str): Directory to launch rocket from
+        loglvl (str): How much logging should occur
+        gss_auth (bool): Allow GSS-API authorization with Kerberos
+        controlpath (str): Path to a control path for ssh multiplexing (Only if a modified paramiko that allows ssh multiplexing is used)
         remote_host (str): Remote host to exec qlaunch. Right now, only supports running from a config dir.
         remote_config_dir (list of str): Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple locations if you have multiple configurations on the same cluster e.g., multiple queues or FireWorkers.
         remote_user (str): Username to login to remote host.
@@ -114,11 +125,14 @@ def qlaunch_remote(
     interval = daemon
     while True:
         for host in remote_host:
+            connect_kwargs = {"password": remote_password, "gss_auth": gss_auth}
+            if SSH_MULTIPLEXING:
+                connect_kwargs["controlpath"] = controlpath
             with fabric.Connection(
                 host=host,
                 user=remote_user,
                 config=fabric.Config({"run": {"shell": remote_shell}}),
-                connect_kwargs={"password": remote_password, "gss_auth": gss_auth},
+                connect_kwargs=connect_kwargs,
             ) as conn:
                 for remote in remote_config_dir:
                     remote = os.path.expanduser(remote)

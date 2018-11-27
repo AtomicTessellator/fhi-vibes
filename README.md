@@ -19,7 +19,7 @@ and edit according to system.
 
 **Settings Files**
 
-`hilde` uses the Python `configparser` module for parsing settings files named 
+`hilde` uses the Python `configparser` module for parsing settings files named
 `settings.in` and the configuration file `hilde.cfg`. The
 parser is augmented by `JSON` so it understands any input on the right hand side that is
 valid `JSON`. The inputs get converted to Python objects according to [this conversion
@@ -95,6 +95,11 @@ See also: `doc/README_FHI_FireWorksConnections.md`
   * Machine specific settings such as the aims_command is handled dynamically
     * It automatically changes when called on a machine
     * Can always use local settings without an issue
+* Prerequisites for using FireWorks
+  * Fabric 2 (for remote connections)
+  * paramiko (used by Fabric 2)
+  * python-gssapi (for gss authorization)
+  * pymongo
 * Using FireWorks on the clusters
   * Download/clone from https://github.com/materialsproject/fireworks.git and move the FireWorks directory
   * Modify fw\_tutorials/worker/my\_fworker.yaml and copy it to $HOME/.fireworks
@@ -111,7 +116,11 @@ See also: `doc/README_FHI_FireWorksConnections.md`
     * strm_lvl: How much information the launchpad prints by default
   * Modify the correct fw\_tutorials/queue\_???.yaml file for your submission system and copy it to $HOME/.fireworks/my\_qadapter.yaml
     * Only used on clusters
-    * Set to minimal queue defaults (e.g. nodes=1)
+    * Set to minimal queue defaults
+      * nodes = 1
+      * ntasks_per_node = 32
+      * walltime = "00:30:00"
+      * queue = "express"
   * Find the FireWorks install directory with lpad version and modify
     $FW_INSTALL_DIR/fireworks/fw_config.py:
     * LAUNCHPAD_LOC: $HOME/.fireworks/my_launchpad.yaml
