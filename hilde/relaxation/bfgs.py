@@ -8,6 +8,7 @@ from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port
 from hilde.trajectory.relaxation import metadata2file, step2file
+from hilde.helpers.structure import clean_atoms
 
 
 _calc_dirname = "calculation"
@@ -25,8 +26,9 @@ def relax(
     logfile="relax.log",
     walltime=1800,
     workdir=".",
+    clean_output=True,
     output="geometry.in.relaxed",
-    **kwargs
+    **kwargs,
 ):
     """ run a BFGS relaxation
 
@@ -61,7 +63,6 @@ def relax(
     calc_dir = workdir / _calc_dirname
 
     bfgs_settings = {"logfile": str(logfile), "maxstep": maxstep}
-
 
     if calc.name == "aims":
         calc.parameters["compute_forces"] = True
@@ -101,6 +102,15 @@ def relax(
                 break
 
     with cwd(workdir):
-        atoms.write(output, format="aims", scaled=True)
+
+        if clean_output:
+            atoms = clean_atoms(atoms)
+
+        atoms.write(
+            output,
+            format="aims",
+            scaled=True,
+            info_str=f"Relaxed with {opt.__name__}, fmax={fmax} eV/AA",
+        )
 
     return converged

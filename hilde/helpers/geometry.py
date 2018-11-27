@@ -1,6 +1,7 @@
 import numpy as np
 from hilde.konstanten.maths import perfect_fill, vol_sphere
-# from collections import namedtuple
+from hilde.helpers.maths import clean_matrix
+
 
 def inscribed_sphere_in_box(cell):
 
@@ -12,12 +13,13 @@ def inscribed_sphere_in_box(cell):
     nb /= np.linalg.norm(nb)
     nc /= np.linalg.norm(nc)
     # distances between opposing planes
-    rr = 1.e10
+    rr = 1.0e10
     rr = min(rr, abs(na @ cell[0, :]))
     rr = min(rr, abs(nb @ cell[1, :]))
     rr = min(rr, abs(nc @ cell[2, :]))
     rr *= 0.5
     return rr
+
 
 def get_cubicness(cell):
     """
@@ -34,8 +36,8 @@ def get_cubicness(cell):
     """
 
     # perfect radius: 1/2 * width of the cube
-    radius_perfect = np.linalg.det(cell)**(1/3) * .5
-    radius_actual  = inscribed_sphere_in_box(cell)
+    radius_perfect = np.linalg.det(cell) ** (1 / 3) * 0.5
+    radius_actual = inscribed_sphere_in_box(cell)
 
     # volume = vol_sphere * inscribed_sphere_in_box(cell)**3 / np.linalg.det(cell)
     # Fill = namedtuple('Fill', ['volume', 'radius'])
@@ -43,3 +45,38 @@ def get_cubicness(cell):
 
     return radius_actual / radius_perfect
 
+
+def get_rotation_matrix(phi, axis, radians=False):
+    if not radians:
+        phi = phi / 180 * np.pi
+
+    # Norm the rotation axis:
+    axis = axis / la.norm(axis)
+
+    cp = np.cos(phi)
+    sp = np.sin(phi)
+    r1, r2, r3 = axis
+    Rm = np.array(
+        [
+            [
+                r1 ** 2 * (1 - cp) + cp,
+                r1 * r2 * (1 - cp) - r3 * sp,
+                r1 * r3 * (1 - cp) + r2 * sp,
+            ],
+            [
+                r1 * r2 * (1 - cp) + r3 * sp,
+                r2 ** 2 * (1 - cp) + cp,
+                r2 * r3 * (1 - cp) - r1 * sp,
+            ],
+            [
+                r3 * r1 * (1 - cp) - r2 * sp,
+                r2 * r3 * (1 - cp) + r1 * sp,
+                r3 ** 2 * (1 - cp) + cp,
+            ],
+        ]
+    )
+
+    # clean small values
+    Rm = clean_matrix(Rm)
+
+    return Rm
