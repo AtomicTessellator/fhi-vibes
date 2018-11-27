@@ -1,6 +1,6 @@
 import os
 from argparse import ArgumentParser as argpars
-from hilde.parsers import read_structure
+from hilde.io import read, inform
 
 
 def main():
@@ -21,8 +21,8 @@ def main():
 
     ### Greet
     fname = args.geom
-    cell = read_structure(fname, symprec=args.tolerance, format=args.format)
-    cell.inform(fname=fname)
+    cell = read(fname, format=args.format)
+    inform(cell, fname=fname, symprec=args.tolerance)
 
 
 if __name__ == "__main__":

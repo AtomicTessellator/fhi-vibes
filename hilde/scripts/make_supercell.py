@@ -4,11 +4,13 @@ Similar to generate_structure from TDEP.
 """
 from argparse import ArgumentParser as argpars
 import numpy as np
-from ase.io import read
+from hilde.io import read, write
 from hilde.structure.io import inform
 from hilde.helpers.supercell import make_cubic_supercell, make_supercell
 from hilde.helpers.geometry import get_cubicness
 from hilde.helpers.maths import get_3x3_matrix
+from hilde.helpers.structure import clean_atoms
+from hilde.spglib.wrapper import get_spacegroup
 
 
 def print_matrix(matrix, indent=2):
@@ -51,7 +53,7 @@ def main():
 
     print(f"\nSupercell matrix:")
     print(" python:  {}".format(np.array2string(smatrix.flatten(), separator=", ")))
-    print(" cmdline: {}".format(' '.join([f'{el}' for el in smatrix.flatten()])))
+    print(" cmdline: {}".format(" ".join([f"{el}" for el in smatrix.flatten()])))
     print(" 2d:")
     print_matrix(smatrix, indent=0)
 
@@ -66,8 +68,15 @@ def main():
     )
 
     if not args.dry:
+        spacegroup = get_spacegroup(cell)
         output_filename = f"{args.geom}.supercell"
-        supercell.write(output_filename, scaled=False, format=args.format)
+        write(
+            clean_atoms(supercell),
+            output_filename,
+            spacegroup=spacegroup,
+            scaled=False,
+            format=args.format,
+        )
         print(f"\nSupercell written to {output_filename}")
 
 
