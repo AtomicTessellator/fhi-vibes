@@ -1,12 +1,14 @@
 import numpy as np
 import scipy.linalg as la
 from itertools import product
-from hilde.konstanten.numerics import eps, wrap_tol
+from hilde.helpers.timer import Timer
 
 
-def assign_primitive_positions(atoms, supercell):
+def assign_primitive_positions(atoms, supercell, tolerance=1e-5):
     """ write positions in the supercell as (i, L), where i is the respective index
         in the primitive cell and L is the lattice point """
+
+    timer = Timer()
 
     lattice_points = sorted(
         find_lattice_points(atoms.cell, supercell.cell), key=la.norm
@@ -25,9 +27,10 @@ def assign_primitive_positions(atoms, supercell):
     for jj, spos in enumerate(supercell.positions):
         for ii, pos in enumerate(atoms.positions):
             for LL, lp in enumerate(lattice_points):
-                if la.norm(spos - pos - lp) < wrap_tol:
+                if la.norm(spos - pos - lp) < tolerance:
                     indices.append((ii, LL))
                     matches.append(jj)
+                    break
 
     # now check for twice the lattice points, those are probably outliers
     for jj, spos in enumerate(supercell.positions):
@@ -35,20 +38,26 @@ def assign_primitive_positions(atoms, supercell):
             continue
         for ii, pos in enumerate(atoms.positions):
             for LL, lp in enumerate(lattice_points):
-                if la.norm(spos - pos - 2 * lp) < wrap_tol:
+                if la.norm(spos - pos - 2 * lp) < tolerance:
                     indices.append((ii, 0))
                     matches.append(jj)
+                    break
 
-    assert len(matches) == len(supercell), (len(matches), len(supercell))
+    assert len(np.unique(matches, axis=0)) == len(supercell), (matches, len(supercell))
+    assert len(np.unique(indices, axis=0)) == len(supercell), (indices, len(supercell))
+
+    timer("matched positions in supercell and primitive cell")
 
     return indices
 
 
-def find_lattice_points(lattice, superlattice, verbose=False):
+def find_lattice_points(lattice, superlattice, tolerance=1e-5, verbose=False):
     """
         S = M . L
 
         M = supercell_matrix """
+
+    timer = Timer()
 
     inv_lattice = la.inv(lattice)  # .T
     inv_superlattice = la.inv(superlattice)
@@ -80,10 +89,10 @@ def find_lattice_points(lattice, superlattice, verbose=False):
         frac_lp = fractional(lp, superlattice)
 
         # Check if is inside supercell and discard if no
-        if np.any(np.array(frac_lp) < -eps):
+        if np.any(np.array(frac_lp) < -tolerance):
             continue
 
-        if np.any(np.array(frac_lp) > 1 - eps):
+        if np.any(np.array(frac_lp) > 1 - tolerance):
             continue
 
         # attach to list if passed
@@ -93,6 +102,8 @@ def find_lattice_points(lattice, superlattice, verbose=False):
         len(lattice_points),
         n_lattice_points,
     )
+
+    timer(f"found {len(lattice_points)} lattice points")
 
     return lattice_points
 
