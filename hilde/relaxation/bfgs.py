@@ -110,7 +110,7 @@ def relax(
             output,
             format="aims",
             scaled=True,
-            info_str=f"Relaxed with {opt.__name__}, fmax={fmax} eV/AA",
+            info_str=f"Relaxed with BFGS, fmax={fmax} eV/AA",
         )
 
     return converged
