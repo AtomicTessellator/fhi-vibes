@@ -335,7 +335,7 @@ class Spacegroup:
         self.aflow_dataset = result
 
     def get_std_cell(self, typ='prim'):
-        from hilde.structure import pAtoms
+        from hilde.structure.structure import pAtoms
         self.setup(mode=2)
         #
         if 'prim' in typ.lower():

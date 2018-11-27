@@ -4,7 +4,7 @@ tools for converting atoms and calculator objects to and from different represen
 import numpy as np
 from ase.db.row import atoms2dict, AtomsRow
 
-from hilde.structure import pAtoms
+from hilde.structure.structure import pAtoms
 from hilde.calculators.aims_calc import Aims
 
 

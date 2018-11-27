@@ -12,15 +12,15 @@ from hilde.helpers.brillouinzone import get_bands
 from hilde.helpers.supercell import make_cubic_supercell
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import wrapper as ph
-from hilde.structure import pAtoms
 from hilde.tasks.calculate import calculate_multiple
 from hilde.phono3py import wrapper as ph3
+from hilde.structure.misc import get_sysname
 
 # Get the settings for the calculation and set up the cell
 db_path = "test.db"
 print(f"database: {db_path}")
 
-atoms = pAtoms(bulk("Al"))
+atoms = bulk("Al")
 atoms.set_calculator(EMT())
 
 _, smatrix2 = make_cubic_supercell(atoms, 32)
@@ -66,10 +66,10 @@ try:
 except KeyError:
     # if not perform the calculations
     print("not found in database, compute")
-    scs2_computed = calculate_multiple(scs2, atoms.calc, f'{atoms.sysname}/fc2')
+    scs2_computed = calculate_multiple(scs2, atoms.calc, f'{get_sysname(atoms)}/fc2')
     fc2_forces = ph3.get_forces(scs2_computed)
 
-    scs3_computed = calculate_multiple(scs3, atoms.calc, f'{atoms.sysname}/fc3')
+    scs3_computed = calculate_multiple(scs3, atoms.calc, f'{get_sysname(atoms)}/fc3')
     fc3_forces = ph3.get_forces(scs3_computed)
     print(len(fc2_forces), len(fc3_forces))
     # for force in fc3_forces:

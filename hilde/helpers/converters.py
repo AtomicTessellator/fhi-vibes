@@ -11,7 +11,7 @@ from ase.calculators.calculator import all_properties
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 
-from hilde.structure import pAtoms
+from hilde.structure.structure import pAtoms
 
 
 def input2dict(atoms, calc=None):
