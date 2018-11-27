@@ -23,6 +23,7 @@ setup(
     entry_points={
         "console_scripts": [
             "geometry_info = hilde.scripts.geometry_info:main",
+            "rewrite_geometry= hilde.scripts.rewrite_geometry:main",
             "get_relaxation_info = hilde.scripts.get_relaxation_info:main",
             "make_supercell = hilde.scripts.make_supercell:main",
             "phonopy_info= hilde.scripts.phonopy_info:main",
@@ -34,9 +35,9 @@ setup(
             "add_workflow_to_lp = hilde.scripts.add_fireworks_workflow:main",
             "qlaunch_hilde = hilde.fireworks_api_adapter.scripts.qlaunch_run:qlaunch",
             "rlaunch_hilde = hilde.fireworks_api_adapter.scripts.rlaunch_run:rlaunch",
-            'claunch_hilde = hilde.fireworks_api_adapter.scripts.claunch_run:claunch'
+            "claunch_hilde = hilde.fireworks_api_adapter.scripts.claunch_run:claunch",
         ]
     },
-    data_files=[('config', ['hilde.cfg'])],
+    data_files=[("config", ["hilde.cfg"])],
     zip_safe=False,
 )
