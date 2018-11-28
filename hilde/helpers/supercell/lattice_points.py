@@ -94,7 +94,7 @@ def get_lattice_points(atoms, supercell, **kwargs):
 
 
 def _get_lattice_points(
-    lattice, superlattice, tolerance=1e-1, sort=True, verbose=False
+    lattice, superlattice, tolerance=1e-5, sort=True, verbose=False
 ):
     """
         S = M . L
@@ -144,8 +144,6 @@ def _get_lattice_points(
 
         # attach to list if passed
         lattice_points.append(lp)
-
-    print(len(lattice_points), n_lattice_points)
 
     assert len(np.unique(lattice_points, axis=0)) == n_lattice_points, (
         len(np.unique(lattice_points, axis=0)),
