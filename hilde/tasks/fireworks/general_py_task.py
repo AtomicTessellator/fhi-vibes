@@ -219,7 +219,7 @@ def atoms_calculate_task(
     Returns: FWAction
         The FWAction func_fw_out outputs
     """
-    start_dir = os.get_cwd()
+    start_dir = os.getcwd()
     if fw_settings is None:
         fw_settings = {}
 
