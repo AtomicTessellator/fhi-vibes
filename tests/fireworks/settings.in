@@ -4,9 +4,7 @@ xc =               pw-lda
 sc_accuracy_rho =  1e-4
 charge_mix_param = 0.5
 output_level =     MD_light
-
-[control_kpt]
-density =         .5
+k_grid = [ 2, 2, 2]
 
 [basisset]
 type = light

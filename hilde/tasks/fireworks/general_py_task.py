@@ -2,6 +2,8 @@ from ase.atoms import Atoms
 
 from fireworks import Firework, PyTask
 
+import os
+
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
@@ -217,6 +219,7 @@ def atoms_calculate_task(
     Returns: FWAction
         The FWAction func_fw_out outputs
     """
+    start_dir = os.get_cwd()
     if fw_settings is None:
         fw_settings = {}
 
@@ -240,7 +243,7 @@ def atoms_calculate_task(
 
     outputs = func(atoms, atoms.calc, **func_kwargs)
 
-    return func_fw_out(
+    fw_acts =  func_fw_out(
         atoms_dict,
         calc_dict,
         outputs,
@@ -250,7 +253,8 @@ def atoms_calculate_task(
         func_fw_out_kwargs,
         fw_settings,
     )
-
+    os.chdir(start_dir)
+    return fw_acts
 
 def general_function_task(
     func_path, func_fw_out_path, *args, fw_settings=None, **kwargs
