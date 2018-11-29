@@ -37,7 +37,7 @@ def calculate(atoms, calculator, workdir='.'):
     calc_atoms.calc = calculator
     with cwd(workdir, mkdir=True):
         calc_atoms.write("geometry.in")
-        calc_atoms.calc.calculate(calc_atoms, **kwargs)
+        calc_atoms.calc.calculate(calc_atoms)
         return calc_atoms
 
 
