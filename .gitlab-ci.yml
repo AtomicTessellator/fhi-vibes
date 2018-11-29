@@ -4,6 +4,7 @@ before_script:
   - pip install .
   - jtest="jupyter nbconvert --execute"
   - service mongodb start --ipv6
+  - python --version
 
 all_tests:
   script:
