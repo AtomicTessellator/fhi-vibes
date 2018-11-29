@@ -4,7 +4,7 @@ matplotlib
 jupyter
 h5py
 spglib
-https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz  
-phonopy
-phono3py
+https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz
+phonopy==1.14.2
+phono3py==1.14.3
 fireworks
