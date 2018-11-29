@@ -1,9 +1,3 @@
-from pathlib import Path
-import numpy as np
-
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
-from ase import units
-
 from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
 from hilde.molecular_dynamics import run_md
