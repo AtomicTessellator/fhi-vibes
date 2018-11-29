@@ -5,6 +5,7 @@ from itertools import product
 import numpy as np
 import scipy.linalg as la
 from hilde.helpers.timer import Timer
+from . import supercell as sc
 
 
 def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
@@ -88,13 +89,13 @@ def assign_primitive_positions(in_atoms, in_supercell, tolerance=1e-5):
     return indices
 
 
-def get_lattice_points(atoms, supercell, **kwargs):
+def get_lattice_points(atoms, supercell, fortran=True, **kwargs):
     """ wrap _get_lattice_points """
-    return _get_lattice_points(atoms.cell, supercell.cell, **kwargs)
+    return _get_lattice_points(atoms.cell, supercell.cell, fortran=fortran, **kwargs)
 
 
 def _get_lattice_points(
-    lattice, superlattice, tolerance=1e-5, sort=True, verbose=False
+    lattice, superlattice, tolerance=1e-5, sort=True, fortran=True, verbose=False
 ):
     """
         S = M . L
@@ -104,6 +105,7 @@ def _get_lattice_points(
     timer = Timer()
 
     inv_lattice = la.inv(lattice)
+    inv_superlattice = la.inv(superlattice)
 
     supercell_matrix = np.round(superlattice @ inv_lattice).astype(int)
 
@@ -124,38 +126,53 @@ def _get_lattice_points(
     # points generated beyond this won't lie inside the supercell
     dmax = 1.5 * np.linalg.norm(superlattice.sum(axis=1))
 
-    # find lattice points by enumeration
-    lattice_points = []
-    for (n1, n2, n3) in product(range(-max_iterations, max_iterations + 1), repeat=3):
+    if fortran:
+        lattice_points = sc.supercell.find_lattice_points(
+            lattice.T, inv_superlattice.T, n_lattice_points, max_iterations, tolerance
+        ).T
 
-        lp = [n1, n2, n3] @ lattice
+    else:
+        # find lattice points by enumeration
+        lattice_points = []
+        for (n1, n2, n3) in product(
+            range(-max_iterations, max_iterations + 1), repeat=3
+        ):
 
-        if la.norm(lp) > dmax:
-            continue
+            lp = [n1, n2, n3] @ lattice
 
-        frac_lp = fractional(lp, superlattice)
+            if la.norm(lp) > dmax:
+                continue
 
-        # Check if is inside supercell and discard if no
-        if np.any(np.array(frac_lp) < -tolerance):
-            continue
+            frac_lp = fractional(lp, superlattice)
 
-        if np.any(np.array(frac_lp) > 1 - tolerance):
-            continue
+            # Check if is inside supercell and discard if no
+            if np.any(np.array(frac_lp) < -tolerance):
+                continue
 
-        # attach to list if passed
-        lattice_points.append(lp)
+            if np.any(np.array(frac_lp) > 1 - tolerance):
+                continue
+
+            # attach to list if passed
+            lattice_points.append(lp)
 
     assert len(np.unique(lattice_points, axis=0)) == n_lattice_points, (
         len(np.unique(lattice_points, axis=0)),
         n_lattice_points,
-        lattice_points[:3]
+        lattice_points[:3],
     )
 
     timer(f"found {len(lattice_points)} lattice points")
 
     if sort:
-        return sorted(lattice_points, key=la.norm)
-    return lattice_points
+        return np.asarray(sort_lattice_points(lattice_points))
+
+    return np.asarray(lattice_points)
+
+
+def sort_lattice_points(lattice_points, tol=1e-5):
+    """ sort according to x, y, z coordinates and finally length """
+
+    return sorted(lattice_points, key=lambda x: la.norm(x + [0, 2 * tol, 4 * tol]))
 
 
 def fractional(positions, lattice):
