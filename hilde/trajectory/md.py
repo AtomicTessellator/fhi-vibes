@@ -40,6 +40,6 @@ def metadata2dict(atoms, calc, md):
 
     md_dict = md.todict()
     # save time and mass unit
-    md_dict.update({"fs": u.fs, "dt": md.dt, "kg": u.kg})
+    md_dict.update({"fs": u.fs, "kB": u.kB, "dt": md.dt, "kg": u.kg})
 
     return {"MD": md_dict, **input2dict(atoms, calc)}
