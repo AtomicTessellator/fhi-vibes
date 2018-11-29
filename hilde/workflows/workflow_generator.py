@@ -57,6 +57,7 @@ def get_step_fw(step_settings, atoms=None):
             )
         )
     elif "aims_relaxation" in step_settings:
+        db_kwargs["relax_step"] = 0
         fw_list.append(
             generate_firework(
                 "hilde.tasks.calculate.calculate",
