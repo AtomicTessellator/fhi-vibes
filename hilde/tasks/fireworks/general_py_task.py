@@ -241,8 +241,13 @@ def atoms_calculate_task(
     del (atoms_dict["results"])
     atoms = dict2atoms(atoms_dict)
 
-    outputs = func(atoms, atoms.calc, **func_kwargs)
+    try:
+        outputs = func(atoms, atoms.calc, **func_kwargs)
+    except:
+        os.chdir(start_dir)
+        raise RuntimeError(f"Function calculation failed, moving to {start_dir} to finish Firework.")
 
+    os.chdir(start_dir)
     fw_acts =  func_fw_out(
         atoms_dict,
         calc_dict,
@@ -253,7 +258,6 @@ def atoms_calculate_task(
         func_fw_out_kwargs,
         fw_settings,
     )
-    os.chdir(start_dir)
     return fw_acts
 
 def general_function_task(

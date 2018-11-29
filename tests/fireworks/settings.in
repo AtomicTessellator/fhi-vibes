@@ -11,3 +11,9 @@ type = light
 
 [socketio]
 port = null
+
+[fw_settings]
+walltime = "0:02:00"
+nodes = 1
+ntasks_per_node = 20
+queue = tiny
