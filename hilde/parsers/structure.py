@@ -1,6 +1,6 @@
 import numpy as np
 
-from hilde.structure import pAtoms
+from hilde.structure.structure import pAtoms
 from hilde.konstanten.symmetry import symprec
 from ase.io import read as ase_read
 
