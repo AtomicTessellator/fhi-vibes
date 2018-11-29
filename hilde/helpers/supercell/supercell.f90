@@ -3,6 +3,15 @@ module supercell
 
   contains
 
+    !> compute fractional positions
+    pure function fractional(pos, inv_lattice) result(frac_pos)
+      real*8, intent(in) :: pos(3,1), inv_lattice(3,3)
+      real*8             :: frac_pos(3,1)
+
+      frac_pos = matmul(inv_lattice, pos)
+
+    end function
+
     !> Compute deviation from the target metric, given that cell is normed
     pure function get_deviation(cell, target_metric, norm) result(deviation)
       real*8, dimension(3,3), intent(in) :: cell
@@ -125,4 +134,63 @@ module supercell
       if (.not. found) write(*,*) 'No supercell matrix found.'
 
     end function
+
+    !> Find lattice points by brute force enumeration
+    function find_lattice_points(lattice, inv_superlattice, n_lattice_points, &
+                                 max_iterations, tolerance) result(lattice_points)
+      real*8,  intent(in)   :: lattice(3,3), inv_superlattice(3,3), tolerance
+      integer, intent(in)   :: max_iterations, n_lattice_points
+      real*8                :: lattice_points(3,n_lattice_points), lp(3,1), frac_lp(3,1)
+      integer               :: n1, n2, n3, counter
+
+
+      ! ! initialize matrices and values
+      lattice_points = -10000.0d0
+      lp             = 0.0d0
+
+      write(*,*) 'Settings:'
+      write (*,"(A,/,(I3))") 'n_lattice_points', n_lattice_points
+
+      !> Expand brute force
+      counter = 0
+      do n1 = -max_iterations, max_iterations
+      do n2 = -max_iterations, max_iterations
+      do n3 = -max_iterations, max_iterations
+
+        lp =  dble(n1) * lattice(:, 1:1) &
+            + dble(n2) * lattice(:, 2:2) &
+            + dble(n3) * lattice(:, 3:3)
+
+        frac_lp = fractional(lp, inv_superlattice)
+
+        ! check if frac_lp is within supercell
+        if     ((frac_lp(1, 1) > -tolerance) &
+          .and. (frac_lp(2, 1) > -tolerance) &
+          .and. (frac_lp(3, 1) > -tolerance) &
+          .and. (frac_lp(1, 1) < 1 - tolerance) &
+          .and. (frac_lp(2, 1) < 1 - tolerance) &
+          .and. (frac_lp(3, 1) < 1 - tolerance)) then
+
+            counter = counter + 1
+            lattice_points(1:3, counter:counter) = lp(1:3, 1:1)
+
+        end if
+
+        if (counter > n_lattice_points) then
+          write(*,*) "Counter:          ", counter
+          write(*,*) "N lattice_points: ", n_lattice_points
+          exit
+        end if
+
+      end do
+      end do
+      end do
+
+      ! if (counter /= n_lattice_points) then
+      !   write(*,*) "Counter:          ", counter
+      !   write(*,*) "N lattice_points: ", n_lattice_points
+      ! end if
+
+    end function
+
 end module
