@@ -15,22 +15,6 @@ settings = Settings()
 atoms, calc = setup_aims(settings=settings)
 
 
-# MD initialization
-if not Path("trajectory.yaml").exists():
-    if "force_constants" in settings.md:
-        print("Initialize positions and velocities using force constants.")
-        force_constants = np.loadtxt(settings.md.force_constants)
-        PhononHarmonics(
-            atoms,
-            force_constants,
-            quantum=False,
-            temp=settings.md.temperature * units.kB,
-        )
-    else:
-        print("Initialize velocities according to Maxwell-Botlzmann distribution.")
-        MaxwellBoltzmannDistribution(atoms, temp=settings.md.temperature * units.kB)
-
-
 # run the MD
 converged = run_md(atoms, calc, **settings.md)
 

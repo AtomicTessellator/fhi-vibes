@@ -1,6 +1,6 @@
 import os
 from argparse import ArgumentParser as argpars
-from ase.io import read
+from hilde.io import read, write
 from hilde.helpers.structure import clean_atoms
 from hilde.structure.io import inform
 
@@ -19,7 +19,7 @@ def main():
     atoms = clean_atoms(atoms, align=args.align)
 
     outfile = f"{args.geom}.cleaned"
-    atoms.write(outfile, format=args.format)
+    write(atoms, outfile, format=args.format)
 
     print(f"\nCleaned geometry written to {outfile}")
 

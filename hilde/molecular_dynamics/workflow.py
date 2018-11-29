@@ -8,6 +8,7 @@ from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port
 from hilde.helpers.compression import backup_folder as backup
+from hilde.molecular_dynamics import setup_md
 
 
 _calc_dirname = "calculations"
@@ -56,16 +57,14 @@ def run_md(
         if wf_extrapolation:
             calc.parameters["wf_extrapolation"] = "quadratic"
 
-    if restart:
-        from hilde.molecular_dynamics import setup_md
-
+    if md is None:
         md_settings = {
             **kwargs,
             "logfile": str(logfile),
             "trajectory": trajectory,
             "workdir": workdir,
         }
-        atoms, md, _ = setup_md(atoms, **md_settings)
+        atoms, md, _ = setup_md(atoms, **md_settings, **kwargs)
 
     if md is None:
         raise RuntimeError("ASE MD algorithm has to be given")
