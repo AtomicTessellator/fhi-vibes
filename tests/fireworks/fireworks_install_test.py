@@ -85,6 +85,8 @@ fw_settings = {
             # Keys are the same that you define in "my_qadapter.yaml"
             "walltime": "00:01:00",
             "nodes": 1,
+            "queue": "tiny",
+            "ntasks-per-node": 20
         }
     },
 }

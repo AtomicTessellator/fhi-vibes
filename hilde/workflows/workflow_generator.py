@@ -32,21 +32,36 @@ def get_step_fw(step_settings, atoms=None):
     if "fw_spec_qadapter" in step_settings:
         step_settings.fw_settings["spec"]["_queueadapter"] = dict(step_settings.fw_spec_qadapter)
 
+    if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
+        db_kwargs = {
+            "db_path": step_settings.db_storage.db_path,
+            "calc_type": f"relaxation_{step_settings.basisset.type}",
+            "symprec": 1e-5,
+            "original_atom_hash": atoms_hash,
+        }
+    else:
+        db_kwargs = {}
+
     if "relaxation" in step_settings:
-        if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
-            db_kwargs = {
-                "db_path": step_settings.db_storage.db_path,
-                "calc_type": f"relaxation_{step_settings.basisset.type}",
-                "symprec": 1e-5,
-                "original_atom_hash": atoms_hash,
-            }
-        else:
-            db_kwargs = {}
         fw_list.append(
             generate_firework(
                 "hilde.relaxation.bfgs.relax",
                 "hilde.tasks.fireworks.fw_action_outs.check_relaxation_complete",
                 step_settings.relaxation,
+                at,
+                cl,
+                func_fw_out_kwargs=db_kwargs,
+                atoms_calc_from_spec=step_settings.fw_settings.from_db,
+                fw_settings=step_settings.fw_settings,
+                update_calc_settings=step_settings.control,
+            )
+        )
+    elif "aims_relaxation" in step_settings:
+        fw_list.append(
+            generate_firework(
+                "hilde.tasks.calculate.calculate",
+                "hilde.tasks.fireworks.fw_action_outs.check_aims_relaxation_complete",
+                step_settings.aims_relaxation,
                 at,
                 cl,
                 func_fw_out_kwargs=db_kwargs,

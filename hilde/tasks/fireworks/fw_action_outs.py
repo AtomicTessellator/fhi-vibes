@@ -1,6 +1,8 @@
 from ase.symbols import Symbols
+from ase.io.aims import read_aims
 from fireworks import FWAction
 from pathlib import Path
+import shutil
 
 from hilde.helpers.converters import calc2dict, atoms2dict
 from hilde.helpers.fileformats import last_from_yaml
@@ -91,6 +93,67 @@ def check_relaxation_complete(
     )
     return FWAction(detours=[fw])
 
+def check_aims_relaxation_complete(
+    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+):
+    """
+    A function that checks if a relaxation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the relaxation
+    Args:
+        atoms: ASE Atoms object
+            The original atoms at the start of this job
+        calc: ASE Calculator object
+            The original calculator
+        outputs:
+            The outputs from the function (assumes to be a single bool output)
+        func: str
+            Path to function that performs the MD like operation
+        func_fw_out: str
+            Path to this function
+        func_kwargs: dict
+            keyword arguments for func
+        fw_settings: dict
+            FireWorks specific settings
+    """
+    func_fw_kwargs["relax_step"] += 1
+    aims_out = open(func_kwargs["workdir"] + "/aims.out").readlines()
+    converged = "Have a nice day" in aims_out[-2]
+    calc = calc2dict(outputs.get_calculator())
+    try:
+        atoms = read_aims(func_kwargs["workdir"] + "/geometry.in.next_step")
+        atoms.set_calculator(outputs.get_calculator())
+        atoms = atoms2dict(atoms)
+    except:
+        if not converged:
+            raise CalculationError("There was a problem with the FHI Aims calculation stopping program here")
+        atoms = atoms2dict(outputs)
+    if converged:
+        if "db_path" in func_fw_kwargs:
+            db_path = func_fw_kwargs["db_path"]
+            del (func_fw_kwargs["db_path"])
+            update_phonon_db(db_path, atoms, atoms, **func_fw_kwargs)
+        return FWAction(
+            update_spec={
+                fw_settings["out_spec_atoms"]: atoms,
+                fw_settings["out_spec_calc"]: calc,
+            }
+        )
+
+    del(calc["results"])
+    fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(func_fw_kwargs["relax_step"])
+
+    if "to_launchpad" in fw_settings and fw_settings["to_launcpad"]:
+        fw_settings["to_launcpad"] = False
+
+    fw = generate_firework(
+        func,
+        func_fw_out,
+        func_kwargs,
+        atoms,
+        calc,
+        func_fw_out_kwargs=func_fw_kwargs,
+        fw_settings=fw_settings,
+    )
+    return FWAction(detours=[fw])
 
 def serial_phonopy_continue(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
