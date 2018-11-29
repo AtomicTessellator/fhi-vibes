@@ -186,11 +186,6 @@ module supercell
       end do
       end do
 
-      ! if (counter /= n_lattice_points) then
-      !   write(*,*) "Counter:          ", counter
-      !   write(*,*) "N lattice_points: ", n_lattice_points
-      ! end if
-
     end function
 
 end module

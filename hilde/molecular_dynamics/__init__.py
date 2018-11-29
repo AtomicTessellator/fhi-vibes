@@ -4,6 +4,7 @@ from pathlib import Path
 from ase import units as u
 from hilde.trajectory.md import last_from_yaml
 from .workflow import run_md
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 
 
 def setup_md(
@@ -27,7 +28,7 @@ def setup_md(
     if not Path(workdir).is_dir():
         Path(workdir).mkdir()
 
-    temp = temperature * u.fs
+    temp = temperature * u.kB
     dt = timestep * u.fs
 
     if "verlet" in algorithm.lower():
@@ -47,6 +48,9 @@ def setup_md(
 
     prepared = prepare_from_trajectory(atoms, md, trajectory)
 
+    if not prepared:
+        atoms = initialize_md(atoms, temperature, **kwargs)
+
     return atoms, md, prepared
 
 
@@ -62,3 +66,22 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
         atoms.set_velocities(last_atoms["atoms"]["velocities"])
         return True
     print(f"** {trajectory} does  not exist, nothing to prepare")
+
+
+def initialize_md(atoms, temperature, force_constants=None, quantum=False, **kwargs):
+    """ Either use Maxwell Boltzmann or PhononHarmonics to prepare the MD run """
+
+    print(f"Prepare MD run at temperature {temperature}")
+
+    if "force_constants" is not None:
+        print("Initialize positions and velocities using force constants.")
+        force_constants = np.loadtxt(force_constants)
+        PhononHarmonics(
+            atoms, force_constants, quantum=quantum, temp=temperature * u.kB
+        )
+    else:
+        print("Initialize velocities according to Maxwell-Boltzmann distribution.")
+        MaxwellBoltzmannDistribution(atoms, temp=temperature * u.kB)
+
+    return atoms
+
