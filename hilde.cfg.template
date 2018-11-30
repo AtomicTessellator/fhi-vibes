@@ -1,8 +1,7 @@
 # System informations, ADJUST!
 [common]
-verbose = True
-home_dir = /some/path/to/hilde
-email = you@something.com
+home_dir =          /some/path/to/hilde
+email =             you@something.com
 
 [machine]
  aimsbin =          /some/path/to/FHIaims/bin/aims.x
@@ -11,10 +10,10 @@ email = you@something.com
  aims_command =     ${mpi_command} ${aimsbin}
 
 [database]
- location =      ${common:home_dir}/examples/phonon_db
- name =          test.db
- db_path =       ${location}/${name}
-#db_path =       postgresql://user:passwd@host:port/db_name
+ location =         ${common:home_dir}/examples/phonon_db
+ name =             test.db
+ db_path =          ${location}/${name}
+#db_path =          postgresql://user:passwd@host:port/db_name
 
 [watchdog]
 # 1800s = 30 minutes
