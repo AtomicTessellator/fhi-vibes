@@ -102,11 +102,12 @@ def generate_firework(
                 )
             )
             if "kpoint_density_spec" in fw_settings:
+                print("modding calc")
                 task_list.append(
                     PyTask(
                         {
                             "func": fw.mod_calc.name,
-                            "args": ["k_grid_density"],
+                            "args": ["k_grid_density", calc_dict],
                             "inputs": [
                                 calc_dict,
                                 fw_settings["kpoint_density_spec"],
@@ -219,7 +220,6 @@ def atoms_calculate_task(
     Returns: FWAction
         The FWAction func_fw_out outputs
     """
-    print("atoms dict is", atoms_dict)
     start_dir = os.getcwd()
     if fw_settings is None:
         fw_settings = {}
@@ -241,7 +241,6 @@ def atoms_calculate_task(
         atoms_dict[key] = val
     del (atoms_dict["results"])
     atoms = dict2atoms(atoms_dict)
-    print("atoms_info is:", atoms.info)
     try:
         outputs = func(atoms, atoms.calc, **func_kwargs)
     except:

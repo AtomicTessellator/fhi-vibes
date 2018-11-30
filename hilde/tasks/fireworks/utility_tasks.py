@@ -50,8 +50,9 @@ def update_calc_in_db(calc_spec, update_calc_params, calc):
     calc (dict): A dict representing an ASE Calculator
     '''
     del_key_list = []
+    safe_key_list = ["k_grid", "species_dir", "command"]
     for key in calc["calculator_parameters"].keys():
-        if key not in update_calc_params and key is not "k_grid":
+        if key not in update_calc_params and key not in safe_key_list:
             del_key_list.append(key)
     for key in del_key_list:
         del(calc["calculator_parameters"][key])

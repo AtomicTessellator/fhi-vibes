@@ -41,7 +41,8 @@ def get_step_fw(step_settings, atoms=None):
         }
     else:
         db_kwargs = {}
-
+    if "fw_name" in step_settings:
+        step_settings["fw_name"] += atoms.symbols.get_chemical_formula() + "_" + hash_atoms(atoms)[0]
     if "relaxation" in step_settings:
         fw_list.append(
             generate_firework(
