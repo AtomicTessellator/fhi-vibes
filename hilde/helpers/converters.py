@@ -11,10 +11,8 @@ from ase.calculators.calculator import all_properties
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 
-from hilde.structure.structure import pAtoms
 
-
-def input2dict(atoms, calc=None):
+def input2dict(atoms, calc=None, settings=False):
     """ convert metadata information to plain dict """
 
     if calc is None:
@@ -36,18 +34,30 @@ def input2dict(atoms, calc=None):
         atoms_dict.update({"info": atoms.info})
 
     if calc is None:
-        return {"atoms": atoms_dict, "calculator": {}}
+        calc_dict = {}
+    else:
+        params = calc.todict()
+        for key, val in params.items():
+            if isinstance(val, tuple):
+                params[key] = list(val)
 
-    params = calc.todict()
-    for key, val in params.items():
-        if isinstance(val, tuple):
-            params[key] = list(val)
+        calc_dict = {
+            "calculator": calc.__class__.__name__,
+            "calculator_parameters": params,
+        }
+        if hasattr(calc_dict, "command"):
+            calc_dict.update({"command": calc.command})
 
-    calc_dict = {"calculator": calc.__class__.__name__, "calculator_parameters": params}
-    if hasattr(calc_dict, "command"):
-        calc_dict.update({"command": calc.command})
+    input_dict = {"calculator": calc_dict, "atoms": atoms_dict}
 
-    return {"calculator": calc_dict, "atoms": atoms_dict}
+    # save the configuration
+    if settings:
+        from hilde.settings import Settings
+        settings_dict = dict(Settings())
+
+        input_dict.update({"settings": settings_dict})
+
+    return input_dict
 
 
 def results2dict(atoms, calc, append_cell=False):

@@ -9,8 +9,15 @@ from hilde.helpers.config import ConfigDict
 from hilde.helpers.hash import hashfunc
 
 
+class Configuration(ConfigDict):
+    """ class to hold the configuration from hilde.cfg """
+
+    def __init__(self, config_file=DEFAULT_CONFIG_FILE):
+        super().__init__(config_files=[config_file])
+
+
 class Settings(ConfigDict):
-    """ Class to hold the settings parsed from highaims.cfg (or similar)"""
+    """ Class to hold the settings parsed from settings.in (+ the configuration)"""
 
     def __init__(
         self,
@@ -19,13 +26,9 @@ class Settings(ConfigDict):
         fireworks_file=DEFAULT_FIREWORKS_FILE,
         write=False,
     ):
-        super().__init__(config_files=[config_file, settings_file, fireworks_file])
+        config_files = [config_file, settings_file, fireworks_file]
+
+        super().__init__(config_files=[file for file in config_files if file])
 
         if write:
             self.write(DEFAULT_TEMP_SETTINGS_FILE)
-
-    def get_hash(self):
-        return hashfunc(self.get_string())
-
-    def print(self):
-        print(self.get_string())
