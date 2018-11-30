@@ -85,8 +85,8 @@ fw_settings = {
             # Keys are the same that you define in "my_qadapter.yaml"
             "walltime": "00:01:00",
             "nodes": 1,
-            "queue": "tiny",
-            "ntasks-per-node": 20
+            "queue": "express",
+            "ntasks_per_node": 32
         }
     },
 }
@@ -110,8 +110,8 @@ fw2 = generate_firework(
 workflow = Workflow([fw, fw2], {fw: [fw2]})
 launchpad.add_wf(workflow)
 fworker = FWorker()
-controlpath = str(Path.home() / ".ssh/sockets" / (settings.fireworks.remote_user + "@$cobra.mpcdf.mpg.de-22"))
+controlpath = str(Path.home() / ".ssh/sockets" / (settings.fireworks.remote_user + "@$draco.mpcdf.mpg.de-22"))
 print(f"Using the ssh ControlPath: {controlpath}")
-rapidfire(launchpad, fworker, strm_lvl="INFO", remote_host=['cobra01i.mpcdf.mpg.de'], reserve=True, gss_auth=True, controlpath=controlpath)
+rapidfire(launchpad, fworker, strm_lvl="INFO", remote_host=['draco01.mpcdf.mpg.de'], reserve=True, gss_auth=True, controlpath=controlpath)
 
 print("\n\n*******All Tests Successful*******\n\n")

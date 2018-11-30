@@ -47,6 +47,9 @@ def update_calc_in_db(calc_spec, update_calc_params, calc):
     update_calc_params (dict): A dictionary describing the new parameters to update the calc with
     calc (dict): A dict representing an ASE Calculator
     '''
+    for key in calc["calculator_parameters"].keys():
+        if key not in update_calc_params:
+            del(calc["calculator_parameters"][key])
     for key, val in update_calc_params.items():
         if key == "command":
             calc[key] = val
