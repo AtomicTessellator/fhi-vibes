@@ -32,6 +32,21 @@
     * kinit username@IPP-GARCHING.MPG.DE may ask for a password here, if no key-chain is used
     * connection should now be passwordless
 
+* Setting up my_qadapater.yaml for a SLURM Account
+  * \_fw_name: CommonAdapter # Always this unless you modify the Queue Adapter class
+  * \_fw_q_type: SLURM
+  * rocket_launch: rlaunch_hilde singleshot
+  * nodes: 1
+  * ntasks_per_node: 32 # Number of CPUs per node
+  * cput_per_task: 1 # Number of Threads per CPU
+  * walltime: '00:30:00'
+  * queue: express
+  * account: null # This should be null on mpcdf (used if you have an account with hour tracking on a cluster)
+  * job_name: null
+  * logdir: /u/MPCDF_USER/.fireworks/logs/ # Must be absolute path
+  * pre_rocket: module load XXXX YYYY ZZZZ
+  * post_rocket: null
+
 * Connecting to the clusters via FireWorks
   * Need fabric 2 and paramiko for remote connections to work
   * Need python-gssapi package to connect with Kerberos (NOT gssapi package)
