@@ -3,6 +3,8 @@
 import shutil
 from pathlib import Path
 from ase.calculators.socketio import SocketIOCalculator
+
+from hilde.settings import Settings
 from hilde.trajectory.md import step2file, metadata2file
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
@@ -48,6 +50,9 @@ def run_md(
     logfile = workdir / logfile
     calc_dir = workdir / _calc_dirname
     backup_folder = workdir / backup_folder
+
+    # take the literal settings for running the task
+    settings = Settings()
 
     # make sure forces are computed (aims only)
     # use wavefunction extrapolation
@@ -99,6 +104,7 @@ def run_md(
 
         # store MD metadata locally
         metadata2file(atoms, calc, md, file=metadata)
+        settings.write()
 
         while not watchdog() and md.nsteps < maxsteps:
             something_happened = True

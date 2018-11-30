@@ -4,6 +4,7 @@ import numpy as np
 from ase.constraints import UnitCellFilter
 from ase.calculators.socketio import SocketIOCalculator
 
+from hilde.settings import Settings
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port
@@ -64,6 +65,9 @@ def relax(
 
     bfgs_settings = {"logfile": str(logfile), "maxstep": maxstep}
 
+    # take the literal settings for running the task
+    settings = Settings()
+
     if calc.name == "aims":
         calc.parameters["compute_forces"] = True
         if unit_cell:
@@ -95,6 +99,7 @@ def relax(
         # log very initial step and metadata
         if opt.nsteps == 0:
             metadata2file(atoms, calc, opt, trajectory)
+            settings.write()
 
         for ii, converged in enumerate(opt.irun(fmax=fmax, steps=maxsteps)):
             step2file(atoms, atoms.calc, opt, trajectory, unit_cell=unit_cell)

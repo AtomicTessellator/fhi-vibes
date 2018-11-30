@@ -4,6 +4,7 @@ from pathlib import Path
 
 from ase.calculators.socketio import SocketIOCalculator
 
+from hilde.settings import Settings
 from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.paths import cwd, move_to_dir
 import hilde.phonopy.wrapper as ph
@@ -56,6 +57,9 @@ def phonopy(
     backup_folder = workdir / backup_folder
     calc_dir = workdir / _calc_dirname
 
+    # take the literal settings for running the task
+    settings = Settings()
+
     # make sure forces are computed
     if calc.name == 'aims':
         calc.parameters['compute_forces'] = True
@@ -94,6 +98,7 @@ def phonopy(
     with cwd(calc_dir, mkdir=True):
         with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
             # save inputs and supercell
+            settings.write()
             if last_calculation_id(trajectory) < 0:
                 metadata2file(atoms, calc, phonon, trajectory)
 
