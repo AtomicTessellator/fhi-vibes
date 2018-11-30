@@ -3,7 +3,12 @@
 import shutil
 from argparse import ArgumentParser
 from pathlib import Path
-from hilde.settings import Settings, DEFAULT_SETTINGS_FILE, DEFAULT_GEOMETRY_FILE
+from hilde.settings import (
+    Settings,
+    Configuration,
+    DEFAULT_SETTINGS_FILE,
+    DEFAULT_GEOMETRY_FILE,
+)
 from hilde import supported_tasks
 
 
@@ -16,7 +21,9 @@ def main():
     parser.add_argument("--dry", action="store_true")
     args = parser.parse_args()
 
-    settings = Settings(settings_file=args.settings)
+    settings = Settings(settings_file=args.settings, config_file=None)
+    configuration = Configuration()
+
     print("Summary of settings:")
     settings.print()
 
@@ -44,9 +51,10 @@ def main():
     if args.dry:
         exit()
 
-    config_outfile = Path(workdir) / DEFAULT_SETTINGS_FILE
-    settings.write(filename=config_outfile)
-    print(f"Settings written to:   {config_outfile}")
+    # write settings without the configuration part
+    settings_outfile = Path(workdir) / DEFAULT_SETTINGS_FILE
+    settings.write(settings_outfile)
+    print(f"Settings written to:   {settings_outfile}")
 
     # geometry
     if "file" in settings.geometry:
@@ -56,20 +64,20 @@ def main():
     if args.geometry:
         geometry = args.geometry
         outfile = Path(workdir) / DEFAULT_GEOMETRY_FILE
-        settings['geometry']['file'] = DEFAULT_GEOMETRY_FILE
+        settings["geometry"]["file"] = DEFAULT_GEOMETRY_FILE
 
     shutil.copy(geometry, outfile)
     print(f"Geometry written to:   {outfile}")
 
     # copy run script
-    run_script = Path(settings.common.home_dir) / f"hilde/scripts/run/{task}.py"
+    run_script = Path(configuration.common.home_dir) / f"hilde/scripts/run/{task}.py"
     script = Path(workdir) / f"run_{task}.py"
     shutil.copy(run_script, script)
     print(f"Run script written to: {script}")
 
     if "restart" in settings:
         if settings.restart.command.split()[-1] != script.name:
-            print(f"** Check restart command in {config_outfile}")
+            print(f"** Check restart command in {settings_outfile}")
 
 
 if __name__ == "__main__":

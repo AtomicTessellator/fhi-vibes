@@ -53,6 +53,9 @@ class ConfigDict(AttributeDict):
                 val = config.getval(sec, key)
                 self[sec][key] = val
 
+    def print(self):
+        print(self.get_string())
+
     def write(self, filename=DEFAULT_SETTINGS_FILE, pickle=False):
         """write a settings object human readable and pickled"""
         with open(filename, "w") as f:
