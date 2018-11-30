@@ -1,7 +1,5 @@
+from hilde import Settings, setup_aims, restart
 from hilde.phonopy.workflow import phonopy
-from hilde.settings import Settings
-from hilde.templates.aims import setup_aims
-from hilde.helpers.restarts import restart
 
 
 settings = Settings()

@@ -1,7 +1,5 @@
-from hilde.settings import Settings
-from hilde.templates.aims import setup_aims
+from hilde import Settings, setup_aims, restart
 from hilde.molecular_dynamics import run_md
-from hilde.helpers.restarts import restart
 
 
 settings = Settings()

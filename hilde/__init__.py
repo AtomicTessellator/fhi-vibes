@@ -10,3 +10,5 @@ DEFAULT_TEMP_SETTINGS_FILE = "temp_settings.in"
 DEFAULT_CONFIG_FILE = Path(__file__).parents[1] / "hilde.cfg"
 
 from .settings import Settings
+from .templates.aims import setup_aims
+from .helpers.restarts import restart
