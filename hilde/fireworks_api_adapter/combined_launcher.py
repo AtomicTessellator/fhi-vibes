@@ -31,10 +31,8 @@ from fireworks.utilities.fw_utilities import (
     get_slug,
 )
 
-from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks_api_adapter.qlaunch_remote import qlaunch_remote
 from hilde.settings import Settings
-from hilde.tasks import fireworks as fw
 
 try:
     import fabric
@@ -52,21 +50,26 @@ else:
     else:
         SSH_MULTIPLEXING = False
 
-try:
-    fw_defaults = Settings(DEFAULT_CONFIG_FILE).fireworks
-except KeyError:
-    fw_defaults = {
-        "nlaunches": 0,
-        "njobs_queue": 0,
-        "njobs_block": 500,
-        "sleep_time": None,
-        "tasks2queue": None,
-        "remote_host": "localhost",
-        "remote_config_dir": None,
-        "remote_user": None,
-        "remote_password": None,
-    }
+settings = Settings()
+remote_setup = settings.remote_setup if "remote_setup" in settings else {}
+remote_host_auth = settings.remote_host_auth if "remote_host_auth" in settings else {}
+remote_queue_param = settings.remote_queue_param if "remote_queue_param" in settings else {}
+launch_params = settings.launch_params if "launch_params" in settings else {}
 
+fw_defaults = {
+    "launch_dir": (remote_setup.launch_dir if "launch_dir" in remote_setup else "."),
+    "remote_host": (remote_setup.remote_host if "remote_host" in remote_setup else 0),
+    "remote_config_dir": (remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else 0),
+    "reserve": (remote_setup.reserve if "reserve" in remote_setup else True),
+    "remote_user": (remote_host_auth.remote_user if "remote_user" in remote_host_auth else 500),
+    "remote_password": (remote_host_auth.remote_password if "remote_password" in remote_host_auth else None),
+    "gss_auth": (remote_host_auth.gss_auth if "gss_auth" in remote_host_auth else True),
+    "njobs_queue": (remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else None),
+    "njobs_block": (remote_queue_param.njobs_block if "njobs_block" in remote_queue_param else "localhost"),
+    "nlaunches": (launch_params.nlaunches if "nlaunches" in launch_params else None),
+    "sleep_time": (launch_params.sleep_time if "sleep_time" in launch_params else None),
+    "tasks2queue": (launch_params.tasks2queue if "tasks2queue" in launch_params else None),
+}
 
 def get_ordred_fw_ids(wflow):
     """Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow"""
@@ -97,14 +100,14 @@ def rapidfire(
     njobs_queue=fw_defaults["njobs_queue"],
     njobs_block=fw_defaults["njobs_block"],
     sleep_time=fw_defaults["sleep_time"],
-    reserve=True,
+    reserve=fw_defaults["reserve"],
     strm_lvl="CRITICAL",
     timeout=None,
     fill_mode=False,
     fw_ids=None,
     wflow=None,
     tasks2queue=fw_defaults["tasks2queue"],
-    gss_auth=True,
+    gss_auth=fw_defaults["gss_auth"],
     controlpath=None,
     remote_host=fw_defaults["remote_host"],
     remote_config_dir=fw_defaults["remote_config_dir"],

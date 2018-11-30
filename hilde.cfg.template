@@ -24,17 +24,3 @@ walltime = 1800
 
 [nomad]
 token = null
-
-[fireworks]
-launch_dir="."
-nlaunches = 0
-njobs_queue = 250
-njobs_block = 500
-sleep_time = 60
-reserve = True
-remote_user = MPCDF_USER_NAME
-remote_password = null
-remote_config_dir = ["/u/${remote_user}/.fireworks"]
-tasks2queue = ["hilde.relaxation.bfgs.relax", "hilde.phonopy.workflow.phonopy", "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid", "hilde.tasks.calculate.calculate" ]
-gss_auth = True
-remote_host = ["draco01.mpcdf.mpg.de"]

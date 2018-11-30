@@ -37,21 +37,24 @@ from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde as LaunchPad
 from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
 
-try:
-    fw_defaults = Settings(DEFAULT_CONFIG_FILE).fireworks
-except KeyError:
-    fw_defaults = {
-        "nlaunches": 0,
-        "njobs_queue": 0,
-        "njobs_block": 500,
-        "sleep_time": None,
-        "tasks2queue": None,
-        "remote_host": "localhost",
-        "remote_config_dir": None,
-        "remote_user": None,
-        "remote_password": None,
-    }
+settings = Settings()
+remote_setup = settings.remote_setup if "remote_setup" in settings else {}
+remote_host_auth = settings.remote_host_auth if "remote_host_auth" in settings else {}
+remote_queue_param = settings.remote_queue_param if "remote_queue_param" in settings else {}
+launch_params = settings.launch_params if "launch_params" in settings else {}
 
+fw_defaults = {
+    "launch_dir": (remote_setup.launch_dir if "launch_dir" in remote_setup else "."),
+    "remote_host": (remote_setup.remote_host if "remote_host" in remote_setup else 0),
+    "remote_config_dir": (remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else 0),
+    "remote_user": (remote_host_auth.remote_user if "remote_user" in remote_host_auth else 500),
+    "remote_password": (remote_host_auth.remote_password if "remote_password" in remote_host_auth else None),
+    "njobs_queue": (remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else None),
+    "njobs_block": (remote_queue_param.njobs_block if "njobs_block" in remote_queue_param else "localhost"),
+    "nlaunches": (launch_params.nlaunches if "nlaunches" in launch_params else None),
+    "sleep_time": (launch_params.sleep_time if "sleep_time" in launch_params else None),
+    "tasks2queue": (launch_params.tasks2queue if "tasks2queue" in launch_params else None),
+}
 
 def claunch():
     """Defines the command claunch_hidle"""

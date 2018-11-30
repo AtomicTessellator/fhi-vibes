@@ -39,6 +39,6 @@ setup(
             "nomad_upload = hilde.scripts.nomad_upload:main",
         ]
     },
-    data_files=[("config", ["hilde.cfg"])],
+    data_files=[("config", ["hilde.cfg", "fireworks.cfg"])],
     zip_safe=False,
 )
