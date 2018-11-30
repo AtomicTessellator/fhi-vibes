@@ -9,7 +9,7 @@ from hilde.tasks import fireworks as fw
 module_name = __name__
 
 
-def mod_calc(param_key, calc, new_val, atoms=None, spec_key=None):
+def mod_calc(param_key, calc_spec, calc, new_val, atoms=None, spec_key=None):
     '''
     Function to modify a calculator within the MongoDB
     Args:
@@ -19,6 +19,7 @@ def mod_calc(param_key, calc, new_val, atoms=None, spec_key=None):
         atoms (dict): A dict representing an ASE Atoms object
         spec_key (str): The key in the MongoDB to update the new_val (used to pass the param down the Workflow)
     '''
+    print("/n/nThe param_key is,", param_key)
     if param_key is "command":
         calc[param_key] = new_val
     elif param_key == "basisset_type":
@@ -34,7 +35,8 @@ def mod_calc(param_key, calc, new_val, atoms=None, spec_key=None):
         calc = calc2dict(atoms.calc)
     else:
         calc["calculator_parameters"][param_key] = new_val
-    up_spec = {"calculator": calc}
+    up_spec = {calc_spec: calc}
+    print(calc)
     if spec_key:
         up_spec[spec_key] = new_val
     return FWAction(update_spec=up_spec)
@@ -47,9 +49,12 @@ def update_calc_in_db(calc_spec, update_calc_params, calc):
     update_calc_params (dict): A dictionary describing the new parameters to update the calc with
     calc (dict): A dict representing an ASE Calculator
     '''
+    del_key_list = []
     for key in calc["calculator_parameters"].keys():
-        if key not in update_calc_params:
-            del(calc["calculator_parameters"][key])
+        if key not in update_calc_params and key is not "k_grid":
+            del_key_list.append(key)
+    for key in del_key_list:
+        del(calc["calculator_parameters"][key])
     for key, val in update_calc_params.items():
         if key == "command":
             calc[key] = val
