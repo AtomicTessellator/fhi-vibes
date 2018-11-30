@@ -38,4 +38,3 @@ remote_config_dir = ["/u/${remote_user}/.fireworks"]
 tasks2queue = ["hilde.relaxation.bfgs.relax", "hilde.phonopy.workflow.phonopy", "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid", "hilde.tasks.calculate.calculate" ]
 gss_auth = True
 remote_host = ["draco01.mpcdf.mpg.de"]
-

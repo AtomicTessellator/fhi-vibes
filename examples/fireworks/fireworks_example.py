@@ -12,10 +12,7 @@ from hilde.helpers.utility_functions import get_smatrix
 from hilde.phonon_db.phonon_db import connect
 from hilde.structure.structure import pAtoms
 from hilde.tasks.fireworks.general_py_task import generate_firework
-from hilde.workflows.gen_phonopy_fw import (
-    gen_initialize_phonopy_fw,
-    gen_analyze_phonopy_fw,
-)
+
 from fireworks import Workflow
 
 db_name = (os.getcwd() + '/test.db')
@@ -57,12 +54,9 @@ init_fw = generate_firework(
 kwargs = {
     "fireworks": True,
     "db_path": db_name,
-    "original_atom_hash": atoms_hash,
+    "original_atoms_hash": atoms_hash,
     "workdir": workdir,
     "displacement": 0.01,
-    "atoms_hash": atoms_hash,
-    "calc_hash": calc_hash,
-    "has_fc2": True,
 }
 
 anal_fw = generate_firework(
@@ -74,7 +68,6 @@ anal_fw = generate_firework(
     fw_settings=fw_settings,
 )
 lp = LaunchPadHilde.from_file(str(Path.home() / ".fireworks/my_launchpad.yaml"))
-
 wf = Workflow([init_fw, anal_fw], {init_fw: [anal_fw]})
 lp.add_wf(wf)
 
@@ -83,11 +76,14 @@ with cwd(workdir + '/fireworks', mkdir=True):
 
 db = connect(db_name)
 
-phonon = db.get_phonon(selection=[("sc_matrix_2", "=", smatrix),
-                                  ("atoms_hash", "=", atoms_hash),
-                                  ("calc_hash", "=", calc_hash),
-                                  ("has_fc2", "=", True),
-                                  ("calc_type", "=", "phonons")])
+phonon = db.get_phonon(
+    selection=[
+        ("sc_matrix_2", "=", smatrix),
+        ("original_atoms_hash", "=", atoms_hash),
+        ("has_fc2", "=", True),
+        ("calc_type", "=", "phonons")
+    ]
+)
 
 phonon.set_mesh(3 * [3])
 _, _, frequencies, _ = phonon.get_mesh()

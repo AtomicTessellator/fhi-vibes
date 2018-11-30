@@ -32,6 +32,7 @@ def postprocess(
         phonon.generate_displacements(
             distance=displacement, is_plusminus="auto", is_diagonal=True
         )
+        Path(workdir).mkdir(exist_ok=True)
 
     if calculated_atoms:
         if fireworks:

@@ -37,6 +37,8 @@ aims_settings = {
     "charge_mix_param": 0.3,
     "k_grid": [4, 4, 4],
     "output_level": "MD_light",
+    # Add it but should be changed based on the remote machine's settings
+    "species_dir": "~/light",
 }
 
 # Use diamond silicon as a test material

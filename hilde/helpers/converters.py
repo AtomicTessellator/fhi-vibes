@@ -159,7 +159,6 @@ def dict2atoms(atoms_dict):
     Returns: pAtoms
         The corresponding pAtoms object
     """
-    print("\n\n\n", type(atoms_dict), "\n\n\n")
     try:
         atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=True)
     except AttributeError:

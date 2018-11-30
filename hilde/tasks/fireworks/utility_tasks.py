@@ -19,7 +19,6 @@ def mod_calc(param_key, calc_spec, calc, new_val, atoms=None, spec_key=None):
         atoms (dict): A dict representing an ASE Atoms object
         spec_key (str): The key in the MongoDB to update the new_val (used to pass the param down the Workflow)
     '''
-    print("/n/nThe param_key is,", param_key)
     if param_key is "command":
         calc[param_key] = new_val
     elif param_key == "basisset_type":
@@ -36,7 +35,6 @@ def mod_calc(param_key, calc_spec, calc, new_val, atoms=None, spec_key=None):
     else:
         calc["calculator_parameters"][param_key] = new_val
     up_spec = {calc_spec: calc}
-    print(calc)
     if spec_key:
         up_spec[spec_key] = new_val
     return FWAction(update_spec=up_spec)

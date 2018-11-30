@@ -102,7 +102,6 @@ def generate_firework(
                 )
             )
             if "kpoint_density_spec" in fw_settings:
-                print("modding calc")
                 task_list.append(
                     PyTask(
                         {

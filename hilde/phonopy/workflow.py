@@ -142,7 +142,6 @@ def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0
     """ phonopy preprocess returning supercells with attached calculator for FW """
     phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
     if calc.name == 'aims':
-        print("IN AIMS")
         calc.parameters['compute_forces'] = True
     for sc in scs:
         sc.calc = calc
