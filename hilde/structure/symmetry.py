@@ -882,7 +882,7 @@ class Spacegroup:
     # end get_kpath
 
     def refine(self, primitive=True):
-        from hilde.structure import pAtoms
+        from hilde.structure.structure import pAtoms
         lattice, scaled_positions, numbers = spg.standardize_cell(
             self.atoms, to_primitive=primitive, no_idealize=0,
             symprec=self.symprec)
@@ -905,7 +905,7 @@ class Spacegroup:
         Returns:
             The structure in a conventional standardized cell
         """
-        from hilde.structure import pAtoms
+        from hilde.structure.structure import pAtoms
         symprec = self.symprec
         struct = self.refine(primitive=False)
         latt_type = self.get_lattice_type()
@@ -1180,7 +1180,7 @@ class Spacegroup:
         Returns:
             The structure in a primitive standardized cell
         """
-        from hilde.structure import pAtoms
+        from hilde.structure.structure import pAtoms
         conv = self.get_conventional_standardized(
                 international_monoclinic=international_monoclinic)
         lattice = self.get_lattice_type()
