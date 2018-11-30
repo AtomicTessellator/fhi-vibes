@@ -3,7 +3,7 @@
 import shutil
 from argparse import ArgumentParser
 from pathlib import Path
-from hilde.settings import (
+from hilde import (
     Settings,
     Configuration,
     DEFAULT_SETTINGS_FILE,
