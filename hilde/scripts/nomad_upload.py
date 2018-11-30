@@ -2,7 +2,8 @@
 
 import subprocess
 from argparse import ArgumentParser
-from hilde import Settings, Path
+from pathlib import Path
+from hilde import Settings
 from hilde.helpers import Timer
 
 
