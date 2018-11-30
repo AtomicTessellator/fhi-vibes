@@ -2,7 +2,6 @@
 
 from argparse import ArgumentParser
 from pathlib import Path
-from hilde.helpers.maths import get_3x3_matrix
 
 
 def preprocess(args):
@@ -16,9 +15,7 @@ def preprocess(args):
     _, _, scs_ref = ph.preprocess(atoms, supercell_matrix=1)
 
     if args.dim is not None:
-        phonon, sc, scs = ph.preprocess(
-            atoms, supercell_matrix=get_3x3_matrix(args.dim)
-        )
+        phonon, sc, scs = ph.preprocess(atoms, supercell_matrix=args.dim)
     else:
         settings = Settings(args.config_file)
         phonon, sc, scs = ph.preprocess(atoms, **settings.phonopy)
