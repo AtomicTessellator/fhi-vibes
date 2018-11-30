@@ -1,5 +1,5 @@
 """ Settings class for holding settings, based on configparser.ConfigParser """
-from hilde import (
+from hilde._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
     DEFAULT_SETTINGS_FILE,
