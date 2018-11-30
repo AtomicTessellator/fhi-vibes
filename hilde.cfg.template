@@ -22,6 +22,9 @@ email = you@something.com
 # 86400 = 1d
 walltime = 1800
 
+[nomad]
+token = null
+
 [fireworks]
 launch_dir="."
 nlaunches = 0
