@@ -1,0 +1,27 @@
+# config file to control phonopy workflow
+[geometry]
+file = geometry.in
+
+[control]
+xc =               pw-lda
+sc_accuracy_rho =  1e-4
+charge_mix_param = 0.5
+output_level =     MD_light
+compute_forces: True
+
+[control_kpt]
+density =         .5
+
+[basisset]
+type = light
+
+[socketio]
+port = 12345
+
+[phono3py]
+supercell_matrix_2 = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+supercell_matrix_3 = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+workdir =    test_run
+
+[restart]
+command = python run_phono3py.py

@@ -25,7 +25,9 @@ class NumpyEncoder(json.JSONEncoder):
             return int(obj)
         if isinstance(obj, complex):
             return (float(obj.real), float(obj.imag))
-        return super().default(self, obj)
+        if isinstance(obj, np.bool_):
+            return bool(obj)
+        return super().default(obj)
 
 
 def backup(file):
@@ -37,7 +39,6 @@ def backup(file):
 
 def to_yaml(obj, file, mode="a", use_json=True):
     """ Dump a python object ot file """
-
     if use_json:
         to_json(obj, file, mode)
         return

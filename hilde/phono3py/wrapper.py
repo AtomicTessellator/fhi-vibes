@@ -94,8 +94,8 @@ def preprocess(
 
     phonon3 = prepare_phono3py(
         atoms,
-        fc2_supercell_matrix=fc2_supercell_matrix,
-        fc3_supercell_matrix=fc3_supercell_matrix,
+        fc2_supercell_matrix=np.array(fc2_supercell_matrix).reshape(3,3),
+        fc3_supercell_matrix=np.array(fc3_supercell_matrix).reshape(3,3),
         q_mesh=q_mesh,
         disp=disp,
         cutoff_pair_distance=cutoff_pair_distance,

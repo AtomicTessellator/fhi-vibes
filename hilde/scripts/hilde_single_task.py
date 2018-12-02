@@ -7,8 +7,8 @@ from hilde import (
     Settings,
     Configuration,
     DEFAULT_SETTINGS_FILE,
-    DEFAULT_GEOMETRY_FILE,
 )
+from hilde import DEFAULT_GEOMETRY_FILE
 from hilde import supported_tasks
 
 
