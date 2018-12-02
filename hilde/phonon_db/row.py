@@ -82,7 +82,8 @@ def phonon3_to_dict(phonon3, phonon=None, to_mongo=False):
             factor=phonon3._frequency_factor_to_THz,
             log_level=phonon3._log_level,
         )
-        phonon.set_force_constants(phonon3.get_fc2())
+        if phonon3.get_fc2():
+            phonon.set_force_constants(phonon3.get_fc2())
     if phonon3.get_supercell_matrix() is not None:
         dct["sc_matrix_3"] = list(np.array(phonon3.get_supercell_matrix()).flatten())
         try:

@@ -175,4 +175,4 @@ def initialize_phono3py_attach_calc(atoms,
     )
     for sc in [*scs_2, *scs_3]:
         sc.calc = calc
-    return phonon3, sc_2, sc_3, scs_2, scs_3
+    return phonon3, sc_2, sc_3, scs_2, scs_3, calc

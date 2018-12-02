@@ -150,6 +150,73 @@ def get_step_fw(step_settings, atoms=None):
                     fw_settings=step_settings.fw_settings,
                 )
             )
+    elif "phono3py" in step_settings:
+        if step_settings.fw_settings["serial"]:
+            if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
+                step_settings.phono3py[
+                    "db_path"
+                ] = step_settings.db_storage.db_path
+                step_settings.phono3py["original_atom_hash"] = atoms_hash
+            fw_list.append(
+                generate_firework(
+                    "hilde.phono3py.workflow.phono3py",
+                    "hilde.tasks.fireworks.fw_action_outs.serial_phonopy_continue",
+                    dict(step_settings.phono3py),
+                    at,
+                    cl,
+                    atoms_calc_from_spec=step_settings.fw_settings.from_db,
+                    fw_settings=step_settings.fw_settings,
+                    update_calc_settings=step_settings.control,
+                )
+            )
+        else:
+            kwargs_init = {
+                "supercell_matrix_2": step_settings.phono3py.supercell_matrix_2,
+                "supercell_matrix_3": step_settings.phono3py.supercell_matrix_3,
+            }
+            kwargs_init_fw_out = {"workdir": step_settings.phono3py.workdir}
+            if "displacement" in step_settings.phono3py:
+                kwargs_init["displacement"] = step_settings.phono3py.displacement
+            fw_list.append(
+                generate_firework(
+                    "hilde.phono3py.workflow.initialize_phono3py_attach_calc",
+                    "hilde.tasks.fireworks.fw_action_outs.add_phono3py_force_calcs",
+                    kwargs_init,
+                    at,
+                    cl,
+                    func_fw_out_kwargs=kwargs_init_fw_out,
+                    atoms_calc_from_spec=step_settings.fw_settings.from_db,
+                    fw_settings=step_settings.fw_settings,
+                    update_calc_settings=step_settings.control,
+                )
+            )
+            kwargs = {"fireworks": True}
+            if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
+                kwargs["db_path"] = step_settings.db_storage.db_path
+                kwargs["original_atom_hash"] = atoms_hash
+
+            anal_keys = [
+                "trajectory",
+                "analysis_workdir",
+                "force_constant_file",
+                "displacement",
+            ]
+            for key in anal_keys:
+                if key in step_settings.phono3py:
+                    kwargs[key] = step_settings.phono3py[key]
+            if "analysis_workdir" in kwargs:
+                kwargs["workdir"] = kwargs["analysis_workdir"]
+                del (kwargs["analysis_workdir"])
+            fw_list.append(
+                generate_firework(
+                    "hilde.phono3py.postprocess.postprocess",
+                    "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
+                    args=[],
+                    inputs=["phonon", step_settings.fw_settings["mod_spec_add"]],
+                    func_kwargs=kwargs,
+                    fw_settings=step_settings.fw_settings,
+                )
+            )
     else:
         raise ValueError("Type not defiend")
 

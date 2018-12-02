@@ -33,20 +33,24 @@ def postprocess(
     """ Phonopy postprocess """
 
     if fireworks:
-        phonon3 = Phonon3Row(phonon3).to_phonon3()
+        if isinstance(phonon3, dict):
+            phonon3 = PhononRow(dct=phonon3).to_phonon3()
+        else:
+            phonon3 = PhononRow(phonon3=phonon3).to_phonon3()
         phonon3.generate_displacements(
             distance=displacement,
             cutoff_pair_distance=cutoff_pair_distance,
             is_plusminus='auto',
             is_diagonal=True
         )
-
+        if not phonon3._mesh:
+            phonon3._mesh = np.array(q_mesh, dtype='intc')
     if calculated_atoms:
         if fireworks:
             temp_atoms = [dict2atoms(cell) for cell in calculated_atoms]
         else:
             temp_atoms = calculated_atoms.copy()
-        temp_atoms = sorted(
+        calculated_atoms = sorted(
             temp_atoms, key=lambda x: x.info[displacement_id_str] if x else len(disp_cells) + 1
         )
 

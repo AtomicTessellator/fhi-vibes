@@ -7,7 +7,7 @@ import shutil
 from hilde.helpers.converters import calc2dict, atoms2dict
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.phonon_db.database_api import update_phonon_db
-from hilde.phonon_db.row import phonon_to_dict
+from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict
 from hilde.tasks.fireworks.general_py_task import generate_firework
 
 mod_name = __name__
@@ -341,6 +341,56 @@ def add_phonopy_force_calcs(
             )
         )
     return FWAction(update_spec={"phonon": phonon_to_dict(outputs[0])}, detours=detours)
+
+
+def add_phono3py_force_calcs(
+    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+):
+    """
+    A function that initializes and adds all phonopy force calculations to the FireWorks Workflow,
+    and adds the Phonopy Object to the spec
+    Args:
+        atoms: ASE Atoms object
+            The original atoms at the start of this job
+        calc: ASE Calculator object
+            The original calculator
+        outputs:
+            The outputs from the function (assumes to be a single bool output)
+        func: str
+            Path to function that performs the MD like operation
+        func_fw_out: str
+            Path to this function
+        func_kwargs: dict
+            keyword arguments for func
+        fw_settings: dict
+            FireWorks specific settings
+    """
+    detours = []
+    calc_dict = calc2dict(outputs[5])
+    if "kpoint_density_spec" in fw_settings:
+        del (fw_settings["kpoint_density_spec"])
+    for i, sc in enumerate([*outputs[3], *outputs[4]]):
+        sc.info["displacement_id"] = i
+        sc_dict = atoms2dict(sc)
+        for key, val in calc_dict.items():
+            sc_dict[key] = val
+        calc_kwargs = {"workdir": func_fw_kwargs["workdir"] + f"/{i:05d}"}
+        fw_settings[
+            "fw_name"
+        ] = f"forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
+        detours.append(
+            generate_firework(
+                "hilde.tasks.calculate.calculate",
+                "hilde.tasks.fireworks.fw_action_outs.mod_spec_add",
+                calc_kwargs,
+                sc_dict,
+                calc_dict,
+                atoms_calc_from_spec=False,
+                fw_settings=fw_settings,
+                update_calc_settings=None,
+            )
+        )
+    return FWAction(update_spec={"phonon": phonon3_to_dict(outputs[0])}, detours=detours)
 
 
 def mod_spec_add(
