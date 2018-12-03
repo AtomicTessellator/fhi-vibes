@@ -8,7 +8,7 @@ from hilde.settings import Settings
 from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.paths import cwd, move_to_dir
 import hilde.phonopy.wrapper as ph
-from hilde.trajectory.phonopy import metadata2dict, step2file, last_from_yaml, to_yaml
+from hilde.trajectory.phonons import metadata2dict, step2file, last_from_yaml, to_yaml
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
@@ -37,6 +37,7 @@ def run(
     supercell_matrix,
     kpt_density=None,
     displacement=0.01,
+    symprec=1e-5,
     trajectory="trajectory.yaml",
     walltime=1800,
     workdir=".",
@@ -81,11 +82,11 @@ def run(
 
 
 def preprocess(
-    atoms, calc, supercell_matrix, kpt_density=None, displacement=0.01, **kwargs
+    atoms, calc, supercell_matrix, kpt_density=None, displacement=0.01, symprec=1e-5
 ):
 
     # Phonopy preprocess
-    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
+    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement, symprec)
 
     # make sure forces are computed (aims only)
     if calc.name == "aims":

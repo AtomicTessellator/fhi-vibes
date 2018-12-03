@@ -18,8 +18,7 @@ def postprocess(
     calculated_atoms=None,
     trajectory="trajectory.yaml",
     workdir=".",
-    force_constants_file_2="second_order_force_constants.dat",
-    force_constants_file_3="third_order_force_constants.dat",
+    force_constants_file="force_constants.dat",
     displacement=0.03,
     q_mesh=[11, 11, 11],
     cutoff_pair_distance=10.0,
@@ -37,8 +36,7 @@ def postprocess(
         calculated_atoms (list [Atoms object]): A list of all supercells with displacements with the forces calculated
         trajectory (str): Trajectory file path
         workdir (str): work directory path
-        force_constants_file_2 (str): Second order force constant output file name
-        force_constants_file_3 (str): Third order force constant output file name
+        force_constants_file (str): Third order force constant output file name
         displacement (float): size of the displacements
         q_mesh (list of ints): size of the qpoint mesh for thermal conductivity calcs
         cutoff_pair_distance (float): cutoff distance for force interactions
@@ -77,11 +75,8 @@ def postprocess(
     else:
         raise ValueError("Either calculated_atoms or trajectory must be defined")
 
-    fc2_forces = ph3.get_forces(
-        calculated_atoms[: len(phonon3.get_phonon_supercells_with_displacements())]
-    )
     fc3_cells = []
-    used_forces = len(fc2_forces)
+    used_forces = 0
     for cell in phonon3.get_supercells_with_displacements():
         if cell is not None:
             fc3_cells.append(calculated_atoms[used_forces])
@@ -89,15 +84,11 @@ def postprocess(
         else:
             fc3_forces.append(None)
     fc3_forces = ph3.get_forces(fc3_cells)
-    phonon3.produce_fc2(fc2_forces)
     phonon3.produce_fc3(fc3_forces)
 
     phonon3.run_thermal_conductivity(write_kappa=True)
 
     # compute and save force constants
-    n_atoms = phonon3.get_phonon_supercell().get_number_of_atoms()
-    fc2 = phonon3.get_fc2().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
-    np.savetxt(Path(workdir) / force_constants_file_2, fc2)
     n_atoms = phonon3.get_supercell().get_number_of_atoms()
     fc3 = (
         phonon3.get_fc3()
@@ -119,7 +110,6 @@ def postprocess(
             phonon3,
             calc_type="phonon3",
             symprec=phonon3._symprec,
-            sc_matrix_2=list(phonon3.get_phonon_supercell_matrix().flatten()),
             sc_matrix_3=list(phonon3.get_supercell_matrix().flatten()),
             **kwargs,
         )

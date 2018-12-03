@@ -69,11 +69,3 @@ def postprocess(
             sc_matrix_2=list(phonon.get_supercell_matrix().flatten()),
             **kwargs
         )
-
-
-def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):
-    """ phonopy preprocess returning supercells with attached calculator for FW """
-    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
-    for sc in scs:
-        sc.calc = calc
-    return phonon, supercell, scs

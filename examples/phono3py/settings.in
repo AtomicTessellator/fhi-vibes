@@ -20,10 +20,9 @@ type:                light
 port:                null
 
 [phono3py]
-supercell_matrix_2:  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-supercell_matrix_3:  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+supercell_matrix:  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 displacement: 0.03
-
+workdir: test_run
 [restart]
 command:             python run_phono3py.py
 
