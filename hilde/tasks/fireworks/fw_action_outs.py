@@ -93,6 +93,7 @@ def check_relaxation_complete(
     )
     return FWAction(detours=[fw])
 
+
 def check_aims_relaxation_complete(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
@@ -124,7 +125,9 @@ def check_aims_relaxation_complete(
         atoms = atoms2dict(atoms)
     except:
         if not converged:
-            raise CalculationError("There was a problem with the FHI Aims calculation stopping program here")
+            raise CalculationError(
+                "There was a problem with the FHI Aims calculation stopping program here"
+            )
         atoms = atoms2dict(outputs)
     if converged:
         if "db_path" in func_fw_kwargs:
@@ -138,8 +141,10 @@ def check_aims_relaxation_complete(
             }
         )
 
-    del(calc["results"])
-    fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(func_fw_kwargs["relax_step"])
+    del (calc["results"])
+    fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(
+        func_fw_kwargs["relax_step"]
+    )
 
     if "to_launchpad" in fw_settings and fw_settings["to_launcpad"]:
         fw_settings["to_launcpad"] = False
@@ -154,6 +159,7 @@ def check_aims_relaxation_complete(
         fw_settings=fw_settings,
     )
     return FWAction(detours=[fw])
+
 
 def serial_phonopy_continue(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
@@ -275,7 +281,9 @@ def fireworks_no_mods(
     return FWAction()
 
 
-def fireworks_no_mods_gen_function(func, func_fw_out, *args, fw_settings=None, **kwargs):
+def fireworks_no_mods_gen_function(
+    func, func_fw_out, *args, fw_settings=None, **kwargs
+):
     """
     A function that does not change the FireWorks Workflow upon completion
     Args:
@@ -317,8 +325,6 @@ def add_phonopy_force_calcs(
     """
     detours = []
     calc_dict = calc2dict(outputs[3])
-    if "kpoint_density_spec" in fw_settings:
-        del (fw_settings["kpoint_density_spec"])
     for i, sc in enumerate(outputs[2]):
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
@@ -347,7 +353,7 @@ def add_phono3py_force_calcs(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
     """
-    A function that initializes and adds all phonopy force calculations to the FireWorks Workflow,
+    A function that initializes and adds all phono3py force calculations to the FireWorks Workflow,
     and adds the Phonopy Object to the spec
     Args:
         atoms: ASE Atoms object
@@ -367,8 +373,6 @@ def add_phono3py_force_calcs(
     """
     detours = []
     calc_dict = calc2dict(outputs[5])
-    if "kpoint_density_spec" in fw_settings:
-        del (fw_settings["kpoint_density_spec"])
     for i, sc in enumerate([*outputs[3], *outputs[4]]):
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
@@ -390,7 +394,9 @@ def add_phono3py_force_calcs(
                 update_calc_settings=None,
             )
         )
-    return FWAction(update_spec={"phonon": phonon3_to_dict(outputs[0])}, detours=detours)
+    return FWAction(
+        update_spec={"phonon": phonon3_to_dict(outputs[0])}, detours=detours
+    )
 
 
 def mod_spec_add(

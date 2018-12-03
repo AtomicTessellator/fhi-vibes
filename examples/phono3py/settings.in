@@ -1,27 +1,48 @@
-# config file to control phonopy workflow
+# configfile written at 2018/12/01 11:12:06
+
 [geometry]
-file = geometry.in
+file:                geometry.in
 
 [control]
-xc =               pw-lda
-sc_accuracy_rho =  1e-4
-charge_mix_param = 0.5
-output_level =     MD_light
+xc:                  pw-lda
+sc_accuracy_rho:     0.0001
+charge_mix_param:    0.5
+output_level:        MD_light
 compute_forces: True
 
 [control_kpt]
-density =         .5
+density:             .5
 
 [basisset]
-type = light
+type:                light
 
 [socketio]
-port = 12345
+port:                null
 
 [phono3py]
-supercell_matrix_2 = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-supercell_matrix_3 = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-workdir =    test_run
+supercell_matrix_2:  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+supercell_matrix_3:  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+displacement: 0.03
 
 [restart]
-command = python run_phono3py.py
+command:             python run_phono3py.py
+
+[remote_setup]
+launch_dir:          .
+remote_host:         ['draco01.mpcdf.mpg.de']
+remote_config_dir:   ['/u/tpurcell/.fireworks']
+reserve:             True
+
+[remote_host_auth]
+remote_user:         tpurcell
+remote_password:     None
+gss_auth:            True
+
+[remote_queue_param]
+njobs_queue:         250
+njobs_block:         500
+
+[launch_params]
+nlaunches:           0
+sleep_time:          60
+tasks2queue:         ['hilde.relaxation.bfgs.relax', 'hilde.phonopy.workflow.phonopy', 'hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid', 'hilde.tasks.calculate.calculate']

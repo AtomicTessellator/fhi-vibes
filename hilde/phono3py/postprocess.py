@@ -21,7 +21,7 @@ def postprocess(
     force_constants_file_2="second_order_force_constants.dat",
     force_constants_file_3="third_order_force_constants.dat",
     displacement=0.03,
-    q_mesh=[11,11,11],
+    q_mesh=[11, 11, 11],
     cutoff_pair_distance=10.0,
     symprec=1e-5,
     log_level=2,
@@ -30,7 +30,24 @@ def postprocess(
     fireworks=False,
     **kwargs,
 ):
-    """ Phonopy postprocess """
+    """
+    Phono3py postprocess
+    Args:
+        phonon3 (Phono3py Object or dict): phono3py calculation to post process
+        calculated_atoms (list [Atoms object]): A list of all supercells with displacements with the forces calculated
+        trajectory (str): Trajectory file path
+        workdir (str): work directory path
+        force_constants_file_2 (str): Second order force constant output file name
+        force_constants_file_3 (str): Third order force constant output file name
+        displacement (float): size of the displacements
+        q_mesh (list of ints): size of the qpoint mesh for thermal conductivity calcs
+        cutoff_pair_distance (float): cutoff distance for force interactions
+        symprec (float): symmetry percison for phono3py
+        log_level (int): how much logging should be done
+        pickle_file (str): pickle file filename
+        db_path (str): Path to database
+        fireworks (bool): If True Fireworks was used in the calculation
+    """
 
     if fireworks:
         if isinstance(phonon3, dict):
@@ -40,18 +57,19 @@ def postprocess(
         phonon3.generate_displacements(
             distance=displacement,
             cutoff_pair_distance=cutoff_pair_distance,
-            is_plusminus='auto',
-            is_diagonal=True
+            is_plusminus="auto",
+            is_diagonal=True,
         )
         if not phonon3._mesh:
-            phonon3._mesh = np.array(q_mesh, dtype='intc')
+            phonon3._mesh = np.array(q_mesh, dtype="intc")
     if calculated_atoms:
         if fireworks:
             temp_atoms = [dict2atoms(cell) for cell in calculated_atoms]
         else:
             temp_atoms = calculated_atoms.copy()
         calculated_atoms = sorted(
-            temp_atoms, key=lambda x: x.info[displacement_id_str] if x else len(disp_cells) + 1
+            temp_atoms,
+            key=lambda x: x.info[displacement_id_str] if x else len(disp_cells) + 1,
         )
 
     elif Path(trajectory).is_file():
@@ -59,7 +77,9 @@ def postprocess(
     else:
         raise ValueError("Either calculated_atoms or trajectory must be defined")
 
-    fc2_forces = ph3.get_forces(calculated_atoms[:len(phonon3.get_phonon_supercells_with_displacements())])
+    fc2_forces = ph3.get_forces(
+        calculated_atoms[: len(phonon3.get_phonon_supercells_with_displacements())]
+    )
     fc3_cells = []
     used_forces = len(fc2_forces)
     for cell in phonon3.get_supercells_with_displacements():
@@ -79,9 +99,15 @@ def postprocess(
     fc2 = phonon3.get_fc2().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
     np.savetxt(Path(workdir) / force_constants_file_2, fc2)
     n_atoms = phonon3.get_supercell().get_number_of_atoms()
-    fc3 = phonon3.get_fc3().swapaxes(4, 3).swapaxes(4, 2).swapaxes(2,1).reshape(3 * (3 * n_atoms,))
-    with open(str(Path(workdir) / force_constants_file_3), 'w') as outfile:
-        for i,slice in enumerate(fc3):
+    fc3 = (
+        phonon3.get_fc3()
+        .swapaxes(4, 3)
+        .swapaxes(4, 2)
+        .swapaxes(2, 1)
+        .reshape(3 * (3 * n_atoms,))
+    )
+    with open(str(Path(workdir) / force_constants_file_3), "w") as outfile:
+        for i, slice in enumerate(fc3):
             outfile.write(f"# New Slice Number {i}\n")
             np.savetxt(outfile, slice)
     with (Path(workdir) / pickle_file).open("wb") as fp:
@@ -95,5 +121,5 @@ def postprocess(
             symprec=phonon3._symprec,
             sc_matrix_2=list(phonon3.get_phonon_supercell_matrix().flatten()),
             sc_matrix_3=list(phonon3.get_supercell_matrix().flatten()),
-            **kwargs
+            **kwargs,
         )

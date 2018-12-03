@@ -48,7 +48,7 @@ def phono3py(
     force_constants_file_3="third_order_force_constants.dat",
     pickle_file="phonon3.pick",
     backup_folder="backups",
-    q_mesh=[11,11,11],
+    q_mesh=[11, 11, 11],
     cutoff_pair_distance=10.0,
     symprec=1e-5,
     log_level=2,
@@ -56,7 +56,32 @@ def phono3py(
     **kwargs,
     #    fingerprint_file="fingerprint.dat",
 ):
-    """ perform a full phonopy calculation """
+    """
+    Perform a full phono3py calculation
+    Args:
+        atoms (Atoms Object): Primitive cell to perform the phono3py calculation on
+        calc (Calculator Object): ASE calculator used to get the forces of a system
+        supercell_matrix_2 (list or np.ndarray): supercell matrix for the second order force constant calculations
+        supercell_matrix_3 (list or np.ndarray): supercell matrix for the third order force constant calculations
+        kpt_density (float): k-grid density to get a standardized k_grid for all calculations
+        displacement (float): size of the displacements used in finite difference calculations
+        trajectory (str): trajectory file for calculation
+        socketio_port (int): socket number if using a socket io calculator
+        walltime (int): Wall time of the calculation in seconds
+        workdir (str): base work directory for the force calculations
+        primitive_file (str): file name to store the primitive cell geometry
+        supercell_2_file (str): file name to store the second order force constant super cell geometry
+        supercell_3_file (str): file name to store the third order force constant super cell geometry
+        force_constants_file_2 (str): Second order force constant output file name
+        force_constants_file_3 (str): Third order force constant output file name
+        pickle_file (str): pickle file filename
+        backup_folder (str): directory to store back up information for a restart
+        q_mesh (list of ints): size of the qpoint mesh for thermal conductivity calcs
+        cutoff_pair_distance (float): cutoff distance for force interactions
+        symprec (float): symmetry percison for phono3py
+        log_level (int): how much logging should be done
+        db_path (str): Path to database
+    """
 
     workdir = Path(workdir)
     trajectory = (workdir / trajectory).absolute()
@@ -114,8 +139,8 @@ def phono3py(
 
             for ii, cell in enumerate([*scs_2, *scs_3]):
                 calculation_atoms.calc = calc
-                if 'forces' in calculation_atoms.calc.results:
-                    del(calculation_atoms.calc.results['forces'])
+                if "forces" in calculation_atoms.calc.results:
+                    del (calculation_atoms.calc.results["forces"])
                 if cell is None:
                     continue
 
@@ -152,17 +177,30 @@ def phono3py(
     return True
 
 
-def initialize_phono3py_attach_calc(atoms,
+def initialize_phono3py_attach_calc(
+    atoms,
     calc,
     supercell_matrix_2,
     supercell_matrix_3,
     displacement=0.03,
-    q_mesh=[11,11,11],
+    q_mesh=[11, 11, 11],
     cutoff_pair_distance=10.0,
     symprec=1e-5,
     log_level=2,
 ):
-    """ phonopy preprocess returning supercells with attached calculator for FW """
+    """
+    Setup a full phono3py calculation
+    Args:
+        atoms (Atoms Object): Primitive cell to perform the phono3py calculation on
+        calc (Calculator Object): ASE calculator used to get the forces of a system
+        supercell_matrix_2 (list or np.ndarray): supercell matrix for the second order force constant calculations
+        supercell_matrix_3 (list or np.ndarray): supercell matrix for the third order force constant calculations
+        displacement (float): size of the displacements used in finite difference calculations
+        q_mesh (list of ints): size of the qpoint mesh for thermal conductivity calcs
+        cutoff_pair_distance (float): cutoff distance for force interactions
+        symprec (float): symmetry percison for phono3py
+        log_level (int): how much logging should be done
+    """
     phonon3, sc_2, sc_3, scs_2, scs_3 = ph3.preprocess(
         atoms,
         supercell_matrix_2,

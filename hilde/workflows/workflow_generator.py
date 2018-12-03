@@ -18,7 +18,10 @@ def get_step_fw(step_settings, atoms=None):
     atoms.set_calculator(calc)
     atoms_hash, calc_hash = hash_atoms(atoms)
     fw_list = []
-    if "from_db" not in step_settings.fw_settings or not step_settings.fw_settings.from_db:
+    if (
+        "from_db" not in step_settings.fw_settings
+        or not step_settings.fw_settings.from_db
+    ):
         at = atoms
         cl = calc
     else:
@@ -30,7 +33,9 @@ def get_step_fw(step_settings, atoms=None):
     else:
         step_settings.fw_settings["spec"] = {}
     if "fw_spec_qadapter" in step_settings:
-        step_settings.fw_settings["spec"]["_queueadapter"] = dict(step_settings.fw_spec_qadapter)
+        step_settings.fw_settings["spec"]["_queueadapter"] = dict(
+            step_settings.fw_spec_qadapter
+        )
 
     if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
         db_kwargs = {
@@ -42,7 +47,9 @@ def get_step_fw(step_settings, atoms=None):
     else:
         db_kwargs = {}
     if "fw_name" in step_settings:
-        step_settings["fw_name"] += atoms.symbols.get_chemical_formula() + "_" + hash_atoms(atoms)[0]
+        step_settings["fw_name"] += (
+            atoms.symbols.get_chemical_formula() + "_" + hash_atoms(atoms)[0]
+        )
     if "relaxation" in step_settings:
         fw_list.append(
             generate_firework(
@@ -87,9 +94,7 @@ def get_step_fw(step_settings, atoms=None):
     elif "phonopy" in step_settings:
         if step_settings.fw_settings["serial"]:
             if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
-                step_settings.phonopy[
-                    "db_path"
-                ] = step_settings.db_storage.db_path
+                step_settings.phonopy["db_path"] = step_settings.db_storage.db_path
                 step_settings.phonopy["original_atom_hash"] = atoms_hash
             fw_list.append(
                 generate_firework(
@@ -104,9 +109,7 @@ def get_step_fw(step_settings, atoms=None):
                 )
             )
         else:
-            kwargs_init = {
-                "supercell_matrix": step_settings.phonopy.supercell_matrix
-            }
+            kwargs_init = {"supercell_matrix": step_settings.phonopy.supercell_matrix}
             kwargs_init_fw_out = {"workdir": step_settings.phonopy.workdir}
             if "displacement" in step_settings.phonopy:
                 kwargs_init["displacement"] = step_settings.phonopy.displacement
@@ -153,9 +156,7 @@ def get_step_fw(step_settings, atoms=None):
     elif "phono3py" in step_settings:
         if step_settings.fw_settings["serial"]:
             if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
-                step_settings.phono3py[
-                    "db_path"
-                ] = step_settings.db_storage.db_path
+                step_settings.phono3py["db_path"] = step_settings.db_storage.db_path
                 step_settings.phono3py["original_atom_hash"] = atoms_hash
             fw_list.append(
                 generate_firework(

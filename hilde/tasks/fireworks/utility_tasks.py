@@ -10,7 +10,7 @@ module_name = __name__
 
 
 def mod_calc(param_key, calc_spec, calc, new_val, atoms=None, spec_key=None):
-    '''
+    """
     Function to modify a calculator within the MongoDB
     Args:
         param_key (str): key in the calculator dictionary to change
@@ -18,7 +18,7 @@ def mod_calc(param_key, calc_spec, calc, new_val, atoms=None, spec_key=None):
         new_val: the new value calc[param_key] should be updated to
         atoms (dict): A dict representing an ASE Atoms object
         spec_key (str): The key in the MongoDB to update the new_val (used to pass the param down the Workflow)
-    '''
+    """
     if param_key is "command":
         calc[param_key] = new_val
     elif param_key == "basisset_type":
@@ -41,19 +41,19 @@ def mod_calc(param_key, calc_spec, calc, new_val, atoms=None, spec_key=None):
 
 
 def update_calc_in_db(calc_spec, update_calc_params, calc):
-    '''
+    """
     Updates a calculator in the MongoDB with a new set of parameters
     calc_spec (str): spec to store the new calculator
     update_calc_params (dict): A dictionary describing the new parameters to update the calc with
     calc (dict): A dict representing an ASE Calculator
-    '''
+    """
     del_key_list = []
     safe_key_list = ["k_grid", "species_dir", "command"]
     for key in calc["calculator_parameters"].keys():
         if key not in update_calc_params and key not in safe_key_list:
             del_key_list.append(key)
     for key in del_key_list:
-        del(calc["calculator_parameters"][key])
+        del (calc["calculator_parameters"][key])
     for key, val in update_calc_params.items():
         if key == "command":
             calc[key] = val
