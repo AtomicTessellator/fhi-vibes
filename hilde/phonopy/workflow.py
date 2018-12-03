@@ -12,7 +12,6 @@ from hilde.trajectory.phonopy import metadata2file, step2file, last_from_yaml
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
-from hilde.settings import DEFAULT_SETTINGS_FILE
 from .postprocess import postprocess
 
 
@@ -66,10 +65,6 @@ def phonopy(
 
     watchdog = Watchdog(walltime=walltime, buffer=1)
 
-    # backup configuration.cfg
-    if workdir.absolute() != Path().cwd():
-        move_to_dir(DEFAULT_SETTINGS_FILE, workdir, exist_ok=True)
-
     # Phonopy preprocess
     phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
 
@@ -89,43 +84,43 @@ def phonopy(
     if kpt_density is not None:
         update_k_grid(calculation_atoms, calc, kpt_density)
 
-    # save input geometries and configuration
+    # save input geometries and settings
     with cwd(workdir, mkdir=True):
         atoms.write(primitive_file, format="aims", scaled=True)
         supercell.write(supercell_file, format="aims", scaled=False)
+        settings.write()
 
     # perform calculation
+    n_cell = -1
     with cwd(calc_dir, mkdir=True):
         with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
-            # save inputs and supercell
-            settings.write()
             if last_calculation_id(trajectory) < 0:
                 metadata2file(atoms, calc, phonon, trajectory)
 
             if socketio_port is not None:
                 calc = iocalc
 
-            for ii, cell in enumerate(scs):
+            for n_cell, cell in enumerate(scs):
                 calculation_atoms.calc = calc
 
                 if cell is None:
                     continue
 
                 # if precomputed:
-                if ii <= last_calculation_id(trajectory):
+                if n_cell <= last_calculation_id(trajectory):
                     continue
 
                 # update calculation_atoms and compute force
                 calculation_atoms.positions = cell.positions
                 _ = calculation_atoms.get_forces()
 
-                step2file(calculation_atoms, calculation_atoms.calc, ii, trajectory)
+                step2file(calculation_atoms, calculation_atoms.calc, n_cell, trajectory)
 
                 if watchdog():
                     break
 
     # backup and restart if necessary
-    if ii < len(scs) - 1:
+    if n_cell < len(scs) - 1:
         backup(calc_dir, target_folder=backup_folder)
         return False
 
