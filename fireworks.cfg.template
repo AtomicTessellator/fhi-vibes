@@ -16,4 +16,4 @@ njobs_block = 500
 [launch_params]
 nlaunches = 0
 sleep_time = 60
-tasks2queue = ["hilde.relaxation.bfgs.relax", "hilde.phonopy.workflow.phonopy", "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid", "hilde.tasks.calculate.calculate" ]
+tasks2queue = ["hilde.relaxation.bfgs.relax", "hilde.phonopy.workflow.phonopy", "hilde.phono3py.workflow.phono3py", "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid", "hilde.tasks.calculate.calculate" ]
