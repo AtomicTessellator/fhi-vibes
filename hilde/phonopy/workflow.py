@@ -54,7 +54,7 @@ def run(
     )
 
     calculate(
-        calculation_atoms=calculation_atoms,
+        atoms=calculation_atoms,
         calculator=calc,
         primitive=atoms,
         supercell=supercell,
@@ -103,7 +103,7 @@ def preprocess(
 
 
 def calculate(
-    calculation_atoms,
+    atoms,
     calculator,
     primitive,
     supercell,
@@ -155,7 +155,7 @@ def calculate(
                 calc = calculator
 
             for n_cell, cell in enumerate(supercells_with_displacements):
-                calculation_atoms.calc = calc
+                atoms.calc = calc
 
                 if cell is None:
                     continue
@@ -165,10 +165,10 @@ def calculate(
                     continue
 
                 # update calculation_atoms and compute force
-                calculation_atoms.positions = cell.positions
-                _ = calculation_atoms.get_forces()
+                atoms.positions = cell.positions
+                _ = atoms.get_forces()
 
-                step2file(calculation_atoms, calculation_atoms.calc, n_cell, trajectory)
+                step2file(atoms, atoms.calc, n_cell, trajectory)
 
                 if watchdog():
                     break
