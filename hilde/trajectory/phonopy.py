@@ -41,12 +41,17 @@ def metadata2dict(atoms, calc, obj):
     prim_data = input2dict(atoms)
 
     obj_dict = {
+        "primitive": prim_data["atoms"],
         "supercell_matrix": obj.get_supercell_matrix().astype(int).tolist(),
         "symprec": float(obj._symprec),
-        "displacements": obj.get_displacements(),
         "displacement_dataset": obj.get_displacement_dataset(),
-        "primitive": prim_data["atoms"],
     }
+
+    try:
+        displacements = obj.get_displacements()
+        obj_dict.update({"displacements": displacements})
+    except KeyError:
+        pass
 
     supercell = to_Atoms(obj.get_supercell())
     supercell_data = input2dict(supercell, calc)
