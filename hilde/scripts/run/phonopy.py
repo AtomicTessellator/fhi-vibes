@@ -1,5 +1,5 @@
 from hilde import Settings, setup_aims, restart
-from hilde.phonopy.workflow import phonopy
+from hilde.phonopy.workflow import run
 
 
 settings = Settings()
@@ -7,7 +7,7 @@ settings = Settings()
 atoms, calc = setup_aims(settings=settings)
 
 
-completed = phonopy(
+completed = run(
     atoms, calc, kpt_density=settings.control_kpt.density, **settings.phonopy
 )
 

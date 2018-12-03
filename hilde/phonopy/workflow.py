@@ -8,7 +8,7 @@ from hilde.settings import Settings
 from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.paths import cwd, move_to_dir
 import hilde.phonopy.wrapper as ph
-from hilde.trajectory.phonopy import metadata2file, step2file, last_from_yaml
+from hilde.trajectory.phonopy import metadata2dict, step2file, last_from_yaml, to_yaml
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
@@ -31,7 +31,7 @@ def last_calculation_id(trajectory):
     return disp_id
 
 
-def phonopy(
+def run(
     atoms,
     calc,
     supercell_matrix,
@@ -47,7 +47,75 @@ def phonopy(
     backup_folder="backups",
     db_path=None,
     **kwargs,
-    #    fingerprint_file="fingerprint.dat",
+):
+
+    calculation_atoms, calc, supercell, scs, phonon, metadata = preprocess(
+        atoms, calc, supercell_matrix, kpt_density, displacement
+    )
+
+    calculate(
+        calculation_atoms=calculation_atoms,
+        calculator=calc,
+        primitive=atoms,
+        supercell=supercell,
+        supercells_with_displacements=scs,
+        metadata=metadata,
+        trajectory=trajectory,
+        walltime=walltime,
+        workdir=workdir,
+        primitive_file=primitive_file,
+        supercell_file=supercell_file,
+    )
+
+    postprocess(
+        phonon,
+        trajectory=trajectory,
+        workdir=workdir,
+        force_constants_file=force_constants_file,
+        pickle_file=pickle_file,
+        db_path=db_path,
+        **kwargs,
+    )
+
+    return True
+
+
+def preprocess(
+    atoms, calc, supercell_matrix, kpt_density=None, displacement=0.01, **kwargs
+):
+
+    # Phonopy preprocess
+    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
+
+    # make sure forces are computed (aims only)
+    if calc.name == "aims":
+        calc.parameters["compute_forces"] = True
+
+    # grab first geometry for computation
+    calculation_atoms = scs[0].copy()
+
+    if kpt_density is not None:
+        update_k_grid(calculation_atoms, calc, kpt_density)
+
+    metadata = metadata2dict(atoms, calc, phonon)
+
+    return calculation_atoms, calc, supercell, scs, phonon, metadata
+
+
+def calculate(
+    calculation_atoms,
+    calculator,
+    primitive,
+    supercell,
+    supercells_with_displacements,
+    metadata,
+    trajectory="trajectory.yaml",
+    walltime=1800,
+    workdir=".",
+    primitive_file="geometry.in.primitive",
+    supercell_file="geometry.in.supercell",
+    backup_folder="backups",
+    **kwargs,
 ):
     """ perform a full phonopy calculation """
 
@@ -59,34 +127,18 @@ def phonopy(
     # take the literal settings for running the task
     settings = Settings()
 
-    # make sure forces are computed
-    if calc.name == 'aims':
-        calc.parameters['compute_forces'] = True
-
     watchdog = Watchdog(walltime=walltime, buffer=1)
 
-    # Phonopy preprocess
-    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
-
-    # make sure forces are computed (aims only)
-    if calc.name == "aims":
-        calc.parameters["compute_forces"] = True
-
-    socketio_port = get_port(calc)
+    # handle the socketio
+    socketio_port = get_port(calculator)
     if socketio_port is None:
         socket_calc = None
     else:
-        socket_calc = calc
-
-    # grab first geometry for computation
-    calculation_atoms = scs[0].copy()
-
-    if kpt_density is not None:
-        update_k_grid(calculation_atoms, calc, kpt_density)
+        socket_calc = calculator
 
     # save input geometries and settings
     with cwd(workdir, mkdir=True):
-        atoms.write(primitive_file, format="aims", scaled=True)
+        primitive.write(primitive_file, format="aims", scaled=True)
         supercell.write(supercell_file, format="aims", scaled=False)
         settings.write()
 
@@ -95,12 +147,14 @@ def phonopy(
     with cwd(calc_dir, mkdir=True):
         with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
             if last_calculation_id(trajectory) < 0:
-                metadata2file(atoms, calc, phonon, trajectory)
+                to_yaml(metadata, trajectory, mode="w")
 
             if socketio_port is not None:
                 calc = iocalc
+            else:
+                calc = calculator
 
-            for n_cell, cell in enumerate(scs):
+            for n_cell, cell in enumerate(supercells_with_displacements):
                 calculation_atoms.calc = calc
 
                 if cell is None:
@@ -120,20 +174,9 @@ def phonopy(
                     break
 
     # backup and restart if necessary
-    if n_cell < len(scs) - 1:
+    if n_cell < len(supercells_with_displacements) - 1:
         backup(calc_dir, target_folder=backup_folder)
         return False
-
-    postprocess(
-        phonon,
-        trajectory=trajectory,
-        workdir=workdir,
-        force_constants_file=force_constants_file,
-        pickle_file=pickle_file,
-        db_path=db_path,
-        **kwargs,
-        # fingerprint_file=fingerprint_file,
-    )
 
     return True
 
@@ -141,8 +184,8 @@ def phonopy(
 def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):
     """ phonopy preprocess returning supercells with attached calculator for FW """
     phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
-    if calc.name == 'aims':
-        calc.parameters['compute_forces'] = True
+    if calc.name == "aims":
+        calc.parameters["compute_forces"] = True
     for sc in scs:
         sc.calc = calc
     return phonon, supercell, scs, calc
