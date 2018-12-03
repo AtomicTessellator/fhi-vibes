@@ -16,7 +16,7 @@ from hilde.trajectory import reader as traj_reader
 def postprocess(
     phonon,
     calculated_atoms=None,
-    trajectory="phonopy_trajectory.yaml",
+    trajectory="trajectory.yaml",
     workdir=".",
     force_constants_file="force_constants.dat",
     displacement=0.01,
@@ -26,6 +26,8 @@ def postprocess(
     **kwargs,
 ):
     """ Phonopy postprocess """
+
+    trajectory = Path(workdir) / trajectory
 
     if fireworks:
         phonon = PhononRow(phonon).to_phonon()
