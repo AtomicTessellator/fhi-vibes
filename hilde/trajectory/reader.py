@@ -22,6 +22,9 @@ def reader(file):
     if "numbers" in pre_atoms_dict and "symbols" in pre_atoms_dict:
         del pre_atoms_dict["symbols"]
 
+    if "MD" in metadata:
+        md_metadata = metadata["MD"]
+
     trajectory = []
     for obj in pre_trajectory:
 
@@ -31,6 +34,16 @@ def reader(file):
         calc_dict = {**pre_calc_dict, "results": obj["calculator"]}
 
         atoms = dict2results(atoms_dict, calc_dict)
+
+        # info
+        info = {}
+        if "MD" in obj:
+            info = obj["MD"]
+            info["dt"] /= md_metadata["fs"]
+        elif "info" in obj:
+            info = obj["info"]
+
+        atoms.info = info
 
         trajectory.append(atoms)
 
