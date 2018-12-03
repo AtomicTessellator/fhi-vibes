@@ -39,7 +39,6 @@ def prepare_phono3py(
 
     """
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
-    print(ph_atoms)
     phonon3 = Phono3py(
         ph_atoms,
         supercell_matrix=supercell_matrix,
@@ -51,6 +50,7 @@ def prepare_phono3py(
         frequency_factor_to_THz=const.eV_to_THz,
         log_level=log_level,
     )
+
 
     phonon3.generate_displacements(
         distance=disp, cutoff_pair_distance=cutoff_pair_distance
@@ -95,7 +95,8 @@ def preprocess(
         log_level=log_level,
     )
 
-    fc3_supercell = to_Atoms(
+
+    supercell = to_Atoms(
         phonon3.get_supercell(),
         info={
             "supercell": True,

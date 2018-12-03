@@ -50,10 +50,10 @@ def metadata2dict(atoms, calc, obj):
     try:
         displacements = obj.get_displacements()
         obj_dict.update({"displacements": displacements})
-    except KeyError:
+    except AttributeError:
         pass
 
     supercell = to_Atoms(obj.get_supercell())
     supercell_data = input2dict(supercell, calc)
 
-    return {"phonons": obj_dict, **supercell_data}
+    return {"info": obj_dict, **supercell_data}

@@ -156,6 +156,8 @@ def calculate(
                 calc = calculator
 
             for n_cell, cell in enumerate(supercells_with_displacements):
+                if "forces" in calc.results:
+                    del(calc.results['forces'])
                 atoms.calc = calc
 
                 if cell is None:

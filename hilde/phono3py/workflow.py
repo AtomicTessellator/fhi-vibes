@@ -35,7 +35,7 @@ def run(
     calc,
     supercell_matrix,
     kpt_density=None,
-    displacement=0.01,
+    displacement=0.03,
     symprec=1e-5,
     q_mesh=[11,11,11],
     cutoff_pair_distance=10.0,
@@ -53,7 +53,7 @@ def run(
 ):
 
     calculation_atoms, calc, supercell, scs, phonon3, metadata = preprocess(
-        atoms, calc, supercell_matrix, kpt_density, displacement, q_mesh, cutoff_pair_distance, log_level, **kwargs
+        atoms, calc, supercell_matrix, kpt_density, displacement, symprec, q_mesh, cutoff_pair_distance, log_level
     )
 
     calculate(
@@ -89,9 +89,9 @@ def preprocess(
     phonon3, sc, scs = ph3.preprocess(
         atoms,
         supercell_matrix,
+        q_mesh,
         displacement,
         cutoff_pair_distance,
-        q_mesh,
         symprec,
         log_level,
     )
@@ -107,7 +107,7 @@ def preprocess(
 
     metadata = metadata2dict(atoms, calc, phonon3)
 
-    return calculation_atoms, calc, supercell, scs, phonon3, metadata
+    return calculation_atoms, calc, sc, scs, phonon3, metadata
 
 def preprocess_fireworks(
     atoms,

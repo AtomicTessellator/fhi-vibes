@@ -97,7 +97,7 @@ def postprocess(
         .swapaxes(2, 1)
         .reshape(3 * (3 * n_atoms,))
     )
-    with open(str(Path(workdir) / force_constants_file_3), "w") as outfile:
+    with open(str(Path(workdir) / force_constants_file), "w") as outfile:
         for i, slice in enumerate(fc3):
             outfile.write(f"# New Slice Number {i}\n")
             np.savetxt(outfile, slice)
