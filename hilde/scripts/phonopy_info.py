@@ -49,7 +49,7 @@ def main():
     parser = ArgumentParser(description="information about phonopy task")
     parser.add_argument("infile", help="primitive structure or pickled phonopy")
     parser.add_argument("--dim", type=int, nargs="*", default=None)
-    parser.add_argument("--config_file", default="phonopy.cfg")
+    parser.add_argument("--config_file", default="settings.in")
     parser.add_argument("--format", default="aims")
     parser.add_argument("--fp_file", default=None, help="File to store the fingerprint")
     parser.add_argument(
