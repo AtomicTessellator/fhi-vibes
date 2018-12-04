@@ -10,6 +10,7 @@ import numpy as np
 from . import input2dict, results2dict
 from hilde.helpers.fileformats import to_yaml, from_yaml, last_from_yaml
 from hilde.structure.convert import to_Atoms
+from hilde.phonopy import displacement_id_str
 
 
 def step2file(atoms, calc, displacement_id, file="phonopy_trajectory.yaml"):
@@ -30,9 +31,9 @@ def step2dict(atoms, calc, displacement_id):
     """ extract information from opt step and convet to plain dict """
 
     # info from opt algorithm
-    obj_dict = {"id": displacement_id}
+    obj_dict = {displacement_id_str: displacement_id}
 
-    return {"phonopy": obj_dict, **results2dict(atoms, calc, append_cell=False)}
+    return {"info": obj_dict, **results2dict(atoms, calc, append_cell=False)}
 
 
 def metadata2dict(atoms, calc, obj):
@@ -41,6 +42,7 @@ def metadata2dict(atoms, calc, obj):
     prim_data = input2dict(atoms)
 
     obj_dict = {
+        "version": obj.get_version(),
         "primitive": prim_data["atoms"],
         "supercell_matrix": obj.get_supercell_matrix().astype(int).tolist(),
         "symprec": float(obj._symprec),
@@ -56,4 +58,4 @@ def metadata2dict(atoms, calc, obj):
     supercell = to_Atoms(obj.get_supercell())
     supercell_data = input2dict(supercell, calc)
 
-    return {"info": obj_dict, **supercell_data}
+    return {str(obj.__class__.__name__): obj_dict, **supercell_data}

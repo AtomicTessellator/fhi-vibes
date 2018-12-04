@@ -15,7 +15,9 @@ from hilde.helpers.fileformats import to_yaml, from_yaml, last_from_yaml
 def step2file(atoms, calc, opt, file="relax_trajectory.yaml", unit_cell=True):
     """ Save the current state of MD to file """
 
-    to_yaml(step2dict(atoms, calc, opt, unit_cell=unit_cell), file)
+    step = step2dict(atoms, calc, opt, unit_cell=unit_cell)
+
+    to_yaml(step, file)
 
 
 def metadata2file(atoms, calc, opt, file="opt_metadata.yaml"):
@@ -32,7 +34,7 @@ def step2dict(atoms, calc, opt, unit_cell=True):
     # info from opt algorithm
     opt_dict = {"nsteps": opt.nsteps}
 
-    return {"opt": opt_dict, **results2dict(atoms, calc, append_cell=unit_cell)}
+    return {"info": opt_dict, **results2dict(atoms, calc, append_cell=unit_cell)}
 
 
 def metadata2dict(atoms, calc, opt):
@@ -40,4 +42,4 @@ def metadata2dict(atoms, calc, opt):
 
     opt_dict = opt.todict()
 
-    return {"opt": opt_dict, **input2dict(atoms, calc)}
+    return {"geometry_optimization": opt_dict, **input2dict(atoms, calc)}

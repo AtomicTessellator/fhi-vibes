@@ -86,7 +86,9 @@ def preprocess(
 ):
 
     # Phonopy preprocess
-    phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement, symprec)
+    phonon, supercell, scs = ph.preprocess(
+        atoms, supercell_matrix, displacement, symprec
+    )
 
     # make sure forces are computed (aims only)
     if calc.name == "aims":
@@ -157,7 +159,7 @@ def calculate(
 
             for n_cell, cell in enumerate(supercells_with_displacements):
                 if "forces" in calc.results:
-                    del(calc.results['forces'])
+                    del (calc.results["forces"])
                 atoms.calc = calc
 
                 if cell is None:
