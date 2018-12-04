@@ -7,14 +7,15 @@ from ase.calculators.socketio import SocketIOCalculator
 from hilde.settings import Settings
 from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.paths import cwd
-import hilde.phonopy.wrapper as ph
 from hilde.trajectory.phonons import metadata2dict, step2file, to_yaml
 from hilde.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
 from hilde.helpers.config import AttributeDict as adict
+from hilde.trajectory import get_hashes_from_trajectory, hash_atoms
 from .postprocess import postprocess
 from . import last_calculation_id
+import hilde.phonopy.wrapper as ph
 
 
 _calc_dirname = "calculations"
@@ -50,7 +51,7 @@ def run(
         atoms.write(primitive_file, format="aims", scaled=True)
         supercell.write(supercell_file, format="aims", scaled=False)
 
-    with cwd(_calc_dirname, mkdir=True):
+    with cwd(Path(workdir) / _calc_dirname, mkdir=True):
         settings.write()
 
     calculate(
@@ -113,7 +114,7 @@ def calculate(
     backup_folder="backups",
     **kwargs,
 ):
-    """ perform a full phonopy calculation """
+    """ perform calculations for a set of atoms objects """
 
     workdir = Path(workdir)
     trajectory = (workdir / trajectory).absolute()
@@ -132,11 +133,14 @@ def calculate(
     # save fist atoms object for computation
     atoms = atoms_to_calculate[0].copy()
 
+    # fetch list of hashes from trajectory
+    precomputed_hashes = get_hashes_from_trajectory(trajectory)
+
     # perform calculation
     n_cell = -1
     with cwd(calc_dir, mkdir=True):
         with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
-            if last_calculation_id(trajectory) < 0:
+            if len(precomputed_hashes) == 0:
                 to_yaml(metadata, trajectory, mode="w")
 
             if socketio_port is not None:
@@ -153,7 +157,7 @@ def calculate(
                     continue
 
                 # if precomputed:
-                if n_cell <= last_calculation_id(trajectory):
+                if hash_atoms(cell) in precomputed_hashes:
                     continue
 
                 # update calculation_atoms and compute force
