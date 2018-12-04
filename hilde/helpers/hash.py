@@ -41,3 +41,15 @@ def hash_atoms_and_calc(
     calchash = hashfunc(calcjson).hexdigest()
 
     return atomshash, calchash
+
+
+def hash_atoms(atoms):
+    """ hash only the atoms object """
+    hash_atoms = atoms.copy()
+    hash_atoms.info = {}
+
+    atoms_json, _ = atoms2json(atoms)
+
+    atoms_hash = hashfunc(atoms_json).hexdigest()
+
+    return atoms_hash

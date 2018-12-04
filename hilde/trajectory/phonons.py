@@ -11,12 +11,15 @@ from . import input2dict, results2dict
 from hilde.helpers.fileformats import to_yaml, from_yaml, last_from_yaml
 from hilde.structure.convert import to_Atoms
 from hilde.phonopy import displacement_id_str
+from hilde.helpers.hash import hash_atoms
 
 
 def step2file(atoms, calc, displacement_id, file="phonopy_trajectory.yaml"):
     """ Save the current state of MD to file """
 
-    to_yaml(step2dict(atoms, calc, displacement_id), file)
+    step = step2dict(atoms, calc, displacement_id)
+
+    to_yaml(step, file)
 
 
 def metadata2file(atoms, calc, obj, file="phonopy_trajectory.yaml"):
@@ -30,8 +33,8 @@ def metadata2file(atoms, calc, obj, file="phonopy_trajectory.yaml"):
 def step2dict(atoms, calc, displacement_id):
     """ extract information from opt step and convet to plain dict """
 
-    # info from opt algorithm
-    obj_dict = {displacement_id_str: displacement_id}
+    atoms_hash = hash_atoms(atoms)
+    obj_dict = {displacement_id_str: displacement_id, "hash": atoms_hash}
 
     return {"info": obj_dict, **results2dict(atoms, calc, append_cell=False)}
 
