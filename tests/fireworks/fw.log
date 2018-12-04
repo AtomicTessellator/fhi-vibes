@@ -1,0 +1,78 @@
+*******Testing Local FireWorks Installation*******
+Getting LaunchPad from file ~/.fireworks/my_launchpad.yaml.
+*******Resetting LaunchPad*******
+2018-11-30 11:42:57,291 INFO Performing db tune-up
+2018-11-30 11:42:57,295 INFO LaunchPad was RESET.
+2018-11-30 11:42:57,296 INFO Added a workflow. id_map: {-1: 1}
+2018-11-30 11:42:57,296 INFO Launching Rocket
+2018-11-30 11:42:57,329 INFO RUNNING fw_id: 1 in directory: /home/knoop/local/hilde/tests/fireworks
+2018-11-30 11:42:57,332 INFO Task started: Addition Task.
+The sum of [1, 2] is: 3
+2018-11-30 11:42:57,333 INFO Task completed: Addition Task 
+2018-11-30 11:42:57,338 INFO Rocket finished
+*******Unmodified FireWorks is working locally*******
+*******Testing the local version of HiLDe's FireWorks modifications*******
+2018-11-30 11:42:57,378 INFO Added a workflow. id_map: {-2: 2}
+2018-11-30 11:42:57,378 INFO Launching Rocket
+2018-11-30 11:42:57,387 INFO RUNNING fw_id: 2 in directory: /home/knoop/local/hilde/tests/fireworks
+2018-11-30 11:42:57,390 INFO Task started: PyTask.
+
+Testing HiLDe FireWorks API
+
+2018-11-30 11:42:57,390 INFO Task completed: PyTask 
+2018-11-30 11:42:57,395 INFO Rocket finished
+*******The local version of HiLDe's FireWorks modifications work*******
+*******Testing the remote connection with FireWorks*******
+***relativistic flag not set in settings.in, set to atomic_zora scalar
+2018-11-30 11:42:57,505 INFO Added a workflow. id_map: {-4: 3, -3: 4}
+Using the ssh ControlPath: /home/knoop/.ssh/sockets/fknoop@$draco.mpcdf.mpg.de-22
+Found many potential paths for LAUNCHPAD_LOC: ['/draco/u/fknoop/.fireworks/my_launchpad.yaml', '/u/fknoop/.fireworks/my_launchpad.yaml']
+Choosing as default: /draco/u/fknoop/.fireworks/my_launchpad.yaml
+Found many potential paths for FWORKER_LOC: ['/draco/u/fknoop/.fireworks/my_fworker.yaml', '/u/fknoop/.fireworks/my_fworker.yaml']
+Choosing as default: /draco/u/fknoop/.fireworks/my_fworker.yaml
+Found many potential paths for QUEUEADAPTER_LOC: ['/draco/u/fknoop/.fireworks/my_qadapter.yaml', '/u/fknoop/.fireworks/my_qadapter.yaml']
+Choosing as default: /draco/u/fknoop/.fireworks/my_qadapter.yaml
+4 None
+qlaunch_hilde --reserve rapidfire --maxjobs_queue 250 --maxjobs_block 500 --nlaunches 1 --sleep 60 --firework_ids 4
+Found many potential paths for LAUNCHPAD_LOC: ['/draco/u/fknoop/.fireworks/my_launchpad.yaml', '/u/fknoop/.fireworks/my_launchpad.yaml']
+Choosing as default: /draco/u/fknoop/.fireworks/my_launchpad.yaml
+Found many potential paths for FWORKER_LOC: ['/draco/u/fknoop/.fireworks/my_fworker.yaml', '/u/fknoop/.fireworks/my_fworker.yaml']
+Choosing as default: /draco/u/fknoop/.fireworks/my_fworker.yaml
+Found many potential paths for QUEUEADAPTER_LOC: ['/draco/u/fknoop/.fireworks/my_qadapter.yaml', '/u/fknoop/.fireworks/my_qadapter.yaml']
+Choosing as default: /draco/u/fknoop/.fireworks/my_qadapter.yaml
+2018-11-30 11:43:31,903 ERROR ----|vvv|----
+2018-11-30 11:43:31,903 ERROR Error with queue launcher rapid fire!
+2018-11-30 11:43:31,904 ERROR Traceback (most recent call last):
+  File "/home/knoop/local/python/lib/python3.7/site-packages/HiLDe-0.1-py3.7-linux-x86_64.egg/hilde/fireworks_api_adapter/combined_launcher.py", line 311, in rapidfire
+    return_code = rlaunch(*args, **kwargs)
+  File "/home/knoop/local/python/lib/python3.7/site-packages/HiLDe-0.1-py3.7-linux-x86_64.egg/hilde/fireworks_api_adapter/qlaunch_remote.py", line 142, in qlaunch_remote
+    pre_non_default, command, non_default
+  File "<decorator-gen-3>", line 2, in run
+  File "/home/knoop/local/anaconda3/lib/python3.7/site-packages/fabric/connection.py", line 30, in opens
+    return method(self, *args, **kwargs)
+  File "/home/knoop/local/anaconda3/lib/python3.7/site-packages/fabric/connection.py", line 702, in run
+    return self._run(self._remote_runner(), command, **kwargs)
+  File "/home/knoop/local/anaconda3/lib/python3.7/site-packages/invoke/context.py", line 101, in _run
+    return runner.run(command, **kwargs)
+  File "/home/knoop/local/anaconda3/lib/python3.7/site-packages/invoke/runners.py", line 271, in run
+    return self._run_body(command, **kwargs)
+  File "/home/knoop/local/anaconda3/lib/python3.7/site-packages/invoke/runners.py", line 404, in _run_body
+    raise UnexpectedExit(result)
+invoke.exceptions.UnexpectedExit: Encountered a bad command exit code!
+
+Command: 'cd /u/fknoop/.fireworks && qlaunch_hilde --reserve rapidfire --maxjobs_queue 250 --maxjobs_block 500 --nlaunches 1 --sleep 60 --firework_ids 4'
+
+Exit code: 1
+
+Stdout: already printed
+
+Stderr: already printed
+
+
+
+2018-11-30 11:43:31,904 ERROR ----|^^^|----
+
+
+*******All Tests Successful*******
+
+
