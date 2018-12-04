@@ -1,5 +1,4 @@
 """ Provide a full highlevel phonopy workflow """
-
 from pathlib import Path
 import pickle
 import numpy as np
@@ -26,7 +25,6 @@ def postprocess(
     **kwargs,
 ):
     """ Phonopy postprocess """
-    print(workdir)
     trajectory = Path(workdir) / trajectory
 
     if fireworks:

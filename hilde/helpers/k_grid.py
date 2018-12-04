@@ -28,6 +28,18 @@ def d2k(atoms, kptdensity=3.5, even=True):
             kpts.append(1)
     return kpts
 
+def d2k_cellinfo(recipcell, pbc, kptdensity=3.5, even=True):
+    kpts = []
+    for i in range(3):
+        if pbc[i]:
+            k = 2 * np.pi * np.sqrt((recipcell[i] ** 2).sum()) * float(kptdensity)
+            if even:
+                kpts.append(2 * int(np.ceil(k / 2)))
+            else:
+                kpts.append(int(np.ceil(k)))
+        else:
+            kpts.append(1)
+    return kpts
 
 def k2d(atoms, k_grid=[2, 2, 2]):
     """Generate the kpoint density in each direction from given k_grid.
@@ -53,3 +65,10 @@ def update_k_grid(atoms, calc, kptdensity, even=True):
 
     if calc.name == "aims":
         calc.parameters["k_grid"] = k_grid
+
+def update_k_grid_calc_dict(calc_dict, recipcell, pbc, kptdensity, even=True):
+    k_grid = d2k_cellinfo(recipcell, pbc, kptdensity, even)
+
+    if "k_grid" in calc_dict["calculator_parameters"]:
+        calc_dict["calculator_parameters"]["k_grid"] = k_grid
+    return calc_dict

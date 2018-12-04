@@ -10,19 +10,75 @@ from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
 from hilde.helpers.k_grid import update_k_grid
 from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
-
+from hilde.tasks.utility_tasks import update_calc
 module_name = __name__
 
+def setup_atoms_task(task_spec, atoms, calc, fw_settings):
+    pt_func = fw.atoms_calculate_task.name
+    pt_args = task_spec.get_pt_args()
+    pt_inputs = task_spec.get_pt_inputs()
+    pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
+    if isinstance(atoms, str):
+        pt_inputs += [atoms, calc]
+    else:
+        pt_args += [atoms, calc]
+    return (pt_func, pt_args, pt_inputs, pt_kwargs)
+
+def setup_general_task(task_spec, fw_settings):
+    pt_func = fw.general_function_task.name
+    pt_args = task_spec.get_pt_args()
+    pt_inputs = task_spec.get_pt_inputs()
+    pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
+    return (pt_func, pt_args, pt_inputs, pt_kwargs)
+
+def generate_task(task_spec, fw_settings, atoms, calc):
+    if task_spec.at:
+        pt_params = setup_atoms_task(task_spec, atoms, calc, fw_settings)
+    else:
+        pt_params = setup_general_task(task_spec, fw_settings)
+
+    return PyTask(
+        {
+            "func": pt_params[0],
+            "args": pt_params[1],
+            "inputs": pt_params[2],
+            "kwargs": pt_params[3],
+        }
+    )
+
+def generate_update_calc_task(calc_spec, updated_settings):
+    return PyTask(
+        {
+            "func": fw.update_calc_in_db.name,
+            "args": [calc_spec, updated_settings],
+            "inputs": [calc_spec],
+        }
+    )
+
+def generate_mod_calc_task(atoms_dict, calc_spec, kpt_spec):
+    return PyTask(
+        {
+            "func": fw.mod_calc.name,
+            "args": ["k_grid_density", calc_spec],
+            "inputs": [
+                calc_spec,
+                kpt_spec,
+                atoms_dict,
+            ],
+            "kwargs": {"spec_key": kpt_spec},
+        }
+    )
 
 def generate_firework(
-    func,
-    func_fw_out,
-    func_kwargs=None,
+    task_spec_list=None,
     atoms=None,
     calc=None,
     atoms_calc_from_spec=False,
     fw_settings=None,
-    update_calc_settings=None,
+    update_calc_settings={},
+    func=None,
+    func_fw_out=None,
+    func_kwargs=None,
     func_fw_out_kwargs=None,
     args=None,
     inputs=None,
@@ -30,13 +86,7 @@ def generate_firework(
     """
     A function that takes in a set of inputs and returns a Firework to perform that operation
     Args:
-        func: str or functions
-            Path to the function that describes the main operation
-            The function must have a setup of (atoms, calc, **kwargs)
-        func_fw_out: str or functions
-            Path to the function that takes the input and outputs of func and returns the appropriate FWAction for the Workflow
-        func_kwargs: dict
-            A dictionary that will be passed to func describing its key word arguments
+        task_spec_list (list of TaskSpecs): list of task specifications to perform
         atoms: ASE Atoms object, dictionary or str
             If not atoms__calc_from_spec then this must be an ASE Atoms object or a dictionary describing it
             If atoms__calc_from_spec then this must be a key str to retrieve the Atoms Object from the MongoDB launchpad
@@ -51,134 +101,62 @@ def generate_firework(
             Used to update the Calculator parameters
         func_fw_out_kwargs: dict
             Keyword functions for the fw_out function
-        args: list
-            a list of function arguments for func
-        inputs: list
-            a list of spec keys to append to args (gets args from the MongoDB)
     Returns: Firework
         A Firework that will perform the desired operation on a set of atoms, and process the outputs for Fireworks
     """
-    if not isinstance(func, str):
-        func = f"{func.__module__}.{func.__name__}"
-
-    if not isinstance(func_fw_out, str):
-        func_fw_out = f"{func_fw_out.__module__}.{func_fw_out.__name__}"
+    if func:
+        if task_spec_list:
+            raise ArgumentError("You have defined a task_spec_list and arguments to generate one, please only specify one of these")
+        at = atoms is not None
+        task_spec_list = [
+            TaskSpec(
+                func, func_fw_out, at, func_kwargs, func_fw_out_kwargs, args, inputs
+            )
+        ]
+    elif not task_spec_list:
+        raise ArgumentError("You have not defined a task_spec_list or arguments to generate one, please specify one of these")
 
     if "fw_name" not in fw_settings:
         fw_name = None
         fw_settings["fw_base_name"] = ""
     elif "fw_base_name" not in fw_settings:
         fw_settings["fw_base_name"] = fw_settings["fw_name"]
-    if not func_fw_out_kwargs:
-        func_fw_out_kwargs = func_kwargs
-    task_list = []
+
+    setup_tasks = []
     if atoms:
-        if not isinstance(atoms, dict) and not isinstance(atoms, str):
-            atoms_dict = atoms2dict(atoms)
-        else:
-            atoms_dict = atoms
-
-        if not isinstance(calc, dict) and not isinstance(calc, str):
-            calc_dict = calc2dict(calc)
-        else:
-            calc_dict = calc
-        if isinstance(calc_dict, dict):
-            for key, val in calc_dict.items():
-                atoms_dict[key] = val
-
-        if not update_calc_settings:
-            update_calc_settings = {}
-
-        pt_args = [func, func_fw_out, func_kwargs, func_fw_out_kwargs]
-        if atoms_calc_from_spec:
-            pt_inputs = [atoms_dict, calc_dict]
-            task_list.append(
-                PyTask(
-                    {
-                        "func": fw.update_calc_in_db.name,
-                        "args": [calc_dict, update_calc_settings],
-                        "inputs": [calc_dict],
-                    }
-                )
-            )
-            if "kpoint_density_spec" in fw_settings:
-                task_list.append(
-                    PyTask(
-                        {
-                            "func": fw.mod_calc.name,
-                            "args": ["k_grid_density", calc_dict],
-                            "inputs": [
-                                calc_dict,
-                                fw_settings["kpoint_density_spec"],
-                                atoms_dict,
-                            ],
-                            "kwargs": {"spec_key": fw_settings["kpoint_density_spec"]},
-                        }
-                    )
-                )
-        else:
-            for key, val in update_calc_settings.items():
-                if key == "command":
-                    calc_dict["command"] = val
-                elif key == "basisset_type":
-                    sd = calc_dict["calculator_parameters"]["species_dir"].split("/")
-                    sd[-1] = val
-                    calc_dict["calculator_parameters"]["species_dir"] = "/".join(sd)
-                elif key == "k_grid_density":
-                    update_k_grid(atoms, calc, new_val)
+        if not atoms_calc_from_spec:
+            at = atoms2dict(atoms)
+            if "k_grid_density" in update_calc_settings:
+                if not isinstance(calc, dict):
+                    update_k_grid(atoms, calc, update_calc_settings["k_grid_density"])
                 else:
-                    if val is None and key in calc_dict["calculator_parameters"]:
-                        del (calc_dict["calculator_parameters"][key])
-                    elif val is not None:
-                        calc_dict["calculator_parameters"][key] = val
-            if "kpoint_density_spec" in fw_settings:
-                task_list.append(
-                    PyTask(
-                        {
-                            "func": fw.mod_calc.name,
-                            "args": ["k_grid_density", calc_dict],
-                            "inputs": [fw_settings["kpoint_density_spec"]],
-                            "kwargs": {
-                                "atoms": atoms_dict,
-                                "spec_key": fw_settings["kpoint_density_spec"],
-                            },
-                        }
-                    )
-                )
-            pt_args += [atoms_dict, calc_dict]
-            pt_inputs = []
-        pt_kwargs = {"fw_settings": fw_settings}
-        task_list.append(
-            PyTask(
-                {
-                    "func": fw.atoms_calculate_task.name,
-                    "args": pt_args,
-                    "inputs": pt_inputs,
-                    "kwargs": pt_kwargs,
-                }
-            )
-        )
+                    recipcell = np.linalg.pinv(at["cell"]).transpose()
+                    calc = update_k_grid_calc_dict(calc, recipcell, at["pbc"], new_val)
+            cl = calc2dict(calc)
+            for key, val in update_calc_settings.items():
+                if key != "k_grid_density"
+                    cl = update_calc(cl, key, val)
+            for key, val in cl.items():
+                at[key] = val
+        else:
+            at = atoms
+            cl = calc
+            setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
+
+        if "kpoint_density_spec" in fw_settings:
+            setup_tasks.append(generate_mod_calc_task(at, cl, fw_settings["kpoint_density_spec"]))
     else:
-        kwargs = dict(func_kwargs, **func_fw_out_kwargs)
-        if "fw_settings" not in kwargs:
-            kwargs["fw_settings"] = fw_settings
-        if not args:
-            args = []
-        task_list.append(
-            PyTask(
-                {
-                    "func": fw.general_function_task.name,
-                    "args": [func, func_fw_out, *args],
-                    "inputs": inputs,
-                    "kwargs": kwargs,
-                }
-            )
-        )
+        at = None
+        cl = None
+    job_tasks = []
+    for task_spec in task_spec_list:
+        job_tasks.append(generate_task(task_spec, fw_settings, at, cl))
+
     if fw_settings and "to_launcpad" in fw_settings and fw_settings["to_launcpad"]:
         launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
-        launchpad.add_wf(Firework(task_list, name=fw_settings["fw_name"]))
+        launchpad.add_wf(Firework(job_tasks, name=fw_settings["fw_name"]))
         return None
-    return Firework(task_list, name=fw_settings["fw_name"], spec=fw_settings["spec"])
+    return Firework(setup_tasks + job_tasks, name=fw_settings["fw_name"], spec=fw_settings["spec"])
 
 
 def get_func(func_path):
@@ -293,3 +271,63 @@ def general_function_task(
 
 atoms_calculate_task.name = f"{module_name}.{atoms_calculate_task.__name__}"
 general_function_task.name = f"{module_name}.{general_function_task.__name__}"
+
+class TaskSpec:
+    def __init__(
+        func,
+        func_fw_out,
+        at,
+        func_kwargs=None,
+        func_fw_out_kwargs=None,
+        args=None,
+        inputs=None,
+    ):
+        if not isinstance(func, str):
+            func = f"{func.__module__}.{func.__name__}"
+        if not isinstance(func_fw_out, str):
+            func_fw_out = f"{func_fw_out.__module__}.{func_fw_out.__name__}"
+        self.func = func
+        self.func_fw_out = func_fw_out
+        self.at = at
+
+        if func_kwargs:
+            self.func_kwargs = func_kwargs
+        else:
+            self.func_kwargs = {}
+
+        if func_fw_out_kwargs:
+            self.func_fw_out_kwargs = func_fw_out_kwargs
+        else:
+            self.func_fw_out_kwargs = {}
+
+        if args:
+            self.args = args
+        else:
+            self.args = []
+
+        if inputs:
+            self.inputs = inputs
+        else:
+            self.inputs = {}
+
+    def get_pt_args(self):
+        if self.at:
+            return [self.func, self.func_fw_out, self.func_kwargs, self.func_fw_out_kwargs]
+        return [func, func_fw_out, *args]
+
+    def get_pt_kwargs(self, fw_settings):
+        if not fw_settings:
+            fw_settings = {}
+
+        if self.at:
+            return {"fw_settings": fw_settings}
+
+        to_ret = dict(task_spec.func_kwargs, **task_spec.func_fw_out_kwargs)
+        to_ret["fw_settings"] = fw_settings
+
+        return to_ret
+
+    def get_pt_inputs(self):
+        if self.at:
+            return []
+        return inputs

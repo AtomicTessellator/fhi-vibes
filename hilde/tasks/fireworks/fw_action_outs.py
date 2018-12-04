@@ -184,8 +184,12 @@ def serial_phonopy_continue(
         fw_settings: dict
             FireWorks specific settings
     """
+    update_spec = {}
+    if "in_spec_atoms" in fw_settings:
+        update_spec[fw_settings["in_spec_atoms"]] = atoms
+        update_spec[fw_settings["in_spec_calc"]] = calc
     if outputs:
-        return FWAction()
+        return FWAction(update_spec=update_spec)
     fw = generate_firework(
         func,
         func_fw_out,
@@ -195,7 +199,7 @@ def serial_phonopy_continue(
         func_fw_out_kwargs=func_fw_kwargs,
         fw_settings=fw_settings,
     )
-    return FWAction(detours=[fw])
+    return FWAction(detours=[fw],update_spec=update_spec)
 
 
 def check_kgrid_opt_completion(

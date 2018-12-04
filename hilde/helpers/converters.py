@@ -128,6 +128,8 @@ def calc2dict(calc):
     """ Converts an ase calculator calc into a dict"""
     if calc is None:
         return {}
+    elif isinstance(calc, dict):
+        return calc
     calc_dict = {}
     calc_dict["calculator"] = calc.name.lower()
     calc_dict["calculator_parameters"] = calc.todict()
@@ -148,6 +150,8 @@ def atoms2dict(atoms):
     Returns: atoms_dict (dict)
         The dictionary of atoms
     """
+    if isinstance(atoms, dict):
+        return atoms
     atoms_dict = ase_atoms2dict(atoms)
 
     # add information that is missing after using ase.atoms2dict

@@ -14,7 +14,6 @@ from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
 from .postprocess import postprocess
 
-
 _calc_dirname = "calculations"
 
 

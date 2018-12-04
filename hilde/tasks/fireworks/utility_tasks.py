@@ -1,5 +1,5 @@
 from fireworks import FWAction, PyTask, Firework
-from hilde.helpers.k_grid import update_k_grid
+from hilde.helpers.k_grid import update_k_grid_calc_dict
 from hilde.helpers.hash import hash_atoms
 from hilde.phonon_db.phonon_db import connect
 from hilde.parsers.structure import read_structure
@@ -26,12 +26,8 @@ def mod_calc(param_key, calc_spec, calc, new_val, atoms=None, spec_key=None):
         sd[-1] = val
         calc["calculator_parameters"]["species_dir"] = "/".join(sd)
     elif param_key == "k_grid_density":
-        for key, val in calc.items():
-            atoms[key] = val
-        atoms = dict2atoms(atoms)
-        calc = atoms.calc
-        update_k_grid(atoms, calc, new_val)
-        calc = calc2dict(atoms.calc)
+        recipcell = np.linalg.pinv(atoms["cell"]).transpose()
+        update_k_grid_calc_dict(calc, recipcell, atoms["pbc"], new_val)
     else:
         calc["calculator_parameters"][param_key] = new_val
     up_spec = {calc_spec: calc}
@@ -39,6 +35,19 @@ def mod_calc(param_key, calc_spec, calc, new_val, atoms=None, spec_key=None):
         up_spec[spec_key] = new_val
     return FWAction(update_spec=up_spec)
 
+def update_calc(calc_dict, key, val):
+    if key == "command":
+        calc_dict[key] = val
+    elif key == "basisset_type":
+        sd = calc_dict["calculator_parameters"]["species_dir"].split("/")
+        sd[-1] = val
+        calc_dict["calculator_parameters"]["species_dir"] = "/".join(sd)
+    else:
+        if val is None and key in calc_dict["calculator_parameters"]:
+            del (calc_dict["calculator_parameters"][key])
+        elif val is not None:
+            calc_dict["calculator_parameters"][key] = val
+    return calc_dict
 
 def update_calc_in_db(calc_spec, update_calc_params, calc):
     """
@@ -55,24 +64,7 @@ def update_calc_in_db(calc_spec, update_calc_params, calc):
     for key in del_key_list:
         del (calc["calculator_parameters"][key])
     for key, val in update_calc_params.items():
-        if key == "command":
-            calc[key] = val
-        elif key == "basisset_type":
-            sd = calc["calculator_parameters"]["species_dir"].split("/")
-            sd[-1] = val
-            calc["calculator_parameters"]["species_dir"] = "/".join(sd)
-        elif key == "k_grid_density":
-            for key, val in calc.items():
-                atoms[key] = val
-            atoms = dict2atoms(atoms)
-            calc = atoms.calc
-            update_k_grid(atoms, calc, new_val)
-            calc = calc2dict(atoms.calc)
-        else:
-            if val is None and key in calc["calculator_parameters"]:
-                del (calc["calculator_parameters"][key])
-            elif val is not None:
-                calc["calculator_parameters"][key] = val
+        calc = update_calc(calc, key, val)
     return FWAction(update_spec={calc_spec: calc})
 
 
