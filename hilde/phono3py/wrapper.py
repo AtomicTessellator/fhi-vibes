@@ -8,20 +8,30 @@ from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
 from hilde.phonopy import enumerate_displacements
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
+from hilde.helpers.config import AttributeDict
+
+
+defaults = {
+    "q_mesh": [11, 11, 11],
+    "displacement": 0.03,
+    "cutoff_pair_distance": 100.0,
+    "symprec": 1e-5,
+    "log_level": 2,
+}
 
 
 def prepare_phono3py(
     atoms,
     fc2_supercell_matrix,
     fc3_supercell_matrix,
-    q_mesh=[11, 11, 11],
+    q_mesh=defaults.q_mesh,
     fc2=None,
     fc3=None,
-    disp=0.03,
-    cutoff_pair_distance=10.0,
+    disp=defaults.displacement,
+    cutoff_pair_distance=defaults.cutoff_pair_distance,
     symmetrize_fc3q=False,
-    symprec=1e-5,
-    log_level=2,
+    symprec=defaults.symprec,
+    log_level=defaults.log_level,
 ):
     """Prepare a Phono3py object.
 
@@ -72,11 +82,11 @@ def preprocess(
     atoms,
     fc2_supercell_matrix,
     fc3_supercell_matrix,
-    q_mesh=[11, 11, 11],
-    disp=0.03,
-    cutoff_pair_distance=10.0,
-    symprec=1e-5,
-    log_level=2,
+    q_mesh=defaults.q_mesh,
+    disp=defaults.displacement,
+    cutoff_pair_distance=defaults.cutoff_pair_distance,
+    symprec=defaults.symprec,
+    log_level=defaults.log_level,
 ):
     """
     Set up a Phono3py object and generate all the necessary supercells
