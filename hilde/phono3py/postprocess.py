@@ -46,6 +46,8 @@ def postprocess(
         db_path (str): Path to database
         fireworks (bool): If True Fireworks was used in the calculation
     """
+    workdir = Path(workdir)
+    trajectory = (workdir / trajectory).absolute()
 
     if fireworks:
         if isinstance(phonon3, dict):
@@ -69,7 +71,6 @@ def postprocess(
             temp_atoms,
             key=lambda x: x.info[displacement_id_str] if x else len(disp_cells) + 1,
         )
-
     elif Path(trajectory).is_file():
         calculated_atoms = traj_reader(trajectory)
     else:
@@ -87,7 +88,6 @@ def postprocess(
     phonon3.produce_fc3(fc3_forces)
 
     phonon3.run_thermal_conductivity(write_kappa=True)
-
     # compute and save force constants
     n_atoms = phonon3.get_supercell().get_number_of_atoms()
     fc3 = (

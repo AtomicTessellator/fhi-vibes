@@ -1,7 +1,5 @@
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.k_grid import update_k_grid
-from hilde.phonopy.workflow import phonopy
-from hilde.relaxation.bfgs import relax
 from hilde.settings import Settings
 from hilde.tasks.fireworks.general_py_task import generate_firework
 from hilde.templates.aims import setup_aims
@@ -98,7 +96,7 @@ def get_step_fw(step_settings, atoms=None):
                 step_settings.phonopy["original_atom_hash"] = atoms_hash
             fw_list.append(
                 generate_firework(
-                    "hilde.phonopy.workflow.phonopy",
+                    "hilde.phonopy.workflow.run",
                     "hilde.tasks.fireworks.fw_action_outs.serial_phonopy_continue",
                     dict(step_settings.phonopy),
                     at,
@@ -115,8 +113,8 @@ def get_step_fw(step_settings, atoms=None):
                 kwargs_init["displacement"] = step_settings.phonopy.displacement
             fw_list.append(
                 generate_firework(
-                    "hilde.phonopy.workflow.initialize_phonopy_attach_calc",
-                    "hilde.tasks.fireworks.fw_action_outs.add_phonopy_force_calcs",
+                    "hilde.phonopy.workflow.preprocess_fireworks",
+                    "hilde.tasks.fireworks.fw_action_outs.add_phonon_force_calcs",
                     kwargs_init,
                     at,
                     cl,
@@ -136,6 +134,7 @@ def get_step_fw(step_settings, atoms=None):
                 "analysis_workdir",
                 "force_constant_file",
                 "displacement",
+                "workdir",
             ]
             for key in anal_keys:
                 if key in step_settings.phonopy:
@@ -160,7 +159,7 @@ def get_step_fw(step_settings, atoms=None):
                 step_settings.phono3py["original_atom_hash"] = atoms_hash
             fw_list.append(
                 generate_firework(
-                    "hilde.phono3py.workflow.phono3py",
+                    "hilde.phono3py.workflow.run",
                     "hilde.tasks.fireworks.fw_action_outs.serial_phonopy_continue",
                     dict(step_settings.phono3py),
                     at,
@@ -172,16 +171,15 @@ def get_step_fw(step_settings, atoms=None):
             )
         else:
             kwargs_init = {
-                "supercell_matrix_2": step_settings.phono3py.supercell_matrix_2,
-                "supercell_matrix_3": step_settings.phono3py.supercell_matrix_3,
+                "supercell_matrix": step_settings.phono3py.supercell_matrix,
             }
             kwargs_init_fw_out = {"workdir": step_settings.phono3py.workdir}
             if "displacement" in step_settings.phono3py:
                 kwargs_init["displacement"] = step_settings.phono3py.displacement
             fw_list.append(
                 generate_firework(
-                    "hilde.phono3py.workflow.initialize_phono3py_attach_calc",
-                    "hilde.tasks.fireworks.fw_action_outs.add_phono3py_force_calcs",
+                    "hilde.phono3py.workflow.preprocess_fireworks",
+                    "hilde.tasks.fireworks.fw_action_outs.add_phonon_force_calcs",
                     kwargs_init,
                     at,
                     cl,
@@ -222,41 +220,3 @@ def get_step_fw(step_settings, atoms=None):
         raise ValueError("Type not defiend")
 
     return fw_list
-
-
-def run_step(config_file, hilde_defaults_config_file, atoms):
-    settings = Settings(hilde_defaults_config_file)
-    step_settings = Settings(config_file)
-    # reset default calculator values
-    for key, val in step_settings.control.items():
-        if val is None and key in settings.control:
-            del (settings.control[key])
-        elif val is not None:
-            settings.control[key] = val
-    if "basisset" in step_settings:
-        step_settings.control["basisset_type"] = step_settings.basisset.type
-        settings.basisset.type = step_settings.basisset.type
-    # Construct calculator
-    calc = setup_aims(settings=settings)
-    update_k_grid(atoms, calc, step_settings.control_kpt.density)
-    atoms.set_calculator(calc)
-    atoms_hash, calc_hash = hash_atoms(atoms)
-    if step_settings.calculation_step.type == "relaxation":
-        relax(
-            atoms,
-            calc,
-            socketio_port=settings.socketio.port,
-            **step_settings.function_kwargs,
-        )
-    elif step_settings.calculation_step.type == "phonons":
-        if "db_path" in step_settings.db_storage:
-            step_settings.function_kwargs["db_path"] = step_settings.db_storage.db_path
-            step_settings.function_kwargs["original_atom_hash"] = atoms_hash
-        phonopy(
-            atoms,
-            calc,
-            socketio_port=settings.socketio.port,
-            **step_settings.function_kwargs,
-        )
-    else:
-        raise ValueError("Type not defiend")

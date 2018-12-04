@@ -30,6 +30,10 @@ launcher_*
 *.mod
 *.o
 *.so
+FW.json
+
+# Database Files
+*.db
 
 # build stuff
 build
@@ -41,3 +45,11 @@ docker
 
 # vscode
 .vscode
+
+# Output Files
+*.hdf5
+*.pick
+
+# Test Directories
+test_run
+

@@ -26,7 +26,7 @@ def postprocess(
     **kwargs,
 ):
     """ Phonopy postprocess """
-
+    print(workdir)
     trajectory = Path(workdir) / trajectory
 
     if fireworks:

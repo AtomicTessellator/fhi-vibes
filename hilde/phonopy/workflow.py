@@ -119,7 +119,7 @@ def calculate(
     **kwargs,
 ):
     """ perform a full phonopy calculation """
-
+    print(workdir)
     workdir = Path(workdir)
     trajectory = (workdir / trajectory).absolute()
     backup_folder = workdir / backup_folder
@@ -184,7 +184,7 @@ def calculate(
     return True
 
 
-def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):
+def preprocess_fireworks(atoms, calc, supercell_matrix, displacement=0.01):
     """ phonopy preprocess returning supercells with attached calculator for FW """
     phonon, supercell, scs = ph.preprocess(atoms, supercell_matrix, displacement)
     if calc.name == "aims":

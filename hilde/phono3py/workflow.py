@@ -40,7 +40,7 @@ def run(
     q_mesh=[11,11,11],
     cutoff_pair_distance=10.0,
     log_level=2,
-    trajectory="trajectory_phono3py.yaml",
+    trajectory="trajectory.yaml",
     walltime=1800,
     workdir=".",
     primitive_file="geometry.in.primitive",
@@ -140,6 +140,6 @@ def preprocess_fireworks(
         symprec,
         log_level,
     )
-    for sc in scs_3:
+    for sc in scs:
         sc.calc = calc
     return phonon3, sc, scs, calc

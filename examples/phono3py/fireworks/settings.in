@@ -19,11 +19,11 @@ type:                light
 port:                null
 
 [phono3py]
-supercell_matrix_2 =  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-supercell_matrix_3 =  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+supercell_matrix =  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 displacement = 0.03
 workdir = /home/purcell/git/hilde/examples/phono3py/fireworks/test_run
 fireworks = True
+log_level = 2
 
 [restart]
 command:             python run_phono3py.py
@@ -49,7 +49,7 @@ sleep_time:          60
 tasks2queue:         ['hilde.relaxation.bfgs.relax', 'hilde.phonopy.workflow.phonopy', 'hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid', 'hilde.tasks.calculate.calculate']
 
 [fw_settings]
-serial=True
+serial = False
 fw_name = phono3py_test
 fw_spec = null
 out_spec = "relaxed_atoms"

@@ -19,15 +19,15 @@ port = null
 
 [phonopy]
 supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-
-workdir =    test_run
+workdir = /home/purcell/git/hilde/examples/phonopy/fireworks/test_run
 
 [restart]
 command = python run_phonopy.py
 
 [fw_settings]
-serial=False
+serial = False
 fw_name = relaxation_test
 fw_spec = null
 out_spec = "relaxed_atoms"
 mod_spec_add = "calculated_forces"
+from_db = False
