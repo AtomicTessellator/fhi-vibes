@@ -16,7 +16,6 @@ def preprocess(
     atoms,
     calc,
     supercell_matrix,
-    # fc2_supercell_matrix=[1, 1, 1],
     cutoff_pair_distance=defaults.cutoff_pair_distance,
     kpt_density=None,
     displacement=defaults.displacement,
@@ -28,7 +27,6 @@ def preprocess(
     # Phonopy preprocess
     phonon3, _, supercell, _, scs = phono3py_preprocess(
         atoms=atoms,
-        # fc2_supercell_matrix=fc2_supercell_matrix,
         fc3_supercell_matrix=supercell_matrix,
         disp=displacement,
         cutoff_pair_distance=cutoff_pair_distance,
@@ -44,6 +42,9 @@ def preprocess(
 
     metadata = metadata2dict(atoms, calc, phonon3)
 
+    for sc in scs:
+        sc.calc = calc
+
     return calc, supercell, scs, phonon3, metadata
 
 
@@ -51,7 +52,6 @@ def run(
     atoms,
     calc,
     supercell_matrix,
-    # fc2_supercell_matrix=[1, 1, 1],
     cutoff_pair_distance=defaults.cutoff_pair_distance,
     kpt_density=None,
     displacement=defaults.displacement,
@@ -71,7 +71,6 @@ def run(
         atoms,
         calc,
         supercell_matrix,
-        # fc2_supercell_matrix,
         cutoff_pair_distance,
         kpt_density,
         displacement,
@@ -114,7 +113,6 @@ def preprocess_fireworks(
     atoms,
     calc,
     supercell_matrix,
-    # fc2_supercell_matrix=[1, 1, 1],
     cutoff_pair_distance=defaults.cutoff_pair_distance,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
@@ -131,12 +129,9 @@ def preprocess_fireworks(
     """
     phonon3, _, sc, _, scs = ph3.preprocess(
         atoms=atoms,
-        # fc2_supercell_matrix=fc2_supercell_matrix,
         fc3_supercell_matrix=supercell_matrix,
         disp=displacement,
         cutoff_pair_distance=cutoff_pair_distance,
         symprec=symprec,
     )
-    for sc in scs_3:
-        sc.calc = calc
     return phonon3, sc, scs, calc
