@@ -25,7 +25,7 @@ def get_hashes_from_trajectory(trajectory):
     for atoms in traj:
         try:
             hashes.append(atoms.info["hash"])
-        except AttributeError:
+        except (KeyError, AttributeError):
             hashes.append(hash_atoms(atoms))
 
     return hashes
