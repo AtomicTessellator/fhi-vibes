@@ -8,16 +8,18 @@ from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
 from hilde.phonopy import enumerate_displacements
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
-from hilde.helpers.config import AttributeDict
+from hilde.helpers.config import AttributeDict as adict
 
 
-defaults = {
-    "q_mesh": [11, 11, 11],
-    "displacement": 0.03,
-    "cutoff_pair_distance": 100.0,
-    "symprec": 1e-5,
-    "log_level": 2,
-}
+defaults = adict(
+    {
+        "q_mesh": [11, 11, 11],
+        "displacement": 0.03,
+        "cutoff_pair_distance": 100.0,
+        "symprec": 1e-5,
+        "log_level": 2,
+    }
+)
 
 
 def prepare_phono3py(
