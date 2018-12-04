@@ -12,8 +12,10 @@ from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 
 def prepare_phono3py(
     atoms,
-    supercell_matrix,
+    fc2_supercell_matrix,
+    fc3_supercell_matrix,
     q_mesh=[11, 11, 11],
+    fc2=None,
     fc3=None,
     disp=0.03,
     cutoff_pair_distance=10.0,
@@ -25,8 +27,10 @@ def prepare_phono3py(
 
     Args:
         atoms (pAtoms): (primitive) unit cell
-        supercell_matrix (ndarray): smatrix for FC3 supercell
+        fc2_supercell_matrix (ndarray): smatrix for FC2 supercell
+        fc3_supercell_matrix (ndarray): smatrix for FC3 supercell
         q_mesh (list): q-point mesh for BZ integrations
+        fc2 (ndarray): Pre-computed FC2
         fc3 (ndarray): Pre-computed FC3
         disp (float): Finitie displacemt
         cutoff_pair_distance (float): Cutoff radius for triplet interactions
@@ -39,10 +43,11 @@ def prepare_phono3py(
 
     """
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
+
     phonon3 = Phono3py(
         ph_atoms,
-        supercell_matrix=supercell_matrix,
-        phonon_supercell_matrix=supercell_matrix,
+        supercell_matrix=fc3_supercell_matrix,
+        phonon_supercell_matrix=fc2_supercell_matrix,
         mesh=q_mesh,
         symprec=symprec,
         is_symmetry=True,
@@ -51,11 +56,12 @@ def prepare_phono3py(
         log_level=log_level,
     )
 
-
     phonon3.generate_displacements(
         distance=disp, cutoff_pair_distance=cutoff_pair_distance
     )
 
+    if fc2 is not None:
+        phonon3.set_fc2(fc2)
     if fc3 is not None:
         phonon3.set_fc3(fc3)
 
@@ -64,7 +70,8 @@ def prepare_phono3py(
 
 def preprocess(
     atoms,
-    supercell_matrix,
+    fc2_supercell_matrix,
+    fc3_supercell_matrix,
     q_mesh=[11, 11, 11],
     disp=0.03,
     cutoff_pair_distance=10.0,
@@ -87,7 +94,8 @@ def preprocess(
 
     phonon3 = prepare_phono3py(
         atoms,
-        supercell_matrix=np.array(supercell_matrix).reshape(3, 3),
+        fc2_supercell_matrix=np.array(fc2_supercell_matrix).reshape(3, 3),
+        fc3_supercell_matrix=np.array(fc3_supercell_matrix).reshape(3, 3),
         q_mesh=q_mesh,
         disp=disp,
         cutoff_pair_distance=cutoff_pair_distance,
@@ -95,31 +103,46 @@ def preprocess(
         log_level=log_level,
     )
 
-
-    supercell = to_Atoms(
-        phonon3.get_supercell(),
+    # phonpoy supercells
+    fc2_supercell = to_Atoms(
+        phonon3.get_phonon_supercell(),
         info={
             "supercell": True,
-            "supercell_matrix": np.asarray(supercell_matrix).flatten().tolist(),
+            "supercell_matrix": np.asarray(fc2_supercell_matrix).flatten().tolist(),
         },
     )
 
-    scells = phonon3.get_supercells_with_displacements()
-    supercells_with_disps = [to_Atoms(cell) for cell in scells]
+    fc3_supercell = to_Atoms(
+        phonon3.get_supercell(),
+        info={
+            "supercell": True,
+            "supercell_matrix": np.asarray(fc3_supercell_matrix).flatten().tolist(),
+        },
+    )
 
-    enumerate_displacements(supercells_with_disps)
+    scells = phonon3.get_phonon_supercells_with_displacements()
+    fc2_supercells_with_disps = [to_Atoms(cell) for cell in scells]
+
+    scells = phonon3.get_supercells_with_displacements()
+    fc3_supercells_with_disps = [to_Atoms(cell) for cell in scells]
+
+    enumerate_displacements([*fc2_supercells_with_disps, *fc3_supercells_with_disps])
 
     cols = (
         "phonon3",
-        "supercell",
-        "supercells_with_displacements",
+        "fc2_supercell",
+        "fc3_supercell",
+        "fc2_supercells_with_displacements",
+        "fc3_supercells_with_displacements",
     )
     pp = namedtuple("phono3py_preprocess", " ".join(cols))
 
     return pp(
         phonon3,
-        supercell,
-        supercells_with_disps,
+        fc2_supercell,
+        fc3_supercell,
+        fc2_supercells_with_disps,
+        fc3_supercells_with_disps,
     )
 
 
