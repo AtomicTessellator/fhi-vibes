@@ -24,8 +24,8 @@ defaults = adict(
 
 def prepare_phono3py(
     atoms,
-    fc2_supercell_matrix,
-    fc3_supercell_matrix,
+    fc2_supercell_matrix=[1,1,1],
+    fc3_supercell_matrix=[1,1,1],
     q_mesh=defaults.q_mesh,
     fc2=None,
     fc3=None,

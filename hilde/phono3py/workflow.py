@@ -16,7 +16,7 @@ def preprocess(
     atoms,
     calc,
     supercell_matrix,
-    fc2_supercell_matrix=[1, 1, 1],
+    # fc2_supercell_matrix=[1, 1, 1],
     cutoff_pair_distance=defaults.cutoff_pair_distance,
     kpt_density=None,
     displacement=defaults.displacement,
@@ -28,7 +28,7 @@ def preprocess(
     # Phonopy preprocess
     phonon3, _, supercell, _, scs = phono3py_preprocess(
         atoms=atoms,
-        fc2_supercell_matrix=fc2_supercell_matrix,
+        # fc2_supercell_matrix=fc2_supercell_matrix,
         fc3_supercell_matrix=supercell_matrix,
         disp=displacement,
         cutoff_pair_distance=cutoff_pair_distance,
@@ -51,7 +51,7 @@ def run(
     atoms,
     calc,
     supercell_matrix,
-    fc2_supercell_matrix=[1, 1, 1],
+    # fc2_supercell_matrix=[1, 1, 1],
     cutoff_pair_distance=defaults.cutoff_pair_distance,
     kpt_density=None,
     displacement=defaults.displacement,
@@ -71,7 +71,7 @@ def run(
         atoms,
         calc,
         supercell_matrix,
-        fc2_supercell_matrix,
+        # fc2_supercell_matrix,
         cutoff_pair_distance,
         kpt_density,
         displacement,
@@ -110,12 +110,33 @@ def run(
 
     return True
 
-
-def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):
-    """ phonopy preprocess returning supercells with attached calculator for FW """
-    phonon, supercell, scs = phonopy_preprocess(atoms, supercell_matrix, displacement)
-    if calc.name == "aims":
-        calc.parameters["compute_forces"] = True
-    for sc in scs:
+def preprocess_fireworks(
+    atoms,
+    calc,
+    supercell_matrix,
+    # fc2_supercell_matrix=[1, 1, 1],
+    cutoff_pair_distance=defaults.cutoff_pair_distance,
+    displacement=defaults.displacement,
+    symprec=defaults.symprec,
+):
+    """
+    Setup a full phono3py calculation
+    Args:
+        atoms (Atoms Object): Primitive cell to perform the phono3py calculation on
+        calc (Calculator Object): ASE calculator used to get the forces of a system
+        supercell_matrix (list or np.ndarray): supercell matrix for the third order force constant calculations
+        cutoff_pair_distance (float): cutoff distance for force interactions
+        displacement (float): size of the displacements used in finite difference calculations
+        symprec (float): symmetry percison for phono3py
+    """
+    phonon3, _, sc, _, scs = ph3.preprocess(
+        atoms=atoms,
+        # fc2_supercell_matrix=fc2_supercell_matrix,
+        fc3_supercell_matrix=supercell_matrix,
+        disp=displacement,
+        cutoff_pair_distance=cutoff_pair_distance,
+        symprec=symprec,
+    )
+    for sc in scs_3:
         sc.calc = calc
-    return phonon, supercell, scs, calc
+    return phonon3, sc, scs, calc
