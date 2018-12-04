@@ -41,8 +41,8 @@ kwargs_init = {"supercell_matrix": smatrix, "displacement": 0.01}
 kwargs_init_fw_out = {"workdir": workdir}
 
 init_fw = generate_firework(
-    "hilde.phonopy.workflow.initialize_phonopy_attach_calc",
-    "hilde.tasks.fireworks.fw_action_outs.add_phonopy_force_calcs",
+    "hilde.phonopy.workflow.preprocess_fireworks",
+    "hilde.tasks.fireworks.fw_action_outs.add_phonon_force_calcs",
     kwargs_init,
     atoms,
     calc,
