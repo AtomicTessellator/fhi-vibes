@@ -13,10 +13,10 @@ from hilde.helpers.config import AttributeDict as adict
 
 defaults = adict(
     {
-        "q_mesh": [11, 11, 11],
         "displacement": 0.03,
         "cutoff_pair_distance": 100.0,
         "symprec": 1e-5,
+        "q_mesh": [11, 11, 11],
         "log_level": 2,
     }
 )
@@ -35,25 +35,8 @@ def prepare_phono3py(
     symprec=defaults.symprec,
     log_level=defaults.log_level,
 ):
-    """Prepare a Phono3py object.
+    """ Prepare a Phono3py object """
 
-    Args:
-        atoms (pAtoms): (primitive) unit cell
-        fc2_supercell_matrix (ndarray): smatrix for FC2 supercell
-        fc3_supercell_matrix (ndarray): smatrix for FC3 supercell
-        q_mesh (list): q-point mesh for BZ integrations
-        fc2 (ndarray): Pre-computed FC2
-        fc3 (ndarray): Pre-computed FC3
-        disp (float): Finitie displacemt
-        cutoff_pair_distance (float): Cutoff radius for triplet interactions
-        symmetrize_fc3q (bool): symmetrize fc in q space
-        symprec (float): Symmetry tolerance
-        log_level (int): Phono3py log level
-
-    Returns:
-        Phono3py(): a phono3py object
-
-    """
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
     phonon3 = Phono3py(
@@ -90,19 +73,7 @@ def preprocess(
     symprec=defaults.symprec,
     log_level=defaults.log_level,
 ):
-    """
-    Set up a Phono3py object and generate all the necessary supercells
-
-    Args:
-        atoms: atoms object that represents the (primitive) unit cell
-        q_mesh: q-point grid for BZ integrations
-        supercell_matrix: supercell matrix
-        disp: displacement for the finite displacemt
-
-    Returns:
-        namedtuple with the phonon3 object, the supercell
-        and the supercells_with_displacements as hilde.pAtoms
-    """
+    """ Set up a Phono3py object and generate all the necessary supercells """
 
     phonon3 = prepare_phono3py(
         atoms,
@@ -179,22 +150,3 @@ def get_forces(supercells_computed):
         raise RuntimeError("Number of computed supercells incorrect.")
 
     return force_sets
-
-
-# def get_force_constants(phonon, force_sets=None):
-#     """
-#     fkdev: is this necessary?
-#     Take a Phonopy object and produce force constants from the given forces
-#     """
-#     n_atoms = phonon.get_supercell().get_number_of_atoms()
-#
-#     phonon.produce_force_constants(force_sets)
-#
-#     force_constants = phonon.get_force_constants()
-#
-#     if force_constants is not None:
-#         # convert forces from (N, N, 3, 3) to (3*N, 3*N)
-#         force_constants = phonon.get_force_constants().swapaxes(1, 2).reshape(2*(3*n_atoms, ))
-#         return force_constants
-#     # else
-#     warn('Force constants not yet created, please specify force_sets.')
