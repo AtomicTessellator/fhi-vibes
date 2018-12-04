@@ -7,7 +7,7 @@ from ase.build import bulk
 import importlib as il
 from phonopy import Phonopy
 
-from hilde.helpers.hash import hash_atoms
+from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.brillouinzone import get_bands
 from hilde.helpers.supercell import make_cubic_supercell
 from hilde.phonon_db.phonon_db import connect
@@ -40,7 +40,7 @@ phonon3, sc2, sc3, scs2, scs3 = ph3.preprocess(**phono3py_settings)
 
 # connect to the database and check if the calculation was already done
 db = connect(db_path)
-atoms_hash, calc_hash = hash_atoms(atoms)
+atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
 
 force_sets = []
 found = False

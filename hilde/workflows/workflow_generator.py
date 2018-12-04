@@ -1,4 +1,4 @@
-from hilde.helpers.hash import hash_atoms
+from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.k_grid import update_k_grid
 from hilde.phonopy.workflow import phonopy
 from hilde.relaxation.bfgs import relax
@@ -16,7 +16,7 @@ def get_step_fw(step_settings, atoms=None):
     # print(calc.parameters, step_settings)
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
-    atoms_hash, calc_hash = hash_atoms(atoms)
+    atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
     fw_list = []
     if (
         "from_db" not in step_settings.fw_settings
@@ -48,7 +48,7 @@ def get_step_fw(step_settings, atoms=None):
         db_kwargs = {}
     if "fw_name" in step_settings:
         step_settings["fw_name"] += (
-            atoms.symbols.get_chemical_formula() + "_" + hash_atoms(atoms)[0]
+            atoms.symbols.get_chemical_formula() + "_" + hash_atoms_and_calc(atoms)[0]
         )
     if "relaxation" in step_settings:
         fw_list.append(
@@ -240,7 +240,7 @@ def run_step(config_file, hilde_defaults_config_file, atoms):
     calc = setup_aims(settings=settings)
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
-    atoms_hash, calc_hash = hash_atoms(atoms)
+    atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
     if step_settings.calculation_step.type == "relaxation":
         relax(
             atoms,

@@ -3,7 +3,7 @@ from phonopy import Phonopy
 from phono3py.phonon3 import Phono3py
 
 from hilde.helpers.converters import atoms2dict, dict2atoms
-from hilde.helpers.hash import hash_atoms
+from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonon_db.row import phonon3_to_dict
@@ -28,7 +28,7 @@ def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **k
     print(f"Adding phonon calculations to the database {db_path}")
     if isinstance(atoms, dict):
         atoms = dict2atoms(atoms)
-    atoms_hash, calc_hash = hash_atoms(atoms)
+    atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
     if isinstance(phonon, Phonopy):
         phonon = phonon_to_dict(phonon)
     elif isinstance(phonon, Phono3py):

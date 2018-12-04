@@ -5,7 +5,7 @@ from ase.build import bulk
 from fireworks import Firework, FWorker, LaunchPad, PyTask, FWAction, Workflow
 
 # Minimal hilde inputs to make dictionary conversion easier
-from hilde.helpers.hash import hash_atoms
+from hilde.helpers.hash import hash_atoms_and_calc
 
 import numpy as np
 from pathlib import Path
@@ -44,7 +44,7 @@ aims_settings = {
 # Use diamond silicon as a test material
 si = bulk('Si', 'diamond')
 si.calc = Aims(**aims_settings)
-si_hash, calc_hash = hash_atoms(si)
+si_hash, calc_hash = hash_atoms_and_calc(si)
 
 settings = Settings()
 workdir = f"/u/{settings.fireworks.remote_user}/.fireworks/Si/"

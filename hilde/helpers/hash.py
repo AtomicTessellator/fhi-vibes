@@ -13,7 +13,7 @@ def hashfunc(string, empty_str=""):
     return hash_sha(string.encode("utf8"))
 
 
-def hash_atoms(
+def hash_atoms_and_calc(
     atoms,
     ignore_results=True,
     ignore_keys=["unique_id", "info"],

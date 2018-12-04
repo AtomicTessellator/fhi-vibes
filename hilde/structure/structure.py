@@ -204,8 +204,8 @@ class pAtoms(Atoms):
 
     #
     def get_hash(self, short = False):
-        from hilde.helpers.hash import hash_atoms
-        return hash_atoms(self)[0]
+        from hilde.helpers.hash import hash_atoms_and_calc
+        return hash_atoms_and_calc(self)[0]
 
     #
     # Soubroutines to find cubic supercells

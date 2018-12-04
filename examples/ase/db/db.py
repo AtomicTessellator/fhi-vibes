@@ -4,12 +4,12 @@ from pprint import pprint
 from ase.build import bulk
 from ase.calculators.emt import EMT
 from ase.db import connect
-from hilde.helpers.hash import hash_atoms
+from hilde.helpers.hash import hash_atoms_and_calc
 
 
 atoms = bulk("Al") * (1, 1, 1)
 atoms.calc = EMT()
-atoms_hash, calc_hash = hash_atoms(atoms)
+atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
 
 database_dir = "database.json"
 db = connect(database_dir)
