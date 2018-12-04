@@ -5,13 +5,36 @@ from pathlib import Path
 from hilde.settings import Settings
 from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.paths import cwd
-from hilde.helpers.config import AttributeDict as adict
 from hilde.trajectory.phonons import metadata2dict
 from hilde.tasks import calculate_socket, calc_dirname
 from .postprocess import postprocess
-from .wrapper import preprocess as phonopy_preprocess
+from .wrapper import preprocess as phonopy_preprocess, defaults
 
-defaults = adict({"displacement": 0.01, "symprec": 1e-5})
+
+def preprocess(
+    atoms,
+    calc,
+    supercell_matrix,
+    kpt_density=None,
+    displacement=defaults.displacement,
+    symprec=defaults.symprec,
+):
+
+    # Phonopy preprocess
+    phonon, supercell, scs = phonopy_preprocess(
+        atoms, supercell_matrix, displacement, symprec
+    )
+
+    # make sure forces are computed (aims only)
+    if calc.name == "aims":
+        calc.parameters["compute_forces"] = True
+
+    if kpt_density is not None:
+        update_k_grid(supercell, calc, kpt_density)
+
+    metadata = metadata2dict(atoms, calc, phonon)
+
+    return calc, supercell, scs, phonon, metadata
 
 
 def run(
@@ -67,32 +90,6 @@ def run(
     )
 
     return True
-
-
-def preprocess(
-    atoms,
-    calc,
-    supercell_matrix,
-    kpt_density=None,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-):
-
-    # Phonopy preprocess
-    phonon, supercell, scs = phonopy_preprocess(
-        atoms, supercell_matrix, displacement, symprec
-    )
-
-    # make sure forces are computed (aims only)
-    if calc.name == "aims":
-        calc.parameters["compute_forces"] = True
-
-    if kpt_density is not None:
-        update_k_grid(supercell, calc, kpt_density)
-
-    metadata = metadata2dict(atoms, calc, phonon)
-
-    return calc, supercell, scs, phonon, metadata
 
 
 def initialize_phonopy_attach_calc(atoms, calc, supercell_matrix, displacement=0.01):

@@ -9,33 +9,30 @@ import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
-from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy, to_dict
+from hilde.materials_fp.material_fingerprint import (
+    get_phonon_bs_fingerprint_phononpy,
+    to_dict,
+)
 from hilde.phonopy import enumerate_displacements, displacement_id_str
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.maths import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
+from hilde.helpers.config import AttributeDict as adict
 
-default_disp = 0.01
-default_q_mesh = [35, 35, 35]
+defaults = adict(
+    {"displacement": 0.01, "symprec": 1e-5, "trigonal": False, "q_mesh": [25, 25, 25]}
+)
 
 
 def prepare_phonopy(
-    atoms, supercell_matrix, fc2=None, disp=default_disp, symprec=1e-5, trigonal=False
+    atoms,
+    supercell_matrix,
+    fc2=None,
+    disp=defaults.displacement,
+    symprec=defaults.symprec,
+    trigonal=defaults.trigonal,
 ):
-    """Create a Phonpopy object
-
-    Args:
-        atoms (atoms): reference structure (unit cell)
-        supercell_matrix (list): supercell matrix
-        fc2 (ndarray): second order force constants (optional)
-        disp (float): finite displacemt in angstrom (default .01)
-        symprec (float): symmetry precision
-        trigonal (bool): wether the system is trigonal
-
-    Returns:
-        Phonopy(): a phonopy object
-
-    """
+    """ Create a Phonopy object """
 
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
@@ -60,19 +57,14 @@ def prepare_phonopy(
 
 
 def preprocess(
-    atoms, supercell_matrix, disp=default_disp, symprec=1e-5, trigonal=False, **kwargs
+    atoms,
+    supercell_matrix,
+    disp=defaults.displacement,
+    symprec=defaults.symprec,
+    trigonal=defaults.trigonal,
+    **kwargs,
 ):
-    """
-    Creates a phonopy object from given input
-    Args:
-        atoms: atoms object that represents the (primitive) unit cell
-        supercell_matrix: supercell matrix
-        disp: displacement for the finite displacemt
-
-    Returns:
-        namedtuple with the phonon object, the supercell
-        and the supercells_with_displacements as ase.atoms
-    """
+    """ Create a phonopy object and supercells etc. """
 
     phonon = prepare_phonopy(
         atoms, supercell_matrix, disp=disp, symprec=symprec, trigonal=trigonal
@@ -100,10 +92,8 @@ def preprocess(
 
 
 def get_force_constants(phonon, force_sets=None):
-    """
-    fkdev: is this necessary?
-    Take a Phonopy object and produce force constants from the given forces
-    """
+    """ Take a Phonopy object, produce force constants from the given forces and
+    return in usable shape (3N, 3N) insated of (N, N, 3, 3) """
     n_atoms = phonon.get_supercell().get_number_of_atoms()
 
     phonon.produce_force_constants(force_sets)
@@ -141,7 +131,7 @@ def _postprocess_init(phonon, force_sets=None):
 
 def get_dos(
     phonon,
-    q_mesh=default_q_mesh,
+    q_mesh=defaults.q_mesh,
     freq_min=0,
     freq_max="auto",
     freq_pitch=0.1,
@@ -174,13 +164,7 @@ def get_dos(
 
 
 def get_bandstructure(phonon, paths=None, force_sets=None):
-    """
-    Compute bandstructure for given path
-
-    Returns:
-        (qpoints, distances, frequencies, eigenvectors, labels)
-
-    """
+    """ Compute bandstructure for given path """
 
     _postprocess_init(phonon, force_sets)
 
@@ -202,7 +186,7 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
 
 
 def plot_bandstructure_and_dos(
-    phonon, q_mesh=default_q_mesh, partial=False, file="bands_and_dos.pdf"
+    phonon, q_mesh=defaults.q_mesh, partial=False, file="bands_and_dos.pdf"
 ):
     """ Plot bandstructure and PDOS """
 
@@ -237,9 +221,9 @@ def summarize_bandstructure(phonon, fp_file=None):
         print(f"Saving the fingerprint to {fp_file}")
         fp = get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
         fp_dict = to_dict(fp)
-        for key,val in fp_dict.items():
+        for key, val in fp_dict.items():
             fp_dict[key] = val.tolist()
-        with open(fp_file, 'w') as outfile:
+        with open(fp_file, "w") as outfile:
             json.dump(fp_dict, outfile, indent=4)
 
     mf = max_freq
