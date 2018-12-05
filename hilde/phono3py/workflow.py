@@ -95,6 +95,7 @@ def run(
         workdir=workdir,
         primitive_file=primitive_file,
         supercell_file=supercell_file,
+        **kwargs
     )
 
     postprocess(

@@ -99,7 +99,7 @@ def calculate_socket(
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
 
-    watchdog = Watchdog(walltime=walltime, buffer=1)
+    watchdog = Watchdog(walltime=walltime, **{"buffer": 1, **kwargs})
 
     # handle the socketio
     socketio_port = get_port(calculator)

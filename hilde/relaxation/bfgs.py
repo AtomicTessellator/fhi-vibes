@@ -56,7 +56,7 @@ def relax(
     else:
         from ase.optimize.bfgs import BFGS
 
-    watchdog = Watchdog(walltime=walltime)
+    watchdog = Watchdog(walltime=walltime, **kwargs)
 
     workdir = Path(workdir)
     trajectory = (workdir / trajectory).absolute()

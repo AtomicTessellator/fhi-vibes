@@ -43,7 +43,7 @@ def run_md(
         workdir (str, optional): Defaults to '.'.
     """
 
-    watchdog = Watchdog(walltime=walltime)
+    watchdog = Watchdog(walltime=walltime, **kwargs)
 
     workdir = Path(workdir)
     trajectory = (workdir / trajectory).absolute()
