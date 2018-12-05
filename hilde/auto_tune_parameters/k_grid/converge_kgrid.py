@@ -8,7 +8,7 @@ from ase.calculators.socketio import SocketIOCalculator
 from hilde.auto_tune_parameters.k_grid.kpointoptimizer import KPointOptimizer
 from hilde.helpers.paths import cwd
 from hilde.trajectory.relaxation import metadata2file, step2file
-from hilde.watchdogs import WallTimeWatchdog as Watchdog
+from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
 
 
 def converge_kgrid(

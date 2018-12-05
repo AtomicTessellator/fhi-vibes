@@ -1,45 +1,25 @@
-# configfile written at 2018/11/24 15:48:08
-
-[common]
-home_dir:            /home/knoop/local/hilde
-email:               knoop@fhi-berlin.mpg.de
-
-[machine]
-aimsbin:             /home/knoop/FHIaims/bin/aims.x
-basissetloc:         /home/knoop/FHIaims/aimsfiles/species_defaults
-mpi_command:         orterun
-aims_command:        orterun /home/knoop/FHIaims/bin/aims.x
-
-[socketio]
-port:                12345
-
-[database]
-location:            /home/knoop/local/hilde/examples/phonon_db
-name:                test.db
-
-[watchdog]
-walltime:            1800
-
 [geometry]
-file:                geometry.in
+file =             geometry.in
 
 [control]
-xc:                  pw-lda
-sc_accuracy_rho:     0.0001
-charge_mix_param:    0.5
+xc =               pw-lda
+sc_accuracy_rho =  1e-4
 
 [control_kpt]
-density:             0.5
+density =          0.5
 
 [basisset]
-type:                light
+type = light
+
+[socketio]
+port = 12345
 
 [md]
-algorithm:           Verlet
-temperature:         100
-timestep:            1
-maxsteps:            10
-walltime:            40
+algorithm =   Verlet
+temperature = 100
+timestep =    1
+maxsteps =    10
+walltime =    40
 
 [restart]
-command:             python run_md.py
+command = python run_md.py

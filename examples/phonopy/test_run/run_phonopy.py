@@ -1,9 +1,5 @@
-import subprocess as sp
-
-from hilde.phonopy.workflow import phonopy
-from hilde.settings import Settings
-from hilde.templates.aims import setup_aims
-from hilde.helpers.restarts import restart
+from hilde import Settings, setup_aims, restart
+from hilde.phonopy.workflow import run
 
 
 settings = Settings()
@@ -11,12 +7,8 @@ settings = Settings()
 atoms, calc = setup_aims(settings=settings)
 
 
-completed = phonopy(
-    atoms,
-    calc,
-    socketio_port=settings.socketio.port,
-    kpt_density=settings.control_kpt.density,
-    **settings.phonopy
+completed = run(
+    atoms, calc, kpt_density=settings.control_kpt.density, **settings.phonopy
 )
 
 

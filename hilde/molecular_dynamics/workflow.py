@@ -6,7 +6,7 @@ from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.settings import Settings
 from hilde.trajectory.md import step2file, metadata2file
-from hilde.watchdogs import WallTimeWatchdog as Watchdog
+from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port
 from hilde.helpers.compression import backup_folder as backup
