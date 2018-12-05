@@ -246,14 +246,14 @@ def get_step_fw(step_settings, atoms=None):
             if "phonopy" in step_settings:
                 task_spec_list.append(
                     get_phonon_parallel_task(
-                        "hilde.phonopy.workflow.preprocess_fireworks",
+                        "hilde.phonopy.workflow.preprocess",
                         step_settings.phonopy
                     )
                 )
             if "phono3py" in step_settings:
                 task_spec_list.append(
                     get_phonon_parallel_task(
-                        "hilde.phono3py.workflow.preprocess_fireworks",
+                        "hilde.phono3py.workflow.preprocess",
                         step_settings.phono3py
                     )
                 )

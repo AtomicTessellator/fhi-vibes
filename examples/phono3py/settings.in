@@ -16,9 +16,6 @@ density:             .5
 [basisset]
 type:                light
 
-[socketio]
-port:                null
-
 [phono3py]
 supercell_matrix:  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 displacement: 0.03

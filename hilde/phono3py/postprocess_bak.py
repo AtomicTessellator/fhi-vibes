@@ -67,7 +67,7 @@ def postprocess(
             temp_atoms = calculated_atoms.copy()
         calculated_atoms = sorted(
             temp_atoms,
-            key=lambda x: x.info[displacement_id_str] if x else len(disp_cells) + 1,
+            key=lambda x: x.info[displacement_id_str] if x else len(disp_cells) + int(1e7),
         )
 
     elif Path(trajectory).is_file():

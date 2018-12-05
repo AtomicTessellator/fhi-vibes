@@ -33,6 +33,9 @@ def preprocess(
 
     metadata = metadata2dict(atoms, calc, phonon)
 
+    for sc in scs:
+        sc.calc = calc
+
     return calc, supercell, scs, phonon, metadata
 
 
@@ -91,11 +94,11 @@ def run(
 
     return True
 
-def preprocess_fireworks(atoms, calc, supercell_matrix, displacement=0.01):
-    """ phonopy preprocess returning supercells with attached calculator for FW """
-    phonon, supercell, scs = phonopy_preprocess(atoms, supercell_matrix, displacement)
-    if calc.name == "aims":
-        calc.parameters["compute_forces"] = True
-    for sc in scs:
-        sc.calc = calc
-    return phonon, supercell, scs, calc
+# def preprocess_fireworks(atoms, calc, supercell_matrix, displacement=0.01):
+#     """ phonopy preprocess returning supercells with attached calculator for FW """
+#     phonon, supercell, scs = phonopy_preprocess(atoms, supercell_matrix, displacement)
+#     if calc.name == "aims":
+#         calc.parameters["compute_forces"] = True
+#     for sc in scs:
+#         sc.calc = calc
+#     return phonon, supercell, scs, calc

@@ -11,7 +11,7 @@ from hilde.helpers.paths import cwd
 from hilde.helpers.utility_functions import get_smatrix
 from hilde.phonon_db.phonon_db import connect
 from hilde.structure.structure import pAtoms
-from hilde.tasks.fireworks.general_py_task import generate_firework
+from hilde.workflows.workflow_generator import generate_firework
 
 from fireworks import Workflow
 
@@ -41,11 +41,11 @@ kwargs_init = {"supercell_matrix": smatrix, "displacement": 0.01}
 kwargs_init_fw_out = {"workdir": workdir}
 
 init_fw = generate_firework(
-    "hilde.phonopy.workflow.preprocess_fireworks",
-    "hilde.tasks.fireworks.fw_action_outs.add_phonon_force_calcs",
-    kwargs_init,
-    atoms,
-    calc,
+    func="hilde.phonopy.workflow.preprocess",
+    func_fw_out="hilde.tasks.fireworks.fw_action_outs.add_phonon_force_calcs",
+    func_kwargs=kwargs_init,
+    atoms=atoms,
+    calc=calc,
     func_fw_out_kwargs=kwargs_init_fw_out,
     atoms_calc_from_spec=False,
     fw_settings=fw_settings,
@@ -60,8 +60,8 @@ kwargs = {
 }
 
 anal_fw = generate_firework(
-    "hilde.phonopy.postprocess.postprocess",
-    "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
+    func="hilde.phonopy.postprocess.postprocess",
+    func_fw_out="hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
     args=[],
     inputs=["phonon", fw_settings["mod_spec_add"]],
     func_kwargs=kwargs,

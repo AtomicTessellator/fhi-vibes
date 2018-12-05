@@ -50,7 +50,7 @@ def check_relaxation_complete(
     calc["results"] = last_step_dict["calculator"]
     for key, val in calc.items():
         atoms[key] = val
-    next_step = last_step_dict["opt"]["nsteps"] + 1
+    next_step = last_step_dict["info"]["nsteps"] + 1
 
     if outputs:
         if "db_path" in func_fw_kwargs:
@@ -230,7 +230,7 @@ def check_kgrid_opt_completion(
     calc["results"] = last_step_dict["calculator"]
     for key, val in calc.items():
         atoms[key] = val
-    next_step = last_step_dict["opt"]["nsteps"] + 1
+    next_step = last_step_dict["info"]["nsteps"] + 1
     if outputs[0]:
         up_spec = {
             fw_settings["out_spec_k_den"]: outputs[1],
@@ -331,7 +331,7 @@ def add_phonon_force_calcs(
             FireWorks specific settings
     """
     detours = []
-    calc_dict = calc2dict(outputs[3])
+    calc_dict = calc2dict(outputs[0])
     for i, sc in enumerate(outputs[2]):
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
@@ -352,10 +352,10 @@ def add_phonon_force_calcs(
                 fw_settings=fw_settings,
             )
         )
-    if isinstance(outputs[0], Phonopy):
-        phonon = phonon_to_dict(outputs[0])
-    elif isinstance(outputs[0], Phono3py):
-        phonon = phonon3_to_dict(outputs[0])
+    if isinstance(outputs[3], Phonopy):
+        phonon = phonon_to_dict(outputs[3])
+    elif isinstance(outputs[3], Phono3py):
+        phonon = phonon3_to_dict(outputs[3])
     else:
         raise TypeError("Phonon output not known")
     return FWAction(update_spec={"phonon": phonon}, detours=detours)

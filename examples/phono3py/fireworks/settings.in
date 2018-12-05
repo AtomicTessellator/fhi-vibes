@@ -49,7 +49,7 @@ sleep_time:          60
 tasks2queue:         ['hilde.relaxation.bfgs.relax', 'hilde.phonopy.workflow.phonopy', 'hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid', 'hilde.tasks.calculate.calculate']
 
 [fw_settings]
-serial = False
+serial = True
 fw_name = phono3py_test
 fw_spec = null
 out_spec = "relaxed_atoms"
