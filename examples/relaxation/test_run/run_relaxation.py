@@ -1,5 +1,4 @@
-from hilde.settings import Settings
-from hilde.templates.aims import setup_aims
+from hilde.settings import Settings, setup_aims
 from hilde.relaxation.bfgs import relax
 
 settings = Settings()
