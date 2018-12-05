@@ -52,7 +52,6 @@ def postprocess(
         )
 
     trajectory = Path(workdir) / trajectory
-    print(displacement_id_str)
     if calculated_atoms:
         if "fireworks" in kwargs and kwargs["fireworks"]:
             temp_atoms = [dict2atoms(cell) for cell in calculated_atoms]
@@ -76,8 +75,6 @@ def postprocess(
         raise ValueError("Either calculated_atoms or trajectory must be defined")
 
     fc3_forces = ph3.get_forces(fc3_cells)
-    for cell, ph_cell in zip(fc3_cells, phonon3.get_supercells_with_displacements()):
-        print(np.max(np.abs(cell.get_forces() - to_Atoms(cell).positions)))
     phonon3.produce_fc3(fc3_forces)
 
     with (Path(workdir) / pickle_file).open("wb") as fp:

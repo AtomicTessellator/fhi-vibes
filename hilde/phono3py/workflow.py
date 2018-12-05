@@ -75,7 +75,6 @@ def run(
         displacement,
         symprec,
     )
-    print(scs[0].info["displacement_id"])
 
     # save input geometries and settings
     settings = Settings()

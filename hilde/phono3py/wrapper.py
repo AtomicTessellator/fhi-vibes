@@ -24,8 +24,8 @@ defaults = adict(
 
 def prepare_phono3py(
     atoms,
-    fc2_supercell_matrix=np.diag([1,1,1]),
-    fc3_supercell_matrix=np.diag([1,1,1]),
+    fc2_supercell_matrix=None,
+    fc3_supercell_matrix=None,
     q_mesh=defaults.q_mesh,
     fc2=None,
     fc3=None,
@@ -36,7 +36,10 @@ def prepare_phono3py(
     log_level=defaults.log_level,
 ):
     """ Prepare a Phono3py object """
-
+    if fc3_supercell_matrix is None:
+        raise ValueError("Please define an fc3_supercell_matrix")
+    if fc2_supercell_matrix is None:
+        fc2_supercell_matrix = fc3_supercell_matrix
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
     phonon3 = Phono3py(
@@ -65,8 +68,8 @@ def prepare_phono3py(
 
 def preprocess(
     atoms,
-    fc2_supercell_matrix=np.diag([1,1,1]),
-    fc3_supercell_matrix=np.diag([1,1,1]),
+    fc2_supercell_matrix=None,
+    fc3_supercell_matrix=None,
     q_mesh=defaults.q_mesh,
     disp=defaults.displacement,
     cutoff_pair_distance=defaults.cutoff_pair_distance,
@@ -74,7 +77,10 @@ def preprocess(
     log_level=defaults.log_level,
 ):
     """ Set up a Phono3py object and generate all the necessary supercells """
-
+    if fc3_supercell_matrix is None:
+        raise ValueError("Please define an fc3_supercell_matrix")
+    if fc2_supercell_matrix is None:
+        fc2_supercell_matrix = fc3_supercell_matrix
     phonon3 = prepare_phono3py(
         atoms,
         fc2_supercell_matrix=np.array(fc2_supercell_matrix).reshape(3, 3),
@@ -110,7 +116,6 @@ def preprocess(
     fc3_supercells_with_disps = [to_Atoms(cell) for cell in scells]
 
     enumerate_displacements([*fc2_supercells_with_disps, *fc3_supercells_with_disps])
-    print(fc2_supercells_with_disps[0].info["displacement_id"], fc3_supercells_with_disps[0].info["displacement_id"])
     cols = (
         "phonon3",
         "fc2_supercell",
