@@ -1,8 +1,9 @@
+'''Functions used to generate a FireWorks Workflow'''
 from fireworks import Workflow, Firework
 
-from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
-from hilde.helpers.hash import hash_atoms
+from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
+from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.k_grid import update_k_grid
 from hilde.settings import Settings
 from hilde.tasks.fireworks.general_py_task import TaskSpec, generate_task, generate_update_calc_task, generate_mod_calc_task
@@ -157,8 +158,7 @@ def get_step_fw(step_settings, atoms=None):
 
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
-    atoms_hash, calc_hash = hash_atoms(atoms)
-
+    atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
     fw_settings = step_settings.fw_settings
     if "from_db" not in fw_settings or not fw_settings.from_db:
         at = atoms
@@ -185,7 +185,7 @@ def get_step_fw(step_settings, atoms=None):
         db_kwargs = None
     if "fw_name" in fw_settings:
         fw_settings["fw_name"] += (
-            atoms.symbols.get_chemical_formula() + "_" + hash_atoms(atoms)[0]
+            atoms.symbols.get_chemical_formula() + "_" + hash_atoms_and_calc(atoms)[0]
        )
     task_spec_list = []
     if "relaxation" in step_settings:

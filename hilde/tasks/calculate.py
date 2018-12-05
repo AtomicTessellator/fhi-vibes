@@ -2,15 +2,17 @@
  Functions to run several related calculations with using trajectories as cache
 """
 
-import os
-from contextlib import ExitStack
 from pathlib import Path
-from warnings import warn
-from itertools import zip_longest
 from ase.calculators.socketio import SocketIOCalculator
-from ase.io import Trajectory
+from hilde.trajectory.phonons import step2file, to_yaml
+from hilde.helpers.compression import backup_folder as backup
+from hilde.helpers.socketio import get_port
+from hilde.watchdogs import WallTimeWatchdog as Watchdog
+from hilde.trajectory import get_hashes_from_trajectory, hash_atoms
 
 from hilde.helpers.paths import cwd
+
+calc_dirname = "calculations"
 
 
 def cells_and_workdirs(cells, base_dir):
@@ -20,7 +22,7 @@ def cells_and_workdirs(cells, base_dir):
         yield cell, workdir
 
 
-def calculate(atoms, calculator, workdir='.'):
+def calculate(atoms, calculator, workdir="."):
     """Short summary.
     Perform a dft calculation with ASE
     Args:
@@ -41,157 +43,17 @@ def calculate(atoms, calculator, workdir='.'):
         return calc_atoms
 
 
-def calculators_coincide(calc1, calc2):
-    """ Check if calculators coincide by checking the parameters """
-    warn("dont compare stupid things -> replace me with hashes")
-    try:
-        calcs_coincide = all(
-            p1 == p2 for p1, p2 in zip_longest(calc1.parameters, calc2.parameters)
-        )
-    except AttributeError:
-        calcs_coincide = False
-    return calcs_coincide
-
-
-def return_from_trajectory(cells, calculator, trajectory, ordered=True):
-    """ return pre computed atoms objects from trajectory """
-    cells_pre_computed = []
-    if ordered:
-        for cell in cells:
-            for atoms in trajectory:
-                if (atoms == cell) and calculators_coincide(calculator, atoms.calc):
-                    cells_pre_computed.append(atoms)
-            else:
-                cells_pre_computed.append(cell)
-    else:
-        raise Exception("non ordered read from trajectory not yet implemented.")
-    return cells_pre_computed
-
-
-def calculate_multiple(cells, calculator, workdir, trajectory=None, trajectory_to=None):
-    """Calculate several atoms object sharing the same calculator.
-
-    Args:
-        cells (Atoms): List of atoms objects.
-        calculator (calculator): Calculator to run calculation.
-        workdir (str/Path): working directory
-        trajectory (Trajectory): trajectory for caching
-        trajectory_to (Trajectory): store information to trajectory
-        read (bool): Read from trajectory if True.
-
-    Returns:
-        list: Atoms objects with calculation performed.
-
-    """
-
-    # If trajectory_from is given, try to read pre-computed atoms from it
-    cells_pre_calculated = cells
-    if trajectory is not None and trajectory_to is None:
-        trajectory_to = trajectory
-
-    if trajectory is not None:
-        traj_file = os.path.join(workdir, trajectory)
-        if Path(traj_file).exists():
-            with Trajectory(traj_file, mode="r") as trajectory:
-                cells_pre_calculated = return_from_trajectory(
-                    cells, calculator, trajectory
-                )
-
-    # Check if backup should be performed
-    if trajectory_to is not None:
-        traj_file = os.path.join(workdir, trajectory_to)
-        if Path(traj_file).exists():
-            Path(traj_file).rename(str(traj_file) + ".bak")
+def calculate_multiple(cells, calculator, workdir):
+    """Calculate several atoms object sharing the same calculator. """
 
     cells_calculated = []
-    for cell, wdir in cells_and_workdirs(cells_pre_calculated, workdir):
+    for cell, wdir in cells_and_workdirs(cells, workdir):
         if cell is None:
             cells_calculated.append(cell)
             continue
         if cell.calc is None:
             cell = calculate(cell, calculator, wdir)
         cells_calculated.append(cell)
-
-        if trajectory_to is not None:
-            with Trajectory(traj_file, mode="a") as traj:
-                traj.write(cell)
-
-    return cells_calculated
-
-
-def calculate_multiple_socketio(
-    cells,
-    calculator,
-    workdir,
-    port,
-    trajectory="socketio.traj",
-    trajectory_to=None,
-    force=False,
-    log_file="socketio.log",
-):
-    """
-    Compute given list of atoms objects utilizing the SocketIOCalculator
-    Args:
-        cells: list of atoms objects
-        calculator: ase.calculator for calculating the forces, needs to support socketio
-        port: the port to be used for socket communication
-        workdir: the workingdirectory for storing input and output files
-        traj_file: file to store ase.Trajectory() object in. Basically a list of atom objects
-        log_file: file to pipe status messages to
-
-    Returns:
-        list of forces for each atoms object in cells
-
-    """
-
-    # If trajectory_from is given, try to read pre-computed atoms from it
-    cells_pre_calculated = cells
-    if trajectory is not None and trajectory_to is None:
-        trajectory_to = trajectory
-
-    if trajectory is not None:
-        traj_file = os.path.join(workdir, trajectory)
-        if Path(traj_file).exists():
-            with Trajectory(traj_file, mode="r") as trajectory:
-                cells_pre_calculated = return_from_trajectory(
-                    cells, calculator, trajectory
-                )
-
-    # Check if backup should be performed
-    if trajectory_to is not None:
-        traj_file = os.path.join(workdir, trajectory_to)
-        if Path(traj_file).exists():
-            Path(traj_file).rename(str(traj_file) + ".bak")
-
-    cells_calculated = []
-    workdir.mkdir(exist_ok=True)
-    with ExitStack() as stack, cwd(workdir, debug=True):
-        calc = stack.enter_context(
-            SocketIOCalculator(calculator, log=log_file.open("w"), port=port)
-        )
-        atoms = cells[0].copy()
-        atoms.calc = calc
-        for _, cell in enumerate(cells_pre_calculated):
-
-            if cell is None:
-                cells_calculated.append(cell)
-                continue
-
-            if cell.calc is None:
-                atoms.positions = cell.positions
-                atoms.calc.calculate(atoms, system_changes=["positions"])
-                computed_cell = atoms.copy()
-                # restore the 'original' calculator
-                computed_cell.calc = calculator
-                computed_cell.calc.results = atoms.calc.results
-            else:
-                computed_cell = cell
-
-            cells_calculated.append(computed_cell)
-
-            if trajectory_to is not None:
-                with Trajectory(traj_file, mode="a") as traj:
-                    traj.write(computed_cell)
 
     return cells_calculated
 
@@ -218,3 +80,77 @@ def setup_multiple(cells, calculator, workdir, mkdir):
                 except AttributeError:
                     print("Calculator has no input just attaching to cell")
     return cells, workdirs
+
+
+def calculate_socket(
+    atoms_to_calculate,
+    calculator,
+    metadata,
+    trajectory="trajectory.yaml",
+    walltime=1800,
+    workdir=".",
+    backup_folder="backups",
+    **kwargs,
+):
+    """ perform calculations for a set of atoms objects """
+
+    workdir = Path(workdir)
+    trajectory = (workdir / trajectory).absolute()
+    backup_folder = workdir / backup_folder
+    calc_dir = workdir / calc_dirname
+
+    watchdog = Watchdog(walltime=walltime, **{"buffer": 1, **kwargs})
+
+    # handle the socketio
+    socketio_port = get_port(calculator)
+    if socketio_port is None:
+        socket_calc = None
+    else:
+        socket_calc = calculator
+
+    # save fist atoms object for computation
+    atoms = atoms_to_calculate[0].copy()
+
+    # fetch list of hashes from trajectory
+    precomputed_hashes = get_hashes_from_trajectory(trajectory)
+
+    # perform calculation
+    n_cell = -1
+    with cwd(calc_dir, mkdir=True):
+        with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
+            if len(precomputed_hashes) == 0:
+                to_yaml(metadata, trajectory, mode="w")
+
+            if socketio_port is not None:
+                calc = iocalc
+            else:
+                calc = calculator
+
+            for n_cell, cell in enumerate(atoms_to_calculate):
+                if "forces" in calc.results:
+                    del calc.results["forces"]
+                atoms.calc = calc
+
+                if cell is None:
+                    continue
+
+                # if precomputed:
+                if hash_atoms(cell) in precomputed_hashes:
+                    continue
+
+                # update calculation_atoms and compute force
+                atoms.positions = cell.positions
+                _ = atoms.get_forces()
+
+                step2file(atoms, atoms.calc, n_cell, trajectory)
+
+                if watchdog():
+                    break
+
+    # backup and restart if necessary
+    if n_cell < len(atoms_to_calculate) - 1:
+        backup(calc_dir, target_folder=backup_folder)
+        return False
+
+    return True
+

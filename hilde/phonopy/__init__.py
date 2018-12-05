@@ -3,9 +3,25 @@
 import numpy as np
 from phonopy.structure.atoms import PhonopyAtoms
 from hilde.structure.convert import to_Atoms
+from hilde.helpers.fileformats import last_from_yaml
 
 
 displacement_id_str = "displacement_id"
+
+
+def last_calculation_id(trajectory):
+    """ return the id of the last computed supercell """
+    disp_id = -1
+
+    try:
+        dct = last_from_yaml(trajectory)
+        disp_id = dct["info"][displacement_id_str]
+    except (FileNotFoundError, KeyError):
+        pass
+
+    return disp_id
+
+
 
 
 def to_phonopy_atoms(atoms):

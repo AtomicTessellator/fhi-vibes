@@ -13,7 +13,7 @@ def hashfunc(string, empty_str=""):
     return hash_sha(string.encode("utf8"))
 
 
-def hash_atoms(
+def hash_atoms_and_calc(
     atoms,
     ignore_results=True,
     ignore_keys=["unique_id", "info"],
@@ -41,3 +41,15 @@ def hash_atoms(
     calchash = hashfunc(calcjson).hexdigest()
 
     return atomshash, calchash
+
+
+def hash_atoms(atoms):
+    """ hash only the atoms object """
+    hash_atoms = atoms.copy()
+    hash_atoms.info = {}
+
+    atoms_json, _ = atoms2json(atoms)
+
+    atoms_hash = hashfunc(atoms_json).hexdigest()
+
+    return atoms_hash

@@ -1,5 +1,4 @@
-from hilde.settings import Settings
-from hilde.templates.aims import setup_aims
+from hilde import Settings, setup_aims
 from hilde.phonopy.workflow import phonopy
 
 

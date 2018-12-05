@@ -53,3 +53,5 @@ docker
 # Test Directories
 test_run
 
+# direnv
+**.envrc

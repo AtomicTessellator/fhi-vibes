@@ -6,7 +6,7 @@ from pathlib import Path
 
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.fireworks_api_adapter.rocket_launcher import rapidfire
-from hilde.helpers.hash import hash_atoms
+from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.paths import cwd
 from hilde.helpers.utility_functions import get_smatrix
 from hilde.phonon_db.phonon_db import connect
@@ -24,7 +24,7 @@ calc = atoms.calc
 workdir = str(Path("Ni_ex").absolute())
 
 smatrix = get_smatrix(atoms, n_target=32)
-atoms_hash, calc_hash = hash_atoms(atoms)
+atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
 
 fw_settings = {
     "serial": True,

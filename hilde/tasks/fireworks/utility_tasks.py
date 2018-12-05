@@ -1,6 +1,6 @@
 from fireworks import FWAction, PyTask, Firework
 from hilde.helpers.k_grid import update_k_grid_calc_dict
-from hilde.helpers.hash import hash_atoms
+from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.phonon_db.phonon_db import connect
 from hilde.parsers.structure import read_structure
 from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
@@ -171,7 +171,7 @@ def add_phonon_to_db(
     """
     print(f"Adding phonon calculations to the database {db_path}")
     atoms = dict2atoms(atoms_ideal)
-    atoms_hash, calc_hash = hash_atoms(atoms)
+    atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
     try:
         db = connect(db_path)
         selection = [

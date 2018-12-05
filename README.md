@@ -2,20 +2,39 @@
 
 External dependencies:
 
-```apt-get install gfortran liblapack-dev liblapacke-dev mongodb```
+```
+apt-get install gfortran liblapack-dev liblapacke-dev mongodb
+```
 
 Install the python requirements in `requirements.txt` _in order_:
 
-```cat requirements.txt | xargs -n 1 -L 1 pip install -U```
+```
+cat requirements.txt | xargs -n 1 -L 1 pip install --user
+```
 
-Configure and install Hilde:
+Configure Hilde by creating a `hilde.cfg` configuration file:
 
-`cp hilde.cfg.template hilde.cfg`
+```
+cp hilde.cfg.template hilde.cfg
+```
 
 and edit according to system.
 
-```python setup.py install --prefix /your/preferred/folder```
+Install Hilde:
 
+```
+python setup.py install --prefix /your/preferred/folder
+```
+
+Alternatively, you can create and activate a virtual environment holding the
+Hilde installation and all dependencies like this:
+
+```
+python3 -m venv venv
+source venv/bin/activate
+cat requirements.txt | xargs -n 1 -L 1 pip install
+pip install .
+```
 
 **Settings Files**
 

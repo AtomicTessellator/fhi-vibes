@@ -1,7 +1,7 @@
 from ase.calculators.aims import Aims
 from pathlib import Path
 import numpy as np
-from helpers.hash import hash_atoms
+from helpers.hash import hash_atoms_and_calc
 from ase.atoms import Atoms
 from ase.db import connect
 from pprint import pprint
@@ -42,7 +42,7 @@ si = Atoms('Si2',
 si.set_calculator(aims)
 
 db = connect(database_dir)
-atoms_hash, calc_hash = hash_atoms(si, ignore_file='./test/hash_ignore.ini')
+atoms_hash, calc_hash = hash_atoms_and_calc(si, ignore_file='./test/hash_ignore.ini')
 print(atoms_hash, calc_hash)
 
 found = False
