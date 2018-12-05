@@ -24,7 +24,6 @@ def run_md(
     maxsteps=25000,
     trajectory="trajectory.yaml",
     metadata="md_metadata.yaml",
-    walltime=1800,
     workdir=".",
     backup_folder="backups",
     logfile="md.log",
@@ -43,16 +42,18 @@ def run_md(
         workdir (str, optional): Defaults to '.'.
     """
 
-    watchdog = Watchdog(walltime=walltime, **kwargs)
+    # take the literal settings for running the task
+    settings = Settings()
 
+    # create watchdog
+    watchdog = Watchdog(**{**settings.watchdog, **kwargs})
+
+    # create working directories
     workdir = Path(workdir)
     trajectory = (workdir / trajectory).absolute()
     logfile = workdir / logfile
     calc_dir = workdir / _calc_dirname
     backup_folder = workdir / backup_folder
-
-    # take the literal settings for running the task
-    settings = Settings()
 
     # make sure forces are computed (aims only)
     # use wavefunction extrapolation

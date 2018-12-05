@@ -3,5 +3,3 @@
 supercell_matrix = [1, 1, 2]
 
 workdir =    test_run
-
-walltime =    1

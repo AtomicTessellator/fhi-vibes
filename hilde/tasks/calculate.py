@@ -4,6 +4,7 @@
 
 from pathlib import Path
 from ase.calculators.socketio import SocketIOCalculator
+from hilde import Settings
 from hilde.trajectory.phonons import step2file, to_yaml
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
@@ -87,19 +88,23 @@ def calculate_socket(
     calculator,
     metadata,
     trajectory="trajectory.yaml",
-    walltime=1800,
     workdir=".",
     backup_folder="backups",
     **kwargs,
 ):
     """ perform calculations for a set of atoms objects """
 
+    # take the literal settings for running the task
+    settings = Settings()
+
+    # create watchdog
+    watchdog = Watchdog(**{"buffer": 1, **settings.watchdog, **kwargs})
+
+    # create working directories
     workdir = Path(workdir)
     trajectory = (workdir / trajectory).absolute()
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
-
-    watchdog = Watchdog(walltime=walltime, **{"buffer": 1, **kwargs})
 
     # handle the socketio
     socketio_port = get_port(calculator)
