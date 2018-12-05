@@ -29,6 +29,20 @@ def postprocess(
     else:
         raise ValueError("Either calculated_atoms or trajectory must be defined")
 
+
+    fc3_cells = []
+    used_forces = 0
+    for ii, cell in phonon3.get_supercells_with_displacements():
+        if cell is not None and ii == :
+            fc3_cells.append(calculated_atoms[used_forces])
+            used_forces += 1
+        else:
+            fc3_forces.append(None)
+    fc3_forces = ph3.get_forces(fc3_cells)
+    phonon3.produce_fc3(fc3_forces)
+
+
+
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
 
     # compute and save force constants
