@@ -3,9 +3,11 @@ algorithm =   Verlet
 temperature = 100
 timestep =    1
 maxsteps =    50
-walltime =    1
 
 workdir =    test_run
 
 [restart]
 command = python run_md.py
+
+[watchdog]
+walltime =    1
