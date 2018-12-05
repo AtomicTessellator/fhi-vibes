@@ -25,7 +25,7 @@ workdir = /home/purcell/git/hilde/examples/phonopy/fireworks/test_run
 command = python run_phonopy.py
 
 [fw_settings]
-serial = False
+serial = True
 fw_name = relaxation_test
 fw_spec = null
 out_spec = "relaxed_atoms"

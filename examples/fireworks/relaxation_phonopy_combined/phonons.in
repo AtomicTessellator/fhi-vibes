@@ -16,9 +16,9 @@ port = null
 
 [phonopy]
 supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-workdir =    /home/purcell/git/hilde/examples/workflow_examples/relaxation_phonopy_combined/test_run/phonons
-#workdir =    /u/tpurcell/git/hilde/examples/workflow_examples/relaxation_phonopy_combined/test_run/phonons
-analysis_workdir = /home/purcell/git/hilde/examples/workflow_examples/relaxation_phonopy_combined/test_run/phonons
+workdir =    /home/purcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/phonons
+#workdir =    /u/tpurcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/phonons
+analysis_workdir = /home/purcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/phonons
 
 [restart]
 command = python run_phonopy.py

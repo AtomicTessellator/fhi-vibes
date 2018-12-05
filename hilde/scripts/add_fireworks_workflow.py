@@ -6,7 +6,7 @@ from fireworks import Workflow
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.settings import Settings
-from hilde.workflows.workflow_generator import get_step_fw
+from hilde.workflows.workflow_generator import generate_workflow
 
 def main():
     parser = ArgumentParser(description="create a configuration file and workdir")
@@ -15,17 +15,10 @@ def main():
 
     workflow = Settings(settings_file=args.workflow)
     atoms = read(workflow.geometry.file)
-    fw_list = []
+    steps = []
 
     for step_file in workflow.workflow.step_files:
-        step_settings = Settings(settings_file=step_file)
-        for fw in get_step_fw(step_settings, atoms=atoms):
-            fw_list.append(fw)
+        steps.append(Settings(settings_file=step_file))
 
-    fw_dep = {}
-    for i,fw in enumerate(fw_list[:-1]):
-        fw_dep[fw] = fw_list[i+1]
-
-    wf = Workflow(fw_list, fw_dep)
     launchpad = LaunchPadHilde.from_file("/home/purcell/.fireworks/my_launchpad.yaml")
-    launchpad.add_wf(wf)
+    launchpad.add_wf(generate_workflow(steps, atoms))

@@ -10,7 +10,7 @@ from hilde.helpers.converters import calc2dict, atoms2dict
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.phonon_db.database_api import update_phonon_db
 from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict
-from hilde.tasks.fireworks.general_py_task import generate_firework
+from hilde.workflows.workflow_generator import generate_firework
 
 mod_name = __name__
 
@@ -84,12 +84,13 @@ def check_relaxation_complete(
     except:
         new_traj_list[-2] += "_restart_1"
         func_kwargs["trajectory"] = ".".join(new_traj_list)
+
     fw = generate_firework(
-        func,
-        func_fw_out,
-        func_kwargs,
-        atoms,
-        calc,
+        func=func,
+        func_fw_out=func_fw_out,
+        func_kwargs=func_kwargs,
+        atoms=atoms,
+        calc=calc,
         func_fw_out_kwargs=func_fw_kwargs,
         fw_settings=fw_settings,
     )
@@ -152,11 +153,11 @@ def check_aims_relaxation_complete(
         fw_settings["to_launcpad"] = False
 
     fw = generate_firework(
-        func,
-        func_fw_out,
-        func_kwargs,
-        atoms,
-        calc,
+        func=func,
+        func_fw_out=func_fw_out,
+        func_kwargs=func_kwargs,
+        atoms=atoms,
+        calc=calc,
         func_fw_out_kwargs=func_fw_kwargs,
         fw_settings=fw_settings,
     )
@@ -191,11 +192,11 @@ def serial_phonopy_continue(
     if outputs:
         return FWAction(update_spec=update_spec)
     fw = generate_firework(
-        func,
-        func_fw_out,
-        func_kwargs,
-        atoms,
-        calc,
+        func=func,
+        func_fw_out=func_fw_out,
+        func_kwargs=func_kwargs,
+        atoms=atoms,
+        calc=calc,
         func_fw_out_kwargs=func_fw_kwargs,
         fw_settings=fw_settings,
     )
@@ -252,11 +253,11 @@ def check_kgrid_opt_completion(
         func_kwargs["trajectory"] = ".".join(new_traj_list)
 
     fw = generate_firework(
-        func,
-        func_fw_out,
-        func_kwargs,
-        atoms,
-        outputs[2],
+        func=func,
+        func_fw_out=func_fw_out,
+        func_kwargs=func_kwargs,
+        atoms=atoms,
+        calc=outputs[2],
         func_fw_out_kwargs=func_fw_kwargs,
         fw_settings=fw_settings,
     )
@@ -342,14 +343,13 @@ def add_phonon_force_calcs(
         ] = f"forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
         detours.append(
             generate_firework(
-                "hilde.tasks.calculate.calculate",
-                "hilde.tasks.fireworks.fw_action_outs.mod_spec_add",
-                calc_kwargs,
-                sc_dict,
-                calc_dict,
+                func="hilde.tasks.calculate.calculate",
+                func_fw_out="hilde.tasks.fireworks.fw_action_outs.mod_spec_add",
+                func_kwargs=calc_kwargs,
+                atoms=sc_dict,
+                calc=calc_dict,
                 atoms_calc_from_spec=False,
                 fw_settings=fw_settings,
-                update_calc_settings=None,
             )
         )
     if isinstance(outputs[0], Phonopy):

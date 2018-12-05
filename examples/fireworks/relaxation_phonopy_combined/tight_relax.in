@@ -17,8 +17,8 @@ port = null
 fmax =       0.01
 unit_cell = True
 maxsteps =   20
-#workdir = /u/tpurcell/git/hilde/examples/workflow_examples/relaxation_phonopy_combined/test_run/tight_relax
-workdir = /home/purcell/git/hilde/examples/workflow_examples/relaxation_phonopy_combined/test_run/tight_relax
+#workdir = /u/tpurcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/tight_relax
+workdir = /home/purcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/tight_relax
 
 [fw_settings]
 from_db = True

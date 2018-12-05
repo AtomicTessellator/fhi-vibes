@@ -1,16 +1,13 @@
 from ase.atoms import Atoms
 
-from fireworks import Firework, PyTask
+from fireworks import PyTask
 
 import os
 
 from hilde import DEFAULT_CONFIG_FILE
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
-from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
-from hilde.helpers.k_grid import update_k_grid
+from hilde.helpers.converters import dict2atoms
 from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
-from hilde.tasks.utility_tasks import update_calc
 module_name = __name__
 
 def setup_atoms_task(task_spec, atoms, calc, fw_settings):
@@ -68,96 +65,6 @@ def generate_mod_calc_task(atoms_dict, calc_spec, kpt_spec):
             "kwargs": {"spec_key": kpt_spec},
         }
     )
-
-def generate_firework(
-    task_spec_list=None,
-    atoms=None,
-    calc=None,
-    atoms_calc_from_spec=False,
-    fw_settings=None,
-    update_calc_settings={},
-    func=None,
-    func_fw_out=None,
-    func_kwargs=None,
-    func_fw_out_kwargs=None,
-    args=None,
-    inputs=None,
-):
-    """
-    A function that takes in a set of inputs and returns a Firework to perform that operation
-    Args:
-        task_spec_list (list of TaskSpecs): list of task specifications to perform
-        atoms: ASE Atoms object, dictionary or str
-            If not atoms__calc_from_spec then this must be an ASE Atoms object or a dictionary describing it
-            If atoms__calc_from_spec then this must be a key str to retrieve the Atoms Object from the MongoDB launchpad
-        calc: ASE Calculator object, dictionary or str
-            If not atoms_calc_from_spec then this must be an ASE Calculator object or a dictionary describing it
-            If atoms_calc_from_spec then this must be a key str to retrieve the Calculator from the MongoDB launchpad
-        atoms_calc_from_spec: bool
-            If True retrieve the atoms/Calculator objects from the MongoDB launchpad
-        fw_settings: dict
-            Settings used by fireworks to place objects in the right part of the MongoDB
-        update_calc_settings: dict
-            Used to update the Calculator parameters
-        func_fw_out_kwargs: dict
-            Keyword functions for the fw_out function
-    Returns: Firework
-        A Firework that will perform the desired operation on a set of atoms, and process the outputs for Fireworks
-    """
-    if func:
-        if task_spec_list:
-            raise ArgumentError("You have defined a task_spec_list and arguments to generate one, please only specify one of these")
-        at = atoms is not None
-        task_spec_list = [
-            TaskSpec(
-                func, func_fw_out, at, func_kwargs, func_fw_out_kwargs, args, inputs
-            )
-        ]
-    elif not task_spec_list:
-        raise ArgumentError("You have not defined a task_spec_list or arguments to generate one, please specify one of these")
-
-    if "fw_name" not in fw_settings:
-        fw_name = None
-        fw_settings["fw_base_name"] = ""
-    elif "fw_base_name" not in fw_settings:
-        fw_settings["fw_base_name"] = fw_settings["fw_name"]
-
-    setup_tasks = []
-    if atoms:
-        if not atoms_calc_from_spec:
-            at = atoms2dict(atoms)
-            if "k_grid_density" in update_calc_settings:
-                if not isinstance(calc, dict):
-                    update_k_grid(atoms, calc, update_calc_settings["k_grid_density"])
-                else:
-                    recipcell = np.linalg.pinv(at["cell"]).transpose()
-                    calc = update_k_grid_calc_dict(calc, recipcell, at["pbc"], new_val)
-            cl = calc2dict(calc)
-            for key, val in update_calc_settings.items():
-                if key != "k_grid_density"
-                    cl = update_calc(cl, key, val)
-            for key, val in cl.items():
-                at[key] = val
-        else:
-            at = atoms
-            cl = calc
-            setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
-
-        if "kpoint_density_spec" in fw_settings:
-            setup_tasks.append(generate_mod_calc_task(at, cl, fw_settings["kpoint_density_spec"]))
-    else:
-        at = None
-        cl = None
-    job_tasks = []
-    for task_spec in task_spec_list:
-        job_tasks.append(generate_task(task_spec, fw_settings, at, cl))
-
-    if fw_settings and "to_launcpad" in fw_settings and fw_settings["to_launcpad"]:
-        launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
-        launchpad.add_wf(Firework(job_tasks, name=fw_settings["fw_name"]))
-        return None
-    return Firework(setup_tasks + job_tasks, name=fw_settings["fw_name"], spec=fw_settings["spec"])
-
 
 def get_func(func_path):
     """A function that takes in a path to a python function and returns that function"""
@@ -274,6 +181,7 @@ general_function_task.name = f"{module_name}.{general_function_task.__name__}"
 
 class TaskSpec:
     def __init__(
+        self,
         func,
         func_fw_out,
         at,
@@ -313,7 +221,7 @@ class TaskSpec:
     def get_pt_args(self):
         if self.at:
             return [self.func, self.func_fw_out, self.func_kwargs, self.func_fw_out_kwargs]
-        return [func, func_fw_out, *args]
+        return [self.func, self.func_fw_out, *self.args]
 
     def get_pt_kwargs(self, fw_settings):
         if not fw_settings:
@@ -322,7 +230,7 @@ class TaskSpec:
         if self.at:
             return {"fw_settings": fw_settings}
 
-        to_ret = dict(task_spec.func_kwargs, **task_spec.func_fw_out_kwargs)
+        to_ret = dict(self.func_kwargs, **self.func_fw_out_kwargs)
         to_ret["fw_settings"] = fw_settings
 
         return to_ret
@@ -330,4 +238,4 @@ class TaskSpec:
     def get_pt_inputs(self):
         if self.at:
             return []
-        return inputs
+        return self.inputs
