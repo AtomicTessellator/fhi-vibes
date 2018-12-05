@@ -42,7 +42,8 @@ def preprocess(
     metadata = metadata2dict(atoms, calc, phonon3)
 
     for sc in scs:
-        sc.calc = calc
+        if sc is not None:
+            sc.calc = calc
 
     return calc, supercell, scs, phonon3, metadata
 
@@ -62,11 +63,11 @@ def run(
     supercell_file="geometry.in.supercell_fc3",
     force_constants_file="force_constants_3.dat",
     pickle_file="phono3py.pick",
-    db_path=None,
+    db_kwargs=None,
     **kwargs,
 ):
 
-    calc, supercell, scs, phonon, metadata = preprocess(
+    calc, supercell, scs, phonon3, metadata = preprocess(
         atoms,
         calc,
         supercell_matrix,
@@ -99,12 +100,12 @@ def run(
     if "fireworks" in kwargs:
         del(kwargs["fireworks"])
     postprocess(
-        phonon,
+        # phonon3,
         trajectory=trajectory,
         workdir=workdir,
         force_constants_file=force_constants_file,
         pickle_file=pickle_file,
-        db_path=db_path,
+        db_kwargs=db_kwargs,
         **kwargs,
     )
 

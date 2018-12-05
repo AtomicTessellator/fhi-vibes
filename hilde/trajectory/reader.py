@@ -7,7 +7,7 @@ from hilde.helpers.fileformats import from_yaml
 from hilde.helpers.converters import dict2results
 
 
-def reader(file):
+def reader(file, get_metadata=False):
     """ convert information in trajectory and metadata files to atoms objects
      and return them """
 
@@ -46,5 +46,6 @@ def reader(file):
         atoms.info = info
 
         trajectory.append(atoms)
-
+    if get_metadata:
+        return trajectory, metadata
     return trajectory
