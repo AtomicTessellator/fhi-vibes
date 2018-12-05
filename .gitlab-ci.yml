@@ -1,6 +1,7 @@
 image: registry.gitlab.com/flokno/hilde:reference
 
 before_script:
+  - cp hilde.cfg.template hilde.cfg
   - pip install .
   - jtest="jupyter nbconvert --execute"
   - service mongodb start --ipv6
