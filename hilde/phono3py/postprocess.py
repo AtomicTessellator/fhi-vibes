@@ -4,19 +4,20 @@ from pathlib import Path
 import pickle
 import numpy as np
 
+from phono3py.file_IO import write_fc3_to_hdf5
 from hilde.helpers.converters import dict2atoms
 from hilde.phonon_db.database_api import update_phonon_db
 from hilde.phonon_db.row import PhononRow
-import hilde.phonopy.wrapper as ph
 from hilde.phonopy import displacement_id_str
-from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader as traj_reader
 
 
 def postprocess(
     phonon3,
+    symmetrize_fc3=False,
+    workdir=".",
     trajectory="trajectory.yaml",
-    force_constants_file="force_constants.dat",
+    force_constants_file="force_constants_3.hdf5",
     pickle_file="phono3py.pick",
     **kwargs,
 ):
@@ -29,27 +30,32 @@ def postprocess(
     else:
         raise ValueError("Either calculated_atoms or trajectory must be defined")
 
+    forces_shape = calculated_atoms[0].get_forces().shape
 
-    fc3_cells = []
+    force_sets_fc3 = []
     used_forces = 0
     for ii, cell in phonon3.get_supercells_with_displacements():
-        if cell is not None and ii == :
-            fc3_cells.append(calculated_atoms[used_forces])
-            used_forces += 1
+        if cell is not None:
+            ref_atoms = calculated_atoms[used_forces]
+            if ref_atoms.info[displacement_id_str] == ii:
+                force_sets_fc3.append(ref_atoms.get_forces())
+                used_forces += 1
         else:
-            fc3_forces.append(None)
-    fc3_forces = ph3.get_forces(fc3_cells)
-    phonon3.produce_fc3(fc3_forces)
+            force_sets_fc3.append(np.zeros(forces_shape))
 
+    # compute force constants
+    if symmetrize_fc3:
+        phonon3.produce_fc3(
+            force_sets_fc3,
+            is_translational_symmetry=True,
+            is_permutation_symmetry=True,
+            is_permutation_symmetry_fc2=True,
+        )
 
+    else:
+        phonon3.produce_fc3(force_sets_fc3)
 
-    force_sets = [atoms.get_forces() for atoms in calculated_atoms]
-
-    # compute and save force constants
-    phonon3.set_fc3(force_sets)
-
-    with (Path(workdir) / pickle_file).open("wb") as fp:
-        pickle.dump(phonon, fp)
+    write_fc3_to_hdf5(phonon3.get_fc3(), filename=force_constants_file)
 
     exit(
         f"*** Force Sets provided in {pickle_file}, "
