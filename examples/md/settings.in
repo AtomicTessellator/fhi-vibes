@@ -1,14 +1,12 @@
-# config file to control phonopy workflow
 [geometry]
-file = geometry.in
+file =             geometry.in
 
 [control]
 xc =               pw-lda
 sc_accuracy_rho =  1e-4
-charge_mix_param = 0.5
 
 [control_kpt]
-density =         0.5
+density =          0.5
 
 [basisset]
 type = light
