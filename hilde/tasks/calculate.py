@@ -8,7 +8,7 @@ from hilde import Settings
 from hilde.trajectory.phonons import step2file, to_yaml
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
-from hilde.watchdogs import WallTimeWatchdog as Watchdog
+from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.trajectory import get_hashes_from_trajectory, hash_atoms
 
 from hilde.helpers.paths import cwd

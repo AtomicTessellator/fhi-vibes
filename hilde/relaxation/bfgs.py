@@ -5,7 +5,7 @@ from ase.constraints import UnitCellFilter
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.settings import Settings
-from hilde.watchdogs import WallTimeWatchdog as Watchdog
+from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port
 from hilde.trajectory.relaxation import metadata2file, step2file
