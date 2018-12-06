@@ -102,10 +102,9 @@ class WallTimeWatchdog:
 
         timestr = strftime("%Y/%m/%d %H:%M:%S")
 
-        info_str += f"{timestr} " + " ".join(
+        info_str += f"{timestr} {self.n_calls:10d} " + " ".join(
             f"{s:10.1f}"
             for s in (
-                self.n_calls,
                 self.increment_per_step,
                 self.buffer_time,
                 self.time_left,
