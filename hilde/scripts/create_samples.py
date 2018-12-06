@@ -36,7 +36,6 @@ def main():
     atoms = read(args.geom, format=args.format)
     inform(atoms)
 
-    force_constants = None
     if args.force_constants is not None:
         print(f"Use force constants from {args.force_constants} to prepare samples")
         force_constants = np.loadtxt(args.force_constants)
@@ -59,7 +58,7 @@ def main():
         sample = initialize_md(
             sample,
             temperature=args.temperature,
-            force_constants=force_constants,
+            force_constants=args.force_constants,
             quantum=args.quantum,
         )
 

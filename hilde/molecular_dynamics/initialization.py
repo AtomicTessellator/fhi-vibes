@@ -3,8 +3,9 @@
 from pathlib import Path
 import numpy as np
 from ase import units as u
-from hilde.trajectory.md import last_from_yaml
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
+from hilde.trajectory.md import last_from_yaml
+from hilde.helpers.warnings import warn
 
 
 def setup_md(
@@ -28,7 +29,6 @@ def setup_md(
     if not Path(workdir).is_dir():
         Path(workdir).mkdir()
 
-    temp = temperature * u.kB
     dt = timestep * u.fs
 
     if "verlet" in algorithm.lower():
@@ -39,8 +39,15 @@ def setup_md(
     elif "langevin" in algorithm.lower():
         from ase.md.langevin import Langevin
 
+        if temperature is None:
+            warn("temperature not set", level=3)
+
         md = Langevin(
-            atoms, temperature=temp, timestep=dt, friction=friction, logfile=logfile
+            atoms,
+            temperature=temperature * u.kB,
+            timestep=dt,
+            friction=friction,
+            logfile=logfile,
         )
 
     else:
