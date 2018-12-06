@@ -48,9 +48,6 @@ def setup_md(
 
     prepared = prepare_from_trajectory(atoms, md, trajectory)
 
-    if not prepared:
-        atoms = initialize_md(atoms, temperature, **kwargs)
-
     return atoms, md, prepared
 
 
@@ -68,8 +65,13 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
     print(f"** {trajectory} does  not exist, nothing to prepare")
 
 
-def initialize_md(atoms, temperature, force_constants=None, quantum=False, **kwargs):
+def initialize_md(
+    atoms, temperature=None, force_constants=None, quantum=False, **kwargs
+):
     """ Either use Maxwell Boltzmann or PhononHarmonics to prepare the MD run """
+
+    if temperature is None:
+        return atoms
 
     print(f"Prepare MD run at temperature {temperature}")
 
