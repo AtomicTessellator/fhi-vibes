@@ -42,6 +42,9 @@ def setup_md(
         if temperature is None:
             warn("temperature not set", level=3)
 
+        if friction is None:
+            warn("Friction not defined, set to 0.01", level=2)
+
         md = Langevin(
             atoms,
             temperature=temperature * u.kB,
