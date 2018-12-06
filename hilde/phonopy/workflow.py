@@ -83,12 +83,12 @@ def run(
     )
 
     postprocess(
-        phonon,
+        # phonon,
         trajectory=trajectory,
         workdir=workdir,
         force_constants_file=force_constants_file,
         pickle_file=pickle_file,
-        db_path=db_path,
+        db_kwargs={"db_path": db_path},
         **kwargs,
     )
 

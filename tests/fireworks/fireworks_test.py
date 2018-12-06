@@ -53,17 +53,15 @@ init_fw = generate_firework(
 
 kwargs = {
     "fireworks": True,
-    "db_path": db_name,
-    "original_atoms_hash": atoms_hash,
+    "db_kwargs": {"db_path": db_name,"original_atoms_hash": atoms_hash},
     "workdir": workdir,
-    "displacement": 0.01,
 }
 
 anal_fw = generate_firework(
     func="hilde.phonopy.postprocess.postprocess",
     func_fw_out="hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
     args=[],
-    inputs=["phonon", fw_settings["mod_spec_add"]],
+    inputs=["metadata", fw_settings["mod_spec_add"]],
     func_kwargs=kwargs,
     fw_settings=fw_settings,
 )

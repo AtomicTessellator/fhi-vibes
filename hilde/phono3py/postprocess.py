@@ -7,7 +7,6 @@ import numpy as np
 import json
 from phono3py.file_IO import write_fc3_to_hdf5
 from hilde.helpers.converters import dict2atoms, dict2results
-from hilde.trajectory.phonons import step2file, to_yaml
 from hilde import konstanten as const
 from hilde.phonon_db.database_api import update_phonon_db
 from hilde.phonon_db.row import PhononRow
@@ -16,13 +15,13 @@ from hilde.phonopy import displacement_id_str
 from hilde.phono3py.wrapper import defaults
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.trajectory import reader as traj_reader
+from hilde.trajectory.phonons import step2file, to_yaml
 
 def collect_forces_to_trajectory(
     trajectory,
     calculated_atoms,
     metadata,
 ):
-    print(trajectory)
     for el in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
         el["number"] = int(el["number"])
         for d, dd in enumerate(el["direction"]):
@@ -59,7 +58,6 @@ def postprocess(
 ):
     trajectory = Path(workdir) / trajectory
     force_constants_file = Path(workdir) / force_constants_file
-    print(kwargs)
     if fireworks:
         collect_forces_to_trajectory(trajectory, calculated_atoms, metadata)
 
@@ -74,7 +72,7 @@ def postprocess(
         supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
         is_symmetry=True,
         frequency_factor_to_THz=const.eV_to_THz,
-        **kwargs,
+        **phonon3_kwargs,
     )
     phonon3.set_displacement_dataset(metadata["Phono3py"]['displacement_dataset'])
     if "fc2" in kwargs:
@@ -83,8 +81,6 @@ def postprocess(
 
     force_sets_fc3 = []
     used_forces = 0
-
-    print(type(metadata["Phono3py"]["displacement_dataset"]["first_atoms"][0]["number"]))
 
     for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
         if cell is not None:
