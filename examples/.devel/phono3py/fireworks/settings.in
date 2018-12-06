@@ -21,7 +21,7 @@ port:                null
 [phono3py]
 supercell_matrix =  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 displacement = 0.03
-workdir = /home/purcell/git/hilde/examples/phono3py/fireworks/test_run
+workdir = /home/purcell/git/hilde/examples/.devel/phono3py/fireworks/test_run
 fireworks = True
 log_level = 2
 

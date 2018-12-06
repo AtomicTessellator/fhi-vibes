@@ -133,7 +133,6 @@ def get_phonon_analysis_task(func, func_kwargs, fw_settings, db_kwargs= None):
         "trajectory",
         "analysis_workdir",
         "force_constant_file",
-        "displacement",
         "workdir",
     ]
     for key in anal_keys:
@@ -146,7 +145,7 @@ def get_phonon_analysis_task(func, func_kwargs, fw_settings, db_kwargs= None):
         func,
         "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
         False,
-        inputs=["phonon", fw_settings["mod_spec_add"]],
+        inputs=["metadata", fw_settings["mod_spec_add"]],
         func_kwargs=kwargs,
     )
 

@@ -352,13 +352,7 @@ def add_phonon_force_calcs(
                 fw_settings=fw_settings,
             )
         )
-    if isinstance(outputs[3], Phonopy):
-        phonon = phonon_to_dict(outputs[3])
-    elif isinstance(outputs[3], Phono3py):
-        phonon = phonon3_to_dict(outputs[3])
-    else:
-        raise TypeError("Phonon output not known")
-    return FWAction(update_spec={"phonon": phonon}, detours=detours)
+    return FWAction(update_spec={"metadata": outputs[4]}, detours=detours)
 
 def mod_spec_add(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings

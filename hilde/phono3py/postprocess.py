@@ -4,9 +4,10 @@ from pathlib import Path
 from phono3py.phonon3 import Phono3py
 import pickle
 import numpy as np
-
+import json
 from phono3py.file_IO import write_fc3_to_hdf5
 from hilde.helpers.converters import dict2atoms, dict2results
+from hilde.trajectory.phonons import step2file, to_yaml
 from hilde import konstanten as const
 from hilde.phonon_db.database_api import update_phonon_db
 from hilde.phonon_db.row import PhononRow
@@ -21,6 +22,14 @@ def collect_forces_to_trajectory(
     calculated_atoms,
     metadata,
 ):
+    print(trajectory)
+    for el in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
+        el["number"] = int(el["number"])
+        for d, dd in enumerate(el["direction"]):
+            el['direction'][d] = int(dd)
+        for el2 in el["second_atoms"]:
+            el2["number"] = int(el2["number"])
+
     to_yaml(metadata, trajectory, mode="w")
 
     if isinstance(calculated_atoms[0], dict):
@@ -37,19 +46,21 @@ def collect_forces_to_trajectory(
 
 def postprocess(
     # phonon3,
+    metadata=None,
     calculated_atoms=None,
     symmetrize_fc3=False,
     workdir=".",
     trajectory="trajectory.yaml",
     force_constants_file="force_constants_3.hdf5",
     pickle_file="phono3py.pick",
-    metadata=None,
     db_kwargs=None,
+    fireworks=False,
     **kwargs,
 ):
     trajectory = Path(workdir) / trajectory
-
-    if "fireworks" in kwargs and kwargs["fireworks"]:
+    force_constants_file = Path(workdir) / force_constants_file
+    print(kwargs)
+    if fireworks:
         collect_forces_to_trajectory(trajectory, calculated_atoms, metadata)
 
     calculated_atoms, metadata = traj_reader(trajectory, True)
@@ -72,6 +83,9 @@ def postprocess(
 
     force_sets_fc3 = []
     used_forces = 0
+
+    print(type(metadata["Phono3py"]["displacement_dataset"]["first_atoms"][0]["number"]))
+
     for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
         if cell is not None:
             ref_atoms = calculated_atoms[used_forces]
@@ -104,7 +118,3 @@ def postprocess(
             **db_kwargs
         )
 
-    print(
-        f"*** Force Sets provided in {pickle_file}, "
-        "full postprocess not yet supported"
-    )
