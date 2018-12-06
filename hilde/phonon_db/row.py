@@ -148,7 +148,7 @@ class PhononRow(AtomsRow):
             phonon: The phonopy object the PhononRow represents
         """
         phonon = Phonopy(
-            to_phonopy_atoms(to_Atoms(ase_atoms=self.toatoms())),
+            to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
             symprec=self.symprec,
             is_symmetry=True,
