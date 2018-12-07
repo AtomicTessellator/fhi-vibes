@@ -9,7 +9,10 @@ from hilde import DEFAULT_SETTINGS_FILE
 
 class AttributeDict(OrderedDict):
     def __getattr__(self, attr):
-        return self[attr]
+        if attr in self:
+            return self[attr]
+        else:
+            return None
 
     def __setattr__(self, attr, value):
         self[attr] = value

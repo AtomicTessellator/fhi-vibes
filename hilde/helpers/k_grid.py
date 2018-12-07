@@ -1,6 +1,7 @@
 """ Helpers for working with kpoint densites """
 
 import numpy as np
+from hilde.helpers.warnings import warn
 
 
 def d2k(atoms, kptdensity=3.5, even=True):
@@ -64,6 +65,7 @@ def update_k_grid(atoms, calc, kptdensity, even=True):
     k_grid = d2k(atoms, kptdensity, even)
 
     if calc.name == "aims":
+        warn(f"update k_grid to {k_grid}")
         calc.parameters["k_grid"] = k_grid
 
 def update_k_grid_calc_dict(calc_dict, recipcell, pbc, kptdensity, even=True):

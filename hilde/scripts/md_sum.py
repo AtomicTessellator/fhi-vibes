@@ -11,7 +11,7 @@ def parse_log(filename):
     e_pot = []
     temp = []
     time = []
-    with open(args.file) as f:
+    with open(filename) as f:
         for line in f:
             if line.strip() == "":
                 continue

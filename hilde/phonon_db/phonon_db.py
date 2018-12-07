@@ -275,6 +275,7 @@ class PhononDatabase(Database):
         dct=None,
         phonon3=None,
         phonon=None,
+        store_second_order=False,
         delete_keys=[],
         data=None,
         **add_key_value_pairs,
@@ -283,6 +284,10 @@ class PhononDatabase(Database):
 
         id: int
             ID of row to update.
+        dct: dict
+            Optionally update the row with a dict.
+        phonon3: Phono3py object
+            Optionally update the Phononpy data (positions, cell, ...).
         phonon: Phonopy object
             Optionally update the Phononpy data (positions, cell, ...).
         data: dict
@@ -310,7 +315,7 @@ class PhononDatabase(Database):
 
         oldrow = self._get_row(id)
         if phonon3:
-            row = PhononRow(phonon3=phonon3, phonon=phonon)
+            row = PhononRow(phonon3=phonon3, store_second_order=store_second_order)
         elif phonon:
             row = PhononRow(phonon)
         elif dct:
@@ -342,6 +347,11 @@ class PhononDatabase(Database):
         if not data:
             data = None
 
+        # Update the row with values in old row not in row
+        for key, val in oldrow.__dict__.items():
+            if key not in row:
+                row[key] = val
+
         self._write(row, kvp, data, row.id)
 
         return m, n
@@ -371,9 +381,9 @@ class PhononDatabase(Database):
         if phonon3:
             row = PhononRow(phonon3=phonon3, phonon=phonon)
         elif phonon:
-            row = PhononRow(phonon)
+            row = PhononRow(phonon=phonon)
         elif dct:
-            row = PhononRow(dct)
+            row = PhononRow(dct=dct)
         row.user = os.getenv("USER")
         row.ctime = now()
         kvp = dict(key_value_pairs)  # modify a copy

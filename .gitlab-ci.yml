@@ -13,6 +13,7 @@ all_tests:
     - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; python test_lattice_points.py
     - cd ../phonopy; python run_phonopy.py
     - cd ../md; python run_md.py
+    - cd ../phonon_db; python phonon_db.py; python phonon_db.py;
     - cd ../fireworks; python fireworks_test.py
     - cd $CI_PROJECT_DIR/examples/.devel
     - $jtest trajectory/pretty_json.ipynb

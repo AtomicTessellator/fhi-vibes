@@ -3,8 +3,9 @@
 from pathlib import Path
 import numpy as np
 from ase import units as u
-from hilde.trajectory.md import last_from_yaml
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
+from hilde.trajectory.md import last_from_yaml
+from hilde.helpers.warnings import warn
 
 
 def setup_md(
@@ -28,7 +29,6 @@ def setup_md(
     if not Path(workdir).is_dir():
         Path(workdir).mkdir()
 
-    temp = temperature * u.kB
     dt = timestep * u.fs
 
     if "verlet" in algorithm.lower():
@@ -39,17 +39,24 @@ def setup_md(
     elif "langevin" in algorithm.lower():
         from ase.md.langevin import Langevin
 
+        if temperature is None:
+            warn("temperature not set", level=3)
+
+        if friction is None:
+            warn("Friction not defined, set to 0.01", level=2)
+
         md = Langevin(
-            atoms, temperature=temp, timestep=dt, friction=friction, logfile=logfile
+            atoms,
+            temperature=temperature * u.kB,
+            timestep=dt,
+            friction=friction,
+            logfile=logfile,
         )
 
     else:
         raise RuntimeError(f"Molecular dynamics mode {algorithm} is not suppported.")
 
     prepared = prepare_from_trajectory(atoms, md, trajectory)
-
-    if not prepared:
-        atoms = initialize_md(atoms, temperature, **kwargs)
 
     return atoms, md, prepared
 
@@ -68,8 +75,18 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
     print(f"** {trajectory} does  not exist, nothing to prepare")
 
 
-def initialize_md(atoms, temperature, force_constants=None, quantum=False, **kwargs):
+def initialize_md(
+    atoms,
+    temperature=None,
+    force_constants=None,
+    quantum=False,
+    force_temp=True,
+    **kwargs,
+):
     """ Either use Maxwell Boltzmann or PhononHarmonics to prepare the MD run """
+
+    if temperature is None:
+        return atoms
 
     print(f"Prepare MD run at temperature {temperature}")
 
@@ -81,7 +98,9 @@ def initialize_md(atoms, temperature, force_constants=None, quantum=False, **kwa
         )
     else:
         print("Initialize velocities according to Maxwell-Boltzmann distribution.")
-        MaxwellBoltzmannDistribution(atoms, temp=temperature * u.kB)
+        MaxwellBoltzmannDistribution(
+            atoms, temp=temperature * u.kB, force_temp=force_temp
+        )
 
     return atoms
 

@@ -7,14 +7,12 @@ from ase.io.jsonio import decode
 from phonopy import Phonopy
 from phono3py.phonon3 import Phono3py
 
+from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.utility_functions import reshape_fc_2, reshape_fc_3
 from hilde import konstanten as const
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import to_dict
-from hilde.structure.structure import pAtoms
-from hilde.structure.convert import to_phonopy_atoms
-
 
 def phonon_to_dict(phonon, to_mongo=False):
     """
@@ -25,14 +23,12 @@ def phonon_to_dict(phonon, to_mongo=False):
     Returns:
         dct: the dictionary representation of phonon
     """
-    dct = atoms2dict(pAtoms(phonopy_atoms=phonon.get_primitive()))
+    dct = atoms2dict(to_Atoms(phonon.get_primitive()))
     dct["symprec"] = phonon._symprec
     if phonon.get_supercell_matrix() is not None:
         dct["sc_matrix_2"] = list(np.array(phonon.get_supercell_matrix()).flatten())
-        try:
-            dct["natoms_in_sc_2"] = len(phonon.get_supercell().symbols)
-        except:
-            dct["natoms_in_sc_2"] = len(dct["numbers"])
+        dct["natoms_in_sc_2"] = len(dct["numbers"]) * int(round(np.linalg.det(phonon.get_supercell_matrix())))
+
     if phonon.get_force_constants() is not None:
         dct["fc_2"] = phonon.get_force_constants()
     if phonon.mesh is not None:
@@ -62,7 +58,7 @@ def phonon_to_dict(phonon, to_mongo=False):
     return dct
 
 
-def phonon3_to_dict(phonon3, phonon=None, to_mongo=False):
+def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
     """
     Converts a phonopy object to a dictionary
     Args:
@@ -71,37 +67,28 @@ def phonon3_to_dict(phonon3, phonon=None, to_mongo=False):
     Returns:
         dct: the dictionary representation of phonon
     """
-    dct = atoms2dict(pAtoms(phonopy_atoms=phonon3.get_primitive()))
+    dct = atoms2dict(to_Atoms(phonon3.get_primitive()))
     dct["symprec"] = phonon3._symprec
-    if phonon is None:
-        phonon = Phonopy(
-            phonon3.get_unitcell(),
-            supercell_matrix=phonon3._phonon_supercell_matrix,
-            symprec=phonon3._symprec,
-            is_symmetry=phonon3._is_symmetry,
-            factor=phonon3._frequency_factor_to_THz,
-            log_level=phonon3._log_level,
-        )
-        if phonon3.get_fc2():
-            phonon.set_force_constants(phonon3.get_fc2())
+
     if phonon3.get_supercell_matrix() is not None:
         dct["sc_matrix_3"] = list(np.array(phonon3.get_supercell_matrix()).flatten())
-        try:
-            dct["natoms_in_sc_3"] = len(phonon3.get_supercell().symbols)
-        except:
-            dct["natoms_in_sc_3"] = len(dct["numbers"])
+        dct["natoms_in_sc_3"] = len(dct["numbers"]) * int(round(np.linalg.det(phonon3.get_supercell_matrix())))
+
+    if phonon3._phonon_supercell_matrix is not None and store_second_order:
+        dct["sc_matrix_2"] = list(np.array(phonon3._phonon_supercell_matrix).flatten())
+        dct["natoms_in_sc_2"] = len(dct["numbers"]) * int(round(np.linalg.det(phonon3._phonon_supercell_matrix)))
+
     if phonon3.get_fc3() is not None:
         dct["fc_3"] = phonon3.get_fc3()
 
+    if phonon3.get_fc2() is not None and store_second_order:
+        dct["fc_2"] = phonon3.get_fc2()
+
     if phonon3.get_thermal_conductivity():
         dct["tp_T"] = phonon3.get_thermal_conductivity().get_temperatures()
-        dct["tp_kappa"] = phonon3.get_thermal_conductivity().get_kappa()
+        dct["tp_kappa"] = phonon3.get_thermal_conductivity().get_kappa()[0]
         dct["qmesh"] = phonon3.get_thermal_conductivity().get_mesh_numbers()
-        phonon.set_mesh(dct["qmesh"])
-        phonon.set_thermal_properties(temperatures=dct["tp_T"])
 
-    for key, val in phonon_to_dict(phonon).items():
-        dct[key] = val
     return dct
 
 
@@ -110,7 +97,7 @@ class PhononRow(AtomsRow):
     Class that is largely based off of the ASE AtomsRow object but expanded for phonopy
     """
 
-    def __init__(self, dct=None, phonon3=None, phonon=None):
+    def __init__(self, dct=None, phonon3=None, phonon=None, store_second_order=False):
         """
         Constructor for the PhononRow.
         Args:
@@ -138,7 +125,7 @@ class PhononRow(AtomsRow):
                 for i, sc_el in enumerate(dct["sc_matrix_3"]):
                     dct["sc_matrix_3"][i] = int(sc_el)
         elif phonon3:
-            dct = phonon3_to_dict(phonon3, phonon)
+            dct = phonon3_to_dict(phonon3, store_second_order)
         elif phonon:
             dct = phonon_to_dict(phonon)
         else:
@@ -161,7 +148,7 @@ class PhononRow(AtomsRow):
             phonon: The phonopy object the PhononRow represents
         """
         phonon = Phonopy(
-            to_phonopy_atoms(pAtoms(ase_atoms=self.toatoms())),
+            to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
             symprec=self.symprec,
             is_symmetry=True,
@@ -185,38 +172,22 @@ class PhononRow(AtomsRow):
         Returns:
             phonon3: The phono3py object the PhononRow represents
         """
+        phonon3 = Phono3py(
+            to_phonopy_atoms(self.toatoms()),
+            supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3),
+            phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
+            symprec=self.symprec,
+            is_symmetry=True,
+            frequency_factor_to_THz=const.eV_to_THz,
+            log_level=0,
+            mesh=self.qmesh,
+        )
+
         if mesh is None and "qmesh" in self and self.qmesh is not None:
-            phonon3 = Phono3py(
-                to_phonopy_atoms(pAtoms(ase_atoms=self.toatoms())),
-                supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3),
-                phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
-                symprec=self.symprec,
-                is_symmetry=True,
-                frequency_factor_to_THz=const.eV_to_THz,
-                log_level=0,
-                mesh=self.qmesh,
-            )
-        elif mesh is None:
-            phonon3 = Phono3py(
-                to_phonopy_atoms(pAtoms(ase_atoms=self.toatoms())),
-                supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3),
-                phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
-                symprec=self.symprec,
-                is_symmetry=True,
-                frequency_factor_to_THz=const.eV_to_THz,
-                log_level=0,
-            )
-        else:
-            phonon3 = Phono3py(
-                to_phonopy_atoms(pAtoms(ase_atoms=self.toatoms())),
-                supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3),
-                phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
-                symprec=self.symprec,
-                is_symmetry=True,
-                frequency_factor_to_THz=const.eV_to_THz,
-                log_level=0,
-                mesh=mesh,
-            )
+            phonon3._mesh = np.array(self.qmesh, dtype='intc')
+        elif mesh is not None:
+            phonon3._mesh = np.array(mesh, dtype='intc')
+
         if "fc_2" in self:
             self.fc_2 = np.asarray(self.fc_2)
             if len(self.fc_2.shape) < 4:
@@ -227,6 +198,8 @@ class PhononRow(AtomsRow):
             if len(self.fc_3.shape) < 6:
                 self.fc_3 = reshape_fc_3(self.fc_3)
             phonon3.set_fc3(self.fc_3)
+        if "tp_T" in self:
+            phonon3.run_thermal_conductivity(temperatures=self.tp_T, write_kappa=True)
         return phonon3
 
     def thermal_heat_capacity_v(self, T):
