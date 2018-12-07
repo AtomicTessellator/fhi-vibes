@@ -198,6 +198,8 @@ class PhononRow(AtomsRow):
             if len(self.fc_3.shape) < 6:
                 self.fc_3 = reshape_fc_3(self.fc_3)
             phonon3.set_fc3(self.fc_3)
+        if "tp_T" in self:
+            phonon3.run_thermal_conductivity(temperatures=self.tp_T, write_kappa=True)
         return phonon3
 
     def thermal_heat_capacity_v(self, T):
