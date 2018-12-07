@@ -7,7 +7,7 @@ from hilde.helpers.warnings import warn
 
 class WallTimeWatchdog:
     def __init__(
-        self, walltime, history=10, buffer=5, log="watchdog.log", verbose=True, **kwargs
+        self, walltime, history=10, buffer=2, log="watchdog.log", verbose=True, **kwargs
     ):
         """ Watchdog that controls the walltime everytime it is called
 
@@ -102,10 +102,9 @@ class WallTimeWatchdog:
 
         timestr = strftime("%Y/%m/%d %H:%M:%S")
 
-        info_str += f"{timestr} " + " ".join(
+        info_str += f"{timestr} {self.n_calls:10d} " + " ".join(
             f"{s:10.1f}"
             for s in (
-                self.n_calls,
                 self.increment_per_step,
                 self.buffer_time,
                 self.time_left,
