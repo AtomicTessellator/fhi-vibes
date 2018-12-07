@@ -62,7 +62,7 @@ def main():
             quantum=args.quantum,
         )
 
-        if force_constants is not None:
+        if args.force_constants is not None:
             info_str = ["created from force constants", f"T = {args.temperature} K"]
         else:
             info_str = [
