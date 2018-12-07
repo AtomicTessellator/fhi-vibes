@@ -57,19 +57,18 @@ def main():
     print(" 2d:")
     print_matrix(smatrix, indent=0)
 
-    print(f"\nNumber of atoms:  {len(supercell)}")
-
     print(f"\nSuperlattice:")
     print(supercell.cell)
+    print(f"\nNumber of atoms:  {len(supercell)}")
     print(
-        "\nCubicness:  {:.3f} ({:.3f})".format(
+        "Cubicness:        {:.3f} ({:.3f})".format(
             get_cubicness(supercell.cell), get_cubicness(supercell.cell) ** 3
         )
     )
 
     if not args.dry:
         spacegroup = get_spacegroup(cell)
-        output_filename = f"{args.geom}.supercell"
+        output_filename = f"{args.geom}.supercell_{len(supercell)}"
         write(
             clean_atoms(supercell),
             output_filename,
