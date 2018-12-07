@@ -30,7 +30,7 @@ def preprocess(args):
 
 
 def postprocess(args):
-    from hilde.helpers.pickletools import pread
+    from hilde.helpers.pickle import pread
     from hilde.phonopy.wrapper import plot_bandstructure, plot_bandstructure_and_dos
     from hilde.phonopy.wrapper import summarize_bandstructure
 

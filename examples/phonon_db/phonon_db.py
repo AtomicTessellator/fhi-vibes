@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from hilde.helpers.pickletools import pread
+from hilde.helpers.pickle import pread
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.phonon_db.phonon_db import connect
 
