@@ -4,10 +4,8 @@ home_dir =          /some/path/to/hilde
 email =             you@something.com
 
 [machine]
- aimsbin =          /some/path/to/FHIaims/bin/aims.x
  basissetloc =      /some/path/to/FHIaims/aimsfiles/species_defaults
- mpi_command =      orterun
- aims_command =     ${mpi_command} ${aimsbin}
+ aims_command =     run_aims
 
 [database]
  location =         ${common:home_dir}/examples/phonon_db

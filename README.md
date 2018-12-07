@@ -18,12 +18,14 @@ Configure Hilde by creating a `hilde.cfg` configuration file:
 cp hilde.cfg.template hilde.cfg
 ```
 
-and edit according to system.
+and edit according to system. The `aims_command` is a command or script that takes care
+of running aims. This can be either just `mpirun aims.x`, or a script loading necessary
+modules etc. and finally calling `srun aims.x` on a cluster.
 
 Install Hilde:
 
 ```
-python setup.py install --prefix /your/preferred/folder
+pip install --user -U .
 ```
 
 Alternatively, you can create and activate a virtual environment holding the
