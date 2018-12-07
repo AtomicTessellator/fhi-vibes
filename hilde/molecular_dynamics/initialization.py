@@ -76,7 +76,12 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
 
 
 def initialize_md(
-    atoms, temperature=None, force_constants=None, quantum=False, **kwargs
+    atoms,
+    temperature=None,
+    force_constants=None,
+    quantum=False,
+    force_temp=True,
+    **kwargs,
 ):
     """ Either use Maxwell Boltzmann or PhononHarmonics to prepare the MD run """
 
@@ -93,7 +98,9 @@ def initialize_md(
         )
     else:
         print("Initialize velocities according to Maxwell-Boltzmann distribution.")
-        MaxwellBoltzmannDistribution(atoms, temp=temperature * u.kB)
+        MaxwellBoltzmannDistribution(
+            atoms, temp=temperature * u.kB, force_temp=force_temp
+        )
 
     return atoms
 
