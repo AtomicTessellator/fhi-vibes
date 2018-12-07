@@ -21,32 +21,12 @@ port:                null
 [phono3py]
 supercell_matrix =  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 displacement = 0.03
-workdir = /home/purcell/git/hilde/examples/.devel/phono3py/fireworks/test_run
+workdir = test_run
 fireworks = True
 log_level = 2
 
 [restart]
 command:             python run_phono3py.py
-
-[remote_setup]
-launch_dir:          .
-remote_host:         ['draco01.mpcdf.mpg.de']
-remote_config_dir:   ['/u/tpurcell/.fireworks']
-reserve:             True
-
-[remote_host_auth]
-remote_user:         tpurcell
-remote_password:     None
-gss_auth:            True
-
-[remote_queue_param]
-njobs_queue:         250
-njobs_block:         500
-
-[launch_params]
-nlaunches:           0
-sleep_time:          60
-tasks2queue:         ['hilde.relaxation.bfgs.relax', 'hilde.phonopy.workflow.phonopy', 'hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid', 'hilde.tasks.calculate.calculate']
 
 [fw_settings]
 serial = False
