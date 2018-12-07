@@ -19,7 +19,7 @@ port = null
 
 [phonopy]
 supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-workdir = /home/purcell/git/hilde/examples/phonopy/fireworks/test_run
+workdir = test_run
 
 [restart]
 command = python run_phonopy.py
