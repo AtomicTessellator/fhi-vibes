@@ -31,3 +31,5 @@ fw_spec = null
 out_spec = "relaxed_atoms"
 mod_spec_add = "calculated_forces"
 from_db = False
+to_launcpad = True
+

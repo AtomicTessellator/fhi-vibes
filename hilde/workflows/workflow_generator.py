@@ -1,7 +1,7 @@
 '''Functions used to generate a FireWorks Workflow'''
 from fireworks import Workflow, Firework
 
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
+from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.k_grid import update_k_grid
@@ -92,11 +92,6 @@ def generate_firework(
     job_tasks = []
     for task_spec in task_spec_list:
         job_tasks.append(generate_task(task_spec, fw_settings, at, cl))
-
-    if fw_settings and "to_launcpad" in fw_settings and fw_settings["to_launcpad"]:
-        launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
-        launchpad.add_wf(Firework(job_tasks, name=fw_settings["fw_name"]))
-        return None
     return Firework(setup_tasks + job_tasks, name=fw_settings["fw_name"], spec=fw_settings["spec"])
 
 def get_phonon_serial_task(func, func_kwargs, db_kwargs=None):
@@ -313,8 +308,9 @@ def get_step_fw(step_settings, atoms=None):
     )
     return fw_list, {fw_list[0]: fw_list[1]}
 
-def generate_workflow(steps, atoms=None):
+def generate_workflow(steps=Settings(), fw_settings=None, atoms=None):
     if not isinstance(steps, list):
+        fw_settings = steps.fw_settings
         steps = [steps]
     fw_steps = []
     fw_dep = {}
@@ -329,5 +325,14 @@ def generate_workflow(steps, atoms=None):
             fw_dep[key] = val
         fw_steps.append(fw_list)
     fws = [fw for step_list in fw_steps for fw in step_list]
+
+    if fw_settings and "to_launcpad" in fw_settings and fw_settings["to_launcpad"]:
+        if "launchpad_yaml" in fw_settings:
+            launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
+        else:
+            launchpad = LaunchPadHilde.auto_load()
+        launchpad.add_wf(Workflow(fws, fw_dep))
+        return None
+
     return Workflow(fws, fw_dep)
 

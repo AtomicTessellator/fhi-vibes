@@ -1,17 +1,11 @@
-from ase.io import read
-
-from fireworks import Workflow
-
 from pathlib import Path
 
-from hilde import DEFAULT_CONFIG_FILE
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
 from hilde.settings import Settings
 from hilde.workflows.workflow_generator import generate_workflow
 
+# These line is only used in the example so an absolute path is not used in settings,
+# If you set the absolute path in settings you don't need these 2 lines
 settings = Settings()
 settings.phonopy.workdir = str(Path(settings.phonopy.workdir).absolute())
-atoms = read(settings.geometry.file)
 
-launchpad = LaunchPadHilde.from_file("/home/purcell/.fireworks/my_launchpad.yaml")
-launchpad.add_wf(generate_workflow(settings, atoms))
+generate_workflow(settings)
