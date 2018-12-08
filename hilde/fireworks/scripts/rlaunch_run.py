@@ -17,8 +17,8 @@ from fireworks.core.rocket_launcher import launch_rocket
 from fireworks.utilities.fw_utilities import get_my_host, get_my_ip, get_fw_logger
 from fireworks.features.multi_launcher import launch_multiprocess
 
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde as LaunchPad
-from hilde.fireworks_api_adapter.rocket_launcher import rapidfire
+from hilde.fireworks.launchpad import LaunchPadHilde as LaunchPad
+from hilde.fireworks.rocket_launcher import rapidfire
 
 __author__ = "Anubhav Jain, Modified by Thomas Purcell Nov. 2, 2018"
 __credits__ = "Xiaohui Qu, Shyam Dwaraknath"

@@ -1,6 +1,7 @@
 """ Modified Launchpad class from FireWorks"""
 from fireworks.core.launchpad import LaunchPad
 
+from hilde.settings import Settings
 
 class LaunchPadHilde(LaunchPad):
     """

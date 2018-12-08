@@ -32,8 +32,8 @@ from fireworks.queue.queue_launcher import launch_rocket_to_queue
 from fireworks.utilities.fw_serializers import load_object_from_file
 
 from hilde import DEFAULT_CONFIG_FILE
-from hilde.fireworks_api_adapter.combined_launcher import rapidfire
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde as LaunchPad
+from hilde.fireworks.combined_launcher import rapidfire
+from hilde.fireworks.launchpad import LaunchPadHilde as LaunchPad
 from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
 

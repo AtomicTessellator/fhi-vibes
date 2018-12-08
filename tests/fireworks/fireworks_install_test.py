@@ -31,7 +31,7 @@ print("*******Testing the local version of HiLDe's FireWorks modifications******
 
 from hilde.tasks.fireworks.general_py_task import generate_firework
 from hilde.tasks.fireworks.fw_action_outs import fireworks_no_mods_gen_function
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
+from hilde.fireworks.launchpad import LaunchPadHilde
 
 launchpad = LaunchPadHilde.from_file(str(Path.home()) + "/.fireworks/my_launchpad.yaml")
 
@@ -62,8 +62,8 @@ from ase.db.core import connect
 from fireworks import Firework, FWorker, PyTask, FWAction, Workflow
 
 # Combined local/remote queue launching
-from hilde.fireworks_api_adapter.combined_launcher import rapidfire
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
+from hilde.fireworks.combined_launcher import rapidfire
+from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.templates.aims import setup_aims
 # Import the hilde calculate function so both the local and remote machines have the same function in their path
 from hilde.tasks.calculate import calculate as hilde_calc

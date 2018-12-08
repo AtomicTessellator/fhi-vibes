@@ -31,8 +31,8 @@ from fireworks.core.fworker import FWorker
 from fireworks.queue.queue_launcher import launch_rocket_to_queue
 from fireworks.utilities.fw_serializers import load_object_from_file
 
-from hilde.fireworks_api_adapter.queue_launcher import rapidfire
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde as LaunchPad
+from hilde.fireworks.queue_launcher import rapidfire
+from hilde.fireworks.launchpad import LaunchPadHilde as LaunchPad
 
 __authors__ = (
     "Anubhav Jain, Shyue Ping Ong. Modified by Thomas Purcell to redirect rapidfire"

@@ -4,8 +4,8 @@ from ase.build import bulk
 from ase.calculators.emt import EMT
 from pathlib import Path
 
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
-from hilde.fireworks_api_adapter.rocket_launcher import rapidfire
+from hilde.fireworks.launchpad import LaunchPadHilde
+from hilde.fireworks.rocket_launcher import rapidfire
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.paths import cwd
 from hilde.helpers.utility_functions import get_smatrix

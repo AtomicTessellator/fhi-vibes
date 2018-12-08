@@ -31,7 +31,7 @@ from fireworks.utilities.fw_utilities import (
     get_slug,
 )
 
-from hilde.fireworks_api_adapter.qlaunch_remote import qlaunch_remote
+from hilde.fireworks.qlaunch_remote import qlaunch_remote
 from hilde.settings import Settings
 
 try:

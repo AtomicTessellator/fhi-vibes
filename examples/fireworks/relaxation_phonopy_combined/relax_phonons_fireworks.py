@@ -3,7 +3,7 @@ from ase.io import read
 from fireworks import Workflow
 
 from hilde import DEFAULT_CONFIG_FILE
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
+from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.settings import Settings
 from hilde.workflows.workflow_generator import get_step_fw
 

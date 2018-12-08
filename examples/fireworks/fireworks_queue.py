@@ -17,8 +17,8 @@ from hilde.settings import Settings
 from hilde.tasks.fireworks.general_py_task import generate_firework
 
 # Combined local/remote queue launching
-from hilde.fireworks_api_adapter.combined_launcher import rapidfire
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
+from hilde.fireworks.combined_launcher import rapidfire
+from hilde.fireworks.launchpad import LaunchPadHilde
 # Use ASE aims calculator
 from ase.calculators.aims import Aims
 

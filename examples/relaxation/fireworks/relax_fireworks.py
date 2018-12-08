@@ -1,7 +1,7 @@
 from ase.io import read
 from pathlib import Path
 
-from hilde.fireworks_api_adapter.launchpad import LaunchPadHilde
+from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.helpers.k_grid import update_k_grid
 from hilde.relaxation.bfgs import relax
 from hilde.settings import Settings

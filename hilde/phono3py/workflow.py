@@ -110,30 +110,3 @@ def run(
     )
 
     return True
-
-# def preprocess_fireworks(
-#     atoms,
-#     calc,
-#     supercell_matrix,
-#     cutoff_pair_distance=defaults.cutoff_pair_distance,
-#     displacement=defaults.displacement,
-#     symprec=defaults.symprec,
-# ):
-#     """
-#     Setup a full phono3py calculation
-#     Args:
-#         atoms (Atoms Object): Primitive cell to perform the phono3py calculation on
-#         calc (Calculator Object): ASE calculator used to get the forces of a system
-#         supercell_matrix (list or np.ndarray): supercell matrix for the third order force constant calculations
-#         cutoff_pair_distance (float): cutoff distance for force interactions
-#         displacement (float): size of the displacements used in finite difference calculations
-#         symprec (float): symmetry percison for phono3py
-#     """
-#     phonon3, _, sc, _, scs = ph3.preprocess(
-#         atoms=atoms,
-#         fc3_supercell_matrix=supercell_matrix,
-#         disp=displacement,
-#         cutoff_pair_distance=cutoff_pair_distance,
-#         symprec=symprec,
-#     )
-#     return phonon3, sc, scs, calc
