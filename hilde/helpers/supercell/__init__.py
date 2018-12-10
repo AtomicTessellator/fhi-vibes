@@ -81,3 +81,18 @@ def make_supercell(*args, info={}, **kwargs):
     supercell.info.update(info)
 
     return supercell
+
+
+def match_positions(atoms1, atoms2, tol=1e-5):
+    """ match positions in two structures and return a list of corresponding indeces """
+
+    assert len(atoms1) == len(atoms2)
+    match_list = []
+    for ii, pos1 in enumerate(atoms1.positions):
+        for jj, pos2 in enumerate(atoms2.positions):
+            if np.linalg.norm(pos1 - pos2) < tol:
+                match_list.append((ii, jj))
+
+    assert len(match_list) == len(atoms1), (len(atoms1), len(match_list))
+
+    return match_list
