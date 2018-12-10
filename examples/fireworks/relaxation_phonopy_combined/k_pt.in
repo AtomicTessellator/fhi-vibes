@@ -14,9 +14,8 @@ port = null
 
 [kgrid_opt]
 maxsteps =   20
-#workdir =    /u/tpurcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/kgrid
-workdir =    /home/purcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/kgrid
-trajectory = ${workdir}/trajectory.yaml
+workdir = test_run/kgrid
+trajectory = trajectory.yaml
 kpts_density_init = 1
 dfunc_min = 1e-2
 even = True

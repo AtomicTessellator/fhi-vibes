@@ -29,7 +29,7 @@ print("*******Unmodified FireWorks is working locally*******")
 
 print("*******Testing the local version of HiLDe's FireWorks modifications*******")
 
-from hilde.tasks.fireworks.general_py_task import generate_firework
+from hilde.workflows.workflow_generator import generate_firework
 from hilde.tasks.fireworks.fw_action_outs import fireworks_no_mods_gen_function
 from hilde.fireworks.launchpad import LaunchPadHilde
 

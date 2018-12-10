@@ -16,21 +16,26 @@ port = null
 
 [phonopy]
 supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-workdir =    /home/purcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/phonons
-#workdir =    /u/tpurcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/phonons
-analysis_workdir = /home/purcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/phonons
+#fireworks = True
+workdir = test_run/phonopy
+#analysis_workdir = test_run/phono3py
+
+[phono3py]
+supercell_matrix =  [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+workdir = test_run/phono3py
+#fireworks = True
+log_level = 2
 
 [restart]
 command = python run_phonopy.py
 
 [fw_settings]
-serial = True
+serial = False
 in_spec_atoms = tight_relaxed_atoms
 in_spec_calc = tight_relaxed_calc
 from_db = True
 fw_name = phonopy_test
 fw_spec = null
-mod_spec_add = "calculated_forces"
 
 [fw_spec_qadapter]
 walltime = 00:10:00

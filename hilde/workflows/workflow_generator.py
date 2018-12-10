@@ -1,5 +1,6 @@
 '''Functions used to generate a FireWorks Workflow'''
 from fireworks import Workflow, Firework
+from pathlib import Path
 
 from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict
@@ -66,6 +67,7 @@ def generate_firework(
     setup_tasks = []
     if atoms:
         if not atoms_calc_from_spec:
+            print(atoms, atoms_calc_from_spec)
             at = atoms2dict(atoms)
             if "k_grid_density" in update_calc_settings:
                 if not isinstance(calc, dict):
@@ -94,7 +96,7 @@ def generate_firework(
         job_tasks.append(generate_task(task_spec, fw_settings, at, cl))
     return Firework(setup_tasks + job_tasks, name=fw_settings["fw_name"], spec=fw_settings["spec"])
 
-def get_phonon_serial_task(func, func_kwargs, db_kwargs=None):
+def get_phonon_serial_task(func, func_kwargs, db_kwargs=None, make_abs_path=False):
     if db_kwargs:
         db_kwargs["calc_type"] = func.split(".")[1]
         for key, val in db_kwargs.items():
@@ -104,11 +106,25 @@ def get_phonon_serial_task(func, func_kwargs, db_kwargs=None):
         "hilde.tasks.fireworks.fw_action_outs.serial_phonopy_continue",
         True,
         func_kwargs,
+        make_abs_path=make_abs_path,
     )
 
-def get_phonon_parallel_task(func, func_kwargs):
-    kwargs_init = {"supercell_matrix": func_kwargs.supercell_matrix}
-    kwargs_init_fw_out = {"workdir": func_kwargs.workdir}
+def get_phonon_parallel_task(func, func_kwargs, make_abs_path=False):
+    kwargs_init = {}
+    kwargs_init_fw_out = {}
+    if "phonopy_settings" in func_kwargs:
+        kwargs_init["phonopy_settings"] = {"supercell_matrix": func_kwargs["phonopy_settings"].supercell_matrix}
+        if "displacement" in func_kwargs["phonopy_settings"]:
+            kwargs_init["phonopy_settings"]["displacement"] = func_kwargs["phonopy_settings"].displacement
+        wd = str(Path(func_kwargs["phonopy_settings"].workdir).absolute())
+        kwargs_init_fw_out["phonopy_settings"] = {"workdir": wd}
+
+    if "phono3py_settings" in func_kwargs:
+        kwargs_init["phono3py_settings"] = {"supercell_matrix": func_kwargs["phono3py_settings"].supercell_matrix}
+        if "displacement" in func_kwargs["phono3py_settings"]:
+            kwargs_init["phono3py_settings"]["displacement"] = func_kwargs["phono3py_settings"].displacement
+        wd = str(Path(func_kwargs["phono3py_settings"].workdir).absolute())
+        kwargs_init_fw_out["phono3py_settings"] = {"workdir": wd}
     if "displacement" in func_kwargs:
         kwargs_init["displacement"] = func_kwargs.displacement
     return TaskSpec(
@@ -117,8 +133,10 @@ def get_phonon_parallel_task(func, func_kwargs):
         True,
         kwargs_init,
         func_fw_out_kwargs=kwargs_init_fw_out,
+        make_abs_path=False,
     )
-def get_phonon_analysis_task(func, func_kwargs, fw_settings, db_kwargs= None):
+
+def get_phonon_analysis_task(func, func_kwargs, fw_settings, meta_key, db_kwargs=None, make_abs_path=False):
     kwargs = {"fireworks": True}
     if db_kwargs:
         db_kwargs["calc_type"] = func.split(".")[1]
@@ -140,16 +158,17 @@ def get_phonon_analysis_task(func, func_kwargs, fw_settings, db_kwargs= None):
         func,
         "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
         False,
-        inputs=["metadata", fw_settings["mod_spec_add"]],
+        inputs=[meta_key, fw_settings["mod_spec_add"]],
         func_kwargs=kwargs,
+        make_abs_path=make_abs_path,
     )
 
-def get_step_fw(step_settings, atoms=None):
+def get_step_fw(step_settings, atoms=None, make_abs_path=False):
     if "geometry" in step_settings:
         atoms, calc = setup_aims(settings=step_settings)
     else:
         calc = setup_aims(settings=step_settings)
-
+    print(type(calc), type(atoms))
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
     atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
@@ -192,6 +211,7 @@ def get_step_fw(step_settings, atoms=None):
                 True,
                 step_settings.relaxation,
                 func_fw_out_kwargs=db_kwargs,
+                make_abs_path=make_abs_path,
             )
         )
     elif "aims_relaxation" in step_settings:
@@ -207,6 +227,7 @@ def get_step_fw(step_settings, atoms=None):
                 True,
                 step_settings.aims_relaxation,
                 func_fw_out_kwargs=fw_out_kwargs,
+                make_abs_path=make_abs_path,
             )
         )
     elif "kgrid_opt" in step_settings:
@@ -216,6 +237,7 @@ def get_step_fw(step_settings, atoms=None):
                 "hilde.tasks.fireworks.fw_action_outs.check_kgrid_opt_completion",
                 True,
                 step_settings.kgrid_opt,
+                make_abs_path=make_abs_path,
             )
         )
     elif "phonopy" in step_settings or "phono3py" in step_settings:
@@ -226,6 +248,7 @@ def get_step_fw(step_settings, atoms=None):
                         "hilde.phonopy.workflow.run",
                         step_settings.phonopy,
                         db_kwargs,
+                        make_abs_path=make_abs_path,
                     )
                 )
             if "phono3py" in step_settings:
@@ -234,23 +257,22 @@ def get_step_fw(step_settings, atoms=None):
                         "hilde.phono3py.workflow.run",
                         step_settings.phono3py,
                         db_kwargs,
+                        make_abs_path=make_abs_path,
                     )
                 )
         else:
+            func_kwargs = {}
             if "phonopy" in step_settings:
-                task_spec_list.append(
-                    get_phonon_parallel_task(
-                        "hilde.phonopy.workflow.preprocess",
-                        step_settings.phonopy
-                    )
-                )
+                func_kwargs["phonopy_settings"] = step_settings.phonopy
             if "phono3py" in step_settings:
-                task_spec_list.append(
-                    get_phonon_parallel_task(
-                        "hilde.phono3py.workflow.preprocess",
-                        step_settings.phono3py
-                    )
+                func_kwargs["phono3py_settings"] = step_settings.phono3py
+            task_spec_list.append(
+                get_phonon_parallel_task(
+                    "hilde.tasks.fireworks.preprocess_ph_ph3",
+                    func_kwargs,
+                    make_abs_path=make_abs_path,
                 )
+            )
     else:
         raise ValueError("Type not defiend")
     if ("phonopy" in step_settings or "phono3py" in step_settings) and fw_settings["serial"]:
@@ -281,34 +303,40 @@ def get_step_fw(step_settings, atoms=None):
         return fw_list, {}
     task_spec_list = []
     if "phonopy" in step_settings:
+        fw_settings["mod_spec_add"] = "ph_forces"
         task_spec_list.append(
             get_phonon_analysis_task(
                 "hilde.phonopy.postprocess.postprocess",
                 step_settings.phonopy,
                 fw_settings,
+                "metadata_ph",
                 db_kwargs,
+                make_abs_path=make_abs_path,
             )
         )
     if "phono3py" in step_settings:
+        fw_settings["mod_spec_add"] = "ph3_forces"
         task_spec_list.append(
             get_phonon_analysis_task(
                 "hilde.phono3py.postprocess.postprocess",
                 step_settings.phono3py,
                 fw_settings,
+                "metadata_ph3",
                 db_kwargs,
+                make_abs_path=make_abs_path,
             )
         )
     fw_list.append(
         generate_firework(
             task_spec_list,
-            at,
-            cl,
+            None,
+            None,
             fw_settings=fw_settings
         )
     )
     return fw_list, {fw_list[0]: fw_list[1]}
 
-def generate_workflow(steps=Settings(), fw_settings=None, atoms=None):
+def generate_workflow(steps=Settings(), fw_settings=None, atoms=None, make_abs_path=False):
     if not isinstance(steps, list):
         fw_settings = steps.fw_settings
         steps = [steps]
@@ -317,7 +345,7 @@ def generate_workflow(steps=Settings(), fw_settings=None, atoms=None):
     for step in steps:
         if "from_db" not in step.fw_settings:
             step.fw_settings["from_db"] = False
-        fw_list, step_dep = get_step_fw(step, atoms)
+        fw_list, step_dep = get_step_fw(step, atoms, make_abs_path)
         if len(fw_steps) != 0:
             for fw in fw_steps[-1]:
                 fw_dep[fw] = fw_list

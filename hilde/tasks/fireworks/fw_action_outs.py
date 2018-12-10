@@ -331,16 +331,31 @@ def add_phonon_force_calcs(
             FireWorks specific settings
     """
     detours = []
-    calc_dict = calc2dict(outputs[0])
-    for i, sc in enumerate(outputs[2]):
+    update_spec = {}
+    if outputs[0]:
+        fw_settings = fw_settings.copy()
+        update_spec["metadata_ph"] = outputs[0][4]
+        calc_dict = calc2dict(outputs[0][0])
+        fw_settings["mod_spec_add"] = "ph_forces"
+        detours = add_to_detours(detours, func_fw_kwargs["phonopy_settings"], atoms, outputs[0][2], calc_dict, fw_settings, "ph")
+
+    if outputs[1]:
+        fw_settings = fw_settings.copy()
+        update_spec["metadata_ph3"] = outputs[1][4]
+        calc_dict = calc2dict(outputs[1][0])
+        fw_settings["mod_spec_add"] = "ph3_forces"
+        detours = add_to_detours(detours, func_fw_kwargs["phono3py_settings"], atoms, outputs[1][2], calc_dict, fw_settings, "ph3")
+
+    return FWAction(update_spec=update_spec, detours=detours)
+
+def add_to_detours(detours, func_fw_kwargs, atoms, atoms_list, calc_dict, fw_settings, prefix):
+    for i, sc in enumerate(atoms_list):
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
         for key, val in calc_dict.items():
             sc_dict[key] = val
         calc_kwargs = {"workdir": func_fw_kwargs["workdir"] + f"/{i:05d}"}
-        fw_settings[
-            "fw_name"
-        ] = f"forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
+        fw_settings["fw_name"] = prefix + f"forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
         detours.append(
             generate_firework(
                 func="hilde.tasks.calculate.calculate",
@@ -352,7 +367,7 @@ def add_phonon_force_calcs(
                 fw_settings=fw_settings,
             )
         )
-    return FWAction(update_spec={"metadata": outputs[4]}, detours=detours)
+    return detours
 
 def mod_spec_add(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings

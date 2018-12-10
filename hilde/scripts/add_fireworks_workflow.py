@@ -11,6 +11,7 @@ from hilde.workflows.workflow_generator import generate_workflow
 def main():
     parser = ArgumentParser(description="create a configuration file and workdir")
     parser.add_argument("workflow", type=str, help="Workflow description file")
+    parser.add_argument("--make_abs_path", action="store_true", help="Make all paths absolute")
     args = parser.parse_args()
 
     workflow = Settings(settings_file=args.workflow)
@@ -21,4 +22,4 @@ def main():
         steps.append(Settings(settings_file=step_file))
 
     fw_settings = {"to_launcpad": True}
-    generate_workflow(steps, atoms, fw_settings)
+    generate_workflow(steps, atoms=atoms, fw_settings=fw_settings, make_abs_path=args.make_abs_path)

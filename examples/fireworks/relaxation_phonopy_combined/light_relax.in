@@ -17,8 +17,7 @@ port = null
 fmax =       0.01
 unit_cell = True
 maxsteps =   20
-#workdir = /u/tpurcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/light_relax
-workdir = /home/purcell/git/hilde/examples/fireworks/relaxation_phonopy_combined/test_run/light_relax
+workdir = test_run/light_relax
 
 [fw_settings]
 from_db = True

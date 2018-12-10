@@ -2,6 +2,8 @@ from ase.atoms import Atoms
 
 from fireworks import PyTask
 
+from pathlib import Path
+
 import os
 
 from hilde import DEFAULT_CONFIG_FILE
@@ -189,6 +191,7 @@ class TaskSpec:
         func_fw_out_kwargs=None,
         args=None,
         inputs=None,
+        make_abs_path=False
     ):
         if not isinstance(func, str):
             func = f"{func.__module__}.{func.__name__}"
@@ -199,11 +202,15 @@ class TaskSpec:
         self.at = at
 
         if func_kwargs:
+            if "workdir" in func_kwargs and make_abs_path:
+                func_kwargs['workdir'] = str(Path(func_kwargs['workdir']).absolute())
             self.func_kwargs = func_kwargs
         else:
             self.func_kwargs = {}
 
         if func_fw_out_kwargs:
+            if "workdir" in func_fw_out_kwargs and make_abs_path:
+                func_fw_out_kwargs['workdir'] = str(Path(func_fw_out_kwargs['workdir']).absolute())
             self.func_fw_out_kwargs = func_fw_out_kwargs
         else:
             self.func_fw_out_kwargs = {}
