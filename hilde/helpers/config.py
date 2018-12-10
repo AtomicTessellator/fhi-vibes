@@ -5,6 +5,7 @@ import configparser
 import json
 from collections import OrderedDict
 from hilde import DEFAULT_SETTINGS_FILE
+from hilde.helpers.warnings import warn
 
 
 class AttributeDict(OrderedDict):
@@ -12,6 +13,7 @@ class AttributeDict(OrderedDict):
         if attr in self:
             return self[attr]
         else:
+            warn(f"Attribute {attr} not in dictionary, return None.", level=2)
             return None
 
     def __setattr__(self, attr, value):
