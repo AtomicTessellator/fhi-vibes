@@ -5,6 +5,7 @@ from fw_tutorials.firetask.addition_task import AdditionTask
 from pathlib import Path
 from sys import exit
 
+from hilde.tasks.fireworks.general_py_task import TaskSpec
 from hilde.settings import Settings
 
 def print_message(message):
@@ -16,7 +17,7 @@ print("Getting LaunchPad from file ~/.fireworks/my_launchpad.yaml.")
 
 launchpad = LaunchPad.from_file(str(Path.home()) + "/.fireworks/my_launchpad.yaml")
 print("*******Resetting LaunchPad*******")
-launchpad.reset('', require_password=False)
+# launchpad.reset('', require_password=False)
 
 # create the Firework consisting of a custom "Addition" task
 firework = Firework(AdditionTask(), spec={"input_array": [1, 2]}, name="AdditionTestLocal")
@@ -36,13 +37,10 @@ from hilde.fireworks.launchpad import LaunchPadHilde
 launchpad = LaunchPadHilde.from_file(str(Path.home()) + "/.fireworks/my_launchpad.yaml")
 
 # define four individual FireWorks used in the Workflow
+task_spec = TaskSpec(print_message, fireworks_no_mods_gen_function, None, {}, {}, args=["\nTesting HiLDe FireWorks API\n"])
 fw = generate_firework(
-    print_message,
-    fireworks_no_mods_gen_function,
-    func_kwargs={},
+    task_spec,
     fw_settings={"fw_name": "testing", "spec":{}},
-    args=["\nTesting HiLDe FireWorks API\n"],
-    inputs=[],
 )
 
 # store workflow and launch it locally
@@ -91,26 +89,20 @@ fw_settings = {
     },
 }
 wd = "/u/tpurcell/.fireworks/Si/"
+task_spec = TaskSpec(hilde_calc, fireworks_no_mods_gen_function, Si, {"workdir": wd}, {})
 fw = generate_firework(
-    hilde_calc,
-    fireworks_no_mods_gen_function,
-    func_kwargs={"workdir": wd},
-    atoms = Si,
-    calc = Si.calc,
+    task_spec,
     fw_settings=fw_settings,
 )
+task_spec = TaskSpec(print_message, fireworks_no_mods_gen_function, None, {}, {}, args=["\n Connection successful \n"])
 fw2 = generate_firework(
-    print_message,
-    fireworks_no_mods_gen_function,
-    func_kwargs={},
+    task_spec,
     fw_settings={"fw_name": "testing", "spec":{}},
-    args=["\n Connection successful \n"],
-    inputs=[],
 )
 workflow = Workflow([fw, fw2], {fw: [fw2]})
 launchpad.add_wf(workflow)
 fworker = FWorker()
-controlpath = str(Path.home() / ".ssh/sockets" / (settings.fireworks.remote_user + "@$draco.mpcdf.mpg.de-22"))
+controlpath = str(Path.home() / ".ssh/sockets" / (settings.remote_host_auth.remote_user + "@$draco.mpcdf.mpg.de-22"))
 print(f"Using the ssh ControlPath: {controlpath}")
 rapidfire(launchpad, fworker, strm_lvl="INFO", remote_host=['draco01.mpcdf.mpg.de'], reserve=True, gss_auth=True, controlpath=controlpath)
 
