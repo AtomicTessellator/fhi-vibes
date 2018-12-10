@@ -21,5 +21,5 @@ def main():
     for step_file in workflow.workflow.step_files:
         steps.append(Settings(settings_file=step_file))
 
-    fw_settings = {"to_launcpad": True}
+    fw_settings = {"to_launchpad": True}
     generate_workflow(steps, atoms=atoms, fw_settings=fw_settings, make_abs_path=args.make_abs_path)

@@ -354,7 +354,7 @@ def generate_workflow(steps=Settings(), fw_settings=None, atoms=None, make_abs_p
         fw_steps.append(fw_list)
     fws = [fw for step_list in fw_steps for fw in step_list]
 
-    if fw_settings and "to_launcpad" in fw_settings and fw_settings["to_launcpad"]:
+    if fw_settings and "to_launchpad" in fw_settings and fw_settings["to_launchpad"]:
         if "launchpad_yaml" in fw_settings:
             launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
         else:

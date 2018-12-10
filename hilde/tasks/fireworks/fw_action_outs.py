@@ -65,8 +65,8 @@ def check_relaxation_complete(
         )
     del (calc["results"]["forces"])
     fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(next_step)
-    if "to_launchpad" in fw_settings and fw_settings["to_launcpad"]:
-        fw_settings["to_launcpad"] = False
+    if "to_launchpad" in fw_settings and fw_settings["to_launchpad"]:
+        fw_settings["to_launchpad"] = False
     if "trajectory" in func_kwargs:
         new_traj_list = func_kwargs["trajectory"].split(".")
     elif "workdir" in func_kwargs:
@@ -149,8 +149,8 @@ def check_aims_relaxation_complete(
         func_fw_kwargs["relax_step"]
     )
 
-    if "to_launchpad" in fw_settings and fw_settings["to_launcpad"]:
-        fw_settings["to_launcpad"] = False
+    if "to_launchpad" in fw_settings and fw_settings["to_launchpad"]:
+        fw_settings["to_launchpad"] = False
 
     fw = generate_firework(
         func=func,
@@ -240,8 +240,8 @@ def check_kgrid_opt_completion(
         return FWAction(update_spec=up_spec)
 
     fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(next_step)
-    if fw_settings["to_launcpad"]:
-        fw_settings["to_launcpad"] = False
+    if fw_settings["to_launchpad"]:
+        fw_settings["to_launchpad"] = False
     new_traj_list = func_kwargs["trajectory"].split(".")
     try:
         temp_list = new_traj_list[-2].split("_")
