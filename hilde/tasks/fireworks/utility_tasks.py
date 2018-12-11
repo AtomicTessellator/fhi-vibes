@@ -1,4 +1,7 @@
 from fireworks import FWAction, PyTask, Firework
+
+import numpy as np
+
 from hilde.helpers.k_grid import update_k_grid_calc_dict
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.phonon_db.phonon_db import connect

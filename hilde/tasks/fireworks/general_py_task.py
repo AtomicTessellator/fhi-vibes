@@ -223,7 +223,7 @@ class TaskSpec:
         if inputs:
             self.inputs = inputs
         else:
-            self.inputs = {}
+            self.inputs = []
 
     def get_pt_args(self):
         if self.at:
