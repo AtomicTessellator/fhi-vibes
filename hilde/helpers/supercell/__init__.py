@@ -1,6 +1,6 @@
 import numpy as np
-from . import supercell as sc
 from ase.build.supercells import make_supercell as ase_make_supercell
+from . import supercell as sc
 from ase.spacegroup import get_spacegroup
 from hilde.structure.misc import get_sysname
 from hilde.helpers.geometry import get_cubicness
