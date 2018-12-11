@@ -89,10 +89,15 @@ fw_settings = {
     },
 }
 wd = "/u/tpurcell/.fireworks/Si/"
-task_spec = TaskSpec(hilde_calc, fireworks_no_mods_gen_function, Si, {"workdir": wd}, {})
+# task_spec = TaskSpec(hilde_calc, fireworks_no_mods_gen_function, Si, {"workdir": wd}, {})
+# print(task_spec)
 fw = generate_firework(
-    task_spec,
+    atoms=Si,
+    calc=Si.calc,
     fw_settings=fw_settings,
+    func=hilde_calc,
+    func_fw_out=fireworks_no_mods_gen_function,
+    func_kwargs={"workdir": wd},
 )
 task_spec = TaskSpec(print_message, fireworks_no_mods_gen_function, None, {}, {}, args=["\n Connection successful \n"])
 fw2 = generate_firework(
