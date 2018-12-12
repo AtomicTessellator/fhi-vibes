@@ -37,8 +37,9 @@ def backup(file):
         Path(file).rename(f"{file}.bak")
 
 
-def to_yaml(obj, file, mode="a", use_json=True):
+def to_yaml(obj, file, mode="a", use_json=True, exist_ok=False):
     """ Dump a python object ot file """
+
     if use_json:
         to_json(obj, file, mode)
         return
@@ -120,7 +121,6 @@ def from_json(file):
 
 def to_json(obj, file, mode="a", indent=1):
     """ Dump a python object to json file """
-
     # backup
     if mode == "w":
         backup(file)

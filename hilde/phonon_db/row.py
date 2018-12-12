@@ -4,8 +4,6 @@ A file defining a row object for the phonon database
 import numpy as np
 from ase.db.row import AtomsRow, atoms2dict
 from ase.io.jsonio import decode
-from phonopy import Phonopy
-from phono3py.phonon3 import Phono3py
 
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.utility_functions import reshape_fc_2, reshape_fc_3
@@ -29,8 +27,13 @@ def phonon_to_dict(phonon, to_mongo=False):
         dct["sc_matrix_2"] = list(np.array(phonon.get_supercell_matrix()).flatten())
         dct["natoms_in_sc_2"] = len(dct["numbers"]) * int(round(np.linalg.det(phonon.get_supercell_matrix())))
 
-    if phonon.get_force_constants() is not None:
-        dct["fc_2"] = phonon.get_force_constants()
+    dct["forces_2"] = []
+    for disp1 in phonon._displacement_dataset['first_atoms']:
+        if 'forces' in disp1:
+            dct["forces_2"].append(disp1.pop('forces'))
+
+    dct["displacement_dataset_2"] = phonon._displacement_dataset
+
     if phonon.mesh is not None:
         dct["qmesh"] = phonon.mesh.mesh_numbers
     if phonon._total_dos is not None:
@@ -78,11 +81,25 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
         dct["sc_matrix_2"] = list(np.array(phonon3._phonon_supercell_matrix).flatten())
         dct["natoms_in_sc_2"] = len(dct["numbers"]) * int(round(np.linalg.det(phonon3._phonon_supercell_matrix)))
 
-    if phonon3.get_fc3() is not None:
-        dct["fc_3"] = phonon3.get_fc3()
+    dct["forces_3"] = []
+    get_forces = True
+    for disp1 in phonon3._displacement_dataset['first_atoms']:
+        if 'forces' in disp1:
+            if disp1['forces'].shape[0] == dct["natoms_in_sc_3"]:
+                dct["forces_3"].append(disp1.pop('forces'))
+            else:
+                get_forces = False
+                break
+    if get_forces:
+        for ii,disp1 in enumerate(phonon3._displacement_dataset['first_atoms']):
+            for disp2 in disp1['second_atoms']:
+                if 'delta_forces' in disp2:
+                    dct["forces_3"].append(disp2.pop('delta_forces') + dct["forces_3"][ii])
+    else:
+        print("Warning not storing forces as number of atoms in the supercell are not consistent")
+        dct["forces_3"] = []
 
-    if phonon3.get_fc2() is not None and store_second_order:
-        dct["fc_2"] = phonon3.get_fc2()
+    dct["displacement_dataset_3"] = phonon3._displacement_dataset
 
     if phonon3.get_thermal_conductivity():
         dct["tp_T"] = phonon3.get_thermal_conductivity().get_temperatures()
@@ -147,6 +164,7 @@ class PhononRow(AtomsRow):
         Returns:
             phonon: The phonopy object the PhononRow represents
         """
+        from phonopy import Phonopy
         phonon = Phonopy(
             to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
@@ -155,7 +173,8 @@ class PhononRow(AtomsRow):
             factor=15.633_302,
             log_level=0,
         )
-        if "fc_2" in self:
+        phonon.set_displacement_dataset(self.displacement_dataset_2)
+        if "forces_2" in self and self.forces_2:
             self.fc_2 = np.asarray(self.fc_2)
             if len(self.fc_2.shape) < 4:
                 self.fc_2 = reshape_fc_2(self.fc_2)
@@ -172,6 +191,7 @@ class PhononRow(AtomsRow):
         Returns:
             phonon3: The phono3py object the PhononRow represents
         """
+        from phono3py.phonon3 import Phono3py
         phonon3 = Phono3py(
             to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3),
@@ -182,22 +202,20 @@ class PhononRow(AtomsRow):
             log_level=0,
             mesh=self.qmesh,
         )
+        phonon3._phonon_displacement_dataset = self.displacement_dataset_2.copy()
+        phonon3.set_displacement_dataset(self.displacement_dataset_3)
+
+        if "forces_2" in self and len(self.forces_2) > 0:
+            phonon3.produce_fc2(self.forces_2)
+
+        if "forces_3" in self and len(self.forces_3) > 0:
+            phonon3.produce_fc3(self.forces_3)
 
         if mesh is None and "qmesh" in self and self.qmesh is not None:
             phonon3._mesh = np.array(self.qmesh, dtype='intc')
         elif mesh is not None:
             phonon3._mesh = np.array(mesh, dtype='intc')
 
-        if "fc_2" in self:
-            self.fc_2 = np.asarray(self.fc_2)
-            if len(self.fc_2.shape) < 4:
-                self.fc_2 = reshape_fc_2(self.fc_2)
-            phonon3.set_fc2(self.fc_2)
-        if "fc_3" in self:
-            self.fc_3 = np.asarray(self.fc_3)
-            if len(self.fc_3.shape) < 6:
-                self.fc_3 = reshape_fc_3(self.fc_3)
-            phonon3.set_fc3(self.fc_3)
         if "tp_T" in self:
             phonon3.run_thermal_conductivity(temperatures=self.tp_T, write_kappa=True)
         return phonon3

@@ -54,8 +54,10 @@ init_statements = [
     natoms_in_sc_3 INTEGER,
     sc_matrix_2 TEXT,
     sc_matrix_3 TEXT,
-    fc_2 BLOB,
-    fc_3 BLOB,
+    force_2 BLOB,
+    force_3 BLOB,
+    displacement_dataset_2 TEXT,
+    displacement_dataset_3 TEXT,
     qmesh TEXT,
     phonon_dos_fp TEXT,
     qpoints TEXT,
@@ -295,8 +297,10 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             row.get("natoms_in_sc_3"),
             encode(row.get("sc_matrix_2")),
             encode(row.get("sc_matrix_3")),
-            blob(row.get("fc_2")),
-            blob(row.get("fc_3")),
+            blob(row.get("forces_2")),
+            blob(row.get("forces_3")),
+            encode(row.get("displacement_dataset_2")),
+            encode(row.get("displacement_dataset_3")),
             encode(row.get("qmesh")),
             encode(row.get("phonon_dos_fp")),
             encode(row.get("qpoints")),
@@ -412,33 +416,37 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if values[28] is not None:
             dct["sc_matrix_3"] = jsonio.decode(values[28])
         if values[29] is not None:
-            dct["fc_2"] = deblob(values[29], shape=(values[25], values[25], 3, 3))
+            dct["forces_2"] = deblob(values[29], shape=(-1, values[25], 3))
         if values[30] is not None:
-            dct["fc_3"] = deblob(values[30], shape=(values[26], values[26], values[26], 3, 3, 3))
+            dct["forces_3"] = deblob(values[30], shape=(-1, values[26], 3))
         if values[31] is not None:
-            dct["qmesh"] = jsonio.decode(values[31])
+            dct["displacement_dataset_2"] = decode(values[31])
         if values[32] is not None:
-            dct["phonon_dos_fp"] = decode(values[32])
+            dct["displacement_dataset_3"] = decode(values[32])
         if values[33] is not None:
-            dct["qpoints"] = decode(values[33])
+            dct["qmesh"] = jsonio.decode(values[33])
         if values[34] is not None:
-            dct["phonon_bs_fp"] = decode(values[34])
+            dct["phonon_dos_fp"] = decode(values[34])
         if values[35] is not None:
-            dct["tp_ZPE"] = values[35]
+            dct["qpoints"] = decode(values[35])
         if values[36] is not None:
-            dct["tp_high_T_S"] = values[36]
+            dct["phonon_bs_fp"] = decode(values[36])
         if values[37] is not None:
-            dct["tp_T"] = dehexify(values[37])
+            dct["tp_ZPE"] = values[37]
         if values[38] is not None:
-            dct["tp_A"] = dehexify(values[38])
+            dct["tp_high_T_S"] = values[38]
         if values[39] is not None:
-            dct["tp_S"] = dehexify(values[39])
+            dct["tp_T"] = dehexify(values[39])
         if values[40] is not None:
-            dct["tp_Cv"] = dehexify(values[40])
+            dct["tp_A"] = dehexify(values[40])
         if values[41] is not None:
-            dct["tp_kappa"] = dehexify(values[41], shape=(-1, 6))
+            dct["tp_S"] = dehexify(values[41])
         if values[42] is not None:
-            dct["symprec"] = values[42]
+            dct["tp_Cv"] = dehexify(values[42])
+        if values[43] is not None:
+            dct["tp_kappa"] = dehexify(values[43], shape=(-1, 6))
+        if values[44] is not None:
+            dct["symprec"] = values[44]
         if values[len(self.columnnames) - 8] != "{}":
             dct["key_value_pairs"] = decode(values[len(self.columnnames) - 8])
         if len(values) >= len(self.columnnames) - 6 and values[len(self.columnnames) - 7] != "null":

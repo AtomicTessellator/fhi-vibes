@@ -108,7 +108,6 @@ def postprocess(
             db_path,
             to_Atoms(phonon3.get_unitcell()),
             phonon3,
-            calc_type="phonon3",
             symprec=phonon3._symprec,
             sc_matrix_3=list(phonon3.get_supercell_matrix().flatten()),
             **kwargs,

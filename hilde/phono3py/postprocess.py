@@ -22,6 +22,7 @@ def collect_forces_to_trajectory(
     calculated_atoms,
     metadata,
 ):
+    Path(trajectory).parents[0].mkdir(exist_ok=True, parents=True)
     for el in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
         el["number"] = int(el["number"])
         for d, dd in enumerate(el["direction"]):
@@ -105,10 +106,12 @@ def postprocess(
     write_fc3_to_hdf5(phonon3.get_fc3(), filename=force_constants_file)
 
     if db_kwargs is not None:
+        print(db_kwargs)
+        db_path = db_kwargs.pop("db_path")
         update_phonon_db(
+            db_path,
             to_Atoms(phonon3.get_unitcell()),
             phonon3,
-            calc_type="phonons",
             symprec=phonon3._symprec,
             sc_matrix_3=list(phonon3.get_supercell_matrix().flatten()),
             **db_kwargs

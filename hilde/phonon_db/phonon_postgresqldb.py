@@ -146,8 +146,8 @@ def schema_update(sql):
         "qpoints",
         "phonon_bs_fp",
         "phonon_dos_fp",
-        # "sc_matrix_2",
-        # "sc_matrix_3",
+        "displacement_dataset_2",
+        "displacement_dataset_3",
     ]
 
     for column in arrays_1D:

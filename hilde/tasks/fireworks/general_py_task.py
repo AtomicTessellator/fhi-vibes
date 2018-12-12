@@ -19,6 +19,9 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
     if isinstance(atoms, str):
         pt_inputs += [atoms, calc]
+    elif isinstance(calc, str):
+        pt_inputs += [calc]
+        pt_args += [atoms]
     else:
         pt_args += [atoms, calc]
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
@@ -54,17 +57,21 @@ def generate_update_calc_task(calc_spec, updated_settings):
         }
     )
 
-def generate_mod_calc_task(atoms_dict, calc_spec, kpt_spec):
+def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
+    args = ["k_grid_density", calc_spec]
+    kwargs = {"spec_key": kpt_spec}
+    if isinstance(at, dict):
+        args.append(cl)
+        kwargs["atoms"] = at
+        inputs = [kpt_spec]
+    else:
+        inputs = [cl, kpt_spec, at,]
     return PyTask(
         {
             "func": fw.mod_calc.name,
-            "args": ["k_grid_density", calc_spec],
-            "inputs": [
-                calc_spec,
-                kpt_spec,
-                atoms_dict,
-            ],
-            "kwargs": {"spec_key": kpt_spec},
+            "args": args,
+            "inputs": inputs,
+            "kwargs": kwargs,
         }
     )
 

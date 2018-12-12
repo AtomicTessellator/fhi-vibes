@@ -67,7 +67,6 @@ def generate_firework(
     setup_tasks = []
     if atoms:
         if not atoms_calc_from_spec:
-            print(atoms, atoms_calc_from_spec)
             at = atoms2dict(atoms)
             if "k_grid_density" in update_calc_settings:
                 if not isinstance(calc, dict):
@@ -87,7 +86,8 @@ def generate_firework(
             setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
 
         if "kpoint_density_spec" in fw_settings:
-            setup_tasks.append(generate_mod_calc_task(at, cl, fw_settings["kpoint_density_spec"]))
+            setup_tasks.append(generate_mod_calc_task(at, cl, "calculator", fw_settings["kpoint_density_spec"]))
+            cl = "calculator"
     else:
         at = None
         cl = None
@@ -140,8 +140,7 @@ def get_phonon_analysis_task(func, func_kwargs, fw_settings, meta_key, db_kwargs
     kwargs = {"fireworks": True}
     if db_kwargs:
         db_kwargs["calc_type"] = func.split(".")[1]
-        for key, val in db_kwargs.items():
-            func_kwargs[key] = val
+        kwargs["db_kwargs"] = db_kwargs
     anal_keys = [
         "trajectory",
         "analysis_workdir",
@@ -168,7 +167,6 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         atoms, calc = setup_aims(settings=step_settings)
     else:
         calc = setup_aims(settings=step_settings)
-    print(type(calc), type(atoms))
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
     atoms_hash, calc_hash = hash_atoms_and_calc(atoms)

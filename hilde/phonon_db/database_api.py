@@ -1,6 +1,5 @@
 from ase.atoms import Atoms
 from phonopy import Phonopy
-from phono3py.phonon3 import Phono3py
 
 from hilde.helpers.converters import atoms2dict, dict2atoms
 from hilde.helpers.hash import hash_atoms_and_calc
@@ -29,12 +28,17 @@ def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **k
     if isinstance(atoms, dict):
         atoms = dict2atoms(atoms)
     atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
-    if isinstance(phonon, Phonopy):
-        phonon = phonon_to_dict(phonon)
-    elif isinstance(phonon, Phono3py):
-        phonon = phonon3_to_dict(phonon)
-    elif isinstance(phonon, Atoms):
+    if isinstance(phonon, Atoms):
         phonon = atoms2dict(phonon)
+    elif isinstance(phonon, Phonopy):
+        phonon = phonon_to_dict(phonon)
+    else:
+        try:
+            from phono3py.phonon3 import Phono3py
+            if isinstance(phonon, Phono3py):
+                phonon = phonon3_to_dict(phonon)
+        except:
+            pass
     try:
         db = connect(db_path)
         selection = [
@@ -43,6 +47,7 @@ def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **k
             ("calc_hash", "=", calc_hash),
             ("calc_type", "=", calc_type),
         ]
+        selection_no_sc_mat = selection.copy()
         if (kwargs is not None) and ("original_atoms_hash" in kwargs):
             selection.append(("original_atoms_hash", "=", kwargs["original_atoms_hash"]))
         if (kwargs is not None) and ("sc_matrix_2" in phonon):
@@ -53,13 +58,18 @@ def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **k
             del(kwargs["sc_matrix_3"])
         try:
             rows = list(db.select(selection=selection))
+            rows_no_sc = list(db.select(selection=selection_no_sc_mat))
+            for row in rows_no_sc:
+                if (row.sc_matrix_2 is None and "sc_matrix_2" in phonon) != (row.sc_matrix_3 is None and "sc_matrix_3" in phonon):
+                    rows.append(row)
             if not rows:
                 raise KeyError
             for row in rows:
                 db.update(
                     row.id,
                     dct=phonon,
-                    has_fc=("fc_2" in phonon),
+                    has_fc2=("fc_2" in phonon or "fc_2" in row),
+                    has_fc3=("fc_3" in phonon or "fc_3" in row),
                     calc_type=calc_type,
                     **kwargs,
                 )
@@ -75,4 +85,4 @@ def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **k
                 **kwargs,
             )
     except ValueError:
-        print(f"The function can't access the database {db_path}")
+        print(f"Error in adding the object to the database {db_path}")

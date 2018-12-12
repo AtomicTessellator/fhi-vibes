@@ -332,15 +332,16 @@ def add_phonon_force_calcs(
     """
     detours = []
     update_spec = {}
+    fw_settings = fw_settings.copy()
+    if "kpoint_density_spec" in fw_settings:
+        del(fw_settings["kpoint_density_spec"])
     if outputs[0]:
-        fw_settings = fw_settings.copy()
         update_spec["metadata_ph"] = outputs[0][4]
         calc_dict = calc2dict(outputs[0][0])
         fw_settings["mod_spec_add"] = "ph_forces"
         detours = add_to_detours(detours, func_fw_kwargs["phonopy_settings"], atoms, outputs[0][2], calc_dict, fw_settings, "ph")
 
     if outputs[1]:
-        fw_settings = fw_settings.copy()
         update_spec["metadata_ph3"] = outputs[1][4]
         calc_dict = calc2dict(outputs[1][0])
         fw_settings["mod_spec_add"] = "ph3_forces"
@@ -350,6 +351,7 @@ def add_phonon_force_calcs(
 
 def add_to_detours(detours, func_fw_kwargs, atoms, atoms_list, calc_dict, fw_settings, prefix):
     for i, sc in enumerate(atoms_list):
+        fw_settings=fw_settings.copy()
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
         for key, val in calc_dict.items():

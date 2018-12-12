@@ -20,6 +20,7 @@ def collect_forces_to_trajectory(
     calculated_atoms,
     metadata,
 ):
+    Path(trajectory).parents[0].mkdir(exist_ok=True, parents=True)
     for el in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
         el["number"] = int(el["number"])
 
@@ -79,7 +80,6 @@ def postprocess(
 
     with (Path(workdir) / pickle_file).open("wb") as fp:
         pickle.dump(phonon, fp)
-
     if db_kwargs is not None:
         db_kwargs = db_kwargs.copy()
         db_path = db_kwargs.pop("db_path")
@@ -87,7 +87,6 @@ def postprocess(
             db_path,
             to_Atoms(phonon.get_unitcell()),
             phonon,
-            calc_type="phonons",
             symprec=phonon._symprec,
             sc_matrix_2=list(phonon.get_supercell_matrix().flatten()),
             **db_kwargs
