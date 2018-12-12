@@ -3,7 +3,6 @@ file =             geometry.in
 
 [control]
 xc =               pw-lda
-k_grid =           [4, 4, 4]
 
 [basisset]
 type = light
@@ -13,6 +12,7 @@ port = null
 
 [phonopy]
 supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+kpt_density =      3.5
 
 [restart]
 command = python run_phonopy.py

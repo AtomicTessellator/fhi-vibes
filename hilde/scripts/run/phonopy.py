@@ -7,9 +7,7 @@ settings = Settings()
 atoms, calc = setup_aims(settings=settings)
 
 
-completed = run(
-    atoms, calc, kpt_density=settings.control_kpt.density, **settings.phonopy
-)
+completed = run(atoms, calc, **settings.phonopy)
 
 
 if not completed:
