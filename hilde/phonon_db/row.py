@@ -32,6 +32,8 @@ def phonon_to_dict(phonon, to_mongo=False):
         if 'forces' in disp1:
             dct["forces_2"].append(disp1.pop('forces'))
 
+    dct["forces_2"] = np.array(dct["forces_2"])
+
     dct["displacement_dataset_2"] = phonon._displacement_dataset
 
     if phonon.mesh is not None:
@@ -90,6 +92,7 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
             else:
                 get_forces = False
                 break
+
     if get_forces:
         for ii,disp1 in enumerate(phonon3._displacement_dataset['first_atoms']):
             for disp2 in disp1['second_atoms']:
@@ -99,6 +102,7 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
         print("Warning not storing forces as number of atoms in the supercell are not consistent")
         dct["forces_3"] = []
 
+    dct["forces_3"] = np.array(dct["forces_3"])
     dct["displacement_dataset_3"] = phonon3._displacement_dataset
 
     if phonon3.get_thermal_conductivity():

@@ -135,9 +135,7 @@ def schema_update(sql):
 
     arrays_2D = ["positions", "cell", "forces", "tp_kappa"]
 
-    arrays_4D = ["fc_2"]
-
-    arrays_6D = ["fc_3"]
+    arrays_3D = ["force_2", "force_3"]
 
     txt2jsonb = [
         "calculator_parameters",
@@ -159,12 +157,8 @@ def schema_update(sql):
     for column in arrays_2D:
         sql = sql.replace("{} BLOB,".format(column), "{} DOUBLE PRECISION[][],".format(column))
 
-    for column in arrays_4D:
-        sql = sql.replace("{} BLOB,".format(column), "{} DOUBLE PRECISION[][][][],".format(column))
-    for column in arrays_6D:
-        sql = sql.replace(
-            "{} BLOB,".format(column), "{} DOUBLE PRECISION[][][][][][],".format(column)
-        )
+    for column in arrays_3D:
+        sql = sql.replace("{} BLOB,".format(column), "{} DOUBLE PRECISION[][][],".format(column))
 
     for column in txt2jsonb:
         sql = sql.replace("{} TEXT,".format(column), "{} JSONB,".format(column))
