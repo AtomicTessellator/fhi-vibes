@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from hilde.settings import Settings
-from hilde.helpers.k_grid import update_k_grid
+from hilde.helpers.k_grid import update_k_grid, k2d
 from hilde.helpers.paths import cwd
 from hilde.helpers.config import AttributeDict as adict
 from hilde.trajectory.phonons import metadata2dict
@@ -66,6 +66,10 @@ def run(
     db_kwargs=None,
     **kwargs,
 ):
+    if "fireworks" in kwargs:
+        fw = kwargs.pop("fireworks")
+        if not kpt_density:
+            kpt_density = k2d(atoms, calc.parameters["k_grid"])
 
     calc, supercell, scs, phonon3, metadata = preprocess(
         atoms,
@@ -97,8 +101,6 @@ def run(
         supercell_file=supercell_file,
         **kwargs
     )
-    if "fireworks" in kwargs:
-        del(kwargs["fireworks"])
     postprocess(
         # phonon3,
         trajectory=trajectory,

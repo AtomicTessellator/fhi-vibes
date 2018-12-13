@@ -6,8 +6,11 @@ from phonopy import Phonopy
 from phono3py.phonon3 import Phono3py
 import shutil
 
-from hilde.helpers.converters import calc2dict, atoms2dict
+import numpy as np
+
+from hilde.helpers.converters import calc2dict, atoms2dict, dict2atoms
 from hilde.helpers.fileformats import last_from_yaml
+from hilde.helpers.k_grid import k2d
 from hilde.phonon_db.database_api import update_phonon_db
 from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict
 from hilde.workflows.workflow_generator import generate_firework
@@ -333,8 +336,10 @@ def add_phonon_force_calcs(
     detours = []
     update_spec = {}
     fw_settings = fw_settings.copy()
-    if "kpoint_density_spec" in fw_settings:
-        del(fw_settings["kpoint_density_spec"])
+    if "spec" in fw_settings:
+        fw_settings["spec"][fw_settings["kpoint_density_spec"]] = np.mean(k2d(dict2atoms(atoms), calc["calculator_parameters"]["k_grid"]))
+    else:
+        fw_settings["spec"] = {fw_settings["kpoint_density_spec"]: np.mean(k2d(dict2atoms(atoms), calc["calculator_parameters"]["k_grid"]))}
     if outputs[0]:
         update_spec["metadata_ph"] = outputs[0][4]
         calc_dict = calc2dict(outputs[0][0])

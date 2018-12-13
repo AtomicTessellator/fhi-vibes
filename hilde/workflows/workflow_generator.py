@@ -357,8 +357,8 @@ def generate_workflow(steps=Settings(), fw_settings=None, atoms=None, make_abs_p
             launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
         else:
             launchpad = LaunchPadHilde.auto_load()
-        launchpad.add_wf(Workflow(fws, fw_dep))
+        launchpad.add_wf(Workflow(fws, fw_dep, name=fw_settings["name"]))
         return None
 
-    return Workflow(fws, fw_dep)
+    return Workflow(fws, fw_dep, name=fw_settings["name"])
 
