@@ -5,7 +5,70 @@ from itertools import product
 import numpy as np
 import scipy.linalg as la
 from hilde.helpers.timer import Timer
+from hilde.helpers.maths import clean_matrix
 from . import supercell as sc
+
+
+def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
+    """ build the dynamical matrix for one q_point """
+    return get_dynamical_matrices([q], primitive, supercell, force_constants, eps)[0]
+
+
+def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=1e-12):
+    """ build the dynamical matrix for each q_point """
+    force_constants_reshaped = reshape_force_constants(
+        primitive, supercell, force_constants
+    )
+
+    lattice_points = get_lattice_points(primitive, supercell)
+
+    masses = primitive.get_masses()
+
+    n_prim = len(primitive)
+
+    dyn_matrices = []
+
+    for qq in q_points:
+        dyn_matrix = np.zeros([n_prim, n_prim, 3, 3], dtype=complex)
+
+        for LL, lp in enumerate(lattice_points):
+            print(qq @ lp)
+            prefactor = np.exp(-2j * np.pi * qq @ lp)
+            if np.linalg.norm(prefactor.imag) < eps:
+                prefactor = prefactor.real
+
+            dyn_matrix += prefactor * force_constants_reshaped[:, 0, :, LL]
+
+        for ii in range(n_prim):
+            for jj in range(n_prim):
+                dyn_matrix[ii, jj, :, :] /= np.sqrt(masses[ii] * masses[jj])
+
+        dyn_matrices.append(dyn_matrix.swapaxes(1, 2).reshape(3 * n_prim, 3 * n_prim))
+
+    return dyn_matrices
+
+
+def reshape_force_constants(primitive, supercell, force_constants):
+    """ reshape from (3N x 3N) into 3x3 blocks labelled by (i,L) """
+
+    indeces, lattice_points = assign_primitive_positions(
+        primitive, supercell, return_lattice_points=True
+    )
+
+    n_i = len(primitive)
+    n_L = len(lattice_points)
+
+    new_force_constants = np.zeros([n_i, n_L, n_i, n_L, 3, 3])
+
+    for n1 in range(len(supercell)):
+        for n2 in range(len(supercell)):
+            phi = force_constants[3 * n1 : 3 * n1 + 3, 3 * n2 : 3 * n2 + 3]
+
+            i1, L1, i2, L2 = (*indeces[n1], *indeces[n2])
+
+            new_force_constants[i1, L1, i2, L2] = clean_matrix(phi)
+
+    return new_force_constants
 
 
 def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
@@ -32,7 +95,9 @@ def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
     return inv_lattice_points
 
 
-def assign_primitive_positions(in_atoms, in_supercell, tolerance=1e-5):
+def assign_primitive_positions(
+    in_atoms, in_supercell, return_lattice_points=False, tolerance=1e-5
+):
     """ write positions in the supercell as (i, L), where i is the respective index
         in the primitive cell and L is the lattice point """
 
@@ -86,6 +151,8 @@ def assign_primitive_positions(in_atoms, in_supercell, tolerance=1e-5):
 
     timer(f"matched {len(matches)} positions in supercell and primitive cell")
 
+    if return_lattice_points:
+        return indices, lattice_points
     return indices
 
 

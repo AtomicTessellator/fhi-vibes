@@ -25,6 +25,10 @@ def preprocess(args):
     sc_str = np.array2string(phonon.get_supercell_matrix().flatten(), separator=", ")
     print("Phonopy Information")
     print(f"  Supercell matrix:        {sc_str}")
+    print(f"  Superlattice:")
+    for latvec in sc.cell:
+        lv_str = "{:-6.2f} {:-6.2f} {:-6.2f}".format(*latvec)
+        print(f"                         {lv_str}")
     print(f"  Number of atoms in SC:   {len(sc)}")
     print(f"  Number of displacements: {len(scs)} ({len(scs_ref)})")
 
