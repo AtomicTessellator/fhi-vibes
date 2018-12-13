@@ -136,8 +136,9 @@ def check_aims_relaxation_complete(
             )
         new_atoms = atoms2dict(outputs)
     for key, val in atoms['info'].items():
+        print('\n', key, val, '\n')
         if key not in new_atoms['info']:
-            new_atoms[key] = val
+            new_atoms['info'][key] = val
     if converged:
         if "db_path" in func_fw_kwargs:
             db_path = func_fw_kwargs["db_path"]
