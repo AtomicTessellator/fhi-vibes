@@ -68,8 +68,8 @@ def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **k
                 db.update(
                     row.id,
                     dct=phonon,
-                    has_fc2=("fc_2" in phonon or "fc_2" in row),
-                    has_fc3=("fc_3" in phonon or "fc_3" in row),
+                    has_fc2=("forces_2" in phonon or "forces_2" in row),
+                    has_fc3=("forces_3" in phonon or "forces_3" in row),
                     calc_type=calc_type,
                     **kwargs,
                 )
@@ -79,8 +79,8 @@ def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **k
                 symprec=symprec,
                 atoms_hash=atoms_hash,
                 calc_hash=calc_hash,
-                has_fc2=("fc_2" in phonon),
-                has_fc3=("fc_3" in phonon),
+                has_fc2=("forces_2" in phonon),
+                has_fc3=("forces_3" in phonon),
                 calc_type=calc_type,
                 **kwargs,
             )

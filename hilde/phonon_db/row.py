@@ -158,6 +158,42 @@ class PhononRow(AtomsRow):
         self.__dict__.update(kvp)
         self.__dict__.update(dct)
 
+    @property
+    def fc_2(self):
+        from phonopy import Phonopy
+        phonon = Phonopy(
+            to_phonopy_atoms(self.toatoms()),
+            supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
+            symprec=self.symprec,
+            is_symmetry=True,
+            factor=const.eV_to_THz,
+            log_level=0,
+        )
+        phonon.set_displacement_dataset(self.displacement_dataset_2)
+        if "forces_2" in self and len(self.forces_2) > 0:
+            phonon.produce_force_constants(self.forces_2)
+        return phonon.get_force_constants()
+
+    @property
+    def fc_3(self):
+        from phono3py.phonon3 import Phono3py
+        phonon3 = Phono3py(
+            to_phonopy_atoms(self.toatoms()),
+            supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3),
+            phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
+            symprec=self.symprec,
+            is_symmetry=True,
+            frequency_factor_to_THz=const.eV_to_THz,
+            log_level=0,
+            mesh=self.qmesh,
+        )
+        phonon3._phonon_displacement_dataset = self.displacement_dataset_2.copy()
+        phonon3.set_displacement_dataset(self.displacement_dataset_3)
+
+        if "forces_3" in self and len(self.forces_3) > 0:
+            phonon3.produce_fc3(self.forces_3)
+
+
     def to_phonon(self):
         """
         Converts the row back into a phonopy object
@@ -170,15 +206,11 @@ class PhononRow(AtomsRow):
             supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
             symprec=self.symprec,
             is_symmetry=True,
-            factor=15.633_302,
-            log_level=0,
+            factor=const.eV_to_THz,
         )
         phonon.set_displacement_dataset(self.displacement_dataset_2)
-        if "forces_2" in self and self.forces_2:
-            self.fc_2 = np.asarray(self.fc_2)
-            if len(self.fc_2.shape) < 4:
-                self.fc_2 = reshape_fc_2(self.fc_2)
-            phonon.set_force_constants(self.fc_2)
+        if "forces_2" in self and len(self.forces_2) > 0:
+            phonon.produce_force_constants(self.forces_2)
         if "qmesh" in self and self.qmesh is not None:
             phonon.set_mesh(self.qmesh)
             if "tp_T" in self and self.tp_T is not None:

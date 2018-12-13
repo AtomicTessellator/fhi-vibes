@@ -649,9 +649,9 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         values[len(self.columnnames) - 8] = "{}"
         values[len(self.columnnames) - 7] = "null"
         if "fc_2" in columns and not "natoms_in_sc_2" in columns:
-            columns.append("natoms_in_sc_2")
+            columns = 'all'
         if "fc_3" in columns and not "natoms_in_sc_3" in columns:
-            columns.append("natoms_in_sc_3")
+            columns = 'all'
         if columns == "all":
             columnindex = list(range(len(self.columnnames) - 7))
         else:

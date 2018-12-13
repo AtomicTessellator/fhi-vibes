@@ -52,7 +52,7 @@ init_fw = generate_firework(
 
 kwargs = {
     "fireworks": True,
-    "db_kwargs": {"db_path": db_name,"original_atoms_hash": atoms_hash},
+    "db_kwargs": {"db_path": db_name,"original_atoms_hash": atoms_hash, "calc_type": "phonons"},
     "workdir": workdir,
 }
 
