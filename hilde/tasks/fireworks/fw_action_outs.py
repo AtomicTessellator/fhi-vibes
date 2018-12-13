@@ -126,23 +126,26 @@ def check_aims_relaxation_complete(
     converged = "Have a nice day" in aims_out[-2]
     calc = calc2dict(outputs.get_calculator())
     try:
-        atoms = read_aims(func_kwargs["workdir"] + "/geometry.in.next_step")
-        atoms.set_calculator(outputs.get_calculator())
-        atoms = atoms2dict(atoms)
+        new_atoms = read_aims(func_kwargs["workdir"] + "/geometry.in.next_step")
+        new_atoms.set_calculator(outputs.get_calculator())
+        new_atoms = atoms2dict(new_atoms)
     except:
         if not converged:
             raise CalculationError(
                 "There was a problem with the FHI Aims calculation stopping program here"
             )
-        atoms = atoms2dict(outputs)
+        new_atoms = atoms2dict(outputs)
+    for key, val in atoms['info']:
+        if key not in new_atoms['info']:
+            new_atoms[key] = val
     if converged:
         if "db_path" in func_fw_kwargs:
             db_path = func_fw_kwargs["db_path"]
             del (func_fw_kwargs["db_path"])
-            update_phonon_db(db_path, atoms, atoms, **func_fw_kwargs)
+            update_phonon_db(db_path, new_atoms, new_atoms, **func_fw_kwargs)
         return FWAction(
             update_spec={
-                fw_settings["out_spec_atoms"]: atoms,
+                fw_settings["out_spec_atoms"]: new_atoms,
                 fw_settings["out_spec_calc"]: calc,
             }
         )

@@ -142,6 +142,7 @@ See also: `doc/README_FHI_FireWorksConnections.md`
       * ntasks_per_node = 32
       * walltime = "00:30:00"
       * queue = "express"
+      * logdir = /some/path/that/must/exist (make sure this exists)
   * Find the FireWorks install directory with lpad version and modify
     $FW_INSTALL_DIR/fireworks/fw_config.py:
     * LAUNCHPAD_LOC: $HOME/.fireworks/my_launchpad.yaml
