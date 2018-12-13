@@ -19,7 +19,7 @@
     * modifications
       * All packages available from package manager
         * krb5-kdc
-        * krb5-devel
+        * libkrb-dev
         * openafs-client
         * openafs-krb5
         * libpam-krb5
