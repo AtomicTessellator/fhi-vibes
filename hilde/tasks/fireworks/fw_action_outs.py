@@ -341,9 +341,9 @@ def add_phonon_force_calcs(
     update_spec = {}
     fw_settings = fw_settings.copy()
     if "spec" in fw_settings and "kpoint_density_spec" in fw_settings:
-        fw_settings["spec"][fw_settings["kpoint_density_spec"]] = np.mean(k2d(dict2atoms(atoms), calc["calculator_parameters"]["k_grid"]))
+        fw_settings["spec"][fw_settings["kpoint_density_spec"]] = k2d(dict2atoms(atoms), calc["calculator_parameters"]["k_grid"])
     elif "kpoint_density_spec" in fw_settings:
-        fw_settings["spec"] = {fw_settings["kpoint_density_spec"]: np.mean(k2d(dict2atoms(atoms), calc["calculator_parameters"]["k_grid"]))}
+        fw_settings["spec"] = {fw_settings["kpoint_density_spec"]: k2d(dict2atoms(atoms), calc["calculator_parameters"]["k_grid"])}
     if outputs[0]:
         update_spec["metadata_ph"] = outputs[0][4]
         calc_dict = calc2dict(outputs[0][0])
