@@ -15,12 +15,13 @@ def d2k(atoms, kptdensity=3.5, even=True):
     even: bool
         Round up to even numbers.
     """
-
+    if isinstance(kptdensity, float):
+        kptdensity = 3*[kptdensity]
     recipcell = atoms.get_reciprocal_cell()
     kpts = []
     for i in range(3):
         if atoms.pbc[i]:
-            k = 2 * np.pi * np.sqrt((recipcell[i] ** 2).sum()) * float(kptdensity)
+            k = 2 * np.pi * np.sqrt((recipcell[i] ** 2).sum()) * float(kptdensity[i])
             if even:
                 kpts.append(2 * int(np.ceil(k / 2)))
             else:
@@ -30,10 +31,13 @@ def d2k(atoms, kptdensity=3.5, even=True):
     return kpts
 
 def d2k_cellinfo(recipcell, pbc, kptdensity=3.5, even=True):
+    if isinstance(kptdensity, float):
+        kptdensity = 3*[kptdensity]
+
     kpts = []
     for i in range(3):
         if pbc[i]:
-            k = 2 * np.pi * np.sqrt((recipcell[i] ** 2).sum()) * float(kptdensity)
+            k = 2 * np.pi * np.sqrt((recipcell[i] ** 2).sum()) * float(kptdensity[i])
             if even:
                 kpts.append(2 * int(np.ceil(k / 2)))
             else:

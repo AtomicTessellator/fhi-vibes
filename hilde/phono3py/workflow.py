@@ -70,6 +70,8 @@ def run(
         fw = kwargs.pop("fireworks")
         if not kpt_density:
             kpt_density = k2d(atoms, calc.parameters["k_grid"])
+    if "analysis_workdir" in kwargs:
+        del(kwargs["analysis_workdir"])
 
     calc, supercell, scs, phonon3, metadata = preprocess(
         atoms,
