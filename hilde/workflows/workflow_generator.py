@@ -167,6 +167,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         atoms, calc = setup_aims(settings=step_settings)
     else:
         calc = setup_aims(settings=step_settings)
+    print(step_settings.control_kpt.density)
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
     atoms_hash, calc_hash = hash_atoms_and_calc(atoms)

@@ -135,7 +135,7 @@ def check_aims_relaxation_complete(
                 "There was a problem with the FHI Aims calculation stopping program here"
             )
         new_atoms = atoms2dict(outputs)
-    for key, val in atoms['info']:
+    for key, val in atoms['info'].items():
         if key not in new_atoms['info']:
             new_atoms[key] = val
     if converged:

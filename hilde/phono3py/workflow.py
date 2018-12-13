@@ -92,7 +92,7 @@ def run(
     with cwd(Path(workdir) / calc_dirname, mkdir=True):
         settings.write()
 
-    calculate_socket(
+    completed = calculate_socket(
         atoms_to_calculate=scs,
         calculator=calc,
         metadata=metadata,
@@ -103,14 +103,15 @@ def run(
         supercell_file=supercell_file,
         **kwargs
     )
-    postprocess(
-        # phonon3,
-        trajectory=trajectory,
-        workdir=workdir,
-        force_constants_file=force_constants_file,
-        pickle_file=pickle_file,
-        db_kwargs=db_kwargs,
-        **kwargs,
-    )
+    if completed:
+        postprocess(
+            # phonon3,
+            trajectory=trajectory,
+            workdir=workdir,
+            force_constants_file=force_constants_file,
+            pickle_file=pickle_file,
+            db_kwargs=db_kwargs,
+            **kwargs,
+        )
 
     return True
