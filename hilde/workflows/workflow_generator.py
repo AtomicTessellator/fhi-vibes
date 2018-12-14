@@ -99,8 +99,7 @@ def generate_firework(
 def get_phonon_serial_task(func, func_kwargs, db_kwargs=None, make_abs_path=False):
     if db_kwargs:
         db_kwargs["calc_type"] = func.split(".")[1]
-        for key, val in db_kwargs.items():
-            func_kwargs[key] = val
+        func_kwargs["db_kwargs"] = db_kwargs
     return TaskSpec(
         func,
         "hilde.tasks.fireworks.fw_action_outs.serial_phonopy_continue",
@@ -171,7 +170,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
     atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
-    fw_settings = step_settings.fw_settings
+    fw_settings = step_settings.fw_settings.copy()
     if "from_db" not in fw_settings or not fw_settings.from_db:
         at = atoms
         cl = calc
@@ -195,12 +194,9 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         }
     else:
         db_kwargs = None
-    if "fw_name" in fw_settings:
-        fw_settings["fw_name"] += (
-            atoms.symbols.get_chemical_formula() + "_" + hash_atoms_and_calc(atoms)[0]
-       )
     task_spec_list = []
     if "relaxation" in step_settings:
+        fw_settings["fw_name"] = f"relaxation_{step_settings.basisset.type}"
         if db_kwargs:
             db_kwargs["calc_type"] = f"relaxation_{step_settings.basisset.type}"
         task_spec_list.append(
@@ -214,6 +210,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             )
         )
     elif "aims_relaxation" in step_settings:
+        fw_settings["fw_name"] = f"aims_relaxation_{step_settings.basisset.type}"
         if db_kwargs:
             db_kwargs["calc_type"] = f"relaxation_{step_settings.basisset.type}"
             fw_out_kwargs = dict(db_kwargs, relax_step=0)
@@ -230,6 +227,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             )
         )
     elif "kgrid_opt" in step_settings:
+        fw_settings["fw_name"] = "k_grid_opt"
         task_spec_list.append(
             TaskSpec(
                 "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid",
@@ -240,8 +238,11 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             )
         )
     elif "phonopy" in step_settings or "phono3py" in step_settings:
+        fw_settings_list = []
         if fw_settings["serial"]:
             if "phonopy" in step_settings:
+                fw_settings_list.append(fw_settings.copy())
+                fw_settings_list[-1]["fw_name"] = "phonopy"
                 task_spec_list.append(
                     get_phonon_serial_task(
                         "hilde.phonopy.workflow.run",
@@ -251,6 +252,8 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
                     )
                 )
             if "phono3py" in step_settings:
+                fw_settings_list.append(fw_settings.copy())
+                fw_settings_list[-1]["fw_name"] = "phono3py"
                 task_spec_list.append(
                     get_phonon_serial_task(
                         "hilde.phono3py.workflow.run",
@@ -261,6 +264,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
                 )
         else:
             func_kwargs = {}
+            fw_settings["fw_name"] = "phonon_init"
             if "phonopy" in step_settings:
                 func_kwargs["phonopy_settings"] = step_settings.phonopy
             if "phono3py" in step_settings:
@@ -274,16 +278,22 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             )
     else:
         raise ValueError("Type not defiend")
+    fw_settings["fw_name"] += (
+        f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    )
     if ("phonopy" in step_settings or "phono3py" in step_settings) and fw_settings["serial"]:
         fw_list = []
-        for task_spec in task_spec_list:
+        for tt, task_spec in enumerate(task_spec_list):
+            fw_settings_list[tt]["fw_name"] += (
+                f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+            )
             fw_list.append(
                 generate_firework(
                     task_spec,
                     at,
                     cl,
-                    atoms_calc_from_spec=fw_settings.from_db,
-                    fw_settings=fw_settings,
+                    atoms_calc_from_spec=fw_settings_list[tt].from_db,
+                    fw_settings=fw_settings_list[tt],
                     update_calc_settings=step_settings.control,
                 )
             )
@@ -325,6 +335,9 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
                 make_abs_path=make_abs_path,
             )
         )
+    fw_settings["fw_name"] += (
+        f"phonon_analysis_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    )
     fw_list.append(
         generate_firework(
             task_spec_list,

@@ -53,7 +53,7 @@ def run(
     supercell_file="geometry.in.supercell",
     force_constants_file="force_constants.dat",
     pickle_file="phonon.pick",
-    db_path=None,
+    db_kwargs=None,
     **kwargs,
 ):
     if "fireworks" in kwargs:
@@ -87,7 +87,6 @@ def run(
         supercell_file=supercell_file,
         **kwargs
     )
-
     if completed:
         postprocess(
             # phonon,
@@ -95,7 +94,7 @@ def run(
             workdir=workdir,
             force_constants_file=force_constants_file,
             pickle_file=pickle_file,
-            db_kwargs={"db_path": db_path},
+            db_kwargs=db_kwargs,
             **kwargs,
         )
         return True

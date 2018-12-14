@@ -23,7 +23,5 @@ def main():
         steps.append(Settings(settings_file=step_file))
 
     fw_settings = {"to_launchpad": True}
-    if "name" not in fw_settings:
-        fw_settings["name"] = ""
-    fw_settings["name"] += atoms.symbols.get_chemical_formula() + "_" + hash_atoms_and_calc(atoms)[0]
+    fw_settings["name"] = atoms.symbols.get_chemical_formula() + "_" + hash_atoms_and_calc(atoms)[0]
     generate_workflow(steps, atoms=atoms, fw_settings=fw_settings, make_abs_path=args.make_abs_path)
