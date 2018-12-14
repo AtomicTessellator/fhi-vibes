@@ -106,6 +106,11 @@ def calculate_socket(
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
 
+    # perform backup if calculation folder exists
+
+    if calc_dir.exists():
+        backup(calc_dir, target_folder=backup_folder)
+
     # handle the socketio
     socketio_port = get_port(calculator)
     if socketio_port is None:
