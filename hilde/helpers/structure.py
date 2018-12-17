@@ -6,16 +6,16 @@ from hilde.helpers.maths import clean_matrix
 
 # no ase
 def clean_atoms(input_atoms, align=False, tolerance=1e-9):
-    """Objective: Put position of atom 0 to origin, 
+    """Objective: Put position of atom 0 to origin,
     align 1. lattice vector with x axis, 2. to xy plane
     rotation: change lattice via rotations, else: change via cellpars
     """
 
     atoms = input_atoms.copy()
 
-    atoms.positions -= atoms.positions[0]
-
-    atoms.wrap()
+    # this had unwanted side effects:
+    # atoms.positions -= atoms.positions[0]
+    # atoms.wrap()
 
     scaled_pos = atoms.get_scaled_positions()
 
@@ -26,6 +26,8 @@ def clean_atoms(input_atoms, align=False, tolerance=1e-9):
         new_lattice = clean_matrix(cellpar_to_cell(cell_params))
     else:
         new_lattice = clean_matrix(old_lattice)
+
+    print(new_lattice, old_lattice)
 
     # Sanity check
     vol0 = np.linalg.det(old_lattice)

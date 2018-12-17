@@ -11,6 +11,7 @@ from hilde.helpers.geometry import get_cubicness
 from hilde.helpers.maths import get_3x3_matrix
 from hilde.helpers.structure import clean_atoms
 from hilde.spglib.wrapper import get_spacegroup
+from hilde.helpers import Timer
 
 
 def print_matrix(matrix, indent=2):
@@ -30,10 +31,12 @@ def main():
     parser.add_argument("-n", type=int, help="target size")
     parser.add_argument("-d", "--dim", type=int, nargs="+", help="supercell matrix")
     parser.add_argument("--deviation", type=float, default=0.2)
+    parser.add_argument("--limit", type=int, default=2)
     parser.add_argument("--dry", action="store_true", help="Do not write output file")
     parser.add_argument("--format", default="aims")
     args = parser.parse_args()
 
+    timer = Timer()
     fname = args.geom
     print(f"Find supercell for")
     cell = read(fname, format=args.format)
@@ -43,7 +46,7 @@ def main():
         print("\nSettings:")
         print(f"  Target number of atoms: {args.n}")
         supercell, smatrix = make_cubic_supercell(
-            cell, args.n, deviation=args.deviation
+            cell, args.n, deviation=args.deviation, limit=args.limit
         )
     elif args.dim:
         smatrix = get_3x3_matrix(args.dim)
@@ -78,6 +81,8 @@ def main():
             format=args.format,
         )
         print(f"\nSupercell written to {output_filename}")
+
+    timer()
 
 
 if __name__ == "__main__":
