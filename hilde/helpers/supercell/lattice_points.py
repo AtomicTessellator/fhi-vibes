@@ -260,7 +260,7 @@ def _get_lattice_points(
             lattice.T, inv_superlattice.T, n_lattice_points, max_iterations, tolerance
         ).T
         lattice_points = all_lattice_points[:n_lattice_points]
-        lattice_points_extended =  [
+        lattice_points_extended = [
             p
             for p in all_lattice_points[n_lattice_points:]
             if sum(p) > -30000 + tolerance
@@ -283,14 +283,14 @@ def _get_lattice_points(
             frac_lp = fractional(lp, superlattice)
 
             # Check if is inside supercell [0, 1) and discard if no
-            if (np.any(np.array(frac_lp) > -tolerance)) or (
-                np.any(np.array(frac_lp) < 1 - tolerance)
+            if (np.all(np.array(frac_lp) > -tolerance)) and (
+                np.all(np.array(frac_lp) < 1 - tolerance)
             ):
                 lattice_points.append(lp)
 
             # Check if is inside extended supercell [0, 1] and discard if no
-            elif (np.any(np.array(frac_lp) > -tolerance)) or (
-                np.any(np.array(frac_lp) < 1 + tolerance)
+            elif (np.all(np.array(frac_lp) > -tolerance)) and (
+                np.all(np.array(frac_lp) < 1 + tolerance)
             ):
                 lattice_points_extended.append(lp)
 

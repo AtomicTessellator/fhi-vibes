@@ -188,8 +188,8 @@ module supercell
           .and. (frac_lp(3, 1) < 1 + tolerance)) then
 
             counter_ext = counter_ext + 1
-            write (*,*) 'counter: ', counter
-            write (*,*) 'counter_ext: ', counter_ext
+            ! write (*,*) 'counter: ', counter
+            ! write (*,*) 'counter_ext: ', counter_ext
             lattice_points_extended(1:3, counter_ext:counter_ext) = lp(1:3, 1:1)
 
         end if
