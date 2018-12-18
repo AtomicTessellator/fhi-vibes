@@ -14,13 +14,17 @@ def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
     return get_dynamical_matrices([q], primitive, supercell, force_constants, eps)[0]
 
 
+def _prefactor(q, l):
+    return np.exp(-2j * np.pi * q @ l)
+
+
 def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=1e-12):
     """ build the dynamical matrix for each q_point """
     force_constants_reshaped = reshape_force_constants(
         primitive, supercell, force_constants
     )
 
-    lattice_points = get_lattice_points(primitive, supercell)
+    lattice_points, lattice_points_ext = get_lattice_points(primitive, supercell)
 
     masses = primitive.get_masses()
 
@@ -32,31 +36,69 @@ def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=
         dyn_matrix = np.zeros([n_prim, n_prim, 3, 3], dtype=complex)
 
         for LL, lp in enumerate(lattice_points):
-            print(qq @ lp)
-            prefactor = np.exp(-2j * np.pi * qq @ lp)
+            prefactor = _prefactor(qq, lp)
             if np.linalg.norm(prefactor.imag) < eps:
                 prefactor = prefactor.real
+            # print(qq @ lp, prefactor)
 
-            dyn_matrix += prefactor * force_constants_reshaped[:, 0, :, LL]
+            for ii, ri in enumerate(primitive.positions):
+                for jj, rj in enumerate(primitive.positions):
+                    dyn_matrix[ii, jj, :, :] += (
+                        0.5 * prefactor * force_constants_reshaped[ii, 0, jj, LL]
+                    )
+
+                    dyn_matrix[ii, jj, :, :] += (
+                        0.5 * prefactor * force_constants_reshaped[jj, LL, ii, 0]
+                    )
+
+            # print(qq, LL, lp, "dynmat")
+            # print(force_constants_reshaped[:, 0, :, LL])
+            # print(dyn_matrix)
 
         for ii in range(n_prim):
             for jj in range(n_prim):
                 dyn_matrix[ii, jj, :, :] /= np.sqrt(masses[ii] * masses[jj])
+
+        # for LL, lps in enumerate(lattice_points_ext):
+        #     multiplicity = 1  # len(lps)
+        #     # for ll, lp in enumerate([lps[0]]):
+        #     # print(lps)
+        #     lp = lps[0]
+        #     prefactor = _prefactor(qq, lp)
+        #     # print("prefactor", prefactor, qq @ lp)
+        #     if np.linalg.norm(prefactor.imag) < eps:
+        #         prefactor = prefactor.real
+
+        #     dyn_matrix += 0.5 * (
+        #         prefactor * force_constants_reshaped[:, 0, :, LL] / multiplicity
+        #     )
+
+        #     dyn_matrix += 0.5 * (
+        #         prefactor * force_constants_reshaped[:, LL, :, 0] / multiplicity
+        #     )
+
+        #     # print("computed")
+        #     # print("dyn_matrix ", LL)
+        #     # print(dyn_matrix)
+
+        #     # dyn_matrix /= multiplicity
 
         dyn_matrices.append(dyn_matrix.swapaxes(1, 2).reshape(3 * n_prim, 3 * n_prim))
 
     return dyn_matrices
 
 
-def reshape_force_constants(primitive, supercell, force_constants):
+def reshape_force_constants(primitive, supercell, force_constants, scale_mass=False):
     """ reshape from (3N x 3N) into 3x3 blocks labelled by (i,L) """
 
-    indeces, lattice_points = assign_primitive_positions(
-        primitive, supercell, return_lattice_points=True
-    )
+    indeces = assign_primitive_positions(primitive, supercell)
+
+    lattice_points, _ = get_lattice_points(primitive, supercell)
 
     n_i = len(primitive)
     n_L = len(lattice_points)
+
+    masses = primitive.get_masses()
 
     new_force_constants = np.zeros([n_i, n_L, n_i, n_L, 3, 3])
 
@@ -65,6 +107,9 @@ def reshape_force_constants(primitive, supercell, force_constants):
             phi = force_constants[3 * n1 : 3 * n1 + 3, 3 * n2 : 3 * n2 + 3]
 
             i1, L1, i2, L2 = (*indeces[n1], *indeces[n2])
+
+            if scale_mass:
+                phi /= np.sqrt(masses[i1] * masses[i2])
 
             new_force_constants[i1, L1, i2, L2] = clean_matrix(phi)
 
@@ -90,26 +135,26 @@ def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
     inv_lattice = la.inv(lattice)
     inv_superlattice = la.inv(superlattice)
 
-    inv_lattice_points = _get_lattice_points(inv_superlattice, inv_lattice, **kwargs)
+    inv_lattice_points, _ = _get_lattice_points(inv_superlattice, inv_lattice, **kwargs)
 
     return inv_lattice_points
 
 
-def assign_primitive_positions(
-    in_atoms, in_supercell, return_lattice_points=False, tolerance=1e-5
-):
+def assign_primitive_positions(in_atoms, in_supercell, extended=False, tolerance=1e-5):
     """ write positions in the supercell as (i, L), where i is the respective index
         in the primitive cell and L is the lattice point """
 
     timer = Timer()
 
     atoms = in_atoms.copy()
-    atoms.wrap()
-
     supercell = in_supercell.copy()
+    atoms.wrap()
     supercell.wrap()
 
-    lattice_points = get_lattice_points(atoms, supercell)
+    if extended:
+        _, lattice_points = get_lattice_points(atoms, supercell)
+    else:
+        lattice_points, _ = get_lattice_points(atoms, supercell)
 
     # create all positions R = r_i + L
     all_positions = []
@@ -133,13 +178,20 @@ def assign_primitive_positions(
     for jj, spos in enumerate(supercell.positions):
         if jj in matches:
             continue
-        for ii, pos in enumerate(atoms.positions):
-            for LL, lp in enumerate(lattice_points):
-                for _, LP in enumerate(supercell.cell):
-                    if la.norm(spos - pos - lp - LP) < tolerance:
-                        indices.append((ii, LL))
-                        matches.append(jj)
-                        break
+        for LL, lp in enumerate(lattice_points):
+            for ii, pos in enumerate(atoms.positions):
+                fpos = fractional(spos - pos - lp, supercell.cell)
+                tol = tolerance
+                if la.norm((fpos + tol) % 1 - tol) < tolerance:
+                    indices.append((ii, LL))
+                    matches.append(jj)
+                    break
+
+                # for _, LP in enumerate(supercell.cell):
+                #     if la.norm(spos - pos - lp - LP) < tolerance:
+                #         indices.append((ii, LL))
+                #         matches.append(jj)
+                #         break
 
     # sanity checks:
     if len(np.unique(matches)) != len(supercell):
@@ -147,18 +199,27 @@ def assign_primitive_positions(
             if ii not in matches:
                 print(f"Missing: {ii} {supercell.positions[ii]}")
 
+    print(matches)
+
     assert len(np.unique(indices, axis=0)) == len(supercell), (indices, len(supercell))
 
     timer(f"matched {len(matches)} positions in supercell and primitive cell")
 
-    if return_lattice_points:
-        return indices, lattice_points
     return indices
 
 
 def get_lattice_points(atoms, supercell, fortran=True, **kwargs):
     """ wrap _get_lattice_points """
     return _get_lattice_points(atoms.cell, supercell.cell, fortran=fortran, **kwargs)
+
+
+def get_supercell_positions(atoms, supercell):
+    """ find all positions in the supercell including the boundary atom """
+
+    timer = Timer()
+    tol = tolerance
+
+    lattice_points, lattice_points_ext = get_lattice_points(atoms, supercell)
 
 
 def _get_lattice_points(
@@ -170,6 +231,7 @@ def _get_lattice_points(
         M = supercell_matrix """
 
     timer = Timer()
+    tol = tolerance
 
     inv_lattice = la.inv(lattice)
     inv_superlattice = la.inv(superlattice)
@@ -191,16 +253,24 @@ def _get_lattice_points(
 
     # maximal distance = diagonal of the cell
     # points generated beyond this won't lie inside the supercell
-    dmax = 1.5 * np.linalg.norm(superlattice.sum(axis=1))
+    dmax = 2.5 * np.linalg.norm(superlattice.sum(axis=1))
 
     if fortran:
-        lattice_points = sc.supercell.find_lattice_points(
+        all_lattice_points = sc.supercell.find_lattice_points(
             lattice.T, inv_superlattice.T, n_lattice_points, max_iterations, tolerance
         ).T
+        lattice_points = all_lattice_points[:n_lattice_points]
+        lattice_points_extended =  [
+            p
+            for p in all_lattice_points[n_lattice_points:]
+            if sum(p) > -30000 + tolerance
+        ]
 
     else:
         # find lattice points by enumeration
         lattice_points = []
+        lattice_points_extended = []
+
         for (n1, n2, n3) in product(
             range(-max_iterations, max_iterations + 1), repeat=3
         ):
@@ -212,15 +282,17 @@ def _get_lattice_points(
 
             frac_lp = fractional(lp, superlattice)
 
-            # Check if is inside supercell and discard if no
-            if np.any(np.array(frac_lp) < -tolerance):
-                continue
+            # Check if is inside supercell [0, 1) and discard if no
+            if (np.any(np.array(frac_lp) > -tolerance)) or (
+                np.any(np.array(frac_lp) < 1 - tolerance)
+            ):
+                lattice_points.append(lp)
 
-            if np.any(np.array(frac_lp) > 1 - tolerance):
-                continue
-
-            # attach to list if passed
-            lattice_points.append(lp)
+            # Check if is inside extended supercell [0, 1] and discard if no
+            elif (np.any(np.array(frac_lp) > -tolerance)) or (
+                np.any(np.array(frac_lp) < 1 + tolerance)
+            ):
+                lattice_points_extended.append(lp)
 
     assert len(np.unique(lattice_points, axis=0)) == n_lattice_points, (
         len(np.unique(lattice_points, axis=0)),
@@ -228,12 +300,41 @@ def _get_lattice_points(
         lattice_points[:3],
     )
 
-    timer(f"found {len(lattice_points)} lattice points")
+    # assert len(np.unique(lattice_points_extended, axis=0)) == 8 * n_lattice_points, (
+    #     len(np.unique(lattice_points_extended, axis=0)),
+    #     8 * n_lattice_points,
+    #     lattice_points_extended[:3],
+    # )
+
+    timer(
+        f"found {len(lattice_points)} ({len(lattice_points_extended)}) lattice points"
+    )
 
     if sort:
-        return np.asarray(sort_lattice_points(lattice_points))
+        lattice_points = np.asarray(sort_lattice_points(lattice_points))
+    else:
+        lattice_points = np.asarray(lattice_points)
 
-    return np.asarray(lattice_points)
+    # find multiplicities of the extended lattice points
+    lattice_points_ext_w_multiplicites = []
+    for lp in lattice_points:
+
+        frac_lp = fractional(lp, superlattice)
+
+        elp_mult = []
+
+        for elp in lattice_points_extended:
+            frac_elp = fractional(elp, superlattice)
+
+            if la.norm((frac_elp - frac_lp + tol) % 1 % 1 - tol) < tol:
+                elp_mult.append(elp)
+
+        lattice_points_ext_w_multiplicites.append(elp_mult)
+
+    # len_elps = [len(s) for s in lattice_points_ext_w_multiplicites]
+    # assert sum(len_elps) == 8 * n_lattice_points, len_elps
+
+    return lattice_points, lattice_points_ext_w_multiplicites
 
 
 def sort_lattice_points(lattice_points, tol=1e-5):
