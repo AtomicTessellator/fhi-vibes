@@ -27,7 +27,7 @@ def find_cubic_cell(
 
 
 def make_cubic_supercell(
-    atoms, target_size=100, deviation=0.2, lower_limit=-2, upper_limit=2, verbose=False
+    atoms, target_size=100, deviation=0.2, limit=2, verbose=False
 ):
     """ Create a supercell of target size that is as cubic as possible.
 
@@ -35,8 +35,7 @@ def make_cubic_supercell(
         atoms (Atoms): Input atoms object
         target_size (int): Number of atoms in supercell
         deviation (float): Allowed deviation from target supercell size
-        lower_limit (int): lower limit for expansion about analytic search
-        upper_limit (int): upper limit for expansion about analytic search
+        limit (int): limit for expansion about analytic search
         verbose (boolean): be verbose (for debugging)
 
     Returns:
@@ -50,8 +49,8 @@ def make_cubic_supercell(
         cell=prim_cell.cell,
         target_size=target_size / len(prim_cell),
         deviation=deviation,
-        lower_limit=lower_limit,
-        upper_limit=upper_limit,
+        lower_limit=-limit,
+        upper_limit=limit,
         verbose=verbose,
     )
 
