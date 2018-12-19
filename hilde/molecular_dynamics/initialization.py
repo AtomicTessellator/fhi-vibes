@@ -40,7 +40,7 @@ def setup_md(
         from ase.md.langevin import Langevin
 
         if temperature is None:
-            warn("temperature not set", level=3)
+            warn("temperature not set", level=2)
 
         if friction is None:
             warn("Friction not defined, set to 0.01", level=2)

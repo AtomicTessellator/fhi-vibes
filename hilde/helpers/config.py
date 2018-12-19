@@ -13,7 +13,7 @@ class AttributeDict(OrderedDict):
         if attr in self:
             return self[attr]
         else:
-            warn(f"Attribute {attr} not in dictionary, return None.", level=2)
+            warn(f"Attribute {attr} not in dictionary, return None.", level=1)
             return None
 
     def __setattr__(self, attr, value):
