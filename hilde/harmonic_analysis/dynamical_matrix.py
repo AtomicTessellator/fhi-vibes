@@ -1,11 +1,20 @@
 """ Functions related to creation of dynamical matrices """
 
 import numpy as np
+from hilde.konstanten import eV_to_THz
 from . import get_lattice_points
 from .force_constants import reshape_force_constants
 
+
 def _prefactor(q, r):
     return np.exp(-2j * np.pi * q @ r)
+
+
+def get_frequencies(dyn_matrix, eV_to_THz=eV_to_THz):
+    """ Diagonalize dynamical_matrix and convert to THz """
+    evs = np.linalg.eigh(dyn_matrix)[0]
+    return np.sign(evs) * np.sqrt(abs(evs)) * eV_to_THz
+
 
 def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
     """ build the dynamical matrix for one q_point """

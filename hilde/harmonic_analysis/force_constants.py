@@ -2,7 +2,8 @@
 
 import numpy as np
 from hilde.helpers.numerics import clean_matrix
-from . import get_lattice_points, assign_primitive_positions
+from hilde.helpers.lattice_points import get_lattice_points, map_I_to_iL
+
 
 def reshape_force_constants(
     primitive, supercell, force_constants, scale_mass=False, lattice_points=None
@@ -12,9 +13,7 @@ def reshape_force_constants(
     if lattice_points is None:
         lattice_points, _ = get_lattice_points(primitive, supercell)
 
-    indeces = assign_primitive_positions(
-        primitive, supercell, lattice_points=lattice_points
-    )
+    indeces = map_I_to_iL(primitive, supercell, lattice_points=lattice_points)
 
     n_i = len(primitive)
     n_L = len(lattice_points)

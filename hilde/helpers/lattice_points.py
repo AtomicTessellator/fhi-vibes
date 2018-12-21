@@ -6,7 +6,7 @@ import numpy as np
 import scipy.linalg as la
 from hilde.helpers.timer import Timer
 from hilde.helpers.lattice import fractional
-from . import supercell as sc
+from hilde.helpers.supercell import supercell as sc
 
 
 def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
@@ -33,7 +33,24 @@ def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
     return inv_lattice_points
 
 
-def assign_primitive_positions(
+def map_L_to_i(indeces):
+    """ Map to atoms belonging to specific lattice point
+
+        indeces:
+            map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point
+            i: corresponding atom in primitive cell L: lattice point index
+        returns:
+            list of masks that single out the atoms in the supercell that belong to
+            specific lattice point """
+
+    n_lattice_points = max([i[1] for i in indeces]) + 1
+    mappings = []
+    for LL in range(n_lattice_points):
+        mappings.append([idx[1] == LL for idx in indeces])
+    return mappings
+
+
+def map_I_to_iL(
     in_atoms, in_supercell, lattice_points=None, extended=False, tolerance=1e-5
 ):
     """ write positions in the supercell as (i, L), where i is the respective index
