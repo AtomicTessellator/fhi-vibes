@@ -10,7 +10,7 @@ from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.paths import cwd
 from hilde.helpers.utility_functions import get_smatrix
 from hilde.phonon_db.phonon_db import connect
-from hilde.workflows.workflow_generator import generate_firework
+from hilde.fireworks.workflow_generator import generate_firework
 
 from fireworks import Workflow
 

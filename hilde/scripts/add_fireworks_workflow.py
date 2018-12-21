@@ -7,7 +7,7 @@ from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.settings import Settings
-from hilde.workflows.workflow_generator import generate_workflow
+from hilde.fireworks.workflow_generator import generate_workflow
 
 def main():
     parser = ArgumentParser(description="create a configuration file and workdir")
