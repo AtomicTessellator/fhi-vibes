@@ -2,7 +2,7 @@
 
 import numpy as np
 from ase.geometry import cell_to_cellpar, cellpar_to_cell
-from hilde.helpers.maths import clean_matrix
+from hilde.helpers.numerics import clean_matrix
 
 # no ase
 def clean_atoms(input_atoms, align=False, tolerance=1e-9):

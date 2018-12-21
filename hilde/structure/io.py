@@ -3,7 +3,7 @@ import numpy as np
 from scipy.linalg import norm
 from hilde.konstanten.io import n_geom_digits
 from hilde.konstanten.symmetry import symprec
-from hilde.helpers.maths import clean_matrix
+from hilde.helpers.numerics import clean_matrix
 from hilde.structure.misc import get_sysname
 from hilde.spglib.wrapper import get_symmetry_dataset
 

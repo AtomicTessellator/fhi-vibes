@@ -6,7 +6,7 @@ from numpy import sin, cos, sqrt
 import scipy.linalg as la
 import spglib as spg
 from hilde.helpers.cell import cell_to_cellpar, reciprocal_lattice
-from hilde.helpers.maths import clean_matrix
+from hilde.helpers.numerics import clean_matrix
 from hilde.konstanten.numerics import loose_tol, wrap_tol, eps
 from hilde.konstanten.symmetry import symprec
 from .io import inform

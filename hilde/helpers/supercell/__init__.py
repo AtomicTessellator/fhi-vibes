@@ -4,7 +4,7 @@ from . import supercell as sc
 from ase.spacegroup import get_spacegroup
 from hilde.structure.misc import get_sysname
 from hilde.helpers.geometry import get_cubicness
-from hilde.helpers.maths import clean_matrix
+from hilde.helpers.numerics import clean_matrix
 from warnings import warn
 
 

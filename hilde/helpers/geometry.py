@@ -1,6 +1,6 @@
 import numpy as np
 from hilde.konstanten.maths import perfect_fill, vol_sphere
-from hilde.helpers.maths import clean_matrix
+from hilde.helpers.numerics import clean_matrix
 
 
 def inscribed_sphere_in_box(cell):

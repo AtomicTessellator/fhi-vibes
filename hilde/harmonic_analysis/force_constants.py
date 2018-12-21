@@ -1,7 +1,7 @@
 """ Tools for dealing with force constants """
 
 import numpy as np
-from hilde.helpers.maths import clean_matrix
+from hilde.helpers.numerics import clean_matrix
 from . import get_lattice_points, assign_primitive_positions
 
 def reshape_force_constants(

@@ -8,7 +8,7 @@ from hilde.io import read, write
 from hilde.structure.io import inform
 from hilde.helpers.supercell import make_cubic_supercell, make_supercell
 from hilde.helpers.geometry import get_cubicness
-from hilde.helpers.maths import get_3x3_matrix
+from hilde.helpers.numerics import get_3x3_matrix
 from hilde.helpers.structure import clean_atoms
 from hilde.spglib.wrapper import get_spacegroup
 from hilde.helpers import Timer
