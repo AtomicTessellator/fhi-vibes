@@ -55,3 +55,6 @@ test_run
 
 # direnv
 **.envrc
+
+# venv
+venv
