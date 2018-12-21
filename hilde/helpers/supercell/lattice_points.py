@@ -20,11 +20,12 @@ def _prefactor(q, l):
 
 def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=1e-12):
     """ build the dynamical matrix for each q_point """
-    force_constants_reshaped = reshape_force_constants(
-        primitive, supercell, force_constants
-    )
 
     lattice_points, lattice_points_ext = get_lattice_points(primitive, supercell)
+
+    force_constants_reshaped = reshape_force_constants(
+        primitive, supercell, force_constants, lattice_points=lattice_points
+    )
 
     masses = primitive.get_masses()
 
@@ -39,7 +40,6 @@ def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=
             prefactor = _prefactor(qq, lp)
             if np.linalg.norm(prefactor.imag) < eps:
                 prefactor = prefactor.real
-            # print(qq @ lp, prefactor)
 
             for ii, ri in enumerate(primitive.positions):
                 for jj, rj in enumerate(primitive.positions):
@@ -51,49 +51,26 @@ def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=
                         0.5 * prefactor * force_constants_reshaped[jj, LL, ii, 0]
                     )
 
-            # print(qq, LL, lp, "dynmat")
-            # print(force_constants_reshaped[:, 0, :, LL])
-            # print(dyn_matrix)
-
         for ii in range(n_prim):
             for jj in range(n_prim):
                 dyn_matrix[ii, jj, :, :] /= np.sqrt(masses[ii] * masses[jj])
-
-        # for LL, lps in enumerate(lattice_points_ext):
-        #     multiplicity = 1  # len(lps)
-        #     # for ll, lp in enumerate([lps[0]]):
-        #     # print(lps)
-        #     lp = lps[0]
-        #     prefactor = _prefactor(qq, lp)
-        #     # print("prefactor", prefactor, qq @ lp)
-        #     if np.linalg.norm(prefactor.imag) < eps:
-        #         prefactor = prefactor.real
-
-        #     dyn_matrix += 0.5 * (
-        #         prefactor * force_constants_reshaped[:, 0, :, LL] / multiplicity
-        #     )
-
-        #     dyn_matrix += 0.5 * (
-        #         prefactor * force_constants_reshaped[:, LL, :, 0] / multiplicity
-        #     )
-
-        #     # print("computed")
-        #     # print("dyn_matrix ", LL)
-        #     # print(dyn_matrix)
-
-        #     # dyn_matrix /= multiplicity
 
         dyn_matrices.append(dyn_matrix.swapaxes(1, 2).reshape(3 * n_prim, 3 * n_prim))
 
     return dyn_matrices
 
 
-def reshape_force_constants(primitive, supercell, force_constants, scale_mass=False):
+def reshape_force_constants(
+    primitive, supercell, force_constants, scale_mass=False, lattice_points=None
+):
     """ reshape from (3N x 3N) into 3x3 blocks labelled by (i,L) """
 
-    indeces = assign_primitive_positions(primitive, supercell)
+    if lattice_points is None:
+        lattice_points, _ = get_lattice_points(primitive, supercell)
 
-    lattice_points, _ = get_lattice_points(primitive, supercell)
+    indeces = assign_primitive_positions(
+        primitive, supercell, lattice_points=lattice_points
+    )
 
     n_i = len(primitive)
     n_L = len(lattice_points)
@@ -140,7 +117,9 @@ def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
     return inv_lattice_points
 
 
-def assign_primitive_positions(in_atoms, in_supercell, extended=False, tolerance=1e-5):
+def assign_primitive_positions(
+    in_atoms, in_supercell, lattice_points=None, extended=False, tolerance=1e-5
+):
     """ write positions in the supercell as (i, L), where i is the respective index
         in the primitive cell and L is the lattice point """
 
@@ -151,10 +130,11 @@ def assign_primitive_positions(in_atoms, in_supercell, extended=False, tolerance
     atoms.wrap()
     supercell.wrap()
 
-    if extended:
-        _, lattice_points = get_lattice_points(atoms, supercell)
-    else:
-        lattice_points, _ = get_lattice_points(atoms, supercell)
+    if lattice_points is None:
+        if extended:
+            _, lattice_points = get_lattice_points(atoms, supercell)
+        else:
+            lattice_points, _ = get_lattice_points(atoms, supercell)
 
     # create all positions R = r_i + L
     all_positions = []
@@ -187,19 +167,11 @@ def assign_primitive_positions(in_atoms, in_supercell, extended=False, tolerance
                     matches.append(jj)
                     break
 
-                # for _, LP in enumerate(supercell.cell):
-                #     if la.norm(spos - pos - lp - LP) < tolerance:
-                #         indices.append((ii, LL))
-                #         matches.append(jj)
-                #         break
-
     # sanity checks:
     if len(np.unique(matches)) != len(supercell):
         for ii, _ in enumerate(supercell):
             if ii not in matches:
                 print(f"Missing: {ii} {supercell.positions[ii]}")
-
-    print(matches)
 
     assert len(np.unique(indices, axis=0)) == len(supercell), (indices, len(supercell))
 
@@ -246,7 +218,6 @@ def _get_lattice_points(
 
     if verbose:
         print(f"Maximum number of iterations: {max_iterations}")
-        # print(f"\nn_lattice_points:             {n_lattice_points}")
         print(f"\nSupercell matrix:             \n{supercell_matrix}")
         print(f"\nlattice:                      \n{lattice}")
         print(f"\ninv_lattice:                  \n{inv_lattice}\n")
