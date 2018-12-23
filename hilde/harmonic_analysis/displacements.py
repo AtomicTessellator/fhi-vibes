@@ -2,6 +2,7 @@
 
 import numpy as np
 from hilde.helpers.numerics import clean_matrix
+from hilde.konstanten import v_unit
 
 
 def get_dR(atoms0, atoms, wrap_tol=1e-5):
@@ -34,3 +35,16 @@ def get_U(atoms0, atoms, masses=None, wrap_tol=1e-5):
     dU = dR * np.sqrt(masses[:, None])
 
     return dU
+
+def get_dUdt(atoms, masses=None, wrap_tol=1e-5):
+    """ Compute V and return dU/dt = sqrt(M) . V """
+
+    V = atoms.get_velocities() #/ v_unit
+
+    # mass scaling
+    if masses is None:
+        masses = atoms.get_masses()
+
+    dUdt = V * np.sqrt(masses[:, None])
+
+    return dUdt
