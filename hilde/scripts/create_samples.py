@@ -6,7 +6,7 @@ from argparse import ArgumentParser as argpars
 import numpy as np
 from ase.io import read
 from hilde.structure.io import inform
-from hilde.konstanten.einheiten import eV_to_THz
+from hilde.konstanten.einheiten import omega_to_THz
 from hilde.molecular_dynamics import initialize_md
 
 
@@ -19,7 +19,7 @@ def get_frequencies(atoms, force_constants):
     # Solve eigenvalue problem to compute phonon spectrum and eigenvectors
     w2_s, _ = np.linalg.eigh(dynamical_matrix)
 
-    return w2_s * (eV_to_THz) ** 2
+    return w2_s * (omega_to_THz) ** 2
 
 
 def main():

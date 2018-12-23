@@ -1,27 +1,68 @@
+""" Physical constants and atomic units """
 from numpy import pi
-Bohr_to_AA       =  0.52917721092
-Hartree_to_eV    = 27.211385
-#u_in_kg          =  1.6726219e-27
-u_in_kg          =  1.66053904e-27
-au_to_kg         =  9.10938291e-31
-kg_to_au         =  1 / au_to_kg
-u_in_au          =  u_in_kg * kg_to_au
-c_in_au          =  137
-au_to_s          =  2.418884326505e-17
-au_to_fs         =  2.418884326505e-2
-au_to_cm         =  au_to_s * 2*pi * 3e10
-eV_to_THz        = 15.633302  #241.8 =98.3/2/pi
-au_to_K          = 3.1577464e5
-THz_to_cm        = 33.36
-eV_to_cm         = eV_to_THz * THz_to_cm
+from ase import units as ase_units
+from hilde.helpers import AttributeDict
+
 
 # physical constants
-EV = 1.60217733e-19 # [J]
-Avogadro = 6.02214179e23
-PlanckConstant = 4.13566733e-15 # [eV s]
-kb_J = 1.3806504e-23 # [J/K]
+AMU = 1.66053904e-27  # [kg]
+LIGHT = 299792458  # [m / s]
+PLANCK_CONSTANT = 6.62607015e-34  # [J s]
+BOLTZMANN = 1.38064852e-23  # [J / K]
+AVOGADRO = 6.02214076e23  # [1]
+ALPHA = 1 / 137.035999046  # [1]
 
-Kb = kb_J / EV  # [eV/K] 8.6173383e-05
-EvTokJmol = EV / 1000 * Avogadro # [kJ/mol] 96.4853910
+# Mathematical constants
+PI = pi
+
+# Conversion factors
+AA = 1e-10  # [m]
+PICO = 1e-12  # [s]
+FEMTO = 1e-3 * PICO  # [s]
+EV = 1.60217733e-19  # [J]
+THZ = 1 / PICO  # [1/s]
+
+# Atomic units
+ELECTRON_MASS = 5.48579909070e-4 * AMU  # [kg]
+HARTREE = 27.21138602 * EV  # [J]
+BOHR = 0.52917721092 * AA  # [m]
+HBAR = PLANCK_CONSTANT / 2 / PI  # [J s]
+
+atomic_units = AttributeDict(
+    {
+        "bohr": BOHR,
+        "AA": BOHR / AA,
+        "hartree": HARTREE,
+        "eV": HARTREE / EV,
+        "c": 1 / ALPHA,
+        "kg": ELECTRON_MASS,
+        "u": ELECTRON_MASS / AMU,
+        "s": HBAR / HARTREE,
+        "fs": HBAR / HARTREE / FEMTO,
+        "kB": BOLTZMANN / HARTREE,
+        "K": HARTREE / BOLTZMANN,
+    }
+)
+
+# force constants
+omega_to_THz = (EV / AA ** 2 / AMU) ** 0.5 / THZ / 2 / PI  # 15.633302 THz
+THz_to_cm = THZ / LIGHT / 100  # 33.3564 [1/cm]
+omega_to_cm = omega_to_THz * THz_to_cm
+
+# old stuff
+Bohr_to_AA = atomic_units.AA
+Hartree_to_eV = atomic_units.eV
+au_to_kg = atomic_units.kg
+kg_to_au = 1 / au_to_kg
+u_in_kg = AMU
+u_in_au = u_in_kg * kg_to_au
+c_in_au = atomic_units.c
+au_to_s = atomic_units.s
+au_to_fs = atomic_units.fs
+au_to_cm = au_to_s * 2 * PI * 3e10
+au_to_K = atomic_units.K
+
+kB = BOLTZMANN / EV  # [eV/K] 8.6173383e-05
+EvTokJmol = EV / 1000 * AVOGADRO  # [kJ/mol] 96.4853910
 kJmolToEv = 1 / EvTokJmol
-THzToEv = PlanckConstant * 1e12 # [eV]
+THzToEv = PLANCK_CONSTANT * 1e12 / EV  # [eV]

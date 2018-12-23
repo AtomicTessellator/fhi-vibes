@@ -43,7 +43,7 @@ def prepare_phonopy(
         supercell_matrix=supercell_matrix,
         symprec=symprec,
         is_symmetry=True,
-        factor=const.eV_to_THz,
+        factor=const.omega_to_THz,
     )
 
     phonon.generate_displacements(

@@ -3,24 +3,9 @@
 import time
 import configparser
 import json
-from collections import OrderedDict
 from hilde import DEFAULT_SETTINGS_FILE
 from hilde.helpers.warnings import warn
-
-
-class AttributeDict(OrderedDict):
-    def __getattr__(self, attr):
-        if attr in self:
-            return self[attr]
-        else:
-            warn(f"Attribute {attr} not in dictionary, return None.", level=1)
-            return None
-
-    def __setattr__(self, attr, value):
-        self[attr] = value
-
-    def as_dict(self):
-        return dict(self)
+from .attribute_dict import AttributeDict
 
 
 class Config(configparser.ConfigParser):
