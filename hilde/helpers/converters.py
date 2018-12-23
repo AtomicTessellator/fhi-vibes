@@ -30,6 +30,9 @@ def input2dict(atoms, calc=None, settings=False):
 
     atoms_dict.update({"positions": atoms.positions.tolist()})
 
+    if atoms.get_velocities() is not None:
+        atoms_dict.update({"velocities": atoms.get_velocities().tolist()})
+
     if atoms.info != {}:
         atoms_dict.update({"info": atoms.info})
 
