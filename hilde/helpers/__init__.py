@@ -1,7 +1,8 @@
+from .attribute_dict import AttributeDict
 from .paths import cwd
 from .k_grid import d2k
 from .geometry import get_cubicness
-from .maths import clean_matrix
+from .numerics import clean_matrix
 from .timer import Timer
 
 

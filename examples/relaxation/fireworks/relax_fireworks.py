@@ -5,7 +5,7 @@ from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.helpers.k_grid import update_k_grid
 from hilde.relaxation.bfgs import relax
 from hilde.settings import Settings
-from hilde.workflows.workflow_generator import generate_firework
+from hilde.fireworks.workflow_generator import generate_firework
 from hilde.tasks.fireworks.fw_action_outs import check_relaxation_complete
 from hilde.templates.aims import setup_aims
 

@@ -15,7 +15,7 @@ from hilde.materials_fp.material_fingerprint import (
 )
 from hilde.phonopy import enumerate_displacements, displacement_id_str
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
-from hilde.helpers.maths import get_3x3_matrix
+from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
 from hilde.helpers.config import AttributeDict as adict
 
@@ -43,7 +43,7 @@ def prepare_phonopy(
         supercell_matrix=supercell_matrix,
         symprec=symprec,
         is_symmetry=True,
-        factor=const.eV_to_THz,
+        factor=const.omega_to_THz,
     )
 
     phonon.generate_displacements(

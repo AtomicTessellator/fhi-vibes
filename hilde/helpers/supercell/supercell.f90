@@ -137,22 +137,27 @@ module supercell
 
     !> Find lattice points by brute force enumeration
     function find_lattice_points(lattice, inv_superlattice, n_lattice_points, &
-                                 max_iterations, tolerance) result(lattice_points)
+                                 max_iterations, tolerance) result(all_lattice_points)
       real*8,  intent(in)   :: lattice(3,3), inv_superlattice(3,3), tolerance
       integer, intent(in)   :: max_iterations, n_lattice_points
       real*8                :: lattice_points(3,n_lattice_points), lp(3,1), frac_lp(3,1)
-      integer               :: n1, n2, n3, counter
+      real*8                :: lattice_points_extended(3, 8*n_lattice_points)
+      real*8                :: all_lattice_points(3, 9*n_lattice_points)
+      integer               :: n1, n2, n3, counter, counter_ext
 
 
       ! ! initialize matrices and values
-      lattice_points = -10000.0d0
-      lp             = 0.0d0
+      lattice_points          = -10000.0d0
+      lattice_points_extended = -10000.0d0
+      lp                      = 0.0d0
+      elp                     = 0.0d0
 
       write(*,*) 'Settings:'
       write (*,"(A,/,(I3))") 'n_lattice_points', n_lattice_points
 
       !> Expand brute force
-      counter = 0
+      counter     = 0
+      counter_ext = 0
       do n1 = -max_iterations, max_iterations
       do n2 = -max_iterations, max_iterations
       do n3 = -max_iterations, max_iterations
@@ -163,7 +168,7 @@ module supercell
 
         frac_lp = fractional(lp, inv_superlattice)
 
-        ! check if frac_lp is within supercell
+        ! check if frac_lp is within supercell [0, 1)
         if     ((frac_lp(1, 1) > -tolerance) &
           .and. (frac_lp(2, 1) > -tolerance) &
           .and. (frac_lp(3, 1) > -tolerance) &
@@ -173,6 +178,19 @@ module supercell
 
             counter = counter + 1
             lattice_points(1:3, counter:counter) = lp(1:3, 1:1)
+
+        ! check if frac_lp is within extended supercell [0, 1]
+        else if     ((frac_lp(1, 1) > -tolerance) &
+          .and. (frac_lp(2, 1) > -tolerance) &
+          .and. (frac_lp(3, 1) > -tolerance) &
+          .and. (frac_lp(1, 1) < 1 + tolerance) &
+          .and. (frac_lp(2, 1) < 1 + tolerance) &
+          .and. (frac_lp(3, 1) < 1 + tolerance)) then
+
+            counter_ext = counter_ext + 1
+            ! write (*,*) 'counter: ', counter
+            ! write (*,*) 'counter_ext: ', counter_ext
+            lattice_points_extended(1:3, counter_ext:counter_ext) = lp(1:3, 1:1)
 
         end if
 
@@ -185,6 +203,10 @@ module supercell
       end do
       end do
       end do
+
+      all_lattice_points(:, 1:n_lattice_points) = lattice_points
+      all_lattice_points(:, n_lattice_points + 1 : 9*n_lattice_points + 1) = &
+        lattice_points_extended
 
     end function
 

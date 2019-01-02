@@ -3,9 +3,9 @@
 from pathlib import Path
 import numpy as np
 from ase import units as u
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 from hilde.trajectory.md import last_from_yaml
 from hilde.helpers.warnings import warn
+from .velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 
 
 def setup_md(
@@ -40,7 +40,7 @@ def setup_md(
         from ase.md.langevin import Langevin
 
         if temperature is None:
-            warn("temperature not set", level=3)
+            warn("temperature not set", level=2)
 
         if friction is None:
             warn("Friction not defined, set to 0.01", level=2)
@@ -94,7 +94,11 @@ def initialize_md(
         print("Initialize positions and velocities using force constants.")
         force_constants = np.loadtxt(force_constants)
         PhononHarmonics(
-            atoms, force_constants, quantum=quantum, temp=temperature * u.kB
+            atoms,
+            force_constants,
+            quantum=quantum,
+            temp=temperature,
+            force_temp=True,
         )
     else:
         print("Initialize velocities according to Maxwell-Boltzmann distribution.")

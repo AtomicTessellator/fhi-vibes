@@ -30,6 +30,9 @@ def input2dict(atoms, calc=None, settings=False):
 
     atoms_dict.update({"positions": atoms.positions.tolist()})
 
+    if atoms.get_velocities() is not None:
+        atoms_dict.update({"velocities": atoms.get_velocities().tolist()})
+
     if atoms.info != {}:
         atoms_dict.update({"info": atoms.info})
 
@@ -53,6 +56,7 @@ def input2dict(atoms, calc=None, settings=False):
     # save the configuration
     if settings:
         from hilde.settings import Settings
+
         settings_dict = dict(Settings())
 
         input_dict.update({"settings": settings_dict})
@@ -111,7 +115,8 @@ def dict2results(atoms_dict, calc_dict=None):
             results = calc_dict.pop("results")
 
         calc = SinglePointCalculator(atoms, **results)
-        calc.name = calc_dict["calculator"].lower()
+        if "calculator" in calc_dict:
+            calc.name = calc_dict["calculator"].lower()
         if "calculator_parameters" in calc_dict:
             calc.parameters.update(calc_dict["calculator_parameters"])
         if "command" in calc_dict:

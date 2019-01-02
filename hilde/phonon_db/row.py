@@ -170,7 +170,7 @@ class PhononRow(AtomsRow):
             supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
             symprec=self.symprec,
             is_symmetry=True,
-            factor=const.eV_to_THz,
+            factor=const.omega_to_THz,
             log_level=0,
         )
         phonon.set_displacement_dataset(self.displacement_dataset_2)
@@ -187,7 +187,7 @@ class PhononRow(AtomsRow):
             phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
             symprec=self.symprec,
             is_symmetry=True,
-            frequency_factor_to_THz=const.eV_to_THz,
+            frequency_factor_to_THz=const.omega_to_THz,
             log_level=0,
             mesh=self.qmesh,
         )
@@ -210,7 +210,7 @@ class PhononRow(AtomsRow):
             supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
             symprec=self.symprec,
             is_symmetry=True,
-            factor=const.eV_to_THz,
+            factor=const.omega_to_THz,
         )
         phonon.set_displacement_dataset(self.displacement_dataset_2)
         if "forces_2" in self and len(self.forces_2) > 0:
@@ -234,7 +234,7 @@ class PhononRow(AtomsRow):
             phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
             symprec=self.symprec,
             is_symmetry=True,
-            frequency_factor_to_THz=const.eV_to_THz,
+            frequency_factor_to_THz=const.omega_to_THz,
             log_level=0,
             mesh=self.qmesh,
         )

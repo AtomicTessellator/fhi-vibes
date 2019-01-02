@@ -219,7 +219,13 @@ def phonon_harmonics(
 
 
 def PhononHarmonics(
-    atoms, force_constants, temp, rng=np.random, quantum=True, failfast=True
+    atoms,
+    force_constants,
+    temp,
+    force_temp=False,
+    rng=np.random,
+    quantum=True,
+    failfast=True,
 ):
     """Excite phonon modes to specified temperature.
 
@@ -235,6 +241,8 @@ def PhononHarmonics(
         Force constants for the the structure represented by atoms in eV/Å²
     temp: float
         Temperature in K
+    force_temp: bool
+        Fix the temperature
     rng: Random number generator
         RandomState or other random number generator, e.g., np.random.rand
     quantum: bool
@@ -258,3 +266,9 @@ def PhononHarmonics(
     # Assign new positions (with displacements) and velocities
     atoms.positions += d_ac
     atoms.set_velocities(v_ac)
+
+    if force_temp:
+        temp0 = atoms.get_kinetic_energy() / len(atoms) / 1.5 / units.kB
+        gamma = temp / temp0
+        atoms.set_momenta(atoms.get_momenta() * np.sqrt(gamma))
+

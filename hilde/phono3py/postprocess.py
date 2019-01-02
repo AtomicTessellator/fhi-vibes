@@ -72,7 +72,7 @@ def postprocess(
         ph_atoms,
         supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
         is_symmetry=True,
-        frequency_factor_to_THz=const.eV_to_THz,
+        frequency_factor_to_THz=const.omega_to_THz,
         **phonon3_kwargs,
     )
     phonon3.set_displacement_dataset(metadata["Phono3py"]['displacement_dataset'])

@@ -1,7 +1,7 @@
 from pathlib import Path
 from hilde.io import read
 
-from hilde.helpers.supercell.lattice_points import (
+from hilde.helpers.lattice_points import (
     get_lattice_points,
     get_commensurate_q_points,
 )
@@ -24,8 +24,8 @@ for material in materials:
     supercell = read(Path(material) / "geometry.in.supercell")
 
     print("\nReal space lattice points")
-    lattice_points = get_lattice_points(primitive, supercell, fortran=False, verbose=1)
-    lattice_points_fortran = get_lattice_points(primitive, supercell, verbose=1)
+    lattice_points, _ = get_lattice_points(primitive, supercell, fortran=False, verbose=1)
+    lattice_points_fortran, _= get_lattice_points(primitive, supercell, verbose=1)
 
     print("\nMomentum space lattice points")
     inv_lattice_points = get_commensurate_q_points(

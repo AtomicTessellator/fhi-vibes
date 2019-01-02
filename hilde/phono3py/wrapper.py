@@ -50,7 +50,7 @@ def prepare_phono3py(
         symprec=symprec,
         is_symmetry=True,
         symmetrize_fc3q=symmetrize_fc3q,
-        frequency_factor_to_THz=const.eV_to_THz,
+        frequency_factor_to_THz=const.omega_to_THz,
         log_level=log_level,
     )
 

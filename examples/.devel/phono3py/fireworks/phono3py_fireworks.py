@@ -8,7 +8,7 @@ from pathlib import Path
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.settings import Settings
-from hilde.workflows.workflow_generator import generate_workflow
+from hilde.fireworks.workflow_generator import generate_workflow
 
 settings = Settings()
 settings.phono3py.workdir = str(Path(settings.phono3py.workdir).absolute())

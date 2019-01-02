@@ -55,3 +55,9 @@ test_run
 
 # direnv
 **.envrc
+
+# venv
+venv
+
+# docker
+docker.md

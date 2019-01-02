@@ -5,7 +5,7 @@ from fireworks import Workflow
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.settings import Settings
-from hilde.workflows.workflow_generator import get_step_fw
+from hilde.fireworks.workflow_generator import get_step_fw
 
 workflow = Settings(settings_file="workflow.in")
 atoms = read(workflow.geometry.file)
