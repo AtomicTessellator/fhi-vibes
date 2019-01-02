@@ -1,6 +1,7 @@
 """ provides AttributeDict """
 
 from collections import OrderedDict
+from hilde.helpers.warnings import warn
 
 
 class AttributeDict(OrderedDict):
@@ -14,6 +15,6 @@ class AttributeDict(OrderedDict):
     def __setattr__(self, attr, value):
         self[attr] = value
 
-    def to_dict(self):
+    def as_dict(self):
         return dict(self)
 
