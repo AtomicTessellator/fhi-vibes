@@ -186,7 +186,8 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         fw_settings["spec"]["_queueadapter"] = dict(
             step_settings.fw_spec_qadapter
         )
-
+    if "basisset" in step_settings:
+        step_settings.control["basisset_type"] = step_settings.basisset.type
     if "db_storage" in step_settings and "db_path" in step_settings.db_storage:
         db_kwargs = {
             "db_path": step_settings.db_storage.db_path,
@@ -196,7 +197,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         db_kwargs = None
     task_spec_list = []
     if "relaxation" in step_settings:
-        fw_settings["fw_name"] = f"relaxation_{step_settings.basisset.type}"
+        fw_settings["fw_name"] = f"rel_{step_settings.basisset.type[:2]}"
         if db_kwargs:
             db_kwargs["calc_type"] = f"relaxation_{step_settings.basisset.type}"
         task_spec_list.append(
@@ -210,7 +211,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             )
         )
     elif "aims_relaxation" in step_settings:
-        fw_settings["fw_name"] = f"aims_relaxation_{step_settings.basisset.type}"
+        fw_settings["fw_name"] = f"a_rel_{step_settings.basisset.type[:2]}"
         if db_kwargs:
             db_kwargs["calc_type"] = f"relaxation_{step_settings.basisset.type}"
             fw_out_kwargs = dict(db_kwargs, relax_step=0)
