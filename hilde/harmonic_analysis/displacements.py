@@ -6,7 +6,7 @@ from hilde.konstanten import v_unit
 
 
 def get_dR(atoms0, atoms, wrap_tol=1e-5):
-    """ Compute and return dR = R - R^0 respecting possible wrapped atoms """
+    """ Compute and return dR = R - R^0 respecting possibly wrapped atoms """
 
     # get fractional coordinates
     fR0 = atoms0.get_scaled_positions()
