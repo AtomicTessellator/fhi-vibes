@@ -4,7 +4,7 @@ from pathlib import Path
 
 # from ase.calculators.aims import Aims
 from ase.io import read
-from hilde.calculators.aims_calc import Aims
+from ase.calculators.aims import Aims
 from hilde.settings import Settings
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.helpers.k_grid import update_k_grid

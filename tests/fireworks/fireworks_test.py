@@ -1,5 +1,6 @@
 ''' An example of how to use FireWorks in conjunction with HilDe'''
 import os
+import numpy as np
 from ase.build import bulk
 from ase.calculators.emt import EMT
 from pathlib import Path
@@ -8,7 +9,6 @@ from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.fireworks.rocket_launcher import rapidfire
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.paths import cwd
-from hilde.helpers.utility_functions import get_smatrix
 from hilde.phonon_db.phonon_db import connect
 from hilde.fireworks.workflow_generator import generate_firework
 
@@ -22,7 +22,7 @@ atoms.set_calculator(EMT())
 calc = atoms.calc
 workdir = str(Path("Ni_ex").absolute())
 
-smatrix = get_smatrix(atoms, n_target=32)
+smatrix = np.array([[-2, 2, 2], [2, -2, 2], [2, 2, -2]])
 atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
 
 fw_settings = {
@@ -35,7 +35,6 @@ fw_settings = {
 }
 
 # set up the LaunchPad and reset it
-
 kwargs_init = {"supercell_matrix": smatrix, "displacement": 0.01}
 kwargs_init_fw_out = {"workdir": workdir}
 

@@ -6,7 +6,6 @@ from ase.db.row import AtomsRow, atoms2dict
 from ase.io.jsonio import decode
 
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
-from hilde.helpers.utility_functions import reshape_fc_2, reshape_fc_3
 from hilde import konstanten as const
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy

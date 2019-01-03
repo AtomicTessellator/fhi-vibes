@@ -4,8 +4,7 @@ import numpy as np
 import spglib as spg
 from hilde.structure.convert import to_spglib_cell
 from hilde.konstanten.symmetry import symprec as default_symprec
-from hilde.helpers.config import AttributeDict
-
+from hilde.helpers.attribute_dict import AttributeDict
 
 def get_symmetry_dataset(atoms, symprec=default_symprec):
     """ return the spglib symmetry dataset """
