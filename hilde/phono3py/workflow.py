@@ -114,4 +114,4 @@ def run(
             **kwargs,
         )
 
-    return True
+    return completed
