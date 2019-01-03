@@ -256,7 +256,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         fw_settings["fw_name"] = "k_grid_opt"
         task_spec_list.append(
             TaskSpec(
-                "hilde.auto_tune_parameters.k_grid.converge_kgrid.converge_kgrid",
+                "hilde.k_grid.converge_kgrid.converge_kgrid",
                 "hilde.tasks.fireworks.fw_action_outs.check_kgrid_opt_completion",
                 True,
                 step_settings.kgrid_opt,

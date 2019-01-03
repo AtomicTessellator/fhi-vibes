@@ -12,6 +12,4 @@ def fractional(positions, lattice):
 
         """
 
-    frac = positions @ la.inv(lattice)
-
-    return frac
+    return positions @ la.inv(lattice)
