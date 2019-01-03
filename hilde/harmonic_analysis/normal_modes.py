@@ -3,6 +3,7 @@
 
 import numpy as np
 from hilde.helpers.lattice_points import map_L_to_i
+from hilde.helpers.warnings import warn
 
 
 def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
@@ -56,3 +57,77 @@ def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
     u_s /= len(q_points) ** 0.5
 
     return np.array(u_s).real
+
+
+def get_A_qst2(in_U_t, in_V_t, in_omegas2):
+    """ compute squared amplitude from mass scaled positions and velocities
+
+        A^2_s(q, t) = u^2_s(q, t) + \omega_s(q)**-2 * \dot{u}^2_s(q, t)
+
+        Parameters:
+
+        in_U_t: list [N_t, N_atoms, 3]
+            mass scaled displacements for each time step
+        in_V_t: list [N_t, N_atoms, 3]
+            mass scaled velocities for each time step
+        in_omegas2: list [N_q, N_s]
+            eigenvalues (= squared frequencies) of dynamical matrices at commensurate
+            q-points
+        """
+
+    warn("Under construction")
+
+    U_t = np.array(in_U_t)
+    V_t = np.array(in_V_t)
+
+    omegas2 = np.array(in_omegas2)
+    omegas2[0, :3] = 1e12
+
+    A_qst2 = abs(U_t) ** 2 + omegas2[None, :, :] ** -1 * abs(V_t) ** 2
+
+    A_qst2[:, 0, :3] = 0
+
+    return A_qst2
+
+
+def get_phi_qst(in_U_t, in_V_t, in_omegas):
+    """ compute phases from mass scaled positions and velocities 
+
+    phi_s(q, t) = atan2( -\dot{u}_s(q, t) / \omega_s(q, t) / u_s(q, t))
+
+    Parameters:
+
+    in_U_t: list [N_t, N_atoms, 3]
+        mass scaled displacements for each time step
+    in_V_t: list [N_t, N_atoms, 3]
+        mass scaled velocities for each time step
+    in_omegas: list [N_q, N_s]
+        frequencies from dynamical matrices at commensurate q-points
+
+    """
+
+    warn("Under construction", level=1)
+
+    U_t = np.array(in_U_t)
+    V_t = np.array(in_V_t)
+
+    # make sure gamma modes are suppressed
+    omegas = np.array(in_omegas)
+    omegas[0, :3] = 1e6
+
+    phi_qst = np.arctan2(-V_t, omegas[None, :, :] * U_t)
+
+    return phi_qst
+
+
+def get_E_qst(in_U_t, in_V_t, in_omegas):
+    """ compute mode resolved energies from mass scaled positions and velocities """
+
+    omegas = np.array(in_omegas)
+
+    A_qst2 = A_qst2(in_U_t, in_V_t, omegas)
+
+    E_qst = 0.5 * omegas[None, :, :] ** 2 * A_qst2
+
+    return E_qst
+
