@@ -74,11 +74,3 @@ class ConfigDict(AttributeDict):
                     continue
                 string += "{:20s} {}\n".format(f"{key}:", elem)
         return string
-
-    def to_dict(self):
-        """ return as plain dictionary """
-        dct = {}
-        for key, val in self.items():
-            dct.update({key: dict(val)})
-
-        return dct

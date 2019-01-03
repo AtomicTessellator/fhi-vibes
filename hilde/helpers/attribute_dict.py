@@ -15,6 +15,10 @@ class AttributeDict(OrderedDict):
     def __setattr__(self, attr, value):
         self[attr] = value
 
-    def as_dict(self):
+    def to_dict(self):
+        """ return plain python dictionary """
         return dict(self)
 
+    def as_dict(self):
+        """ return plain python dictionary (Fireworks compatibility) """
+        return dict(self)

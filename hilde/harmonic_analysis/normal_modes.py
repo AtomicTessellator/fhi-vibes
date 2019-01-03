@@ -26,8 +26,8 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
         # sum and reshape to [N_atoms, 3]
         u_I[L_maps[LL]] = (u_temp).sum(axis=(0, 2)).reshape(-1, 3)
 
-    # normalize 1/N
-    u_I /= len(q_points)
+    # normalize 1/sqrt(N)
+    u_I /= len(q_points) ** 0.5
     return np.array(u_I).real
 
 
@@ -48,6 +48,11 @@ def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
         )
 
     # swapaxes effectively transposes eigenvectors at each q_point
-    u_s = (eigenvectors.conj().swapaxes(1, 2) * u_L[:, None, :]).sum(axis=2)
+    ievs = eigenvectors.conj().swapaxes(1, 2)
+
+    u_s = (ievs * u_L[:, None, :]).sum(axis=2)
+
+    # normalize 1/sqrt(N)
+    u_s /= len(q_points) ** 0.5
 
     return np.array(u_s).real
