@@ -22,6 +22,13 @@ def collect_forces_to_trajectory(
     calculated_atoms,
     metadata,
 ):
+    '''
+    Generate a trajectory file from a given set of Atoms objects with calculated forces
+    Args:
+        trajectory (str): Path to the trajectory file
+        calculated_atoms (list of ASE Atoms Objects): A list of atoms with the forces stored in the results
+        metadata (dict): Metadata header for the phonon calculation
+    '''
     Path(trajectory).parents[0].mkdir(exist_ok=True, parents=True)
     for el in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
         el["number"] = int(el["number"])
@@ -45,7 +52,6 @@ def collect_forces_to_trajectory(
             step2file(atoms, atoms.calc, nn, trajectory)
 
 def postprocess(
-    # phonon3,
     metadata=None,
     calculated_atoms=None,
     symmetrize_fc3=False,
@@ -57,6 +63,19 @@ def postprocess(
     fireworks=False,
     **kwargs,
 ):
+    '''
+    Postprocesses a Phono3py calculation
+    Args:
+        metadata (dict): The metadata for the trajectory file
+        calculated_atoms (list of ASE Atoms Objects): A list of atoms with the forces stored in the results
+        symmetrize_fc3 (bool): If True symmetrize the third order force constants
+        workdir (str): Path to the directory where to perform the post processing
+        trajectory (str): file name of the trajectory file
+        force_constants_file (str): file name of the force constants storage file
+        pickle_file (str): file name of the pickle file for the phono3py object
+        db_kwargs (dict): kwargs for adding the calculation to a database
+        fireworks (bool): If True fireworks was used to calculate the forces
+    '''
     trajectory = Path(workdir) / trajectory
     force_constants_file = Path(workdir) / force_constants_file
     if fireworks:

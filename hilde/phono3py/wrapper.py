@@ -35,11 +35,24 @@ def prepare_phono3py(
     symprec=defaults.symprec,
     log_level=defaults.log_level,
 ):
-    """ Prepare a Phono3py object """
+    """
+    Prepare a Phono3py object
+    Args:
+        atoms (ASE Atoms Object): Structure to calculate phonons
+        fc2_supercell_matrix (np.ndarray): second order supercell matrix
+        fc3_supercell_matrix (np.ndarray): third order supercell matrix
+        q_mesh (np.ndarray): q-mesh size
+        fc2 (np.ndarray): second order force constants
+        fc3 (np.ndarray): third order force constants
+        disp (float): finite displacement value
+        cutoff_pair_distance (float): Sets all interatomic interactions to zero for atoms farther apart than this number
+        symmetrize_fc3 (bool): if True symmeterize third order force constants
+        symprec (float): Tolerance factor detecting the space group
+        log_level (int): log level for the phonopy object
+    Returns: The Phono3py object
+    """
     if fc3_supercell_matrix is None:
         raise ValueError("Please define an fc3_supercell_matrix")
-    if fc2_supercell_matrix is None:
-        fc2_supercell_matrix = fc3_supercell_matrix
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
     phonon3 = Phono3py(
@@ -76,7 +89,20 @@ def preprocess(
     symprec=defaults.symprec,
     log_level=defaults.log_level,
 ):
-    """ Set up a Phono3py object and generate all the necessary supercells """
+    """
+    Set up a Phono3py object and generate all the necessary supercells
+    Args:
+        atoms (ASE Atoms Object): Structure to calculate phonons
+        fc2_supercell_matrix (np.ndarray): second order supercell matrix
+        fc3_supercell_matrix (np.ndarray): third order supercell matrix
+        q_mesh (np.ndarray): q-mesh size
+        disp (float): finite displacement value
+        cutoff_pair_distance (float): Sets all interatomic interactions to zero for atoms farther apart than this number
+        symprec (float): Tolerance factor detecting the space group
+        log_level (int): log level for the phonopy object
+    Returns:
+        The Phono3py object, second order supercell, third order supercell, list of second order supercells with displacements, list of third order supercells with displacements
+    """
     if fc3_supercell_matrix is None:
         raise ValueError("Please define an fc3_supercell_matrix")
     if fc2_supercell_matrix is None:

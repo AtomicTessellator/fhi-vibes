@@ -31,12 +31,9 @@ def convert_input_to_param(param_name, param, param_list):
     """
     Converts a function input into a qlaunch parameter
     Args:
-        param_name: str
-            name of the parameter for qlaunch
-        param:
-            value of the parameter
-    Returns: str
-        command argument str for qlaunch
+        param_name (str): name of the parameter for qlaunch
+        param (str): value of the parameter
+    Returns (str): command argument str for qlaunch
     """
     if param is not None:
         param_list.append(f"--{param_name} {param}")

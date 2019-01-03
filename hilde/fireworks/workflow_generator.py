@@ -35,21 +35,17 @@ def generate_firework(
     A function that takes in a set of inputs and returns a Firework to perform that operation
     Args:
         task_spec_list (list of TaskSpecs): list of task specifications to perform
-        atoms: ASE Atoms object, dictionary or str
+        atoms (ASE Atoms object, dictionary or str):
             If not atoms__calc_from_spec then this must be an ASE Atoms object or a dictionary describing it
             If atoms__calc_from_spec then this must be a key str to retrieve the Atoms Object from the MongoDB launchpad
-        calc: ASE Calculator object, dictionary or str
+        calc (ASE Calculator object, dictionary or str):
             If not atoms_calc_from_spec then this must be an ASE Calculator object or a dictionary describing it
             If atoms_calc_from_spec then this must be a key str to retrieve the Calculator from the MongoDB launchpad
-        atoms_calc_from_spec: bool
-            If True retrieve the atoms/Calculator objects from the MongoDB launchpad
-        fw_settings: dict
-            Settings used by fireworks to place objects in the right part of the MongoDB
-        update_calc_settings: dict
-            Used to update the Calculator parameters
-        func_fw_out_kwargs: dict
-            Keyword functions for the fw_out function
-    Returns: Firework
+        atoms_calc_from_spec (bool): If True retrieve the atoms/Calculator objects from the MongoDB launchpad
+        fw_settings (dict): Settings used by fireworks to place objects in the right part of the MongoDB
+        update_calc_settings (dict): Used to update the Calculator parameters
+        func_fw_out_kwargs (dict): Keyword functions for the fw_out function
+    Returns (Firework):
         A Firework that will perform the desired operation on a set of atoms, and process the outputs for Fireworks
     """
     if func:
@@ -114,6 +110,15 @@ def generate_firework(
 
 
 def get_phonon_serial_task(func, func_kwargs, db_kwargs=None, make_abs_path=False):
+    '''
+    Generate a serial Phononpy or Phono3py calculation task
+    Args:
+        func (str): The function path to the serial calculator
+        func_kwargs (dict): The defined kwargs for func
+        db_kwargs (dict): kwargs for adding the calculation to the database
+        make_abs_path (bool): If True make the paths of directories absolute
+    Return (TaskSpec): The specification object of the task
+    '''
     if db_kwargs:
         db_kwargs["calc_type"] = func.split(".")[1]
         func_kwargs["db_kwargs"] = db_kwargs
@@ -127,6 +132,14 @@ def get_phonon_serial_task(func, func_kwargs, db_kwargs=None, make_abs_path=Fals
 
 
 def get_phonon_parallel_task(func, func_kwargs, make_abs_path=False):
+    '''
+    Generate a parallel Phononpy or Phono3py calculation task
+    Args:
+        func (str): The function path to the serial calculator
+        func_kwargs (dict): The defined kwargs for func
+        make_abs_path (bool): If True make the paths of directories absolute
+    Return (TaskSpec): The specification object of the task
+    '''
     kwargs_init = {}
     kwargs_init_fw_out = {}
     if "phonopy_settings" in func_kwargs:
@@ -165,6 +178,17 @@ def get_phonon_parallel_task(func, func_kwargs, make_abs_path=False):
 def get_phonon_analysis_task(
     func, func_kwargs, fw_settings, meta_key, db_kwargs=None, make_abs_path=False
 ):
+    '''
+    Generate a serial Phononpy or Phono3py calculation task
+    Args:
+        func (str): The function path to the serial calculator
+        func_kwargs (dict): The defined kwargs for func
+        fw_settings (dict): FireWorks settings for the given task
+        meta_key (str): Key to find the phonon calculation's metadata to recreate the trajectory
+        db_kwargs (dict): kwargs for adding the calculation to the database
+        make_abs_path (bool): If True make the paths of directories absolute
+    Return (TaskSpec): The specification object of the task
+    '''
     kwargs = {"fireworks": True}
     if db_kwargs:
         db_kwargs["calc_type"] = func.split(".")[1]
@@ -187,6 +211,15 @@ def get_phonon_analysis_task(
 
 
 def get_step_fw(step_settings, atoms=None, make_abs_path=False):
+    '''
+    Generate a FireWork for the given step
+    Args:
+        step_settings (dict): parameters describing what the step is
+        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
+        make_abs_path (bool): If True make the paths of directories absolute
+    Returns (list of Fireworks):
+        The list of Fireworks for a given step in a WorkFlow
+    '''
     if "geometry" in step_settings:
         atoms, calc = setup_aims(settings=step_settings)
     else:
@@ -375,6 +408,16 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
 def generate_workflow(
     steps=Settings(), fw_settings=None, atoms=None, make_abs_path=False
 ):
+    '''
+    Generates a workflow from given set of steps
+    Args
+        steps (list of dicts): List of parameters for all the steps in a given system
+        fw_settings (dict): FireWorks settings for the given task
+        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
+        make_abs_path (bool): If True make the paths of directories absolute
+    Returns (Workflow or None):
+        Either adds the workflow to the launchpad or returns it
+    '''
     if not isinstance(steps, list):
         fw_settings = steps.fw_settings
         steps = [steps]

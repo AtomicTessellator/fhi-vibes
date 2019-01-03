@@ -133,11 +133,12 @@ def rapidfire(
         strm_lvl (str): level at which to stream log messages
         timeout (int): # of seconds after which to stop the rapidfire process
         fill_mode (bool): whether to submit jobs even when there is nothing to run (only in
-            non-reservation mode)
+                          non-reservation mode)
         fw_ids(list of ints): a list fw_ids to launch (len(fw_ids) == nlaunches)
         wflow (WorkFlow): the workflow this qlauncher is supposed to run
         tasks2queue (List of str): List of functions to run on a remote queue
         gss_auth (bool): True if GSS_API should be used to connect to the remote machine
+        controlpath (str): path the the socket file for MUX connections
         remote_host(list of str): list of hosts to attempt to connect to
         remote_config_dir (list of str): list of directories on the remote machines to find FireWorks configuration files
         remote_user (str): username for the remote account

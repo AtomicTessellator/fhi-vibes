@@ -39,6 +39,7 @@ def mod_calc(param_key, calc_spec, calc, new_val, atoms=None, spec_key=None):
     return FWAction(update_spec=up_spec)
 
 def update_calc(calc_dict, key, val):
+    ''' update the calculator dictionary '''
     if key == "command":
         calc_dict[key] = val
     elif key == "basisset_type":

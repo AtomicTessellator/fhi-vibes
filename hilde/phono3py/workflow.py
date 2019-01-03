@@ -21,7 +21,6 @@ def preprocess(
     displacement=defaults.displacement,
     symprec=defaults.symprec,
 ):
-
     """ wrap the Phono3py preprocess for workflow """
 
     # Phonopy preprocess
@@ -66,6 +65,26 @@ def run(
     db_kwargs=None,
     **kwargs,
 ):
+    '''
+    Runs a Phono3py calculation
+    Args:
+        atoms (ASE Atoms Object): base atoms to use in the calculation
+        calc (ACE Calculator Object): Calculator used to calculate the forces
+        supercell_matrix (np.ndarray): Supercell matrix for the third order phonon calculation
+        cutoff_pair_distance (float): Sets all interatomic interactions to zero for atoms farther apart than this number
+        kpt_density (list of floats or float): k-point density for the calculation
+        displacement (float): Finite displacement value
+        symprec (float): Tolerance factor detecting the space group
+        walltime (int): Max wall clock time for the calculation in seconds
+        workdir (str): Path to the working directory
+        trajectory (str): File name for the trajectory file
+        primitive_file (str): File name for the primitive cell geometry file
+        supercell_file (str): File name for the super cell geometry file
+        force_constants_file (str): File name for the force constants output file
+        pickle_file (str): File name for the pickled Phono3py object
+        db_kwargs (dict): kwargs to add the calculation to a database
+    Returns (bool): True if all calculations are completed
+    '''
     if "fireworks" in kwargs:
         fw = kwargs.pop("fireworks")
         if not kpt_density:

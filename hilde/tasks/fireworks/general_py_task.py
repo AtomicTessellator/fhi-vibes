@@ -13,6 +13,16 @@ from hilde.tasks import fireworks as fw
 module_name = __name__
 
 def setup_atoms_task(task_spec, atoms, calc, fw_settings):
+    '''
+    Setups an ASE Atoms task
+    Args:
+        task_spec (TaskSpec): Specification of the Firetask
+        atoms (dict): Dictionary representation of the ASE Atoms Object
+        calc (dict): Dictionary representation of the ASE Calculator Object
+        fw_settings (dict): FireWorks specific parameters
+    Returns: tuple
+        PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
+    '''
     pt_func = fw.atoms_calculate_task.name
     pt_args = task_spec.get_pt_args()
     pt_inputs = task_spec.get_pt_inputs()
@@ -27,6 +37,14 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
 
 def setup_general_task(task_spec, fw_settings):
+    '''
+    Setups a general task
+    Args:
+        task_spec (TaskSpec): Specification of the Firetask
+        fw_settings (dict): FireWorks specific parameters
+    Returns: tuple
+        PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
+    '''
     pt_func = fw.general_function_task.name
     pt_args = task_spec.get_pt_args()
     pt_inputs = task_spec.get_pt_inputs()
@@ -34,6 +52,15 @@ def setup_general_task(task_spec, fw_settings):
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
 
 def generate_task(task_spec, fw_settings, atoms, calc):
+    '''
+    Generates a PyTask for a Firework
+    Args:
+        task_spec (TaskSpec): Specification of the Firetask
+        fw_settings (dict): FireWorks specific parameters
+        atoms (dict): Dictionary representation of the ASE Atoms Object
+        calc (dict): Dictionary representation of the ASE Calculator Object
+    Returns: PyTask for the given TaskSpec
+    '''
     if task_spec.at:
         pt_params = setup_atoms_task(task_spec, atoms, calc, fw_settings)
     else:
@@ -49,6 +76,13 @@ def generate_task(task_spec, fw_settings, atoms, calc):
     )
 
 def generate_update_calc_task(calc_spec, updated_settings):
+    '''
+    Generate a calculator update task
+    Args:
+        calc_spec (str): Spec for the calculator in the Fireworks database
+        updated_settings (dict): What parameters to update
+    Returns: PyTask to update the calculator in the Fireworks database
+    '''
     return PyTask(
         {
             "func": fw.update_calc_in_db.name,
@@ -58,6 +92,15 @@ def generate_update_calc_task(calc_spec, updated_settings):
     )
 
 def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
+    '''
+    Generate a calculator modifier task
+    Args:
+        at (dict or str): Either an Atoms dictionary or a spec key to get the Atoms dictionary for the modified system
+        cl (dict or str): Either a Calculator dictionary or a spec key to get the Calculator dictionary for the modified system
+        calc_spec (str): Spec for the calculator in the Fireworks database
+        kpt_spec (str): Spec to update the k-point density of the system
+    Returns: PyTask to update the calculator in the Fireworks database
+    '''
     args = ["k_grid_density", calc_spec]
     kwargs = {"spec_key": kpt_spec}
     if isinstance(at, dict):
@@ -200,6 +243,18 @@ class TaskSpec:
         inputs=None,
         make_abs_path=False
     ):
+        '''
+        TaskSpec Constructor
+        Args:
+            func (str or Function): Function to be wrapped into a PyTask
+            func_fw_out (str or Function): Function that converts the outputs of func into FWActions
+            at (dict or str): An Atoms dictionary or a database spec key to the dictionary
+            func_kwargs (dict): kwargs for func
+            func_fw_out_kwargs: kwargs for func_fw_out
+            args (list): args for func
+            inputs (list): args for func stored in the FireWorks database (spec keys that are append to args)
+            make_abs_path (bool): If True make all paths absolute
+        '''
         if not isinstance(func, str):
             func = f"{func.__module__}.{func.__name__}"
         if not isinstance(func_fw_out, str):
@@ -233,11 +288,13 @@ class TaskSpec:
             self.inputs = []
 
     def get_pt_args(self):
+        ''' get the PyTask args for the task '''
         if self.at:
             return [self.func, self.func_fw_out, self.func_kwargs, self.func_fw_out_kwargs]
         return [self.func, self.func_fw_out, *self.args]
 
     def get_pt_kwargs(self, fw_settings):
+        ''' get the PyTask kwargs for the task '''
         if not fw_settings:
             fw_settings = {}
 
@@ -250,6 +307,7 @@ class TaskSpec:
         return to_ret
 
     def get_pt_inputs(self):
+        ''' get the PyTask inputs for the task '''
         if self.at:
             return []
         return self.inputs
