@@ -41,6 +41,9 @@ def get_dUdt(atoms, masses=None, wrap_tol=1e-5):
 
     V = atoms.get_velocities() #/ v_unit
 
+    if V is None:
+        V = np.zeros_like(atoms.positions)
+
     # mass scaling
     if masses is None:
         masses = atoms.get_masses()

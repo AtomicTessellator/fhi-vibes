@@ -3,6 +3,8 @@
 import numpy as np
 import scipy.linalg as la
 
+from ase import Atoms
+
 from hilde.helpers.lattice_points import (
     map_I_to_iL,
     get_lattice_points,
@@ -85,6 +87,9 @@ class HarmonicAnalysis:
 
         if atoms0 is None:
             atoms0 = self.supercell
+
+        if isinstance(trajectory, Atoms):
+            trajectory = [trajectory]
 
         # sanity check:
         # if la.norm(atoms0.positions - trajectory[0].positions) / len(atoms) > 1
