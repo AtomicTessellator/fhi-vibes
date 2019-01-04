@@ -32,7 +32,7 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
 
 
 def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
-    r""" u_s(q) = 1/sqrt(N) \sum_iL \exp(-i q.R_L) e_is(q) u_iL """
+    r""" u_s(q) = 1/sqrt(N) e_is(q) . \sum_iL \exp(-i q.R_L) u_iL """
 
     n_q, n_s = eigenvectors.shape[0:2]
     L_maps = map_L_to_i(indeces)
