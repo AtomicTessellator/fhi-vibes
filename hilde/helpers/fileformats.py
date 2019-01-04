@@ -3,9 +3,10 @@
 
 import json
 from pathlib import Path
-import yaml
+from bz2 import open as bzopen
 import numpy as np
 
+import yaml
 try:
     from yaml import CSafeLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -114,7 +115,11 @@ def dict2json(dct, indent=0, outer=True):
 def from_json(file):
     """ return from json file """
 
-    blobs = Path(file).read_text().split("---")
+    if Path(file).suffix == ".bz2":
+        with bzopen(file) as f:
+            blobs = f.read().split(b"---")
+    else:
+        blobs = Path(file).read_text().split("---")
 
     return [json.loads(blob) for blob in blobs if blob.strip()]
 
