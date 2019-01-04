@@ -20,6 +20,8 @@ class HarmonicAnalysis:
     """ provide tools to perform harmonic analysis in periodic systems """
 
     def __init__(self, primitive, supercell, force_constants, q_points=None):
+        """ Initialize lattice points, commensurate q-points, and solve eigenvalue
+            problem at each q-point. Save the results """
 
         timer = Timer()
 
@@ -55,7 +57,6 @@ class HarmonicAnalysis:
         """ return dynamical matrices at (commensurate) q-points """
 
         if self._dynamical_matrices is None:
-
             self._dynamical_matrices = get_dynamical_matrices(
                 self.q_points, self.primitive, self.supercell, self.force_constants
             )
@@ -79,7 +80,7 @@ class HarmonicAnalysis:
 
         return omegas2, eigenvectors
 
-    def project(self, trajectory, atoms0=None):
+    def project(self, trajectory, atoms0=None, times=None):
         """ perform mode projection for atoms objects in trajectory """
 
         if atoms0 is None:
@@ -113,8 +114,8 @@ class HarmonicAnalysis:
         ]
 
         A_qst2 = get_A_qst2(U_t, V_t, self.omegas2)
-        phi_qst = get_phi_qst(U_t, V_t, self.omegas)
+        phi_qst = get_phi_qst(U_t, V_t, self.omegas, in_times=times)
 
-        E_qst = 0.5 * self.omegas2[None, :, :] ** 2 * A_qst2
+        E_qst = 0.5 * self.omegas2[None, :, :] * A_qst2
 
         return A_qst2, phi_qst, E_qst

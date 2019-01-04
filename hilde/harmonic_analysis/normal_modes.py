@@ -3,11 +3,10 @@
 
 import numpy as np
 from hilde.helpers.lattice_points import map_L_to_i
-from hilde.helpers.warnings import warn
 
 
 def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
-    r""" u_iL = 1/N \sum_(q,s) \exp(i q.R_L) e_is(q) u_s(q)
+    r""" u_iL = 1/sqrt(N) \sum_(q,s) \exp(i q.R_L) e_is(q) u_s(q)
 
     REM shapes:
         eigenvectors.shape = [n_q, n_s, n_s] """
@@ -33,7 +32,7 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
 
 
 def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
-    r""" u_s(q) = \sum_iL \exp(-i q.R_L) e_is(q) u_iL """
+    r""" u_s(q) = 1/sqrt(N) \sum_iL \exp(-i q.R_L) e_is(q) u_iL """
 
     n_q, n_s = eigenvectors.shape[0:2]
     L_maps = map_L_to_i(indeces)
@@ -60,7 +59,7 @@ def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
 
 
 def get_A_qst2(in_U_t, in_V_t, in_omegas2):
-    """ compute squared amplitude from mass scaled positions and velocities
+    r""" compute squared amplitude from mass scaled positions and velocities
 
         A^2_s(q, t) = u^2_s(q, t) + \omega_s(q)**-2 * \dot{u}^2_s(q, t)
 
@@ -75,8 +74,6 @@ def get_A_qst2(in_U_t, in_V_t, in_omegas2):
             q-points
         """
 
-    warn("Under construction")
-
     U_t = np.array(in_U_t)
     V_t = np.array(in_V_t)
 
@@ -90,8 +87,8 @@ def get_A_qst2(in_U_t, in_V_t, in_omegas2):
     return A_qst2
 
 
-def get_phi_qst(in_U_t, in_V_t, in_omegas):
-    """ compute phases from mass scaled positions and velocities 
+def get_phi_qst(in_U_t, in_V_t, in_omegas, in_times=None):
+    r""" compute phases from mass scaled positions and velocities
 
     phi_s(q, t) = atan2( -\dot{u}_s(q, t) / \omega_s(q, t) / u_s(q, t))
 
@@ -106,28 +103,33 @@ def get_phi_qst(in_U_t, in_V_t, in_omegas):
 
     """
 
-    warn("Under construction", level=1)
-
     U_t = np.array(in_U_t)
     V_t = np.array(in_V_t)
 
-    # make sure gamma modes are suppressed
     omegas = np.array(in_omegas)
-    omegas[0, :3] = 1e6
+    omegas[0, :3] = -1
 
-    phi_qst = np.arctan2(-V_t, omegas[None, :, :] * U_t)
+    if in_times is None:
+        omega_t = np.zeros_like(V_t)
+    else:
+        times = np.array(in_times)
+        omega_t = omegas[None, :, :] * times[:, None, None]
+
+    phi_qst = np.arctan2(- V_t - omega_t, omegas[None, :, :] * U_t - omega_t)
+
+    # phase not well defined for 0 modes, set to 0:
+    phi_qst[:, 0, :3] = 0
 
     return phi_qst
 
 
-def get_E_qst(in_U_t, in_V_t, in_omegas):
+def get_E_qst(in_U_t, in_V_t, in_omegas2):
     """ compute mode resolved energies from mass scaled positions and velocities """
 
-    omegas = np.array(in_omegas)
+    omegas2 = np.array(in_omegas2)
 
-    A_qst2 = A_qst2(in_U_t, in_V_t, omegas)
+    A_qst2 = get_A_qst2(in_U_t, in_V_t, omegas2)
 
-    E_qst = 0.5 * omegas[None, :, :] ** 2 * A_qst2
+    E_qst = 0.5 * omegas2[None, :, :] * A_qst2
 
     return E_qst
-
