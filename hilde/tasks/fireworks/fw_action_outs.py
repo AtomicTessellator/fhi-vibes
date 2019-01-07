@@ -196,6 +196,9 @@ def serial_phonopy_continue(
     if "in_spec_atoms" in fw_settings:
         update_spec[fw_settings["in_spec_atoms"]] = atoms
         update_spec[fw_settings["in_spec_calc"]] = calc
+    if "kpoint_density_spec" in fw_settings:
+        update_spec[fw_settings["kpoint_density_spec"]] =  k2d(dict2atoms(atoms), calc["calculator_parameters"]["k_grid"])
+
     if outputs:
         return FWAction(update_spec=update_spec)
     fw = generate_firework(
