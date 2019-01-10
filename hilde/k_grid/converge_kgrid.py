@@ -16,7 +16,7 @@ def converge_kgrid(
     calc,
     func=lambda x: x.calc.get_property("energy", x) / len(x),
     loss_func=lambda x: x,
-    dfunc_min=1e-4,
+    dfunc_min=1e-12,
     even=True,
     unit_cell=True,
     maxsteps=100,
