@@ -67,10 +67,10 @@ def preprocess(
     **kwargs,
 ):
     """ Create a phonopy object and supercells etc. """
-
-    if not supercell_matrix and natoms_in_sc:
+    print(supercell_matrix)
+    if supercell_matrix is None and natoms_in_sc:
         _, supercell_matrix = make_cubic_supercell(atoms, natoms_in_sc)
-    elif not supercell_matrix:
+    elif supercell_matrix is None:
         raise InputError("Either supercell_matrix or natoms_in_sc must be specified")
 
     phonon = prepare_phonopy(

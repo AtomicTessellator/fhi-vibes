@@ -106,14 +106,13 @@ def preprocess(
     Returns:
         The Phono3py object, second order supercell, third order supercell, list of second order supercells with displacements, list of third order supercells with displacements
     """
-    if not fc3_supercell_matrix and n_atoms_in_sc_3:
+    if fc3_supercell_matrix is None and n_atoms_in_sc_3:
         _, fc3_supercell_matrix = make_cubic_supercell(atoms, n_atoms_in_sc_3)
-    elif not fc3_supercell_matrix:
+    elif fc3_supercell_matrix is None:
         raise InputError("Either fc3_supercell_matrix or natoms_in_sc must be specified")
-    print(fc3_supercell_matrix, n_atoms_in_sc_3)
-    if not fc2_supercell_matrix and n_atoms_in_sc_2:
+    if fc2_supercell_matrix is None and n_atoms_in_sc_2:
         _, fc2_supercell_matrix = make_cubic_supercell(atoms, n_atoms_in_sc_2)
-    elif not fc2_supercell_matrix:
+    elif fc2_supercell_matrix is None:
         fc2_supercell_matrix = fc3_supercell_matrix
     phonon3 = prepare_phono3py(
         atoms,
