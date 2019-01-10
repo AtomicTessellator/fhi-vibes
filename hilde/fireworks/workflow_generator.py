@@ -21,8 +21,8 @@ def generate_firework(
     task_spec_list=None,
     atoms=None,
     calc=None,
-    atoms_calc_from_spec=False,
     fw_settings=None,
+    atoms_calc_from_spec=False,
     update_calc_settings={},
     func=None,
     func_fw_out=None,
@@ -65,6 +65,8 @@ def generate_firework(
         )
     if isinstance(task_spec_list, TaskSpec):
         task_spec_list = [task_spec_list]
+    if fw_settings and "from_db" in fw_settings:
+        atoms_calc_from_spec = fw_settings['from_db']
     if "fw_name" not in fw_settings:
         fw_name = None
         fw_settings["fw_base_name"] = ""
@@ -142,29 +144,20 @@ def get_phonon_parallel_task(func, func_kwargs, make_abs_path=False):
     '''
     kwargs_init = {}
     kwargs_init_fw_out = {}
-    if "phonopy_settings" in func_kwargs:
-        kwargs_init["phonopy_settings"] = {
-            "supercell_matrix": func_kwargs["phonopy_settings"].supercell_matrix
-        }
-        if "displacement" in func_kwargs["phonopy_settings"]:
-            kwargs_init["phonopy_settings"]["displacement"] = func_kwargs[
-                "phonopy_settings"
-            ].displacement
-        wd = str(Path(func_kwargs["phonopy_settings"].workdir).absolute())
-        kwargs_init_fw_out["phonopy_settings"] = {"workdir": wd}
+    preprocess_keys = {
+        "phonopy_settings": ["supercell_matrix", "displacement"],
+        "phono3py_settings": ["supercell_matrix", "displacement", "cutoff_pair_distance"],
+    }
 
-    if "phono3py_settings" in func_kwargs:
-        kwargs_init["phono3py_settings"] = {
-            "supercell_matrix": func_kwargs["phono3py_settings"].supercell_matrix
-        }
-        if "displacement" in func_kwargs["phono3py_settings"]:
-            kwargs_init["phono3py_settings"]["displacement"] = func_kwargs[
-                "phono3py_settings"
-            ].displacement
-        wd = str(Path(func_kwargs["phono3py_settings"].workdir).absolute())
-        kwargs_init_fw_out["phono3py_settings"] = {"workdir": wd}
-    if "displacement" in func_kwargs:
-        kwargs_init["displacement"] = func_kwargs.displacement
+    for set_key in ["phonopy_settings", "phono3py_settings"]:
+        if set_key in func_kwargs:
+            kwargs_init[set_key]
+            for key, val in func_kwargs[set_key].items():
+                if key in preprocess_keys[set_key]:
+                    kwargs_init[set_key][key] = val
+            wd = str(Path(func_kwargs[set_key].workdir).absolute())
+            kwargs_init_fw_out[set_key] = {"workdir": wd}
+
     return TaskSpec(
         func,
         "hilde.tasks.fireworks.fw_action_outs.add_phonon_force_calcs",
@@ -209,6 +202,34 @@ def get_phonon_analysis_task(
         make_abs_path=make_abs_path,
     )
 
+def get_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
+    return TaskSpec(
+        "hilde.relaxation.bfgs.relax",
+        "hilde.tasks.fireworks.fw_action_outs.check_relaxation_complete",
+        True,
+        func_kwargs,
+        func_fw_out_kwargs=func_fw_out_kwargs,
+        make_abs_path=make_abs_path,
+    )
+
+def get_aims_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
+    return TaskSpec(
+        "hilde.tasks.calculate.calculate",
+        "hilde.tasks.fireworks.fw_action_outs.check_aims_relaxation_complete",
+        True,
+        func_kwargs,
+        func_fw_out_kwargs=func_fw_out_kwargs,
+        make_abs_path=make_abs_path,
+    )
+
+def get_kgrid_task(func_kwargs, make_abs_path=False):
+    return TaskSpec(
+        "hilde.k_grid.converge_kgrid.converge_kgrid",
+        "hilde.tasks.fireworks.fw_action_outs.check_kgrid_opt_completion",
+        True,
+        func_kwargs,
+        make_abs_path=make_abs_path,
+    )
 
 def get_step_fw(step_settings, atoms=None, make_abs_path=False):
     '''
@@ -224,7 +245,6 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         atoms, calc = setup_aims(settings=step_settings)
     else:
         calc = setup_aims(settings=step_settings)
-    print(step_settings.control_kpt.density)
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
     atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
@@ -259,13 +279,10 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         if db_kwargs:
             db_kwargs["calc_type"] = f"relaxation_{step_settings.basisset.type}"
         task_spec_list.append(
-            TaskSpec(
-                "hilde.relaxation.bfgs.relax",
-                "hilde.tasks.fireworks.fw_action_outs.check_relaxation_complete",
-                True,
+            get_relax_task(
                 step_settings.relaxation,
-                func_fw_out_kwargs=db_kwargs,
-                make_abs_path=make_abs_path,
+                db_kwargs,
+                make_abs_path
             )
         )
     elif "aims_relaxation" in step_settings:
@@ -276,24 +293,18 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         else:
             fw_out_kwargs = {"relax_step": 0}
         task_spec_list.append(
-            TaskSpec(
-                "hilde.tasks.calculate.calculate",
-                "hilde.tasks.fireworks.fw_action_outs.check_aims_relaxation_complete",
-                True,
+            get_aims_relax_task(
                 step_settings.aims_relaxation,
-                func_fw_out_kwargs=fw_out_kwargs,
-                make_abs_path=make_abs_path,
+                fw_out_kwargs,
+                make_abs_path
             )
         )
     elif "kgrid_opt" in step_settings:
         fw_settings["fw_name"] = "k_grid_opt"
         task_spec_list.append(
-            TaskSpec(
-                "hilde.k_grid.converge_kgrid.converge_kgrid",
-                "hilde.tasks.fireworks.fw_action_outs.check_kgrid_opt_completion",
-                True,
+            get_kgrid_task(
                 step_settings.kgrid_opt,
-                make_abs_path=make_abs_path,
+                make_abs_path
             )
         )
     elif "phonopy" in step_settings or "phono3py" in step_settings:

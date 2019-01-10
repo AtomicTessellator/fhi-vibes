@@ -94,6 +94,13 @@ def postprocess(
         frequency_factor_to_THz=const.omega_to_THz,
         **phonon3_kwargs,
     )
+    cutoff = metadata["Phono3py"]['displacement_dataset']['cutoff_distance']
+    for disp1 in metadata["Phono3py"]['displacement_dataset']['first_atoms']:
+        for disp2 in disp1['second_atoms']:
+            if disp2['pair_distance'] <= cutoff:
+                disp2['included'] = True
+            else:
+                disp2['included'] = False
     phonon3.set_displacement_dataset(metadata["Phono3py"]['displacement_dataset'])
     if "fc2" in kwargs:
         phonon3.set_fc2(fc2)
@@ -101,13 +108,17 @@ def postprocess(
 
     force_sets_fc3 = []
     used_forces = 0
-
+    n_cells =0
     for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
-        if cell is not None:
+        if cell:
+            n_cells += 1
+    print(n_cells)
+    for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
+        if cell:
+            print(ii, used_forces)
             ref_atoms = calculated_atoms[used_forces]
-            if ref_atoms.info[displacement_id_str] == ii:
-                force_sets_fc3.append(ref_atoms.get_forces())
-                used_forces += 1
+            force_sets_fc3.append(ref_atoms.get_forces())
+            used_forces += 1
         else:
             force_sets_fc3.append(np.zeros(forces_shape))
 

@@ -9,6 +9,7 @@ import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
+from hilde.helpers.supercell import make_cubic_supercell
 from hilde.materials_fp.material_fingerprint import (
     get_phonon_bs_fingerprint_phononpy,
     to_dict,
@@ -58,13 +59,19 @@ def prepare_phonopy(
 
 def preprocess(
     atoms,
-    supercell_matrix,
+    supercell_matrix=None,
+    natoms_in_sc=None,
     disp=defaults.displacement,
     symprec=defaults.symprec,
     trigonal=defaults.trigonal,
     **kwargs,
 ):
     """ Create a phonopy object and supercells etc. """
+
+    if not supercell_matrix and natoms_in_sc:
+        _, supercell_matrix = make_cubic_supercell(atoms, natoms_in_sc)
+    elif not supercell_matrix:
+        raise InputError("Either supercell_matrix or natoms_in_sc must be specified")
 
     phonon = prepare_phonopy(
         atoms, supercell_matrix, disp=disp, symprec=symprec, trigonal=trigonal

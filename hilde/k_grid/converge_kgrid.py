@@ -49,7 +49,7 @@ def converge_kgrid(
     watchdog = Watchdog(walltime=walltime)
 
     workdir = Path(workdir).absolute()
-    trajectory = Path(trajectory).absolute()
+    trajectory = workdir / trajectory
 
     kpt_settings = {
         "func": func,

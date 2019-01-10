@@ -6,6 +6,7 @@ from collections import namedtuple
 import numpy as np
 from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
+from hilde.helpers.supercell import make_cubic_supercell
 from hilde.phonopy import enumerate_displacements
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.config import AttributeDict as adict
@@ -82,7 +83,9 @@ def prepare_phono3py(
 def preprocess(
     atoms,
     fc2_supercell_matrix=None,
+    n_atoms_in_sc_2=None,
     fc3_supercell_matrix=None,
+    n_atoms_in_sc_3=None,
     q_mesh=defaults.q_mesh,
     disp=defaults.displacement,
     cutoff_pair_distance=defaults.cutoff_pair_distance,
@@ -103,9 +106,14 @@ def preprocess(
     Returns:
         The Phono3py object, second order supercell, third order supercell, list of second order supercells with displacements, list of third order supercells with displacements
     """
-    if fc3_supercell_matrix is None:
-        raise ValueError("Please define an fc3_supercell_matrix")
-    if fc2_supercell_matrix is None:
+    if not fc3_supercell_matrix and n_atoms_in_sc_3:
+        _, fc3_supercell_matrix = make_cubic_supercell(atoms, n_atoms_in_sc_3)
+    elif not fc3_supercell_matrix:
+        raise InputError("Either fc3_supercell_matrix or natoms_in_sc must be specified")
+    print(fc3_supercell_matrix, n_atoms_in_sc_3)
+    if not fc2_supercell_matrix and n_atoms_in_sc_2:
+        _, fc2_supercell_matrix = make_cubic_supercell(atoms, n_atoms_in_sc_2)
+    elif not fc2_supercell_matrix:
         fc2_supercell_matrix = fc3_supercell_matrix
     phonon3 = prepare_phono3py(
         atoms,

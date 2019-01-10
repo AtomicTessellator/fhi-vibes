@@ -197,7 +197,7 @@ def serial_phonopy_continue(
         update_spec[fw_settings["in_spec_atoms"]] = atoms
         update_spec[fw_settings["in_spec_calc"]] = calc
     if "kpoint_density_spec" in fw_settings:
-        update_spec[fw_settings["kpoint_density_spec"]] =  k2d(dict2atoms(atoms), calc["calculator_parameters"]["k_grid"])
+        del(fw_settings["kpoint_density_spec"])
 
     if outputs:
         return FWAction(update_spec=update_spec)
@@ -234,7 +234,8 @@ def check_kgrid_opt_completion(
         fw_settings: dict
             FireWorks specific settings
     """
-    last_step_dict = last_from_yaml(func_kwargs["trajectory"])
+    trajectory = Path(func_kwargs["workdir"]) / func_kwargs["trajectory"]
+    last_step_dict = last_from_yaml(trajectory)
     for key, val in last_step_dict["atoms"].items():
         atoms[key] = val
     calc["results"] = last_step_dict["calculator"]
@@ -252,15 +253,15 @@ def check_kgrid_opt_completion(
     fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(next_step)
     if fw_settings["to_launchpad"]:
         fw_settings["to_launchpad"] = False
-    new_traj_list = func_kwargs["trajectory"].split(".")
+    new_traj_list = trajectory.split(".")
     try:
         temp_list = new_traj_list[-2].split("_")
         temp_list[-1] = str(int(temp_list[-1]) + 1)
         new_traj_list[-2] = "_".join(temp_list)
-        func_kwargs["trajectory"] = ".".join(new_traj_list)
+        trajectory = ".".join(new_traj_list)
     except:
         new_traj_list[-2] += "_restart_1"
-        func_kwargs["trajectory"] = ".".join(new_traj_list)
+        trajectory = ".".join(new_traj_list)
 
     fw = generate_firework(
         func=func,
@@ -363,6 +364,8 @@ def add_phonon_force_calcs(
 
 def add_to_detours(detours, func_fw_kwargs, atoms, atoms_list, calc_dict, fw_settings, prefix):
     for i, sc in enumerate(atoms_list):
+        if not sc:
+            continue
         fw_settings=fw_settings.copy()
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)

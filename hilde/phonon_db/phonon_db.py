@@ -243,7 +243,7 @@ class PhononDatabase(Database):
         check(key_value_pairs)
         return 1
 
-    def get_phonon(self, selection=None, **kwarg):
+    def get_phonon(self, selection=None, get_id=False, **kwarg):
         """
         Gets a phonopy object from a database row
         Args:
@@ -253,9 +253,11 @@ class PhononDatabase(Database):
             the phonopy object of the row
         """
         row = self.get(selection, **kwarg)
+        if get_id:
+            return row.id, row.to_phonon()
         return row.to_phonon()
 
-    def get_phonon3(self, selection=None, **kwarg):
+    def get_phonon3(self, selection=None, get_id=False, **kwarg):
         """
         Gets a phonopy object from a database row
         Args:
@@ -265,6 +267,8 @@ class PhononDatabase(Database):
             the phonopy object of the row
         """
         row = self.get(selection, **kwarg)
+        if get_id:
+            return row.id, row.to_phonon3()
         return row.to_phonon3()
 
     @parallel_function
@@ -317,7 +321,7 @@ class PhononDatabase(Database):
         if phonon3:
             row = PhononRow(phonon3=phonon3, store_second_order=store_second_order)
         elif phonon:
-            row = PhononRow(phonon)
+            row = PhononRow(phonon=phonon)
         elif dct:
             row = PhononRow(dct)
 
@@ -329,7 +333,10 @@ class PhononDatabase(Database):
         row.ctime = oldrow.ctime
         row.user = oldrow.user
         row.id = id
-
+        if "forces_2" not in row and "forces_2" in oldrow:
+            row.forces_2 = oldrow.forces_2
+        if "forces_3" not in row and "forces_3" in oldrow:
+            row.forces_3 = oldrow.forces_3
         kvp = row.key_value_pairs
 
         n = len(kvp)

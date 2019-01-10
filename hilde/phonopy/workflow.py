@@ -13,7 +13,8 @@ from .wrapper import preprocess as phonopy_preprocess, defaults
 def preprocess(
     atoms,
     calc,
-    supercell_matrix,
+    supercell_matrix=None,
+    natoms_in_sc=None,
     kpt_density=None,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
@@ -21,7 +22,7 @@ def preprocess(
 
     # Phonopy preprocess
     phonon, supercell, scs = phonopy_preprocess(
-        atoms, supercell_matrix, displacement, symprec
+        atoms, supercell_matrix, natoms_in_sc, displacement, symprec
     )
 
     # make sure forces are computed (aims only)
@@ -32,9 +33,11 @@ def preprocess(
         update_k_grid(supercell, calc, kpt_density)
 
     metadata = metadata2dict(atoms, calc, phonon)
-
+    scs_return = []
     for sc in scs:
-        sc.calc = calc
+        if sc:
+            sc.calc = calc
+            scs_return.append(sc)
 
     return calc, supercell, scs, phonon, metadata
 
@@ -42,7 +45,8 @@ def preprocess(
 def run(
     atoms,
     calc,
-    supercell_matrix,
+    supercell_matrix=None,
+    natoms_in_sc=None,
     kpt_density=None,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
@@ -64,7 +68,7 @@ def run(
         del(kwargs["analysis_workdir"])
 
     calc, supercell, scs, phonon, metadata = preprocess(
-        atoms, calc, supercell_matrix, kpt_density, displacement, symprec
+        atoms, calc, supercell_matrix, natoms_in_sc, kpt_density, displacement, symprec
     )
 
     # save input geometries and settings
