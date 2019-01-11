@@ -196,6 +196,11 @@ def serial_phonopy_continue(
     if "in_spec_atoms" in fw_settings:
         update_spec[fw_settings["in_spec_atoms"]] = atoms
         update_spec[fw_settings["in_spec_calc"]] = calc
+        at = fw_settings["in_spec_atoms"]
+        cl = fw_settings["in_spec_calc"]
+    else:
+        at = atoms
+        cl = calc
     if "kpoint_density_spec" in fw_settings:
         del(fw_settings["kpoint_density_spec"])
 
@@ -205,8 +210,8 @@ def serial_phonopy_continue(
         func=func,
         func_fw_out=func_fw_out,
         func_kwargs=func_kwargs,
-        atoms=atoms,
-        calc=calc,
+        atoms=at,
+        calc=cl,
         func_fw_out_kwargs=func_fw_kwargs,
         fw_settings=fw_settings,
     )
