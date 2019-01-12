@@ -124,6 +124,7 @@ def claunch():
     parser.add_argument(
         "-rgss", "--gss_auth", help="use gss_api authorization", action="store_true"
     )
+    parser.add_argument("-rro", "--remote_recover_offline", action="store_true", help="recover offline jobs from remote host")
     parser.add_argument(
         "-d",
         "--daemon",
@@ -284,6 +285,7 @@ def claunch():
         remote_user=args.remote_user,
         remote_password=args.remote_password,
         remote_shell=args.remote_shell,
+        remote_recover_offline=args.remote_recover_offline,
         daemon=args.daemon,
     )
 

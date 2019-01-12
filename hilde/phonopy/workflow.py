@@ -16,6 +16,7 @@ def preprocess(
     supercell_matrix=None,
     natoms_in_sc=None,
     kpt_density=None,
+    up_kpoint_from_pc=False,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
 ):
@@ -30,6 +31,9 @@ def preprocess(
         calc.parameters["compute_forces"] = True
 
     if kpt_density is not None:
+        update_k_grid(supercell, calc, kpt_density)
+    elif up_kpoint_from_pc:
+        kpt_density = k2d(atoms, calc.k_grid)
         update_k_grid(supercell, calc, kpt_density)
 
     metadata = metadata2dict(atoms, calc, phonon)
@@ -58,6 +62,7 @@ def run(
     force_constants_file="force_constants.dat",
     pickle_file="phonon.pick",
     db_kwargs=None,
+    up_kpoint_from_pc=False,
     **kwargs,
 ):
     if "fireworks" in kwargs:
@@ -68,7 +73,7 @@ def run(
         del(kwargs["analysis_workdir"])
 
     calc, supercell, scs, phonon, metadata = preprocess(
-        atoms, calc, supercell_matrix, natoms_in_sc, kpt_density, displacement, symprec
+        atoms, calc, supercell_matrix, natoms_in_sc, kpt_density, up_kpoint_from_pc, displacement, symprec
     )
 
     # save input geometries and settings

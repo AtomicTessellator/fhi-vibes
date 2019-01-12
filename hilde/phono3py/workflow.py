@@ -19,6 +19,7 @@ def preprocess(
     n_atoms_in_sc=None,
     cutoff_pair_distance=defaults.cutoff_pair_distance,
     kpt_density=None,
+    up_kpoint_from_pc=False,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
 ):
@@ -38,6 +39,9 @@ def preprocess(
         calc.parameters["compute_forces"] = True
 
     if kpt_density is not None:
+        update_k_grid(supercell, calc, kpt_density)
+    elif up_kpoint_from_pc:
+        kpt_density = k2d(atoms, calc.k_grid)
         update_k_grid(supercell, calc, kpt_density)
 
     metadata = metadata2dict(atoms, calc, phonon3)
@@ -67,6 +71,7 @@ def run(
     force_constants_file="force_constants_3.dat",
     pickle_file="phono3py.pick",
     db_kwargs=None,
+    up_kpoint_from_pc=False,
     **kwargs,
 ):
     '''
@@ -103,6 +108,7 @@ def run(
         natoms_in_sc,
         cutoff_pair_distance,
         kpt_density,
+        up_kpoint_from_pc,
         displacement,
         symprec,
     )

@@ -124,6 +124,7 @@ def get_phonon_serial_task(func, func_kwargs, db_kwargs=None, make_abs_path=Fals
     if db_kwargs:
         db_kwargs["calc_type"] = func.split(".")[1]
         func_kwargs["db_kwargs"] = db_kwargs
+    func_kwargs['up_kpoint_from_pc'] = True
     return TaskSpec(
         func,
         "hilde.tasks.fireworks.fw_action_outs.serial_phonopy_continue",

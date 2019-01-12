@@ -14,8 +14,6 @@ def d2k(atoms, kptdensity=3.5, even=True):
         even (bool): Round up to even numbers.
     Returns (list): Monkhorst-Pack grid size in all directions
     """
-    if not isinstance(kptdensity, list) and not isinstance(kptdensity, np.ndarray):
-        kptdensity = 3*[float(kptdensity)]
     recipcell = atoms.get_reciprocal_cell()
     return d2k_cellinfo(recipcell, atoms.pbc, kptdensity, even)
 

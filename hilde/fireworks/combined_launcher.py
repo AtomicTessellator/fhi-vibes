@@ -114,6 +114,7 @@ def rapidfire(
     remote_user=fw_defaults["remote_user"],
     remote_password=fw_defaults["remote_password"],
     remote_shell="/bin/bash -l -c",
+    remote_recover_offline=False,
     daemon=0,
 ):
     """
@@ -236,26 +237,27 @@ def rapidfire(
                 block_dir = create_datestamp_dir(launch_dir, l_logger)
             q_kwargs["launcher_dir"] = block_dir
         while True:
-            for host in remote_host:
-                connect_kwargs = {"password": remote_password, "gss_auth": gss_auth}
-                if SSH_MULTIPLEXING:
-                    controlpath = str(Path.home() / ".ssh" / "sockets" / (remote_user + "@$" + host + "-22"))
-                    connect_kwargs["controlpath"] = controlpath
-                try:
-                    with fabric.Connection(
-                        host=host,
-                        user=remote_user,
-                        config=fabric.Config({"run": {"shell": remote_shell}}),
-                        connect_kwargs=connect_kwargs,
-                    ) as conn:
-                        for remote in remote_config_dir:
-                            remote = os.path.expanduser(remote)
-                            with conn.cd(remote):
-                                conn.run(
-                                    "lpad recover_offline"
-                                )
-                except:
-                    pass
+            if remote_recover_offline:
+                for host in remote_host:
+                    connect_kwargs = {"password": remote_password, "gss_auth": gss_auth}
+                    if SSH_MULTIPLEXING:
+                        controlpath = str(Path.home() / ".ssh" / "sockets" / (remote_user + "@$" + host + "-22"))
+                        connect_kwargs["controlpath"] = controlpath
+                    try:
+                        with fabric.Connection(
+                            host=host,
+                            user=remote_user,
+                            config=fabric.Config({"run": {"shell": remote_shell}}),
+                            connect_kwargs=connect_kwargs,
+                        ) as conn:
+                            for remote in remote_config_dir:
+                                remote = os.path.expanduser(remote)
+                                with conn.cd(remote):
+                                    conn.run(
+                                        "lpad recover_offline"
+                                    )
+                    except:
+                        pass
             if remote_host is "localhost":
                 # get number of jobs in queue
                 jobs_in_queue = _get_number_of_jobs_in_queue(
