@@ -33,7 +33,7 @@ def preprocess(
     if kpt_density is not None:
         update_k_grid(supercell, calc, kpt_density)
     elif up_kpoint_from_pc:
-        kpt_density = k2d(atoms, calc.k_grid)
+        kpt_density = k2d(atoms, calc.parameters['k_grid'])
         update_k_grid(supercell, calc, kpt_density)
 
     metadata = metadata2dict(atoms, calc, phonon)
