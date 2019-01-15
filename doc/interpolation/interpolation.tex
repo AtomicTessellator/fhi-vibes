@@ -101,64 +101,59 @@
 \date{\today}
 \maketitle
 
-\section{Atomic Positions in Supercells}
-\nid
-In a unit cell with $N$ atoms, we label each by 
-\mbox{$i \in \{1 \ldots N \}$} 
-and its positions by 
-$\b r_i$. 
-In a periodic system with lattice vectors 
-$\{ \b a_1, \b a_2, \b a_3 \}$, we define \emph{lattice points} $\b L$ as
+\section{Fitting Force Constants from Heat Flux}
+
 \begin{align}
-	\b L = l^1 \b a_1 + l^2 \b a_2 + l^3 \b a_3~.
+	\b J_I = \uunderline{\sigma}_I \cdot \b R_I~,
+\end{align}
+and
+\begin{align}
+	\b{J}_I = \dot{E}_I \b R_I~.
+	\label{eq:2}
+\end{align}
+For the (atomic) energy, we have
+\begin{align}
+	\dot{E}_I &= F_{I \alpha} \dot{R}_{I}^\alpha + \dot{U}_I ~.\label{eq:3}
 \end{align}
 
-\nid
-Atoms located at $\b r_i + \b L$ are images of atom $i$ in the unit cell shifted by a 
-lattice point. We write
-\begin{align}
-\b R_I = \b r_i + \b L ~,
-\label{def:R_I}
-\end{align}
-and introduce the combinded index 
-\begin{align}
-	I = (i, \b L)~,
-	\label{def:I}
-\end{align}
-denoting the corresponding image in 
-the unit cell and the respective lattice point.
+\subsection{Harmonic Model}
 
-We label the equilibrium positions of atoms in an infinite lattice by
 \begin{align}
-	\b R_I^0 = \b r_i^0 + \b L ~,
-	\label{def:R_I0}
+	U &= \halb \sum_{K, L} ~ \Phi_{K \alpha, L \beta} ~ R_K^\alpha R_L^\beta \\
+	F_{I \alpha} 
+	&= - \nabla_{I \alpha} U 
+	= - \sum_K \Phi_{I \alpha, K \beta} R_K^\beta \\
+	U_I &= \halb R_I^\alpha \sum_K \Phi _{I \alpha, K \beta} ~ R_K^\beta \\
+	\dot{U}_I &= 
+	\halb \sum_K \Phi _{I \alpha, K \beta} \left( \dot{R}_I^\alpha ~ R_K^\beta 
+	+ R_I^\alpha ~ \dot{R}_K^\beta \right) \\
+%	\nabla_{J \alpha} \, U_I 
+%  &= \halb \sum_K \Phi _{I \alpha, K \beta} \left( \delta_{I, J} ~ R_K^\beta 
+%	+ R^\alpha_I \delta_{J, K} \right) \\
+%	\dot U &= \sum_J \nabla_{J \alpha} U_I \dot{R}_J^\alpha \\
+%	&=  \halb \\
+	\dot{E}_I 
+	&\stackrel{\eqref{eq:3}}{=}
+ \halb \sum_K \Phi _{I \alpha, K \beta} \left( - \dot{R}_I^\alpha ~ R_K^\beta 
+	+ R_I^\alpha ~ \dot{R}_K^\beta \right)~,
 \end{align}
-and the deviation from the equilibrium by
+so from \eqref{eq:2}:
 \begin{align}
-	\b R_I - \b R_I^0 = \b U_I ~,
-\label{def:u_i}
+	J_I^\alpha
+	&= \halb R_I^\alpha \sum_K \Phi _{I \alpha, K \beta} \left( - \dot{R}_I^\alpha ~ 
+	R_K^\beta 
+	+ R_I^\alpha ~ \dot{R}_K^\beta \right)~.
 \end{align}
-with equilibrium positions $\b R_i^0$ and displacement $\b u_i$ for $N$ 
-atoms.
 
-\section{Potential Energy Surface}
-\nid
-Expand the potential energy surface around the equilibrium configuration
-$\{ \b R_I^0 \}$:
+\subsection{Third Order Term}
+
 \begin{align}
-\begin{split}
-	E_\t{pot}( \{ \b R_I \}) = E_\t{pot}( \{ \b R_I^0 + \b U_I \}) \\
-	= E_0 + \frac{\partial E}{\partial R_I^\alpha} U_I^\alpha
-	+ \halb \frac{\partial^2 E}{\partial R_I^\alpha~\partial R_J^\beta} 
-	~ U_I^\alpha U_J^\beta
-	+ \cdots~,
-\end{split}
-\end{align}
-with
-\begin{align}
-	\b F_I &= - \frac{\partial E}{\partial \b R_I}, \\
-	\uunderline{\Phi}_{I,J}	&= \frac{\partial^2 E}{\partial \b R_I ~ \partial \b R_J}~.
-\end{align}
+	U &= \frac{1}{3!} \sum_{K, L, M} ~ \Psi_{K \alpha, L \beta, M \gamma} 
+	~ R_K^\alpha R_L^\beta R_M^\gamma \\
+	U_I &=  \frac{1}{3!} R_I^\alpha \sum_{K, L} \Psi_{I \alpha, K \beta, L \gamma} 
+	~ R_K^\beta R_L^\gamma \\
+	\dot{U}_I &= ~ \cdots \nonumber
+	\end{align}
 
 \cleardoublepage
 

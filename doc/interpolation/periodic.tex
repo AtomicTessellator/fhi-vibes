@@ -1,3 +1,64 @@
+
+\section{Atomic Positions in Supercells}
+\nid
+In a unit cell with $N$ atoms, we label each by 
+\mbox{$i \in \{1 \ldots N \}$} 
+and its positions by 
+$\b r_i$. 
+In a periodic system with lattice vectors 
+$\{ \b a_1, \b a_2, \b a_3 \}$, we define \emph{lattice points} $\b L$ as
+\begin{align}
+\b L = l^1 \b a_1 + l^2 \b a_2 + l^3 \b a_3~.
+\end{align}
+
+\nid
+Atoms located at $\b r_i + \b L$ are images of atom $i$ in the unit cell shifted by a 
+lattice point. We write
+\begin{align}
+\b R_I = \b r_i + \b L ~,
+\label{def:R_I}
+\end{align}
+and introduce the combined index 
+\begin{align}
+I = (i, \b L)~,
+\label{def:I}
+\end{align}
+denoting the corresponding image in 
+the unit cell and the respective lattice point.
+
+We label the equilibrium positions of atoms in an infinite lattice by
+\begin{align}
+\b R_I^0 = \b r_i^0 + \b L ~,
+\label{def:R_I0}
+\end{align}
+and the deviation from the equilibrium by
+\begin{align}
+\b R_I - \b R_I^0 = \b U_I ~,
+\label{def:u_i}
+\end{align}
+with equilibrium positions $\b R_i^0$ and displacement $\b u_i$ for $N$ 
+atoms.
+
+\section{Potential Energy Surface}
+\nid
+Expand the potential energy surface around the equilibrium configuration
+$\{ \b R_I^0 \}$:
+\begin{align}
+\begin{split}
+E_\t{pot}( \{ \b R_I \}) = E_\t{pot}( \{ \b R_I^0 + \b U_I \}) \\
+= E_0 + \frac{\partial E}{\partial R_I^\alpha} U_I^\alpha
++ \halb \frac{\partial^2 E}{\partial R_I^\alpha~\partial R_J^\beta} 
+~ U_I^\alpha U_J^\beta
++ \cdots~,
+\end{split}
+\end{align}
+with
+\begin{align}
+\b F_I &= - \frac{\partial E}{\partial \b R_I}, \\
+\uunderline{\Phi}_{I,J}	&= \frac{\partial^2 E}{\partial \b R_I ~ \partial \b R_J}~.
+\end{align}
+
+
 \section{Periodic Boundary Conditions}
 \REM{Sum convention is always in action}
 \subsection{Direct Coordinates}
