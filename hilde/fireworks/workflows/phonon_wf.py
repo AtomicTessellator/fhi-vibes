@@ -37,6 +37,10 @@ def generate_fw(atoms, task_list, fw_settings, qadapter, update_settings=None, u
         fw_settings = update_fw_settings(fw_settings, fw_settings["fw_name"], qadapter, update_in_spec=update_in_spec)
     else:
         fw_settings = update_fw_settings(fw_settings, fw_settings["fw_name"], update_in_spec=update_in_spec)
+
+    fw_settings[
+        "fw_name"
+    ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
     if not update_settings:
         update_settings = {}
     at = atoms if "in_spec_atoms" not in  fw_settings else fw_settings["in_spec_atoms"]
@@ -90,8 +94,8 @@ def generate_phonon_fw(atoms, wd, fw_settings, qadapter, ph_settings, db_kwargs,
         update_settings["basisset_type"] = ph_settings.pop("basisset_type")
     if "socket_io_port" in ph_settings:
         update_settings["use_pimd_wrapper"] = ph_settings.pop("socket_io_port")
-
-
+    elif "use_pimd_wrapper" in ph_settings:
+        update_settings["use_pimd_wrapper"] = ph_settings.pop("use_pimd_wrapper")
     if "converge_sc" in ph_settings and ph_settings["converge_sc"]:
         func_out_kwargs = dict(db_kwargs, converge_sc=ph_settings.pop("converge_sc"))
     else:
@@ -112,7 +116,6 @@ def generate_phonon_fw(atoms, wd, fw_settings, qadapter, ph_settings, db_kwargs,
             func_kwargs,
             False,
         )
-
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec)
 
 def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, db_kwargs):
@@ -298,6 +301,3 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         launchpad = LaunchPadHilde.auto_load()
     launchpad.add_wf(Workflow(fw_steps, fw_dep, name=fw_settings["name"]))
     return None
-
-    return Workflow(fw_steps, fw_dep, name=fw_settings["name"])
-

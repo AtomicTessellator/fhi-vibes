@@ -205,7 +205,28 @@ def serial_phonopy_continue(
         del(fw_settings["kpoint_density_spec"])
 
     if outputs:
-        return FWAction(update_spec=update_spec)
+        if converged:
+            return FWAction(update_spec=update_spec)
+        else:
+            new_func_kwargs = func_kwargs.copy()
+            if "supercell_matrix" in new_func_kwargs:
+                sc_matrix = np.array(new_func_kwargs.pop("supercell_matrix")).reshape(3,3)
+                new_func_kwargs["n_atoms_in_sc"] = int(np.linalg.det(sc_matrix)) + 50
+            elif "n_atoms_in_sc" in new_func_kwargs:
+                new_func_kwargs["n_atoms_in_sc"] += 50
+            else:
+                raise AttributeError("either supercell_matrix or n_atoms_in_sc must be defined")
+            new_func_kwargs["workdir"] += "/n_atoms_in_sc_" + str(new_func_kwargs["n_atoms_in_sc"]) + "/"
+            fw = generate_firework(
+                func=func,
+                func_fw_out=func_fw_out,
+                func_kwargs=new_func_kwargs,
+                atoms=at,
+                calc=cl,
+                func_fw_out_kwargs=func_fw_kwargs,
+                fw_settings=fw_settings,
+            )
+            return FWAction(detours[fw], update_spec)
     fw = generate_firework(
         func=func,
         func_fw_out=func_fw_out,
