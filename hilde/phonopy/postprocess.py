@@ -14,6 +14,7 @@ from hilde.phonopy import displacement_id_str
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.trajectory import reader as traj_reader
 from hilde.trajectory.phonons import step2file, to_yaml
+from .wrapper import defaults
 
 def collect_forces_to_trajectory(
     trajectory,
@@ -47,6 +48,7 @@ def postprocess(
     workdir=".",
     force_constants_file="force_constants.dat",
     displacement=0.01,
+    symprec=defaults.symprec,
     fireworks=False,
     pickle_file="phonon.pick",
     db_kwargs=None,
@@ -64,6 +66,7 @@ def postprocess(
         ph_atoms,
         supercell_matrix=np.array(metadata["Phonopy"]["supercell_matrix"]).reshape(3,3),
         is_symmetry=True,
+        symprec=symprec,
         factor=const.omega_to_THz,
         **kwargs
     )
