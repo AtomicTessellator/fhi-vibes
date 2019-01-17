@@ -7,6 +7,7 @@ from bz2 import open as bzopen
 import numpy as np
 
 import yaml
+
 try:
     from yaml import CSafeLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -73,7 +74,7 @@ def last_from_yaml(file):
 
 
 def dict2json(dct, indent=0, outer=True):
-    """ convert pyton dictionary with scientific data to JSON """
+    """ convert python dictionary with scientific data to JSON """
 
     parts = []
     ind = indent * " "
@@ -99,6 +100,28 @@ def dict2json(dct, indent=0, outer=True):
             # add leading [ and trailing ]
             rep = f"\n{2*ind}[{rep[1:]}"
             rep += "]"
+        elif (
+            isinstance(val, list)
+            and len(list_dim(val)) == 3
+            and type(val[0][0][0]) == float
+        ):
+            # this is most likely atomic stress -> format!
+            rep = [
+                "["
+                + "[{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem[0])
+                + f",\n{2*ind} "
+                + "[{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem[1])
+                + f",\n{2*ind} "
+                + "[{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem[2])
+                + "]"
+                for elem in val
+            ]
+            # join to have a comma separated list
+            rep = f",\n{2*ind}".join(rep)
+            # add leading [ and trailing ]
+            rep = f"\n{(2*ind)[:-1]}[{rep}"
+            rep += "]"
+
         else:
             rep = json.dumps(val, cls=NumpyEncoder)
 

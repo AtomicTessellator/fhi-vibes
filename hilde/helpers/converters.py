@@ -10,6 +10,7 @@ from ase.io.jsonio import MyEncoder
 from ase.calculators.calculator import all_properties
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.constraints import voigt_6_to_full_3x3_stress
 
 
 def input2dict(atoms, calc=None, settings=False):
@@ -79,6 +80,13 @@ def results2dict(atoms, calc, append_cell=False):
 
     # calculated values
     calc_dict = {}
+
+    # convert stress to 3x3 if present
+    if "stress" in calc.results:
+        stress = calc.results["stress"]
+        if len(stress) == 6:
+            calc.results["stress"] = voigt_6_to_full_3x3_stress(stress)
+
     # convert numpy arrays into ordinary lists
     for key, val in calc.results.items():
         if isinstance(val, np.ndarray):
