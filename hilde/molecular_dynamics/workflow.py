@@ -8,7 +8,7 @@ from hilde.settings import Settings
 from hilde.trajectory.md import step2file, metadata2file
 from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
-from hilde.helpers.socketio import get_port
+from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.compression import backup_folder as backup
 from .initialization import setup_md, initialize_md
 
@@ -19,6 +19,7 @@ _calc_dirname = "calculations"
 def run_md(
     atoms,
     calc,
+    compute_stresses=False,
     md=None,
     restart=True,
     maxsteps=25000,
@@ -57,11 +58,16 @@ def run_md(
 
     # make sure forces are computed (aims only)
     # use wavefunction extrapolation
+    # make sure stresses are computed
     if calc.name == "aims":
         calc.parameters["compute_forces"] = True
 
         if wf_extrapolation:
             calc.parameters["wf_extrapolation"] = "quadratic"
+
+        # atomic stresses
+        if compute_stresses:
+            calc.parameters["compute_heat_flux"] = True
 
     if md is None:
         md_settings = {
@@ -110,6 +116,11 @@ def run_md(
         while not watchdog() and md.nsteps < maxsteps:
             something_happened = True
             md.run(1)
+
+            if compute_stresses:
+                stresses = get_stresses(atoms)
+                atoms.calc.results["stresses"] = stresses
+
             step2file(atoms, atoms.calc, md, trajectory)
 
     # backup and cleanup if something new happened
