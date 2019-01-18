@@ -101,6 +101,7 @@ def run(
             # phonon,
             trajectory=trajectory,
             workdir=workdir,
+            symprec=symprec,
             force_constants_file=force_constants_file,
             pickle_file=pickle_file,
             db_kwargs=db_kwargs,
