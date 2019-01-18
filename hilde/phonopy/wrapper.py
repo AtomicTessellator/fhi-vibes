@@ -175,7 +175,7 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
     _postprocess_init(phonon, force_sets)
 
-    bands, labels = bz.get_bands_and_labels(phonon.primitive, paths)
+    bands, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
 
     phonon.set_band_structure(bands)
 

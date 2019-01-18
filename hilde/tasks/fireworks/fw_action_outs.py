@@ -200,7 +200,7 @@ def serial_phonopy_continue(
         del(fw_settings["kpoint_density_spec"])
 
     if outputs:
-        if converged:
+        if True:
             return FWAction(update_spec=update_spec)
         else:
             new_func_kwargs = func_kwargs.copy()

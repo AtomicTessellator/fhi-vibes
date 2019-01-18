@@ -72,8 +72,8 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
     else:
         method = "ltrm"
 
-    if "conv_cirt" in rel_settings:
-        force_crit = str(func_kwargs.pop("conv_cirt"))
+    if "conv_crit" in rel_settings:
+        force_crit = str(rel_settings.pop("conv_crit"))
     else:
         force_crit = "5e-3"
 
@@ -175,6 +175,11 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     fw_settings["kpoint_density_spec"] = "kgrid"
     del(fw_settings["out_spec_k_den"])
     light_relax_set = { "basisset_type": "light"}
+
+    if "light_relax" in workflow:
+        for key, val in workflow["light_relax"].items():
+            light_relax_set[key] = val
+
     if "light_rel_qadapter" in workflow:
         qadapter = workflow["light_rel_qadapter"]
     else:
@@ -193,6 +198,11 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
 
     # Tight Basis Set Relaxation
     tight_relax_set = { "basisset_type": "tight"}
+
+    if "tight_relax" in workflow:
+        for key, val in workflow["tight_relax"].items():
+            tight_relax_set[key] = val
+
     if "tight_rel_qadapter" in workflow:
         qadapter = workflow["tight_rel_qadapter"]
     else:
@@ -279,11 +289,11 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
                     phono3py_set["walltime"] = 0
                     for ii in range(len(time_set)-1, 0, -1):
                         phono3py_set["walltime"] += time_set[ii] * 60**ii
-                else:
-                    phono3py_set["walltime"] = 1800
             else:
-                qadapter = None
                 phono3py_set["walltime"] = 1800
+        else:
+            qadapter = None
+            phono3py_set["walltime"] = 1800
         phono3py_set["walltime"] -= 100
         if "phono3py" in workflow:
             for key,val in workflow.phono3py.items():

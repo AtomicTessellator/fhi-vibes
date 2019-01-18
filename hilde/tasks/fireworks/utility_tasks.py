@@ -46,8 +46,6 @@ def update_calc(calc_dict, key, val):
         sd = calc_dict["calculator_parameters"]["species_dir"].split("/")
         sd[-1] = val
         calc_dict["calculator_parameters"]["species_dir"] = "/".join(sd)
-    if key == "use_pimd_wrapper" and isinstance(val, int):
-        calc_dict["calculator_parameters"][key] = ("localhost", val)
     else:
         if val is None and key in calc_dict["calculator_parameters"]:
             del (calc_dict["calculator_parameters"][key])

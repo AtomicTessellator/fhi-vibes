@@ -1,6 +1,7 @@
 """
  Functions to run several related calculations with using trajectories as cache
 """
+import numpy as np
 
 from pathlib import Path
 from ase.calculators.socketio import SocketIOCalculator
@@ -137,23 +138,25 @@ def calculate_socket(
                 calc = calculator
 
             for n_cell, cell in enumerate(atoms_to_calculate):
-                if "forces" in calc.results:
-                    del calc.results["forces"]
-                atoms.calc = calc
-
                 if cell is None:
                     continue
-
                 # if precomputed:
                 if hash_atoms(cell) in precomputed_hashes:
                     continue
 
-                # update calculation_atoms and compute force
-                atoms.positions = cell.positions
-                _ = atoms.get_forces()
+                if "forces" in calc.results:
+                    del calc.results["forces"]
+                while ("forces" not in calc.results) or (np.max(np.abs(calc.results["forces"][:])) == 0.0):
+                    if "forces" in calc.results:
+                        del calc.results["forces"]
+                    atoms.calc = calc
+
+                    # update calculation_atoms and compute force
+                    atoms.positions = cell.positions
+                    _ = atoms.get_forces()
 
                 step2file(atoms, atoms.calc, n_cell, trajectory)
-
+                print(atoms.calc.results)
                 if watchdog():
                     break
 
