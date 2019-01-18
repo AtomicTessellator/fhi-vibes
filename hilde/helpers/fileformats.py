@@ -88,6 +88,7 @@ def dict2json(dct, indent=0, outer=True):
         elif (
             isinstance(val, list)
             and len(list_dim(val)) == 2
+            and list_dim(val)[1] == 3
             and type(val[0][0]) == float
         ):
             # this is most likely positions, velocities, forces, etc. -> format!
@@ -103,6 +104,7 @@ def dict2json(dct, indent=0, outer=True):
         elif (
             isinstance(val, list)
             and len(list_dim(val)) == 3
+            and list_dim(val)[1:3] == [3, 3]
             and type(val[0][0][0]) == float
         ):
             # this is most likely atomic stress -> format!
