@@ -156,7 +156,6 @@ def calculate_socket(
                     _ = atoms.get_forces()
 
                 step2file(atoms, atoms.calc, n_cell, trajectory)
-                print(atoms.calc.results)
                 if watchdog():
                     break
 
