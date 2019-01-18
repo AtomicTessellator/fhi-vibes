@@ -193,14 +193,9 @@ def serial_phonopy_continue(
             FireWorks specific settings
     """
     update_spec = {}
-    if "in_spec_atoms" in fw_settings:
-        update_spec[fw_settings["in_spec_atoms"]] = atoms
-        update_spec[fw_settings["in_spec_calc"]] = calc
-        at = fw_settings["in_spec_atoms"]
-        cl = fw_settings["in_spec_calc"]
-    else:
-        at = atoms
-        cl = calc
+    at = atoms
+    cl = calc
+    fw_settings['from_db'] = False
     if "kpoint_density_spec" in fw_settings:
         del(fw_settings["kpoint_density_spec"])
 

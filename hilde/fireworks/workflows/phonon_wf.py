@@ -224,11 +224,21 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
 
     if "phonopy_qadapter" in workflow:
         qadapter = workflow["phonopy_qadapter"]
+        if "walltime" in qadapter:
+            time_set = qadapter["walltime"].split(":")
+            phonopy_set["walltime"] = 0
+            for ii in range(len(time_set)-1, 0, -1):
+                phonopy_set["walltime"] += time_set[ii] * 60**ii
+        else:
+            phonopy_set["walltime"] = 1800
     else:
         qadapter = None
+        phonopy_set["walltime"] = 1800
+    phonopy_set["walltime"] -= 100
     if "phonopy" in workflow:
         for key,val in workflow.phonopy.items():
-            phonopy_set[key] = val
+            if key != "walltime":
+                phonopy_set[key] = val
     if "supercell_matrix" not in phonopy_set:
         phonopy_set["supercell_matrix"] = np.eye(3)
         phonopy_set["converge_sc"] = True
@@ -264,11 +274,21 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         del(phono3py_set["q_mesh"])
         if "phono3py_qadapter" in workflow:
             qadapter = workflow["phono3py_qadapter"]
-        else:
-            qadapter = None
+            if "walltime" in qadapter:
+                    time_set = qadapter["walltime"].split(":")
+                    phono3py_set["walltime"] = 0
+                    for ii in range(len(time_set)-1, 0, -1):
+                        phono3py_set["walltime"] += time_set[ii] * 60**ii
+                else:
+                    phono3py_set["walltime"] = 1800
+            else:
+                qadapter = None
+                phono3py_set["walltime"] = 1800
+        phono3py_set["walltime"] -= 100
         if "phono3py" in workflow:
             for key,val in workflow.phono3py.items():
-                phono3py_set[key] = val
+                if key != "walltime":
+                    phono3py_set[key] = val
         if "supercell_matrix" not in phono3py_set:
             phono3py_set["supercell_matrix"] = np.eye(3)
             phono3py_set["converge_sc"] = True
