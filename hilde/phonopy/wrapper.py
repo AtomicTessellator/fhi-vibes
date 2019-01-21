@@ -41,7 +41,7 @@ def prepare_phonopy(
 
     phonon = Phonopy(
         ph_atoms,
-        supercell_matrix=supercell_matrix,
+        supercell_matrix=np.transpose(supercell_matrix),
         symprec=symprec,
         is_symmetry=True,
         factor=const.omega_to_THz,
