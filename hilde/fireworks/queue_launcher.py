@@ -4,6 +4,7 @@ import glob
 import time
 from datetime import datetime
 
+from monty.os import cd, makedirs_p
 
 from fireworks.fw_config import (
     SUBMIT_SCRIPT_NAME,
@@ -18,6 +19,7 @@ from fireworks.queue.queue_launcher import (
     # launch_rocket_to_queue,
     _njobs_in_dir,
     _get_number_of_jobs_in_queue,
+    setup_offline_job,
 )
 from fireworks.utilities.fw_serializers import load_object
 from fireworks.utilities.fw_utilities import (
@@ -113,7 +115,7 @@ def launch_rocket_to_queue(
                             time_req = convert_time_to_sec(fw.spec["_queueadapter"]["walltime"])
                             ind = None
                             for ii, wt in enumerate(qadapter["walltimes"]):
-                                if time_req < convert_time_to_sec(wt):
+                                if time_req <= convert_time_to_sec(wt):
                                     ind = ii
                                     break
                             if ind is None:
