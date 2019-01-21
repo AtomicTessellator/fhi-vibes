@@ -23,7 +23,7 @@ def phonon_to_dict(phonon, to_mongo=False):
     dct = atoms2dict(to_Atoms(phonon.get_primitive()))
     dct["symprec"] = phonon._symprec
     if phonon.get_supercell_matrix() is not None:
-        dct["sc_matrix_2"] = list(np.array(phonon.get_supercell_matrix()).flatten())
+        dct["sc_matrix_2"] = list(np.array(phonon.get_supercell_matrix()).transpose().flatten())
         dct["natoms_in_sc_2"] = len(dct["numbers"]) * int(round(np.linalg.det(phonon.get_supercell_matrix())))
 
     dct["forces_2"] = []
@@ -75,11 +75,11 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
     dct["symprec"] = phonon3._symprec
 
     if phonon3.get_supercell_matrix() is not None:
-        dct["sc_matrix_3"] = list(np.array(phonon3.get_supercell_matrix()).flatten())
+        dct["sc_matrix_3"] = list(np.array(phonon3.get_supercell_matrix()).transpose().flatten())
         dct["natoms_in_sc_3"] = len(dct["numbers"]) * int(round(np.linalg.det(phonon3.get_supercell_matrix())))
 
     if phonon3._phonon_supercell_matrix is not None and store_second_order:
-        dct["sc_matrix_2"] = list(np.array(phonon3._phonon_supercell_matrix).flatten())
+        dct["sc_matrix_2"] = list(np.array(phonon3._phonon_supercell_matrix).transpose().flatten())
         dct["natoms_in_sc_2"] = len(dct["numbers"]) * int(round(np.linalg.det(phonon3._phonon_supercell_matrix)))
 
     dct["forces_3"] = []
@@ -206,7 +206,7 @@ class PhononRow(AtomsRow):
         from phonopy import Phonopy
         phonon = Phonopy(
             to_phonopy_atoms(self.toatoms()),
-            supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
+            supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3).transpose(),
             symprec=self.symprec,
             is_symmetry=True,
             factor=const.omega_to_THz,
@@ -229,8 +229,8 @@ class PhononRow(AtomsRow):
         from phono3py.phonon3 import Phono3py
         phonon3 = Phono3py(
             to_phonopy_atoms(self.toatoms()),
-            supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3),
-            phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
+            supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3).transpose(),
+            phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3).transpose(),
             symprec=self.symprec,
             is_symmetry=True,
             frequency_factor_to_THz=const.omega_to_THz,
