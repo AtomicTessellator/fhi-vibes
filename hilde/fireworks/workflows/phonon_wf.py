@@ -237,8 +237,8 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         if "walltime" in qadapter:
             time_set = qadapter["walltime"].split(":")
             phonopy_set["walltime"] = 0
-            for ii in range(len(time_set)-1, 0, -1):
-                phonopy_set["walltime"] += time_set[ii] * 60**ii
+            for ii in range(len(time_set)):
+                phonopy_set["walltime"] += int(time_set[ii]) * 60**(len(time_set) - 1 - ii)
         else:
             phonopy_set["walltime"] = 1800
     else:
@@ -287,8 +287,8 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
             if "walltime" in qadapter:
                     time_set = qadapter["walltime"].split(":")
                     phono3py_set["walltime"] = 0
-                    for ii in range(len(time_set)-1, 0, -1):
-                        phono3py_set["walltime"] += time_set[ii] * 60**ii
+                    for ii in range(len(time_set)):
+                        phono3py_set["walltime"] += int(time_set[ii]) * 60**(len(time_set) - 1 - ii)
             else:
                 phono3py_set["walltime"] = 1800
         else:
