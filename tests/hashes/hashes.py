@@ -10,7 +10,7 @@ config_file = "./tests/hashes/hash.cfg"
 
 settings = Settings(settings_file=config_file, config_file=None)
 
-calc = setup_aims(settings=settings)
+_, calc = setup_aims(settings=settings)
 
 atoms.calc = calc
 
