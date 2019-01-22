@@ -33,6 +33,16 @@ def setup_aims(
     if settings is None:
         settings = Settings(config_file)
 
+    atoms = None
+    if "geometry" in settings:
+        if "file" in settings.geometry:
+            atoms = read(settings.geometry.file, format="aims")
+
+    if "control" not in settings:
+        msg = f"No [control] section in {config_file}, return calc=None, good luck!"
+        warn(msg, level=1)
+        return atoms, None
+
     default_settings = {"output_level": output_level, **settings.control}
 
     if not "output_level" in settings.control:
@@ -70,18 +80,11 @@ def setup_aims(
     else:
         calc = Aims(**aims_settings)
 
-    if "geometry" in settings:
-        if "file" in settings.geometry:
-            atoms = read(settings.geometry.file, format="aims")
-
-        # update k_grid
-        if "control_kpt" in settings:
-            update_k_grid(atoms, calc, settings.control_kpt.density)
+    # update k_grid
+    if atoms and "control_kpt" in settings:
+        update_k_grid(atoms, calc, settings.control_kpt.density)
 
     if not "k_grid" in calc.parameters:
-        update_k_grid
-        print("*** WARNING: no k_grid in aims calculator. Check!")
+        warn("No k_grid in aims calculator. Check!", level=2)
 
-    if "geometry" in settings:
-        return atoms, calc
-    return calc
+    return atoms, calc
