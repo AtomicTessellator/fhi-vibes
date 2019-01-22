@@ -70,6 +70,8 @@ class ConfigDict(AttributeDict):
                 if "numpy.ndarray" in str(type(elem)):
                     elem = elem.flatten()
                 #
+                if elem is None:
+                    elem = "null"
                 if key == "verbose":
                     continue
                 string += "{:20s} {}\n".format(f"{key}:", elem)

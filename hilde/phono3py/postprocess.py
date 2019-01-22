@@ -112,10 +112,8 @@ def postprocess(
     for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
         if cell:
             n_cells += 1
-    print(n_cells)
     for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
         if cell:
-            print(ii, used_forces)
             ref_atoms = calculated_atoms[used_forces]
             force_sets_fc3.append(ref_atoms.get_forces())
             used_forces += 1
