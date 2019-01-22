@@ -58,7 +58,7 @@ def metadata2dict(atoms, calc, obj):
     obj_dict = {
         "version": obj.get_version(),
         "primitive": prim_data["atoms"],
-        "supercell_matrix": obj.get_supercell_matrix().astype(int).tolist(),
+        "supercell_matrix": obj.get_supercell_matrix().T.astype(int).tolist(),
         "symprec": float(obj._symprec),
         "displacement_dataset": obj.get_displacement_dataset(),
     }
