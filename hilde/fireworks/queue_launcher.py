@@ -2,6 +2,9 @@
 import os
 import glob
 import time
+
+import numpy as np
+
 from datetime import datetime
 
 from monty.os import cd, makedirs_p
@@ -38,7 +41,7 @@ __maintainer__ = "Anubhav Jain"
 __email__ = "ajain@lbl.gov"
 __date__ = "Dec 12, 2012"
 
-def convert_time_to_sec(time_str):
+def conv_t_to_sec(time_str):
     ts = time_str.split(":")
     t = 0
     for ii, tt in enumerate(ts):
@@ -112,28 +115,21 @@ def launch_rocket_to_queue(
                     l_logger.debug('updating queue params using Firework spec..')
                     if "walltimes" in qadapter and "queues" in qadapter:
                         if "walltime" in fw.spec["_queueadapter"] and "queue" not in fw.spec["_queueadapter"]:
-                            time_req = convert_time_to_sec(fw.spec["_queueadapter"]["walltime"])
-                            ind = None
-                            for ii, wt in enumerate(qadapter["walltimes"]):
-                                if time_req <= convert_time_to_sec(wt):
-                                    ind = ii
-                                    break
-                            if ind is None:
+                            time_req = conv_t_to_sec(fw.spec["_queueadapter"]["walltime"])
+                            wts = np.array([conv_t_to_sec(wt for wt in qadapter["walltimes"])])
+                            inds = np.where(time_req <= wts)[0]
+                            if len(inds) == 0:
                                 raise ValueError("Wall time requested is larger than any queue this cluster can support")
-                            fw.spec['_queueadapter']['queue'] = qadapter["queues"][ind]
+                            fw.spec['_queueadapter']['queue'] = qadapter["queues"][inds[0]]
                         elif "queue" in fw.spec["_queueadapter"] and "walltime" not in fw.spec["_queueadapter"]:
-                            ind = None
-                            for ii, qq in enumerate(qadapter["queues"]):
-                                if qq == fw.spec["_queueadapter"]["queue"]:
-                                    ind = ii
-                                    break
-                            if ind is None:
-                                raise ValueError("Queue not listed in avaiable queue list")
-                            fw.spec['_queueadapter']["walltime"] = qadapter["walltimes"][ind]
+                            qs = np.array(qadapter["queues"])
+                            inds = np.where(qs == fw.spec["_queueadapter"]["queue"])[0]
+                            if len(inds) == 0:
+                                raise ValueError("Queue not listed in available queue list")
+                            fw.spec['_queueadapter']["walltime"] = qadapter["walltimes"][inds[0]]
                         del(qadapter["walltimes"])
                         del(qadapter["queues"])
                     qadapter.update(fw.spec['_queueadapter'])
-
                 # reservation mode includes --fw_id in rocket launch
                 qadapter['rocket_launch'] += ' --fw_id {}'.format(fw.fw_id)
 
