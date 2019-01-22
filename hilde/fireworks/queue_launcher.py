@@ -110,8 +110,8 @@ def launch_rocket_to_queue(
                 qadapter.update({'job_name': job_name})
                 if '_queueadapter' in fw.spec:
                     l_logger.debug('updating queue params using Firework spec..')
-                    if "walltime" in fw.spec["_queueadapter"] and "queue" not in fw.spec["_queueadapter"]:
-                        if "walltimes" in qadapter and "queues" in qadapter:
+                    if "walltimes" in qadapter and "queues" in qadapter:
+                        if "walltime" in fw.spec["_queueadapter"] and "queue" not in fw.spec["_queueadapter"]:
                             time_req = convert_time_to_sec(fw.spec["_queueadapter"]["walltime"])
                             ind = None
                             for ii, wt in enumerate(qadapter["walltimes"]):
@@ -121,8 +121,7 @@ def launch_rocket_to_queue(
                             if ind is None:
                                 raise ValueError("Wall time requested is larger than any queue this cluster can support")
                             fw.spec['_queueadapter']['queue'] = qadapter["queues"][ind]
-                    elif "queue" in fw.spec["_queueadapter"] and "walltime" not in fw.spec["_queueadapter"]:
-                        if "walltimes" in qadapter and "queues" in qadapter:
+                        elif "queue" in fw.spec["_queueadapter"] and "walltime" not in fw.spec["_queueadapter"]:
                             ind = None
                             for ii, qq in enumerate(qadapter["queues"]):
                                 if qq == fw.spec["_queueadapter"]["queue"]:
@@ -131,6 +130,8 @@ def launch_rocket_to_queue(
                             if ind is None:
                                 raise ValueError("Queue not listed in avaiable queue list")
                             fw.spec['_queueadapter']["walltime"] = qadapter["walltimes"][ind]
+                        del(qadapter["walltimes"])
+                        del(qadapter["queues"])
                     qadapter.update(fw.spec['_queueadapter'])
 
                 # reservation mode includes --fw_id in rocket launch
