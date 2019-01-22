@@ -6,13 +6,46 @@
 from pathlib import Path
 
 from hilde.settings import Settings
+from hilde.templates.aims import setup_aims
 from hilde.helpers.k_grid import update_k_grid, k2d
 from hilde.helpers.paths import cwd
 from hilde.tasks import calculate_socket, calc_dirname
+from hilde.helpers.warnings import warn
+from hilde.helpers.restarts import restart
 
 # from .postprocess import postprocess
 from .wrapper import preprocess, defaults
 from . import metadata2dict
+
+
+def run_phonopy(**kwargs):
+    """ high level function to run phonopy workflow """
+
+    args = bootstrap()
+    args.update(kwargs)
+
+    completed = run(**args)
+
+    if not completed:
+        restart(settings)
+    else:
+        print("done.")
+
+
+def bootstrap():
+    """ load settings, prepare atoms and calculator """
+
+    settings = Settings()
+    atoms, calc = setup_aims(settings=settings)
+
+    if "phonopy" not in settings:
+        warn("Settings do not contain phonopy instructions.", level=2)
+
+    return {
+        "atoms": atoms,
+        "calc": calc,
+        **settings.phonopy,
+    }
 
 
 def run(
