@@ -3,7 +3,7 @@
 from pathlib import Path
 import numpy as np
 from ase import units as u
-from hilde.trajectory.md import last_from_yaml
+from hilde.trajectory import last_from_yaml
 from hilde.helpers.warnings import warn
 from .velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 
@@ -67,11 +67,12 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
     trajectory = Path(trajectory).absolute()
     if trajectory.exists():
         last_atoms = last_from_yaml(trajectory)
-        md.nsteps = last_atoms["MD"]["nsteps"]
+        if "info" in last_atoms["atoms"]:
+            md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
 
-        atoms.set_positions(last_atoms["atoms"]["positions"])
-        atoms.set_velocities(last_atoms["atoms"]["velocities"])
-        return True
+            atoms.set_positions(last_atoms["atoms"]["positions"])
+            atoms.set_velocities(last_atoms["atoms"]["velocities"])
+            return True
     print(f"** {trajectory} does  not exist, nothing to prepare")
 
 
@@ -94,11 +95,7 @@ def initialize_md(
         print("Initialize positions and velocities using force constants.")
         force_constants = np.loadtxt(force_constants)
         PhononHarmonics(
-            atoms,
-            force_constants,
-            quantum=quantum,
-            temp=temperature,
-            force_temp=True,
+            atoms, force_constants, quantum=quantum, temp=temperature, force_temp=True
         )
     else:
         print("Initialize velocities according to Maxwell-Boltzmann distribution.")

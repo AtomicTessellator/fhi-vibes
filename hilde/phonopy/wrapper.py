@@ -18,7 +18,7 @@ from hilde.phonopy import enumerate_displacements, displacement_id_str
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
-from hilde.helpers.config import AttributeDict as adict
+from hilde.helpers.attribute_dict import AttributeDict as adict
 
 defaults = adict(
     {"displacement": 0.01, "symprec": 1e-5, "trigonal": False, "q_mesh": [25, 25, 25]}
@@ -59,19 +59,13 @@ def prepare_phonopy(
 
 def preprocess(
     atoms,
-    supercell_matrix=None,
-    natoms_in_sc=None,
+    supercell_matrix,
     disp=defaults.displacement,
     symprec=defaults.symprec,
     trigonal=defaults.trigonal,
     **kwargs,
 ):
     """ Create a phonopy object and supercells etc. """
-
-    if supercell_matrix is None and natoms_in_sc:
-        _, supercell_matrix = make_cubic_supercell(atoms, natoms_in_sc)
-    elif supercell_matrix is None:
-        raise InputError("Either supercell_matrix or natoms_in_sc must be specified")
 
     phonon = prepare_phonopy(
         atoms, supercell_matrix, disp=disp, symprec=symprec, trigonal=trigonal
@@ -81,7 +75,7 @@ def preprocess(
         phonon.get_supercell(),
         info={
             "supercell": True,
-            "supercell_matrix": np.asarray(supercell_matrix).flatten().tolist(),
+            "supercell_matrix": phonon.get_supercell_matrix().T.flatten().tolist(),
         },
     )
 
@@ -116,26 +110,6 @@ def get_force_constants(phonon, force_sets=None):
     # else
     raise ValueError("Force constants not yet created, specify force_sets.")
 
-
-def _postprocess_init(phonon, force_sets=None):
-    """
-    Make sure that force_constants are present before the actual postprocess is
-    performed.
-    Args:
-        phonon: pre-processed phonon object
-        force_constants: computed force_constants (optional)
-        force_sets: computed forces (optional)
-
-    Returns:
-
-    """
-    if phonon.get_force_constants() is None:
-        if force_sets is not None:
-            phonon.produce_force_constants(force_sets)
-        else:
-            exit("** Cannot run postprocess, force_sets have not been provided.")
-
-
 def get_dos(
     phonon,
     q_mesh=defaults.q_mesh,
@@ -149,7 +123,8 @@ def get_dos(
 ):
     """ Compute the DOS (and save to file) """
 
-    _postprocess_init(phonon, force_sets)
+    if force_sets is not None:
+        phonon.produce_force_constants(force_sets)
 
     phonon.set_mesh(q_mesh)
 
@@ -173,7 +148,8 @@ def get_dos(
 def get_bandstructure(phonon, paths=None, force_sets=None):
     """ Compute bandstructure for given path """
 
-    _postprocess_init(phonon, force_sets)
+    if force_sets is not None:
+        phonon.produce_force_constants(force_sets)
 
     bands, labels = bz.get_bands_and_labels(phonon.primitive, paths)
 
@@ -241,7 +217,3 @@ def summarize_bandstructure(phonon, fp_file=None):
     for ii, freq in enumerate(gamma_freq):
         print(f"{ii+1:3d}: {freq:-12.5f} | {freq*THz_to_cm:-12.5f}")
     return gamma_freq, max_freq
-
-
-if __name__ == "__main__":
-    main()

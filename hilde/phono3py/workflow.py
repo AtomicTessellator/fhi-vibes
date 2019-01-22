@@ -5,8 +5,7 @@ from pathlib import Path
 from hilde.settings import Settings
 from hilde.helpers.k_grid import update_k_grid, k2d
 from hilde.helpers.paths import cwd
-from hilde.helpers.config import AttributeDict as adict
-from hilde.trajectory.phonons import metadata2dict
+from hilde.phonopy import metadata2dict
 from hilde.tasks import calculate_socket, calc_dirname
 from .postprocess import postprocess
 from .wrapper import preprocess as phono3py_preprocess, defaults

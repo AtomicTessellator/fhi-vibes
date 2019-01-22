@@ -14,8 +14,7 @@ import hilde.phono3py.wrapper as ph3
 from hilde.phonopy import displacement_id_str
 from hilde.phono3py.wrapper import defaults
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
-from hilde.trajectory import reader as traj_reader
-from hilde.trajectory.phonons import step2file, to_yaml
+from hilde.trajectory import reader as traj_reader, step2file, to_yaml
 
 def collect_forces_to_trajectory(
     trajectory,

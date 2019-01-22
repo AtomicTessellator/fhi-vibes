@@ -1,56 +1,24 @@
-""" Provide a full highlevel phonopy workflow """
+""" Provide a full highlevel phonopy workflow
+
+    Input: geometry.in and settings.in
+    Output: geometry.in.supercell and trajectory.yaml """
 
 from pathlib import Path
 
 from hilde.settings import Settings
 from hilde.helpers.k_grid import update_k_grid, k2d
 from hilde.helpers.paths import cwd
-from hilde.trajectory.phonons import metadata2dict
 from hilde.tasks import calculate_socket, calc_dirname
-from .postprocess import postprocess
-from .wrapper import preprocess as phonopy_preprocess, defaults
 
-def preprocess(
-    atoms,
-    calc,
-    supercell_matrix=None,
-    natoms_in_sc=None,
-    kpt_density=None,
-    up_kpoint_from_pc=False,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-):
-
-    # Phonopy preprocess
-    phonon, supercell, scs = phonopy_preprocess(
-        atoms, supercell_matrix, natoms_in_sc, displacement, symprec
-    )
-
-    # make sure forces are computed (aims only)
-    if calc.name == "aims":
-        calc.parameters["compute_forces"] = True
-
-    if kpt_density is not None:
-        update_k_grid(supercell, calc, kpt_density)
-    elif up_kpoint_from_pc:
-        kpt_density = k2d(atoms, calc.parameters['k_grid'])
-        update_k_grid(supercell, calc, kpt_density)
-
-    metadata = metadata2dict(atoms, calc, phonon)
-    scs_return = []
-    for sc in scs:
-        if sc:
-            sc.calc = calc
-            scs_return.append(sc)
-
-    return calc, supercell, scs, phonon, metadata
+# from .postprocess import postprocess
+from .wrapper import preprocess, defaults
+from . import metadata2dict
 
 
 def run(
     atoms,
     calc,
-    supercell_matrix=None,
-    natoms_in_sc=None,
+    supercell_matrix,
     kpt_density=None,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
@@ -59,22 +27,22 @@ def run(
     trajectory="trajectory.yaml",
     primitive_file="geometry.in.primitive",
     supercell_file="geometry.in.supercell",
-    force_constants_file="force_constants.dat",
-    pickle_file="phonon.pick",
-    db_kwargs=None,
-    up_kpoint_from_pc=False,
     **kwargs,
 ):
-    if "fireworks" in kwargs:
-        fw = kwargs.pop("fireworks")
-        if not kpt_density:
-            kpt_density = k2d(atoms, calc.parameters["k_grid"])
-    if "analysis_workdir" in kwargs:
-        del(kwargs["analysis_workdir"])
 
-    calc, supercell, scs, phonon, metadata = preprocess(
-        atoms, calc, supercell_matrix, natoms_in_sc, kpt_density, up_kpoint_from_pc, displacement, symprec
-    )
+    # Phonopy preprocess
+    phonon, supercell, scs = preprocess(atoms, supercell_matrix, displacement, symprec)
+
+    # make sure forces are computed (aims only)
+    if calc.name == "aims":
+        calc.parameters["compute_forces"] = True
+
+    # update kpt density
+    if kpt_density is not None:
+        update_k_grid(supercell, calc, kpt_density)
+
+    # save metadata
+    metadata = metadata2dict(atoms, calc, phonon)
 
     # save input geometries and settings
     settings = Settings()
@@ -92,19 +60,6 @@ def run(
         trajectory=trajectory,
         walltime=walltime,
         workdir=workdir,
-        primitive_file=primitive_file,
-        supercell_file=supercell_file,
-        **kwargs
     )
-    if completed:
-        postprocess(
-            # phonon,
-            trajectory=trajectory,
-            workdir=workdir,
-            symprec=symprec,
-            force_constants_file=force_constants_file,
-            pickle_file=pickle_file,
-            db_kwargs=db_kwargs,
-            **kwargs,
-        )
-        return True
+
+    return completed

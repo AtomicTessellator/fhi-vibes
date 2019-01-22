@@ -5,12 +5,13 @@ from pathlib import Path
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.settings import Settings
-from hilde.trajectory.md import step2file, metadata2file
+from hilde.trajectory import step2file, metadata2file
 from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.compression import backup_folder as backup
 from .initialization import setup_md, initialize_md
+from . import metadata2dict
 
 
 _calc_dirname = "calculations"
@@ -24,7 +25,7 @@ def run_md(
     restart=True,
     maxsteps=25000,
     trajectory="trajectory.yaml",
-    metadata="md_metadata.yaml",
+    metadata_file="md_metadata.yaml",
     workdir=".",
     backup_folder="backups",
     logfile="md.log",
@@ -104,14 +105,18 @@ def run_md(
         if socketio_port is not None:
             atoms.calc = iocalc
 
+        # store settings locally
+        settings.write()
+
         # log very initial step and metadata
+        metadata = metadata2dict(atoms, calc, md)
         if md.nsteps == 0:
-            metadata2file(atoms, calc, md, file=trajectory)
-            step2file(atoms, atoms.calc, md, trajectory)
+            metadata2file(metadata, file=trajectory)
+            atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
+            step2file(atoms, atoms.calc, trajectory)
 
         # store MD metadata locally
-        metadata2file(atoms, calc, md, file=metadata)
-        settings.write()
+        metadata2file(metadata, file=metadata_file)
 
         while not watchdog() and md.nsteps < maxsteps:
             something_happened = True
@@ -121,7 +126,8 @@ def run_md(
                 stresses = get_stresses(atoms)
                 atoms.calc.results["stresses"] = stresses
 
-            step2file(atoms, atoms.calc, md, trajectory)
+            atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
+            step2file(atoms, atoms.calc, trajectory)
 
     # backup and cleanup if something new happened
     if something_happened:

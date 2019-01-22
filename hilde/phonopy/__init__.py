@@ -4,6 +4,7 @@ import numpy as np
 from phonopy.structure.atoms import PhonopyAtoms
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.fileformats import last_from_yaml
+from hilde.trajectory import input2dict
 
 
 displacement_id_str = "displacement_id"
@@ -20,8 +21,6 @@ def last_calculation_id(trajectory):
         pass
 
     return disp_id
-
-
 
 
 def to_phonopy_atoms(atoms):
@@ -49,3 +48,28 @@ def enumerate_displacements(cells, info_str=displacement_id_str):
         if scell is None:
             continue
         scell.info[info_str] = nn
+
+
+def metadata2dict(atoms, calc, obj):
+    """ convert metadata information to plain dict """
+
+    prim_data = input2dict(atoms)
+
+    obj_dict = {
+        "version": obj.get_version(),
+        "primitive": prim_data["atoms"],
+        "supercell_matrix": obj.get_supercell_matrix().astype(int).tolist(),
+        "symprec": float(obj._symprec),
+        "displacement_dataset": obj.get_displacement_dataset(),
+    }
+
+    try:
+        displacements = obj.get_displacements()
+        obj_dict.update({"displacements": displacements})
+    except AttributeError:
+        pass
+
+    supercell = to_Atoms(obj.get_supercell())
+    supercell_data = input2dict(supercell, calc)
+
+    return {str(obj.__class__.__name__): obj_dict, **supercell_data}

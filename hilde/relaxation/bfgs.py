@@ -8,8 +8,9 @@ from hilde.settings import Settings
 from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port
-from hilde.trajectory.relaxation import metadata2file, step2file
+from hilde.trajectory import step2file, metadata2file
 from hilde.helpers.structure import clean_atoms
+from . import metadata2dict
 
 
 _calc_dirname = "calculation"
@@ -98,11 +99,13 @@ def relax(
 
         # log very initial step and metadata
         if opt.nsteps == 0:
-            metadata2file(atoms, calc, opt, trajectory)
+            metadata = metadata2dict(atoms, calc, opt)
+            metadata2file(metadata, trajectory)
             settings.write()
 
         for ii, converged in enumerate(opt.irun(fmax=fmax, steps=maxsteps)):
-            step2file(atoms, atoms.calc, opt, trajectory, unit_cell=unit_cell)
+            atoms.info.update({"nsteps": opt.nsteps})
+            step2file(atoms, atoms.calc, trajectory, append_cell=unit_cell)
             if watchdog():
                 break
 
