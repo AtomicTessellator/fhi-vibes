@@ -7,10 +7,9 @@ import numpy as np
 from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
 from hilde.helpers.supercell import make_cubic_supercell
-from hilde.phonopy import enumerate_displacements
+from hilde.phonopy import enumerate_displacements, metadata2dict
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
-
 
 defaults = adict(
     {
@@ -79,6 +78,44 @@ def prepare_phono3py(
 
     return phonon3
 
+def preprocess_fireworks(
+    atoms,
+    calc,
+    kpt_density=None,
+    supercell_matrix=None,
+    cutoff_pair_distance=defaults.cutoff_pair_distance,
+    up_kpoint_from_pc=False,
+    displacement=defaults.displacement,
+    symprec=defaults.symprec,
+):
+    """ wrap the Phono3py preprocess for workflow """
+    if supercell_matrix is None:
+        raise InputError("The supercell_matrix must be defined")
+
+    # Phonopy preprocess
+    phonon3, _, supercell, _, scs = phono3py_preprocess(
+        atoms=atoms,
+        fc3_supercell_matrix=supercell_matrix,
+        n_atoms_in_sc_3=n_atoms_in_sc,
+        disp=displacement,
+        cutoff_pair_distance=cutoff_pair_distance,
+        symprec=symprec,
+    )
+    # make sure forces are computed (aims only)
+    if calc.name == "aims":
+        calc.parameters["compute_forces"] = True
+
+    if kpt_density is not None:
+        update_k_grid(supercell, calc, kpt_density)
+
+    metadata = metadata2dict(atoms, calc, phonon3)
+
+    to_run_scs = []
+    for sc in scs:
+        if sc:
+            sc.calc = calc
+            to_run_scs.append(sc)
+    return calc, supercell, to_run_scs, phonon3, metadata
 
 def preprocess(
     atoms,

@@ -49,7 +49,6 @@ def to_yaml(obj, file, mode="a", use_json=True, exist_ok=False):
     # backup
     if mode == "w":
         backup(file)
-
     with open(file, mode) as f:
         if "a" in mode:
             f.write("---\n")
@@ -163,6 +162,7 @@ def to_json(obj, file, mode="a", indent=1):
     else:
         rep = json.dumps(obj, cls=NumpyEncoder, indent=indent)
 
+    print(file, mode)
     with open(file, mode) as f:
         if "a" in mode:
             f.write("\n---\n")

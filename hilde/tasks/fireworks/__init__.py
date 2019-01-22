@@ -6,8 +6,8 @@ from .utility_tasks import update_calc_in_db
 from .general_py_task import atoms_calculate_task
 from .general_py_task import general_function_task
 
-from hilde.phonopy.workflow import preprocess as ph_preprocess
-from hilde.phono3py.workflow import preprocess as ph3_preprocess
+from hilde.phonopy.wrapper import preprocess_fireworks as ph_preprocess
+from hilde.phono3py.wrapper import preprocess_fireworks as ph3_preprocess
 
 def preprocess_ph_ph3(atoms, calc, phonopy_settings=None, phono3py_settings=None):
     if phonopy_settings:

@@ -10,49 +10,6 @@ from hilde.tasks import calculate_socket, calc_dirname
 from .postprocess import postprocess
 from .wrapper import preprocess as phono3py_preprocess, defaults
 
-
-def preprocess(
-    atoms,
-    calc,
-    supercell_matrix=None,
-    n_atoms_in_sc=None,
-    cutoff_pair_distance=defaults.cutoff_pair_distance,
-    kpt_density=None,
-    up_kpoint_from_pc=False,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-):
-    """ wrap the Phono3py preprocess for workflow """
-    print(cutoff_pair_distance)
-    # Phonopy preprocess
-    phonon3, _, supercell, _, scs = phono3py_preprocess(
-        atoms=atoms,
-        fc3_supercell_matrix=supercell_matrix,
-        n_atoms_in_sc_3=n_atoms_in_sc,
-        disp=displacement,
-        cutoff_pair_distance=cutoff_pair_distance,
-        symprec=symprec,
-    )
-    # make sure forces are computed (aims only)
-    if calc.name == "aims":
-        calc.parameters["compute_forces"] = True
-
-    if kpt_density is not None:
-        update_k_grid(supercell, calc, kpt_density)
-    elif up_kpoint_from_pc:
-        kpt_density = k2d(atoms, calc.parameters['k_grid'])
-        update_k_grid(supercell, calc, kpt_density)
-
-    metadata = metadata2dict(atoms, calc, phonon3)
-
-    to_run_scs = []
-    for sc in scs:
-        if sc:
-            sc.calc = calc
-            to_run_scs.append(sc)
-    return calc, supercell, to_run_scs, phonon3, metadata
-
-
 def run(
     atoms,
     calc,

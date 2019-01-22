@@ -20,6 +20,8 @@ from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
 
+from . import metadata2dict
+
 defaults = adict(
     {"displacement": 0.01, "symprec": 1e-5, "trigonal": False, "q_mesh": [25, 25, 25]}
 )
@@ -56,6 +58,34 @@ def prepare_phonopy(
 
     return phonon
 
+def preprocess_fireworks(
+    atoms,
+    calc,
+    kpt_density=None,
+    supercell_matrix=None,
+    natoms_in_sc=None,
+    displacement=defaults.displacement,
+    symprec=defaults.symprec,
+):
+    if supercell_matrix is None:
+        raise InputError("The supercell_matrix must be defined")
+
+    phonon, supercell, scs = preprocess(atoms, supercell_matrix, displacement, symprec)
+
+    # make sure forces are computed (aims only)
+    if calc.name == "aims":
+        calc.parameters["compute_forces"] = True
+
+    if kpt_density is not None:
+        update_k_grid(supercell, calc, kpt_density)
+
+    scs_return = []
+    for sc in scs:
+        if sc:
+            sc.calc = calc
+            scs_return.append(sc)
+    metadata = metadata2dict(atoms, calc, phonon)
+    return calc, supercell, scs, phonon, metadata
 
 def preprocess(
     atoms,

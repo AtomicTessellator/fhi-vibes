@@ -35,7 +35,7 @@ def collect_forces_to_trajectory(
     )
     for nn, atoms in enumerate(calculated_atoms):
         if atoms:
-            step2file(atoms, atoms.calc, nn, trajectory)
+            step2file(atoms, atoms.calc, trajectory)
 
 
 def postprocess(
