@@ -13,7 +13,7 @@ from hilde.tasks import calculate_socket, calc_dirname
 from hilde.helpers.warnings import warn
 from hilde.helpers.restarts import restart
 
-# from .postprocess import postprocess
+from .postprocess import postprocess
 from .wrapper import preprocess, defaults
 from . import metadata2dict
 
@@ -29,6 +29,8 @@ def run_phonopy(**kwargs):
     if not completed:
         restart()
     else:
+        print("Start postprocess.")
+        postprocess()
         print("done.")
 
 

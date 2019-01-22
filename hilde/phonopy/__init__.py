@@ -73,3 +73,7 @@ def metadata2dict(atoms, calc, obj):
     supercell_data = input2dict(supercell, calc)
 
     return {str(obj.__class__.__name__): obj_dict, **supercell_data}
+
+
+from .workflow import run_phonopy
+from .postprocess import postprocess
