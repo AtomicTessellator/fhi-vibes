@@ -6,8 +6,23 @@ from hilde.helpers.converters import dict2results
 from hilde.phonopy.wrapper import prepare_phonopy
 from hilde.trajectory import reader
 
+####### TEMPORARY IMPORTS ############
+from pathlib import Path
+import pickle
+import numpy as np
 
-<<<<<<< HEAD
+from phonopy import Phonopy
+
+from hilde.helpers.converters import dict2atoms, dict2results
+from hilde import konstanten as const
+from hilde.phonon_db.database_api import update_phonon_db
+import hilde.phonopy.wrapper as ph
+from hilde.phonopy import displacement_id_str
+from hilde.structure.convert import to_Atoms, to_phonopy_atoms
+from hilde.trajectory import reader as traj_reader, step2file, to_yaml
+from .wrapper import defaults
+########## END TEMPORARY IMPORTS ########
+
 def collect_forces_to_trajectory(
     trajectory,
     calculated_atoms,
@@ -62,7 +77,7 @@ def postprocess_fireworks_temp(
     workdir=".",
     force_constants_file="force_constants.dat",
     displacement=0.01,
-    symprec=defaults.symprec,
+    symprec=1e-5,
     fireworks=False,
     pickle_file="phonon.pick",
     db_kwargs=None,
