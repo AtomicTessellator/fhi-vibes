@@ -85,6 +85,6 @@ def setup_aims(
         update_k_grid(atoms, calc, settings.control_kpt.density)
 
     if not "k_grid" in calc.parameters:
-        warn("No k_grid in aims calculator. Check!", level=2)
+        warn("No k_grid in aims calculator. Check!", level=1)
 
     return atoms, calc
