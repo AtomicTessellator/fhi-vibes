@@ -2,13 +2,10 @@
 
 from ase.build import bulk
 from ase.calculators.emt import EMT
-from hilde.settings import Settings
-from hilde.phonopy.workflow import run
+from hilde.phonopy.workflow import run_phonopy
 
-atoms = bulk('Al')
-
-settings = Settings()
+atoms = bulk("Al")
 
 calc = EMT()
 
-run(atoms, calc, **settings.phonopy)
+run_phonopy(atoms=atoms, calc=calc)
