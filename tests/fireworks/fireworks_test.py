@@ -56,7 +56,7 @@ kwargs = {
 }
 
 anal_fw = generate_firework(
-    func="hilde.phonopy.postprocess.postprocess",
+    func="hilde.phonopy.postprocess.postprocess_fireworks_temp",
     func_fw_out="hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
     args=[],
     inputs=["metadata_ph", fw_settings["mod_spec_add"]],

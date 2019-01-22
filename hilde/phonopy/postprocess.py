@@ -1,19 +1,13 @@
 """ Provide a full highlevel phonopy workflow """
 from pathlib import Path
 import pickle
-import numpy as np
 
-from phonopy import Phonopy
+from hilde.helpers.converters import dict2results
+from hilde.phonopy.wrapper import prepare_phonopy
+from hilde.trajectory import reader
 
-from hilde.helpers.converters import dict2atoms, dict2results
-from hilde import konstanten as const
-from hilde.phonon_db.database_api import update_phonon_db
-import hilde.phonopy.wrapper as ph
-from hilde.phonopy import displacement_id_str
-from hilde.structure.convert import to_Atoms, to_phonopy_atoms
-from hilde.trajectory import reader as traj_reader, step2file, to_yaml
-from .wrapper import defaults
 
+<<<<<<< HEAD
 def collect_forces_to_trajectory(
     trajectory,
     calculated_atoms,
@@ -38,7 +32,29 @@ def collect_forces_to_trajectory(
             step2file(atoms, atoms.calc, trajectory)
 
 
-def postprocess(
+def postprocess(workdir=".", trajectory="trajectory.yaml", pickle_file="phonon.pick"):
+    """ Phonopy postprocess """
+    trajectory = Path(workdir) / trajectory
+
+    calculated_atoms, metadata = reader(trajectory, True)
+
+    primitive = dict2results(metadata["Phonopy"]["primitive"])
+    supercell_matrix = metadata["Phonopy"]["supercell_matrix"]
+    symprec = metadata["Phonopy"]["symprec"]
+
+    phonon = prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
+
+    force_sets = [atoms.get_forces() for atoms in calculated_atoms]
+
+    phonon.produce_force_constants(force_sets)
+
+    if pickle_file:
+        with (Path(workdir) / pickle_file).open("wb") as file:
+            pickle.dump(phonon, file)
+
+    return phonon
+
+def postprocess_fireworks_temp(
     # phonon,
     metadata=None,
     calculated_atoms=None,
