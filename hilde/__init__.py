@@ -14,3 +14,6 @@ from ._defaults import (
 from .settings import Settings, Configuration
 from .templates.aims import setup_aims
 from .helpers.restarts import restart
+
+# load workflows
+from .phonopy.workflow import run_phonopy
