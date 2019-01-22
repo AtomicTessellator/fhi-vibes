@@ -1,0 +1,22 @@
+[geometry]
+file =             geometry.in
+
+[control]
+xc =               pw-lda
+
+[control_kpt]
+density = 3.5
+
+[basisset]
+type = light
+
+[socketio]
+port = null
+
+[phono3py]
+supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+cutoff_pair_distance = 7.0
+workdir = test_run
+
+[restart]
+command = python run_phonopy.py
