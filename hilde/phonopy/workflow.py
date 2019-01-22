@@ -7,7 +7,7 @@ from pathlib import Path
 
 from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
-from hilde.helpers.k_grid import update_k_grid, k2d
+from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.paths import cwd
 from hilde.tasks import calculate_socket, calc_dirname
 from hilde.helpers.warnings import warn
@@ -27,7 +27,7 @@ def run_phonopy(**kwargs):
     completed = run(**args)
 
     if not completed:
-        restart(settings)
+        restart()
     else:
         print("done.")
 
@@ -41,11 +41,7 @@ def bootstrap():
     if "phonopy" not in settings:
         warn("Settings do not contain phonopy instructions.", level=2)
 
-    return {
-        "atoms": atoms,
-        "calc": calc,
-        **settings.phonopy,
-    }
+    return {"atoms": atoms, "calc": calc, **settings.phonopy}
 
 
 def run(
@@ -62,6 +58,7 @@ def run(
     supercell_file="geometry.in.supercell",
     **kwargs,
 ):
+    """ Run a phonopy calculation from given atoms, calculator and supercell_matrix """
 
     # Phonopy preprocess
     phonon, supercell, scs = preprocess(atoms, supercell_matrix, displacement, symprec)
