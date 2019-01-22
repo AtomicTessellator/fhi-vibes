@@ -134,7 +134,6 @@ def postprocess(
     write_fc3_to_hdf5(phonon3.get_fc3(), filename=force_constants_file)
 
     if db_kwargs is not None:
-        print(db_kwargs)
         db_path = db_kwargs.pop("db_path")
         update_phonon_db(
             db_path,
