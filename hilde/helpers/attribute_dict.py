@@ -16,8 +16,14 @@ class AttributeDict(OrderedDict):
         self[attr] = value
 
     def to_dict(self):
-        """ return plain python dictionary """
-        return dict(self)
+        """ (recursively) return plain python dictionary """
+        rep = {}
+        for key, val in self.items():
+            if isinstance(val, AttributeDict):
+                val = val.to_dict()
+            rep.update({key: val})
+
+        return rep
 
     def as_dict(self):
         """ return plain python dictionary (Fireworks compatibility) """
