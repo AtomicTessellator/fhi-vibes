@@ -30,7 +30,7 @@ def run_phonopy(**kwargs):
         restart()
     else:
         print("Start postprocess.")
-        postprocess()
+        postprocess(**args)
         print("done.")
 
 

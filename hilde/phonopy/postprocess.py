@@ -7,7 +7,9 @@ from hilde.phonopy.wrapper import prepare_phonopy
 from hilde.trajectory import reader
 
 
-def postprocess(workdir=".", trajectory="trajectory.yaml", pickle_file="phonon.pick"):
+def postprocess(
+    workdir=".", trajectory="trajectory.yaml", pickle_file="phonon.pick", **kwargs
+):
     """ Phonopy postprocess """
     trajectory = Path(workdir) / trajectory
 
