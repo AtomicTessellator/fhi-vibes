@@ -30,6 +30,7 @@ def setup_md(
         Path(workdir).mkdir()
 
     dt = timestep * u.fs
+    md = None
 
     if "verlet" in algorithm.lower():
         from ase.md.verlet import VelocityVerlet
@@ -58,6 +59,9 @@ def setup_md(
 
     prepared = prepare_from_trajectory(atoms, md, trajectory)
 
+    if md is None:
+        raise RuntimeError("ASE MD algorithm has to be given")
+
     return atoms, md, prepared
 
 
@@ -73,7 +77,9 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
             atoms.set_positions(last_atoms["atoms"]["positions"])
             atoms.set_velocities(last_atoms["atoms"]["velocities"])
             return True
+
     print(f"** {trajectory} does  not exist, nothing to prepare")
+    return False
 
 
 def initialize_md(
@@ -104,4 +110,3 @@ def initialize_md(
         )
 
     return atoms
-

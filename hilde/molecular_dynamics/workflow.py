@@ -10,14 +10,51 @@ from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.compression import backup_folder as backup
-from .initialization import setup_md, initialize_md
+from hilde.helpers.restarts import restart
+from hilde.helpers.warnings import warn
+from hilde.templates.aims import setup_aims
+from .initialization import setup_md
 from . import metadata2dict
 
 
 _calc_dirname = "calculations"
 
 
-def run_md(
+def run_md(**kwargs):
+    """ high level function to run MD """
+
+    args = bootstrap()
+    args.update(kwargs)
+
+    converged = run(**args)
+
+    if not converged:
+        restart()
+    else:
+        print("done.")
+
+
+def bootstrap(logfile="md.log"):
+    """ load settings, prepare atoms, calculator and MD algorithm """
+
+    settings = Settings()
+    atoms, calc = setup_aims(settings=settings)
+
+    # make sure forces are computed (aims only)
+    if calc.name == "aims":
+        calc.parameters["compute_forces"] = True
+
+    if "md" not in settings:
+        warn("Settings do not contain MD instructions.", level=2)
+
+    md_settings = {"logfile": logfile, **settings.md}
+
+    atoms, md, _ = setup_md(atoms, **md_settings)
+
+    return {"atoms": atoms, "calc": calc, "md": md, **settings.md}
+
+
+def run(
     atoms,
     calc,
     compute_stresses=False,
