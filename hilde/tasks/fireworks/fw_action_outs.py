@@ -11,7 +11,7 @@ import numpy as np
 from hilde.helpers.converters import calc2dict, atoms2dict, dict2atoms
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.k_grid import k2d
-from hilde.phonon_db.database_api import update_phonon_db
+from hilde.phonon_db.database_interface import update_phonon_db
 from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict
 from hilde.fireworks.workflow_generator import generate_firework
 

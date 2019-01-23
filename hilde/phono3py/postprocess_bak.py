@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 
 from hilde.helpers.converters import dict2atoms
-from hilde.phonon_db.database_api import update_phonon_db
+from hilde.phonon_db.database_interface import update_phonon_db
 from hilde.phonon_db.row import PhononRow
 import hilde.phono3py.wrapper as ph3
 from hilde.phonopy import displacement_id_str

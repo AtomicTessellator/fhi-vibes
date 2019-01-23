@@ -8,7 +8,7 @@ import json
 from phono3py.file_IO import write_fc3_to_hdf5
 from hilde.helpers.converters import dict2atoms, dict2results
 from hilde import konstanten as const
-from hilde.phonon_db.database_api import update_phonon_db
+from hilde.phonon_db.database_interface import update_phonon_db
 from hilde.phonon_db.row import PhononRow
 import hilde.phono3py.wrapper as ph3
 from hilde.phonopy import displacement_id_str

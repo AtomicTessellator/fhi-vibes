@@ -12,6 +12,7 @@ import pickle
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.brillouinzone import get_bands
 from hilde.helpers.supercell import make_cubic_supercell
+from hilde.phonon_db.database_interface import to_database, from_database
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import wrapper as ph
 from hilde.tasks.calculate import calculate_multiple
@@ -21,11 +22,12 @@ from hilde.structure.misc import get_sysname
 
 
 # Load the atoms from the pickle file, and hash the atoms
-atoms = pickle.load(open('phonopy.pick', 'rb'))[0]
+atoms, phonon = pickle.load(open('phonopy.pick', 'rb'))
 atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
 
 # connect to the database and check if the calculation was already done
-db = connect("phonon.db")
+db_path = "phonon.db"
+db = connect(db_path)
 
 # Pull the Phonopy Object from the database
 row = list(
@@ -35,7 +37,7 @@ row = list(
             ("calc_hash", "=", calc_hash),
             ("has_fc2", "=", True),
         ],
-        columns=["id", "fc_2", "sc_matrix_2", "tp_T", "tp_A", "tp_S", "tp_Cv"],
+        columns=["id", "qmesh", "fc_2", "sc_matrix_2", "tp_T", "tp_A", "tp_S", "tp_Cv"],
     )
 )[0]
 
@@ -45,12 +47,12 @@ phono3py_settings = {
     'atoms': atoms,
     'fc3_supercell_matrix': [-2, 2, 2, 2, -2, 2, 2, 2, -2],
     'fc2_supercell_matrix': row.sc_matrix_2,
-    'log_level': 0
+    'log_level': 0,
+    'q_mesh': row.qmesh,
 }
 # Create a phono3py object and set the second order force constants to those previously calculated
 phonon3, _, sc3, _, scs3 = ph3.preprocess(**phono3py_settings)
 phonon3.set_fc2(row.fc_2)
-
 # Calculate the forces and produce the third order force constants
 scs3_computed = calculate_multiple(scs3, atoms.calc, f'{get_sysname(atoms)}/fc3')
 fc3_forces = ph3.get_forces(scs3_computed)
@@ -67,28 +69,26 @@ print("The thermal properties at 300 K are:")
 print(header_str)
 print(thermal_prop_str)
 # Update the database with third order properties
-db.update(
-    row.id,
-    phonon3=phonon3,
-    atoms_hash=atoms_hash,
-    calc_hash=calc_hash,
-    use_second_order=True,
-    has_fc3=(phonon3.get_fc3() is not None),
-)
+to_database(db_path, obj=phonon3, key_val_pairs={"atoms_hash": atoms_hash, "calc_hash": calc_hash})
 
 # Save some data
-phonon3_db = db.get_phonon3(
-    selection=[
-        ("sc_matrix_2", "=", row.sc_matrix_2),
-        ("sc_matrix_3", "=", [-2, 2, 2, 2, -2, 2, 2, 2, -2]),
-        ("atoms_hash", "=", atoms_hash),
-        ("calc_hash", "=", calc_hash),
-        ("has_fc2", "=", True),
-        ("has_fc3", "=", True),
-    ]
+at_db, ph_db, ph3_db = from_database(
+    db_path,
+    get_phonon3=True,
+    get_phonon=True,
+    get_atoms=True,
+    sc_matrix_2=row.sc_matrix_2,
+    sc_matrix_3=[-2, 2, 2, 2, -2, 2, 2, 2, -2],
+    atoms_hash=atoms_hash,
+    calc_hash=calc_hash,
+    has_fc2=True,
+    has_fc3=True,
 )
 
-print("The third order force constant matricies are the same:", np.all(phonon3_db.get_fc3()[:] == phonon3.get_fc3()[:] ) )
+print(ph_db.get_thermal_properties()[1]-phonon.get_thermal_properties()[1])
+# print("The atoms_hashes are the same:", (atoms_hash, calc_hash) == hash_atoms_and_calc(at_db))
+print("The maximum difference in the second order force constant matricies is:", np.max(np.abs(ph_db.get_force_constants()[:] - phonon.get_force_constants()[:])))
+print("The maximum difference in the third order force constant matricies is:", np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])))
 kappa_calc = phonon3.get_thermal_conductivity().get_kappa()
-kappa_db = phonon3_db.get_thermal_conductivity().get_kappa()
-print("The thermal conductivities are the same:", np.all(kappa_calc[:] == kappa_db[:] ) )
+kappa_db = ph3_db.get_thermal_conductivity().get_kappa()
+print("The maximum difference in the thermal conductivities is:", np.max(np.abs(kappa_calc[:] - kappa_db[:])))

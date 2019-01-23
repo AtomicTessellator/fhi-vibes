@@ -10,6 +10,7 @@ from phonopy import Phonopy
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.brillouinzone import get_bands
 from hilde.helpers.supercell import make_cubic_supercell
+from hilde.phonon_db.database_interface import to_database, from_database
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import wrapper as ph
 from hilde.tasks.calculate import calculate_multiple
@@ -80,12 +81,7 @@ except KeyError:
     phonon.set_thermal_properties()
     phonon.set_total_DOS(freq_pitch=0.1, tetrahedron_method=True)
     # Write Second Order to the Database
-    db.write(
-        phonon=phonon,
-        atoms_hash=atoms_hash,
-        calc_hash=calc_hash,
-        has_fc2=(phonon.get_force_constants() is not None),
-    )
+    to_database(db_path, obj=phonon, key_val_pairs={"atoms_hash": atoms_hash, "calc_hash": calc_hash})
 
 # Check for third order phonons, while using the previously calculated second order properties
 try:
@@ -125,14 +121,7 @@ except KeyError:
     phonon3.produce_fc3(fc3_forces)
     phonon3.run_thermal_conductivity(temperatures=row.tp_T, write_kappa=True)
     # Update the database with third order properties
-    db.update(
-        row.id,
-        phonon3=phonon3,
-        atoms_hash=atoms_hash,
-        calc_hash=calc_hash,
-        use_second_order=True,
-        has_fc3=(phonon3.get_fc3() is not None),
-    )
+    to_database(db_path, obj=phonon3, key_val_pairs={"atoms_hash": atoms_hash, "calc_hash": calc_hash})
 
 # Example database operations
 row = list(
@@ -156,12 +145,7 @@ print(
 )
 print(thermalProps)
 # Save some data
-phonon3 = db.get_phonon3(selection=[
-            ("sc_matrix_2", "=", smatrix2),
-            ("atoms_hash", "=", atoms_hash),
-            ("calc_hash", "=", calc_hash),
-            ("has_fc2", "=", True),
-        ])
+phonon3 = from_database(db_path, get_phonon3=True, sc_matrix_2=smatrix2, atoms_hash=atoms_hash, calc_hash=calc_hash, has_fc2=True)
 force_constants = phonon3.get_fc2().swapaxes(1, 2).reshape(2 * (3 * row.natoms_in_sc_2,))
 np.savetxt("force_constants_Al.dat", force_constants)
 to_Atoms(phonon3.get_phonon_supercell()).write("Al.in.supercell_2", format='aims')

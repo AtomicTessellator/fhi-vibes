@@ -2,10 +2,127 @@ from ase.atoms import Atoms
 from phonopy import Phonopy
 
 from hilde.helpers.converters import atoms2dict, dict2atoms
-from hilde.helpers.hash import hash_atoms_and_calc
+from hilde.helpers.hash import hash_atoms, hash_atoms_and_calc
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonon_db.row import phonon3_to_dict
+from hilde.structure.convert import to_Atoms
+
+results_keys = [
+    "force_2",
+    "force_3",
+    "displacement_dataset_2",
+    "displacement_dataset_3",
+    "qmesh",
+    "phonon_dos_fp",
+    "qpoints",
+    "phonon_bs_fp",
+    "tp_ZPE",
+    "tp_high_T_S",
+    "tp_T",
+    "tp_A",
+    "tp_S",
+    "tp_Cv",
+    "tp_kappa",
+    "fmax",
+    "smax",
+]
+
+def obj2dict(obj):
+    if isinstance(obj, dict):
+        return obj.copy()
+    elif isinstance(obj, Atoms):
+        return atoms2dict(obj)
+    elif isinstance(obj, Phonopy):
+        return phonon_to_dict(obj)
+    else:
+        try:
+            from phono3py.phonon3 import Phono3py
+            if isinstance(obj, Phono3py):
+                return phonon3_to_dict(obj)
+        except:
+            raise InputError("obj has to be a dict, Phonopy, Phono3py, or Atoms object")
+
+def from_database(db_path, obj=None, selection=[], get_id=False, get_atoms=False, get_phonon=False, get_phonon3=False, **kwargs):
+    db = connect(db_path)
+
+    for key, val in kwargs.items():
+        selection.append((key, "=", val))
+
+    dct = obj2dict(obj) if obj is not None else {}
+
+    for key, val in dct.items():
+        if key not in results_keys:
+            selection.append(key, "=", val)
+
+    row = db.get(selection)
+
+    to_ret = []
+    if get_id:
+        to_ret.append(row.id)
+    if get_atoms:
+        to_ret.append(row.toatoms())
+    if get_phonon:
+        to_ret.append(row.to_phonon())
+    if get_phonon3:
+        to_ret.append(row.to_phonon3())
+
+    if len(to_ret) > 1:
+        to_ret = tuple(to_ret)
+    else:
+        to_ret = to_ret[0]
+    return to_ret
+
+def to_database(db_path, obj, key_val_pairs={}):
+    selection_no_sc = []
+    selection = []
+    dct = obj2dict(obj)
+
+    if isinstance(obj, Phonopy):
+        selection.append(("sc_matrix_2", "=", dct["sc_matrix_2"]))
+    else:
+        try:
+            from phono3py.phonon3 import Phono3py
+            if isinstance(obj, Phono3py):
+                selection.append(("sc_matrix_3", "=", dct["sc_matrix_3"]))
+        except:
+            pass
+
+    if "symprec" in key_val_pairs.keys():
+        selection_no_sc.append(("symprec", "=", key_val_pairs["symprec"]))
+
+    for sel in selection_no_sc:
+        selection.append(sel)
+
+    db = connect(db_path)
+    try:
+        try:
+            rows = list(db.select(selection=selection))
+            rows_no_sc = list(db.select(selection=selection_no_sc))
+            for row in rows_no_sc:
+                if (row.sc_matrix_2 is None and "sc_matrix_2" in dct) or (row.sc_matrix_3 is None and "sc_matrix_3" in dct):
+                    rows.append(row)
+            if not rows:
+                raise KeyError
+            for row in rows:
+                db.update(
+                    row.id,
+                    dct=dct,
+                    has_fc2=("forces_2" in dct or "forces_2" in row),
+                    has_fc3=("forces_3" in dct or "forces_3" in row),
+                    store_second_order=True,
+                    **key_val_pairs,
+                )
+        except KeyError:
+            db.write(
+                dct,
+                has_fc2=("forces_2" in dct),
+                has_fc3=("forces_3" in dct),
+                **key_val_pairs,
+            )
+
+    except ValueError:
+        print(f"Error in adding the object to the database {db_path}")
 
 def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **kwargs):
     """
