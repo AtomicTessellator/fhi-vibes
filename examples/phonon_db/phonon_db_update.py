@@ -69,7 +69,7 @@ print("The thermal properties at 300 K are:")
 print(header_str)
 print(thermal_prop_str)
 # Update the database with third order properties
-to_database(db_path, obj=phonon3, key_val_pairs={"atoms_hash": atoms_hash, "calc_hash": calc_hash})
+to_database(db_path, phonon3, atoms.calc)
 
 # Save some data
 at_db, ph_db, ph3_db = from_database(
@@ -85,7 +85,6 @@ at_db, ph_db, ph3_db = from_database(
     has_fc3=True,
 )
 
-print(ph_db.get_thermal_properties()[1]-phonon.get_thermal_properties()[1])
 # print("The atoms_hashes are the same:", (atoms_hash, calc_hash) == hash_atoms_and_calc(at_db))
 print("The maximum difference in the second order force constant matricies is:", np.max(np.abs(ph_db.get_force_constants()[:] - phonon.get_force_constants()[:])))
 print("The maximum difference in the third order force constant matricies is:", np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])))

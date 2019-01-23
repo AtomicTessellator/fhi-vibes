@@ -4,7 +4,7 @@ import numpy as np
 
 from hilde.helpers.pickle import pread
 from hilde.helpers.hash import hash_atoms_and_calc
-from hilde.phonon_db.database_interface import to_database
+from hilde.phonon_db.database_interface import to_database, from_database
 from hilde.phonon_db.phonon_db import connect
 
 # Connect to the database
@@ -17,29 +17,19 @@ atoms, phonon = pread("phonopy.pick")
 # Get the hashes of the atoms object for easy structure comparison
 atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
 # Check if the phonopy object is in the database and if not write it to the db
-rows = list(
-    db.select(
-        selection=[
-            ("sc_matrix_2", "=", phonon.get_supercell_matrix()),
-            ("atoms_hash", "=", atoms_hash),
-            ("calc_hash", "=", calc_hash),
-            ("has_fc2", "=", True),
-        ],
-        columns=["id"],
-    )
-)
-if len(rows) == 0:
-    to_database(db_path, obj=phonon, key_val_pairs={"atoms_hash": atoms_hash, "calc_hash": calc_hash})
+
+to_database(db_path, obj=phonon, calc=atoms.calc)
+
+ph_db = from_database(db_path, get_phonon=True, sc_matrix_2=phonon.get_supercell_matrix(), atoms_hash=atoms_hash, calc_hash=calc_hash, has_fc2=True)
+assert np.max(np.abs(ph_db.get_force_constants() - phonon.get_force_constants()[:])) < 1e-14
 
 # Get the row from the database
 row = list(
     db.select(
-        selection=[
-            # ("sc_matrix_2", "=", phonon.get_supercell_matrix()),
-            ("atoms_hash", "=", atoms_hash),
-            ("calc_hash", "=", calc_hash),
-            ("has_fc2", "=", True),
-        ],
+        sc_matrix_2=phonon.get_supercell_matrix(),
+        atoms_hash=atoms_hash,
+        calc_hash=calc_hash,
+        has_fc2=True,
         columns=["id", "fc_2", "sc_matrix_2", "tp_T", "tp_A"],
     )
 )[0]

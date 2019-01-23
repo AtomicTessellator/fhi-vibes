@@ -3,10 +3,11 @@ from phonopy import Phonopy
 
 from hilde.helpers.converters import atoms2dict, dict2atoms
 from hilde.helpers.hash import hash_atoms, hash_atoms_and_calc
+from hilde.helpers.warnings import warn
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonon_db.row import phonon3_to_dict
-from hilde.structure.convert import to_Atoms
+from hilde.structure.convert import to_Atoms_db as to_Atoms
 
 results_keys = [
     "force_2",
@@ -73,21 +74,38 @@ def from_database(db_path, obj=None, selection=[], get_id=False, get_atoms=False
         to_ret = to_ret[0]
     return to_ret
 
-def to_database(db_path, obj, key_val_pairs={}):
+def to_database(db_path, obj, calc, key_val_pairs={}):
     selection_no_sc = []
     selection = []
     dct = obj2dict(obj)
 
-    if isinstance(obj, Phonopy):
+    if isinstance(obj, dict):
+        atoms = dict2atoms(dct)
+    elif isinstance(obj, Atoms):
+        atoms = obj.copy()
+    elif isinstance(obj, Phonopy):
+        atoms = to_Atoms(obj.get_primitive())
         selection.append(("sc_matrix_2", "=", dct["sc_matrix_2"]))
+        key_val_pairs["displacement"] = obj._displacement_dataset['first_atoms'][0]['displacement'][0]
     else:
         try:
             from phono3py.phonon3 import Phono3py
             if isinstance(obj, Phono3py):
+                atoms = to_Atoms(obj.get_primitive())
                 selection.append(("sc_matrix_3", "=", dct["sc_matrix_3"]))
+                key_val_pairs["displacement"] = obj._displacement_dataset['first_atoms'][0]['displacement'][0]
+                key_val_pairs["pair_distance_cutoff"] = obj._displacement_dataset['cutoff_distance']
         except:
             pass
+    atoms.set_calculator(calc)
+    atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
 
+    if "calc_hash" in key_val_pairs or "atoms_hash" in key_val_pairs:
+        warn("Replacing the atoms and calc hashes")
+    key_val_pairs['atoms_hash'] = atoms_hash
+    key_val_pairs['calc_hash'] = calc_hash
+    for key, val in atoms2dict(atoms).items():
+        dct[key] = val
     if "symprec" in key_val_pairs.keys():
         selection_no_sc.append(("symprec", "=", key_val_pairs["symprec"]))
 

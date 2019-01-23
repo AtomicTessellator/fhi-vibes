@@ -81,7 +81,7 @@ except KeyError:
     phonon.set_thermal_properties()
     phonon.set_total_DOS(freq_pitch=0.1, tetrahedron_method=True)
     # Write Second Order to the Database
-    to_database(db_path, obj=phonon, key_val_pairs={"atoms_hash": atoms_hash, "calc_hash": calc_hash})
+    to_database(db_path, obj=phonon, calc=atoms.calc)
 
 # Check for third order phonons, while using the previously calculated second order properties
 try:
@@ -121,7 +121,7 @@ except KeyError:
     phonon3.produce_fc3(fc3_forces)
     phonon3.run_thermal_conductivity(temperatures=row.tp_T, write_kappa=True)
     # Update the database with third order properties
-    to_database(db_path, obj=phonon3, key_val_pairs={"atoms_hash": atoms_hash, "calc_hash": calc_hash})
+    to_database(db_path, obj=phonon3, calc=atoms.calc)
 
 # Example database operations
 row = list(
