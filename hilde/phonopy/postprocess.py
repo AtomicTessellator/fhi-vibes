@@ -7,7 +7,7 @@ from phonopy import Phonopy
 
 from hilde.helpers.converters import dict2atoms, dict2results
 from hilde import konstanten as const
-from hilde.phonon_db.database_api import update_phonon_db
+from hilde.phonon_db.database_interface import update_phonon_db
 from hilde.phonon_db.row import PhononRow
 import hilde.phonopy.wrapper as ph
 from hilde.phonopy import displacement_id_str
