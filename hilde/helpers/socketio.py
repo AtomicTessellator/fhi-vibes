@@ -25,3 +25,20 @@ def get_stresses(atoms):
     natoms = atoms.calc.server.protocol.recv(1, np.int32)
     stresses = atoms.calc.server.protocol.recv((int(natoms), 3, 3), np.float64)
     return stresses * atomic_units.eV
+
+
+def socket_stress_off(calc):
+    """ Turn stresses computation off via socket """
+    if "socketio" in calc.name.lower():
+        calc.server.protocol.sendmsg("STRESSES_OFF")
+    else:
+        warn(f"Calculator {calc.name} is not a socket calculator.")
+
+
+def socket_stress_on(calc):
+    """ Turn stresses computation on via socket """
+    if "socketio" in calc.name.lower():
+        calc.server.protocol.sendmsg("STRESSES_ON")
+    else:
+        warn(f"Calculator {calc.name} is not a socket calculator.")
+
