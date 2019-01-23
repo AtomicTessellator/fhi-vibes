@@ -20,13 +20,18 @@ from . import metadata2dict
 _calc_dirname = "calculations"
 
 
-def run_md(**kwargs):
+def run_md(logfile="md.log", **kwargs):
     """ high level function to run MD """
 
     args = bootstrap()
-    args.update(kwargs)
 
-    converged = run(**args)
+    md_settings = {"logfile": logfile, **args, **kwargs}
+
+    atoms, md, _ = setup_md(**md_settings)
+
+    md_settings.update({"atoms": atoms, "md": md})
+
+    converged = run(**md_settings)
 
     if not converged:
         restart()
@@ -34,24 +39,20 @@ def run_md(**kwargs):
         print("done.")
 
 
-def bootstrap(logfile="md.log"):
+def bootstrap():
     """ load settings, prepare atoms, calculator and MD algorithm """
 
     settings = Settings()
     atoms, calc = setup_aims(settings=settings)
 
     # make sure forces are computed (aims only)
-    if calc.name == "aims":
+    if calc and calc.name == "aims":
         calc.parameters["compute_forces"] = True
 
     if "md" not in settings:
         warn("Settings do not contain MD instructions.", level=2)
 
-    md_settings = {"logfile": logfile, **settings.md}
-
-    atoms, md, _ = setup_md(atoms, **md_settings)
-
-    return {"atoms": atoms, "calc": calc, "md": md, **settings.md}
+    return {"atoms": atoms, "calc": calc, **settings.md}
 
 
 def run(
