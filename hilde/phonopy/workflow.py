@@ -21,18 +21,20 @@ def run_phonopy(**kwargs):
 
     completed = calculate_socket(**args)
 
-    if not completed:
+    if not completed and not "fireworks" in kwargs:
         restart()
+    elif "fireworks" in kwargs:
+        return False
     else:
         print("Start postprocess.")
         postprocess(**args)
         print("done.")
+        return True
 
 
-def bootstrap(**kwargs):
+def bootstrap(settings=Settings(), **kwargs):
     """ load settings, prepare atoms, calculator, and phonopy """
 
-    settings = Settings()
     atoms = settings.get_atoms()
 
     if "phonopy" not in settings:
