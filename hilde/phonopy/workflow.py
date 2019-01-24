@@ -10,7 +10,6 @@ from hilde.helpers.warnings import warn
 from hilde.helpers.restarts import restart
 
 from .postprocess import postprocess
-from .wrapper import preprocess
 from . import metadata2dict
 
 
@@ -29,18 +28,23 @@ def run_phonopy(**kwargs):
         print("done.")
 
 
-def bootstrap(**kwargs):
+def bootstrap(name="phonopy", **kwargs):
     """ load settings, prepare atoms, calculator, and phonopy """
+
+    if name.lower() == "phonopy":
+        from hilde.phonopy.wrapper import preprocess
+    elif name.lower() == "phono3py":
+        from hilde.phono3py.wrapper import preprocess
 
     settings = Settings()
     atoms = settings.get_atoms()
 
-    if "phonopy" not in settings:
-        warn("Settings do not contain phonopy instructions.", level=2)
+    if name not in settings:
+        warn(f"Settings do not contain name instructions.", level=2)
 
     # Phonopy preprocess
-    phonopy_settings = {**settings.phonopy, **kwargs}
-    phonon, supercell, scs = preprocess(atoms, **phonopy_settings)
+    phonopy_settings = {**settings[name], **kwargs}
+    phonon, supercell, scs = preprocess(**{"atoms": atoms, **phonopy_settings})
 
     calc = setup_aims({"compute_forces": True}, settings=settings, atoms=supercell)
 

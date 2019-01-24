@@ -9,12 +9,11 @@ import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
-from hilde.helpers.supercell import make_cubic_supercell
 from hilde.materials_fp.material_fingerprint import (
     get_phonon_bs_fingerprint_phononpy,
     to_dict,
 )
-from hilde.phonopy import enumerate_displacements, displacement_id_str
+from hilde.phonopy import enumerate_displacements
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
