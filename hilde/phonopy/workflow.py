@@ -28,7 +28,7 @@ def run_phonopy(**kwargs):
         print("done.")
 
 
-def bootstrap(name="phonopy", **kwargs):
+def bootstrap(name="phonopy", settings=None, **kwargs):
     """ load settings, prepare atoms, calculator, and phonopy """
 
     if name.lower() == "phonopy":
@@ -36,7 +36,8 @@ def bootstrap(name="phonopy", **kwargs):
     elif name.lower() == "phono3py":
         from hilde.phono3py.wrapper import preprocess
 
-    settings = Settings()
+    if settings is None:
+        settings = Settings()
     atoms = settings.get_atoms()
 
     if name not in settings:
