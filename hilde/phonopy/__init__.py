@@ -50,29 +50,31 @@ def enumerate_displacements(cells, info_str=displacement_id_str):
         scell.info[info_str] = nn
 
 
-def metadata2dict(atoms, calc, obj):
+def metadata2dict(phonon, calculator):
     """ convert metadata information to plain dict """
+
+    atoms = to_Atoms(phonon.get_primitive())
 
     prim_data = input2dict(atoms)
 
-    obj_dict = {
-        "version": obj.get_version(),
+    phonon_dict = {
+        "version": phonon.get_version(),
         "primitive": prim_data["atoms"],
-        "supercell_matrix": obj.get_supercell_matrix().T.astype(int).tolist(),
-        "symprec": float(obj._symprec),
-        "displacement_dataset": obj.get_displacement_dataset(),
+        "supercell_matrix": phonon.get_supercell_matrix().T.astype(int).tolist(),
+        "symprec": float(phonon.get_symmetry().get_symmetry_tolerance()),
+        "displacement_dataset": phonon.get_displacement_dataset(),
     }
 
     try:
-        displacements = obj.get_displacements()
-        obj_dict.update({"displacements": displacements})
+        displacements = phonon.get_displacements()
+        phonon_dict.update({"displacements": displacements})
     except AttributeError:
         pass
 
-    supercell = to_Atoms(obj.get_supercell())
-    supercell_data = input2dict(supercell, calc)
+    supercell = to_Atoms(phonon.get_supercell())
+    supercell_data = input2dict(supercell, calculator)
 
-    return {str(obj.__class__.__name__): obj_dict, **supercell_data}
+    return {str(phonon.__class__.__name__): phonon_dict, **supercell_data}
 
 
 from .workflow import run_phonopy

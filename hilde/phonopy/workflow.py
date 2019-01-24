@@ -53,7 +53,7 @@ def bootstrap(name="phonopy", **kwargs):
         calc = setup_aims({"compute_forces": True}, settings=settings, atoms=supercell)
 
     # save metadata
-    metadata = metadata2dict(atoms, calc, phonon)
+    metadata = metadata2dict(phonon, calc)
 
     return {
         "atoms_to_calculate": scs,
