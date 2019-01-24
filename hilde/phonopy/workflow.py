@@ -3,18 +3,14 @@
     Input: geometry.in and settings.in
     Output: geometry.in.supercell and trajectory.yaml """
 
-from pathlib import Path
-
 from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
-from hilde.helpers.k_grid import update_k_grid
-from hilde.helpers.paths import cwd
-from hilde.tasks import calculate_socket, calc_dirname
+from hilde.tasks import calculate_socket
 from hilde.helpers.warnings import warn
 from hilde.helpers.restarts import restart
 
 from .postprocess import postprocess
-from .wrapper import preprocess, defaults
+from .wrapper import preprocess
 from . import metadata2dict
 
 

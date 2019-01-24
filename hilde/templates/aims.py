@@ -62,7 +62,7 @@ def setup_aims(
             species_dir = path.join(custom_settings["species_dir"], species_type)
 
         custom_settings["species_dir"] = species_dir
-        del (custom_settings["species_type"])
+        del custom_settings["species_type"]
 
     if "socketio" in settings and settings.socketio.port is not None:
         custom_settings.update(
@@ -81,7 +81,7 @@ def setup_aims(
     if atoms and "control_kpt" in settings:
         update_k_grid(atoms, calc, settings.control_kpt.density)
 
-    if not "k_grid" in calc.parameters:
+    if "k_grid" not in calc.parameters:
         warn("No k_grid in aims calculator. Check!", level=1)
 
     return calc
