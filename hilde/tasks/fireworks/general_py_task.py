@@ -223,7 +223,7 @@ def general_function_task(
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 
-    outputs = func(*args, **kwargs)
+    kwargs["outputs"] = func(*args, **kwargs)
 
     return func_fw_out(func_path, func_fw_out_path, *args, fw_settings=None, **kwargs)
 
