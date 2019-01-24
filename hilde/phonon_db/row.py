@@ -2,14 +2,18 @@
 A file defining a row object for the phonon database
 """
 import numpy as np
+
 from ase.db.row import AtomsRow, atoms2dict
 from ase.io.jsonio import decode
 
-from hilde.structure.convert import to_Atoms, to_phonopy_atoms
+from spglib import get_spacegroup
+
 from hilde import konstanten as const
+from hilde.helpers.converters import dict2atoms
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import to_dict
+from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 
 def phonon_to_dict(phonon, to_mongo=False):
     """
@@ -152,11 +156,14 @@ class PhononRow(AtomsRow):
             raise AttributeError("dct, phonon3 or phonon must be defined")
         assert "numbers" in dct
         assert "cell" in dct
+        symprec = dct['symprec'] if 'symprec' in dct else 1e-5
+        dct["space_group"] = get_spacegroup(dict2atoms(dct), symprec=symprec)
         self._constraints = dct.pop("constraints", [])
         self._constrained_forces = None
         self._data = dct.pop("data", {})
         # If the dictionary has additional keys that are not default add them here
         kvp = dct.pop("key_value_pairs", {})
+        kvp["space_group"] = dct["space_group"]
         self._keys = list(kvp.keys())
         self.__dict__.update(kvp)
         self.__dict__.update(dct)

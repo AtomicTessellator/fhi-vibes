@@ -7,7 +7,7 @@ from hilde.helpers.warnings import warn
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonon_db.row import phonon3_to_dict
-from hilde.structure.convert import to_Atoms_db as to_Atoms
+from hilde.structure.convert import to_Atoms_db, to_Atoms
 
 results_keys = [
     "force_2",
@@ -84,15 +84,19 @@ def to_database(db_path, obj, calc, key_val_pairs={}):
     elif isinstance(obj, Atoms):
         atoms = obj.copy()
     elif isinstance(obj, Phonopy):
-        atoms = to_Atoms(obj.get_primitive())
+        atoms = to_Atoms_db(obj.get_primitive())
+        cell_hash = hash_atoms_and_calc(to_Atoms(obj.get_primitive()))[0]
         selection.append(("sc_matrix_2", "=", dct["sc_matrix_2"]))
+        key_val_pairs["cell_hash"] = cell_hash
         key_val_pairs["displacement"] = obj._displacement_dataset['first_atoms'][0]['displacement'][0]
     else:
         try:
             from phono3py.phonon3 import Phono3py
             if isinstance(obj, Phono3py):
-                atoms = to_Atoms(obj.get_primitive())
+                atoms = to_Atoms_db(obj.get_primitive())
+                cell_hash = hash_atoms_and_calc(to_Atoms(obj.get_primitive()))[0]
                 selection.append(("sc_matrix_3", "=", dct["sc_matrix_3"]))
+                key_val_pairs["cell_hash"] = cell_hash
                 key_val_pairs["displacement"] = obj._displacement_dataset['first_atoms'][0]['displacement'][0]
                 key_val_pairs["pair_distance_cutoff"] = obj._displacement_dataset['cutoff_distance']
         except:
