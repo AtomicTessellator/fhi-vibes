@@ -22,6 +22,41 @@ defaults = adict(
     }
 )
 
+def produce_fc3(phonon3, metadata, forces, symmetrize_fc3=False):
+    cutoff = metadata["Phono3py"]['displacement_dataset']['cutoff_distance']
+    for disp1 in metadata["Phono3py"]['displacement_dataset']['first_atoms']:
+        for disp2 in disp1['second_atoms']:
+            if disp2['pair_distance'] <= cutoff:
+                disp2['included'] = True
+            else:
+                disp2['included'] = False
+    phonon3.set_displacement_dataset(metadata["Phono3py"]['displacement_dataset'])
+
+    forces_shape = forces.shape
+
+    force_sets_fc3 = []
+    used_forces = 0
+    n_cells =0
+    for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
+        if cell:
+            n_cells += 1
+    for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
+        if cell:
+            force_sets_fc3.append(forces[used_forces])
+        else:
+            force_sets_fc3.append(np.zeros(forces_shape))
+
+    # compute force constants
+    if symmetrize_fc3:
+        phonon3.produce_fc3(
+            force_sets_fc3,
+            is_translational_symmetry=True,
+            is_permutation_symmetry=True,
+            is_permutation_symmetry_fc2=True,
+        )
+    else:
+        phonon3.produce_fc3(force_sets_fc3)
+    return phonon3
 
 def prepare_phono3py(
     atoms,

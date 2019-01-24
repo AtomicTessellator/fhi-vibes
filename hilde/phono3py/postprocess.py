@@ -89,47 +89,17 @@ def postprocess(
         del(phonon3_kwargs['fc2'])
     phonon3 = Phono3py(
         ph_atoms,
-        supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
+        supercell_matrix=np.array(metadata["phono3py"]["supercell_matrix"]).reshape(3,3),
         is_symmetry=True,
         frequency_factor_to_THz=const.omega_to_THz,
         **phonon3_kwargs,
     )
-    cutoff = metadata["Phono3py"]['displacement_dataset']['cutoff_distance']
-    for disp1 in metadata["Phono3py"]['displacement_dataset']['first_atoms']:
-        for disp2 in disp1['second_atoms']:
-            if disp2['pair_distance'] <= cutoff:
-                disp2['included'] = True
-            else:
-                disp2['included'] = False
-    phonon3.set_displacement_dataset(metadata["Phono3py"]['displacement_dataset'])
-    if "fc2" in kwargs:
-        phonon3.set_fc2(fc2)
-    forces_shape = calculated_atoms[0].get_forces().shape
-
-    force_sets_fc3 = []
-    used_forces = 0
-    n_cells =0
-    for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
-        if cell:
-            n_cells += 1
-    for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
-        if cell:
-            ref_atoms = calculated_atoms[used_forces]
-            force_sets_fc3.append(ref_atoms.get_forces())
-            used_forces += 1
-        else:
-            force_sets_fc3.append(np.zeros(forces_shape))
-
-    # compute force constants
-    if symmetrize_fc3:
-        phonon3.produce_fc3(
-            force_sets_fc3,
-            is_translational_symmetry=True,
-            is_permutation_symmetry=True,
-            is_permutation_symmetry_fc2=True,
-        )
-    else:
-        phonon3.produce_fc3(force_sets_fc3)
+    phonon3 = ph3.produce_fc3(
+        phonon3,
+        metadata,
+        np.array([at.get_forces() for at in calculated_atoms]),
+        symmetrize_fc3
+    )
 
     write_fc3_to_hdf5(phonon3.get_fc3(), filename=force_constants_file)
 
@@ -143,4 +113,4 @@ def postprocess(
             sc_matrix_3=list(phonon3.get_supercell_matrix().flatten()),
             **db_kwargs
         )
-
+    return phonon3
