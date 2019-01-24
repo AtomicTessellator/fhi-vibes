@@ -43,10 +43,14 @@ def bootstrap(name="phonopy", **kwargs):
         warn(f"Settings do not contain name instructions.", level=2)
 
     # Phonopy preprocess
-    phonopy_settings = {**settings[name], **kwargs}
-    phonon, supercell, scs = preprocess(**{"atoms": atoms, **phonopy_settings})
+    phonopy_settings = {"atoms": atoms, **settings[name], **kwargs}
 
-    calc = setup_aims({"compute_forces": True}, settings=settings, atoms=supercell)
+    phonon, supercell, scs = preprocess(**phonopy_settings)
+
+    if "calculator" in kwargs:
+        calc = kwargs["calculator"]
+    else:
+        calc = setup_aims({"compute_forces": True}, settings=settings, atoms=supercell)
 
     # save metadata
     metadata = metadata2dict(atoms, calc, phonon)
