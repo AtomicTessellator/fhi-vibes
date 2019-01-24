@@ -88,82 +88,83 @@ except KeyError:
         has_fc2=(phonon.get_force_constants() is not None),
     )
 
-# Check for third order phonons, while using the previously calculated second order properties
-try:
-    rows = list(
-        db.select(
-            selection=[
-                ("sc_matrix_3", "=", smatrix3),
-                ("atoms_hash", "=", atoms_hash),
-                ("calc_hash", "=", calc_hash),
-                ("has_fc3", "=", True),
-            ]
-        )
-    )
-    if not rows:
-        raise KeyError("selection not found")
-    else:
-        print("Taking third order force constants from database")
-except KeyError:
-    print("Atoms with third order force_constants not found in database")
-    row = list(
-        db.select(
-            selection=[
-                ("sc_matrix_2", "=", smatrix2),
-                ("atoms_hash", "=", atoms_hash),
-                ("calc_hash", "=", calc_hash),
-                ("has_fc2", "=", True),
-            ],
-            columns=["id", "fc_2", "sc_matrix_2", "tp_T"],
-        )
-    )[0]
-    phonon3, sc3, scs3 = ph3.preprocess(**phono3py_settings)
-    phonon3.set_fc2(row.fc_2)
-
-    scs3_computed = calculate_multiple(scs3, atoms.calc, f'{get_sysname(atoms)}/fc3')
-    fc3_forces = get_forces(scs3_computed)
-    phonon3.produce_fc3(fc3_forces)
-    phonon3.run_thermal_conductivity(temperatures=row.tp_T, write_kappa=True)
-    # Update the database with third order properties
-    db.update(
-        row.id,
-        phonon3=phonon3,
-        atoms_hash=atoms_hash,
-        calc_hash=calc_hash,
-        use_second_order=True,
-        has_fc3=(phonon3.get_fc3() is not None),
-    )
-
-# Example database operations
-row = list(
-    db.select(
-        selection=[
-            ("sc_matrix_2", "=", smatrix2),
-            ("sc_matrix_3", "=", smatrix3),
-            ("atoms_hash", "=", atoms_hash),
-            ("calc_hash", "=", calc_hash),
-            ("has_fc2", "=", True),
-            ("has_fc3", "=", True),
-        ],
-        columns=["id", "qmesh", "tp_T", "tp_S", "tp_A", "tp_Cv", "tp_kappa", "natoms_in_sc_2"],
-    )
-)[0]
-thermalProps = [row.tp_T[30], row.tp_A[30], row.tp_S[30], row.tp_Cv[30], row.tp_kappa[30][0]]
-
-print(
-    f"The thermal properties for this set of calculations "
-    + f"(k point mesh {row.qmesh}) are:"
-)
-print(thermalProps)
-# Save some data
-phonon3 = db.get_phonon3(selection=[
-            ("sc_matrix_2", "=", smatrix2),
-            ("atoms_hash", "=", atoms_hash),
-            ("calc_hash", "=", calc_hash),
-            ("has_fc2", "=", True),
-        ])
-force_constants = phonon3.get_fc2().swapaxes(1, 2).reshape(2 * (3 * row.natoms_in_sc_2,))
-np.savetxt("force_constants_Al.dat", force_constants)
-to_Atoms(phonon3.get_phonon_supercell()).write("Al.in.supercell_2", format='aims')
-to_Atoms(phonon3.get_supercell()).write("Al.in.supercell_3", format='aims')
-assert 20 < thermalProps[3] < 30
+# flokno: Unit Test!
+# # Check for third order phonons, while using the previously calculated second order properties
+# try:
+#     rows = list(
+#         db.select(
+#             selection=[
+#                 ("sc_matrix_3", "=", smatrix3),
+#                 ("atoms_hash", "=", atoms_hash),
+#                 ("calc_hash", "=", calc_hash),
+#                 ("has_fc3", "=", True),
+#             ]
+#         )
+#     )
+#     if not rows:
+#         raise KeyError("selection not found")
+#     else:
+#         print("Taking third order force constants from database")
+# except KeyError:
+#     print("Atoms with third order force_constants not found in database")
+#     row = list(
+#         db.select(
+#             selection=[
+#                 ("sc_matrix_2", "=", smatrix2),
+#                 ("atoms_hash", "=", atoms_hash),
+#                 ("calc_hash", "=", calc_hash),
+#                 ("has_fc2", "=", True),
+#             ],
+#             columns=["id", "fc_2", "sc_matrix_2", "tp_T"],
+#         )
+#     )[0]
+#     phonon3, sc3, scs3 = ph3.preprocess(**phono3py_settings)
+#     phonon3.set_fc2(row.fc_2)
+# 
+#     scs3_computed = calculate_multiple(scs3, atoms.calc, f'{get_sysname(atoms)}/fc3')
+#     fc3_forces = get_forces(scs3_computed)
+#     phonon3.produce_fc3(fc3_forces)
+#     phonon3.run_thermal_conductivity(temperatures=row.tp_T, write_kappa=True)
+#     # Update the database with third order properties
+#     db.update(
+#         row.id,
+#         phonon3=phonon3,
+#         atoms_hash=atoms_hash,
+#         calc_hash=calc_hash,
+#         use_second_order=True,
+#         has_fc3=(phonon3.get_fc3() is not None),
+#     )
+# 
+# # Example database operations
+# row = list(
+#     db.select(
+#         selection=[
+#             ("sc_matrix_2", "=", smatrix2),
+#             ("sc_matrix_3", "=", smatrix3),
+#             ("atoms_hash", "=", atoms_hash),
+#             ("calc_hash", "=", calc_hash),
+#             ("has_fc2", "=", True),
+#             ("has_fc3", "=", True),
+#         ],
+#         columns=["id", "qmesh", "tp_T", "tp_S", "tp_A", "tp_Cv", "tp_kappa", "natoms_in_sc_2"],
+#     )
+# )[0]
+# thermalProps = [row.tp_T[30], row.tp_A[30], row.tp_S[30], row.tp_Cv[30], row.tp_kappa[30][0]]
+# 
+# print(
+#     f"The thermal properties for this set of calculations "
+#     + f"(k point mesh {row.qmesh}) are:"
+# )
+# print(thermalProps)
+# # Save some data
+# phonon3 = db.get_phonon3(selection=[
+#             ("sc_matrix_2", "=", smatrix2),
+#             ("atoms_hash", "=", atoms_hash),
+#             ("calc_hash", "=", calc_hash),
+#             ("has_fc2", "=", True),
+#         ])
+# force_constants = phonon3.get_fc2().swapaxes(1, 2).reshape(2 * (3 * row.natoms_in_sc_2,))
+# np.savetxt("force_constants_Al.dat", force_constants)
+# to_Atoms(phonon3.get_phonon_supercell()).write("Al.in.supercell_2", format='aims')
+# to_Atoms(phonon3.get_supercell()).write("Al.in.supercell_3", format='aims')
+# assert 20 < thermalProps[3] < 30
