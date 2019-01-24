@@ -3,7 +3,6 @@ from os import path
 from pathlib import Path
 
 # from ase.calculators.aims import Aims
-from ase.io import read
 from ase.calculators.aims import Aims
 from hilde.settings import Settings
 from hilde import DEFAULT_CONFIG_FILE
@@ -14,6 +13,7 @@ from hilde.helpers.warnings import warn
 def setup_aims(
     custom_settings={},
     settings=None,
+    atoms=None,
     workdir=None,
     config_file=DEFAULT_CONFIG_FILE,
     output_level="MD_light",
@@ -27,21 +27,18 @@ def setup_aims(
 
     Returns:
         Aims: ASE calculator object
-
     """
 
     if settings is None:
         settings = Settings(config_file)
 
-    atoms = None
-    if "geometry" in settings:
-        if "file" in settings.geometry:
-            atoms = read(settings.geometry.file, format="aims")
+    if atoms is None:
+        atoms = settings.get_atoms()
 
     if "control" not in settings:
         msg = f"No [control] section in {config_file}, return calc=None, good luck!"
         warn(msg, level=1)
-        return atoms, None
+        return None
 
     default_settings = {"output_level": output_level, **settings.control}
 
@@ -87,4 +84,4 @@ def setup_aims(
     if not "k_grid" in calc.parameters:
         warn("No k_grid in aims calculator. Check!", level=1)
 
-    return atoms, calc
+    return calc
