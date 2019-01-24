@@ -50,6 +50,26 @@ def enumerate_displacements(cells, info_str=displacement_id_str):
         scell.info[info_str] = nn
 
 
+def get_supercells_with_displacements(phonon):
+    """ Create a phonopy object and supercells etc. """
+
+    supercell = to_Atoms(
+        phonon.get_supercell(),
+        info={
+            "supercell": True,
+            "supercell_matrix": phonon.get_supercell_matrix().T.flatten().tolist(),
+        },
+    )
+
+    scells = phonon.get_supercells_with_displacements()
+
+    supercells_with_disps = [to_Atoms(cell) for cell in scells]
+
+    enumerate_displacements(supercells_with_disps)
+
+    return phonon, supercell, supercells_with_disps
+
+
 def metadata2dict(phonon, calculator):
     """ convert metadata information to plain dict """
 

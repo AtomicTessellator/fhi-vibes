@@ -7,7 +7,7 @@ import numpy as np
 from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
 from hilde.helpers.supercell import make_cubic_supercell
-from hilde.phonopy import enumerate_displacements
+from hilde.phonopy import enumerate_displacements, get_supercells_with_displacements
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
 from hilde.helpers.numerics import get_3x3_matrix
@@ -95,21 +95,4 @@ def preprocess(
         log_level=log_level,
     )
 
-    supercell = to_Atoms(
-        phonon3.get_supercell(),
-        info={
-            "supercell": True,
-            "supercell_matrix": phonon3.get_supercell_matrix().T.flatten().tolist(),
-        },
-    )
-
-    scells = phonon3.get_supercells_with_displacements()
-    supercells_with_disps = [to_Atoms(cell) for cell in scells]
-
-    enumerate_displacements(supercells_with_disps)
-
-    pp = namedtuple(
-        "phono3py_preprocess", "phonon supercell supercells_with_displacements"
-    )
-
-    return pp(phonon3, supercell, supercells_with_disps)
+    return get_supercells_with_displacements(phonon3)

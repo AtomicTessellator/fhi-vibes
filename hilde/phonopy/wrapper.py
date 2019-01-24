@@ -2,7 +2,6 @@
 A leightweight wrapper for Phonopy()
 """
 
-from collections import namedtuple
 import json
 from pathlib import Path
 import numpy as np
@@ -18,6 +17,7 @@ from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
+from . import get_supercells_with_displacements
 
 defaults = adict(
     {"displacement": 0.01, "symprec": 1e-5, "trigonal": False, "q_mesh": [25, 25, 25]}
@@ -67,8 +67,6 @@ def preprocess(
     trigonal=defaults.trigonal,
     **kwargs,
 ):
-    """ Create a phonopy object and supercells etc. """
-
     phonon = prepare_phonopy(
         atoms,
         supercell_matrix,
@@ -77,25 +75,7 @@ def preprocess(
         trigonal=trigonal,
     )
 
-    supercell = to_Atoms(
-        phonon.get_supercell(),
-        info={
-            "supercell": True,
-            "supercell_matrix": phonon.get_supercell_matrix().T.flatten().tolist(),
-        },
-    )
-
-    scells = phonon.get_supercells_with_displacements()
-
-    supercells_with_disps = [to_Atoms(cell) for cell in scells]
-
-    enumerate_displacements(supercells_with_disps)
-
-    pp = namedtuple(
-        "phonopy_preprocess", "phonon supercell supercells_with_displacements"
-    )
-
-    return pp(phonon, supercell, supercells_with_disps)
+    return get_supercells_with_displacements(phonon)
 
 
 def get_force_constants(phonon, force_sets=None):
