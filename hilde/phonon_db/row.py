@@ -156,14 +156,17 @@ class PhononRow(AtomsRow):
             raise AttributeError("dct, phonon3 or phonon must be defined")
         assert "numbers" in dct
         assert "cell" in dct
-        symprec = dct['symprec'] if 'symprec' in dct else 1e-5
-        dct["space_group"] = get_spacegroup(dict2atoms(dct), symprec=symprec)
+        try:
+            symprec = dct['symprec'] if 'symprec' in dct else 1e-5
+            dct["space_group"] = get_spacegroup(dict2atoms(dct), symprec=symprec)
+            kvp = dct.pop("key_value_pairs", {})
+            kvp["space_group"] = dct["space_group"]
+        except AttributeError:
+            kvp = dct.pop("key_value_pairs", {})
         self._constraints = dct.pop("constraints", [])
         self._constrained_forces = None
         self._data = dct.pop("data", {})
         # If the dictionary has additional keys that are not default add them here
-        kvp = dct.pop("key_value_pairs", {})
-        kvp["space_group"] = dct["space_group"]
         self._keys = list(kvp.keys())
         self.__dict__.update(kvp)
         self.__dict__.update(dct)
