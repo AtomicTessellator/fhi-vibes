@@ -14,6 +14,7 @@ from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import wrapper as ph
 from hilde.tasks.calculate import calculate_multiple
 from hilde.phono3py import wrapper as ph3
+from hilde.phono3py.postprocess import get_forces
 from hilde.structure.convert import to_Atoms
 from hilde.structure.misc import get_sysname
 
@@ -32,7 +33,7 @@ q_mesh = [5, 5, 5]
 phonopy_settings = {
     'atoms': atoms,
     'supercell_matrix': smatrix2,
-    'disp': 0.01,
+    'displacement': 0.01,
     'symprec': 1e-5,
 }
 
@@ -41,7 +42,7 @@ phono3py_settings = {
     'supercell_matrix': smatrix3,
     'cutoff_pair_distance': 10.0,
     'log_level': 0,
-    'disp': 0.03,
+    'displacement': 0.03,
     'q_mesh': q_mesh
 }
 
@@ -116,12 +117,11 @@ except KeyError:
             columns=["id", "fc_2", "sc_matrix_2", "tp_T"],
         )
     )[0]
-    phono3py_settings["phonon_supercell_matrix"] = row.sc_matrix_2
     phonon3, sc3, scs3 = ph3.preprocess(**phono3py_settings)
     phonon3.set_fc2(row.fc_2)
 
     scs3_computed = calculate_multiple(scs3, atoms.calc, f'{get_sysname(atoms)}/fc3')
-    fc3_forces = ph3.get_forces(scs3_computed)
+    fc3_forces = get_forces(scs3_computed)
     phonon3.produce_fc3(fc3_forces)
     phonon3.run_thermal_conductivity(temperatures=row.tp_T, write_kappa=True)
     # Update the database with third order properties

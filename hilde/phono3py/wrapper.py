@@ -10,6 +10,7 @@ from hilde.helpers.supercell import make_cubic_supercell
 from hilde.phonopy import enumerate_displacements
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
+from hilde.helpers.numerics import get_3x3_matrix
 
 
 defaults = adict(

@@ -16,7 +16,7 @@ from hilde.phono3py.wrapper import defaults
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.trajectory import reader as traj_reader, step2file, to_yaml
 
-from hilde.phono3py.wrapper import prepare_phonopy
+from hilde.phono3py.wrapper import prepare_phono3py
 
 
 def postprocess(
