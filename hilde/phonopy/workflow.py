@@ -24,7 +24,7 @@ def run_phonopy(**kwargs):
     args = bootstrap()
     args.update(kwargs)
 
-    completed = run(**args)
+    completed = calculate_socket(**args)
 
     if not completed:
         restart()
@@ -35,63 +35,25 @@ def run_phonopy(**kwargs):
 
 
 def bootstrap():
-    """ load settings, prepare atoms and calculator """
+    """ load settings, prepare atoms, calculator, and phonopy """
 
     settings = Settings()
-    atoms, calc = setup_aims(settings=settings)
+    atoms = settings.get_atoms()
 
     if "phonopy" not in settings:
         warn("Settings do not contain phonopy instructions.", level=2)
 
-    return {"atoms": atoms, "calc": calc, **settings.phonopy}
-
-
-def run(
-    atoms,
-    calc,
-    supercell_matrix,
-    kpt_density=None,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-    walltime=1800,
-    workdir=".",
-    trajectory="trajectory.yaml",
-    primitive_file="geometry.in.primitive",
-    supercell_file="geometry.in.supercell",
-    **kwargs,
-):
-    """ Run a phonopy calculation from given atoms, calculator and supercell_matrix """
-
     # Phonopy preprocess
-    phonon, supercell, scs = preprocess(atoms, supercell_matrix, displacement, symprec)
+    phonon, supercell, scs = preprocess(atoms, **settings.phonopy)
 
-    # make sure forces are computed (aims only)
-    if calc.name == "aims":
-        calc.parameters["compute_forces"] = True
-
-    # update kpt density
-    if kpt_density is not None:
-        update_k_grid(supercell, calc, kpt_density)
+    calc = setup_aims({"compute_forces": True}, settings=settings, atoms=supercell)
 
     # save metadata
     metadata = metadata2dict(atoms, calc, phonon)
 
-    # save input geometries and settings
-    settings = Settings()
-    with cwd(workdir, mkdir=True):
-        atoms.write(primitive_file, format="aims", scaled=True)
-        supercell.write(supercell_file, format="aims", scaled=False)
-
-    with cwd(Path(workdir) / calc_dirname, mkdir=True):
-        settings.write()
-
-    completed = calculate_socket(
-        atoms_to_calculate=scs,
-        calculator=calc,
-        metadata=metadata,
-        trajectory=trajectory,
-        walltime=walltime,
-        workdir=workdir,
-    )
-
-    return completed
+    return {
+        "atoms_to_calculate": scs,
+        "calculator": calc,
+        "metadata": metadata,
+        **settings.phonopy,
+    }
