@@ -29,7 +29,7 @@ def prepare_phonopy(
     atoms,
     supercell_matrix,
     fc2=None,
-    disp=defaults.displacement,
+    displacement=defaults.displacement,
     symprec=defaults.symprec,
     trigonal=defaults.trigonal,
 ):
@@ -48,7 +48,10 @@ def prepare_phonopy(
     )
 
     phonon.generate_displacements(
-        distance=disp, is_plusminus="auto", is_diagonal=True, is_trigonal=trigonal
+        distance=displacement,
+        is_plusminus="auto",
+        is_diagonal=True,
+        is_trigonal=trigonal,
     )
 
     if fc2 is not None:
@@ -60,7 +63,7 @@ def prepare_phonopy(
 def preprocess(
     atoms,
     supercell_matrix,
-    disp=defaults.displacement,
+    displacement=defaults.displacement,
     symprec=defaults.symprec,
     trigonal=defaults.trigonal,
     **kwargs,
@@ -68,7 +71,11 @@ def preprocess(
     """ Create a phonopy object and supercells etc. """
 
     phonon = prepare_phonopy(
-        atoms, supercell_matrix, disp=disp, symprec=symprec, trigonal=trigonal
+        atoms,
+        supercell_matrix,
+        displacement=displacement,
+        symprec=symprec,
+        trigonal=trigonal,
     )
 
     supercell = to_Atoms(
@@ -109,6 +116,7 @@ def get_force_constants(phonon, force_sets=None):
         return force_constants
     # else
     raise ValueError("Force constants not yet created, specify force_sets.")
+
 
 def get_dos(
     phonon,
