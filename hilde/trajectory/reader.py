@@ -1,5 +1,4 @@
 """ read YAML trajectories """
-
 import json
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -47,5 +46,18 @@ def reader(file, get_metadata=False):
 
         trajectory.append(atoms)
     if get_metadata:
-        return trajectory, metadata
+        return trajectory, CaseInsensitiveDict(metadata)
     return trajectory
+
+class CaseInsensitiveDict(dict):
+    def __init__(self, d):
+        self._d = d
+        self._s = dict((k.lower(), k) for k in d)
+    def __contains__(self, k):
+        return k.lower() in self._s
+    def __len__(self):
+        return len(self._s)
+    def __iter__(self):
+        return iter(self._s)
+    def __getitem__(self, k):
+        return self._d[self._s[k.lower()]]
