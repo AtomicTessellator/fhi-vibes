@@ -41,21 +41,21 @@ results_keys = [
 def obj2dict(obj):
     if isinstance(obj, str):
         calculated_atoms, metadata = traj_reader(obj, True)
-        if "phonopy" in metadata:
+        if "Phonopy" in metadata:
             ph =  phonon = Phonopy(
-                to_phonopy_atoms(dict2results(metadata["phonopy"]["primitive"])),
-                supercell_matrix=np.array(metadata["phonopy"]["supercell_matrix"]).reshape(3,3),
+                to_phonopy_atoms(dict2results(metadata["Phonopy"]["primitive"])),
+                supercell_matrix=np.array(metadata["Phonopy"]["supercell_matrix"]).reshape(3,3),
                 is_symmetry=True,
-                symprec=metadata["phonopy"]["symprec"],
+                symprec=metadata["Phonopy"]["symprec"],
                 factor=const.omega_to_THz,
             )
-            ph.set_displacement_dataset(metadata["phonopy"]["displacement_dataset"])
+            ph.set_displacement_dataset(metadata["Phonopy"]["displacement_dataset"])
             ph.set_forces([at.get_forces() for at in calculated_atoms])
             return phonon_to_dict(ph)
-        elif "phono3py" in metadata:
+        elif "Phono3py" in metadata:
             ph3 = Phono3py(
-                to_phonopy_atoms(dict2results(metadata["phono3py"]["primitive"])),
-                supercell_matrix=np.array(metadata["phono3py"]["supercell_matrix"]).reshape(3,3),
+                to_phonopy_atoms(dict2results(metadata["Phono3py"]["primitive"])),
+                supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
                 is_symmetry=True,
                 frequency_factor_to_THz=const.omega_to_THz,
             )
@@ -122,8 +122,8 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
         key_val_pairs = {}
     if isinstance(obj, str):
         calculated_atoms, metadata = traj_reader(obj, True)
-        if "phonopy" in metadata:
-            at_dict = metadata['phonopy']['primitive'].copy()
+        if "Phonopy" in metadata:
+            at_dict = metadata["Phonopy"]['primitive'].copy()
             for key, val in metadata['calculator'].items():
                 at_dict[key] = val
             at_dict["numbers"] = symbols2numbers(at_dict['symbols'])
@@ -132,9 +132,9 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
             atoms = dict2atoms(at_dict)
             typ = "ph"
             selection.append(("sc_matrix_2", "=", dct["sc_matrix_2"]))
-            key_val_pairs["displacement"] = metadata['phonopy']['displacement_dataset']['first_atoms'][0]['displacement'][0]
-        elif "phono3py" in metadata:
-            at_dict = metadata['phono3py']['primitive'].copy()
+            key_val_pairs["displacement"] = metadata["Phonopy"]['displacement_dataset']['first_atoms'][0]['displacement'][0]
+        elif "Phono3py" in metadata:
+            at_dict = metadata["Phono3py"]['primitive'].copy()
             for key, val in metadata['calculator'].items():
                 at_dict[key] = val
             at_dict["numbers"] = symbols2numbers(at_dict['symbols'])
@@ -144,7 +144,7 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
             typ = "ph3"
             selection.append(("sc_matrix_3", "=", dct["sc_matrix_3"]))
             key_val_pairs["pair_distance_cutoff"] = metadata['displacement_dataset']['cutoff_distance']
-            key_val_pairs["displacement"] = metadata['phono3py']['displacement_dataset']['first_atoms'][0]['displacement'][0]
+            key_val_pairs["displacement"] = metadata["Phono3py"]['displacement_dataset']['first_atoms'][0]['displacement'][0]
         else:
             raise TypeError("Trajectory file can't be added to database")
 

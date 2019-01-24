@@ -22,7 +22,7 @@ def collect_forces_to_trajectory(
     metadata,
 ):
     Path(trajectory).parents[0].mkdir(exist_ok=True, parents=True)
-    for el in metadata["phonopy"]["displacement_dataset"]["first_atoms"]:
+    for el in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
         el["number"] = int(el["number"])
 
     to_yaml(metadata, trajectory, mode="w")
@@ -61,16 +61,16 @@ def postprocess(
         collect_forces_to_trajectory(trajectory, calculated_atoms, metadata)
 
     calculated_atoms, metadata = traj_reader(trajectory, True)
-    ph_atoms = to_phonopy_atoms(dict2results(metadata["phonopy"]["primitive"]), wrap=True)
+    ph_atoms = to_phonopy_atoms(dict2results(metadata["Phonopy"]["primitive"]), wrap=True)
     phonon = Phonopy(
         ph_atoms,
-        supercell_matrix=np.array(metadata["phonopy"]["supercell_matrix"]).reshape(3,3),
+        supercell_matrix=np.array(metadata["Phonopy"]["supercell_matrix"]).reshape(3,3),
         is_symmetry=True,
         symprec=symprec,
         factor=const.omega_to_THz,
         **kwargs
     )
-    phonon.set_displacement_dataset(metadata["phonopy"]['displacement_dataset'])
+    phonon.set_displacement_dataset(metadata["Phonopy"]['displacement_dataset'])
 
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
 

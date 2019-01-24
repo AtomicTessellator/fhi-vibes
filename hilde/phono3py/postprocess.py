@@ -89,7 +89,7 @@ def postprocess(
         del(phonon3_kwargs['fc2'])
     phonon3 = Phono3py(
         ph_atoms,
-        supercell_matrix=np.array(metadata["phono3py"]["supercell_matrix"]).reshape(3,3),
+        supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
         is_symmetry=True,
         frequency_factor_to_THz=const.omega_to_THz,
         **phonon3_kwargs,
