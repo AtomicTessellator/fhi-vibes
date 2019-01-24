@@ -125,6 +125,8 @@ def run(
         # store MD metadata locally
         metadata2file(metadata, file=metadata_file)
 
+        print("\nStart MD.")
+
         while not watchdog() and md.nsteps < maxsteps:
             something_happened = True
 
@@ -145,6 +147,7 @@ def run(
                 else:
                     socket_stress_off(iocalc)
 
+        print("Stop MD.\n")
     # backup and cleanup if something new happened
     if something_happened:
         backup(calc_dir, target_folder=backup_folder)
