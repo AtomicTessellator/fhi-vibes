@@ -16,23 +16,72 @@ from hilde.phono3py.wrapper import defaults
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.trajectory import reader as traj_reader, step2file, to_yaml
 
-def collect_forces_to_trajectory(
-    trajectory,
-    calculated_atoms,
-    metadata,
+from hilde.phono3py.wrapper import prepare_phono3py
+
+
+def postprocess(
+    workdir=".", trajectory="trajectory.yaml", pickle_file="phonon3.pick", **kwargs
 ):
-    '''
+    """ Phono3py postprocess """
+
+    print("*** under construction")
+    trajectory = Path(workdir) / trajectory
+
+    calculated_atoms, metadata = traj_reader(trajectory, True)
+
+    primitive = dict2results(metadata["Phono3py"]["primitive"])
+    supercell_matrix = metadata["Phono3py"]["supercell_matrix"]
+    symprec = metadata["Phono3py"]["symprec"]
+
+    # phonon = prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
+
+    # force_sets = [atoms.get_forces() for atoms in calculated_atoms]
+
+    # phonon.produce_force_constants(force_sets)
+
+    # if pickle_file:
+    #     with (Path(workdir) / pickle_file).open("wb") as file:
+    #         pickle.dump(phonon, file)
+
+    # return phonon
+
+
+def get_forces(supercells_computed):
+    """ Return force_sets taking care of supercells that were not computed
+    because of cutoff. """
+
+    zero_force = np.zeros([len(supercells_computed[0]), 3])
+    force_sets = []
+    for scell in supercells_computed:
+        if scell is None:
+            force_sets.append(zero_force)
+        else:
+            force_sets.append(scell.get_forces())
+
+    if len(force_sets) != len(supercells_computed):
+        print(
+            "len(force_sets), len(supercells):",
+            len(force_sets),
+            len(supercells_computed),
+        )
+        raise RuntimeError("Number of computed supercells incorrect.")
+
+    return force_sets
+
+
+def collect_forces_to_trajectory(trajectory, calculated_atoms, metadata):
+    """
     Generate a trajectory file from a given set of Atoms objects with calculated forces
     Args:
         trajectory (str): Path to the trajectory file
         calculated_atoms (list of ASE Atoms Objects): A list of atoms with the forces stored in the results
         metadata (dict): Metadata header for the phonon calculation
-    '''
+    """
     Path(trajectory).parents[0].mkdir(exist_ok=True, parents=True)
     for el in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
         el["number"] = int(el["number"])
         for d, dd in enumerate(el["direction"]):
-            el['direction'][d] = int(dd)
+            el["direction"][d] = int(dd)
         for el2 in el["second_atoms"]:
             el2["number"] = int(el2["number"])
 
@@ -50,7 +99,8 @@ def collect_forces_to_trajectory(
         if atoms:
             step2file(atoms, atoms.calc, nn, trajectory)
 
-def postprocess(
+
+def full_postprocess(
     metadata=None,
     calculated_atoms=None,
     symmetrize_fc3=False,
@@ -62,7 +112,7 @@ def postprocess(
     fireworks=False,
     **kwargs,
 ):
-    '''
+    """
     Postprocesses a Phono3py calculation
     Args:
         metadata (dict): The metadata for the trajectory file
@@ -74,7 +124,7 @@ def postprocess(
         pickle_file (str): file name of the pickle file for the phono3py object
         db_kwargs (dict): kwargs for adding the calculation to a database
         fireworks (bool): If True fireworks was used to calculate the forces
-    '''
+    """
     trajectory = Path(workdir) / trajectory
     force_constants_file = Path(workdir) / force_constants_file
     if fireworks:
@@ -82,32 +132,36 @@ def postprocess(
 
     calculated_atoms, metadata = traj_reader(trajectory, True)
     # if not phonon3:
-    ph_atoms = to_phonopy_atoms(dict2results(metadata["Phono3py"]["primitive"]), wrap=True)
+    ph_atoms = to_phonopy_atoms(
+        dict2results(metadata["Phono3py"]["primitive"]), wrap=True
+    )
     phonon3_kwargs = kwargs.copy()
     if "fc2" in phonon3_kwargs:
-        del(phonon3_kwargs['fc2'])
+        del (phonon3_kwargs["fc2"])
     phonon3 = Phono3py(
         ph_atoms,
-        supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
+        supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(
+            3, 3
+        ),
         is_symmetry=True,
         frequency_factor_to_THz=const.omega_to_THz,
         **phonon3_kwargs,
     )
-    cutoff = metadata["Phono3py"]['displacement_dataset']['cutoff_distance']
-    for disp1 in metadata["Phono3py"]['displacement_dataset']['first_atoms']:
-        for disp2 in disp1['second_atoms']:
-            if disp2['pair_distance'] <= cutoff:
-                disp2['included'] = True
+    cutoff = metadata["Phono3py"]["displacement_dataset"]["cutoff_distance"]
+    for disp1 in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
+        for disp2 in disp1["second_atoms"]:
+            if disp2["pair_distance"] <= cutoff:
+                disp2["included"] = True
             else:
-                disp2['included'] = False
-    phonon3.set_displacement_dataset(metadata["Phono3py"]['displacement_dataset'])
+                disp2["included"] = False
+    phonon3.set_displacement_dataset(metadata["Phono3py"]["displacement_dataset"])
     if "fc2" in kwargs:
         phonon3.set_fc2(fc2)
     forces_shape = calculated_atoms[0].get_forces().shape
 
     force_sets_fc3 = []
     used_forces = 0
-    n_cells =0
+    n_cells = 0
     for ii, cell in enumerate(phonon3.get_supercells_with_displacements()):
         if cell:
             n_cells += 1
@@ -143,6 +197,6 @@ def postprocess(
             phonon3,
             symprec=phonon3._symprec,
             sc_matrix_3=list(phonon3.get_supercell_matrix().flatten()),
-            **db_kwargs
+            **db_kwargs,
         )
 

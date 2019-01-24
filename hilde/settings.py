@@ -10,6 +10,7 @@ import time
 import configparser
 import json
 from pathlib import Path
+from ase.io import read
 from hilde import __version__ as version
 from hilde.helpers.warnings import warn
 from hilde.helpers.attribute_dict import AttributeDict
@@ -78,6 +79,9 @@ class ConfigDict(AttributeDict):
                 if "numpy.ndarray" in str(type(elem)):
                     elem = elem.flatten()
                 #
+                if elem is None:
+                    elem = "null"
+                #
                 if key == "verbose":
                     continue
                 string += "{:20s} {}\n".format(f"{key}:", elem)
@@ -111,3 +115,9 @@ class Settings(ConfigDict):
         if write:
             self.write(DEFAULT_TEMP_SETTINGS_FILE)
 
+    def get_atoms(self, format="aims"):
+        """ parse the geometry described in settings.in and return as atoms """
+        if "geometry" in self:
+            if "file" in self.geometry:
+                atoms = read(self.geometry.file, format=format)
+                return atoms

@@ -111,9 +111,12 @@ def calculate_socket(
     calc_dir = workdir / calc_dirname
 
     # perform backup if calculation folder exists
-
     if calc_dir.exists():
         backup(calc_dir, target_folder=backup_folder)
+
+    # perform backup of settings
+    with cwd(calc_dir, mkdir=True):
+        settings.write()
 
     # handle the socketio
     socketio_port = get_port(calculator)

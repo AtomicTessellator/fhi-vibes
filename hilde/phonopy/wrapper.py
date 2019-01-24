@@ -2,23 +2,22 @@
 A leightweight wrapper for Phonopy()
 """
 
-from collections import namedtuple
 import json
 from pathlib import Path
 import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
-from hilde.helpers.supercell import make_cubic_supercell
 from hilde.materials_fp.material_fingerprint import (
     get_phonon_bs_fingerprint_phononpy,
     to_dict,
 )
-from hilde.phonopy import enumerate_displacements, displacement_id_str
+from hilde.phonopy import enumerate_displacements
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
+from . import get_supercells_with_displacements
 
 from . import metadata2dict
 
@@ -31,7 +30,7 @@ def prepare_phonopy(
     atoms,
     supercell_matrix,
     fc2=None,
-    disp=defaults.displacement,
+    displacement=defaults.displacement,
     symprec=defaults.symprec,
     trigonal=defaults.trigonal,
 ):
@@ -50,7 +49,10 @@ def prepare_phonopy(
     )
 
     phonon.generate_displacements(
-        distance=disp, is_plusminus="auto", is_diagonal=True, is_trigonal=trigonal
+        distance=displacement,
+        is_plusminus="auto",
+        is_diagonal=True,
+        is_trigonal=trigonal,
     )
 
     if fc2 is not None:
@@ -90,36 +92,20 @@ def preprocess_fireworks(
 def preprocess(
     atoms,
     supercell_matrix,
-    disp=defaults.displacement,
+    displacement=defaults.displacement,
     symprec=defaults.symprec,
     trigonal=defaults.trigonal,
     **kwargs,
 ):
-    """ Create a phonopy object and supercells etc. """
-
     phonon = prepare_phonopy(
-        atoms, supercell_matrix, disp=disp, symprec=symprec, trigonal=trigonal
+        atoms,
+        supercell_matrix,
+        displacement=displacement,
+        symprec=symprec,
+        trigonal=trigonal,
     )
 
-    supercell = to_Atoms(
-        phonon.get_supercell(),
-        info={
-            "supercell": True,
-            "supercell_matrix": phonon.get_supercell_matrix().T.flatten().tolist(),
-        },
-    )
-
-    scells = phonon.get_supercells_with_displacements()
-
-    supercells_with_disps = [to_Atoms(cell) for cell in scells]
-
-    enumerate_displacements(supercells_with_disps)
-
-    pp = namedtuple(
-        "phonopy_preprocess", "phonon supercell supercells_with_displacements"
-    )
-
-    return pp(phonon, supercell, supercells_with_disps)
+    return get_supercells_with_displacements(phonon)
 
 
 def get_force_constants(phonon, force_sets=None):
@@ -139,6 +125,7 @@ def get_force_constants(phonon, force_sets=None):
         return force_constants
     # else
     raise ValueError("Force constants not yet created, specify force_sets.")
+
 
 def get_dos(
     phonon,

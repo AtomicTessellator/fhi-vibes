@@ -47,7 +47,9 @@ def collect_forces_to_trajectory(
             step2file(atoms, atoms.calc, trajectory)
 
 
-def postprocess(workdir=".", trajectory="trajectory.yaml", pickle_file="phonon.pick"):
+def postprocess(
+    workdir=".", trajectory="trajectory.yaml", pickle_file="phonon.pick", **kwargs
+):
     """ Phonopy postprocess """
     trajectory = Path(workdir) / trajectory
 
