@@ -38,7 +38,7 @@ phonopy_settings = {
 
 phono3py_settings = {
     'atoms': atoms,
-    'fc3_supercell_matrix': smatrix3,
+    'supercell_matrix': smatrix3,
     'cutoff_pair_distance': 10.0,
     'log_level': 0,
     'disp': 0.03,
@@ -116,8 +116,8 @@ except KeyError:
             columns=["id", "fc_2", "sc_matrix_2", "tp_T"],
         )
     )[0]
-    phono3py_settings["fc2_supercell_matrix"] = row.sc_matrix_2
-    phonon3, _, sc3, _, scs3 = ph3.preprocess(**phono3py_settings)
+    phono3py_settings["phonon_supercell_matrix"] = row.sc_matrix_2
+    phonon3, sc3, scs3 = ph3.preprocess(**phono3py_settings)
     phonon3.set_fc2(row.fc_2)
 
     scs3_computed = calculate_multiple(scs3, atoms.calc, f'{get_sysname(atoms)}/fc3')

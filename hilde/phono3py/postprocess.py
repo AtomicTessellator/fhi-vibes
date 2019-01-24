@@ -16,6 +16,35 @@ from hilde.phono3py.wrapper import defaults
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.trajectory import reader as traj_reader, step2file, to_yaml
 
+from hilde.phono3py.wrapper import prepare_phonopy
+
+
+def postprocess(
+    workdir=".", trajectory="trajectory.yaml", pickle_file="phonon3.pick", **kwargs
+):
+    """ Phono3py postprocess """
+
+    print("*** under construction")
+    trajectory = Path(workdir) / trajectory
+
+    calculated_atoms, metadata = traj_reader(trajectory, True)
+
+    primitive = dict2results(metadata["Phono3py"]["primitive"])
+    supercell_matrix = metadata["Phono3py"]["supercell_matrix"]
+    symprec = metadata["Phono3py"]["symprec"]
+
+    # phonon = prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
+
+    # force_sets = [atoms.get_forces() for atoms in calculated_atoms]
+
+    # phonon.produce_force_constants(force_sets)
+
+    # if pickle_file:
+    #     with (Path(workdir) / pickle_file).open("wb") as file:
+    #         pickle.dump(phonon, file)
+
+    # return phonon
+
 
 def get_forces(supercells_computed):
     """ Return force_sets taking care of supercells that were not computed
@@ -71,7 +100,7 @@ def collect_forces_to_trajectory(trajectory, calculated_atoms, metadata):
             step2file(atoms, atoms.calc, nn, trajectory)
 
 
-def postprocess(
+def full_postprocess(
     metadata=None,
     calculated_atoms=None,
     symmetrize_fc3=False,
