@@ -17,8 +17,7 @@ from . import metadata2dict
 def run_phonopy(**kwargs):
     """ high level function to run phonopy workflow """
 
-    args = bootstrap()
-    args.update(kwargs)
+    args = bootstrap(**kwargs)
 
     completed = calculate_socket(**args)
 
@@ -30,7 +29,7 @@ def run_phonopy(**kwargs):
         print("done.")
 
 
-def bootstrap():
+def bootstrap(**kwargs):
     """ load settings, prepare atoms, calculator, and phonopy """
 
     settings = Settings()
@@ -40,7 +39,8 @@ def bootstrap():
         warn("Settings do not contain phonopy instructions.", level=2)
 
     # Phonopy preprocess
-    phonon, supercell, scs = preprocess(atoms, **settings.phonopy)
+    phonopy_settings = {**settings.phonopy, **kwargs}
+    phonon, supercell, scs = preprocess(atoms, **phonopy_settings)
 
     calc = setup_aims({"compute_forces": True}, settings=settings, atoms=supercell)
 
@@ -51,5 +51,5 @@ def bootstrap():
         "atoms_to_calculate": scs,
         "calculator": calc,
         "metadata": metadata,
-        **settings.phonopy,
+        **phonopy_settings,
     }
