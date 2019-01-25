@@ -14,7 +14,7 @@ from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import wrapper as ph
 from hilde.tasks.calculate import calculate_multiple
 from hilde.phono3py import wrapper as ph3
-from hilde.phono3py.postprocess import get_forces
+# from hilde.phono3py.postprocess import get_forces
 from hilde.structure.convert import to_Atoms
 from hilde.structure.misc import get_sysname
 
