@@ -3,7 +3,7 @@
 from pathlib import Path
 import numpy as np
 from ase import units as u
-from hilde.trajectory import last_from_yaml
+from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.warnings import warn
 from .velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 

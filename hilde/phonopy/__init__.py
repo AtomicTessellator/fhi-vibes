@@ -4,7 +4,7 @@ import numpy as np
 from phonopy.structure.atoms import PhonopyAtoms
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.fileformats import last_from_yaml
-from hilde.trajectory import input2dict
+from hilde.helpers.converters import input2dict
 
 
 displacement_id_str = "displacement_id"
