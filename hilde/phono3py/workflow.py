@@ -7,7 +7,7 @@ from hilde.phonopy.workflow import bootstrap
 from .postprocess import postprocess
 
 
-def run_phono3py(**kwargs):
+def run_phono3py(postprocess_args={}, **kwargs):
     """ high level function to run phono3py workflow """
 
     args = bootstrap(name="phono3py", **kwargs)
@@ -18,5 +18,5 @@ def run_phono3py(**kwargs):
         restart()
     else:
         print("Start postprocess.")
-        postprocess(**args)
+        postprocess(**postprocess_args)
         print("done.")
