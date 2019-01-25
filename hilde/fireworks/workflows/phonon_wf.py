@@ -128,7 +128,6 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings):
     #     func_out_kwargs = dict(db_kwargs, converge_sc=False)
 
     func_kwargs = ph_settings.copy()
-    print(wd, fw_settings["fw_name"])
     func_kwargs["workdir"] = wd + "/" + fw_settings["fw_name"] + "/"
 
     task_spec = get_phonon_analysis_task(
@@ -138,7 +137,8 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings):
         fw_settings["mod_spec_add"],
         False
     )
-    return generate_firework(task_spec, None, None, fw_settings=fw_settings)
+    fw_settings["fw_name"] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 def generate_phonon_workflow(workflow, atoms, fw_settings):
     '''
