@@ -16,6 +16,12 @@ from hilde.tasks.fireworks.general_py_task import (
 from hilde.tasks.fireworks.utility_tasks import update_calc
 from hilde.templates.aims import setup_aims
 
+def get_time(time_str):
+    time_set = time_str.split(":")
+    time = 0
+    for ii, tt in enumerate(time_set):
+        time += int(tt) * 60**(len(time_set) - 1 - ii)
+    return time
 
 def generate_firework(
     task_spec_list=None,
@@ -23,7 +29,7 @@ def generate_firework(
     calc=None,
     fw_settings=None,
     atoms_calc_from_spec=False,
-    update_calc_settings={},
+    update_calc_settings=None,
     func=None,
     func_fw_out=None,
     func_kwargs=None,
@@ -48,6 +54,8 @@ def generate_firework(
     Returns (Firework):
         A Firework that will perform the desired operation on a set of atoms, and process the outputs for Fireworks
     """
+    if update_calc_settings is None:
+        update_calc_settings = {}
     if func:
         if task_spec_list:
             raise ArgumentError(
@@ -72,6 +80,7 @@ def generate_firework(
         fw_settings["fw_base_name"] = ""
     elif "fw_base_name" not in fw_settings:
         fw_settings["fw_base_name"] = fw_settings["fw_name"]
+
     setup_tasks = []
     if atoms:
         if not atoms_calc_from_spec:
@@ -82,7 +91,9 @@ def generate_firework(
                 else:
                     recipcell = np.linalg.pinv(at["cell"]).transpose()
                     calc = update_k_grid_calc_dict(calc, recipcell, at["pbc"], new_val)
+
             cl = calc2dict(calc)
+
             for key, val in update_calc_settings.items():
                 if key != "k_grid_density":
                     cl = update_calc(cl, key, val)
@@ -110,7 +121,7 @@ def generate_firework(
         setup_tasks + job_tasks, name=fw_settings["fw_name"], spec=fw_settings["spec"]
     )
 
-def get_phonon_task(func_kwargs, make_abs_path=False):
+def get_phonon_task(func_kwargs, fw_settings=None, make_abs_path=False):
     '''
     Generate a parallel Phononpy or Phono3py calculation task
     Args:
@@ -128,26 +139,35 @@ def get_phonon_task(func_kwargs, make_abs_path=False):
     out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
     for set_key in ["phonopy_settings", "phono3py_settings"]:
         if set_key in func_kwargs:
-            kwargs_init[set_key] = {"name": set_key[:-9]}
+            kwargs_init[set_key] = {}
+            if "workdir" in func_kwargs[set_key]:
+                wd = func_kwargs[set_key]["workdir"]
+            else:
+                wd = "."
             kwargs_init_fw_out[set_key] = {"workdir": wd}
             for key, val in func_kwargs[set_key].items():
                 if key in preprocess_keys[set_key]:
                     kwargs_init[set_key][key] = val
                 if key in out_keys:
                     kwargs_init_fw_out[set_key][key] = val
+    if fw_settings and "kpoint_density_spec" in fw_settings:
+        inputs = [fw_settings["kpoint_density_spec"]]
+    else:
+        inputs = []
 
     return TaskSpec(
         "hilde.tasks.fireworks.phonopy_phono3py_functions.bootstrap_phonon",
-        "hilde.tasks.fireworks.fw_action_outs.phonons.post_bootstrap",
+        "hilde.tasks.fireworks.fw_out.phonons.post_bootstrap",
         True,
         kwargs_init,
+        inputs=inputs,
         func_fw_out_kwargs=kwargs_init_fw_out,
         make_abs_path=False,
     )
 
 
 def get_phonon_analysis_task(
-    func, func_kwargs, fw_settings, meta_key, db_kwargs=None, make_abs_path=False
+    func, func_kwargs, metakey, forcekey, make_abs_path=False
 ):
     '''
     Generate a serial Phononpy or Phono3py calculation task
@@ -160,25 +180,37 @@ def get_phonon_analysis_task(
         make_abs_path (bool): If True make the paths of directories absolute
     Return (TaskSpec): The specification object of the task
     '''
-    kwargs = {"fireworks": True}
-    if db_kwargs:
-        db_kwargs["calc_type"] = func.split(".")[1]
-        kwargs["db_kwargs"] = db_kwargs
-    anal_keys = ["trajectory", "analysis_workdir", "force_constant_file", "workdir"]
-    for key in anal_keys:
-        if key in func_kwargs:
-            kwargs[key] = func_kwargs[key]
-    if "analysis_workdir" in kwargs:
-        kwargs["workdir"] = kwargs["analysis_workdir"]
-        del (kwargs["analysis_workdir"])
-    return TaskSpec(
-        func,
-        "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
-        False,
-        inputs=[meta_key, fw_settings["mod_spec_add"]],
-        func_kwargs=kwargs,
-        make_abs_path=make_abs_path,
+    if "analysis_workdir" in func_kwargs:
+        wd = func_kwargs["analysis_workdir"]
+    elif "workdir" in func_kwargs:
+        wd = func_kwargs["workdir"]
+    else:
+        wd = "."
+    if "trajectory" in func_kwargs:
+        traj = func_kwargs["trajectory"]
+    else:
+        traj = "trajectory.yaml"
+    task_spec_list = []
+    task_spec_list.append(
+        TaskSpec(
+            "hilde.tasks.fireworks.phonopy_phono3py_functions.collect_to_trajectory",
+            "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
+            False,
+            args=[wd, traj],
+            inputs=[forcekey, metakey],
+            make_abs_path=make_abs_path
+        )
     )
+    task_spec_list.append(
+        TaskSpec(
+            func,
+            "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
+            False,
+            func_kwargs={"workdir": wd, "trajectory": traj},
+            make_abs_path=make_abs_path,
+        )
+    )
+    return task_spec_list
 
 def get_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
     return TaskSpec(
@@ -287,107 +319,74 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         )
     elif "phonopy" in step_settings or "phono3py" in step_settings:
         fw_settings_list = []
-        if fw_settings["serial"]:
-            if "phonopy" in step_settings:
-                fw_settings_list.append(fw_settings.copy())
-                fw_settings_list[-1]["fw_name"] = "phonopy"
-                task_spec_list.append(
-                    get_phonon_serial_task(
-                        "hilde.phonopy.workflow.run",
-                        step_settings.phonopy,
-                        db_kwargs,
-                        make_abs_path=make_abs_path,
-                    )
-                )
-            if "phono3py" in step_settings:
-                fw_settings_list.append(fw_settings.copy())
-                fw_settings_list[-1]["fw_name"] = "phono3py"
-                task_spec_list.append(
-                    get_phonon_serial_task(
-                        "hilde.phono3py.workflow.run",
-                        step_settings.phono3py,
-                        db_kwargs,
-                        make_abs_path=make_abs_path,
-                    )
-                )
-        else:
-            func_kwargs = {}
-            fw_settings["fw_name"] = "phonon_init"
-            if "phonopy" in step_settings:
-                func_kwargs["phonopy_settings"] = step_settings.phonopy
-            if "phono3py" in step_settings:
-                func_kwargs["phono3py_settings"] = step_settings.phono3py
-            task_spec_list.append(
-                get_phonon_parallel_task(
-                    "hilde.tasks.fireworks.preprocess_ph_ph3",
-                    func_kwargs,
-                    make_abs_path=make_abs_path,
-                )
+        func_kwargs = {}
+        fw_settings["fw_name"] = "phonon_init"
+
+        if "phonopy" in step_settings:
+            func_kwargs["phonopy_settings"] = step_settings.phonopy
+        if "phono3py" in step_settings:
+            func_kwargs["phono3py_settings"] = step_settings.phono3py
+        if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"] and "walltime" in fw_settings["spec"]["_queueadapter"]:
+            if "phonopy_settings" in func_kwargs and func_kwargs["phonopy_settings"]["serial"]:
+                func_kwargs["phonopy_settings"]["walltime"] = get_time(fw_settings["spec"]["_queueadapter"]["walltime"])
+            if "phono3py_settings" in func_kwargs and func_kwargs["phono3py_settings"]["serial"]:
+                func_kwargs["phono3py_settings"]["walltime"] = get_time(fw_settings["spec"]["_queueadapter"]["walltime"])
+
+        task_spec_list.append(
+            get_phonon_task(
+                func_kwargs,
+                fw_settings=fw_settings.copy(),
+                make_abs_path=make_abs_path,
             )
+        )
     else:
         raise ValueError("Type not defiend")
     fw_settings[
         "fw_name"
     ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
-    if ("phonopy" in step_settings or "phono3py" in step_settings) and fw_settings[
-        "serial"
-    ]:
-        fw_list = []
-        for tt, task_spec in enumerate(task_spec_list):
-            fw_settings_list[tt][
-                "fw_name"
-            ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
-            fw_list.append(
-                generate_firework(
-                    task_spec,
-                    at,
-                    cl,
-                    atoms_calc_from_spec=fw_settings_list[tt].from_db,
-                    fw_settings=fw_settings_list[tt],
-                    update_calc_settings=step_settings.control,
-                )
-            )
-        return fw_list, {}
+
     fw_list = [
         generate_firework(
             task_spec_list,
             at,
             cl,
             atoms_calc_from_spec=fw_settings.from_db,
-            fw_settings=fw_settings,
+            fw_settings=fw_settings.copy(),
             update_calc_settings=step_settings.control,
         )
     ]
     if not ("phonopy" in step_settings or "phono3py" in step_settings):
         return fw_list, {}
+
+    fw_settings = fw_settings.copy()
     task_spec_list = []
+    fw_settings["mod_spec_add"] = "ph_forces"
+    fw_settings["mod_spec_add"] = "ph3_forces"
     if "phonopy" in step_settings:
-        fw_settings["mod_spec_add"] = "ph_forces"
-        task_spec_list.append(
-            get_phonon_analysis_task(
-                "hilde.phonopy.postprocess.postprocess",
-                step_settings.phonopy,
-                fw_settings,
-                "metadata_ph",
-                db_kwargs,
-                make_abs_path=make_abs_path,
-            )
+        ts_list = get_phonon_analysis_task(
+            "hilde.phonopy.postprocess.postprocess",
+            step_settings.phonopy,
+            "ph_metadata",
+            "ph_forces",
+            make_abs_path
         )
+        for task in ts_list:
+            task_spec_list.append(task)
     if "phono3py" in step_settings:
-        fw_settings["mod_spec_add"] = "ph3_forces"
-        task_spec_list.append(
-            get_phonon_analysis_task(
-                "hilde.phono3py.postprocess.postprocess",
-                step_settings.phono3py,
-                fw_settings,
-                "metadata_ph3",
-                db_kwargs,
-                make_abs_path=make_abs_path,
-            )
+        ts_list = get_phonon_analysis_task(
+            "hilde.phono3py.postprocess.postprocess",
+            step_settings.phono3py,
+            "ph3_metadata",
+            "ph3_forces",
+            make_abs_path
         )
+        for task in ts_list:
+            task_spec_list.append(task)
+
     fw_settings[
         "fw_name"
     ] += f"phonon_analysis_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+
     fw_list.append(
         generate_firework(task_spec_list, None, None, fw_settings=fw_settings)
     )

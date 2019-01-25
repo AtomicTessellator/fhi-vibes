@@ -126,6 +126,7 @@ def dict2results(atoms_dict, calc_dict=None):
         results = {}
         if "results" in calc_dict:
             results = calc_dict.pop("results")
+        print(calc_dict)
 
         calc = SinglePointCalculator(atoms, **results)
         if "calculator" in calc_dict:

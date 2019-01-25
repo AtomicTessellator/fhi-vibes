@@ -136,7 +136,6 @@ def check_aims_relaxation_complete(
             )
         new_atoms = atoms2dict(outputs)
     for key, val in atoms['info'].items():
-        print('\n', key, val, '\n')
         if key not in new_atoms['info']:
             new_atoms['info'][key] = val
     if converged:
@@ -262,7 +261,6 @@ def check_kgrid_opt_completion(
     calc["results"] = last_step_dict["calculator"]
     for key, val in calc.items():
         atoms[key] = val
-    next_step = last_step_dict["info"]["nsteps"] + 1
     if outputs[0]:
         up_spec = {
             fw_settings["out_spec_k_den"]: outputs[1],
@@ -271,7 +269,7 @@ def check_kgrid_opt_completion(
         }
         return FWAction(update_spec=up_spec)
 
-    fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(next_step)
+    fw_settings["fw_name"] = fw_settings["fw_base_name"]
     if fw_settings["to_launchpad"]:
         fw_settings["to_launchpad"] = False
     new_traj_list = trajectory.split(".")

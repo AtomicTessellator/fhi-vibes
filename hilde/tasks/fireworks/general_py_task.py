@@ -28,9 +28,9 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     pt_inputs = task_spec.get_pt_inputs()
     pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
     if isinstance(atoms, str):
-        pt_inputs += [atoms, calc]
+        pt_inputs = [atoms, calc] + pt_inputs
     elif isinstance(calc, str):
-        pt_inputs += [calc]
+        pt_inputs = [calc] + pt_inputs
         pt_args += [atoms]
     else:
         pt_args += [atoms, calc]
@@ -136,6 +136,7 @@ def atoms_calculate_task(
     func_fw_out_kwargs,
     atoms_dict,
     calc_dict,
+    *args,
     fw_settings=None,
 ):
     """
@@ -178,7 +179,7 @@ def atoms_calculate_task(
     del (atoms_dict["results"])
     atoms = dict2atoms(atoms_dict)
     try:
-        outputs = func(atoms, atoms.calc, **func_kwargs)
+        outputs = func(atoms, atoms.calc, *args, **func_kwargs)
     except:
         os.chdir(start_dir)
         raise RuntimeError(
@@ -225,7 +226,7 @@ def general_function_task(
 
     kwargs["outputs"] = func(*args, **kwargs)
 
-    return func_fw_out(func_path, func_fw_out_path, *args, fw_settings=None, **kwargs)
+    return func_fw_out(func_path, func_fw_out_path, *args, fw_settings=fw_settings, **kwargs)
 
 
 atoms_calculate_task.name = f"{module_name}.{atoms_calculate_task.__name__}"
@@ -308,6 +309,4 @@ class TaskSpec:
 
     def get_pt_inputs(self):
         ''' get the PyTask inputs for the task '''
-        if self.at:
-            return []
         return self.inputs

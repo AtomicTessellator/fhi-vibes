@@ -6,6 +6,8 @@ from hilde.structure.convert import to_Atoms
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.trajectory import input2dict
 
+# from .workflow import run_phonopy
+# from .postprocess import postprocess
 
 displacement_id_str = "displacement_id"
 
@@ -97,5 +99,3 @@ def metadata2dict(phonon, calculator):
     return {str(phonon.__class__.__name__): phonon_dict, **supercell_data}
 
 
-from .workflow import run_phonopy
-from .postprocess import postprocess
