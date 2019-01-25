@@ -3,8 +3,7 @@ from fireworks import Workflow
 from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.fireworks.workflow_generator import (
     generate_firework,
-    get_phonon_serial_task,
-    get_phonon_parallel_task,
+    get_phonon_task,
     get_phonon_analysis_task,
     get_relax_task,
     get_aims_relax_task,
@@ -53,10 +52,11 @@ def generate_fw(atoms, task_list, fw_settings, qadapter, update_settings=None, u
         update_calc_settings=update_settings,
     )
 
-def generate_kgrid_fw(atoms, wd, qadapter, fw_settings):
+def generate_kgrid_fw(atoms, wd, qadapter, fw_settings, dfunc_min=1e-12):
     func_kwargs = {
         "workdir": wd + "/" + fw_settings["fw_name"] + "/",
         "trajectory": "kpt_trajectory.yaml",
+        "dfunc_min": dfunc_min,
     }
     task_spec = get_kgrid_task(func_kwargs)
     return generate_fw(atoms, task_spec, fw_settings, qadapter)
@@ -86,9 +86,7 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
     }
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings)
 
-def generate_phonon_fw(atoms, wd, fw_settings, qadapter, ph_settings, db_kwargs, update_in_spec=True):
-    fw_settings["fw_name"] = ph_settings.pop("type")
-    serial = ph_settings.pop("serial")
+def generate_phonon_fw(atoms, wd, fw_settings, qadapter, ph_settings, update_in_spec=True):
     update_settings = {}
     if "basisset_type" in ph_settings:
         update_settings["basisset_type"] = ph_settings.pop("basisset_type")
@@ -96,30 +94,27 @@ def generate_phonon_fw(atoms, wd, fw_settings, qadapter, ph_settings, db_kwargs,
         update_settings["use_pimd_wrapper"] = ph_settings.pop("socket_io_port")
     elif "use_pimd_wrapper" in ph_settings:
         update_settings["use_pimd_wrapper"] = ph_settings.pop("use_pimd_wrapper")
-    if "converge_sc" in ph_settings and ph_settings["converge_sc"]:
-        func_out_kwargs = dict(db_kwargs, converge_sc=ph_settings.pop("converge_sc"))
-    else:
-        func_out_kwargs = dict(db_kwargs, converge_sc=False)
 
-    func_kwargs = ph_settings.copy()
-    func_kwargs["workdir"] = wd + "/" + fw_settings["fw_name"] + "/"
-    if serial:
-        task_spec = get_phonon_serial_task(
-            "hilde." + fw_settings["fw_name"] + ".workflow.run",
-            func_kwargs,
-            func_out_kwargs,
-            False,
-        )
-    else:
-        task_spec = get_phonon_parallel_task(
-            "hilde.tasks.fireworks.preprocess_ph_ph3",
-            func_kwargs,
-            False,
-        )
+    # if "converge_sc" in ph_settings and ph_settings["converge_sc"]:
+    #     func_out_kwargs = dict(db_kwargs, converge_sc=ph_settings.pop("converge_sc"))
+    # else:
+    #     func_out_kwargs = dict(db_kwargs, converge_sc=False)
+
+    typ = ph_settings.pop("type")
+    fw_settings["fw_name"] = typ
+    ph_settings["workdir"] = wd + "/" + typ + "/"
+    func_kwargs = {
+        typ + "_settings": ph_settings.copy(),
+    }
+    task_spec = get_phonon_task(
+        func_kwargs,
+        fw_settings.copy(),
+        False,
+    )
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec)
 
-def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, db_kwargs):
-    if ph_settings['type'] is phonopy:
+def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings):
+    if ph_settings['type'] is "phonopy":
         fw_settings["mod_spec_add"] = "ph"
     else:
         fw_settings["mod_spec_add"] = "ph3"
@@ -127,22 +122,23 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, db_kwarg
     fw_settings["fw_name"] = ph_settings.pop("type") + "_analysis"
     serial = ph_settings.pop("serial")
 
-    if "converge_sc" in ph_settings and ph_settings["converge_sc"]:
-        func_out_kwargs = dict(db_kwargs, converge_sc=ph_settings.pop("converge_sc"))
-    else:
-        func_out_kwargs = dict(db_kwargs, converge_sc=False)
+    # if "converge_sc" in ph_settings and ph_settings["converge_sc"]:
+    #     func_out_kwargs = dict(db_kwargs, converge_sc=ph_settings.pop("converge_sc"))
+    # else:
+    #     func_out_kwargs = dict(db_kwargs, converge_sc=False)
 
     func_kwargs = ph_settings.copy()
+    print(wd, fw_settings["fw_name"])
     func_kwargs["workdir"] = wd + "/" + fw_settings["fw_name"] + "/"
 
     task_spec = get_phonon_analysis_task(
         "hilde."+ fw_settings["fw_name"][:-9] + ".postprocess.postprocess",
         func_kwargs,
-        fw_settings,
-        "metadata_"+fw_settings["mod_spec_add"][:-7],
-        func_out_kwargs,
+        fw_settings["mod_spec_add"][:-7] + "_metadata",
+        fw_settings["mod_spec_add"],
+        False
     )
-    return generate_fw(atoms, task_spec, fw_settings, None, update_settings)
+    return generate_firework(task_spec, None, None, fw_settings=fw_settings)
 
 def generate_phonon_workflow(workflow, atoms, fw_settings):
     '''
@@ -163,12 +159,17 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         qadapter = workflow["kgrid_qadapter"]
     else:
         qadapter = None
+    if "kgrid_dfunc_min" in workflow.general:
+        dfunc_min = workflow.general.kgrid_dfunc_min
+    else:
+        dfunc_min = 1e-12
     fw_steps.append(
         generate_kgrid_fw(
             atoms,
             workflow.general.workdir_cluster,
             qadapter,
             fw_settings,
+            dfunc_min=dfunc_min,
         )
     )
     # Light Basis Set Relaxation
@@ -192,30 +193,33 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     fw_dep[fw_steps[-2]] = fw_steps[-1]
 
     # Tight Basis Set Relaxation
-    tight_relax_set = { "basisset_type": "tight"}
-    if "tight_rel_qadapter" in workflow:
-        qadapter = workflow["tight_rel_qadapter"]
+    if "basisset" in workflow.general:
+        basis = workflow.general.pop("basisset")
     else:
-        qadapter = None
-    fw_steps.append(
-        generate_relax_fw(
-            atoms,
-            workflow.general.workdir_cluster,
-            fw_settings,
-            qadapter,
-            tight_relax_set
+        basis = "tight"
+    if basis is "tight":
+        tight_relax_set = { "basisset_type": "tight"}
+        if "tight_rel_qadapter" in workflow:
+            qadapter = workflow["tight_rel_qadapter"]
+        else:
+            qadapter = None
+        fw_steps.append(
+            generate_relax_fw(
+                atoms,
+                workflow.general.workdir_cluster,
+                fw_settings,
+                qadapter,
+                tight_relax_set
+            )
         )
-    )
-    fw_dep[fw_steps[-2]] = fw_steps[-1]
+        fw_dep[fw_steps[-2]] = fw_steps[-1]
 
     pre_ph_fw = fw_steps[-1]
     fw_dep[pre_ph_fw] = []
 
     # Phonon Calculations
-    if "db_storage" in workflow:
-        db_kwargs = workflow.db_storage
-    else:
-        db_kwargs = None
+
+    # Second Order
     phonopy_set = ph_defaults.copy()
     del(phonopy_set['trigonal'])
     del(phonopy_set['q_mesh'])
@@ -225,10 +229,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     if "phonopy_qadapter" in workflow:
         qadapter = workflow["phonopy_qadapter"]
         if "walltime" in qadapter:
-            time_set = qadapter["walltime"].split(":")
-            phonopy_set["walltime"] = 0
-            for ii in range(len(time_set)-1, 0, -1):
-                phonopy_set["walltime"] += time_set[ii] * 60**ii
+            phonopy_set["walltime"] = get_time(qadapter["walltime"])
         else:
             phonopy_set["walltime"] = 1800
     else:
@@ -241,7 +242,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
                 phonopy_set[key] = val
     if "supercell_matrix" not in phonopy_set:
         phonopy_set["supercell_matrix"] = np.eye(3)
-        phonopy_set["converge_sc"] = True
+        # phonopy_set["converge_sc"] = True
     fw_steps.append(
         generate_phonon_fw(
             atoms,
@@ -249,21 +250,18 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
             fw_settings,
             qadapter,
             phonopy_set.copy(),
-            db_kwargs,
         )
     )
     fw_dep[pre_ph_fw].append(fw_steps[-1])
-    if not phonopy_set["serial"]:
-        fw_steps.append(
-            generate_phonon_postprocess_fw(
-                atoms,
-                workflow.workdir_local,
-                fw_settings,
-                phonopy_set,
-                db_kwargs,
-            )
+    fw_steps.append(
+        generate_phonon_postprocess_fw(
+            atoms,
+            workflow.general.workdir_local,
+            fw_settings,
+            phonopy_set,
         )
-        fw_dep[fw_steps[-2]] = fw_steps[-1]
+    )
+    fw_dep[fw_steps[-2]] = fw_steps[-1]
 
     if ("third_order" in workflow.general and workflow.general.third_order) or "phono3py" in workflow:
         phono3py_set = ph3_defaults.copy()
@@ -272,13 +270,11 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         del(phono3py_set["displacement"])
         del(phono3py_set["cutoff_pair_distance"])
         del(phono3py_set["q_mesh"])
+
         if "phono3py_qadapter" in workflow:
             qadapter = workflow["phono3py_qadapter"]
             if "walltime" in qadapter:
-                time_set = qadapter["walltime"].split(":")
-                phono3py_set["walltime"] = 0
-                for ii in range(len(time_set)-1, 0, -1):
-                    phono3py_set["walltime"] += time_set[ii] * 60**ii
+                phono3py_set["walltime"] = get_time(qadapter["walltime"])
             else:
                 phono3py_set["walltime"] = 1800
         else:
@@ -291,7 +287,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
                     phono3py_set[key] = val
         if "supercell_matrix" not in phono3py_set:
             phono3py_set["supercell_matrix"] = np.eye(3)
-            phono3py_set["converge_sc"] = True
+            # phono3py_set["converge_sc"] = True
         fw_steps.append(
             generate_phonon_fw(
                 atoms,
@@ -299,22 +295,20 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
                 fw_settings,
                 qadapter,
                 phono3py_set.copy(),
-                db_kwargs,
                 update_in_spec=False,
             )
         )
         fw_dep[pre_ph_fw].append(fw_steps[-1])
-        if not phono3py_set["serial"]:
-            fw_steps.append(
-                generate_phonon_postprocess_fw(
-                    atoms,
-                    workflow.workdir_local,
-                    fw_settings,
-                    workflow.phono3py.copy(),
-                    db_kwargs,
-                )
+        fw_steps.append(
+            generate_phonon_postprocess_fw(
+                atoms,
+                workflow.general.workdir_local,
+                fw_settings,
+                workflow.phono3py.copy(),
             )
-            fw_dep[fw_steps[-2]] = fw_steps[-1]
+        )
+        fw_dep[fw_steps[-2]] = fw_steps[-1]
+
     if "launchpad_yaml" in fw_settings:
         launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
     else:

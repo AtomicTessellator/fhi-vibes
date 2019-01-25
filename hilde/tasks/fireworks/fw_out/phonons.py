@@ -33,7 +33,7 @@ def post_bootstrap(
 
             detours = add_socket_calc_to_detours(detours, ph_settings, ph_fw_set, "ph")
         else:
-            detours = add_single_calc_to_detours(detours, ph_settings, atoms, ph_outputs["atoms_to_calculate"], calc_dict, fw_settings, "ph")
+            detours = add_single_calc_to_detours(detours, ph_settings, atoms, ph_outputs["atoms_to_calculate"], calc_dict, ph_fw_set, "ph")
     if "phono3py" in outputs:
         ph3_fw_set = fw_settings.copy()
         ph3_outputs = outputs["phono3py"]
@@ -54,7 +54,7 @@ def post_bootstrap(
             ph3_fw_set["calc_spec"] = "ph3_calculator"
             detours = add_socket_calc_to_detours(detours, ph3_settings, ph3_fw_set, "ph3")
         else:
-            detours = add_single_calc_to_detours(detours, ph3_settings, atoms, ph3_outputs["atoms_to_calculate"], calc_dict, fw_settings, "ph3")
+            detours = add_single_calc_to_detours(detours, ph3_settings, atoms, ph3_outputs["atoms_to_calculate"], calc_dict, ph3_fw_set, "ph3")
     return FWAction(update_spec=update_spec, detours=detours)
 
 def add_socket_calc_to_detours(detours, func_kwargs, fw_settings, prefix):
@@ -79,6 +79,9 @@ def add_single_calc_to_detours(detours, func_fw_kwargs, atoms, atoms_list, calc_
         if not sc:
             continue
         fw_settings=fw_settings.copy()
+        fw_settings["from_db"] = False
+        if "kpoint_density_spec" in fw_settings:
+            del(fw_settings["kpoint_density_spec"])
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
         for key, val in calc_dict.items():

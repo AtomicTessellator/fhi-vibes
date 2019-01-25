@@ -18,8 +18,8 @@ def main():
 
     workflow = Settings(settings_file=args.workflow)
     workflow["basisset"] = AttributeDict({"type": "light"})
-    print(workflow.basisset)
-    atoms, calc = setup_aims(settings=workflow)
+    atoms = workflow.get_atoms()
+    calc = setup_aims(settings=workflow)
     atoms.calc = calc
     fw_settings = {"to_launchpad": True}
     fw_settings["name"] = atoms.symbols.get_chemical_formula() + "_" + hash_atoms_and_calc(atoms)[0]
