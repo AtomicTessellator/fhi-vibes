@@ -20,7 +20,13 @@ from hilde.helpers.attribute_dict import AttributeDict as adict
 from . import get_supercells_with_displacements
 
 defaults = adict(
-    {"displacement": 0.01, "symprec": 1e-5, "trigonal": False, "q_mesh": [25, 25, 25]}
+    {
+        "displacement": 0.01,
+        "symprec": 1e-5,
+        "trigonal": False,
+        "is_diagonal": False,
+        "q_mesh": [25, 25, 25],
+    }
 )
 
 
@@ -31,6 +37,7 @@ def prepare_phonopy(
     displacement=defaults.displacement,
     symprec=defaults.symprec,
     trigonal=defaults.trigonal,
+    is_diagonal=defaults.is_diagonal,
 ):
     """ Create a Phonopy object """
 
@@ -49,7 +56,9 @@ def prepare_phonopy(
     phonon.generate_displacements(
         distance=displacement,
         is_plusminus="auto",
-        is_diagonal=True,
+        # is_diagonal=False is chosen to be in line with phono3py, see
+        # https://github.com/atztogo/phono3py/pull/15
+        is_diagonal=is_diagonal,
         is_trigonal=trigonal,
     )
 
