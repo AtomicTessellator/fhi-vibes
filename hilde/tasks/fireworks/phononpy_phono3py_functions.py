@@ -38,7 +38,23 @@ def bootstrap_phonon(atoms, calc, kpt_density, phonon_settings=None, phonon3_set
 
     return outputs
 
-
+def wrap_calc_socket(atoms_dict_to_calculate, calc_dict, metadata, trajectory="trajectory.yaml", workdir=".", backup_folder="backups", walltime=1800, **kwargs):
+    atoms_to_calculate = []
+    for at_dict in atoms_dict_to_calculate:
+        for key, val in calc_dict.items():
+            at_dict[key] = val
+        atoms_to_calculate.append(atoms2dict(at_dict))
+    calculator = atoms2dict(atoms_dict_to_calculate[0]).calc
+    return calculate_socket(
+        atoms_to_calculate,
+        calculator,
+        metadata=metadata,
+        trajectory=trajectory,
+        workdir=workdir,
+        backup_folder=backup_folder,
+        walltime=walltime,
+        **kwargs,
+    )
 # def preprocess(atoms, calc, kpt_density=None, phonopy_settings=None, phono3py_settings=None):
 #     '''
 #     Function to preprocess a phonon calculation

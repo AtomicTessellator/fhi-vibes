@@ -110,31 +110,7 @@ def generate_firework(
         setup_tasks + job_tasks, name=fw_settings["fw_name"], spec=fw_settings["spec"]
     )
 
-
-def get_phonon_serial_task(func, func_kwargs, db_kwargs=None, make_abs_path=False):
-    '''
-    Generate a serial Phononpy or Phono3py calculation task
-    Args:
-        func (str): The function path to the serial calculator
-        func_kwargs (dict): The defined kwargs for func
-        db_kwargs (dict): kwargs for adding the calculation to the database
-        make_abs_path (bool): If True make the paths of directories absolute
-    Return (TaskSpec): The specification object of the task
-    '''
-    if db_kwargs:
-        db_kwargs["calc_type"] = func.split(".")[1]
-        func_kwargs["db_kwargs"] = db_kwargs
-    func_kwargs['up_kpoint_from_pc'] = True
-    return TaskSpec(
-        func,
-        "hilde.tasks.fireworks.fw_action_outs.serial_phonopy_continue",
-        True,
-        func_kwargs,
-        make_abs_path=make_abs_path,
-    )
-
-
-def get_phonon_parallel_task(func, func_kwargs, make_abs_path=False):
+def get_phonon_task(func_kwargs, make_abs_path=False):
     '''
     Generate a parallel Phononpy or Phono3py calculation task
     Args:
@@ -149,19 +125,20 @@ def get_phonon_parallel_task(func, func_kwargs, make_abs_path=False):
         "phonopy_settings": ["supercell_matrix", "displacement"],
         "phono3py_settings": ["supercell_matrix", "displacement", "cutoff_pair_distance"],
     }
-
+    out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
     for set_key in ["phonopy_settings", "phono3py_settings"]:
         if set_key in func_kwargs:
-            kwargs_init[set_key]
+            kwargs_init[set_key] = {"name": set_key[:-9]}
+            kwargs_init_fw_out[set_key] = {"workdir": wd}
             for key, val in func_kwargs[set_key].items():
                 if key in preprocess_keys[set_key]:
                     kwargs_init[set_key][key] = val
-            wd = str(Path(func_kwargs[set_key].workdir).absolute())
-            kwargs_init_fw_out[set_key] = {"workdir": wd}
+                if key in out_keys:
+                    kwargs_init_fw_out[set_key][key] = val
 
     return TaskSpec(
-        func,
-        "hilde.tasks.fireworks.fw_action_outs.add_phonon_force_calcs",
+        "hilde.tasks.fireworks.phonopy_phono3py_functions.bootstrap_phonon",
+        "hilde.tasks.fireworks.fw_action_outs.phonons.post_bootstrap",
         True,
         kwargs_init,
         func_fw_out_kwargs=kwargs_init_fw_out,
