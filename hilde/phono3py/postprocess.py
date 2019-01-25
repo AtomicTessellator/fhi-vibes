@@ -6,6 +6,7 @@ import numpy as np
 from hilde.helpers.converters import dict2results
 from hilde.phonopy import displacement_id_str
 from hilde.trajectory import reader as traj_reader
+from hilde.helpers.pickle import psave
 
 from hilde.phono3py.wrapper import prepare_phono3py
 from hilde.phonopy.postprocess import postprocess as postprocess2
@@ -13,17 +14,17 @@ from hilde.phonopy.postprocess import postprocess as postprocess2
 
 def postprocess(
     workdir=".",
-    trajectory2="fc2/trajectory.yaml",
-    trajectory3="fc3/trajectory.yaml",
+    trajectory="fc3/trajectory.yaml",
+    trajectory_fc2="fc2/trajectory.yaml",
     pickle_file="phonon3.pick",
     **kwargs,
 ):
     """ Phono3py postprocess """
 
-    trajectory3 = Path(workdir) / trajectory3
+    trajectory3 = Path(workdir) / trajectory
 
     # first run phonopy postprocess
-    phonon = postprocess2(workdir=workdir, trajectory=trajectory2)
+    phonon = postprocess2(workdir=workdir, trajectory=trajectory_fc2)
 
     # read the third order trajectory
     calculated_atoms, metadata_full = traj_reader(trajectory3, True)
@@ -43,7 +44,6 @@ def postprocess(
 
     zero_force = np.zeros([len(calculated_atoms[0]), 3])
 
-
     # collect the forces and put zeros where no supercell was created
     force_sets = []
     disp_scells = phonon3.get_supercells_with_displacements()
@@ -58,7 +58,6 @@ def postprocess(
     phonon3.produce_fc3(force_sets)
 
     if pickle_file:
-        with (Path(workdir) / pickle_file).open("wb") as file:
-            pickle.dump(phonon3, file)
+        psave(phonon3, Path(workdir) / pickle_file)
 
     return phonon3

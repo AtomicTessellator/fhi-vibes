@@ -17,17 +17,7 @@ from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
-from . import get_supercells_with_displacements
-
-defaults = adict(
-    {
-        "displacement": 0.01,
-        "symprec": 1e-5,
-        "trigonal": False,
-        "is_diagonal": False,
-        "q_mesh": [25, 25, 25],
-    }
-)
+from . import get_supercells_with_displacements, defaults
 
 
 def prepare_phonopy(
