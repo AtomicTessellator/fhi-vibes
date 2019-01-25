@@ -15,5 +15,9 @@ from .settings import Settings, Configuration
 from .templates.aims import setup_aims
 from .helpers.restarts import restart
 
+
+# convenience:
+from hilde.helpers.pickle import pread, psave
+
 # load workflows
 from .phonopy.workflow import run_phonopy
