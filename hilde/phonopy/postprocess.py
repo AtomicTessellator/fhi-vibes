@@ -1,10 +1,10 @@
 """ Provide a full highlevel phonopy workflow """
 from pathlib import Path
-import pickle
 
 from hilde.helpers.converters import dict2results
 from hilde.phonopy.wrapper import prepare_phonopy
 from hilde.trajectory import reader
+from hilde.helpers.pickle import psave
 
 ####### TEMPORARY IMPORTS ############
 from pathlib import Path
@@ -66,8 +66,7 @@ def postprocess(
     phonon.produce_force_constants(force_sets)
 
     if pickle_file:
-        with (Path(workdir) / pickle_file).open("wb") as file:
-            pickle.dump(phonon, file)
+        psave(phonon, Path(workdir) / pickle_file)
 
     return phonon
 

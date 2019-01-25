@@ -5,11 +5,23 @@ from phonopy.structure.atoms import PhonopyAtoms
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
+from hilde.helpers.attribute_dict import AttributeDict as adict
 
 # from .workflow import run_phonopy
 # from .postprocess import postprocess
 
 displacement_id_str = "displacement_id"
+
+defaults = adict(
+    {
+        # for phono3py compatibility
+        "displacement": 0.03,
+        "symprec": 1e-5,
+        "trigonal": False,
+        "is_diagonal": False,
+        "q_mesh": [11, 11, 11],
+    }
+)
 
 
 def last_calculation_id(trajectory):
