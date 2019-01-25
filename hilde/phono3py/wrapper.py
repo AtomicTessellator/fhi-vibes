@@ -2,13 +2,11 @@
 A leightweight wrapper for Phono3py
 """
 
-from collections import namedtuple
 import numpy as np
 from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
-from hilde.helpers.supercell import make_cubic_supercell
-from hilde.phonopy import enumerate_displacements, get_supercells_with_displacements
-from hilde.structure.convert import to_Atoms, to_phonopy_atoms
+from hilde.phonopy import get_supercells_with_displacements
+from hilde.structure.convert import to_phonopy_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
 from hilde.helpers.numerics import get_3x3_matrix
 
@@ -30,11 +28,13 @@ def prepare_phono3py(
     phonon_supercell_matrix=None,
     fc2=None,
     cutoff_pair_distance=defaults.cutoff_pair_distance,
+    displacement_dataset=None,
     q_mesh=defaults.q_mesh,
     displacement=defaults.displacement,
     symmetrize_fc3q=False,
     symprec=defaults.symprec,
     log_level=defaults.log_level,
+    **kwargs,
 ):
     """ Prepare a Phono3py object """
 
@@ -58,6 +58,9 @@ def prepare_phono3py(
         frequency_factor_to_THz=const.omega_to_THz,
         log_level=log_level,
     )
+
+    if displacement_dataset:
+        phonon3.set_displacement_dataset(displacement_dataset)
 
     phonon3.generate_displacements(
         distance=displacement, cutoff_pair_distance=cutoff_pair_distance
@@ -117,6 +120,7 @@ def preprocess(
     displacement=defaults.displacement,
     symprec=defaults.symprec,
     log_level=defaults.log_level,
+    **kwargs,
 ):
     """
     Set up a Phono3py object and generate all the supercells necessary for the 3rd order

@@ -1,4 +1,4 @@
-import sys
+""" Provides messages and warnings naming the origin """
 import inspect
 
 
@@ -18,7 +18,7 @@ def warn(message, level=0):
     stars = "*" + "*" * level
 
     print(f"{stars} {typ} from file {frame[1]}, line {frame[2]}, function {frame[3]}:")
-    print(f"--> {message}")
+    print(f"--> {message}\n")
 
     if typ == "Error":
         raise RuntimeError("see above")

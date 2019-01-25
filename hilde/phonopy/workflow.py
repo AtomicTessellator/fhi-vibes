@@ -38,20 +38,27 @@ def bootstrap(name="phonopy", settings=None, **kwargs):
 
     if settings is None:
         settings = Settings()
-    atoms = settings.get_atoms()
+
+    if "atoms" not in kwargs:
+        atoms = settings.get_atoms()
+    else:
+        atoms = kwargs["atoms"]
+
+    phonopy_settings = {"atoms": atoms}
 
     if name not in settings:
-        warn(f"Settings do not contain name instructions.", level=2)
+        warn(f"Settings do not contain {name} instructions.", level=1)
+    else:
+        phonopy_settings.update(settings[name])
 
     # Phonopy preprocess
-    phonopy_settings = {"atoms": atoms, **settings[name], **kwargs}
-
+    phonopy_settings.update(kwargs)
     phonon, supercell, scs = preprocess(**phonopy_settings)
 
-    if "calculator" in kwargs:
-        calc = kwargs["calculator"]
-    else:
-        calc = setup_aims({"compute_forces": True}, settings=settings, atoms=supercell)
+    calc = kwargs.get(
+        "calculator",
+        setup_aims({"compute_forces": True}, settings=settings, atoms=supercell),
+    )
 
     # save metadata
     metadata = metadata2dict(phonon, calc)

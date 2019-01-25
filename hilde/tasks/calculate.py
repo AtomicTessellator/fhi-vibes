@@ -90,7 +90,7 @@ def setup_multiple(cells, calculator, workdir, mkdir):
 def calculate_socket(
     atoms_to_calculate,
     calculator,
-    metadata={},
+    metadata=None,
     trajectory="trajectory.yaml",
     workdir=".",
     backup_folder="backups",
@@ -144,8 +144,8 @@ def calculate_socket(
                 calc = calculator
 
             for n_cell, cell in enumerate(atoms_to_calculate):
-                if "forces" in calc.results:
-                    del calc.results["forces"]
+#                 if "forces" in calc.results:
+#                     del calc.results["forces"]
                 atoms.calc = calc
 
                 if cell is None:
@@ -156,6 +156,7 @@ def calculate_socket(
                     continue
 
                 # update calculation_atoms and compute force
+                atoms.info = cell.info
                 atoms.positions = cell.positions
                 _ = atoms.get_forces()
 
@@ -170,4 +171,3 @@ def calculate_socket(
         return False
 
     return True
-

@@ -1,4 +1,4 @@
-""" tools for storing MD trajectories 
+""" tools for storing MD trajectories
 
 Logic:
 * save md metadata to new trajectory
@@ -6,14 +6,11 @@ Logic:
 
 """
 
-import numpy as np
 import json
-from ase.atoms import Atoms
-from ase.calculators.singlepoint import SinglePointCalculator
 
 from hilde import __version__ as version
-from hilde.helpers.converters import input2dict, results2dict, dict2results
-from hilde.helpers.fileformats import to_yaml, from_yaml, last_from_yaml
+from hilde.helpers.converters import results2dict, dict2results
+from hilde.helpers.fileformats import to_yaml, from_yaml
 from hilde.helpers.hash import hash_atoms
 
 
@@ -26,7 +23,8 @@ def step2file(atoms, calc, file="trajectory.yaml", append_cell=False):
 def metadata2file(metadata, file="metadata.yaml"):
     """ save metadata to file """
 
-    rep = {"hilde": {"version": version}}
+    if metadata is None:
+        metadata = {}
 
     to_yaml({**metadata, "hilde": {"version": version}}, file, mode="w")
 
