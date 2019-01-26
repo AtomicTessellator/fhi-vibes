@@ -23,7 +23,10 @@ def bootstrap_phonon(atoms, calc, kpt_density, phonopy_settings=None, phono3py_s
         sd = settings["control"].pop("species_dir")
         settings["basisset"] = AttributeDict({"type": sd.split("/")[-1]})
 
-    if "use_pimd_wrapper" in phonopy_settings:
+    if(
+        (phonopy_settings and "use_pimd_wrapper" in phonopy_settings) or
+        (phono3py_settings and "use_pimd_wrapper" in phono3py_settings)
+    ):
         settings["socketio"] = AttributeDict({"port": phonopy_settings.pop(use_pimd_wrapper)})
 
     if "aims_command" in settings.control:
@@ -94,8 +97,16 @@ def collect_to_trajectory(
 ):
     trajectory = Path(workdir) / trajectory
     Path(workdir).mkdir(exist_ok=True, parents=True)
-    for el in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
-        el["number"] = int(el["number"])
+    if "Phonopy" in metadata:
+        for el in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
+            el["number"] = int(el["number"])
+
+    if "Phono3py" in metadata:
+        for el1 in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
+            el1["number"] = int(el1["number"])
+            for el2 in el1["second_atoms"]:
+                el2["number"] = int(el2["number"])
+
     metadata2file(metadata, trajectory)
     if isinstance(calculated_atoms[0], dict):
         temp_atoms = [dict2atoms(cell) for cell in calculated_atoms]

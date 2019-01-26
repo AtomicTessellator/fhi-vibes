@@ -12,6 +12,8 @@ def post_bootstrap(
 ):
     detours = []
     update_spec = {}
+    print(func_kwargs)
+    print(func_fw_kwargs)
     if "phonopy" in outputs:
         ph_fw_set = fw_settings.copy()
         ph_outputs = outputs["phonopy"]
@@ -37,7 +39,7 @@ def post_bootstrap(
     if "phono3py" in outputs:
         ph3_fw_set = fw_settings.copy()
         ph3_outputs = outputs["phono3py"]
-        ph3_settings = func_fw_kwargs["phonopy3_settings"].copy()
+        ph3_settings = func_fw_kwargs["phono3py_settings"].copy()
         update_spec["ph3_metadata"] = ph3_outputs["metadata"]
         if "spec" in ph3_fw_set:
             ph3_fw_set["spec"].update(update_spec)
@@ -46,7 +48,7 @@ def post_bootstrap(
         ph3_fw_set["mod_spec_add"] = "ph3_forces"
         ph3_fw_set["metadata_spec"] = "ph3_metadata"
         calc_dict = calc2dict(ph3_outputs["calculator"])
-        if ph_settings["serial"]:
+        if ph3_settings["serial"]:
             update_spec["ph3_calculated_atoms"] = [atoms2dict(at) for at in ph3_outputs["atoms_to_calculate"]]
             update_spec["ph3_calculator"] = calc_dict
             ph3_fw_set["spec"].update(update_spec)

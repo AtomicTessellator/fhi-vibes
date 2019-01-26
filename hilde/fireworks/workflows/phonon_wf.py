@@ -6,6 +6,7 @@ from hilde.fireworks.workflow_generator import (
     get_phonon_task,
     get_phonon_analysis_task,
     get_relax_task,
+    get_time,
     get_aims_relax_task,
     get_kgrid_task,
 )
@@ -114,6 +115,7 @@ def generate_phonon_fw(atoms, wd, fw_settings, qadapter, ph_settings, update_in_
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec)
 
 def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings):
+    print(ph_settings)
     if ph_settings['type'] is "phonopy":
         fw_settings["mod_spec_add"] = "ph"
     else:
@@ -262,11 +264,10 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         )
     )
     fw_dep[fw_steps[-2]] = fw_steps[-1]
-
-    if ("third_order" in workflow.general and workflow.general.third_order) or "phono3py" in workflow:
+    if ("use_third" in workflow.general and workflow.general.use_third) and "phono3py" in workflow:
         phono3py_set = ph3_defaults.copy()
         phono3py_set['serial'] = True
-        phono3py_set ['type'] = "phono3py"
+        phono3py_set    ['type'] = "phono3py"
         del(phono3py_set["displacement"])
         del(phono3py_set["cutoff_pair_distance"])
         del(phono3py_set["q_mesh"])
@@ -304,7 +305,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
                 atoms,
                 workflow.general.workdir_local,
                 fw_settings,
-                workflow.phono3py.copy(),
+                phono3py_set,
             )
         )
         fw_dep[fw_steps[-2]] = fw_steps[-1]
