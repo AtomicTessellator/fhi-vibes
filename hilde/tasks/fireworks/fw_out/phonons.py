@@ -12,8 +12,6 @@ def post_bootstrap(
 ):
     detours = []
     update_spec = {}
-    print(func_kwargs)
-    print(func_fw_kwargs)
     if "phonopy" in outputs:
         ph_fw_set = fw_settings.copy()
         ph_outputs = outputs["phonopy"]

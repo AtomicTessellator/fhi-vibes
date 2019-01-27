@@ -162,7 +162,6 @@ def to_json(obj, file, mode="a", indent=1):
     else:
         rep = json.dumps(obj, cls=NumpyEncoder, indent=indent)
 
-    print(file, mode)
     with open(file, mode) as f:
         if "a" in mode:
             f.write("\n---\n")
