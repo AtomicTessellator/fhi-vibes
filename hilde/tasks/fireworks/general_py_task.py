@@ -24,7 +24,8 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
         PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
     '''
     pt_func = fw.atoms_calculate_task.name
-    pt_args = task_spec.get_pt_args()
+    pt_args = task_spec.get_pt_args()[:4]
+    args = task_spec.get_pt_args()[4:]
     pt_inputs = task_spec.get_pt_inputs()
     pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
     if isinstance(atoms, str):
@@ -33,7 +34,7 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
         pt_inputs = [calc] + pt_inputs
         pt_args += [atoms]
     else:
-        pt_args += [atoms, calc]
+        pt_args += [atoms, calc, args]
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
 
 def setup_general_task(task_spec, fw_settings):
@@ -291,7 +292,7 @@ class TaskSpec:
     def get_pt_args(self):
         ''' get the PyTask args for the task '''
         if self.at:
-            return [self.func, self.func_fw_out, self.func_kwargs, self.func_fw_out_kwargs]
+            return [self.func, self.func_fw_out, self.func_kwargs, self.func_fw_out_kwargs, *self.args]
         return [self.func, self.func_fw_out, *self.args]
 
     def get_pt_kwargs(self, fw_settings):

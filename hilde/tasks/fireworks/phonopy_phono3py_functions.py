@@ -14,46 +14,47 @@ def bootstrap_phonon(atoms, calc, kpt_density, phonopy_settings=None, phono3py_s
     settings = Settings(settings_file=None)
     settings["atoms"] = atoms
     settings["control_kpt"] = AttributeDict({"density": kpt_density})
-
+    kwargs_boot = {}
     if calc.name.lower() != "aims":
-        raise ValueError("The calculator has to be aims")
+        kwargs_boot["calculator"] = calc
+    else:
+        settings["control"] = calc.parameters.copy()
+        if "species_dir" in settings.control:
+            sd = settings["control"].pop("species_dir")
+            settings["basisset"] = AttributeDict({"type": sd.split("/")[-1]})
 
-    settings["control"] = calc.parameters.copy()
-    if "species_dir" in settings.control:
-        sd = settings["control"].pop("species_dir")
-        settings["basisset"] = AttributeDict({"type": sd.split("/")[-1]})
+        if(
+            (phonopy_settings and "use_pimd_wrapper" in phonopy_settings) or
+            (phono3py_settings and "use_pimd_wrapper" in phono3py_settings)
+        ):
+            settings["socketio"] = AttributeDict({"port": phonopy_settings.pop(use_pimd_wrapper)})
 
-    if(
-        (phonopy_settings and "use_pimd_wrapper" in phonopy_settings) or
-        (phono3py_settings and "use_pimd_wrapper" in phono3py_settings)
-    ):
-        settings["socketio"] = AttributeDict({"port": phonopy_settings.pop(use_pimd_wrapper)})
-
-    if "aims_command" in settings.control:
-        del(settings.control["aims_command"])
+        if "aims_command" in settings.control:
+            del(settings.control["aims_command"])
 
     outputs = {}
     if phonopy_settings:
         settings["phonopy"] = phonopy_settings.copy()
         if "serial" in settings.phonopy:
             del(settings.phonopy['serial'])
-        outputs["phonopy"] = bootstrap(name="phonopy", settings=settings)
+        outputs["phonopy"] = bootstrap(name="phonopy", settings=settings, **kwargs_boot)
     if phono3py_settings:
         settings["phono3py"] = phono3py_settings.copy()
         if "serial" in settings.phono3py:
             del(settings.phono3py['serial'])
-        outputs["phono3py"] = bootstrap(name="phono3py", settings=settings)
+        outputs["phono3py"] = bootstrap(name="phono3py", settings=settings, **kwargs_boot)
 
     return outputs
 
 def wrap_calc_socket(atoms_dict_to_calculate, calc_dict, metadata, trajectory="trajectory.yaml", workdir=".", backup_folder="backups", walltime=1800, **kwargs):
     atoms_to_calculate = []
-
-    if "species_dir" in calc_dict["calculator_parameters"]:
-        from os import path
-        species_type = calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
-        calc_dict["calculator_parameters"]["species_dir"] = path.join(settings.machine.basissetloc, species_type)
-    calc_dict["command"] = settings.machine.aims_command
+    if calc_dict["calculator"].lower() == "aims":
+        settings = Settings(settings=None)
+        if "species_dir" in calc_dict["calculator_parameters"]:
+            from os import path
+            species_type = calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
+            calc_dict["calculator_parameters"]["species_dir"] = path.join(settings.machine.basissetloc, species_type)
+        calc_dict["command"] = settings.machine.aims_command
 
     for at_dict in atoms_dict_to_calculate:
         for key, val in calc_dict.items():

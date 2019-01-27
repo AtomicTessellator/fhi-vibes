@@ -9,8 +9,9 @@ from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.fireworks.rocket_launcher import rapidfire
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.paths import cwd
+from hilde.helpers.pickle import pread
 from hilde.phonon_db.phonon_db import connect
-from hilde.fireworks.workflow_generator import generate_firework
+from hilde.fireworks.workflow_generator import generate_firework, get_phonon_analysis_task
 
 from fireworks import Workflow
 
@@ -35,15 +36,16 @@ fw_settings = {
 }
 
 # set up the LaunchPad and reset it
-kwargs_init = {"supercell_matrix": smatrix, "displacement": 0.01}
-kwargs_init_fw_out = {"workdir": workdir}
+kwargs_init = {"supercell_matrix": smatrix, "displacement": 0.01, "serial": True}
+kwargs_init_fw_out = {"workdir": workdir, "serial": True}
 
 init_fw = generate_firework(
-    func="hilde.tasks.fireworks.preprocess_ph_ph3",
-    func_fw_out="hilde.tasks.fireworks.fw_action_outs.add_phonon_force_calcs",
+    func="hilde.tasks.fireworks.phonopy_phono3py_functions.bootstrap_phonon",
+    func_fw_out="hilde.tasks.fireworks.fw_out.phonons.post_bootstrap",
     func_kwargs={"phonopy_settings": kwargs_init},
     atoms=atoms,
     calc=calc,
+    args=[1.0],
     func_fw_out_kwargs={"phonopy_settings": kwargs_init_fw_out},
     atoms_calc_from_spec=False,
     fw_settings=fw_settings,
@@ -51,18 +53,20 @@ init_fw = generate_firework(
 
 kwargs = {
     "fireworks": True,
-    "db_kwargs": {"db_path": db_name,"original_atoms_hash": atoms_hash, "calc_type": "phonons"},
-    "workdir": workdir,
+    "workdir": workdir + "/analysis",
 }
+task_spec_list = get_phonon_analysis_task(
+    "hilde.phonopy.postprocess.postprocess",
+    kwargs,
+    "ph_metadata",
+    "ph_forces",
+)
 
 anal_fw = generate_firework(
-    func="hilde.phonopy.postprocess.postprocess_fireworks_temp",
-    func_fw_out="hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
-    args=[],
-    inputs=["metadata_ph", fw_settings["mod_spec_add"]],
-    func_kwargs=kwargs,
+    task_spec_list,
     fw_settings=fw_settings,
 )
+
 lp = LaunchPadHilde()
 lp.reset("", require_password=False)
 wf = Workflow([init_fw, anal_fw], {init_fw: [anal_fw]})
@@ -71,18 +75,9 @@ lp.add_wf(wf)
 with cwd(workdir + '/fireworks', mkdir=True):
     rapidfire(lp, wflow_id=wf.root_fw_ids)
 
-db = connect(db_name)
+phonon = pread(workdir + "/analysis/phonon.pick.gz")
 
-phonon = db.get_phonon(
-    selection=[
-        ("sc_matrix_2", "=", smatrix),
-        ("original_atoms_hash", "=", atoms_hash),
-        ("has_fc2", "=", True),
-        ("calc_type", "=", "phonons")
-    ]
-)
-
-phonon.set_mesh(3 * [3])
+phonon.set_mesh(3 * [5])
 _, _, frequencies, _ = phonon.get_mesh()
 print(f'Highest frequency: {frequencies.max():.3f} THz (Target: [8,10] THz)')
 assert 8 < frequencies.max() < 10
