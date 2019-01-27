@@ -36,7 +36,7 @@ fw_settings = {
 }
 
 # set up the LaunchPad and reset it
-kwargs_init = {"supercell_matrix": smatrix, "displacement": 0.01, "serial": True}
+kwargs_init = {"supercell_matrix": smatrix, "displacement": 0.03, "serial": True}
 kwargs_init_fw_out = {"workdir": workdir, "serial": True}
 
 init_fw = generate_firework(
