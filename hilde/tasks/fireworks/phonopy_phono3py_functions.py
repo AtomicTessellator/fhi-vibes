@@ -48,6 +48,13 @@ def bootstrap_phonon(atoms, calc, kpt_density, phonopy_settings=None, phono3py_s
 
 def wrap_calc_socket(atoms_dict_to_calculate, calc_dict, metadata, trajectory="trajectory.yaml", workdir=".", backup_folder="backups", walltime=1800, **kwargs):
     atoms_to_calculate = []
+
+    if "species_dir" in calc_dict["calculator_parameters"]:
+        from os import path
+        species_type = calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
+        calc_dict["calculator_parameters"]["species_dir"] = path.join(settings.machine.basissetloc, species_type)
+    calc_dict["command"] = settings.machine.aims_command
+
     for at_dict in atoms_dict_to_calculate:
         for key, val in calc_dict.items():
             at_dict[key] = val
