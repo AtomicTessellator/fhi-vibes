@@ -26,6 +26,6 @@ def postprocess(
     phonon.produce_force_constants(force_sets)
 
     if pickle_file:
-        psave(phonon, Path(workdir) / pickle_file)
+        psave(phonon, trajectory.parent / pickle_file)
 
     return phonon
