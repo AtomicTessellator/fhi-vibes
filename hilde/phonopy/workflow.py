@@ -67,5 +67,6 @@ def bootstrap(name="phonopy", settings=None, **kwargs):
         "atoms_to_calculate": scs,
         "calculator": calc,
         "metadata": metadata,
+        "workdir": name,
         **phonopy_settings,
     }
