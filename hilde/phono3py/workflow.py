@@ -20,5 +20,6 @@ def run_phono3py(postprocess_args=None, **kwargs):
         print("Start postprocess.")
         if postprocess_args is None:
             postprocess_args = {}
-        postprocess(**postprocess_args)
+        args.update(postprocess_args)
+        postprocess(**args)
         print("done.")
