@@ -6,14 +6,12 @@ import json
 
 import numpy as np
 from psycopg2 import connect
-from psycopg2.extras import execute_values
 
 import ase.io.jsonio
 from ase.db.postgresql import jsonb_indices
 from ase.db.postgresql import remove_nan_and_inf
 from ase.db.postgresql import insert_nan_and_inf
 from ase.db.postgresql import Connection
-from ase.db.postgresql import Cursor
 
 from hilde.phonon_db.phonon_sqlitedb import init_statements
 from hilde.phonon_db.phonon_sqlitedb import index_statements
@@ -110,6 +108,7 @@ class PhononPostgreSQLDatabase(PhononSQLite3Database):
 
 
 def schema_update(sql):
+    ''' updates the sql schema to remove limitations of SQL Light'''
     for a, b in [
         ("REAL", "DOUBLE PRECISION"),
         ("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY"),
@@ -155,10 +154,14 @@ def schema_update(sql):
             dtype = "DOUBLE PRECISION"
         sql = sql.replace("{} BLOB,".format(column), "{} {}[],".format(column, dtype))
     for column in arrays_2D:
-        sql = sql.replace("{} BLOB,".format(column), "{} DOUBLE PRECISION[][],".format(column))
+        sql = sql.replace(
+            "{} BLOB,".format(column), "{} DOUBLE PRECISION[][],".format(column)
+        )
 
     for column in arrays_3D:
-        sql = sql.replace("{} BLOB,".format(column), "{} DOUBLE PRECISION[][][],".format(column))
+        sql = sql.replace(
+            "{} BLOB,".format(column), "{} DOUBLE PRECISION[][][],".format(column)
+        )
 
     for column in txt2jsonb:
         sql = sql.replace("{} TEXT,".format(column), "{} JSONB,".format(column))

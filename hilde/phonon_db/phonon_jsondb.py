@@ -1,3 +1,4 @@
+'''JSON Variant of Phonon Database'''
 import os
 
 import numpy as np

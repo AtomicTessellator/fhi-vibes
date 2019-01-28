@@ -1,3 +1,4 @@
+'''Database API for accessing and adding objects to the phonon database'''
 from ase.atoms import Atoms
 from phonopy import Phonopy
 
@@ -6,6 +7,7 @@ from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonon_db.row import phonon3_to_dict
+
 
 def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **kwargs):
     """
@@ -37,7 +39,7 @@ def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **k
             from phono3py.phonon3 import Phono3py
             if isinstance(phonon, Phono3py):
                 phonon = phonon3_to_dict(phonon)
-        except:
+        except ImportError:
             pass
     try:
         db = connect(db_path)
@@ -49,18 +51,22 @@ def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **k
         ]
         selection_no_sc_mat = selection.copy()
         if (kwargs is not None) and ("original_atoms_hash" in kwargs):
-            selection.append(("original_atoms_hash", "=", kwargs["original_atoms_hash"]))
+            selection.append(
+                ("original_atoms_hash", "=", kwargs["original_atoms_hash"])
+            )
         if (kwargs is not None) and ("sc_matrix_2" in phonon):
             selection.append(("sc_matrix_2", "=", phonon["sc_matrix_2"]))
-            del(kwargs["sc_matrix_2"])
+            del kwargs["sc_matrix_2"]
         if (kwargs is not None) and ("sc_matrix_3" in phonon):
             selection.append(("sc_matrix_3", "=", phonon["sc_matrix_3"]))
-            del(kwargs["sc_matrix_3"])
+            del kwargs["sc_matrix_3"]
         try:
             rows = list(db.select(selection=selection))
             rows_no_sc = list(db.select(selection=selection_no_sc_mat))
             for row in rows_no_sc:
-                if (row.sc_matrix_2 is None and "sc_matrix_2" in phonon) != (row.sc_matrix_3 is None and "sc_matrix_3" in phonon):
+                if (row.sc_matrix_2 is None and "sc_matrix_2" in phonon) != (
+                    row.sc_matrix_3 is None and "sc_matrix_3" in phonon
+                ):
                     rows.append(row)
             if not rows:
                 raise KeyError
