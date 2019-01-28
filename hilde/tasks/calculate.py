@@ -92,7 +92,7 @@ def calculate_socket(
     calculator,
     metadata=None,
     trajectory="trajectory.yaml",
-    workdir=".",
+    workdir="calculations",
     backup_folder="backups",
     **kwargs,
 ):
