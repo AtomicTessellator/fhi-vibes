@@ -10,10 +10,8 @@ type = light
 [socketio]
 port = 12345
 
-[phonopy]
-supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
-
 [phono3py]
+trajectory_fc2 = phonopy_trajectory.yaml
 supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
 
 [restart]

@@ -1,4 +1,4 @@
-# configfile written at 2019/01/28 12:48:05
+# configfile written at 2019/01/28 13:00:14
 
 [common]
 home_dir:                      /home/knoop/local/hilde
@@ -26,10 +26,8 @@ xc:                            pw-lda
 [basisset]
 type:                          light
 
-[phonopy]
-supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-
 [phono3py]
+trajectory_fc2:                phonopy_trajectory.yaml
 supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 
 [restart]
