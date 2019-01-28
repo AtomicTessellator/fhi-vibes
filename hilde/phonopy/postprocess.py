@@ -8,10 +8,10 @@ from hilde.helpers.pickle import psave
 
 
 def postprocess(
-    workdir=".", trajectory="trajectory.yaml", pickle_file="phonon.pick", **kwargs
+    trajectory="phonopy/trajectory.yaml", pickle_file="phonon.pick", **kwargs
 ):
     """ Phonopy postprocess """
-    trajectory = Path(workdir) / trajectory
+    trajectory = Path(trajectory)
 
     calculated_atoms, metadata = reader(trajectory, True)
 
