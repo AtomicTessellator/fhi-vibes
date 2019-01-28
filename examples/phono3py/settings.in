@@ -1,0 +1,20 @@
+[geometry]
+file =             geometry.in
+
+[control]
+xc =               pw-lda
+
+[basisset]
+type = light
+
+[socketio]
+port = 12345
+
+[phonopy]
+supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
+
+[phono3py]
+supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
+
+[restart]
+command = python run_phono3py.py
