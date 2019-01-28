@@ -29,7 +29,7 @@ def post_bootstrap(
             update_spec["ph_calculator"] = calc_dict
             ph_fw_set["spec"].update(update_spec)
             ph_fw_set["calc_atoms_spec"] = "ph_calculated_atoms"
-            ph_fw_set["calc_spec"] = "ph3_calculator"
+            ph_fw_set["calc_spec"] = "ph_calculator"
 
             detours = add_socket_calc_to_detours(detours, ph_settings, ph_fw_set, "ph")
         else:
