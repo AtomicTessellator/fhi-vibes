@@ -1,5 +1,3 @@
 # config file to control phonopy workflow
 [phonopy]
 supercell_matrix = [1, 1, 2]
-
-workdir =    test_run
