@@ -83,6 +83,10 @@ def reader(file, get_metadata=False):
             info = obj["info"]
             atoms.info.update(info)
 
+        # compatibility with older trajectories
+        if "MD" in obj:
+            atoms.info.update(obj["MD"])
+
         trajectory.append(atoms)
     if get_metadata:
         return trajectory, metadata
