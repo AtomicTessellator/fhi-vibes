@@ -9,8 +9,6 @@ from hilde.helpers.attribute_dict import AttributeDict as adict
 from hilde.helpers.numerics import get_3x3_matrix
 from . import defaults
 
-print(defaults)
-
 
 def prepare_phono3py(
     atoms,
