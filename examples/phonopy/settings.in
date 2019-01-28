@@ -1,19 +1,22 @@
+# configfile written at 2019/01/28 12:07:54
+
 [geometry]
-file =             geometry.in
+file:                geometry.in
 
 [control]
-xc =               pw-lda
+xc:                  pw-lda
+
+[control_kpt]
+density:             2
 
 [basisset]
-type = light
+type:                light
 
 [socketio]
-port = null
+port:                12345
 
 [phonopy]
-supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-kpt_density =      3.5
-workdir =    test_run
+supercell_matrix:    [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 
 [restart]
-command = python run_phonopy.py
+command:             python run_phonopy.py
