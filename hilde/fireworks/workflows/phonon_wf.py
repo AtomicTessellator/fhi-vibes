@@ -33,6 +33,7 @@ def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=T
     return fw_settings
 
 def generate_fw(atoms, task_list, fw_settings, qadapter, update_settings=None, update_in_spec=True):
+    fw_settings = fw_settings.copy()
     if qadapter:
         fw_settings = update_fw_settings(fw_settings, fw_settings["fw_name"], qadapter, update_in_spec=update_in_spec)
     else:
@@ -49,11 +50,12 @@ def generate_fw(atoms, task_list, fw_settings, qadapter, update_settings=None, u
         task_list,
         at,
         cl,
-        fw_settings.copy(),
+        fw_settings,
         update_calc_settings=update_settings,
     )
 
 def generate_kgrid_fw(atoms, wd, qadapter, fw_settings, dfunc_min=1e-12):
+    fw_settings = fw_settings.copy()
     func_kwargs = {
         "workdir": wd + "/" + fw_settings["fw_name"] + "/",
         "trajectory": "kpt_trajectory.yaml",
@@ -63,6 +65,7 @@ def generate_kgrid_fw(atoms, wd, qadapter, fw_settings, dfunc_min=1e-12):
     return generate_fw(atoms, task_spec, fw_settings, qadapter)
 
 def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
+    fw_settings = fw_settings.copy()
     fw_settings["fw_name"] = rel_settings["basisset_type"] + "_relax"
     func_kwargs = {"workdir": wd + "/" + fw_settings["fw_name"] + "/"}
     fw_out_kwargs = {"relax_step": 0}
@@ -88,6 +91,7 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings)
 
 def generate_phonon_fw(atoms, wd, fw_settings, qadapter, ph_settings, update_in_spec=True):
+    fw_settings = fw_settings.copy()
     update_settings = {}
     if "basisset_type" in ph_settings:
         update_settings["basisset_type"] = ph_settings.pop("basisset_type")
@@ -95,11 +99,6 @@ def generate_phonon_fw(atoms, wd, fw_settings, qadapter, ph_settings, update_in_
         update_settings["use_pimd_wrapper"] = ph_settings.pop("socket_io_port")
     elif "use_pimd_wrapper" in ph_settings:
         update_settings["use_pimd_wrapper"] = ph_settings.pop("use_pimd_wrapper")
-
-    # if "converge_sc" in ph_settings and ph_settings["converge_sc"]:
-    #     func_out_kwargs = dict(db_kwargs, converge_sc=ph_settings.pop("converge_sc"))
-    # else:
-    #     func_out_kwargs = dict(db_kwargs, converge_sc=False)
 
     typ = ph_settings.pop("type")
     fw_settings["fw_name"] = typ
@@ -109,13 +108,13 @@ def generate_phonon_fw(atoms, wd, fw_settings, qadapter, ph_settings, update_in_
     }
     task_spec = get_phonon_task(
         func_kwargs,
-        fw_settings.copy(),
+        fw_settings,
         False,
     )
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec)
 
 def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings):
-    print(ph_settings)
+    fw_settings = fw_settings.copy()
     if ph_settings['type'] is "phonopy":
         fw_settings["mod_spec_add"] = "ph"
     else:

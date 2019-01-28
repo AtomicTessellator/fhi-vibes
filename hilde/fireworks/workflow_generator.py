@@ -54,6 +54,7 @@ def generate_firework(
     Returns (Firework):
         A Firework that will perform the desired operation on a set of atoms, and process the outputs for Fireworks
     """
+    fw_settings = fw_settings.copy()
     if update_calc_settings is None:
         update_calc_settings = {}
     if func:
@@ -130,6 +131,8 @@ def get_phonon_task(func_kwargs, fw_settings=None, make_abs_path=False):
         make_abs_path (bool): If True make the paths of directories absolute
     Return (TaskSpec): The specification object of the task
     '''
+    if fw_settings is not None:
+        fw_settings = fw_settings.copy()
     kwargs_init = {}
     kwargs_init_fw_out = {}
     preprocess_keys = {
@@ -335,7 +338,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         task_spec_list.append(
             get_phonon_task(
                 func_kwargs,
-                fw_settings=fw_settings.copy(),
+                fw_settings=fw_settings,
                 make_abs_path=make_abs_path,
             )
         )
