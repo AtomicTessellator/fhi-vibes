@@ -1,13 +1,5 @@
-from hilde import Settings, setup_aims
-from hilde.relaxation.bfgs import relax
+""" Perform a relaxation with ASE """
 
-settings = Settings()
+from hilde.relaxation import run_relaxation
 
-atoms, calc = setup_aims(settings=settings)
-
-converged = relax(atoms, calc, **settings.relaxation)
-
-if converged:
-    print("done.")
-else:
-    print("Relaxation not converged, please inspect.")
+run_relaxation()
