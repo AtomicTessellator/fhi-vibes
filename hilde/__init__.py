@@ -21,3 +21,4 @@ from hilde.helpers.pickle import pread, psave
 
 # load workflows
 from .phonopy.workflow import run_phonopy
+from .phono3py.workflow import run_phono3py
