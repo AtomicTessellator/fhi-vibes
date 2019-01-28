@@ -66,6 +66,8 @@ def generate_firework(
         and process the outputs for Fireworks
     """
     fw_settings = fw_settings.copy()
+    if "spec" not in fw_settings:
+        fw_settings["spec"] = {}
     if update_calc_settings is None:
         update_calc_settings = {}
     if func:

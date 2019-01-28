@@ -166,7 +166,7 @@ def generate_phonon_fw(
     fw_settings["fw_name"] = typ
     ph_settings["workdir"] = wd + "/" + typ + "/"
     func_kwargs = {typ + "_settings": ph_settings.copy()}
-    task_spec = get_phonon_task(func_kwargs, fw_settings, False)
+    task_spec = get_phonon_task(func_kwargs, fw_settings)
     return generate_fw(
         atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec
     )

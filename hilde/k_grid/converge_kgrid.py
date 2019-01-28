@@ -1,12 +1,10 @@
 """Function that performs a k-grid optimization for a structure"""
 from pathlib import Path
-import numpy as np
 
-from ase.constraints import UnitCellFilter
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.k_grid.kpointoptimizer import KPointOptimizer
-from hilde.helpers.converters import input2dict, results2dict
+from hilde.helpers.converters import input2dict
 from hilde.helpers.paths import cwd
 from hilde.trajectory import metadata2file, step2file
 from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
@@ -19,14 +17,12 @@ def converge_kgrid(
     loss_func=lambda x: x,
     dfunc_min=1e-12,
     even=True,
-    unit_cell=True,
     maxsteps=100,
     trajectory="kpt_trajectory.yaml",
     logfile="kpoint_conv.log",
     socketio_port=None,
     walltime=1800,
     workdir=".",
-    kpts_density_init=1.0,
 ):
     """
     Converges the k-grid relative to some loss function
@@ -81,7 +77,7 @@ def converge_kgrid(
             metadata["geometry_optimization"] = opt.todict()
             metadata2file(metadata, trajectory)
 
-        for ii, converged in enumerate(opt.irun(steps=maxsteps)):
+        for _, converged in enumerate(opt.irun(steps=maxsteps)):
             step2file(atoms, atoms.calc, trajectory)
             if watchdog():
                 break
