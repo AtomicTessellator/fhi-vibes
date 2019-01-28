@@ -363,8 +363,6 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
 
     fw_settings = fw_settings.copy()
     task_spec_list = []
-    fw_settings["mod_spec_add"] = "ph_forces"
-    fw_settings["mod_spec_add"] = "ph3_forces"
     if "phonopy" in step_settings:
         ts_list = get_phonon_analysis_task(
             "hilde.phonopy.postprocess.postprocess",
@@ -388,7 +386,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
 
     fw_settings[
         "fw_name"
-    ] += f"phonon_analysis_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    ] = f"phonon_analysis_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
 
     fw_list.append(
         generate_firework(task_spec_list, None, None, fw_settings=fw_settings)

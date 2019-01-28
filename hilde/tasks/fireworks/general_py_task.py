@@ -34,7 +34,7 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
         pt_inputs = [calc] + pt_inputs
         pt_args += [atoms]
     else:
-        pt_args += [atoms, calc, args]
+        pt_args += [atoms, calc, *args]
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
 
 def setup_general_task(task_spec, fw_settings):
@@ -180,7 +180,10 @@ def atoms_calculate_task(
     del (atoms_dict["results"])
     atoms = dict2atoms(atoms_dict)
     try:
-        outputs = func(atoms, atoms.calc, *args, **func_kwargs)
+        if len(args) > 0:
+            outputs = func(atoms, atoms.calc, *args, **func_kwargs)
+        else:
+            outputs = func(atoms, atoms.calc, **func_kwargs)
     except:
         os.chdir(start_dir)
         raise RuntimeError(
