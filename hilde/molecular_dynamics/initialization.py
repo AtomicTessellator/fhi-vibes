@@ -79,7 +79,7 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
             print("MD prepared from last step in trajectory")
             return True
 
-    print(f"** {trajectory} does  not exist, nothing to prepare")
+    print(f"** {trajectory} does not exist, nothing to prepare")
     return False
 
 
