@@ -1,3 +1,7 @@
 # config file to control phonopy workflow
 [phonopy]
-supercell_matrix = [1, 1, 2]
+supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
+
+[phono3py]
+trajectory_fc2 = phonopy/trajectory.yaml
+supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
