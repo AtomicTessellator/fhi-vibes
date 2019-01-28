@@ -1,5 +1,4 @@
 from pathlib import Path
-import numpy as np
 
 from ase.constraints import UnitCellFilter
 from ase.calculators.socketio import SocketIOCalculator
@@ -23,11 +22,11 @@ def relax(
     fmax=0.01,
     maxstep=0.2,
     unit_cell=True,
-    cell_factor=1,
+    cell_factor=None,
     maxsteps=100,
     trajectory="trajectory.yaml",
     logfile="relax.log",
-    walltime=1800,
+    walltime=84400,
     workdir="bfgs",
     clean_output=True,
     output="geometry.in.relaxed",
@@ -54,10 +53,7 @@ def relax(
 
     if calculator.name == "aims":
         calculator.parameters["compute_forces"] = True
-        if unit_cell:
-            calculator.parameters["compute_analytical_stress"] = True
-        else:
-            calculator.parameters["compute_analytical_stress"] = False
+        calculator.parameters["compute_analytical_stress"] = bool(unit_cell)
 
     socketio_port = get_port(calculator)
     if socketio_port is None:
@@ -86,7 +82,7 @@ def relax(
             metadata2file(metadata, trajectory)
             settings.write()
 
-        for ii, converged in enumerate(opt.irun(fmax=fmax, steps=maxsteps)):
+        for _, converged in enumerate(opt.irun(fmax=fmax, steps=maxsteps)):
             atoms.info.update({"nsteps": opt.nsteps})
             step2file(atoms, atoms.calc, trajectory, append_cell=unit_cell)
             if watchdog():
