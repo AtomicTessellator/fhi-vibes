@@ -151,7 +151,7 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
         hashes['traj_hash'], hashes[typ + '_hash'] = hash_traj(calculated_atoms, metadata, True)
         hashes['cell_hash'] = hash_atoms_and_calc(atoms)[0]
 
-        selection_no_sc.append(hashes["cell_hash"])
+        selection_no_sc.append(("cell_hash", '=', hashes["cell_hash"]))
 
         np.round(atoms.cell, 15)
         np.round(atoms.positions, 15)

@@ -170,6 +170,17 @@ class PhononRow(AtomsRow):
         self._keys = list(kvp.keys())
         self.__dict__.update(kvp)
         self.__dict__.update(dct)
+        self.clean_displacement_dataset()
+
+    def clean_displacement_dataset(self):
+        if "displacement_dataset_2" in self and self.displacement_dataset_2 is not None:
+            for disp1 in self.displacement_dataset_2['first_atoms']:
+                disp1["number"] = int(disp1["number"])
+        if "displacement_dataset_3" in self and self.displacement_dataset_3 is not None:
+            for ii,disp1 in enumerate(self.displacement_dataset_3['first_atoms']):
+                disp1["number"] = int(disp1["number"])
+                for disp2 in disp1['second_atoms']:
+                    disp2["number"] = int(disp2["number"])
 
     @property
     def fc_2(self):

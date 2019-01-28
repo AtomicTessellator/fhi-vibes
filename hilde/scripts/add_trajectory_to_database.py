@@ -11,4 +11,5 @@ def main():
     if not args.db_path:
         settings = Settings()
         arg.db_path = settings.database.name
-    to_database(args.db_path, args.trajectory)
+    hashes = to_database(args.db_path, args.trajectory)
+    print(hashes)
