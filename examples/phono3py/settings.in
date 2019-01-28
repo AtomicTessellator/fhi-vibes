@@ -4,6 +4,9 @@ file =             geometry.in
 [control]
 xc =               pw-lda
 
+[control_kpt]
+density:             2
+
 [basisset]
 type = light
 
