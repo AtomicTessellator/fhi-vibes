@@ -1,0 +1,39 @@
+# configfile written at 2019/01/28 12:12:43
+
+[common]
+home_dir:            /home/knoop/local/hilde
+email:               knoop@fhi-berlin.mpg.de
+
+[machine]
+basissetloc:         /home/knoop/FHIaims/aimsfiles/species_defaults
+aims_command:        run_aims
+
+[watchdog]
+walltime:            1800
+
+[nomad]
+token:               0cwpbfxHVv3Lt0ybxYIjSPOt2CRLZhJKWM54kFYi1YRFyT4wz6Wazst5I7pOP8SG
+
+[socketio]
+port:                12345
+
+[geometry]
+file:                geometry.in
+
+[control]
+xc:                  pw-lda
+
+[control_kpt]
+density:             2
+
+[basisset]
+type:                light
+
+[phonopy]
+supercell_matrix:    [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+
+[phono3py]
+supercell_matrix:    [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+
+[restart]
+command:             python run_phonopy.py

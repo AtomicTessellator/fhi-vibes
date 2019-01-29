@@ -38,6 +38,7 @@ setup(
             "rlaunch_hilde = hilde.fireworks.scripts.rlaunch_run:rlaunch",
             "claunch_hilde = hilde.fireworks.scripts.claunch_run:claunch",
             "nomad_upload = hilde.scripts.nomad_upload:main",
+            "update_md_trajectory = hilde.scripts.update_md_trajectory:main",
         ]
     },
     data_files=[(".", ["hilde.cfg", "fireworks.cfg"])],

@@ -76,10 +76,10 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
 
             atoms.set_positions(last_atoms["atoms"]["positions"])
             atoms.set_velocities(last_atoms["atoms"]["velocities"])
-            print("MD prepared from last step in trajectory")
+            print(f"Resume MD from last step in\n  {trajectory}\n")
             return True
 
-    print(f"** {trajectory} does  not exist, nothing to prepare")
+    print(f"** {trajectory} does not exist, nothing to prepare")
     return False
 
 

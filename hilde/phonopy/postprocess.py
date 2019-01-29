@@ -48,10 +48,10 @@ def collect_forces_to_trajectory(
 
 
 def postprocess(
-    workdir=".", trajectory="trajectory.yaml", pickle_file="phonon.pick", **kwargs
+    trajectory="phonopy/trajectory.yaml", pickle_file="phonon.pick", **kwargs
 ):
     """ Phonopy postprocess """
-    trajectory = Path(workdir) / trajectory
+    trajectory = Path(trajectory)
 
     calculated_atoms, metadata = reader(trajectory, True)
 
@@ -66,7 +66,7 @@ def postprocess(
     phonon.produce_force_constants(force_sets)
 
     if pickle_file:
-        psave(phonon, Path(workdir) / pickle_file)
+        psave(phonon, trajectory.parent / pickle_file)
 
     return phonon
 

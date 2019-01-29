@@ -20,4 +20,12 @@ from .helpers.restarts import restart
 from hilde.helpers.pickle import pread, psave
 
 # load workflows
-from .phonopy.workflow import run_phonopy
+try:
+    from .phonopy.workflow import run_phonopy
+except ModuleNotFoundError:
+    print("** Phonopy is not installed.")
+
+try:
+    from .phono3py.workflow import run_phono3py
+except ModuleNotFoundError:
+    print("** Phono3py is not installed.")

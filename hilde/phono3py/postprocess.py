@@ -1,7 +1,6 @@
 """ Provide a full highlevel phonopy workflow """
 
 from pathlib import Path
-import pickle
 import numpy as np
 from hilde.helpers.converters import dict2results
 from hilde.phonopy import displacement_id_str
@@ -13,15 +12,14 @@ from hilde.phonopy.postprocess import postprocess as postprocess2
 
 
 def postprocess(
-    workdir=".",
-    trajectory="fc3/trajectory.yaml",
-    trajectory_fc2="fc2/trajectory.yaml",
+    trajectory="phono3py/trajectory.yaml",
+    trajectory_fc2="phonopy/trajectory.yaml",
     pickle_file="phonon3.pick",
     **kwargs,
 ):
     """ Phono3py postprocess """
 
-    trajectory3 = Path(workdir) / trajectory
+    trajectory3 = Path(trajectory)
 
     # first run phonopy postprocess
     try:
@@ -60,6 +58,6 @@ def postprocess(
     phonon3.produce_fc3(force_sets)
 
     if pickle_file:
-        psave(phonon3, Path(workdir) / pickle_file)
+        psave(phonon3, trajectory3.parent / pickle_file)
 
     return phonon3
