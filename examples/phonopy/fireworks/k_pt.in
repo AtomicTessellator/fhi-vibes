@@ -16,10 +16,8 @@ port = null
 maxsteps = 200
 workdir = test_run//kgrid
 trajectory = trajectory.yaml
-kpts_density_init = 2.0
 dfunc_min = 1e12
 even = True
-unit_cell = True
 
 [fw_settings]
 fw_name = kgrid_opt

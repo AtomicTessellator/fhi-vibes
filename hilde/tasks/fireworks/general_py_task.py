@@ -88,7 +88,7 @@ def generate_update_calc_task(calc_spec, updated_settings):
     """
     return PyTask(
         {
-            "func": fw.update_calc_in_db.name,
+            "func": "hilde.tasks.fireworks.utility_tasks.update_calc_in_db",
             "args": [calc_spec, updated_settings],
             "inputs": [calc_spec],
         }
@@ -116,7 +116,12 @@ def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     else:
         inputs = [cl, kpt_spec, at]
     return PyTask(
-        {"func": fw.mod_calc.name, "args": args, "inputs": inputs, "kwargs": kwargs}
+        {
+            "func": "hilde.tasks.fireworks.utility_tasks.mod_calc",
+            "args": args,
+            "inputs": inputs,
+            "kwargs": kwargs
+        }
     )
 
 
