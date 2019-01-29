@@ -1,16 +1,33 @@
-from hilde.phonopy.wrapper import preprocess as ph_preprocess
-from hilde.phono3py.wrapper import preprocess as ph3_preprocess
+'''Functions used to wrap around HiLDe Phonopy/Phono3py functions'''
 from pathlib import Path
 
-from hilde.tasks.fireworks.general_py_task import get_func
-from hilde.helpers.converters import dict2atoms, dict2results, atoms2dict
+from hilde.helpers.converters import dict2atoms
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.workflow import bootstrap
 from hilde.settings import Settings, AttributeDict
 from hilde.trajectory import step2file, metadata2file
 from hilde.tasks.calculate import calculate_socket
 
-def bootstrap_phonon(atoms, calc, kpt_density, phonopy_settings=None, phono3py_settings=None, fw_settings=None):
+
+def bootstrap_phonon(
+    atoms,
+    calc,
+    kpt_density,
+    phonopy_settings=None,
+    phono3py_settings=None,
+    fw_settings=None,
+):
+    '''
+    Creates a Settings object and passes it to the bootstrap function
+    Args:
+        atoms (ASE Atoms Object): Atoms object of the primitive cell
+        calc (ASE Calculator): Calculator for the force calculations
+        kpt_density (float): k-point density for the MP-Grid
+        phonopy_settings (dict): kwargs for phonopy setup
+        phono3py_settings (dict): kwargs for phono3py setup
+        fw_settings (dict): FireWork specific settings
+    Returns (dict): The output of hilde.phonopy.workflow.bootstrap for phonopy and phono3py
+    '''
     settings = Settings(settings_file=None)
     settings["atoms"] = atoms
     settings["control_kpt"] = AttributeDict({"density": kpt_density})
@@ -23,37 +40,69 @@ def bootstrap_phonon(atoms, calc, kpt_density, phonopy_settings=None, phono3py_s
             sd = settings["control"].pop("species_dir")
             settings["basisset"] = AttributeDict({"type": sd.split("/")[-1]})
 
-        if(
-            (phonopy_settings and "use_pimd_wrapper" in phonopy_settings) or
-            (phono3py_settings and "use_pimd_wrapper" in phono3py_settings)
+        if (phonopy_settings and "use_pimd_wrapper" in phonopy_settings) or (
+            phono3py_settings and "use_pimd_wrapper" in phono3py_settings
         ):
-            settings["socketio"] = AttributeDict({"port": phonopy_settings.pop(use_pimd_wrapper)})
+            settings["socketio"] = AttributeDict(
+                {"port": phonopy_settings.pop("use_pimd_wrapper")}
+            )
 
         if "aims_command" in settings.control:
-            del(settings.control["aims_command"])
+            del settings.control["aims_command"]
 
     outputs = {}
     if phonopy_settings:
         settings["phonopy"] = phonopy_settings.copy()
         if "serial" in settings.phonopy:
-            del(settings.phonopy['serial'])
+            del settings.phonopy["serial"]
         outputs["phonopy"] = bootstrap(name="phonopy", settings=settings, **kwargs_boot)
     if phono3py_settings:
         settings["phono3py"] = phono3py_settings.copy()
         if "serial" in settings.phono3py:
-            del(settings.phono3py['serial'])
-        outputs["phono3py"] = bootstrap(name="phono3py", settings=settings, **kwargs_boot)
+            del settings.phono3py["serial"]
+        outputs["phono3py"] = bootstrap(
+            name="phono3py", settings=settings, **kwargs_boot
+        )
 
     return outputs
 
-def wrap_calc_socket(atoms_dict_to_calculate, calc_dict, metadata, trajectory="trajectory.yaml", workdir=".", backup_folder="backups", walltime=1800, **kwargs):
+
+def wrap_calc_socket(
+    atoms_dict_to_calculate,
+    calc_dict,
+    metadata,
+    trajectory="trajectory.yaml",
+    workdir=".",
+    backup_folder="backups",
+    walltime=1800,
+    **kwargs,
+):
+    '''
+    Wrapper for the clalculate_socket function
+    Args:
+        atoms_dict_to_calculate (list of dicts): A list of dicts representing the cells
+                                                 to calculate the forces on
+        calc_dict (dict): A dictionary representation of the ASE Calculator used to calculate
+                          the Forces
+        metadata (dict): metadata for the force trajectory file
+        trajectory (str): file name for the trajectory file
+        workdir (str): work directory for the force calculations
+        backup_folder (str): Directory to store backups
+        walltime (int): number of seconds to run the calculation for
+    Returns (bool): True if all the calculations completed
+    '''
     atoms_to_calculate = []
     if calc_dict["calculator"].lower() == "aims":
         settings = Settings(settings_file=None)
         if "species_dir" in calc_dict["calculator_parameters"]:
             from os import path
-            species_type = calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
-            calc_dict["calculator_parameters"]["species_dir"] = path.join(settings.machine.basissetloc, species_type)
+
+            species_type = calc_dict["calculator_parameters"]["species_dir"].split("/")[
+                -1
+            ]
+            calc_dict["calculator_parameters"]["species_dir"] = path.join(
+                settings.machine.basissetloc, species_type
+            )
         calc_dict["command"] = settings.machine.aims_command
 
     for at_dict in atoms_dict_to_calculate:
@@ -71,38 +120,17 @@ def wrap_calc_socket(atoms_dict_to_calculate, calc_dict, metadata, trajectory="t
         walltime=walltime,
         **kwargs,
     )
-# def preprocess(atoms, calc, kpt_density=None, phonopy_settings=None, phono3py_settings=None):
-#     '''
-#     Function to preprocess a phonon calculation
-#     Args:
-#         atoms (ASE Atoms object): Structure of the material whose phonons are being calculated
-#         calc (ASE Calculator): Calculator to calculate the forces
-#         phonopy_settings (dict): settings for the Phonopy Calculation
-#         phono3py_settings (dict): settings for the Phono3py Calculation
-#     Return: tuple
-#         phonopy preprocess outputs, phono3py preprocess outputs
-#     '''
-#     atoms.set_calculator(calc)
-#     if phonopy_settings:
-#         phonopy_preprocess = ph_preprocess(atoms, **phonopy_settings)
-#         if kpt_density is not None:
-#             update_k_grid(phonopy_preprocess[1], calc, kpt_density)
-#     else:
-#         phonopy_preprocess = None
-#     if phono3py_settings:
-#         phono3py_preprocess = ph3_preprocess(atoms, **phono3py_settings)
-#         if kpt_density is not None:
-#             update_k_grid(phono3py_preprocess[1], calc, kpt_density)
-#     else:
-#         phono3py_preprocess = None
-#     return phonopy_preprocess, phono3py_preprocess
 
-def collect_to_trajectory(
-    workdir,
-    trajectory,
-    calculated_atoms,
-    metadata,
-):
+
+def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
+    '''
+    Collects forces to a single trajectory file
+    Args:
+        workdir (str): Path to the work directory
+        trajectory (str): file name for the trajectory file
+        calculated_atoms (list of ASE Atoms): Results of the force calculations
+        metadata (dict): metadata for the phonon calculations
+    '''
     trajectory = Path(workdir) / trajectory
     Path(workdir).mkdir(exist_ok=True, parents=True)
     if "Phonopy" in metadata:
@@ -124,6 +152,6 @@ def collect_to_trajectory(
         temp_atoms,
         key=lambda x: x.info[displacement_id_str] if x else len(calculated_atoms) + 1,
     )
-    for nn, atoms in enumerate(calculated_atoms):
+    for atoms in calculated_atoms:
         if atoms:
             step2file(atoms, atoms.calc, trajectory)

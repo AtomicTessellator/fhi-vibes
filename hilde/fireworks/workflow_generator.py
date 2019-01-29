@@ -442,7 +442,7 @@ def generate_workflow(
         if "from_db" not in step.fw_settings:
             step.fw_settings["from_db"] = False
         fw_list, step_dep = get_step_fw(step, atoms, make_abs_path)
-        if not fw_steps:
+        if len(fw_steps) != 0:
             for fw in fw_steps[-1]:
                 fw_dep[fw] = fw_list
         for key, val in step_dep.items():
