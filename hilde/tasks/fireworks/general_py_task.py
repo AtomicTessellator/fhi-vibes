@@ -9,6 +9,8 @@ from hilde.helpers.converters import dict2atoms
 from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
 
+module_name = __name__
+
 def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     """
     Setups an ASE Atoms task
@@ -20,7 +22,7 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     Returns: tuple
         PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
     """
-    pt_func = fw.atoms_calculate_task.name
+    pt_func = module_name + ".atoms_calculate_task"
     pt_args = task_spec.get_pt_args()[:4]
     args = task_spec.get_pt_args()[4:]
     pt_inputs = task_spec.get_pt_inputs()
@@ -44,8 +46,8 @@ def setup_general_task(task_spec, fw_settings):
     Returns: tuple
         PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
     """
-    pt_func = fw.general_function_task.name
     pt_args = task_spec.get_pt_args()
+    pt_func = module_name + ".general_function_task"
     pt_inputs = task_spec.get_pt_inputs()
     pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
     return (pt_func, pt_args, pt_inputs, pt_kwargs)

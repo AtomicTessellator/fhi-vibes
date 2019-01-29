@@ -1,24 +1,28 @@
-''' An example of how to use FireWorks in conjunction with HilDe'''
+""" An example of how to use FireWorks in conjunction with HilDe"""
 import os
+from pathlib import Path
+
 import numpy as np
+
 from ase.build import bulk
 from ase.calculators.emt import EMT
-from pathlib import Path
 
 from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.fireworks.rocket_launcher import rapidfire
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.paths import cwd
 from hilde.helpers.pickle import pread
-from hilde.phonon_db.phonon_db import connect
-from hilde.fireworks.workflow_generator import generate_firework, get_phonon_analysis_task
+from hilde.fireworks.workflow_generator import (
+    generate_firework,
+    get_phonon_analysis_task,
+)
 
 from fireworks import Workflow
 
-db_name = (os.getcwd() + '/test.db')
-print(f'database: {db_name}')
+db_name = os.getcwd() + "/test.db"
+print(f"database: {db_name}")
 
-atoms = bulk('Ni', 'fcc', a=3.5)
+atoms = bulk("Ni", "fcc", a=3.5)
 atoms.set_calculator(EMT())
 calc = atoms.calc
 workdir = str(Path("Ni_ex").absolute())
@@ -32,7 +36,7 @@ fw_settings = {
     "fw_spec": None,
     "out_spec": "relaxed_atoms",
     "mod_spec_add": "ph_forces",
-    "spec": {}
+    "spec": {},
 }
 
 # set up the LaunchPad and reset it
@@ -51,33 +55,24 @@ init_fw = generate_firework(
     fw_settings=fw_settings,
 )
 
-kwargs = {
-    "fireworks": True,
-    "workdir": workdir + "/analysis",
-}
+kwargs = {"fireworks": True, "workdir": workdir + "/analysis"}
 task_spec_list = get_phonon_analysis_task(
-    "hilde.phonopy.postprocess.postprocess",
-    kwargs,
-    "ph_metadata",
-    "ph_forces",
+    "hilde.phonopy.postprocess.postprocess", kwargs, "ph_metadata", "ph_forces"
 )
 
-anal_fw = generate_firework(
-    task_spec_list,
-    fw_settings=fw_settings,
-)
+anal_fw = generate_firework(task_spec_list, fw_settings=fw_settings)
 
 lp = LaunchPadHilde()
 lp.reset("", require_password=False)
 wf = Workflow([init_fw, anal_fw], {init_fw: [anal_fw]})
 lp.add_wf(wf)
 
-with cwd(workdir + '/fireworks', mkdir=True):
+with cwd(workdir + "/fireworks", mkdir=True):
     rapidfire(lp, wflow_id=wf.root_fw_ids)
 
 phonon = pread(workdir + "/analysis/phonon.pick.gz")
 
 phonon.set_mesh(3 * [5])
 _, _, frequencies, _ = phonon.get_mesh()
-print(f'Highest frequency: {frequencies.max():.3f} THz (Target: [8,10] THz)')
+print(f"Highest frequency: {frequencies.max():.3f} THz (Target: [8,10] THz)")
 assert 8 < frequencies.max() < 10

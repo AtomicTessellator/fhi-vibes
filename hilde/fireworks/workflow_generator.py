@@ -217,7 +217,7 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
     task_spec_list.append(
         TaskSpec(
             "hilde.tasks.fireworks.phonopy_phono3py_functions.collect_to_trajectory",
-            "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
+            "hilde.tasks.fireworks.fw_out.general.fireworks_no_mods_gen_function",
             False,
             args=[wd, traj],
             inputs=[forcekey, metakey],
@@ -227,7 +227,7 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
     task_spec_list.append(
         TaskSpec(
             func,
-            "hilde.tasks.fireworks.fw_action_outs.fireworks_no_mods_gen_function",
+            "hilde.tasks.fireworks.fw_out.general.fireworks_no_mods_gen_function",
             False,
             func_kwargs={"workdir": wd, "trajectory": traj},
             make_abs_path=make_abs_path,
@@ -240,7 +240,7 @@ def get_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
     ''' Gets the task spec for a relaxation step'''
     return TaskSpec(
         "hilde.relaxation.bfgs.relax",
-        "hilde.tasks.fireworks.fw_action_outs.check_relaxation_complete",
+        "hilde.tasks.fireworks.fw_out.relax.check_relaxation_complete",
         True,
         func_kwargs,
         func_fw_out_kwargs=func_fw_out_kwargs,
@@ -252,7 +252,7 @@ def get_aims_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
     ''' Gets the task spec for an aims relaxation step'''
     return TaskSpec(
         "hilde.tasks.calculate.calculate",
-        "hilde.tasks.fireworks.fw_action_outs.check_aims_relaxation_complete",
+        "hilde.tasks.fireworks.fw_out.relax.check_aims_relaxation_complete",
         True,
         func_kwargs,
         func_fw_out_kwargs=func_fw_out_kwargs,
@@ -264,7 +264,7 @@ def get_kgrid_task(func_kwargs, make_abs_path=False):
     '''gets the task spec for a k-grid optimization'''
     return TaskSpec(
         "hilde.k_grid.converge_kgrid.converge_kgrid",
-        "hilde.tasks.fireworks.fw_action_outs.check_kgrid_opt_completion",
+        "hilde.tasks.fireworks.fw_out.optimizations.check_kgrid_opt_completion",
         True,
         func_kwargs,
         make_abs_path=make_abs_path,
