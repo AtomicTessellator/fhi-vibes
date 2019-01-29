@@ -2,9 +2,24 @@
 
 import numpy as np
 import spglib as spg
+from ase.atoms import Atoms
 from hilde.structure.convert import to_spglib_cell
 from hilde.konstanten.symmetry import symprec as default_symprec
 from hilde.helpers.attribute_dict import AttributeDict
+
+
+def cell_to_Atoms(lattice, scaled_positions, numbers, info=None):
+    """ convert from spglib cell to Atoms """
+    atoms_dict = {
+        "cell": lattice,
+        "scaled_positions": scaled_positions,
+        "numbers": numbers,
+        "pbc": True,
+        "info": info,
+    }
+
+    return Atoms(**atoms_dict)
+
 
 def get_symmetry_dataset(atoms, symprec=default_symprec):
     """ return the spglib symmetry dataset """
@@ -41,3 +56,21 @@ def get_spacegroup(atoms, symprec=default_symprec):
     """ return spglib spacegroup """
 
     return spg.get_spacegroup(to_spglib_cell(atoms), symprec=symprec)
+
+
+def refine_cell(atoms, symprec=default_symprec):
+    """ refine the structure """
+    lattice, scaled_positions, numbers = spg.refine_cell(to_spglib_cell(atoms), symprec)
+
+    return cell_to_Atoms(lattice, scaled_positions, numbers)
+
+
+def standardize_cell(
+    atoms, to_primitve=False, no_idealize=False, symprec=default_symprec
+):
+    """ wrap spglib.standardize_cell """
+
+    cell = to_spglib_cell(atoms)
+    args = spg.standardize_cell(cell, to_primitve, no_idealize, symprec)
+
+    return cell_to_Atoms(*args)

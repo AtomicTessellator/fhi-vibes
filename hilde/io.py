@@ -1,14 +1,15 @@
 from ase.io import read as ase_read
-from hilde.spglib.wrapper import get_symmetry_dataset
 from hilde.structure.io import inform
+from hilde.spglib.wrapper import get_symmetry_dataset
 
 
-def get_info_str(atoms, spacegroup=None):
+def get_info_str(atoms, spacegroup=False):
     """ encode atoms.info as string """
 
     info_strings = [f"Number of atoms:     {len(atoms)}"]
 
-    if spacegroup is not None:
+    if spacegroup:
+        spacegroup = get_symmetry_dataset(atoms).number
         info_strings += [f"Spacegroup:          {spacegroup}"]
 
     for key, val in atoms.info.items():
@@ -25,7 +26,7 @@ def read(fname, format="aims"):
     return atoms
 
 
-def write(atoms, fname, format="aims", spacegroup=None, **kwargs):
+def write(atoms, fname, format="aims", spacegroup=False, **kwargs):
     """ wrap ase.io.write """
 
     if format == "aims":
