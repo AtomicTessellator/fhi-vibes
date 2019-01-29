@@ -79,11 +79,6 @@ def run(
     calc_dir = workdir / _calc_dirname
     backup_folder = workdir / backup_folder
 
-    # atomic stresses
-    if calc.name == "aims":
-        if compute_stresses:
-            calc.parameters["compute_heat_flux"] = True
-
     # make sure compute_stresses describes a step length
     if compute_stresses is True:
         compute_stresses = 1
@@ -91,6 +86,15 @@ def run(
         compute_stresses = 0
     else:
         compute_stresses = int(compute_stresses)
+
+    # atomic stresses
+    if calc.name == "aims":
+        if compute_stresses:
+            warn(
+                "Switch heat flux / atomic stress computation on. "
+                + f"(Every {compute_stresses} steps)"
+            )
+            calc.parameters["compute_heat_flux"] = True
 
     # prepare the socketio stuff
     socketio_port = get_port(calc)
