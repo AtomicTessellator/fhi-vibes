@@ -138,7 +138,7 @@ def run(
 
             md.run(1)
 
-            if compute_stresses:
+            if compute_stresses_now(compute_stresses, nsteps):
                 stresses = get_stresses(atoms)
                 atoms.calc.results["stresses"] = stresses
 
