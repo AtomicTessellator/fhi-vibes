@@ -213,13 +213,14 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
         traj = func_kwargs["trajectory"]
     else:
         traj = "trajectory.yaml"
+    traj = wd + "/" + traj
     task_spec_list = []
     task_spec_list.append(
         TaskSpec(
             "hilde.tasks.fireworks.phonopy_phono3py_functions.collect_to_trajectory",
             "hilde.tasks.fireworks.fw_out.general.fireworks_no_mods_gen_function",
             False,
-            args=[wd, traj],
+            args=[traj],
             inputs=[forcekey, metakey],
             make_abs_path=make_abs_path,
         )

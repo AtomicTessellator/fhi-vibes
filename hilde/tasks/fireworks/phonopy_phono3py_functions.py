@@ -122,7 +122,7 @@ def wrap_calc_socket(
     )
 
 
-def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
+def collect_to_trajectory(trajectory, calculated_atoms, metadata):
     '''
     Collects forces to a single trajectory file
     Args:
@@ -131,8 +131,8 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
         calculated_atoms (list of ASE Atoms): Results of the force calculations
         metadata (dict): metadata for the phonon calculations
     '''
-    trajectory = Path(workdir) / trajectory
-    Path(workdir).mkdir(exist_ok=True, parents=True)
+    traj = Path(trajectory)
+    traj.parent.mkdir(exist_ok=True, parents=True)
     if "Phonopy" in metadata:
         for el in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
             el["number"] = int(el["number"])
