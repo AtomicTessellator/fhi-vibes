@@ -30,7 +30,7 @@ setup(
             "create_samples= hilde.scripts.create_samples:main",
             "hilde_single_task= hilde.scripts.hilde_single_task:main",
             "md_sum= hilde.scripts.md_sum:main",
-            "yaml2json= hilde.scripts.yaml2json:main",
+            "yaml2json = hilde.scripts.yaml2json:main",
             "refine_geometry = hilde.scripts.refine_geometry:main",
             "add_workflow_to_lp = hilde.scripts.add_fireworks_workflow:main",
             "add_phonon_workflow_to_lp = hilde.scripts.add_fireworks_phonon_workflow:main",
@@ -39,6 +39,7 @@ setup(
             "claunch_hilde = hilde.fireworks.scripts.claunch_run:claunch",
             "nomad_upload = hilde.scripts.nomad_upload:main",
             "update_md_trajectory = hilde.scripts.update_md_trajectory:main",
+            "trajectory2tdep = hilde.scripts.trajectory2tdep:main"
         ]
     },
     data_files=[(".", ["hilde.cfg", "fireworks.cfg"])],
