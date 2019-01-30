@@ -6,11 +6,15 @@ import numpy as np
 from pathlib import Path
 from ase.calculators.socketio import SocketIOCalculator
 from hilde import Settings
-from hilde.trajectory.phonons import step2file, to_yaml
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
 from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
-from hilde.trajectory import get_hashes_from_trajectory, hash_atoms
+from hilde.trajectory import (
+    get_hashes_from_trajectory,
+    hash_atoms,
+    metadata2file,
+    step2file,
+)
 
 from hilde.helpers.paths import cwd
 
@@ -87,9 +91,9 @@ def setup_multiple(cells, calculator, workdir, mkdir):
 def calculate_socket(
     atoms_to_calculate,
     calculator,
-    metadata,
+    metadata=None,
     trajectory="trajectory.yaml",
-    workdir=".",
+    workdir="calculations",
     backup_folder="backups",
     **kwargs,
 ):
@@ -106,11 +110,13 @@ def calculate_socket(
     trajectory = (workdir / trajectory).absolute()
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
-
     # perform backup if calculation folder exists
-
     if calc_dir.exists():
         backup(calc_dir, target_folder=backup_folder)
+
+    # perform backup of settings
+    with cwd(calc_dir, mkdir=True):
+        settings.write()
 
     # handle the socketio
     socketio_port = get_port(calculator)
@@ -129,8 +135,8 @@ def calculate_socket(
     n_cell = -1
     with cwd(calc_dir, mkdir=True):
         with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
-            if len(precomputed_hashes) == 0:
-                to_yaml(metadata, trajectory, mode="w")
+            if not precomputed_hashes:
+                metadata2file(metadata, trajectory)
 
             if socketio_port is not None:
                 calc = iocalc
@@ -138,6 +144,11 @@ def calculate_socket(
                 calc = calculator
 
             for n_cell, cell in enumerate(atoms_to_calculate):
+                # Needed if not using the socket
+                if "forces" in calc.results:
+                    del calc.results["forces"]
+                atoms.calc = calc
+
                 if cell is None:
                     continue
                 # if precomputed:
@@ -150,10 +161,12 @@ def calculate_socket(
                 atoms.calc = calc
 
                 # update calculation_atoms and compute force
+                atoms.info = cell.info
                 atoms.positions = cell.positions
                 _ = atoms.get_forces()
 
-                step2file(atoms, atoms.calc, n_cell, trajectory)
+                step2file(atoms, atoms.calc, trajectory)
+
                 if watchdog():
                     break
 
@@ -163,4 +176,3 @@ def calculate_socket(
         return False
 
     return True
-

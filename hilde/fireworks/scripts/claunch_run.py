@@ -40,21 +40,40 @@ from hilde.tasks import fireworks as fw
 settings = Settings()
 remote_setup = settings.remote_setup if "remote_setup" in settings else {}
 remote_host_auth = settings.remote_host_auth if "remote_host_auth" in settings else {}
-remote_queue_param = settings.remote_queue_param if "remote_queue_param" in settings else {}
+remote_queue_param = (
+    settings.remote_queue_param if "remote_queue_param" in settings else {}
+)
 launch_params = settings.launch_params if "launch_params" in settings else {}
 
 fw_defaults = {
     "launch_dir": (remote_setup.launch_dir if "launch_dir" in remote_setup else "."),
     "remote_host": (remote_setup.remote_host if "remote_host" in remote_setup else 0),
-    "remote_config_dir": (remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else 0),
-    "remote_user": (remote_host_auth.remote_user if "remote_user" in remote_host_auth else 500),
-    "remote_password": (remote_host_auth.remote_password if "remote_password" in remote_host_auth else None),
-    "njobs_queue": (remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else None),
-    "njobs_block": (remote_queue_param.njobs_block if "njobs_block" in remote_queue_param else "localhost"),
+    "remote_config_dir": (
+        remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else 0
+    ),
+    "remote_user": (
+        remote_host_auth.remote_user if "remote_user" in remote_host_auth else 500
+    ),
+    "remote_password": (
+        remote_host_auth.remote_password
+        if "remote_password" in remote_host_auth
+        else None
+    ),
+    "njobs_queue": (
+        remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else None
+    ),
+    "njobs_block": (
+        remote_queue_param.njobs_block
+        if "njobs_block" in remote_queue_param
+        else "localhost"
+    ),
     "nlaunches": (launch_params.nlaunches if "nlaunches" in launch_params else None),
     "sleep_time": (launch_params.sleep_time if "sleep_time" in launch_params else None),
-    "tasks2queue": (launch_params.tasks2queue if "tasks2queue" in launch_params else None),
+    "tasks2queue": (
+        launch_params.tasks2queue if "tasks2queue" in launch_params else None
+    ),
 }
+
 
 def claunch():
     """Defines the command claunch_hidle"""
@@ -124,7 +143,12 @@ def claunch():
     parser.add_argument(
         "-rgss", "--gss_auth", help="use gss_api authorization", action="store_true"
     )
-    parser.add_argument("-rro", "--remote_recover_offline", action="store_true", help="recover offline jobs from remote host")
+    parser.add_argument(
+        "-rro",
+        "--remote_recover_offline",
+        action="store_true",
+        help="recover offline jobs from remote host",
+    )
     parser.add_argument(
         "-d",
         "--daemon",

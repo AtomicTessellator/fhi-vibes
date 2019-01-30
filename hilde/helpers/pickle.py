@@ -8,12 +8,11 @@ from pathlib import Path
 def psave(obj, oname="test.pick", compressed=True, verbose=False):
     """ save as (compressed) pickled file """
     if compressed:
-        oname += ".p.gz"
+        oname = str(oname) + ".gz"
         with gzip.open(oname, "wb", 5) as f:
             pickle.dump(obj, f)
     else:
         with open(oname, "wb") as f:
-            oname += ".p"
             pickle.dump(obj, f)
     #
     if verbose:

@@ -1,0 +1,34 @@
+# information to build a default control.in
+[geometry]
+file = geometry.in
+
+[general]
+workdir_cluster = "test_run/"
+workdir_local = "test_run/"
+use_third = True
+basisset = light
+kgrid_dfunc_min = 1e12
+
+[control]
+xc =                 pbe
+sc_accuracy_rho =    1e-6
+sc_accuracy_forces = 5E-4
+output_level =       MD_light
+relativistic =       "atomic_zora scalar"
+vdw_correction_hirshfeld = True
+
+[control_kpt]
+density = 1
+
+[phonopy]
+supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+walltime = 3500
+serial = False
+displacement = 0.01
+
+[phono3py]
+supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+walltime = 3500
+serial = True
+displacement = 0.01
+cutoff_pair_distance = 5.0

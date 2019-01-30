@@ -5,18 +5,17 @@ file =             geometry.in
 xc =               pw-lda
 
 [control_kpt]
-density = 3.5
+density:             2
 
 [basisset]
 type = light
 
 [socketio]
-port = null
+port = 12345
 
 [phono3py]
-supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-cutoff_pair_distance = 7.0
-workdir = test_run
+trajectory_fc2 = phonopy_trajectory.yaml
+supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
 
 [restart]
-command = python run_phonopy.py
+command = python run_phono3py.py

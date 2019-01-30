@@ -3,11 +3,7 @@
 import shutil
 from argparse import ArgumentParser
 from pathlib import Path
-from hilde import (
-    Settings,
-    Configuration,
-    DEFAULT_SETTINGS_FILE,
-)
+from hilde import Settings, Configuration, DEFAULT_SETTINGS_FILE
 from hilde import DEFAULT_GEOMETRY_FILE
 from hilde import supported_tasks
 
@@ -17,7 +13,7 @@ def main():
     parser = ArgumentParser(description="create a configuration file and workdir")
     parser.add_argument("--settings", default=DEFAULT_SETTINGS_FILE, help="settings.in")
     parser.add_argument("-g", "--geometry", help="geometry file to use")
-    parser.add_argument("-wd", "--workdir", help="name of the working directory")
+    parser.add_argument("-wd", "--workdir", default=".")
     parser.add_argument("--dry", action="store_true")
     args = parser.parse_args()
 
@@ -37,14 +33,13 @@ def main():
 
     if "workdir" in settings[task]:
         workdir = settings[task].pop("workdir")
-
-    if args.workdir:
+    else:
         workdir = args.workdir
 
     print(f"Working directory:     {workdir}")
 
     if Path(workdir).exists():
-        exit("**Error: Working directory exsits, chance of dataloss.")
+        print("**Error: Working directory exsits, chance of dataloss.")
     else:
         Path(workdir).mkdir()
 
@@ -66,8 +61,11 @@ def main():
         outfile = Path(workdir) / DEFAULT_GEOMETRY_FILE
         settings["geometry"]["file"] = DEFAULT_GEOMETRY_FILE
 
-    shutil.copy(geometry, outfile)
-    print(f"Geometry written to:   {outfile}")
+    if not outfile.exists():
+        shutil.copy(geometry, outfile)
+        print(f"Geometry written to:   {outfile}")
+    else:
+        print(f"Geometry already present:   {outfile}")
 
     # copy run script
     run_script = Path(configuration.common.home_dir) / f"hilde/scripts/run/{task}.py"

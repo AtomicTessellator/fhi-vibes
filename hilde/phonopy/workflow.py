@@ -1,110 +1,75 @@
-""" Provide a full highlevel phonopy workflow """
+""" Provide a full highlevel phonopy workflow
 
-from pathlib import Path
+    Input: geometry.in and settings.in
+    Output: geometry.in.supercell and trajectory.yaml """
 
 from hilde.settings import Settings
-from hilde.helpers.k_grid import update_k_grid, k2d
-from hilde.helpers.paths import cwd
-from hilde.trajectory.phonons import metadata2dict
-from hilde.tasks import calculate_socket, calc_dirname
-from .postprocess import postprocess
-from .wrapper import preprocess as phonopy_preprocess, defaults
+from hilde.templates.aims import setup_aims
+from hilde.tasks import calculate_socket
+from hilde.helpers.warnings import warn
+from hilde.helpers.restarts import restart
 
-def preprocess(
-    atoms,
-    calc,
-    supercell_matrix=None,
-    natoms_in_sc=None,
-    kpt_density=None,
-    up_kpoint_from_pc=False,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-):
+from .postprocess import postprocess
+from . import metadata2dict
+
+
+def run_phonopy(**kwargs):
+    """ high level function to run phonopy workflow """
+
+    args = bootstrap(**kwargs)
+
+    completed = calculate_socket(**args)
+
+    if not completed and not "fireworks" in kwargs:
+        restart()
+    elif "fireworks" in kwargs:
+        return False
+    else:
+        print("Start postprocess.")
+        postprocess(**args)
+        print("done.")
+        return True
+
+
+def bootstrap(name="phonopy", settings=None, **kwargs):
+    """ load settings, prepare atoms, calculator, and phonopy """
+
+    if name.lower() == "phonopy":
+        from hilde.phonopy.wrapper import preprocess
+    elif name.lower() == "phono3py":
+        from hilde.phono3py.wrapper import preprocess
+
+    if settings is None:
+        settings = Settings()
+
+    if "atoms" not in kwargs:
+        atoms = settings.get_atoms()
+    else:
+        atoms = kwargs["atoms"]
+
+    phonopy_settings = {"atoms": atoms}
+
+    if name not in settings:
+        warn(f"Settings do not contain {name} instructions.", level=1)
+    else:
+        phonopy_settings.update(settings[name])
 
     # Phonopy preprocess
-    phonon, supercell, scs = phonopy_preprocess(
-        atoms, supercell_matrix, natoms_in_sc, displacement, symprec
+    phonopy_settings.update(kwargs)
+    phonon, supercell, scs = preprocess(**phonopy_settings)
+
+    calc = kwargs.get(
+        "calculator",
+        setup_aims({"compute_forces": True}, settings=settings, atoms=supercell),
     )
 
-    # make sure forces are computed (aims only)
-    if calc.name == "aims":
-        calc.parameters["compute_forces"] = True
+    # save metadata
+    metadata = metadata2dict(phonon, calc)
 
-    if kpt_density is not None:
-        update_k_grid(supercell, calc, kpt_density)
-    elif up_kpoint_from_pc:
-        kpt_density = k2d(atoms, calc.parameters['k_grid'])
-        update_k_grid(supercell, calc, kpt_density)
-
-    metadata = metadata2dict(atoms, calc, phonon)
-    scs_return = []
-    for sc in scs:
-        if sc:
-            sc.calc = calc
-            scs_return.append(sc)
-
-    return calc, supercell, scs, phonon, metadata
-
-
-def run(
-    atoms,
-    calc,
-    supercell_matrix=None,
-    natoms_in_sc=None,
-    kpt_density=None,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-    walltime=1800,
-    workdir=".",
-    trajectory="trajectory.yaml",
-    primitive_file="geometry.in.primitive",
-    supercell_file="geometry.in.supercell",
-    force_constants_file="force_constants.dat",
-    pickle_file="phonon.pick",
-    db_kwargs=None,
-    up_kpoint_from_pc=False,
-    **kwargs,
-):
-    if "fireworks" in kwargs:
-        fw = kwargs.pop("fireworks")
-        if not kpt_density:
-            kpt_density = k2d(atoms, calc.parameters["k_grid"])
-    if "analysis_workdir" in kwargs:
-        del(kwargs["analysis_workdir"])
-
-    calc, supercell, scs, phonon, metadata = preprocess(
-        atoms, calc, supercell_matrix, natoms_in_sc, kpt_density, up_kpoint_from_pc, displacement, symprec
-    )
-
-    # save input geometries and settings
-    settings = Settings()
-    with cwd(workdir, mkdir=True):
-        atoms.write(primitive_file, format="aims", scaled=True)
-        supercell.write(supercell_file, format="aims", scaled=False)
-
-    with cwd(Path(workdir) / calc_dirname, mkdir=True):
-        settings.write()
-
-    completed = calculate_socket(
-        atoms_to_calculate=scs,
-        calculator=calc,
-        metadata=metadata,
-        trajectory=trajectory,
-        walltime=walltime,
-        workdir=workdir,
-        primitive_file=primitive_file,
-        supercell_file=supercell_file,
-        **kwargs
-    )
-    if completed:
-        postprocess(
-            # phonon,
-            trajectory=trajectory,
-            workdir=workdir,
-            symprec=symprec,
-            force_constants_file=force_constants_file,
-            pickle_file=pickle_file,
-            db_kwargs=db_kwargs,
-            **kwargs,
-        )
-        return True
+    return {
+        "atoms_to_calculate": scs,
+        "calculator": calc,
+        "metadata": metadata,
+        "workdir": name,
+        **phonopy_settings,
+    }

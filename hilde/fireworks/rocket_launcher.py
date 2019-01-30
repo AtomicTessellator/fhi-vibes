@@ -53,7 +53,8 @@ def rapidfire(
         strm_lvl (str): level at which to output logs to stdout
         timeout (int): of seconds after which to stop the rapidfire process
         local_redirect (bool): redirect standard input and output to local file
-        pdb_on_exception (bool): if set to True, python will start the debugger on a firework exception
+        pdb_on_exception (bool): if set to True,
+                                 python will start the debugger on a firework exception
         fw_ids (list of ints): list of FireWorks to run
         wflow_id (list of ints): list of ids of the root nodes of a workflow
     """
@@ -73,7 +74,7 @@ def rapidfire(
     num_loops = 0
 
     def time_ok():
-        # has the rapidfire run timed out?
+        ''' Determines if the rapidfire run has timed out'''
         return (
             timeout is None or (datetime.now() - start_time).total_seconds() < timeout
         )

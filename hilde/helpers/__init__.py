@@ -4,6 +4,7 @@ from .k_grid import d2k
 from .geometry import get_cubicness
 from .numerics import clean_matrix
 from .timer import Timer
+from .converters import input2dict
 
 
 def list_dim(a):

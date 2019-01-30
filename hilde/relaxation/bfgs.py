@@ -1,5 +1,4 @@
 from pathlib import Path
-import numpy as np
 
 from ase.constraints import UnitCellFilter
 from ase.calculators.socketio import SocketIOCalculator
@@ -8,8 +7,9 @@ from hilde.settings import Settings
 from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port
-from hilde.trajectory.relaxation import metadata2file, step2file
+from hilde.trajectory import step2file, metadata2file
 from hilde.helpers.structure import clean_atoms
+from . import metadata2dict
 
 
 _calc_dirname = "calculation"
@@ -17,39 +17,22 @@ _calc_dirname = "calculation"
 
 def relax(
     atoms,
-    calc,
+    calculator,
     linesearch=False,
     fmax=0.01,
     maxstep=0.2,
     unit_cell=True,
+    cell_factor=None,
     maxsteps=100,
     trajectory="trajectory.yaml",
     logfile="relax.log",
-    walltime=1800,
-    workdir=".",
+    walltime=84400,
+    workdir="bfgs",
     clean_output=True,
     output="geometry.in.relaxed",
     **kwargs,
 ):
-    """ run a BFGS relaxation
-
-    Args:
-        atoms ([type]): [description]
-        calc ([type]): [description]
-        fmax (float, optional): Defaults to 0.01. [description]
-        maxstep (float, optional): Defaults to 0.2. [description]
-        unit_cell (bool, optional): Defaults to True. [description]
-        maxsteps (int, optional): Defaults to 100. [description]
-        trajectory (str, optional): Defaults to "bfgs_trajectory.yaml". [description]
-        logfile (str, optional): Defaults to "relax.log". [description]
-        socketio_port ([type], optional): Defaults to None. [description]
-        walltime (int, optional): Defaults to 1800. [description]
-        workdir (str, optional): Defaults to ".". [description]
-        output (str, optional): Defaults to "geometry.in.relaxed". [description]
-
-    Returns:
-        [bool]: converged
-    """
+    """ run a BFGS relaxation with ASE """
 
     if linesearch:
         from ase.optimize.bfgslinesearch import BFGSLineSearch as BFGS
@@ -68,23 +51,20 @@ def relax(
     # take the literal settings for running the task
     settings = Settings()
 
-    if calc.name == "aims":
-        calc.parameters["compute_forces"] = True
-        if unit_cell:
-            calc.parameters["compute_analytical_stress"] = True
-        else:
-            calc.parameters["compute_analytical_stress"] = False
+    if calculator.name == "aims":
+        calculator.parameters["compute_forces"] = True
+        calculator.parameters["compute_analytical_stress"] = bool(unit_cell)
 
-    socketio_port = get_port(calc)
+    socketio_port = get_port(calculator)
     if socketio_port is None:
         socket_calc = None
     else:
-        socket_calc = calc
+        socket_calc = calculator
 
-    atoms.calc = calc
+    atoms.calc = calculator
 
     if unit_cell:
-        opt_atoms = UnitCellFilter(atoms)
+        opt_atoms = UnitCellFilter(atoms, cell_factor=cell_factor)
     else:
         opt_atoms = atoms
 
@@ -98,11 +78,13 @@ def relax(
 
         # log very initial step and metadata
         if opt.nsteps == 0:
-            metadata2file(atoms, calc, opt, trajectory)
+            metadata = metadata2dict(atoms, calculator, opt)
+            metadata2file(metadata, trajectory)
             settings.write()
 
-        for ii, converged in enumerate(opt.irun(fmax=fmax, steps=maxsteps)):
-            step2file(atoms, atoms.calc, opt, trajectory, unit_cell=unit_cell)
+        for _, converged in enumerate(opt.irun(fmax=fmax, steps=maxsteps)):
+            atoms.info.update({"nsteps": opt.nsteps})
+            step2file(atoms, atoms.calc, trajectory, append_cell=unit_cell)
             if watchdog():
                 break
 

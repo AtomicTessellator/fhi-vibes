@@ -13,10 +13,10 @@ from hilde.helpers.warnings import warn
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonon_db.row import phonon3_to_dict
-from hilde.phono3py.wrapper import produce_fc3
+from hilde.phono3py.postprocess import postprocess as phono3py_postprocess
 from hilde.structure.convert import to_Atoms_db, to_Atoms, to_phonopy_atoms
 
-from hilde.trajectory.reader import reader as traj_reader
+from hilde.trajectory import reader as traj_reader
 
 results_keys = [
     "force_2",
@@ -53,18 +53,20 @@ def obj2dict(obj):
             ph.set_forces([at.get_forces() for at in calculated_atoms])
             return phonon_to_dict(ph)
         elif "Phono3py" in metadata:
-            from phono3py.phonon3 import Phono3py
-            ph3 = Phono3py(
-                to_phonopy_atoms(dict2results(metadata["Phono3py"]["primitive"])),
-                supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
-                is_symmetry=True,
-                frequency_factor_to_THz=const.omega_to_THz,
-            )
-            ph3 = produce_fc3(
-                ph3,
-                metadata,
-                np.array([at.get_forces() for at in calculated_atoms]),
-            )
+            ph3 = phono3py_postprocess(obj, pickle_file=None)
+            # FK: this needed to be changed:
+            # from phono3py.phonon3 import Phono3py
+            # ph3 = Phono3py(
+            #     to_phonopy_atoms(dict2results(metadata["Phono3py"]["primitive"])),
+            #     supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
+            #     is_symmetry=True,
+            #     frequency_factor_to_THz=const.omega_to_THz,
+            # )
+            # ph3 = produce_fc3(
+            #     ph3,
+            #     metadata,
+            #     np.array([at.get_forces() for at in calculated_atoms]),
+            # )
             return phonon3_to_dict(ph3)
         else:
             raise TypeError("Trajectory file can't be added to database")

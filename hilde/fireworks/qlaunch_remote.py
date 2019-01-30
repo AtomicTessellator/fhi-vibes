@@ -5,6 +5,7 @@ import time
 
 try:
     import fabric
+
     if int(fabric.__version__.split(".")[0]) < 2:
         raise ImportError
 except ImportError:
@@ -14,10 +15,8 @@ else:
     HAS_FABRIC = True
     # If fabric 2 is present check if it allows for SSH multiplexing
     from fabric.connection import SSHClient
-    if "controlpath" in SSHClient.connect.__doc__:
-        SSH_MULTIPLEXING = True
-    else:
-        SSH_MULTIPLEXING = False
+
+    SSH_MULTIPLEXING = "controlpath" in SSHClient.connect.__doc__
 
 __authors__ = "Anubhav Jain, Shyue Ping Ong, Adapted by Thomas Purcell for use in HiLDe"
 __copyright__ = "Copyright 2013, The Materials Project"
@@ -68,7 +67,8 @@ def qlaunch_remote(
         command (str): Whether to do a singleshot or rapidfire command
         maxjobs_queue (int): maximum jobs to keep in queue for this user
         maxjobs_block (int): maximum jobs to put in a block
-        nlaunches (int): maximum number of launches to perform (int or "infinite"; default 0 is all jobs in DB)
+        nlaunches (int): maximum number of launches to perform (int or "infinite";
+                         default 0 is all jobs in DB)
         sleep (int): sleep time between loops
         fw_ids (list of int): specific fw_ids to run in reservation mode
         fw_id (int): ID of a specific FireWork to run in reservation mode
@@ -78,15 +78,22 @@ def qlaunch_remote(
         launcher_dir (str): Directory to launch rocket from
         loglvl (str): How much logging should occur
         gss_auth (bool): Allow GSS-API authorization with Kerberos
-        controlpath (str): Path to a control path for ssh multiplexing (Only if a modified paramiko that allows ssh multiplexing is used)
-        remote_host (str): Remote host to exec qlaunch. Right now, only supports running from a config dir.
-        remote_config_dir (list of str): Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple locations if you have multiple configurations on the same cluster e.g., multiple queues or FireWorkers.
+        controlpath (str): Path to a control path for ssh multiplexing
+                           (Only if a modified paramiko that allows ssh multiplexing is used)
+        remote_host (str): Remote host to exec qlaunch.
+                           Right now, only supports running from a config dir.
+        remote_config_dir (list of str): Remote config dir location(s). Defaults to ~/.fireworks.
+                                         You can specify multiple locations if you have multiple
+                                         configurations on the same cluster e.g.,
+                                         multiple queues or FireWorkers.
         remote_user (str): Username to login to remote host.
-        remote_password (str): Password for remote host (if necessary). For best operation, it is recommended that you do passwordless ssh.
+        remote_password (str): Password for remote host (if necessary). For best operation,
+                               it is recommended that you do passwordless ssh.
         remote_shell (str): Shell command to use on remote host for running submission.
-        daemon (int): Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode.
+        daemon (int): Daemon mode. Command is repeated every x seconds. Defaults to 0,
+                      which means non-daemon mode.
     """
-    assert remote_host is not "localhost"
+    assert remote_host != "localhost"
 
     if not HAS_FABRIC:
         print("Remote options require the Fabric package v2+ to be installed!")
@@ -95,7 +102,7 @@ def qlaunch_remote(
         remote_config_dir = ["~/.fireworks"]
     non_default = []
     convert_input_to_param("launch_dir", launcher_dir, non_default)
-    if command is "rapidfire":
+    if command == "rapidfire":
         convert_input_to_param("maxjobs_queue", maxjobs_queue, non_default)
         convert_input_to_param("maxjobs_block", maxjobs_block, non_default)
         convert_input_to_param("nlaunches", nlaunches, non_default)

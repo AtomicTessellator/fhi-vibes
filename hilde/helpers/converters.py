@@ -68,11 +68,16 @@ def input2dict(atoms, calc=None, settings=False):
 def results2dict(atoms, calc, append_cell=False):
     """ extract information from atoms and calculator and convert to plain dict """
 
-    atoms_dict = {}
+    if atoms.info:
+        atoms_dict = {"info": atoms.info}
+    else:
+        atoms_dict = {}
+
     # if periodic system, append lattice
     if append_cell and any(atoms.pbc):
         atoms_dict.update({"cell": atoms.cell.tolist()})
 
+    # add positions
     atoms_dict.update({"positions": atoms.positions.tolist()})
 
     if atoms.get_velocities() is not None:

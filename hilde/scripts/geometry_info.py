@@ -7,16 +7,8 @@ def main():
     """ print geometry information """
     parser = argpars(description="Read geometry and print some symmetry info")
     parser.add_argument("geom", type=str, help="geometry input file")
-    parser.add_argument(
-        "-t",
-        "--tolerance",
-        type=float,
-        default=1e-5,
-        help="symmetry tolerance (symprec)",
-    )
-    parser.add_argument(
-        "--format", default="aims", help="which format should ASE use to read file?"
-    )
+    parser.add_argument("-t", "--tolerance", type=float, default=1e-5)
+    parser.add_argument("--format", default="aims")
     args = parser.parse_args()
 
     ### Greet

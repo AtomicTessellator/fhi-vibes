@@ -12,6 +12,7 @@ all_tests:
     - python $CI_PROJECT_DIR/tests/hashes/hashes.py
     - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; python test_lattice_points.py
     - cd ../phonopy; python run_phonopy.py
+    - python run_phono3py.py
     - cd ../md; python run_md.py
     - cd ../phonon_db; python phonon_db.py; python phonon_db.py;
     - cd ../fireworks; python fireworks_test.py

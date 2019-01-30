@@ -3,7 +3,7 @@
 from pathlib import Path
 import numpy as np
 from ase import units as u
-from hilde.trajectory.md import last_from_yaml
+from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.warnings import warn
 from .velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 
@@ -30,6 +30,7 @@ def setup_md(
         Path(workdir).mkdir()
 
     dt = timestep * u.fs
+    md = None
 
     if "verlet" in algorithm.lower():
         from ase.md.verlet import VelocityVerlet
@@ -58,6 +59,9 @@ def setup_md(
 
     prepared = prepare_from_trajectory(atoms, md, trajectory)
 
+    if md is None:
+        raise RuntimeError("ASE MD algorithm has to be given")
+
     return atoms, md, prepared
 
 
@@ -67,12 +71,16 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
     trajectory = Path(trajectory).absolute()
     if trajectory.exists():
         last_atoms = last_from_yaml(trajectory)
-        md.nsteps = last_atoms["MD"]["nsteps"]
+        if "info" in last_atoms["atoms"]:
+            md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
 
-        atoms.set_positions(last_atoms["atoms"]["positions"])
-        atoms.set_velocities(last_atoms["atoms"]["velocities"])
-        return True
-    print(f"** {trajectory} does  not exist, nothing to prepare")
+            atoms.set_positions(last_atoms["atoms"]["positions"])
+            atoms.set_velocities(last_atoms["atoms"]["velocities"])
+            print(f"Resume MD from last step in\n  {trajectory}\n")
+            return True
+
+    print(f"** {trajectory} does not exist, nothing to prepare")
+    return False
 
 
 def initialize_md(
@@ -94,11 +102,7 @@ def initialize_md(
         print("Initialize positions and velocities using force constants.")
         force_constants = np.loadtxt(force_constants)
         PhononHarmonics(
-            atoms,
-            force_constants,
-            quantum=quantum,
-            temp=temperature,
-            force_temp=True,
+            atoms, force_constants, quantum=quantum, temp=temperature, force_temp=True
         )
     else:
         print("Initialize velocities according to Maxwell-Boltzmann distribution.")
@@ -107,4 +111,3 @@ def initialize_md(
         )
 
     return atoms
-

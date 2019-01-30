@@ -18,9 +18,10 @@ hashes_ph3 = to_database(db_path, "trajectory_phono3py.yaml")
 phonon = postprocess_ph(trajectory="trajectory_phonopy.yaml")
 phonon3 = postprocess_ph3(trajectory="trajectory_phono3py.yaml")
 
-ph3_db = from_database(
+ph_db, ph3_db = from_database(
     db_path,
     get_phonon3=True,
+    get_phonon=True,
     sc_matrix_2=phonon.get_supercell_matrix(),
     sc_matrix_3=phonon3.get_supercell_matrix(),
     atoms_hash=hashes_ph["atoms_hash"],
