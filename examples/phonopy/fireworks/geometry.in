@@ -1,9 +1,16 @@
-#=======================================================
-#FHI-aims file: geometry.in-prim
-#Created using the Atomic Simulation Environment (ASE)
-#=======================================================
-lattice_vector 0.0000000000000000 2.72 2.72
-lattice_vector 2.72 0.0000000000000000 2.72
-lattice_vector 2.72 2.72 0.0000000000000000 
-atom_frac 0. 0. 0. Si
-atom_frac .25 .25 .25 Si
+# A_cF8_227_a params=5.462 SG#=227 [ANRL doi: 10.1016/j.commatsci.2017.01.017 (part 1), arXiv:1806.07864 (part 2)]
+# AFLOW::AIMS BEGIN 
+lattice_vector    0.00000000000000   2.73100000000000   2.73100000000000
+lattice_vector    2.73100000000000   0.00000000000000   2.73100000000000
+lattice_vector    2.73100000000000   2.73100000000000   0.00000000000000
+atom_frac    0.12500000000000    0.12500000000000    0.12500000000000  Si 
+atom_frac    0.87500000000000    0.87500000000000    0.87500000000000  Si 
+# format: symmetry_n_params [n n_lv n_fracpos]
+symmetry_n_params 1 1 0
+symmetry_params a
+symmetry_lv 0 , (1.0/2.0)*a , (1.0/2.0)*a
+symmetry_lv (1.0/2.0)*a , 0 , (1.0/2.0)*a
+symmetry_lv (1.0/2.0)*a , (1.0/2.0)*a , 0
+symmetry_frac (1.0/8.0) , (1.0/8.0) , (1.0/8.0)
+symmetry_frac (7.0/8.0) , (7.0/8.0) , (7.0/8.0)
+# AFLOW::AIMS END 

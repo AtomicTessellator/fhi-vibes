@@ -1,6 +1,7 @@
 """
  Functions to run several related calculations with using trajectories as cache
 """
+import numpy as np
 
 from pathlib import Path
 from ase.calculators.socketio import SocketIOCalculator
@@ -90,9 +91,9 @@ def setup_multiple(cells, calculator, workdir, mkdir):
 def calculate_socket(
     atoms_to_calculate,
     calculator,
-    metadata={},
+    metadata=None,
     trajectory="trajectory.yaml",
-    workdir=".",
+    workdir="calculations",
     backup_folder="backups",
     **kwargs,
 ):
@@ -109,7 +110,6 @@ def calculate_socket(
     trajectory = (workdir / trajectory).absolute()
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
-
     # perform backup if calculation folder exists
     if calc_dir.exists():
         backup(calc_dir, target_folder=backup_folder)
@@ -144,18 +144,24 @@ def calculate_socket(
                 calc = calculator
 
             for n_cell, cell in enumerate(atoms_to_calculate):
+                # Needed if not using the socket
                 if "forces" in calc.results:
                     del calc.results["forces"]
                 atoms.calc = calc
 
                 if cell is None:
                     continue
-
                 # if precomputed:
                 if hash_atoms(cell) in precomputed_hashes:
                     continue
 
+                if "forces" in calc.results:
+                    del calc.results["forces"]
+
+                atoms.calc = calc
+
                 # update calculation_atoms and compute force
+                atoms.info = cell.info
                 atoms.positions = cell.positions
                 _ = atoms.get_forces()
 
@@ -170,4 +176,3 @@ def calculate_socket(
         return False
 
     return True
-

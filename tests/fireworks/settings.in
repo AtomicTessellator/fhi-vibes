@@ -1,10 +1,10 @@
 # config file to control phonopy workflow
 [control]
-xc =               pw-lda
-sc_accuracy_rho =  1e-4
+xc = pw - lda
+sc_accuracy_rho = 1e-4
 charge_mix_param = 0.5
-output_level =     MD_light
-k_grid = [ 2, 2, 2]
+output_level = MD_light
+k_grid = [2, 2, 2]
 
 [basisset]
 type = light

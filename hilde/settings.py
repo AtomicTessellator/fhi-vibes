@@ -1,20 +1,18 @@
 """ Settings class for holding settings, based on configparser.ConfigParser """
+import time
+import configparser
+import json
+
+from ase.io import read
+
 from hilde._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
     DEFAULT_SETTINGS_FILE,
     DEFAULT_TEMP_SETTINGS_FILE,
 )
-
-import time
-import configparser
-import json
-from pathlib import Path
-from ase.io import read
 from hilde import __version__ as version
-from hilde.helpers.warnings import warn
 from hilde.helpers.attribute_dict import AttributeDict
-from hilde.helpers.hash import hashfunc
 
 
 class Config(configparser.ConfigParser):
@@ -26,6 +24,7 @@ class Config(configparser.ConfigParser):
         )
 
     def getval(self, *args, **kwargs):
+        """ Redifine getval() to allow for json formated values (not only string) """
         try:
             return json.loads(self.get(*args, **kwargs))
         except json.JSONDecodeError:
@@ -69,7 +68,7 @@ class ConfigDict(AttributeDict):
             with open(filename + ".pick", "wb") as f:
                 pickle.dump(self, f)
 
-    def get_string(self):
+    def get_string(self, width=30):
         """ return string representation for writing etc. """
         string = ""
         for sec in self:
@@ -84,7 +83,7 @@ class ConfigDict(AttributeDict):
                 #
                 if key == "verbose":
                     continue
-                string += "{:20s} {}\n".format(f"{key}:", elem)
+                string += "{:{}s} {}\n".format(f"{key}:", width, elem)
         return string
 
 

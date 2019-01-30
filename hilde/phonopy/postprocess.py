@@ -1,17 +1,16 @@
 """ Provide a full highlevel phonopy workflow """
 from pathlib import Path
-import pickle
 
 from hilde.helpers.converters import dict2results
 from hilde.phonopy.wrapper import prepare_phonopy
 from hilde.trajectory import reader
-
+from hilde.helpers.pickle import psave
 
 def postprocess(
-    workdir=".", trajectory="trajectory.yaml", pickle_file="phonon.pick", **kwargs
+    trajectory="phonopy/trajectory.yaml", pickle_file="phonon.pick", **kwargs
 ):
     """ Phonopy postprocess """
-    trajectory = Path(workdir) / trajectory
+    trajectory = Path(trajectory)
 
     calculated_atoms, metadata = reader(trajectory, True)
 
@@ -24,9 +23,8 @@ def postprocess(
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
 
     phonon.produce_force_constants(force_sets)
-
+    print(trajectory.parent, pickle_file)
     if pickle_file:
-        with (Path(workdir) / pickle_file).open("wb") as file:
-            pickle.dump(phonon, file)
+        psave(phonon, trajectory.parent / pickle_file)
 
     return phonon

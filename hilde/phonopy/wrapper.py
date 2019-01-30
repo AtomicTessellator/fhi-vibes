@@ -2,28 +2,22 @@
 A leightweight wrapper for Phonopy()
 """
 
-from collections import namedtuple
 import json
 from pathlib import Path
 import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
 from hilde.helpers import brillouinzone as bz
-from hilde.helpers.supercell import make_cubic_supercell
 from hilde.materials_fp.material_fingerprint import (
     get_phonon_bs_fingerprint_phononpy,
     to_dict,
 )
-from hilde.phonopy import enumerate_displacements, displacement_id_str
+from hilde.phonopy import enumerate_displacements
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
-
-defaults = adict(
-    {"displacement": 0.01, "symprec": 1e-5, "trigonal": False, "q_mesh": [25, 25, 25]}
-)
-
+from . import get_supercells_with_displacements, defaults
 
 def prepare_phonopy(
     atoms,
@@ -32,6 +26,7 @@ def prepare_phonopy(
     displacement=defaults.displacement,
     symprec=defaults.symprec,
     trigonal=defaults.trigonal,
+    is_diagonal=defaults.is_diagonal,
 ):
     """ Create a Phonopy object """
 
@@ -50,7 +45,9 @@ def prepare_phonopy(
     phonon.generate_displacements(
         distance=displacement,
         is_plusminus="auto",
-        is_diagonal=True,
+        # is_diagonal=False is chosen to be in line with phono3py, see
+        # https://github.com/atztogo/phono3py/pull/15
+        is_diagonal=is_diagonal,
         is_trigonal=trigonal,
     )
 
@@ -58,7 +55,6 @@ def prepare_phonopy(
         phonon.set_force_constants(fc2)
 
     return phonon
-
 
 def preprocess(
     atoms,
@@ -68,8 +64,6 @@ def preprocess(
     trigonal=defaults.trigonal,
     **kwargs,
 ):
-    """ Create a phonopy object and supercells etc. """
-
     phonon = prepare_phonopy(
         atoms,
         supercell_matrix,
@@ -78,25 +72,7 @@ def preprocess(
         trigonal=trigonal,
     )
 
-    supercell = to_Atoms(
-        phonon.get_supercell(),
-        info={
-            "supercell": True,
-            "supercell_matrix": phonon.get_supercell_matrix().T.flatten().tolist(),
-        },
-    )
-
-    scells = phonon.get_supercells_with_displacements()
-
-    supercells_with_disps = [to_Atoms(cell) for cell in scells]
-
-    enumerate_displacements(supercells_with_disps)
-
-    pp = namedtuple(
-        "phonopy_preprocess", "phonon supercell supercells_with_displacements"
-    )
-
-    return pp(phonon, supercell, supercells_with_disps)
+    return get_supercells_with_displacements(phonon)
 
 
 def get_force_constants(phonon, force_sets=None):
@@ -159,7 +135,7 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
 
-    bands, labels = bz.get_bands_and_labels(phonon.primitive, paths)
+    bands, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
 
     phonon.set_band_structure(bands)
 

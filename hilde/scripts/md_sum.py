@@ -57,12 +57,19 @@ def main():
                 f"{temp[-n_range+ii]:10.4f} "
             )
 
-    temp_2 = temp[len(temp) // 2 :]
-    print(f"Simulation time:        {time[-1] - time[0]:.4f} ps ({len(time)} steps)")
-    print(f"Temperature:            {np.mean(temp):.2f} +/- {np.std(temp):.2f}K")
-    print(f"Temperature (last 1/2): {np.mean(temp_2):.2f} +/- {np.std(temp_2):.2f}K")
-    print(f"Kinetic energy:         {np.mean(e_kin):.2f} +/- {np.std(e_kin):.2f}eV")
-    print(f"Potential energy:       {np.mean(e_pot):.2f} +/- {np.std(e_pot):.2f}eV")
+    # divide into three thirds
+    len_3 = len(temp) // 3
+    temp_1 = temp[:len_3]
+    temp_2 = temp[len_3 : 2 * len_3]
+    temp_3 = temp[2 * len_3 :]
+
+    print(f"Simulation time:         {time[-1] - time[0]:.4f} ps ({len(time)} steps)")
+    print(f"Temperature:             {np.mean(temp):.2f} +/- {np.std(temp):.2f}K")
+    print(f"Temperature (1st 1/3):   {np.mean(temp_1):.2f} +/- {np.std(temp_1):.2f}K")
+    print(f"Temperature (2nd 1/3):   {np.mean(temp_2):.2f} +/- {np.std(temp_2):.2f}K")
+    print(f"Temperature (3rd 1/3):   {np.mean(temp_3):.2f} +/- {np.std(temp_3):.2f}K")
+    print(f"Kinetic energy:          {np.mean(e_kin):.2f} +/- {np.std(e_kin):.2f}eV")
+    print(f"Potential energy:        {np.mean(e_pot):.2f} +/- {np.std(e_pot):.2f}eV")
 
     if args.plot:
         plot_temperature(time, temp, args.avg)
@@ -80,18 +87,29 @@ def plot_temperature(time, temperatures, running_avg=50):
 
     temp_2 = data.iloc[len(data) // 2 :]
 
-    ax = data.plot(x="time", y="temperatures", color=tc[0])
-    ax.set_title(f"Nuclear Temperature")
-    ax.legend(["Instant. Temp."])
+    ax = data.plot(
+        x="time",
+        y="temperatures",
+        color=tc[0],
+        title=f"Nuclear Temperature",
+        legend=["Instant. Temp."],
+    )
+    # ax.legend(["Instant. Temp."])
 
     if running_avg > 1:
         roll = data.rolling(window=running_avg, min_periods=0).mean()
-        roll.plot(x="time", y="temperatures", ax=ax, style="--", color=tc[1])
-        ax.set_title(
-            f"Nucl. Temp. with runnig avg. (window = {running_avg})"
-            f"\nTemperature (last 1/2): {temp_2.mean():.2f} +/- {temp_2.std():.2f}K"
+        roll.plot(
+            x="time",
+            y="temperatures",
+            ax=ax,
+            style="--",
+            color=tc[1],
+            title=(
+                f"Nucl. Temp. with runnig avg. (window = {running_avg})"
+                f"\nTemperature (last 1/2): {temp_2.mean():.2f} +/- {temp_2.std():.2f}K"
+            ),
+            legend=["Instant. Temp.", "Running mean"],
         )
-        ax.legend(["Instant. Temp.", "Running mean"])
 
     ax.set_xlabel("Time [ps]")
     ax.set_ylabel("Nucl. Temperature [K]")

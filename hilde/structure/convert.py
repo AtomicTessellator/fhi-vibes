@@ -1,6 +1,6 @@
 from ase.atoms import Atoms
 from phonopy.structure.atoms import PhonopyAtoms
-
+import numpy as np
 
 def to_phonopy_atoms(structure, wrap=False):
     phonopy_atoms = PhonopyAtoms(
@@ -18,6 +18,22 @@ def to_spglib_cell(structure):
     number = structure.get_atomic_numbers()
     return (lattice, positions, number)
 
+def to_Atoms_db(structure, info={}, pbc=True):
+    """ convert structure to ase.Atoms without masses """
+    if structure is None:
+        return None
+
+    atoms_dict = {
+        "symbols": structure.get_chemical_symbols(),
+        "cell": np.round(structure.get_cell(), 15),
+        "positions": np.round(structure.get_positions(), 15),
+        "pbc": pbc,
+        "info": info,
+    }
+
+    atoms = Atoms(**atoms_dict)
+
+    return atoms
 
 def to_Atoms(structure, info={}, pbc=True):
     """ convert structure to ase.Atoms """

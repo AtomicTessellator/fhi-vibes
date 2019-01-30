@@ -8,4 +8,4 @@ atoms = bulk("Al")
 
 calc = EMT()
 
-run_phonopy(atoms=atoms, calc=calc)
+run_phonopy(atoms=atoms, calculator=calc)

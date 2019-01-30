@@ -10,10 +10,10 @@ def restart(settings=None, verbose=True):
         settings = Settings()
 
     if "restart" in settings:
-        sp.run(settings.restart.command.split())
-        if verbose:
-            print(f"Task restarted with {settings.restart.command}")
-        return True
+       if verbose:
+            print(f"Restart task with {settings.restart.command}")
+       sp.run(settings.restart.command.split())
+       return True
     else:
         if verbose:
             print("Task not completed, please inspect and rerun.")

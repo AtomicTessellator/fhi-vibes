@@ -44,11 +44,8 @@ def bootstrap():
     """ load settings, prepare atoms, calculator and MD algorithm """
 
     settings = Settings()
-    atoms, calc = setup_aims(settings=settings)
-
-    # make sure forces are computed (aims only)
-    if calc and calc.name == "aims":
-        calc.parameters["compute_forces"] = True
+    atoms = settings.get_atoms()
+    calc = setup_aims({"compute_forces": True}, settings=settings)
 
     if "md" not in settings:
         warn("Settings do not contain MD instructions.", level=2)
@@ -82,11 +79,6 @@ def run(
     calc_dir = workdir / _calc_dirname
     backup_folder = workdir / backup_folder
 
-    # atomic stresses
-    if calc.name == "aims":
-        if compute_stresses:
-            calc.parameters["compute_heat_flux"] = True
-
     # make sure compute_stresses describes a step length
     if compute_stresses is True:
         compute_stresses = 1
@@ -94,6 +86,15 @@ def run(
         compute_stresses = 0
     else:
         compute_stresses = int(compute_stresses)
+
+    # atomic stresses
+    if calc.name == "aims":
+        if compute_stresses:
+            warn(
+                "Switch heat flux / atomic stress computation on. "
+                + f"(Every {compute_stresses} steps)"
+            )
+            calc.parameters["compute_heat_flux"] = True
 
     # prepare the socketio stuff
     socketio_port = get_port(calc)
@@ -128,6 +129,8 @@ def run(
         # store MD metadata locally
         metadata2file(metadata, file=metadata_file)
 
+        print("\nStart MD.")
+
         while not watchdog() and md.nsteps < maxsteps:
             something_happened = True
 
@@ -135,7 +138,7 @@ def run(
 
             md.run(1)
 
-            if compute_stresses:
+            if compute_stresses_now(compute_stresses, nsteps):
                 stresses = get_stresses(atoms)
                 atoms.calc.results["stresses"] = stresses
 
@@ -148,6 +151,7 @@ def run(
                 else:
                     socket_stress_off(iocalc)
 
+        print("Stop MD.\n")
     # backup and cleanup if something new happened
     if something_happened:
         backup(calc_dir, target_folder=backup_folder)

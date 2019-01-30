@@ -10,7 +10,6 @@ from hilde.helpers.warnings import warn
 from hilde.helpers.restarts import restart
 
 from .postprocess import postprocess
-from .wrapper import preprocess
 from . import metadata2dict
 
 
@@ -32,26 +31,45 @@ def run_phonopy(**kwargs):
         return True
 
 
-def bootstrap(settings=Settings(), **kwargs):
+def bootstrap(name="phonopy", settings=None, **kwargs):
     """ load settings, prepare atoms, calculator, and phonopy """
 
-    atoms = settings.get_atoms()
+    if name.lower() == "phonopy":
+        from hilde.phonopy.wrapper import preprocess
+    elif name.lower() == "phono3py":
+        from hilde.phono3py.wrapper import preprocess
 
-    if "phonopy" not in settings:
-        warn("Settings do not contain phonopy instructions.", level=2)
+    if settings is None:
+        settings = Settings()
+
+    if "atoms" not in kwargs:
+        atoms = settings.get_atoms()
+    else:
+        atoms = kwargs["atoms"]
+
+    phonopy_settings = {"atoms": atoms}
+
+    if name not in settings:
+        warn(f"Settings do not contain {name} instructions.", level=1)
+    else:
+        phonopy_settings.update(settings[name])
 
     # Phonopy preprocess
-    phonopy_settings = {**settings.phonopy, **kwargs}
-    phonon, supercell, scs = preprocess(atoms, **phonopy_settings)
+    phonopy_settings.update(kwargs)
+    phonon, supercell, scs = preprocess(**phonopy_settings)
 
-    calc = setup_aims({"compute_forces": True}, settings=settings, atoms=supercell)
+    calc = kwargs.get(
+        "calculator",
+        setup_aims({"compute_forces": True}, settings=settings, atoms=supercell),
+    )
 
     # save metadata
-    metadata = metadata2dict(atoms, calc, phonon)
+    metadata = metadata2dict(phonon, calc)
 
     return {
         "atoms_to_calculate": scs,
         "calculator": calc,
         "metadata": metadata,
+        "workdir": name,
         **phonopy_settings,
     }

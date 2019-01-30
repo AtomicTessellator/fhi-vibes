@@ -8,6 +8,11 @@ def get_port(calculator):
     """ return port of the calculator """
 
     port = None
+
+    if not hasattr(calculator, "parameters"):
+        warn(f"No parameters found in calculator {calculator.name}.", level=1)
+        return port
+
     if "use_pimd_wrapper" in calculator.parameters:
         port = calculator.parameters["use_pimd_wrapper"][1]
         warn(f"Use SocketIO with port {port}")
@@ -41,4 +46,3 @@ def socket_stress_on(calc):
         calc.server.protocol.sendmsg("STRESSES_ON")
     else:
         warn(f"Calculator {calc.name} is not a socket calculator.")
-
