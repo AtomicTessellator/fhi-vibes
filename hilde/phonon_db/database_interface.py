@@ -53,6 +53,7 @@ def obj2dict(obj):
             ph.set_forces([at.get_forces() for at in calculated_atoms])
             return phonon_to_dict(ph)
         elif "Phono3py" in metadata:
+            from phono3py.phonon3 import Phono3py
             ph3 = Phono3py(
                 to_phonopy_atoms(dict2results(metadata["Phono3py"]["primitive"])),
                 supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
@@ -134,6 +135,7 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
             selection.append(("sc_matrix_2", "=", dct["sc_matrix_2"]))
             key_val_pairs["displacement"] = metadata["Phonopy"]['displacement_dataset']['first_atoms'][0]['displacement'][0]
         elif "Phono3py" in metadata:
+            from phono3py.phonon3 import Phono3py
             at_dict = metadata["Phono3py"]['primitive'].copy()
             for key, val in metadata['calculator'].items():
                 at_dict[key] = val
@@ -143,7 +145,7 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
             atoms = dict2atoms(at_dict)
             typ = "ph3"
             selection.append(("sc_matrix_3", "=", dct["sc_matrix_3"]))
-            key_val_pairs["pair_distance_cutoff"] = metadata['displacement_dataset']['cutoff_distance']
+            key_val_pairs["pair_distance_cutoff"] = metadata["Phono3py"]['displacement_dataset']['cutoff_distance']
             key_val_pairs["displacement"] = metadata["Phono3py"]['displacement_dataset']['first_atoms'][0]['displacement'][0]
         else:
             raise TypeError("Trajectory file can't be added to database")
@@ -173,6 +175,7 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
     else:
         try:
             from phono3py.phonon3 import Phono3py
+            from phono3py.phonon3 import Phono3py
             if isinstance(obj, Phono3py):
                 atoms = to_Atoms_db(obj.get_primitive())
 
@@ -187,7 +190,6 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
             pass
     atoms.set_calculator(calc)
     if "calc_hash" in key_val_pairs or "atoms_hash" in key_val_pairs:
-        print(key_val_pairs)
         warn("Replacing the atoms and calc hashes")
     hashes['atoms_hash'], hashes['calc_hash'] = hash_atoms_and_calc(atoms)
 

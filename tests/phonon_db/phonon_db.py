@@ -6,33 +6,49 @@ from hilde.helpers.pickle import pread
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.phonon_db.database_interface import to_database, from_database
 from hilde.phonon_db.phonon_db import connect
-from hilde.phonopy.postprocess import postprocess
-# Connect to the database
-db_path = "test.json"
-traj = "trajectory_phonopy.yaml"
+from hilde.phonopy.postprocess import postprocess as postprocess_ph
+from hilde.phono3py.postprocess import postprocess as postprocess_ph3
 
-# Load the atoms and phonopy objects from the pick file
-hashes = to_database(db_path, obj=traj)
+# get database path
+db_path = "test.db"
 
-phonon = postprocess(trajectory=traj)
-ph_db = from_database(db_path, identifier=("traj_hash", hashes["traj_hash"]), get_phonon=True)
+# Write the initial structure with the phonopy object
+hashes_ph = to_database(db_path, "trajectory_phonopy.yaml")
+# Update the database with third order properties
+hashes_ph3 = to_database(db_path, "trajectory_phono3py.yaml")
 
-assert np.max(np.abs(ph_db.get_force_constants() - phonon.get_force_constants()[:])) < 1e-14
+phonon = postprocess_ph(trajectory="trajectory_phonopy.yaml")
+phonon3 = postprocess_ph3(trajectory="trajectory_phono3py.yaml")
+
+ph3_db = from_database(
+    db_path,
+    get_phonon3=True,
+    sc_matrix_2=phonon.get_supercell_matrix(),
+    sc_matrix_3=phonon3.get_supercell_matrix(),
+    atoms_hash = hashes_ph["atoms_hash"],
+    calc_hash = hashes_ph["calc_hash"],
+    ph_hash = hashes_ph["ph_hash"],
+    ph3_hash = hashes_ph3["ph3_hash"],
+)
+
+# print("The atoms_hashes are the same:", (atoms_hash, calc_hash) == hash_atoms_and_calc(at_db))
+assert np.max(np.abs(ph3_db.get_fc2()[:] - phonon.get_force_constants()[:])) < 1e-14
+assert np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])) < 1e-14
 
 # Get the row from the database
 db = connect(db_path)
 row = list(
     db.select(
         sc_matrix_2=phonon.get_supercell_matrix(),
-        atoms_hash=hashes["atoms_hash"],
-        calc_hash=hashes["calc_hash"],
+        sc_matrix_3=phonon.get_supercell_matrix(),
+        atoms_hash=hashes_ph["atoms_hash"],
+        calc_hash=hashes_ph["calc_hash"],
         has_fc2=True,
-        columns=["id", "fc_2", "sc_matrix_2"],
+        has_fc3=True,
+        columns=["id", "fc_2", "fc_3"],
     )
 )[0]
 
 # Compare the second order force constants and the Helmholtz free energies of the phonopy and row objects
-print(
-    "Both force constant matrices are the same:",
-    np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-14,
-)
+assert np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-14
+assert np.max(np.abs(row.fc_3[:] - phonon3.get_fc3()[:])) < 1e-14
