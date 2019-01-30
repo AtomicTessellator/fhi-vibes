@@ -116,7 +116,9 @@ class Settings(ConfigDict):
 
     def get_atoms(self, format="aims"):
         """ parse the geometry described in settings.in and return as atoms """
-        if "geometry" in self:
+        if "atoms" in self:
+            return self.atoms
+        elif "geometry" in self:
             if "file" in self.geometry:
                 atoms = read(self.geometry.file, format=format)
                 return atoms

@@ -22,8 +22,10 @@ def postprocess(
     trajectory3 = Path(trajectory)
 
     # first run phonopy postprocess
-    phonon = postprocess2(trajectory=trajectory_fc2, pickle_file=None)
-
+    try:
+        phonon = postprocess2(workdir=workdir, trajectory=trajectory_fc2)
+    except:
+        phonon = None
     # read the third order trajectory
     calculated_atoms, metadata_full = traj_reader(trajectory3, True)
     metadata = metadata_full["Phono3py"]
@@ -31,8 +33,8 @@ def postprocess(
     phono3py_settings = {
         "atoms": dict2results(metadata["primitive"]),
         "supercell_matrix": metadata["supercell_matrix"],
-        "phonon_supercell_matrix": phonon.get_supercell_matrix(),
-        "fc2": phonon.get_force_constants(),
+        "phonon_supercell_matrix": phonon.get_supercell_matrix() if phonon else None,
+        "fc2": phonon.get_force_constants() if phonon else None,
         "cutoff_pair_distance": metadata["displacement_dataset"]["cutoff_distance"],
         "symprec": metadata["symprec"],
         "displacement_dataset": metadata["displacement_dataset"],

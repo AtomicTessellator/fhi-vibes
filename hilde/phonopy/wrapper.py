@@ -19,7 +19,6 @@ from hilde.spglib.wrapper import map_unique_to_atoms
 from hilde.helpers.attribute_dict import AttributeDict as adict
 from . import get_supercells_with_displacements, defaults
 
-
 def prepare_phonopy(
     atoms,
     supercell_matrix,
@@ -56,7 +55,6 @@ def prepare_phonopy(
         phonon.set_force_constants(fc2)
 
     return phonon
-
 
 def preprocess(
     atoms,

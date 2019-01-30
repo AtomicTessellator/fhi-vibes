@@ -6,7 +6,6 @@ from hilde.phonopy.wrapper import prepare_phonopy
 from hilde.trajectory import reader
 from hilde.helpers.pickle import psave
 
-
 def postprocess(
     trajectory="phonopy/trajectory.yaml", pickle_file="phonon.pick", **kwargs
 ):
@@ -24,7 +23,7 @@ def postprocess(
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
 
     phonon.produce_force_constants(force_sets)
-
+    print(trajectory.parent, pickle_file)
     if pickle_file:
         psave(phonon, trajectory.parent / pickle_file)
 

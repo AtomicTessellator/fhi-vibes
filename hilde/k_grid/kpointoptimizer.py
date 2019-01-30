@@ -1,12 +1,11 @@
 """ ASE Optimizer to converge the k-grid """
 from ase.optimize.optimize import Dynamics
-from ase.calculators.calculator import kptdensity2monkhorstpack
-from copy import copy
 
 from hilde.helpers.k_grid import d2k
 
 
 class KPointOptimizer(Dynamics):
+    '''ASE Optimizer Class for K-point optimization'''
     def __init__(
         self,
         atoms,
@@ -16,7 +15,6 @@ class KPointOptimizer(Dynamics):
         even=True,
         trajectory=None,
         logfile="-",
-        loginterval=1,
         kpts_density_init=1.0,
     ):
         """
@@ -29,7 +27,6 @@ class KPointOptimizer(Dynamics):
             even: (bool) If True kgrid must be even valued
             trajecotry: (str) file name to store the trajectory
             logfile: (str) file name for the log file
-            loginterval: (int) interval for outputting steps in the log
             kpts_density_init: (float) initial k-point density
         """
         Dynamics.__init__(
@@ -84,7 +81,6 @@ class KPointOptimizer(Dynamics):
             self.call_observers()
             if self.dfunc < self.dfunc_min:
                 yield True
-                return True
             else:
                 yield False
                 self.increase_kpts()

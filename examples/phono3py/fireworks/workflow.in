@@ -3,5 +3,5 @@
 file = geometry.in
 
 [workflow]
-step_files = ["k_pt.in", "aims_light_relax.in", "aims_tight_relax.in", "phonons.in"]
+step_files = ["k_pt.in", "light_relax.in", "phonons.in"]
 fw = True

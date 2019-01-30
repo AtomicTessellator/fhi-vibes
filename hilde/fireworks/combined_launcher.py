@@ -4,31 +4,23 @@ import glob
 import time
 from datetime import datetime
 
-from monty.os import cd, makedirs_p
+from pathlib import Path
 
-from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import launch_rocket
 from fireworks.fw_config import (
-    SUBMIT_SCRIPT_NAME,
     ALWAYS_CREATE_NEW_BLOCK,
-    QUEUE_RETRY_ATTEMPTS,
     QUEUE_UPDATE_INTERVAL,
-    QSTAT_FREQUENCY,
     RAPIDFIRE_SLEEP_SECS,
-    QUEUE_JOBNAME_MAXLEN,
 )
 from fireworks.queue.queue_launcher import (
     launch_rocket_to_queue,
     _njobs_in_dir,
     _get_number_of_jobs_in_queue,
-    setup_offline_job,
 )
-from fireworks.utilities.fw_serializers import load_object
 from fireworks.utilities.fw_utilities import (
     get_fw_logger,
     log_exception,
     create_datestamp_dir,
-    get_slug,
 )
 
 from hilde.fireworks.qlaunch_remote import qlaunch_remote
@@ -36,6 +28,7 @@ from hilde.settings import Settings
 
 try:
     import fabric
+
     if int(fabric.__version__.split(".")[0]) < 2:
         raise ImportError
 except ImportError:
@@ -45,31 +38,48 @@ else:
     HAS_FABRIC = True
     # If fabric 2 is present check if it allows for SSH multiplexing
     from fabric.connection import SSHClient
-    if "controlpath" in SSHClient.connect.__doc__:
-        SSH_MULTIPLEXING = True
-    else:
-        SSH_MULTIPLEXING = False
+
+    SSH_MULTIPLEXING = "controlpath" in SSHClient.connect.__doc__
 
 settings = Settings()
 remote_setup = settings.remote_setup if "remote_setup" in settings else {}
 remote_host_auth = settings.remote_host_auth if "remote_host_auth" in settings else {}
-remote_queue_param = settings.remote_queue_param if "remote_queue_param" in settings else {}
+remote_queue_param = (
+    settings.remote_queue_param if "remote_queue_param" in settings else {}
+)
 launch_params = settings.launch_params if "launch_params" in settings else {}
 
 fw_defaults = {
     "launch_dir": (remote_setup.launch_dir if "launch_dir" in remote_setup else "."),
     "remote_host": (remote_setup.remote_host if "remote_host" in remote_setup else 0),
-    "remote_config_dir": (remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else 0),
+    "remote_config_dir": (
+        remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else 0
+    ),
     "reserve": (remote_setup.reserve if "reserve" in remote_setup else True),
-    "remote_user": (remote_host_auth.remote_user if "remote_user" in remote_host_auth else 500),
-    "remote_password": (remote_host_auth.remote_password if "remote_password" in remote_host_auth else None),
+    "remote_user": (
+        remote_host_auth.remote_user if "remote_user" in remote_host_auth else 500
+    ),
+    "remote_password": (
+        remote_host_auth.remote_password
+        if "remote_password" in remote_host_auth
+        else None
+    ),
     "gss_auth": (remote_host_auth.gss_auth if "gss_auth" in remote_host_auth else True),
-    "njobs_queue": (remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else None),
-    "njobs_block": (remote_queue_param.njobs_block if "njobs_block" in remote_queue_param else "localhost"),
+    "njobs_queue": (
+        remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else None
+    ),
+    "njobs_block": (
+        remote_queue_param.njobs_block
+        if "njobs_block" in remote_queue_param
+        else "localhost"
+    ),
     "nlaunches": (launch_params.nlaunches if "nlaunches" in launch_params else None),
     "sleep_time": (launch_params.sleep_time if "sleep_time" in launch_params else None),
-    "tasks2queue": (launch_params.tasks2queue if "tasks2queue" in launch_params else None),
+    "tasks2queue": (
+        launch_params.tasks2queue if "tasks2queue" in launch_params else None
+    ),
 }
+
 
 def get_ordred_fw_ids(wflow):
     """Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow"""
@@ -141,11 +151,13 @@ def rapidfire(
         gss_auth (bool): True if GSS_API should be used to connect to the remote machine
         controlpath (str): path the the socket file for MUX connections
         remote_host(list of str): list of hosts to attempt to connect to
-        remote_config_dir (list of str): list of directories on the remote machines to find FireWorks configuration files
+        remote_config_dir (list of str): list of directories on the remote machines to find
+                                         FireWorks configuration files
         remote_user (str): username for the remote account
         remote_password (str or None): Password for access to the remote account
         remote_shell (str): Type of shell on the remote machine
-        daemon (int): Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode
+        daemon (int): Daemon mode. Command is repeated every x seconds.
+                      Defaults to 0, which means non-daemon mode
     """
     if tasks2queue is None:
         tasks2queue = [""]
@@ -155,7 +167,7 @@ def rapidfire(
     r_kwargs = {"fworker": fworker, "strm_lvl": strm_lvl, "pdb_on_exception": False}
     if isinstance(wflow, list):
         wflow_id = wflow
-        if len(wflow_id) == 0:
+        if not wflow_id:
             wflow_id = None
             wflow = None
         else:
@@ -164,7 +176,7 @@ def rapidfire(
         wflow_id = wflow.root_fw_ids
     else:
         wflow_id = None
-    if remote_host is "localhost":
+    if remote_host == "localhost":
         qlaunch = launch_rocket_to_queue
         remote = False
         if not fworker or not qadapter:
@@ -198,11 +210,11 @@ def rapidfire(
             "nlaunches": 1,
             "sleep": sleep_time,
         }
-        if launch_dir is not ".":
+        if launch_dir != ".":
             q_kwargs["launcher_dir"] = launch_dir
-        if strm_lvl is not "INFO":
+        if strm_lvl != "INFO":
             q_kwargs["loglvl"] = strm_lvl
-        if njobs_block is not 500:
+        if njobs_block != 500:
             q_kwargs["maxjobs_block"] = njobs_block
     if fw_ids and len(fw_ids) != nlaunches:
         print("WARNING: Setting nlaunches to the length of fw_ids.")
@@ -224,7 +236,7 @@ def rapidfire(
     start_time = datetime.now()
     skip_check = False
     try:
-        if remote_host is "localhost":
+        if remote_host == "localhost":
             l_logger.info("getting queue adapter")
 
             prev_blocks = sorted(
@@ -241,7 +253,12 @@ def rapidfire(
                 for host in remote_host:
                     connect_kwargs = {"password": remote_password, "gss_auth": gss_auth}
                     if SSH_MULTIPLEXING:
-                        controlpath = str(Path.home() / ".ssh" / "sockets" / (remote_user + "@$" + host + "-22"))
+                        controlpath = str(
+                            Path.home()
+                            / ".ssh"
+                            / "sockets"
+                            / (remote_user + "@$" + host + "-22")
+                        )
                         connect_kwargs["controlpath"] = controlpath
                     try:
                         with fabric.Connection(
@@ -253,17 +270,14 @@ def rapidfire(
                             for remote in remote_config_dir:
                                 remote = os.path.expanduser(remote)
                                 with conn.cd(remote):
-                                    conn.run(
-                                        "lpad recover_offline"
-                                    )
+                                    conn.run("lpad recover_offline")
                     except:
                         pass
-            if remote_host is "localhost":
+            if remote_host == "localhost":
                 # get number of jobs in queue
                 jobs_in_queue = _get_number_of_jobs_in_queue(
                     qadapter, njobs_queue, l_logger
                 )
-                job_counter = 0  # this is for QSTAT_FREQUENCY option
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
@@ -276,7 +290,7 @@ def rapidfire(
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
                     l_logger.info("Timeout reached.")
                     break
-                if remote_host is "localhost":
+                if remote_host == "localhost":
                     if njobs_queue and jobs_in_queue >= njobs_queue:
                         l_logger.info(
                             "Jobs in queue ({}) meets/exceeds "
@@ -305,7 +319,7 @@ def rapidfire(
                     rlaunch = qlaunch
                     args = q_args
                     kwargs = q_kwargs
-                    if remote_host is "localhost":
+                    if remote_host == "localhost":
                         kwargs["fw_id"] = fw_id
                     else:
                         kwargs["fw_ids"] = [fw_id]
@@ -334,15 +348,12 @@ def rapidfire(
                     )
                     break
                 # wait for the queue system to update
-                if remote_host is "localhost":
+                if remote_host == "localhost":
                     l_logger.info(
                         "Sleeping for {} seconds...zzz...".format(QUEUE_UPDATE_INTERVAL)
                     )
                     time.sleep(QUEUE_UPDATE_INTERVAL)
-                if not use_queue and launchpad.run_exists(fworker, ids=fw_ids):
-                    skip_check = True
-                else:
-                    skip_check = False
+                skip_check = not use_queue and launchpad.run_exists(fworker, ids=fw_ids)
             if (
                 (nlaunches > 0 and num_launched == nlaunches)
                 or (

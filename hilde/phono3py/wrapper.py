@@ -9,7 +9,6 @@ from hilde.helpers.attribute_dict import AttributeDict as adict
 from hilde.helpers.numerics import get_3x3_matrix
 from . import defaults
 
-
 def prepare_phono3py(
     atoms,
     supercell_matrix,
@@ -64,7 +63,6 @@ def prepare_phono3py(
         phonon3.set_fc3(fc3)
 
     return phonon3
-
 
 def preprocess(
     atoms,

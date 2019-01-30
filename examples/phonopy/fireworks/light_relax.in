@@ -1,18 +1,17 @@
 # information to build a default control.in
 [control]
-xc =              pw-lda
+xc =                 pbe
 sc_accuracy_rho =    1e-6
 sc_accuracy_forces = 5E-4
 output_level =       MD_light
 relativistic =       "atomic_zora scalar"
-relax_geometry =     "trm 1E-3"
+relax_geometry =     "ltrm 1E-2"
 relax_unit_cell =    full
-mixer =              pulay
-n_max_pulay =        8
-charge_mix_param =   0.5
 vdw_correction_hirshfeld = True
-use_sym=True
-scaled=True
+basis_threshold = 1e-10
+
+use_sym = True
+scaled = True
 
 [control_kpt]
 density =         2
@@ -24,7 +23,7 @@ type = light
 port = null
 
 [aims_relaxation]
-workdir = test_run/light_relax
+workdir = test_run//light_relax
 
 [fw_settings]
 from_db = True
@@ -34,6 +33,5 @@ out_spec_atoms = light_relaxed_atoms
 out_spec_calc = light_relaxed_calc
 in_spec_atoms = kgrid_opt_atoms
 in_spec_calc = kgrid_opt_calc
+kpoint_density_spec = kgrid
 
-[fw_spec_qadapter]
-walltime = 00:05:00

@@ -50,7 +50,6 @@ def to_yaml(obj, file, mode="a", use_json=True, exist_ok=False):
     # backup
     if mode == "w":
         backup(file)
-
     with open(file, mode) as f:
         if "a" in mode:
             f.write("---\n")
