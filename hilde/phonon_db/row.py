@@ -278,11 +278,11 @@ class PhononRow(AtomsRow):
         phonon3.set_displacement_dataset(self.displacement_dataset_3)
 
         if "forces_2" in self and len(self.forces_2) > 0:
-            phonon3.produce_fc2(self.forces_2)
+            phonon3.produce_fc2(self.forces_2, displacement_dataset=self.displacement_dataset_2)
             self.__dict__["_fc_2"] = phonon3.get_fc2()
 
         if "forces_3" in self and len(self.forces_3) > 0:
-            phonon3.produce_fc3(self.forces_3)
+            phonon3.produce_fc3(self.forces_3, displacement_dataset=self.displacement_dataset_3)
             self.__dict__["_fc_3"] = phonon3.get_fc3()
 
         if mesh is None and "qmesh" in self and self.qmesh is not None:
