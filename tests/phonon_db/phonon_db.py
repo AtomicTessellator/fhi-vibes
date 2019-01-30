@@ -8,13 +8,13 @@ from hilde.phonon_db.database_interface import to_database, from_database
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy.postprocess import postprocess
 # Connect to the database
-db_path = "test.db"
-traj = "trajectory_phonon.yaml"
+db_path = "test.json"
+traj = "trajectory_phonopy.yaml"
 
 # Load the atoms and phonopy objects from the pick file
 hashes = to_database(db_path, obj=traj)
 
-phonon = postprocess(trajectory="trajectory.yaml")
+phonon = postprocess(trajectory=traj)
 ph_db = from_database(db_path, identifier=("traj_hash", hashes["traj_hash"]), get_phonon=True)
 
 assert np.max(np.abs(ph_db.get_force_constants() - phonon.get_force_constants()[:])) < 1e-14
