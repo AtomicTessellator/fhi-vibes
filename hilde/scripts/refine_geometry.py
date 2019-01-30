@@ -11,6 +11,7 @@ def main():
     parser.add_argument("--conv", action="store_true", help="store conventional cell")
     parser.add_argument("-t", "--tolerance", type=float, default=1e-5)
     parser.add_argument("--format", default="aims")
+    parser.add_argument("--frac", action="store_true")
     args = parser.parse_args()
 
     ### Greet
@@ -31,7 +32,7 @@ def main():
         atoms = refine_cell(atoms, symprec=args.tolerance)
         outfile = f"{args.geometry}.refined"
 
-    write(atoms, outfile, format=args.format, spacegroup=True)
+    write(atoms, outfile, format=args.format, spacegroup=True, scaled=args.frac)
 
     print(f"\nNew structure written in {args.format} format to {outfile}")
 

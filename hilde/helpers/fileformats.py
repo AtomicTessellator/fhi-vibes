@@ -7,6 +7,7 @@ from bz2 import open as bzopen
 import numpy as np
 
 import yaml
+from hilde.helpers.warnings import warn
 
 try:
     from yaml import CSafeLoader as Loader, CDumper as Dumper
@@ -60,9 +61,18 @@ def from_yaml(file, use_json=True):
     """ return from yaml file """
     with Path(file).open() as f:
         if use_json:
-            return from_json(file)
+            try:
+                return from_json(file)
+            except json.JSONDecodeError:
+                warn("Fall back to yaml reader")
+
         stream = yaml.load_all(f, Loader=Loader)
-        return [elem for elem in stream]
+
+        lis = [elem for elem in stream]
+
+        if (len(list_dim(lis)) > 1) and (list_dim(lis)[0] == 1):
+            return lis[0]
+        return lis
 
 
 def last_from_yaml(file):
