@@ -124,8 +124,8 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
     else:
         method = "ltrm"
 
-    if "conv_cirt" in rel_settings:
-        force_crit = str(func_kwargs.pop("conv_cirt"))
+    if "conv_crit" in rel_settings:
+        force_crit = str(rel_settings.pop("conv_crit"))
     else:
         force_crit = "5e-3"
 

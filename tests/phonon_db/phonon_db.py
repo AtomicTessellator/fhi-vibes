@@ -1,15 +1,8 @@
-""" example on how to use the phonon database """
+""" Test for the phonon database """
 
 import numpy as np
 
-from ase.calculators.emt import EMT
-from ase.build import bulk
-import importlib as il
-from phonopy import Phonopy
-
-from hilde.helpers.hash import hash_atoms_and_calc
-from hilde.helpers.brillouinzone import get_bands
-from hilde.helpers.supercell import make_cubic_supercell
+from hilde.phonon_db.database_interface import to_database, from_database
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy import wrapper as ph
 from hilde.tasks.calculate import calculate_multiple
@@ -18,17 +11,8 @@ from hilde.phono3py import wrapper as ph3
 from hilde.structure.convert import to_Atoms
 from hilde.structure.misc import get_sysname
 
-# Get the settings for the calculation and set up the cell
+# get database path
 db_path = "test.db"
-print(f"database: {db_path}")
-
-atoms = bulk("Al")
-atoms.set_calculator(EMT())
-
-_, smatrix2 = make_cubic_supercell(atoms, 256)
-_, smatrix3 = make_cubic_supercell(atoms, 32)
-
-q_mesh = [5, 5, 5]
 
 phonopy_settings = {
     'atoms': atoms,
@@ -46,8 +30,10 @@ phono3py_settings = {
     'q_mesh': q_mesh
 }
 
+assert np.max(np.abs(ph3_db.get_fc2()[:] - phonon.get_force_constants()[:])) < 1e-14
+assert np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])) < 1e-14
 
-# connect to the database and check if the calculation was already done
+# Get the row from the database
 db = connect(db_path)
 atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
 

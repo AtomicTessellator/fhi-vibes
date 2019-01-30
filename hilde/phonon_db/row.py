@@ -2,13 +2,17 @@
 A file defining a row object for the phonon database
 """
 import numpy as np
+
 from ase.db.row import AtomsRow, atoms2dict
 
-from hilde.structure.convert import to_Atoms, to_phonopy_atoms
+from spglib import get_spacegroup
+
 from hilde import konstanten as const
+from hilde.helpers.converters import dict2atoms
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import to_dict
+from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 
 
 def phonon_to_dict(phonon, to_mongo=False):
@@ -170,14 +174,31 @@ class PhononRow(AtomsRow):
             raise AttributeError("dct, phonon3 or phonon must be defined")
         assert "numbers" in dct
         assert "cell" in dct
+        try:
+            symprec = dct['symprec'] if 'symprec' in dct else 1e-5
+            dct["space_group"] = get_spacegroup(dict2atoms(dct), symprec=symprec)
+            kvp = dct.pop("key_value_pairs", {})
+            kvp["space_group"] = dct["space_group"]
+        except AttributeError:
+            kvp = dct.pop("key_value_pairs", {})
         self._constraints = dct.pop("constraints", [])
         self._constrained_forces = None
         self._data = dct.pop("data", {})
         # If the dictionary has additional keys that are not default add them here
-        kvp = dct.pop("key_value_pairs", {})
         self._keys = list(kvp.keys())
         self.__dict__.update(kvp)
         self.__dict__.update(dct)
+        self.clean_displacement_dataset()
+
+    def clean_displacement_dataset(self):
+        if "displacement_dataset_2" in self and self.displacement_dataset_2 is not None:
+            for disp1 in self.displacement_dataset_2['first_atoms']:
+                disp1["number"] = int(disp1["number"])
+        if "displacement_dataset_3" in self and self.displacement_dataset_3 is not None:
+            for ii,disp1 in enumerate(self.displacement_dataset_3['first_atoms']):
+                disp1["number"] = int(disp1["number"])
+                for disp2 in disp1['second_atoms']:
+                    disp2["number"] = int(disp2["number"])
 
     @property
     def fc_2(self):
@@ -217,6 +238,7 @@ class PhononRow(AtomsRow):
 
         if "forces_3" in self and len(self.forces_3) > 0:
             phonon3.produce_fc3(self.forces_3)
+        return phonon3.get_fc3()
 
     def to_phonon(self):
         """
@@ -236,6 +258,7 @@ class PhononRow(AtomsRow):
         phonon.set_displacement_dataset(self.displacement_dataset_2)
         if "forces_2" in self and len(self.forces_2) > 0:
             phonon.produce_force_constants(self.forces_2)
+            self.__dict__["_fc_2"] = phonon.get_force_constants()
         if "qmesh" in self and self.qmesh is not None:
             phonon.set_mesh(self.qmesh)
             if "tp_T" in self and self.tp_T is not None:
@@ -260,16 +283,18 @@ class PhononRow(AtomsRow):
             is_symmetry=True,
             frequency_factor_to_THz=const.omega_to_THz,
             log_level=0,
-            mesh=self.qmesh,
+            mesh=self.qmesh if "qmesh" in self else None ,
         )
         phonon3._phonon_displacement_dataset = self.displacement_dataset_2.copy()
         phonon3.set_displacement_dataset(self.displacement_dataset_3)
 
         if "forces_2" in self and len(self.forces_2) > 0:
             phonon3.produce_fc2(self.forces_2)
+            self.__dict__["_fc_2"] = phonon3.get_fc2()
 
         if "forces_3" in self and len(self.forces_3) > 0:
             phonon3.produce_fc3(self.forces_3)
+            self.__dict__["_fc_3"] = phonon3.get_fc3()
 
         if mesh is None and "qmesh" in self and self.qmesh is not None:
             phonon3._mesh = np.array(self.qmesh, dtype="intc")

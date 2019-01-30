@@ -1,10 +1,10 @@
 """ Tools for hashing atoms objects """
 
+from json import dumps
 from pathlib import Path
 from configparser import ConfigParser
 from hashlib import sha1 as hash_sha
 from .converters import atoms2json
-
 
 def hashfunc(string, empty_str=""):
     """ Wrap the sha hash function and check for empty objects """
@@ -42,6 +42,12 @@ def hash_atoms_and_calc(
 
     return atomshash, calchash
 
+def hash_traj(ca, meta, hash_meta=False):
+    ca_dct = [atoms2json(at) for at in ca]
+    dct = dict(meta, calculated_atoms=ca_dct)
+    if hash_meta:
+        return hashfunc(dumps(dct)).hexdigest(), hashfunc(dumps(meta)).hexdigest()
+    return hashfunc(dumps(dct)).hexdigest()
 
 def hash_atoms(atoms):
     """ hash only the atoms object """

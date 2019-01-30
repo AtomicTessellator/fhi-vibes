@@ -1,6 +1,7 @@
 """
  Functions to run several related calculations with using trajectories as cache
 """
+import numpy as np
 
 from pathlib import Path
 from ase.calculators.socketio import SocketIOCalculator
@@ -150,10 +151,14 @@ def calculate_socket(
 
                 if cell is None:
                     continue
-
                 # if precomputed:
                 if hash_atoms(cell) in precomputed_hashes:
                     continue
+
+                if "forces" in calc.results:
+                    del calc.results["forces"]
+
+                atoms.calc = calc
 
                 # update calculation_atoms and compute force
                 atoms.info = cell.info

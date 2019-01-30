@@ -34,6 +34,7 @@ setup(
             "refine_geometry = hilde.scripts.refine_geometry:main",
             "add_workflow_to_lp = hilde.scripts.add_fireworks_workflow:main",
             "add_phonon_workflow_to_lp = hilde.scripts.add_fireworks_phonon_workflow:main",
+            "add_traj_to_db = hilde.scripts.add_trajectory_to_database:main",
             "qlaunch_hilde = hilde.fireworks.scripts.qlaunch_run:qlaunch",
             "rlaunch_hilde = hilde.fireworks.scripts.rlaunch_run:rlaunch",
             "claunch_hilde = hilde.fireworks.scripts.claunch_run:claunch",
