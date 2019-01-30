@@ -41,7 +41,6 @@ def postprocess(
     }
 
     phonon3 = prepare_phono3py(**phono3py_settings)
-
     zero_force = np.zeros([len(calculated_atoms[0]), 3])
 
     # collect the forces and put zeros where no supercell was created

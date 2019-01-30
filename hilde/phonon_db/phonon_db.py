@@ -4,10 +4,11 @@ import operator
 import os
 import re
 import warnings
+from pathlib import Path
 import numpy as np
 
 # Import ase
-from ase.utils import Lock, basestring
+from ase.utils import Lock, basestring, PurePath
 from ase.db.core import Database, lock, parse_selection, str_represents, now
 from ase.calculators.calculator import all_properties, all_changes
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
@@ -63,15 +64,7 @@ reserved_keys = set(
 )
 
 
-seconds = {
-    "s": 1,
-    "m": 60,
-    "h": 3600,
-    "d": 86400,
-    "w": 604_800,
-    "M": 2_629_800,
-    "y": 31_557_600,
-}
+seconds = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604_800, "M": 2_629_800, "y": 31_557_600}
 
 longwords = {
     "s": "second",
@@ -223,9 +216,7 @@ def connect(
 class PhononDatabase(Database):
     """Base class for all databases."""
 
-    def __init__(
-        self, filename=None, create_indices=True, use_lock_file=False, serial=False
-    ):
+    def __init__(self, filename=None, create_indices=True, use_lock_file=False, serial=False):
         """Database object.
         Args:
             filename: str
@@ -289,7 +280,7 @@ class PhononDatabase(Database):
         phonon3=None,
         phonon=None,
         store_second_order=False,
-        delete_keys=None,
+        delete_keys=[],
         data=None,
         **add_key_value_pairs,
     ):
@@ -312,8 +303,6 @@ class PhononDatabase(Database):
 
         Returns number of key-value pairs added and removed.
         """
-        if delete_keys is None:
-            delete_keys = []
         if not isinstance(id, numbers.Integral):
             if isinstance(id, list):
                 err = (
@@ -375,14 +364,7 @@ class PhononDatabase(Database):
         return m, n
 
     def write(
-        self,
-        dct=None,
-        phonon3=None,
-        phonon=None,
-        key_value_pairs=None,
-        data=None,
-        id=None,
-        **kwargs,
+        self, dct=None, phonon3=None, phonon=None, key_value_pairs={}, data={}, id=None, **kwargs
     ):
         """Write atoms to database with key-value pairs.
 
@@ -403,10 +385,6 @@ class PhononDatabase(Database):
 
         Returns integer id of the new row.
         """
-        if key_value_pairs is None:
-            key_value_pairs = {}
-        if data is None:
-            data = {}
         if phonon3:
             row = PhononRow(phonon3=phonon3, phonon=phonon)
         elif phonon:

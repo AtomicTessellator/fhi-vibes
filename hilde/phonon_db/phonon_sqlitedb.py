@@ -1,5 +1,6 @@
 """ Defines the phonon SQLite 3 Database """
 from __future__ import absolute_import, print_function
+import os
 import json
 import numbers
 import sqlite3
@@ -141,26 +142,14 @@ def hexify(array):
     zero = "0x0000000000000000"
     if array.dtype is np.int64:
         for val in array.flatten():
-            hexstr += (
-                hex(struct.unpack(">Q", struct.pack(">q", val))[0])
-                if val != 0
-                else zero
-            )
+            hexstr += hex(struct.unpack(">Q", struct.pack(">q", val))[0]) if val != 0 else zero
     elif array.dtype is np.int32:
         array = array.astype(np.int64)
         for val in array.flatten():
-            hexstr += (
-                hex(struct.unpack(">Q", struct.pack(">q", val))[0])
-                if val != 0
-                else zero
-            )
+            hexstr += hex(struct.unpack(">Q", struct.pack(">q", val))[0]) if val != 0 else zero
     else:
         for val in array.flatten():
-            hexstr += (
-                hex(struct.unpack(">Q", struct.pack(">d", val))[0])
-                if val != 0.0
-                else zero
-            )
+            hexstr += hex(struct.unpack(">Q", struct.pack(">d", val))[0]) if val != 0.0 else zero
     return hexstr
 
 
@@ -183,13 +172,11 @@ def dehexify(hexstr, dtype=np.float64, shape=None):
         return np.zeros(0, dtype)
     if dtype is np.int64 or dtype is np.int32 or dtype is int:
         to_ret = [
-            struct.unpack(">q", struct.pack(">Q", int(hh, 16)))[0]
-            for hh in hexstr.split("0x")[1:]
+            struct.unpack(">q", struct.pack(">Q", int(hh, 16)))[0] for hh in hexstr.split("0x")[1:]
         ]
     else:
         to_ret = [
-            struct.unpack(">d", struct.pack(">Q", int(hh, 16)))[0]
-            for hh in hexstr.split("0x")[1:]
+            struct.unpack(">d", struct.pack(">Q", int(hh, 16)))[0] for hh in hexstr.split("0x")[1:]
         ]
     return np.array(to_ret).astype(dtype).reshape(shape)
 
@@ -206,9 +193,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     default = "NULL"  # used for autoincrement id
     connection = None
     version = None
-    columnnames = [
-        line.split()[0].lstrip() for line in init_statements[0].splitlines()[1:]
-    ]
+    columnnames = [line.split()[0].lstrip() for line in init_statements[0].splitlines()[1:]]
 
     def blob(self, array):
         """Convert array to blob/buffer object."""
@@ -264,9 +249,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         text_key_values = []
         number_key_values = []
         if id:
-            self._delete(
-                cur, [id], ["keys", "text_key_values", "number_key_values", "species"]
-            )
+            self._delete(cur, [id], ["keys", "text_key_values", "number_key_values", "species"])
         else:
             if not key_value_pairs:
                 key_value_pairs = row.key_value_pairs
@@ -360,12 +343,8 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 assert isinstance(value, basestring)
                 text_key_values.append([key, value, id])
         cur.executemany("INSERT INTO text_key_values VALUES (?, ?, ?)", text_key_values)
-        cur.executemany(
-            "INSERT INTO number_key_values VALUES (?, ?, ?)", number_key_values
-        )
-        cur.executemany(
-            "INSERT INTO keys VALUES (?, ?)", [(key, id) for key in key_value_pairs]
-        )
+        cur.executemany("INSERT INTO number_key_values VALUES (?, ?, ?)", number_key_values)
+        cur.executemany("INSERT INTO keys VALUES (?, ?)", [(key, id) for key in key_value_pairs])
         if self.connection is None:
             con.commit()
             con.close()
@@ -470,10 +449,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             dct["symprec"] = values[44]
         if values[len(self.columnnames) - 8] != "{}":
             dct["key_value_pairs"] = decode(values[len(self.columnnames) - 8])
-        if (
-            len(values) >= len(self.columnnames) - 6
-            and values[len(self.columnnames) - 7] != "null"
-        ):
+        if len(values) >= len(self.columnnames) - 6 and values[len(self.columnnames) - 7] != "null":
             dct["data"] = decode(values[len(self.columnnames) - 7])
         return PhononRow(dct)
 
@@ -527,7 +503,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         for key, op, value in cmps:
             if key == "tp_T":
                 if op != "=":
-                    raise ValueError("For temperature searches the operator must be =")
+                    raise ValeError("For temperature searches the operator must be =")
                 else:
                     temp = hex(struct.unpack(">Q", struct.pack(">d", value))[0])
         for key, op, value in cmps:
@@ -549,7 +525,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 args.append(value)
             elif key in ["tp_A", "tp_S", "tp_Cv", "tp_kappa"]:
                 if temp is None:
-                    raise ValueError(
+                    raise ValeError(
                         "If selecting with a thermal property a temperature must also be given."
                     )
                 op_actual = op
@@ -570,16 +546,13 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                     )
                 else:
                     where.append(
-                        "SUBSTR({}, INSTR(systems.tp_T,'{}'), 18){}?".format(
-                            key, temp, op_actual
-                        )
+                        "SUBSTR({}, INSTR(systems.tp_T,'{}'), 18){}?".format(key, temp, op_actual)
                     )
                 args.append(hex(struct.unpack(">Q", struct.pack(">d", value))[0]))
             elif isinstance(key, int):
                 if self.type == "postgresql":
                     where.append(
-                        "cardinality(array_positions("
-                        + "numbers::int[], ?)){}?".format(op)
+                        "cardinality(array_positions(" + "numbers::int[], ?)){}?".format(op)
                     )
                     args += [key, value]
                 else:
@@ -602,9 +575,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 elif isinstance(value, bool):
                     jsonop = "->>"
                     value = str(value).lower()
-                where.append(
-                    "systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op)
-                )
+                where.append("systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op))
                 args.append(str(value))
             elif isinstance(value, basestring):
                 where.append(
@@ -631,9 +602,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if where:
             sql += "\n  WHERE\n  " + " AND\n  ".join(where)
         if sort:
-            sql += "\nORDER BY {0}.{1} IS NULL, {0}.{1} {2}".format(
-                sort_table, sort, order
-            )
+            sql += "\nORDER BY {0}.{1} IS NULL, {0}.{1} {2}".format(sort_table, sort, order)
         return sql, args
 
     def _select(
@@ -679,17 +648,15 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         values = np.array([None for i in range(len(self.columnnames) - 6)])
         values[len(self.columnnames) - 8] = "{}"
         values[len(self.columnnames) - 7] = "null"
-        if "fc_2" in columns and "natoms_in_sc_2" not in columns:
-            columns = "all"
-        if "fc_3" in columns and "natoms_in_sc_3" not in columns:
-            columns = "all"
+        if "fc_2" in columns and not "natoms_in_sc_2" in columns:
+            columns = 'all'
+        if "fc_3" in columns and not "natoms_in_sc_3" in columns:
+            columns = 'all'
         if columns == "all":
             columnindex = list(range(len(self.columnnames) - 7))
         else:
             columnindex = [
-                c
-                for c in range(0, len(self.columnnames) - 7)
-                if self.columnnames[c] in columns
+                c for c in range(0, len(self.columnnames) - 7) if self.columnnames[c] in columns
             ]
         if include_data:
             columnindex.append(len(self.columnnames) - 7)
@@ -719,11 +686,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 sort_table = "systems"
             else:
                 for dct in self._select(
-                    keys + [sort],
-                    cmps=[],
-                    limit=1,
-                    include_data=False,
-                    columns=["key_value_pairs"],
+                    keys + [sort], cmps=[], limit=1, include_data=False, columns=["key_value_pairs"]
                 ):
                     if isinstance(dct["key_value_pairs"][sort], basestring):
                         sort_table = "text_key_values"
@@ -738,12 +701,9 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             order = None
             sort_table = None
         what = ", ".join(
-            "systems." + name
-            for name in np.array(self.columnnames)[np.array(columnindex)]
+            "systems." + name for name in np.array(self.columnnames)[np.array(columnindex)]
         )
-        sql, args = self.create_select_statement(
-            keys, cmps, sort, order, sort_table, what
-        )
+        sql, args = self.create_select_statement(keys, cmps, sort, order, sort_table, what)
         if explain:
             sql = "EXPLAIN QUERY PLAN " + sql
         if limit:
@@ -802,17 +762,13 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             con.commit()
             self.version = VERSION
         else:
-            cur = con.execute(
-                'SELECT COUNT(*) FROM sqlite_master WHERE name="user_index"'
-            )
+            cur = con.execute('SELECT COUNT(*) FROM sqlite_master WHERE name="user_index"')
             if cur.fetchone()[0] == 1:
                 # Old version with "user" instead of "username" column
                 self.version = 1
             else:
                 try:
-                    cur = con.execute(
-                        'SELECT value FROM information WHERE name="version"'
-                    )
+                    cur = con.execute('SELECT value FROM information WHERE name="version"')
                 except sqlite3.OperationalError:
                     self.version = 2
                 else:
@@ -830,9 +786,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             )
         if self.version < 5 and not self._allow_reading_old_format:
             raise IOError(
-                "Please convert to new format. "
-                + "Use: python -m ase.db.convert "
-                + self.filename
+                "Please convert to new format. " + "Use: python -m ase.db.convert " + self.filename
             )
         self.initialized = True
 

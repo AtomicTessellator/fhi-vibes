@@ -19,6 +19,7 @@ def postprocess(
     symprec = metadata["Phonopy"]["symprec"]
 
     phonon = prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
+    phonon._displacement_dataset = metadata["Phonopy"]["displacement_dataset"].copy()
 
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
 

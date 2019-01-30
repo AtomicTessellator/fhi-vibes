@@ -4,153 +4,48 @@ import numpy as np
 
 from hilde.phonon_db.database_interface import to_database, from_database
 from hilde.phonon_db.phonon_db import connect
-from hilde.phonopy import wrapper as ph
-from hilde.tasks.calculate import calculate_multiple
-from hilde.phono3py import wrapper as ph3
-# from hilde.phono3py.postprocess import get_forces
-from hilde.structure.convert import to_Atoms
-from hilde.structure.misc import get_sysname
+from hilde.phonopy.postprocess import postprocess as postprocess_ph
+from hilde.phono3py.postprocess import postprocess as postprocess_ph3
 
 # get database path
 db_path = "test.db"
 
-phonopy_settings = {
-    'atoms': atoms,
-    'supercell_matrix': smatrix2,
-    'displacement': 0.01,
-    'symprec': 1e-5,
-}
+# Write the initial structure with the phonopy object
+hashes_ph = to_database(db_path, "trajectory_phonopy.yaml")
+# Update the database with third order properties
+hashes_ph3 = to_database(db_path, "trajectory_phono3py.yaml")
 
-phono3py_settings = {
-    'atoms': atoms,
-    'supercell_matrix': smatrix3,
-    'cutoff_pair_distance': 10.0,
-    'log_level': 0,
-    'displacement': 0.03,
-    'q_mesh': q_mesh
-}
+phonon = postprocess_ph(trajectory="trajectory_phonopy.yaml")
+phonon3 = postprocess_ph3(trajectory="trajectory_phono3py.yaml")
+
+ph_db, ph3_db = from_database(
+    db_path,
+    get_phonon3=True,
+    get_phonon=True,
+    sc_matrix_2=phonon.get_supercell_matrix(),
+    sc_matrix_3=phonon3.get_supercell_matrix(),
+    atoms_hash=hashes_ph["atoms_hash"],
+    calc_hash=hashes_ph["calc_hash"],
+    ph_hash=hashes_ph["ph_hash"],
+    ph3_hash=hashes_ph3["ph3_hash"],
+)
 
 assert np.max(np.abs(ph3_db.get_fc2()[:] - phonon.get_force_constants()[:])) < 1e-14
 assert np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])) < 1e-14
 
 # Get the row from the database
 db = connect(db_path)
-atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
-
-force_sets = []
-found = False
-
-# Check for second order phonons
-try:
-    rows = list(
-        db.select(
-            selection=[
-                ("sc_matrix_2", "=", smatrix2),
-                ("atoms_hash", "=", atoms_hash),
-                ("calc_hash", "=", calc_hash),
-                ("has_fc2", "=", True),
-            ]
-        )
+row = list(
+    db.select(
+        sc_matrix_2=phonon.get_supercell_matrix(),
+        sc_matrix_3=phonon.get_supercell_matrix(),
+        atoms_hash=hashes_ph["atoms_hash"],
+        calc_hash=hashes_ph["calc_hash"],
+        has_fc2=True,
+        has_fc3=True,
+        columns=["id", "fc_2", "fc_3"],
     )
-    if not rows:
-        raise KeyError("selection not found")
-    else:
-        print("Taking second order force constants from database")
-except KeyError:
-    print("Atoms with second order force constants not found in the database")
-    phonon, sc2, scs2 = ph.preprocess(**phonopy_settings)
-    scs2_computed = calculate_multiple(scs2, atoms.calc, f'{get_sysname(atoms)}/fc2')
-    fc2_forces = [cell.get_forces() for cell in scs2_computed]
-    phonon.produce_force_constants(fc2_forces)
-    phonon.set_band_structure(get_bands(atoms))
-    phonon.set_mesh(q_mesh)
-    phonon.set_thermal_properties()
-    phonon.set_total_DOS(freq_pitch=0.1, tetrahedron_method=True)
-    # Write Second Order to the Database
-    db.write(
-        phonon=phonon,
-        atoms_hash=atoms_hash,
-        calc_hash=calc_hash,
-        has_fc2=(phonon.get_force_constants() is not None),
-    )
+)[0]
 
-# flokno: Unit Test!
-# # Check for third order phonons, while using the previously calculated second order properties
-# try:
-#     rows = list(
-#         db.select(
-#             selection=[
-#                 ("sc_matrix_3", "=", smatrix3),
-#                 ("atoms_hash", "=", atoms_hash),
-#                 ("calc_hash", "=", calc_hash),
-#                 ("has_fc3", "=", True),
-#             ]
-#         )
-#     )
-#     if not rows:
-#         raise KeyError("selection not found")
-#     else:
-#         print("Taking third order force constants from database")
-# except KeyError:
-#     print("Atoms with third order force_constants not found in database")
-#     row = list(
-#         db.select(
-#             selection=[
-#                 ("sc_matrix_2", "=", smatrix2),
-#                 ("atoms_hash", "=", atoms_hash),
-#                 ("calc_hash", "=", calc_hash),
-#                 ("has_fc2", "=", True),
-#             ],
-#             columns=["id", "fc_2", "sc_matrix_2", "tp_T"],
-#         )
-#     )[0]
-#     phonon3, sc3, scs3 = ph3.preprocess(**phono3py_settings)
-#     phonon3.set_fc2(row.fc_2)
-# 
-#     scs3_computed = calculate_multiple(scs3, atoms.calc, f'{get_sysname(atoms)}/fc3')
-#     fc3_forces = get_forces(scs3_computed)
-#     phonon3.produce_fc3(fc3_forces)
-#     phonon3.run_thermal_conductivity(temperatures=row.tp_T, write_kappa=True)
-#     # Update the database with third order properties
-#     db.update(
-#         row.id,
-#         phonon3=phonon3,
-#         atoms_hash=atoms_hash,
-#         calc_hash=calc_hash,
-#         use_second_order=True,
-#         has_fc3=(phonon3.get_fc3() is not None),
-#     )
-# 
-# # Example database operations
-# row = list(
-#     db.select(
-#         selection=[
-#             ("sc_matrix_2", "=", smatrix2),
-#             ("sc_matrix_3", "=", smatrix3),
-#             ("atoms_hash", "=", atoms_hash),
-#             ("calc_hash", "=", calc_hash),
-#             ("has_fc2", "=", True),
-#             ("has_fc3", "=", True),
-#         ],
-#         columns=["id", "qmesh", "tp_T", "tp_S", "tp_A", "tp_Cv", "tp_kappa", "natoms_in_sc_2"],
-#     )
-# )[0]
-# thermalProps = [row.tp_T[30], row.tp_A[30], row.tp_S[30], row.tp_Cv[30], row.tp_kappa[30][0]]
-# 
-# print(
-#     f"The thermal properties for this set of calculations "
-#     + f"(k point mesh {row.qmesh}) are:"
-# )
-# print(thermalProps)
-# # Save some data
-# phonon3 = db.get_phonon3(selection=[
-#             ("sc_matrix_2", "=", smatrix2),
-#             ("atoms_hash", "=", atoms_hash),
-#             ("calc_hash", "=", calc_hash),
-#             ("has_fc2", "=", True),
-#         ])
-# force_constants = phonon3.get_fc2().swapaxes(1, 2).reshape(2 * (3 * row.natoms_in_sc_2,))
-# np.savetxt("force_constants_Al.dat", force_constants)
-# to_Atoms(phonon3.get_phonon_supercell()).write("Al.in.supercell_2", format='aims')
-# to_Atoms(phonon3.get_supercell()).write("Al.in.supercell_3", format='aims')
-# assert 20 < thermalProps[3] < 30
+assert np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-14
+assert np.max(np.abs(row.fc_3[:] - phonon3.get_fc3()[:])) < 1e-14
