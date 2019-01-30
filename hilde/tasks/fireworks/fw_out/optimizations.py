@@ -16,20 +16,15 @@ def check_kgrid_opt_completion(
     and either stores the relaxed structure in the MongoDB or appends another Firework
     as its child to restart the MD
     Args:
-        atoms: ASE Atoms object
-            The original atoms at the start of this job
-        calc: ASE Calculator object
-            The original calculator
-        outputs:
-            The outputs from the function (assumes to be a single bool output)
-        func: str
-            Path to function that performs the MD like operation
-        func_fw_out: str
-            Path to this function
-        func_kwargs: dict
-            keyword arguments for func
-        fw_settings: dict
-            FireWorks specific settings
+        atoms (ASE Atoms object): The original atoms at the start of this job
+        calc (ASE Calculator object): The original calculator
+        outputs (list (bool, float, ASE Calculator): (Converged?, current k-point density,
+                                                      current ASE Calculator)
+        func (str): Path to function that performs the MD like operation
+        func_fw_out (str): Path to this function
+        func_kwargs (dict): keyword arguments for func
+        fw_settings (dict): FireWorks specific settings
+    Returns (FWAction): Either another k-grid optimization step, or an updated spec
     """
     trajectory = Path(func_kwargs["workdir"]) / func_kwargs["trajectory"]
     last_step_dict = last_from_yaml(trajectory)

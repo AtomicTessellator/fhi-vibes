@@ -9,20 +9,14 @@ def mod_spec_add(
     """
     A function that appends the current results to a specified spec in the MongoDB
     Args:
-        atoms: ASE Atoms object
-            The original atoms at the start of this job
-        calc: ASE Calculator object
-            The original calculator
-        outputs:
-            The outputs from the function (assumes to be a single bool output)
-        func: str
-            Path to function that performs the MD like operation
-        func_fw_out: str
-            Path to this function
-        func_kwargs: dict
-            keyword arguments for func
-        fw_settings: dict
-            FireWorks specific settings
+        atoms (ASE Atoms object): The original atoms at the start of this job
+        calc (ASE Calculator object): The original calculator
+        outputs (ASE Atoms Object): The atoms with attached calculator to be added to the spec
+        func (str): Path to function that performs the MD like operation
+        func_fw_out (str): Path to this function
+        func_kwargs (dict): keyword arguments for func
+        fw_settings (dict): FireWorks specific settings
+    Returns (FWAction): Action to added the calculated atoms to the spec
     """
     atoms_dict = atoms2dict(outputs)
     return FWAction(mod_spec=[{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}])
@@ -34,20 +28,14 @@ def fireworks_no_mods(
     """
     A function that does not change the FireWorks Workflow upon completion
     Args:
-        atoms: ASE Atoms object
-            The original atoms at the start of this job
-        calc: ASE Calculator object
-            The original calculator
-        outputs:
-            The outputs from the function (assumes to be a single bool output)
-        func: str
-            Path to function that performs the MD like operation
-        func_fw_out: str
-            Path to this function
-        func_kwargs: dict
-            keyword arguments for func
-        fw_settings: dict
-            FireWorks specific settings
+        atoms (ASE Atoms object): The original atoms at the start of this job
+        calc (ASE Calculator object): The original calculator
+        outputs (general): The outputs from the function (assumes to be a single bool output)
+        func (str): Path to function that performs the MD like operation
+        func_fw_out (str): Path to this function
+        func_kwargs (dict): keyword arguments for func
+        fw_settings (dict): FireWorks specific settings
+    Returns (FWAction): An empty FWAction
     """
     return FWAction()
 
@@ -58,15 +46,11 @@ def fireworks_no_mods_gen_function(
     """
     A function that does not change the FireWorks Workflow upon completion
     Args:
-        func: str
-            Path to function that performs the MD like operation
-        func_fw_out: str
-            Path to this function
-        args: list
-            List of arguments to pass to func
-        fw_settings: dict
-            FireWorks specific settings
-        kwargs: dict
-            keyword arguments for func
+        func (str): Path to function that performs the MD like operation
+        func_fw_out (str): Path to this function
+        args (list): List of arguments to pass to func
+        fw_settings (dict): FireWorks specific settings
+        kwargs (dict): keyword arguments for func
+    Returns (FWAction): An empty FWAction
     """
     return FWAction()

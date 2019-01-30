@@ -19,8 +19,7 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
         atoms (dict): Dictionary representation of the ASE Atoms Object
         calc (dict): Dictionary representation of the ASE Calculator Object
         fw_settings (dict): FireWorks specific parameters
-    Returns: tuple
-        PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
+    Returns (tuple): PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
     """
     pt_func = module_name + ".atoms_calculate_task"
     pt_args = task_spec.get_pt_args()[:4]
@@ -43,8 +42,7 @@ def setup_general_task(task_spec, fw_settings):
     Args:
         task_spec (TaskSpec): Specification of the Firetask
         fw_settings (dict): FireWorks specific parameters
-    Returns: tuple
-        PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
+    Returns (tuple): PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
     """
     pt_args = task_spec.get_pt_args()
     pt_func = module_name + ".general_function_task"
@@ -61,7 +59,7 @@ def generate_task(task_spec, fw_settings, atoms, calc):
         fw_settings (dict): FireWorks specific parameters
         atoms (dict): Dictionary representation of the ASE Atoms Object
         calc (dict): Dictionary representation of the ASE Calculator Object
-    Returns: PyTask for the given TaskSpec
+    Returns (PyTask): Task for the given TaskSpec
     """
     if task_spec.at:
         pt_params = setup_atoms_task(task_spec, atoms, calc, fw_settings)
@@ -84,7 +82,7 @@ def generate_update_calc_task(calc_spec, updated_settings):
     Args:
         calc_spec (str): Spec for the calculator in the Fireworks database
         updated_settings (dict): What parameters to update
-    Returns: PyTask to update the calculator in the Fireworks database
+    Returns (PyTask): Task to update the calculator in the Fireworks database
     """
     return PyTask(
         {
@@ -105,7 +103,7 @@ def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
                           the Calculator dictionary for the modified system
         calc_spec (str): Spec for the calculator in the Fireworks database
         kpt_spec (str): Spec to update the k-point density of the system
-    Returns: PyTask to update the calculator in the Fireworks database
+    Returns (PyTask): Task to update the calculator in the Fireworks database
     """
     args = ["k_grid_density", calc_spec]
     kwargs = {"spec_key": kpt_spec}

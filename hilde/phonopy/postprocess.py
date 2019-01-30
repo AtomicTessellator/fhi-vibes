@@ -6,30 +6,6 @@ from hilde.phonopy.wrapper import prepare_phonopy
 from hilde.trajectory import reader
 from hilde.helpers.pickle import psave
 
-def collect_forces_to_trajectory(
-    trajectory,
-    calculated_atoms,
-    metadata,
-):
-    Path(trajectory).parents[0].mkdir(exist_ok=True, parents=True)
-    for el in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
-        el["number"] = int(el["number"])
-
-    to_yaml(metadata, trajectory, mode="w")
-
-    if isinstance(calculated_atoms[0], dict):
-        temp_atoms = [dict2atoms(cell) for cell in calculated_atoms]
-    else:
-        temp_atoms = calculated_atoms.copy()
-    calculated_atoms = sorted(
-        temp_atoms,
-        key=lambda x: x.info[displacement_id_str] if x else len(calculated_atoms) + 1,
-    )
-    for nn, atoms in enumerate(calculated_atoms):
-        if atoms:
-            step2file(atoms, atoms.calc, trajectory)
-
-
 def postprocess(
     trajectory="phonopy/trajectory.yaml", pickle_file="phonon.pick", **kwargs
 ):
