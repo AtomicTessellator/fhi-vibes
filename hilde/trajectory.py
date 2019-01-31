@@ -116,7 +116,7 @@ class Trajectory(list):
         with open(file, "w") as fo:
             simple_write_xyz(fo, self)
 
-    def to_tdep(self, folder=".", skip=1):
+    def to_tdep(self, folder=".", skip=1, ucposcar=False):
         """ Convert to TDEP infiles for direct processing """
         from pathlib import Path
         from contextlib import ExitStack
@@ -140,7 +140,8 @@ class Trajectory(list):
         # supercell and fake unit cell
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
         self[0].write(str(folder / "infile.ssposcar"), **write_settings)
-        self[0].write(str(folder / "infile.ucposcar"), **write_settings)
+        if ucposcar:
+            self[0].write(str(folder / "infile.ucposcar"), **write_settings)
 
         with ExitStack() as stack:
             fp = stack.enter_context((folder / "infile.positions").open("w"))
