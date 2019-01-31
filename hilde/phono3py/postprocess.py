@@ -23,9 +23,10 @@ def postprocess(
 
     # first run phonopy postprocess
     try:
-        phonon = postprocess2(workdir=workdir, trajectory=trajectory_fc2)
-    except:
+        phonon = postprocess2(trajectory=trajectory_fc2)
+    except FileNotFoundError:
         phonon = None
+
     # read the third order trajectory
     calculated_atoms, metadata_full = traj_reader(trajectory3, True)
     metadata = metadata_full["Phono3py"]

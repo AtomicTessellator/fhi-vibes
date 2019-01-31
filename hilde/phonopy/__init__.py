@@ -38,6 +38,7 @@ def last_calculation_id(trajectory):
 
 
 def to_phonopy_atoms(atoms):
+    """ convert ase.Atoms to PhonopyAtoms """
     phonopy_atoms = PhonopyAtoms(
         symbols=atoms.get_chemical_symbols(),
         cell=atoms.get_cell(),
@@ -109,5 +110,3 @@ def metadata2dict(phonon, calculator):
     supercell_data = input2dict(supercell, calculator)
 
     return {str(phonon.__class__.__name__): phonon_dict, **supercell_data}
-
-

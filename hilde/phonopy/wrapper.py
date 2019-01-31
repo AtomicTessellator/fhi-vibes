@@ -12,12 +12,11 @@ from hilde.materials_fp.material_fingerprint import (
     get_phonon_bs_fingerprint_phononpy,
     to_dict,
 )
-from hilde.phonopy import enumerate_displacements
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
-from hilde.helpers.attribute_dict import AttributeDict as adict
 from . import get_supercells_with_displacements, defaults
+
 
 def prepare_phonopy(
     atoms,
@@ -56,6 +55,7 @@ def prepare_phonopy(
 
     return phonon
 
+
 def preprocess(
     atoms,
     supercell_matrix,
@@ -64,6 +64,7 @@ def preprocess(
     trigonal=defaults.trigonal,
     **kwargs,
 ):
+    """ generate phonopy objects and return displacements as Atoms objects """
     phonon = prepare_phonopy(
         atoms,
         supercell_matrix,
@@ -173,6 +174,7 @@ def plot_bandstructure_and_dos(
 
 
 def summarize_bandstructure(phonon, fp_file=None):
+    """ print a concise symmary of the bandstructure fingerpirnt """
     from hilde.konstanten.einheiten import THz_to_cm
 
     get_bandstructure(phonon)
