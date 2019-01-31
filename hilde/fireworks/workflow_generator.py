@@ -285,10 +285,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
     Returns (list of Fireworks):
         The list of Fireworks for a given step in a WorkFlow
     """
-    if "geometry" in step_settings:
-        atoms, calc = setup_aims(settings=step_settings)
-    else:
-        calc = setup_aims(settings=step_settings)
+    calc = setup_aims(settings=step_settings)
     update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
     atoms_hash, _ = hash_atoms_and_calc(atoms)
