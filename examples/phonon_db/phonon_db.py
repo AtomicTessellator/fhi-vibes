@@ -4,18 +4,19 @@ import numpy as np
 
 from hilde.helpers.pickle import pread
 from hilde.helpers.hash import hash_atoms_and_calc
-from hilde.phonon_db.database_interface import to_database, from_database
+from hilde.phonon_db.database_interface import traj_to_database, from_database
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy.postprocess import postprocess
 # Connect to the database
-db_path = "test.db"
-traj = "trajectory_phonopy.yaml"
+db_path = "test.json"
+trajectory_file = "trajectory_phonopy.yaml"
+# Create phonopy object from trajectory
+phonon = postprocess(trajectory=trajectory_file)
 
-# Load the atoms and phonopy objects from the pick file
-hashes = to_database(db_path, obj=traj)
-
-phonon = postprocess(trajectory="trajectory_phonopy.yaml")
-ph_db = from_database(db_path, identifier=("traj_hash", hashes["traj_hash"]), get_phonon=True)
+# Add the object to the database
+ph_hash = traj_to_database(db_path, trajectory_file)
+# Retrieve the phonopy object from the database
+ph_db = from_database(db_path, ph_hash=ph_hash)
 
 assert np.max(np.abs(ph_db.get_force_constants() - phonon.get_force_constants()[:])) < 1e-14
 
@@ -24,8 +25,7 @@ db = connect(db_path)
 row = list(
     db.select(
         sc_matrix_2=phonon.get_supercell_matrix(),
-        atoms_hash=hashes["atoms_hash"],
-        calc_hash=hashes["calc_hash"],
+        ph_hash=ph_hash,
         has_fc2=True,
         columns=["id", "fc_2", "sc_matrix_2"],
     )

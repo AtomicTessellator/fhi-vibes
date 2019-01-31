@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from hilde.phonon_db.database_interface import to_database, from_database
+from hilde.phonon_db.database_interface import to_database, from_database, traj_to_database
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy.postprocess import postprocess as postprocess_ph
 from hilde.phono3py.postprocess import postprocess as postprocess_ph3
@@ -11,9 +11,9 @@ from hilde.phono3py.postprocess import postprocess as postprocess_ph3
 db_path = "test.db"
 
 # Write the initial structure with the phonopy object
-hashes_ph = to_database(db_path, "trajectory_phonopy.yaml")
+hashes_ph = traj_to_database(db_path, "trajectory_phonopy.yaml", True)
 # Update the database with third order properties
-hashes_ph3 = to_database(db_path, "trajectory_phono3py.yaml")
+hashes_ph3 = traj_to_database(db_path, "trajectory_phono3py.yaml", True)
 
 phonon = postprocess_ph(trajectory="trajectory_phonopy.yaml")
 phonon3 = postprocess_ph3(trajectory="trajectory_phono3py.yaml")

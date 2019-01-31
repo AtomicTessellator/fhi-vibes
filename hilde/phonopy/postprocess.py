@@ -24,7 +24,6 @@ def postprocess(
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
 
     phonon.produce_force_constants(force_sets)
-    print(trajectory.parent, pickle_file)
     if pickle_file:
         psave(phonon, trajectory.parent / pickle_file)
 

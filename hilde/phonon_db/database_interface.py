@@ -2,18 +2,20 @@ from ase.atoms import Atoms
 from ase.symbols import symbols2numbers
 
 from phonopy import Phonopy
-from phono3py.phonon3 import Phono3py
+# TP Phono3py is not loaded up here to avoid errors when someone only wants to use HiLDe with Phonopy (Issue 1)
+# from phono3py.phonon3 import Phono3py
 
 import numpy as np
 
 from hilde import konstanten as const
 from hilde.helpers.converters import atoms2dict, dict2atoms, dict2results
-from hilde.helpers.hash import hash_atoms, hash_atoms_and_calc, hash_traj
+from hilde.helpers.hash import hash_atoms, hash_atoms_and_calc, hash_traj, hash_dict
 from hilde.helpers.warnings import warn
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonon_db.row import phonon3_to_dict
-from hilde.phono3py.postprocess import postprocess as phono3py_postprocess
+from hilde.phono3py.postprocess import postprocess as ph3_postprocess
+from hilde.phonopy.postprocess import postprocess as ph_postprocess
 from hilde.structure.convert import to_Atoms_db, to_Atoms, to_phonopy_atoms
 
 from hilde.trajectory import reader as traj_reader
@@ -38,39 +40,40 @@ results_keys = [
     "smax",
 ]
 
+def traj_to_database(db_path, traj, ret_all_hashes=False):
+    '''
+    Processes a trajectory file and adds it to the database
+    Args:
+        db_path (str): path to the database
+        traj (str): The trajectory's path
+        ret_all_hashes (bool): If True return all hashes
+    Returns (str or dict): Hashes for the database
+    '''
+    _, metadata = traj_reader(traj, True)
+    if "Phonopy" in metadata:
+        phonon = ph_postprocess(traj, pickle_file=None)
+        at_dict = metadata["Phonopy"]['primitive'].copy()
+    elif "Phono3py" in metadata:
+        phonon = ph3_postprocess(traj, pickle_file=None)
+        at_dict = metadata["Phono3py"]['primitive'].copy()
+    else:
+        raise InputError("This trajectory can't be processed")
+    for key, val in metadata['calculator'].items():
+        at_dict[key] = val
+    at_dict["numbers"] = symbols2numbers(at_dict['symbols'])
+    at_dict['pbc'] = [True, True, True]
+    at_dict['calculator'] = at_dict['calculator'].lower()
+    atoms = dict2atoms(at_dict)
+    return to_database(db_path, phonon, calc=atoms.get_calculator(), ret_all_hashes=ret_all_hashes)
+
 def obj2dict(obj):
-    if isinstance(obj, str):
-        calculated_atoms, metadata = traj_reader(obj, True)
-        if "Phonopy" in metadata:
-            ph =  phonon = Phonopy(
-                to_phonopy_atoms(dict2results(metadata["Phonopy"]["primitive"])),
-                supercell_matrix=np.array(metadata["Phonopy"]["supercell_matrix"]).reshape(3,3),
-                is_symmetry=True,
-                symprec=metadata["Phonopy"]["symprec"],
-                factor=const.omega_to_THz,
-            )
-            ph.set_displacement_dataset(metadata["Phonopy"]["displacement_dataset"])
-            ph.set_forces([at.get_forces() for at in calculated_atoms])
-            return phonon_to_dict(ph)
-        elif "Phono3py" in metadata:
-            ph3 = phono3py_postprocess(obj, pickle_file=None)
-            # FK: this needed to be changed:
-            # from phono3py.phonon3 import Phono3py
-            # ph3 = Phono3py(
-            #     to_phonopy_atoms(dict2results(metadata["Phono3py"]["primitive"])),
-            #     supercell_matrix=np.array(metadata["Phono3py"]["supercell_matrix"]).reshape(3,3),
-            #     is_symmetry=True,
-            #     frequency_factor_to_THz=const.omega_to_THz,
-            # )
-            # ph3 = produce_fc3(
-            #     ph3,
-            #     metadata,
-            #     np.array([at.get_forces() for at in calculated_atoms]),
-            # )
-            return phonon3_to_dict(ph3)
-        else:
-            raise TypeError("Trajectory file can't be added to database")
-    elif isinstance(obj, dict):
+    '''
+    Converts a Phonopy, Phono3py, or ASE Atoms Object to a dict
+    Args:
+        obj (Phonopy, Phono3py, or ASE Atoms Object): object to be converted to a dict
+    Returns (dict): The dictionary representation of the obj
+    '''
+    if isinstance(obj, dict):
         return obj.copy()
     elif isinstance(obj, Atoms):
         return atoms2dict(obj)
@@ -84,19 +87,42 @@ def obj2dict(obj):
         except:
             raise InputError("obj has to be a dict, Phonopy, Phono3py, or Atoms object")
 
-def from_database(db_path, identifier=None, obj=None, selection=[], get_id=False, get_atoms=False, get_phonon=False, get_phonon3=False, **kwargs):
+def from_database(
+    db_path,
+    selection=None,
+    get_id=False,
+    get_atoms=False,
+    get_phonon=False,
+    get_phonon3=False,
+    **kwargs
+):
+    '''
+    Pulls an object from the database
+    Args:
+        db_path (str): Path to the database
+        selection (list): a list of tuples used as selection parameters
+        get_id (bool): if True return row id
+        get_atoms(bool): if True return the ASE Atoms object
+        get_phonon (bool): if True return the Phonopy Object
+        get_phonon3 (bool): if True return the Phono3py Object
+        kwargs (dict): Optinal kwargs to add to selection, if "phonopy_hash"
+                       or "phono3py_hash" in kwargs, then get_phonon or get_phonon3
+                       is automatically set to True. with the rest set to False
+    Returns (tuple): All the desired outputs
+    '''
     db = connect(db_path)
-    if identifier:
-        selection = [(identifier[0], "=", identifier[1])]
-    else:
-        for key, val in kwargs.items():
-            selection.append((key, "=", val))
-
-        dct = obj2dict(obj) if obj is not None else {}
-
-        for key, val in dct.items():
-            if key not in results_keys:
-                selection.append(key, "=", val)
+    if selection is None:
+        selection = []
+    for key, val in kwargs.items():
+        selection.append((key, "=", val))
+    if "ph_hash" in kwargs:
+        get_phonon = True
+        get_atoms = False
+        get_phonon3 = False
+    if "ph3_hash" in kwargs:
+        get_phonon3 = True
+        get_atoms = False
+        get_phonon = False
 
     row = db.get(selection)
 
@@ -116,80 +142,52 @@ def from_database(db_path, identifier=None, obj=None, selection=[], get_id=False
         to_ret = to_ret[0]
     return to_ret
 
-def to_database(db_path, obj, calc=None, key_val_pairs=None):
+
+def to_database(db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=False):
+    '''
+    Adds a Phonopy, Phono3py or ASE Atoms object to the database
+    Args:
+        db_path (str): Path to the database
+        phonon (ASE Atoms, Phonopy, or Phono3py Object): Object to be added to the database
+        calc (ASE Calculator): Calculator parameters to add to the Database
+        key_val_pairs (dict): Additional key_val_pairs to add to the database
+        ret_all_hashes (bool): if True return a dict of all hashes
+    Returns (str or dict): the specified hashes
+    '''
     selection_no_sc = []
     selection = []
-    dct = obj2dict(obj)
+    dct = obj2dict(phonon)
     hashes = {}
     if not key_val_pairs:
         key_val_pairs = {}
-    if isinstance(obj, str):
-        calculated_atoms, metadata = traj_reader(obj, True)
-        if "Phonopy" in metadata:
-            at_dict = metadata["Phonopy"]['primitive'].copy()
-            for key, val in metadata['calculator'].items():
-                at_dict[key] = val
-            at_dict["numbers"] = symbols2numbers(at_dict['symbols'])
-            at_dict['pbc'] = [True, True, True]
-            at_dict['calculator'] = at_dict['calculator'].lower()
-            atoms = dict2atoms(at_dict)
-            typ = "ph"
-            selection.append(("sc_matrix_2", "=", dct["sc_matrix_2"]))
-            key_val_pairs["displacement"] = metadata["Phonopy"]['displacement_dataset']['first_atoms'][0]['displacement'][0]
-        elif "Phono3py" in metadata:
-            from phono3py.phonon3 import Phono3py
-            at_dict = metadata["Phono3py"]['primitive'].copy()
-            for key, val in metadata['calculator'].items():
-                at_dict[key] = val
-            at_dict["numbers"] = symbols2numbers(at_dict['symbols'])
-            at_dict['pbc'] = [True, True, True]
-            at_dict['calculator'] = at_dict['calculator'].lower()
-            atoms = dict2atoms(at_dict)
-            typ = "ph3"
-            selection.append(("sc_matrix_3", "=", dct["sc_matrix_3"]))
-            key_val_pairs["pair_distance_cutoff"] = metadata["Phono3py"]['displacement_dataset']['cutoff_distance']
-            key_val_pairs["displacement"] = metadata["Phono3py"]['displacement_dataset']['first_atoms'][0]['displacement'][0]
-        else:
-            raise TypeError("Trajectory file can't be added to database")
-
-        hashes['traj_hash'], hashes[typ + '_hash'] = hash_traj(calculated_atoms, metadata, True)
-        hashes['cell_hash'] = hash_atoms_and_calc(atoms)[0]
-
-        selection_no_sc.append(("cell_hash", '=', hashes["cell_hash"]))
-
-        np.round(atoms.cell, 15)
-        np.round(atoms.positions, 15)
-        if "masses" in atoms.__dict__:
-            del(atoms.__dict__["masses"])
-    elif isinstance(obj, dict):
+    if isinstance(phonon, dict):
         atoms = dict2atoms(dct)
-    elif isinstance(obj, Atoms):
-        atoms = obj.copy()
-    elif isinstance(obj, Phonopy):
-        atoms = to_Atoms_db(obj.get_primitive())
+    elif isinstance(phonon, Atoms):
+        atoms = phonon.copy()
+    elif isinstance(phonon, Phonopy):
+        atoms = to_Atoms_db(phonon.get_primitive())
 
-        hashes["cell_hash"] = hash_atoms_and_calc(to_Atoms(obj.get_primitive()))[0]
+        hashes["cell_hash"] = hash_atoms_and_calc(to_Atoms(phonon.get_primitive()))[0]
 
         selection_no_sc.append(("cell_hash", '=', hashes["cell_hash"]))
         selection.append(("sc_matrix_2", "=", dct["sc_matrix_2"]))
 
-        key_val_pairs["displacement"] = obj._displacement_dataset['first_atoms'][0]['displacement'][0]
+        key_val_pairs["displacement"] = phonon._displacement_dataset['first_atoms'][0]['displacement'][0]
     else:
         try:
             from phono3py.phonon3 import Phono3py
-            from phono3py.phonon3 import Phono3py
-            if isinstance(obj, Phono3py):
-                atoms = to_Atoms_db(obj.get_primitive())
+            if isinstance(phonon, Phono3py):
+                atoms = to_Atoms_db(phonon.get_primitive())
 
-                hashes["cell_hash"] = hash_atoms_and_calc(to_Atoms(obj.get_primitive()))[0]
+                hashes["cell_hash"] = hash_atoms_and_calc(to_Atoms(phonon.get_primitive()))[0]
 
                 selection_no_sc.append(("cell_hash", '=', hashes["cell_hash"]))
                 selection.append(("sc_matrix_3", "=", dct["sc_matrix_3"]))
 
-                key_val_pairs["displacement"] = obj._displacement_dataset['first_atoms'][0]['displacement'][0]
-                key_val_pairs["pair_distance_cutoff"] = obj._displacement_dataset['cutoff_distance']
+                key_val_pairs["displacement"] = phonon._displacement_dataset['first_atoms'][0]['displacement'][0]
+                key_val_pairs["pair_distance_cutoff"] = phonon._displacement_dataset['cutoff_distance']
         except:
-            pass
+            raise InputError("phonon is of the wrong type")
     atoms.set_calculator(calc)
     if "calc_hash" in key_val_pairs or "atoms_hash" in key_val_pairs:
         warn("Replacing the atoms and calc hashes")
@@ -197,7 +195,6 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
 
     for key, val in atoms2dict(atoms).items():
         dct[key] = val
-
     selection_no_sc.append(("atoms_hash", "=", hashes["atoms_hash"]))
     selection_no_sc.append(("calc_hash", "=", hashes["calc_hash"]))
 
@@ -207,6 +204,10 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
     for sel in selection_no_sc:
         selection.append(sel)
 
+    if "displacement" in key_val_pairs and "pair_distance_cutoff" in key_val_pairs:
+        hashes["ph3_hash"] = hash_dict(dct)
+    elif "displacement" in key_val_pairs:
+        hashes["ph_hash"] = hash_dict(dct)
     key_val_pairs.update(hashes)
     db = connect(db_path)
     try:
@@ -242,87 +243,8 @@ def to_database(db_path, obj, calc=None, key_val_pairs=None):
                 has_fc3=("forces_3" in dct),
                 **key_val_pairs,
             )
-
     except ValueError:
         print(f"Error in adding the object to the database {db_path}")
-    return hashes
-
-def update_phonon_db(db_path, atoms, phonon, calc_type="calc", symprec=1e-5, **kwargs):
-    """
-    Adds a phonon dictionary to a database defined by db_path
-    Args:
-        db_path: str
-            path to the database
-        atoms: ASE Atoms, dict
-            Initial atoms object for the phonopy calculations
-        phonon: dict, Phonopy Object, Phono3Py Object, or ASE Atoms object
-            A dictionary representation of the phonopy object to be added to the database
-        calc_type: str
-            keyword describing the calculation
-        symprec: float
-            symprec value used for making the phonopy object
-        kwargs: dict
-            keys to add to the database
-    """
-    print(f"Adding phonon calculations to the database {db_path}")
-    if isinstance(atoms, dict):
-        atoms = dict2atoms(atoms)
-    atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
-    if isinstance(phonon, Atoms):
-        phonon = atoms2dict(phonon)
-    elif isinstance(phonon, Phonopy):
-        phonon = phonon_to_dict(phonon)
-    else:
-        try:
-            from phono3py.phonon3 import Phono3py
-            if isinstance(phonon, Phono3py):
-                phonon = phonon3_to_dict(phonon)
-        except:
-            pass
-    try:
-        db = connect(db_path)
-        selection = [
-            ("symprec", "=", symprec),
-            ("atoms_hash", "=", atoms_hash),
-            ("calc_hash", "=", calc_hash),
-            ("calc_type", "=", calc_type),
-        ]
-        selection_no_sc_mat = selection.copy()
-        if (kwargs is not None) and ("original_atoms_hash" in kwargs):
-            selection.append(("original_atoms_hash", "=", kwargs["original_atoms_hash"]))
-        if (kwargs is not None) and ("sc_matrix_2" in phonon):
-            selection.append(("sc_matrix_2", "=", phonon["sc_matrix_2"]))
-            del(kwargs["sc_matrix_2"])
-        if (kwargs is not None) and ("sc_matrix_3" in phonon):
-            selection.append(("sc_matrix_3", "=", phonon["sc_matrix_3"]))
-            del(kwargs["sc_matrix_3"])
-        try:
-            rows = list(db.select(selection=selection))
-            rows_no_sc = list(db.select(selection=selection_no_sc_mat))
-            for row in rows_no_sc:
-                if (row.sc_matrix_2 is None and "sc_matrix_2" in phonon) != (row.sc_matrix_3 is None and "sc_matrix_3" in phonon):
-                    rows.append(row)
-            if not rows:
-                raise KeyError
-            for row in rows:
-                db.update(
-                    row.id,
-                    dct=phonon,
-                    has_fc2=("forces_2" in phonon or "forces_2" in row),
-                    has_fc3=("forces_3" in phonon or "forces_3" in row),
-                    calc_type=calc_type,
-                    **kwargs,
-                )
-        except KeyError:
-            db.write(
-                phonon,
-                symprec=symprec,
-                atoms_hash=atoms_hash,
-                calc_hash=calc_hash,
-                has_fc2=("forces_2" in phonon),
-                has_fc3=("forces_3" in phonon),
-                calc_type=calc_type,
-                **kwargs,
-            )
-    except ValueError:
-        print(f"Error in adding the object to the database {db_path}")
+    if ret_all_hashes:
+        return hashes
+    return hash_dict(dct)
