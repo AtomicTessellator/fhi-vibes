@@ -1,6 +1,6 @@
 """ Generate a phonon workflow for Fireworks """
+from pathlib import Path
 import numpy as np
-
 from fireworks import Workflow
 from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.fireworks.workflow_generator import (
@@ -153,6 +153,7 @@ def generate_phonon_fw(
         update_settings (dict): calculator update settings
     Returns (Firework): Firework for the phonon initialization
     '''
+    wd = str(Path(wd))
     fw_settings = fw_settings.copy()
     update_settings = {}
     if "basisset_type" in ph_settings:
@@ -172,7 +173,7 @@ def generate_phonon_fw(
     )
 
 
-def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings):
+def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=None):
     '''
     Generates a Firework for the phonon analysis
     Args:
@@ -182,6 +183,8 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings):
         ph_settings (dict): kwargs for the phonon analysis
     Returns (Firework): Firework for the phonon analysis
     '''
+    wd = str(Path(wd))
+    wd_init = str(Path(wd_init))
     fw_settings = fw_settings.copy()
     if ph_settings["type"] == "phonopy":
         fw_settings["mod_spec_add"] = "ph"
@@ -197,7 +200,7 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings):
 
     func_kwargs = ph_settings.copy()
     func_kwargs["workdir"] = wd + "/" + fw_settings["fw_name"] + "/"
-
+    func_kwargs["init_wd"] = wd_init
     task_spec = get_phonon_analysis_task(
         "hilde." + fw_settings["fw_name"][:-9] + ".postprocess.postprocess",
         func_kwargs,
@@ -326,7 +329,11 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     fw_dep[pre_ph_fw].append(fw_steps[-1])
     fw_steps.append(
         generate_phonon_postprocess_fw(
-            atoms, workflow.general.workdir_local, fw_settings, phonopy_set
+            atoms,
+            workflow.general.workdir_local,
+            fw_settings,
+            phonopy_set,
+            wd_init=workflow.general.workdir_cluster,
         )
     )
     fw_dep[fw_steps[-2]] = fw_steps[-1]
@@ -370,7 +377,11 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         fw_dep[pre_ph_fw].append(fw_steps[-1])
         fw_steps.append(
             generate_phonon_postprocess_fw(
-                atoms, workflow.general.workdir_local, fw_settings, phono3py_set
+                atoms,
+                workflow.general.workdir_local,
+                fw_settings,
+                phono3py_set,
+                wd_init=workflow.general.workdir_cluster
             )
         )
         fw_dep[fw_steps[-2]] = fw_steps[-1]

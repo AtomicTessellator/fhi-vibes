@@ -117,7 +117,11 @@ def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
             dos.shape[0],
         )
     ener, enerBounds = get_ener(binning, dos[:, 0], min_e, max_e, nbins)
-    return fp_tup(np.array([ener]), np.array([np.histogram(dos, enerBounds)[0]]), ["DOS"], nbins)
+    dos_rebin = np.zeros(ener.shape)
+    print(dos[:,0].shape)
+    for ii, e1, e2 in zip(range(len(ener)), enerBounds[0:-1], enerBounds[1:]):
+        dos_rebin[ii] = np.sum(dos[np.where((dos[:,0] >= e1) & (dos[:,0] < e2))[0], 1])
+    return fp_tup(np.array([ener]), dos_rebin, ["DOS"], nbins)
 
 
 # Function to calculate the modes at the high symmetry points
@@ -359,6 +363,10 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False):
         fp2_dict = to_dict(fp2)
     else:
         fp2_dict = fp2
+    print("\n\n\n\n")
+    print(fp1_dict["DOS"])
+    print("\n\n\n\n")
+    print(fp2_dict["DOS"])
     rescale = 1.0
     if pt == 'All':
         vec1 = np.array([pt[col] for pt in fp1_dict.values()]).flatten()
@@ -383,11 +391,17 @@ def to_dict(fp, to_mongo=False):
     """
     fp_dict = {}
     if not to_mongo:
-        for aa in range(len(fp[2])):
-            fp_dict[fp[2][aa]] = np.array([fp[0][aa], fp[1][aa]]).T
+        if len(fp[2]) > 1:
+            for aa in range(len(fp[2])):
+                fp_dict[fp[2][aa]] = np.array([fp[0][aa], fp[1][aa]]).T
+        else:
+            fp_dict[fp[2][0]] = np.array([fp[0], fp[1]]).T
     else:
-        for aa in range(len(fp[2])):
-            fp_dict[str(fp[2][aa])] = np.array([fp[0][aa], fp[1][aa]]).T
+        if len(fp[2]) > 1:
+            for aa in range(len(fp[2])):
+                fp_dict[str(fp[2][aa])] = np.array([fp[0][aa], fp[1][aa]]).T
+        else:
+            fp_dict[str(fp[2][0])] = np.array([fp[0], fp[1]]).T
     return fp_dict
 
 

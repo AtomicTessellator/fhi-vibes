@@ -98,26 +98,33 @@ def generate_firework(
     if atoms:
         if not atoms_calc_from_spec:
             at = atoms2dict(atoms)
-            if "k_grid_density" in update_calc_settings:
-                if not isinstance(calc, dict):
-                    update_k_grid(atoms, calc, update_calc_settings["k_grid_density"])
-                else:
-                    recipcell = np.linalg.pinv(at["cell"]).transpose()
-                    calc = update_k_grid_calc_dict(calc, recipcell, at["pbc"], update_calc_settings["k_grid_density"])
+            if not isinstance(calc, str):
+                if "k_grid_density" in update_calc_settings:
+                    if not isinstance(calc, dict):
+                        update_k_grid(atoms, calc, update_calc_settings["k_grid_density"])
+                    else:
+                        recipcell = np.linalg.pinv(at["cell"]).transpose()
+                        calc = update_k_grid_calc_dict(calc, recipcell, at["pbc"], update_calc_settings["k_grid_density"])
 
-            cl = calc2dict(calc)
+                cl = calc2dict(calc)
 
-            for key, val in update_calc_settings.items():
-                if key != "k_grid_density":
-                    cl = update_calc(cl, key, val)
-            for key, val in cl.items():
-                at[key] = val
+                for key, val in update_calc_settings.items():
+                    if key != "k_grid_density":
+                        cl = update_calc(cl, key, val)
+                for key, val in cl.items():
+                    at[key] = val
+            else:
+                cl = calc
+                setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
         else:
             at = atoms
             cl = calc
             setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
 
         if "kpoint_density_spec" in fw_settings:
+            calc_spec = "calculator"
+            if "in_spec_calc" in fw_settings:
+                calc_spec = fw_settings["in_spec_calc"]
             setup_tasks.append(
                 generate_mod_calc_task(
                     at, cl, "calculator", fw_settings["kpoint_density_spec"]
@@ -206,8 +213,6 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
     if "workdir" not in func_kwargs:
         func_kwargs["workdir"] = "."
 
-    func_kwargs["init_wd"] = func_kwargs["workdir"]
-
     if "analysis_workdir" in func_kwargs:
         func_kwargs["workdir"] = func_kwargs["analysis_workdir"]
 
@@ -222,7 +227,7 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
             "hilde.tasks.fireworks.phonopy_phono3py_functions.collect_to_trajectory",
             "hilde.tasks.fireworks.fw_out.general.fireworks_no_mods_gen_function",
             False,
-            args=[traj],
+            args=[func_kwargs["trajectory"]],
             inputs=[forcekey, metakey],
             make_abs_path=make_abs_path,
         )

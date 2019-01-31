@@ -107,12 +107,15 @@ def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     """
     args = ["k_grid_density", calc_spec]
     kwargs = {"spec_key": kpt_spec}
-    if isinstance(at, dict):
-        args.append(cl)
-        kwargs["atoms"] = at
-        inputs = [kpt_spec]
+    if isinstance(cl, str):
+        inputs = [cl, kpt_spec]
     else:
-        inputs = [cl, kpt_spec, at]
+        args.append(cl)
+        inputs = [kpt_spec]
+    if isinstance(at, dict):
+        kwargs["atoms"] = at
+    else:
+        inputs.append(at)
     return PyTask(
         {
             "func": "hilde.tasks.fireworks.utility_tasks.mod_calc",
@@ -178,7 +181,8 @@ def atoms_calculate_task(
 
     for key, val in calc_dict.items():
         atoms_dict[key] = val
-    del atoms_dict["results"]
+    if "results" in atoms_dict:
+        del atoms_dict["results"]
     atoms = dict2atoms(atoms_dict)
     try:
         if len(args) > 0:
