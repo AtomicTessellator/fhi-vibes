@@ -2,8 +2,17 @@
 from ase.symbols import Symbols
 from fireworks import FWAction
 
+from phonopy import Phonopy
+
+import numpy as np
+
 from hilde.helpers.converters import calc2dict, atoms2dict
+from hilde.helpers.supercell import make_cubic_supercell
 from hilde.fireworks.workflow_generator import generate_firework
+from hilde.fireworks.workflows.phonon_wf import generate_phonon_fw, generate_phonon_postprocess_fw
+from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
+from hilde.structure.convert import to_Atoms
+
 
 def post_bootstrap(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
@@ -165,3 +174,72 @@ def add_single_calc_to_detours(
             )
         )
     return detours
+
+def converge_phonons(
+    func, func_fw_out, *args, fw_settings=None, **kwargs
+):
+    ph = kwargs["outputs"]
+    prev_dos_fp = None
+    if isinstance(ph, Phonopy):
+        if "prev_dos_fp" in kwargs:
+            prev_dos_fp = kwargs["prev_dos_fp"].copy()
+            dos_fp = get_phonon_dos_fingerprint_phononpy(
+                ph,
+                min_e=np.min(prev_dos_fp[0]),
+                max_e=np.max(prev_dos_fp[0]),
+                nbins=prev_dos_fp[-1],
+            )
+
+        if prev_dos_fp is not None and check_phonon_conv(dos_fp, prev_dos_fp, kwargs["conv_crit"]):
+            return FWAction()
+
+        # If Not Converged update phonons
+        pc = to_Atoms(ph.get_primitive())
+        _, sc_mat = make_cubic_supercell(
+            pc,
+            len(pc.numbers)*np.linalg.det(ph.get_supercell_matrix())+50
+        )
+
+        func_kwargs = {
+            "type" : "phonopy"
+            "displacement": ph._displacement_dataset['first_atoms'][0]['displacement'][0],
+            "supercell_matrix": sc_mat,
+        }
+
+        if "spec" in fw_settings:
+            fw_settings["spec"]["prev_dos_fp"] = dos_fp
+        else:
+            fw_settings["spec"] = {"prev_dos_fp": dos_fp}
+
+        if "queueadapter" in fw_settings:
+            qadapter = fw_settings["queueadapter"]
+        else:
+            qadapter = None
+
+        if kwargs["init_wd"].split("/")[-1][9] == "sc_natoms_":
+            wd = "/".join(kwargs["init_wd"].split("/")[:-1]) + f"/sc_natoms_{np.linalg.det(sc_mat)*len(pc.numbers)}"
+        else:
+            wd = kwargs["wd"] + f"/sc_natoms_{np.linalg.det(sc_mat)*len(pc.numbers)}"
+
+        init_fw = generate_phonon_fw(
+            pc, wd, fw_settings, qadapter, func_kwargs, update_in_spec=False
+        )
+
+        if kwargs["wd"].split("/")[-1][9] == "sc_natoms_":
+            wd = "/".join(kwargs["wd"].split("/")[:-1]) + f"/sc_natoms_{np.linalg.det(sc_mat)*len(pc.numbers)}"
+        else:
+            wd = kwargs["wd"] + f"/sc_natoms_{np.linalg.det(sc_mat)*len(pc.numbers)}"
+        kwargs["prev_dos_fp"] = dos_fp
+        analysis_fw = generate_phonon_postprocess_fw(
+            pc, wd, fw_settings, func_kwargs
+        )
+        analysis_fw.parents = [init_fw]
+        detours = [init_fw, analysis_fw]
+        return FWAction(detours=detours, update_spec={"prev_dos_fp": dos_fp})
+
+    from phono3py.phonon3 import Phono3py
+    return FWAction()
+
+def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
+    from hilde.materials_fp.material_fingerprint import scalar_product
+    return scalar_product(dos_fp, prev_dos_fp, col=1, normalize=True) >= conv_crit
