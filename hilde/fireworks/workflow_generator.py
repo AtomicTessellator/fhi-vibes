@@ -204,10 +204,13 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
     Return (TaskSpec): The specification object of the task
     """
     if "analysis_workdir" in func_kwargs:
+        func_kwargs["init_wd"] = func_kwargs["workdir"]
         wd = func_kwargs["analysis_workdir"]
     elif "workdir" in func_kwargs:
+        func_kwargs["init_wd"] = func_kwargs["workdir"]
         wd = func_kwargs["workdir"]
     else:
+        func_kwargs["init_wd"] = "."
         wd = "."
     if "trajectory" in func_kwargs:
         traj = func_kwargs["trajectory"]
