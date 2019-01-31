@@ -203,10 +203,14 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
         make_abs_path (bool): If True make the paths of directories absolute
     Return (TaskSpec): The specification object of the task
     """
+    if "workdir" not in func_kwargs:
+        func_kwargs["workdir"] = "."
+
+    func_kwargs["init_wd"] = func_kwargs["workdir"]
+
     if "analysis_workdir" in func_kwargs:
         func_kwargs["workdir"] = func_kwargs["analysis_workdir"]
-    elif "workdir" not in func_kwargs:
-        func_kwargs["workdir"] = "."
+
     if "trajectory" in func_kwargs:
         traj = func_kwargs["trajectory"]
     else:

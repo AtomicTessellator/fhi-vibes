@@ -7,7 +7,6 @@ from ase.io.aims import read_aims
 from hilde.fireworks.workflow_generator import generate_firework
 from hilde.helpers.converters import atoms2dict, calc2dict
 from hilde.helpers.fileformats import last_from_yaml
-from hilde.phonon_db.database_api import update_phonon_db
 
 def check_relaxation_complete(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
@@ -43,10 +42,6 @@ def check_relaxation_complete(
     next_step = last_step_dict["info"]["nsteps"] + 1
 
     if outputs:
-        if "db_path" in func_fw_kwargs:
-            db_path = func_fw_kwargs["db_path"]
-            del func_fw_kwargs["db_path"]
-            update_phonon_db(db_path, atoms, atoms, **func_fw_kwargs)
         return FWAction(
             update_spec={
                 fw_settings["out_spec_atoms"]: atoms,
@@ -122,10 +117,6 @@ def check_aims_relaxation_complete(
         if key not in new_atoms["info"]:
             new_atoms["info"][key] = val
     if converged:
-        if "db_path" in func_fw_kwargs:
-            db_path = func_fw_kwargs["db_path"]
-            del func_fw_kwargs["db_path"]
-            update_phonon_db(db_path, new_atoms, new_atoms, **func_fw_kwargs)
         return FWAction(
             update_spec={
                 fw_settings["out_spec_atoms"]: new_atoms,
