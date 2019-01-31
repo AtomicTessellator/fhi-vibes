@@ -204,16 +204,14 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
     Return (TaskSpec): The specification object of the task
     """
     if "analysis_workdir" in func_kwargs:
-        wd = func_kwargs["analysis_workdir"]
-    elif "workdir" in func_kwargs:
-        wd = func_kwargs["workdir"]
-    else:
-        wd = "."
+        func_kwargs["workdir"] = func_kwargs["analysis_workdir"]
+    elif "workdir" not in func_kwargs:
+        func_kwargs["workdir"] = "."
     if "trajectory" in func_kwargs:
         traj = func_kwargs["trajectory"]
     else:
         traj = "trajectory.yaml"
-    traj = wd + "/" + traj
+    func_kwargs["trajectory"] = func_kwargs["workdir"] + "/" + traj
     task_spec_list = []
     task_spec_list.append(
         TaskSpec(
@@ -228,9 +226,9 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
     task_spec_list.append(
         TaskSpec(
             func,
-            "hilde.tasks.fireworks.fw_out.general.fireworks_no_mods_gen_function",
+            "hilde.tasks.fireworks.fw_out.phonons.converge_phonons",
             False,
-            func_kwargs={"workdir": wd, "trajectory": traj},
+            func_kwargs=func_kwargs,
             make_abs_path=make_abs_path,
         )
     )

@@ -201,7 +201,7 @@ def converge_phonons(
         )
 
         func_kwargs = {
-            "type" : "phonopy"
+            "type" : "phonopy",
             "displacement": ph._displacement_dataset['first_atoms'][0]['displacement'][0],
             "supercell_matrix": sc_mat,
         }
