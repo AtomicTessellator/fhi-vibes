@@ -588,17 +588,17 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             elif key in ["hashes", "hash"]:
                 if self.type == "postgresql":
                     where.append(
-                        "MOD(POSITION('{}' IN systems.hashes), 41)=?".format(
+                        "POSITION('{}' IN systems.hashes)>?".format(
                             value
                         )
                     )
                 else:
                     where.append(
-                        "INSTR(systems.hashes,'{}') % 41 =?".format(
+                        "INSTR(systems.hashes,'{}')>?".format(
                             value
                         )
                     )
-                args.append(1)
+                args.append(0)
             elif isinstance(key, int):
                 if self.type == "postgresql":
                     where.append(

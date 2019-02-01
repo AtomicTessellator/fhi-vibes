@@ -8,7 +8,7 @@ from hilde.phonon_db.database_interface import traj_to_database, from_database
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy.postprocess import postprocess
 # Connect to the database
-db_path = "test.json"
+db_path = "test.db"
 trajectory_file = "trajectory_phonopy.yaml"
 # Create phonopy object from trajectory
 phonon = postprocess(trajectory=trajectory_file)
