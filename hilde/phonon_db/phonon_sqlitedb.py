@@ -70,7 +70,6 @@ init_statements = [
     tp_Cv TEXT,
     tp_kappa TEXT,
     symprec FLOAT,
-    hashes TEXT,
     key_value_pairs TEXT,  -- key-value pairs and data as json
     data TEXT,
     natoms INTEGER,  -- stuff for making queries faster
@@ -279,11 +278,6 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         else:
             constraints = None
 
-        hashes = ""
-        for key, val in key_value_pairs.items():
-            if "hash" in key:
-                hashes += val + "_"
-
         values = (
             row.unique_id,
             row.ctime,
@@ -337,7 +331,6 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             hexify(row.get("tp_Cv")),
             hexify(row.get("tp_kappa")),
             row.get("symprec"),
-            hashes,
             encode(key_value_pairs),
             data,
             len(row.numbers),
@@ -476,8 +469,6 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             dct["tp_kappa"] = dehexify(values[43], shape=(-1, 6))
         if values[44] is not None:
             dct["symprec"] = values[44]
-        if values[45] is not None:
-            dct["hashes"] = values[45]
         if values[len(self.columnnames) - 8] != "{}":
             dct["key_value_pairs"] = decode(values[len(self.columnnames) - 8])
         if (
@@ -586,19 +577,27 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                     )
                 args.append(hex(struct.unpack(">Q", struct.pack(">d", value))[0]))
             elif key in ["hashes", "hash"]:
+                if key == "hashes":
+                    assert isinstance(value, list)
+                elif key == "hash":
+                    if isinstance(value, str):
+                        value = [value]
                 if self.type == "postgresql":
-                    where.append(
-                        "POSITION('{}' IN systems.hashes)>?".format(
-                            value
+                    for hh in value:
+                        where.append(
+                            "POSITION('{}' IN systems.key_value_pairs ->> 'hashes')>?".format(
+                                hh
+                            )
                         )
-                    )
+                        args.append(0)
                 else:
-                    where.append(
-                        "INSTR(systems.hashes,'{}')>?".format(
-                            value
+                    for hh in value:
+                        where.append(
+                            "INSTR(systems.key_value_pairs,'{}')>?".format(
+                                hh
+                            )
                         )
-                    )
-                args.append(0)
+                        args.append(0)
             elif isinstance(key, int):
                 if self.type == "postgresql":
                     where.append(

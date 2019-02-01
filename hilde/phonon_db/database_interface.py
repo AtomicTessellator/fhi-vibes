@@ -5,7 +5,7 @@ from ase.symbols import symbols2numbers
 from phonopy import Phonopy
 
 from hilde.helpers.converters import atoms2dict, dict2atoms
-from hilde.helpers.hash import hash_atoms_and_calc, hash_dict
+from hilde.helpers.hash import hash_atoms_and_calc, hash_dict, hash_traj
 from hilde.helpers.warnings import warn
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
@@ -46,7 +46,7 @@ def traj_to_database(db_path, traj, ret_all_hashes=False):
         ret_all_hashes (bool): If True return all hashes
     Returns (str or dict): Hashes for the database
     """
-    _, metadata = traj_reader(traj, True)
+    calc_atoms, metadata = traj_reader(traj, True)
     if "Phonopy" in metadata:
         phonon = ph_postprocess(traj, pickle_file=None)
         at_dict = metadata["Phonopy"]["primitive"].copy()
@@ -62,11 +62,15 @@ def traj_to_database(db_path, traj, ret_all_hashes=False):
     at_dict["calculator"] = at_dict["calculator"].lower()
     atoms = dict2atoms(at_dict)
     return to_database(
-        db_path, phonon, calc=atoms.get_calculator(), ret_all_hashes=ret_all_hashes
+        db_path,
+        phonon,
+        calc=atoms.get_calculator(),
+        ret_all_hashes=ret_all_hashes,
+        traj_hash=hash_traj(calc_atoms, metadata, True),
     )
 
 
-def to_database(db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=False):
+def to_database(db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=False, traj_hash=None):
     """
     Adds a Phonopy, Phono3py or ASE Atoms object to the database
     Args:
@@ -83,6 +87,9 @@ def to_database(db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=F
     hashes = {}
     if not key_val_pairs:
         key_val_pairs = {}
+    if traj_hash:
+        hashes["traj_hash"] = traj_hash[0]
+        hashes["meta_hash"] = traj_hash[1]
     if isinstance(phonon, dict):
         atoms = dict2atoms(dct)
     elif isinstance(phonon, Atoms):

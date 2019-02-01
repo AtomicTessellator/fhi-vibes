@@ -285,7 +285,6 @@ class PhononRow(AtomsRow):
             phonon3: The phono3py object the PhononRow represents
         """
         from phono3py.phonon3 import Phono3py
-
         phonon3 = Phono3py(
             to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3).transpose(),

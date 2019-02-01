@@ -357,6 +357,16 @@ class PhononDatabase(Database):
         n -= len(kvp)
         m = -len(kvp)
         kvp.update(add_key_value_pairs)
+        hashes = []
+        if "hashes" in kvp:
+            temp_hashes = kvp.pop("hashes").split("_")
+            for th in temp_hashes:
+                if th not in hashes:
+                    hashes.append(th)
+        for key, val in kvp.items():
+            if "hash" in key and val not in hashes:
+                hashes.append(val)
+        kvp["hashes"] = "_".join(hashes)
         m += len(kvp)
 
         moredata = data
@@ -418,6 +428,16 @@ class PhononDatabase(Database):
         row.ctime = now()
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
+        hashes = []
+        if "hashes" in kvp:
+            temp_hashes = kvp.pop("hashes").split("_")
+            for th in temp_hashes:
+                if th not in hashes:
+                    hashes.append(th)
+        for key, val in kvp.items():
+            if "hash" in key and val not in hashes:
+                hashes.append(val)
+        kvp["hashes"] = "_".join(hashes)
         id = self._write(row, kvp, data, id)
         return id
 
