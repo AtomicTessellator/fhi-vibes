@@ -25,7 +25,7 @@ ph3_db = from_database(
     sc_matrix_3=phonon3.get_supercell_matrix(),
     atoms_hash=hashes_ph["atoms_hash"],
     calc_hash=hashes_ph["calc_hash"],
-    ph_hash=hashes_ph["ph_hash"],
+    hash=hashes_ph["ph_hash"],
     ph3_hash=hashes_ph3["ph3_hash"],
 )
 

@@ -25,7 +25,7 @@ db = connect(db_path)
 row = list(
     db.select(
         sc_matrix_2=phonon.get_supercell_matrix(),
-        ph_hash=ph_hash,
+        hash=ph_hash,
         has_fc2=True,
         columns=["id", "fc_2", "sc_matrix_2"],
     )

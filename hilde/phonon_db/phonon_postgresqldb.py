@@ -155,10 +155,14 @@ def schema_update(sql):
             dtype = "DOUBLE PRECISION"
         sql = sql.replace("{} BLOB,".format(column), "{} {}[],".format(column, dtype))
     for column in arrays_2D:
-        sql = sql.replace("{} BLOB,".format(column), "{} DOUBLE PRECISION[][],".format(column))
+        sql = sql.replace(
+            "{} BLOB,".format(column), "{} DOUBLE PRECISION[][],".format(column)
+        )
 
     for column in arrays_3D:
-        sql = sql.replace("{} BLOB,".format(column), "{} DOUBLE PRECISION[][][],".format(column))
+        sql = sql.replace(
+            "{} BLOB,".format(column), "{} DOUBLE PRECISION[][][],".format(column)
+        )
 
     for column in txt2jsonb:
         sql = sql.replace("{} TEXT,".format(column), "{} JSONB,".format(column))
