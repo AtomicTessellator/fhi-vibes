@@ -210,6 +210,11 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
         make_abs_path (bool): If True make the paths of directories absolute
     Return (TaskSpec): The specification object of the task
     """
+    if "converge_phonons" in func_kwargs and func_kwargs["converge_phonons"]:
+        func_out = "hilde.tasks.fireworks.fw_out.phonons.converge_phonons"
+    else:
+        func_out = "hilde.tasks.fireworks.fw_out.general.fireworks_no_mods_gen_function"
+
     if "workdir" not in func_kwargs:
         func_kwargs["workdir"] = "."
 
@@ -235,7 +240,7 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
     task_spec_list.append(
         TaskSpec(
             func,
-            "hilde.tasks.fireworks.fw_out.phonons.converge_phonons",
+            func_out,
             False,
             func_kwargs=func_kwargs,
             make_abs_path=make_abs_path,

@@ -118,7 +118,6 @@ def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
         )
     ener, enerBounds = get_ener(binning, dos[:, 0], min_e, max_e, nbins)
     dos_rebin = np.zeros(ener.shape)
-    print(dos[:,0].shape)
     for ii, e1, e2 in zip(range(len(ener)), enerBounds[0:-1], enerBounds[1:]):
         dos_rebin[ii] = np.sum(dos[np.where((dos[:,0] >= e1) & (dos[:,0] < e2))[0], 1])
     return fp_tup(np.array([ener]), dos_rebin, ["DOS"], nbins)
@@ -363,10 +362,6 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False):
         fp2_dict = to_dict(fp2)
     else:
         fp2_dict = fp2
-    print("\n\n\n\n")
-    print(fp1_dict["DOS"])
-    print("\n\n\n\n")
-    print(fp2_dict["DOS"])
     rescale = 1.0
     if pt == 'All':
         vec1 = np.array([pt[col] for pt in fp1_dict.values()]).flatten()

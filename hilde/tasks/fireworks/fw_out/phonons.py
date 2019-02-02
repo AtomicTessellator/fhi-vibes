@@ -198,7 +198,6 @@ def converge_phonons(
             )
         else:
             dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
-        print(dos_fp)
         conv_crit = 0.9 if "conv_crit" not in kwargs else kwargs["conv_crit"]
         if prev_dos_fp is not None and check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
             return FWAction()
@@ -224,6 +223,7 @@ def converge_phonons(
             "supercell_matrix": sc_mat,
             "serial": kwargs["serial"],
         }
+        kwargs.update(func_kwargs)
 
         if "spec" in fw_settings:
             fw_settings["spec"]["prev_dos_fp"] = dos_fp
@@ -252,9 +252,7 @@ def converge_phonons(
             a_wd = "/".join(analysis_wd[:-2]) + f"/sc_natoms_{int(np.linalg.det(sc_mat)*len(pc.numbers)+0.5)}"
         else:
             a_wd = "/".join(analysis_wd[:-1]) + f"/sc_natoms_{int(np.linalg.det(sc_mat)*len(pc.numbers)+0.5)}"
-        print(analysis_wd, a_wd)
         kwargs["prev_dos_fp"] = dos_fp
-        kwargs["type"] = "phonopy"
         kwargs["trajectory"] = kwargs["trajectory"].split("/")[-1]
         analysis_fw = generate_phonon_postprocess_fw(
             pc, a_wd, fw_settings, kwargs, wd_init=wd
