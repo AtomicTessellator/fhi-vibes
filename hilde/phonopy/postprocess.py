@@ -40,7 +40,7 @@ def postprocess(
 
     force_constants = get_force_constants(phonon)
     fname = "force_constants.dat"
-    np.savetxt(fname, force_costants)
+    np.savetxt(fname, force_constants)
     print(f"Force constants saved to {fname}.")
 
     return phonon
