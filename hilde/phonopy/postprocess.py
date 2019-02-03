@@ -19,7 +19,7 @@ def postprocess(
     primitive = dict2results(metadata["Phonopy"]["primitive"])
     supercell = dict2results(metadata["atoms"])
     supercell_matrix = metadata["Phonopy"]["supercell_matrix"]
-    supercell.info = {"supercell_matrix": str(supercell_matrix.flatten())}
+    supercell.info = {"supercell_matrix": str(supercell_matrix)}
     symprec = metadata["Phonopy"]["symprec"]
 
     phonon = prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
