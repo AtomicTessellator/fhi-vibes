@@ -1,6 +1,8 @@
 """ Provide a full highlevel phonopy workflow """
 from pathlib import Path
 
+import numpy as np
+
 from hilde.helpers.converters import dict2results
 from hilde.phonopy.wrapper import prepare_phonopy, get_force_constants
 from hilde.trajectory import reader
