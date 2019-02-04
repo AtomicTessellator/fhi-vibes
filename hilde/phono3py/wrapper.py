@@ -6,7 +6,7 @@ from hilde import konstanten as const
 from hilde.phonopy import get_supercells_with_displacements
 from hilde.structure.convert import to_phonopy_atoms
 from hilde.helpers.numerics import get_3x3_matrix
-from . import defaults
+from .utils import defaults
 
 
 def prepare_phono3py(

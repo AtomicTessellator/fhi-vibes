@@ -6,6 +6,7 @@ import json
 from ase.io import read
 from ase.atoms import Atoms
 
+
 from hilde._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
