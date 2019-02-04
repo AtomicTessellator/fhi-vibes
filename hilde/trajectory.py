@@ -170,3 +170,5 @@ class Trajectory(list):
                 stat += " ".join([str(s) for s in stress])
 
                 fs.write(f"{stat}\n")
+
+        print(f"Files written to {folder}.")
