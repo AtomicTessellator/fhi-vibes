@@ -2,4 +2,4 @@
 
 from .workflow import run_phono3py
 from .postprocess import postprocess
-from .utils import defaults
+from ._defaults import defaults

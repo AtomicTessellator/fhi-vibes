@@ -15,7 +15,8 @@ from hilde.materials_fp.material_fingerprint import (
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import map_unique_to_atoms
-from . import get_supercells_with_displacements, defaults
+from .utils import get_supercells_with_displacements
+from ._defaults import defaults
 
 
 def prepare_phonopy(
