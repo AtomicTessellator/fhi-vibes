@@ -1,6 +1,5 @@
 """ run molecular dynamics simulations using the ASE classes """
 
-import shutil
 from pathlib import Path
 from ase.calculators.socketio import SocketIOCalculator
 
@@ -108,7 +107,6 @@ def run(
     if calc_dir.exists():
         backup(calc_dir, target_folder=backup_folder)
 
-    something_happened = False
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
         calc_dir, mkdir=True
     ):
@@ -132,8 +130,6 @@ def run(
         print("\nStart MD.")
 
         while not watchdog() and md.nsteps < maxsteps:
-            something_happened = True
-
             nsteps = md.nsteps
 
             md.run(1)
@@ -152,10 +148,6 @@ def run(
                     socket_stress_off(iocalc)
 
         print("Stop MD.\n")
-    # backup and cleanup if something new happened
-    if something_happened:
-        backup(calc_dir, target_folder=backup_folder)
-        shutil.rmtree(calc_dir)
 
     # restart
     if md.nsteps < maxsteps:

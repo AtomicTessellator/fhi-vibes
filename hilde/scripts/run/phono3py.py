@@ -1,18 +1,5 @@
-from hilde import Settings, setup_aims, restart
-from hilde.phono3py.workflow import run
+""" run phono3py workflow """
 
+from hilde.phono3py import run_phono3py
 
-settings = Settings()
-
-atoms, calc = setup_aims(settings=settings)
-
-
-completed = run(
-    atoms, calc, kpt_density=settings.control_kpt.density, **settings.phono3py
-)
-
-
-if not completed:
-    restart(settings)
-else:
-    print("done.")
+run_phono3py()

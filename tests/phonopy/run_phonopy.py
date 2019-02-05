@@ -2,7 +2,7 @@
 
 from ase.build import bulk
 from ase.calculators.emt import EMT
-from hilde.phonopy.workflow import run_phonopy
+from hilde.phonopy import run_phonopy
 
 atoms = bulk("Al")
 

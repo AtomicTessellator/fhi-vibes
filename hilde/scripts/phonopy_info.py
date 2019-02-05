@@ -1,5 +1,6 @@
 """ Summarize output from ASE.md class (in md.log) """
 
+import numpy as np
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -36,7 +37,7 @@ def preprocess(args):
 def postprocess(args):
     from hilde.helpers.pickle import pread
     from hilde.phonopy.wrapper import plot_bandstructure, plot_bandstructure_and_dos
-    from hilde.phonopy.wrapper import summarize_bandstructure
+    from hilde.phonopy.wrapper import summarize_bandstructure, get_force_constants
 
     phonon = pread(args.infile)
 
@@ -46,6 +47,11 @@ def postprocess(args):
     elif args.dos == "p":
         plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
     summarize_bandstructure(phonon, fp_file=args.fp_file)
+
+    force_costants = get_force_constants(phonon)
+    filname = "force_constants.dat"
+    np.savetxt(filname, force_constants)
+    print(f"Force constants saved to {filname}.")
 
 
 def main():

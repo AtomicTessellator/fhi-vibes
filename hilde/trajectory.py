@@ -151,7 +151,7 @@ class Trajectory(list):
             for ii, atoms in enumerate(self[skip:]):
                 # stress and pressure in GPa
                 stress = atoms.get_stress(voigt=True) / units.GPa
-                pressure = 1 / 3 * sum(stress[:3])
+                pressure = -1 / 3 * sum(stress[:3])
                 e_tot = atoms.get_total_energy()
                 e_kin = atoms.get_kinetic_energy()
                 e_pot = e_tot - e_kin
@@ -163,7 +163,12 @@ class Trajectory(list):
                 for force in atoms.get_forces():
                     ff.write("{} {} {}\n".format(*force))
 
-                stat = f"{ii} {ii*dt} {e_tot} {e_pot} {e_kin} {temp} {pressure} "
+                stat = (
+                    f"{ii:5d} {ii*dt:10.2f} {e_tot:20.8f} {e_pot:20.8f} "
+                    f"{e_kin:20.15f} {temp:20.15f} {pressure:20.15f} "
+                )
                 stat += " ".join([str(s) for s in stress])
 
                 fs.write(f"{stat}\n")
+
+        print(f"Files written to {folder}.")
