@@ -2,7 +2,7 @@
 
 import tarfile
 from pathlib import Path
-from hilde.helpers import cwd
+from hilde.helpers.warnings import warn
 
 
 def backup_filename(workdir="."):
@@ -24,11 +24,9 @@ def backup_folder(source_dir, target_folder=".", additional_files=[]):
 
     output_filename.parent.mkdir(exist_ok=True)
 
-    make_tarfile(
-        output_filename,
-        source_dir,
-        additional_files=additional_files,
-    )
+    make_tarfile(output_filename, source_dir, additional_files=additional_files)
+
+    warn(f"Folder {source_dir} was backed up in {output_filename}.")
 
 
 def make_tarfile(output_filename, source_dir, additional_files=[], arcname=None):
