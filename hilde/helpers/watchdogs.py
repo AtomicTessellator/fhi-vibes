@@ -6,6 +6,8 @@ from hilde.helpers.warnings import warn
 
 
 class WallTimeWatchdog:
+    """ Watched the walltime """
+
     def __init__(
         self, walltime, history=10, buffer=2, log="watchdog.log", verbose=True, **kwargs
     ):
@@ -35,11 +37,18 @@ class WallTimeWatchdog:
         """ Call the watchdog
 
         Returns:
-            bool: Are we approaching the walltime?
+            bool: Are we approaching the walltime or is a 'stop' flag present?
         """
 
         # update history
         self.history.append(time())
+
+        stop_file = Path("stop")
+        if stop_file.exists():
+            import sys
+
+            stop_file.unlink()
+            sys.exit("*** Watchdog: stop flag was found: remove it and exit.")
 
         # is sufficient time left?
         time_is_up = time() + self.buffer_time > self.walltime
@@ -70,6 +79,7 @@ class WallTimeWatchdog:
 
     @property
     def time_left(self):
+        """ how much time is left? """
         return self.walltime - time()
 
     @property
@@ -115,4 +125,3 @@ class WallTimeWatchdog:
 
         with self.logfile.open(mode) as f:
             f.write(info_str)
-
