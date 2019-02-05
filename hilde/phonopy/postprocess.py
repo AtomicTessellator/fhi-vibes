@@ -13,7 +13,8 @@ def postprocess(
     trajectory = Path(trajectory)
 
     calculated_atoms, metadata = reader(trajectory, True)
-
+    for disp in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
+        disp["number"] = int(disp["number"])
     primitive = dict2results(metadata["Phonopy"]["primitive"])
     supercell_matrix = metadata["Phonopy"]["supercell_matrix"]
     symprec = metadata["Phonopy"]["symprec"]

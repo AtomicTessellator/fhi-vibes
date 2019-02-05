@@ -57,16 +57,9 @@ def generate_fw(
         update_in_spec (bool): If True move the current out_spec to be in_spec
     Returns (Firework): A firework for the task
     '''
-    fw_settings = fw_settings.copy()
-    if qadapter:
-        fw_settings = update_fw_settings(
-            fw_settings, fw_settings["fw_name"], qadapter, update_in_spec=update_in_spec
-        )
-    else:
-        fw_settings = update_fw_settings(
-            fw_settings, fw_settings["fw_name"], update_in_spec=update_in_spec
-        )
-
+    fw_settings = update_fw_settings(
+        fw_settings, fw_settings["fw_name"], qadapter, update_in_spec=update_in_spec
+    )
     fw_settings[
         "fw_name"
     ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
@@ -92,7 +85,6 @@ def generate_kgrid_fw(atoms, wd, fw_settings, qadapter, dfunc_min=1e-12):
         dfunc_min (float): minimum value for the change in total energy when converging the k-grid
     Returns (Firework): Firework for the k-grid optimization
     '''
-    fw_settings = fw_settings.copy()
     func_kwargs = {
         "workdir": wd + "/" + fw_settings["fw_name"] + "/",
         "trajectory": "kpt_trajectory.yaml",
@@ -113,7 +105,6 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
         rel_settings (dict): kwargs for the relaxation step
     Returns (Firework): Firework for the relaxation step
     '''
-    fw_settings = fw_settings.copy()
     fw_settings["fw_name"] = rel_settings["basisset_type"] + "_relax"
     func_kwargs = {"workdir": wd + "/" + fw_settings["fw_name"] + "/"}
     fw_out_kwargs = {"relax_step": 0}
@@ -136,8 +127,14 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
         "scaled": True,
         "use_sym": True,
     }
-    return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings)
-
+    return generate_fw(
+        atoms,
+        task_spec,
+        fw_settings,
+        qadapter,
+        update_settings,
+        True,
+    )
 
 def generate_phonon_fw(
     atoms, wd, fw_settings, qadapter, ph_settings, update_in_spec=True
@@ -153,7 +150,6 @@ def generate_phonon_fw(
         update_settings (dict): calculator update settings
     Returns (Firework): Firework for the phonon initialization
     '''
-    fw_settings = fw_settings.copy()
     update_settings = {}
     if "basisset_type" in ph_settings:
         update_settings["basisset_type"] = ph_settings.pop("basisset_type")
@@ -182,7 +178,6 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings):
         ph_settings (dict): kwargs for the phonon analysis
     Returns (Firework): Firework for the phonon analysis
     '''
-    fw_settings = fw_settings.copy()
     if ph_settings["type"] == "phonopy":
         fw_settings["mod_spec_add"] = "ph"
     else:
@@ -246,6 +241,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     # Light Basis Set Relaxation
     fw_settings["kpoint_density_spec"] = "kgrid"
     del fw_settings["out_spec_k_den"]
+    fw_settings["from_db"] = True
     light_relax_set = {"basisset_type": "light"}
     if "light_rel_qadapter" in workflow:
         qadapter = workflow["light_rel_qadapter"]
