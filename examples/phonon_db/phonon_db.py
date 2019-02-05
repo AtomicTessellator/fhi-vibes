@@ -2,37 +2,36 @@
 
 import numpy as np
 
-from hilde.helpers.pickle import pread
-from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.phonon_db.database_interface import traj_to_database, from_database
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy.postprocess import postprocess
-# Connect to the database
+
 db_path = "test.db"
+
 trajectory_file = "trajectory_phonopy.yaml"
-# Create phonopy object from trajectory
+
+# Add the phonopy calculation contained in the trajectory to the database
+phonon_hash = traj_to_database(db_path, trajectory_file)
+
+# Create phonopy object from trajectory directly
 phonon = postprocess(trajectory=trajectory_file)
 
-# Add the object to the database
-ph_hash = traj_to_database(db_path, trajectory_file)
 # Retrieve the phonopy object from the database
-ph_db = from_database(db_path, ph_hash=ph_hash)
+phonon_db = from_database(db_path, ph_hash=phonon_hash)
 
-assert np.max(np.abs(ph_db.get_force_constants() - phonon.get_force_constants()[:])) < 1e-14
+# compute difference in force constants to see if they are similar
+diff = np.max(np.abs(phonon_db.get_force_constants() - phonon.get_force_constants()[:]))
 
-# Get the row from the database
+assert diff < 1e-14
+
+## Manipulate the database directly
+# Connect to the database
 db = connect(db_path)
-row = list(
-    db.select(
-        sc_matrix_2=phonon.get_supercell_matrix(),
-        hash=ph_hash,
-        has_fc2=True,
-        columns=["id", "fc_2", "sc_matrix_2"],
-    )
-)[0]
 
-# Compare the second order force constants and the Helmholtz free energies of the phonopy and row objects
-print(
-    "Both force constant matrices are the same:",
-    np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-14,
-)
+# Get the row from the database directly
+row = list(db.select(hash=phonon_hash))[0]
+
+# Compare the second order force constants of the phonopy and row objects
+diff = np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:]))
+
+print("\nBoth force constant matrices are the same:", diff < 1e-14)
