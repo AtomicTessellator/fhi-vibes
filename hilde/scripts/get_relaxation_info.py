@@ -28,7 +28,7 @@ def get_energy(f):
         line = next(l for l in f if "Total energy uncorrected" in l)
         total_energy = float(line.split()[5])
     except StopIteration:
-        exit("No total energy found, please inspect output file(s).")
+        exit()
     line = next(l for l in f if "Electronic free energy" in l)
     free_energy = float(line.split()[5])
     return total_energy, free_energy
