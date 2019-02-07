@@ -12,7 +12,7 @@ def restart(settings=None, verbose=True):
     if "restart" in settings:
        if verbose:
             print(f"Restart task with {settings.restart.command}")
-       sp.run(settings.restart.command.split())
+       sp.run(settings.restart.command.split(), stderr=sp.STDOUT)
        return True
     else:
         if verbose:
