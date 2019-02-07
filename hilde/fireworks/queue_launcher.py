@@ -115,14 +115,20 @@ def launch_rocket_to_queue(
                 if '_queueadapter' in fw.spec:
                     l_logger.debug('updating queue params using Firework spec..')
                     if "walltimes" in qadapter and "queues" in qadapter:
-                        if "walltime" in fw.spec["_queueadapter"] and "queue" not in fw.spec["_queueadapter"]:
+                        if "walltime" in fw.spec["_queueadapter"]:
                             time_req = conv_t_to_sec(fw.spec["_queueadapter"]["walltime"])
                             wts = np.array([conv_t_to_sec(wt) for wt in qadapter["walltimes"]])
                             inds = np.where(time_req <= wts)[0]
                             if len(inds) == 0:
-                                raise ValueError("Wall time requested is larger than any queue this cluster can support")
-                            fw.spec['_queueadapter']['queue'] = qadapter["queues"][inds[0]]
-                        elif "queue" in fw.spec["_queueadapter"] and "walltime" not in fw.spec["_queueadapter"]:
+                                fw.spec["_queueadapter"]["queue"] = qadapter["queues"][-1]
+                                if "nodes" in fw.spec["_queueadapter"]:
+                                    fw.spec["_queueadapter"]["nodes"] *= int(np.ceil(time_req/wts[-1]))
+                                else:
+                                    fw.spec["_queueadapter"]["nodes"] = int(np.ceil(time_req/wts[-1]))
+                                fw.spec["_queueadapter"]["nodes"] = qadapter["walltimes"][-1]
+                            else:
+                                fw.spec['_queueadapter']['queue'] = qadapter["queues"][inds[0]]
+                        elif "queue" in fw.spec["_queueadapter"]:
                             qs = np.array(qadapter["queues"])
                             inds = np.where(qs == fw.spec["_queueadapter"]["queue"])[0]
                             if len(inds) == 0:

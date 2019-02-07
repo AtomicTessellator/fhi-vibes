@@ -26,6 +26,12 @@ def get_time(time_str):
         time += int(tt) * 60 ** (len(time_set) - 1 - ii)
     return time
 
+def to_time_str(n_sec):
+    '''Converts a number of seconds into a time string'''
+    secs = n_sec % 60
+    mins = int(n_sec / 60) % 60
+    hrs = int(n_sec / 3600)
+    return f"{hrs}:{mins}:{secs}"
 
 def generate_firework(
     task_spec_list=None,

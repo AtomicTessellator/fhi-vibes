@@ -6,7 +6,7 @@ from phonopy import Phonopy
 
 import numpy as np
 
-from hilde.fireworks.workflow_generator import generate_firework
+from hilde.fireworks.workflow_generator import generate_firework, get_time, to_time_str
 from hilde.fireworks.workflows.phonon_wf import generate_phonon_fw, generate_phonon_postprocess_fw
 from hilde.helpers.converters import calc2dict, atoms2dict
 from hilde.helpers.k_grid import k2d
@@ -231,6 +231,15 @@ def converge_phonons(
             fw_settings["spec"] = {"prev_dos_fp": dos_fp}
 
         if "queueadapter" in fw_settings:
+            time_scaling = min(16, (np.linalg.det(sc_mat)/np.linalg.det(ph.get_supercell_matrix()))**3.0)
+            if "walltime" in fw_settings["queueadapter"]:
+                fw_settings["queueadapter"]["walltime"] = to_time_str(
+                    get_time(fw_settings["queueadapter"]["walltime"])*time_scaling
+                )
+            elif "nodes" in fw_settings["queueadapter"]:
+                fw_settings["queueadapter"]["nodes"] *= int(time_scaling)
+            else:
+                fw_settings["queueadapter"]["nodes"] = int(time_scaling)
             qadapter = fw_settings["queueadapter"]
         else:
             qadapter = None
