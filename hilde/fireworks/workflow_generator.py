@@ -175,9 +175,13 @@ def get_phonon_task(func_kwargs, fw_settings=None):
         args = []
         if "kpt_density" in func_kwargs:
             del func_kwargs["kpt_density"]
-    else:
+    elif "kpt_density" in func_kwargs:
         inputs = []
         args = [func_kwargs.pop("kpt_density")]
+    else:
+        inputs = []
+        args = [None]
+
 
     return TaskSpec(
         "hilde.tasks.fireworks.phonopy_phono3py_functions.bootstrap_phonon",
@@ -286,7 +290,8 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         The list of Fireworks for a given step in a WorkFlow
     """
     calc = setup_aims(settings=step_settings)
-    update_k_grid(atoms, calc, step_settings.control_kpt.density)
+    if "control_kpt" in step_settings:
+        update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
     atoms_hash, _ = hash_atoms_and_calc(atoms)
     fw_settings = step_settings.fw_settings.copy()
