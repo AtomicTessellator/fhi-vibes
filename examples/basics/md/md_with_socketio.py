@@ -6,7 +6,6 @@ from ase.calculators.socketio import SocketIOCalculator
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
 from ase import units
-from ase.io import Trajectory
 
 # Read input files
 atoms = read("geometry.in")
@@ -30,6 +29,10 @@ dft_settings = {
     "compute_forces": True,
 }
 
+# MD settings (adjust!)
+md_settings = {"temperature": 600, "timestep": 4}  # K  # fs
+
+
 # logging settings
 log_settings = {"trajectory": "md.traj", "logfile": "md.log"}
 
@@ -39,17 +42,21 @@ mandatory_settings = {"use_pimd_wrapper": ("localhost", port), "compute_forces":
 
 calc = Aims(**{**mandatory_settings, **dft_settings, **usr_settings})
 
-# initialize velocities at 600K
-MaxwellBoltzmannDistribution(atoms, temp=600 * units.kB)
+# Create ASE-MD object, example: VelocityVerlet
+md = VelocityVerlet(atoms, timestep=md_settings["timestep"] * units.fs, **log_settings)
 
-md = VelocityVerlet(atoms, timestep=4 * units.fs, **log_settings)
+# initialize velocities at 600K
+MaxwellBoltzmannDistribution(atoms, temp=md_settings["temperature"] * units.kB)
+
 
 # run
-with SocketIOCalculator(calc, log="socketio.log", port=port) as calc:
-    atoms.calc = calc
+with SocketIOCalculator(calc, log="socketio.log", port=port) as iocalc:
+    atoms.calc = iocalc
     md.run(steps=2)
 
 # read trajectory:
+from ase.io import Trajectory
+
 with Trajectory(log_settings["trajectory"], "r") as reader:
     trajectory = [atoms for atoms in reader]
 
