@@ -20,7 +20,7 @@ def main():
     k_grid = d2k(cell, kptdensity=args.density, even=not args.uneven)
 
     print(f"\nSuggested k_grid for kpt-density {args.density}:")
-    print(f"  {k_grid}")
+    print(f"  k_grid ", " ".join([f"{k}" for k in k_grid]))
 
 
 if __name__ == "__main__":
