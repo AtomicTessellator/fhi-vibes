@@ -16,4 +16,3 @@ def metadata2dict(atoms, calc, md):
 
 from .workflow import run_md
 from .initialization import initialize_md
-

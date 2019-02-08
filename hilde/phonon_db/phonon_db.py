@@ -64,7 +64,15 @@ reserved_keys = set(
 )
 
 
-seconds = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604_800, "M": 2_629_800, "y": 31_557_600}
+seconds = {
+    "s": 1,
+    "m": 60,
+    "h": 3600,
+    "d": 86400,
+    "w": 604_800,
+    "M": 2_629_800,
+    "y": 31_557_600,
+}
 
 longwords = {
     "s": "second",
@@ -216,7 +224,9 @@ def connect(
 class PhononDatabase(Database):
     """Base class for all databases."""
 
-    def __init__(self, filename=None, create_indices=True, use_lock_file=False, serial=False):
+    def __init__(
+        self, filename=None, create_indices=True, use_lock_file=False, serial=False
+    ):
         """Database object.
         Args:
             filename: str
@@ -280,7 +290,7 @@ class PhononDatabase(Database):
         phonon3=None,
         phonon=None,
         store_second_order=False,
-        delete_keys=[],
+        delete_keys=None,
         data=None,
         **add_key_value_pairs,
     ):
@@ -303,6 +313,8 @@ class PhononDatabase(Database):
 
         Returns number of key-value pairs added and removed.
         """
+        if delete_keys is None:
+            delete_keys = []
         if not isinstance(id, numbers.Integral):
             if isinstance(id, list):
                 err = (
@@ -345,6 +357,16 @@ class PhononDatabase(Database):
         n -= len(kvp)
         m = -len(kvp)
         kvp.update(add_key_value_pairs)
+        hashes = []
+        if "hashes" in kvp:
+            temp_hashes = kvp.pop("hashes").split("_")
+            for th in temp_hashes:
+                if th not in hashes:
+                    hashes.append(th)
+        for key, val in kvp.items():
+            if "hash" in key and val not in hashes:
+                hashes.append(val)
+        kvp["hashes"] = "_".join(hashes)
         m += len(kvp)
 
         moredata = data
@@ -364,7 +386,14 @@ class PhononDatabase(Database):
         return m, n
 
     def write(
-        self, dct=None, phonon3=None, phonon=None, key_value_pairs={}, data={}, id=None, **kwargs
+        self,
+        dct=None,
+        phonon3=None,
+        phonon=None,
+        key_value_pairs=None,
+        data=None,
+        id=None,
+        **kwargs,
     ):
         """Write atoms to database with key-value pairs.
 
@@ -385,6 +414,10 @@ class PhononDatabase(Database):
 
         Returns integer id of the new row.
         """
+        if data is None:
+            data = {}
+        if key_value_pairs is None:
+            key_value_pairs = {}
         if phonon3:
             row = PhononRow(phonon3=phonon3, phonon=phonon)
         elif phonon:
@@ -395,6 +428,16 @@ class PhononDatabase(Database):
         row.ctime = now()
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
+        hashes = []
+        if "hashes" in kvp:
+            temp_hashes = kvp.pop("hashes").split("_")
+            for th in temp_hashes:
+                if th not in hashes:
+                    hashes.append(th)
+        for key, val in kvp.items():
+            if "hash" in key and val not in hashes:
+                hashes.append(val)
+        kvp["hashes"] = "_".join(hashes)
         id = self._write(row, kvp, data, id)
         return id
 

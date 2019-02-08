@@ -188,9 +188,13 @@ def get_phonon_task(func_kwargs, fw_settings=None):
         args = []
         if "kpt_density" in func_kwargs:
             del func_kwargs["kpt_density"]
-    else:
+    elif "kpt_density" in func_kwargs:
         inputs = []
         args = [func_kwargs.pop("kpt_density")]
+    else:
+        inputs = []
+        args = [None]
+
 
     return TaskSpec(
         "hilde.tasks.fireworks.phonopy_phono3py_functions.bootstrap_phonon",
@@ -300,11 +304,9 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
     Returns (list of Fireworks):
         The list of Fireworks for a given step in a WorkFlow
     """
-    if "geometry" in step_settings:
-        atoms, calc = setup_aims(settings=step_settings)
-    else:
-        calc = setup_aims(settings=step_settings)
-    update_k_grid(atoms, calc, step_settings.control_kpt.density)
+    calc = setup_aims(settings=step_settings)
+    if "control_kpt" in step_settings:
+        update_k_grid(atoms, calc, step_settings.control_kpt.density)
     atoms.set_calculator(calc)
     atoms_hash, _ = hash_atoms_and_calc(atoms)
     fw_settings = step_settings.fw_settings.copy()
@@ -440,7 +442,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
 
 
 def generate_workflow(
-    steps=Settings(), fw_settings=None, atoms=None, make_abs_path=False
+    steps=Settings(), fw_settings=None, atoms=None, make_abs_path=False, no_dep=False
 ):
     """
     Generates a workflow from given set of steps
@@ -468,7 +470,8 @@ def generate_workflow(
             fw_dep[key] = val
         fw_steps.append(fw_list)
     fws = [fw for step_list in fw_steps for fw in step_list]
-
+    if no_dep:
+        fw_dep = {}
     if fw_settings and "to_launchpad" in fw_settings and fw_settings["to_launchpad"]:
         if "launchpad_yaml" in fw_settings:
             launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
@@ -476,5 +479,4 @@ def generate_workflow(
             launchpad = LaunchPadHilde.auto_load()
         launchpad.add_wf(Workflow(fws, fw_dep, name=fw_settings["name"]))
         return None
-
     return Workflow(fws, fw_dep, name=fw_settings["name"])

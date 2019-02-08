@@ -177,6 +177,14 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
                         value = np.equal(row.numbers, key).sum()
                     elif key in ["tp_A", "tp_S", "tpCv"]:
                         value = row.get(key)[np.where(row.get("tp_T") == temp)[0]]
+                    elif key in ["hashes", "hash"]:
+                        hashes = []
+                        for k, v in row.key_value_pairs.items():
+                            if "hash" in k:
+                                hashes.append(v)
+                        value = val in hashes
+                        val = True
+                        op = ops["="]
                     else:
                         value = row.get(key)
                         if key == "pbc":

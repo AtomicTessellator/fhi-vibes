@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 from hilde.settings import Settings
-from hilde.phonon_db.database_interface import to_database
+from hilde.phonon_db.database_interface import traj_to_database
 
 def main():
     parser = ArgumentParser(description="add trajectory to a database")
@@ -11,5 +11,5 @@ def main():
     if not args.db_path:
         settings = Settings()
         arg.db_path = settings.database.name
-    hashes = to_database(args.db_path, args.trajectory)
+    hashes = traj_to_database(args.db_path, args.trajectory, True)
     print(hashes)

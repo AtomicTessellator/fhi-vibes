@@ -5,9 +5,9 @@ from phono3py.phonon3 import Phono3py
 from hilde import konstanten as const
 from hilde.phonopy import get_supercells_with_displacements
 from hilde.structure.convert import to_phonopy_atoms
-from hilde.helpers.attribute_dict import AttributeDict as adict
 from hilde.helpers.numerics import get_3x3_matrix
-from . import defaults
+from ._defaults import defaults
+
 
 def prepare_phono3py(
     atoms,
@@ -63,6 +63,7 @@ def prepare_phono3py(
         phonon3.set_fc3(fc3)
 
     return phonon3
+
 
 def preprocess(
     atoms,

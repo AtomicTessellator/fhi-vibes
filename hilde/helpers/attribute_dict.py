@@ -5,15 +5,13 @@ from hilde.helpers.warnings import warn
 
 
 class AttributeDict(OrderedDict):
+    """ Ordered dictionary with attribute access """
+
     def __getattr__(self, attr):
         if attr in self:
             return self[attr]
-        else:
-            warn(f"Attribute {attr} not in dictionary, return None.", level=1)
-            return None
-
-    def __setattr__(self, attr, value):
-        self[attr] = value
+        warn(f"Attribute {attr} not in dictionary, return None.", level=1)
+        return None
 
     def to_dict(self):
         """ (recursively) return plain python dictionary """

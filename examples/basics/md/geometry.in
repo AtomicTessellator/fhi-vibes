@@ -1,7 +1,7 @@
 #=======================================================
-# FHI-aims file: Si_-111_1-11_11-1_5.426/geometry.in.supercell
+# FHI-aims file: ./geometry.in
 # Created using the Atomic Simulation Environment (ASE)
-# Thu Sep 20 12:25:21 2018
+# Thu Feb  7 16:38:29 2019
 #=======================================================
 lattice_vector 5.4260675258199997 -0.0000000000000000 0.0000000000000000 
 lattice_vector -0.0000000000000000 5.4260675258199997 0.0000000000000000 

@@ -29,8 +29,9 @@ def bootstrap_phonon(
     Returns (dict): The output of hilde.phonopy.workflow.bootstrap for phonopy and phono3py
     '''
     settings = Settings(settings_file=None)
-    settings["atoms"] = atoms
-    settings["control_kpt"] = AttributeDict({"density": kpt_density})
+    settings.atoms = atoms
+    if kpt_density:
+        settings["control_kpt"] = AttributeDict({"density": kpt_density})
     kwargs_boot = {}
     if calc.name.lower() != "aims":
         kwargs_boot["calculator"] = calc

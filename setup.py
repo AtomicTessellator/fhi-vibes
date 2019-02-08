@@ -40,7 +40,8 @@ setup(
             "claunch_hilde = hilde.fireworks.scripts.claunch_run:claunch",
             "nomad_upload = hilde.scripts.nomad_upload:main",
             "update_md_trajectory = hilde.scripts.update_md_trajectory:main",
-            "trajectory2tdep = hilde.scripts.trajectory2tdep:main"
+            "trajectory2tdep = hilde.scripts.trajectory2tdep:main",
+            "trajectory2xyz = hilde.scripts.trajectory2xyz:main"
         ]
     },
     data_files=[(".", ["hilde.cfg", "fireworks.cfg"])],

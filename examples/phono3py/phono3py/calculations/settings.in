@@ -1,4 +1,4 @@
-# configfile written at 2019/01/28 13:00:14
+# configfile written at 2019/01/30 18:54:06
 
 [common]
 home_dir:                      /home/knoop/local/hilde
@@ -22,6 +22,9 @@ file:                          geometry.in
 
 [control]
 xc:                            pw-lda
+
+[control_kpt]
+density:                       2
 
 [basisset]
 type:                          light

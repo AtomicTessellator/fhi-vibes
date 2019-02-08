@@ -1,5 +1,3 @@
-#!/usr/bin/env python2.7
-
 # USAGE:  ./get_relaxation_info.py  aims.out (aims.out.2 ...)
 #
 # Revision 2018/08: FK
@@ -12,20 +10,22 @@ args = parser.parse_args()
 
 # Find the optimizer type
 def get_optimizer(f):
-    line = next(l for l in f if "Geometry relaxation:" in l)
+    try:
+        line = next(l for l in f if "Geometry relaxation:" in l)
+    except StopIteration:
+        exit("Optimizer not found -- is this output from a relaxation?")
+
     if "Textbook BFGS" in line:
         return 1
-    elif "TRM" in line:
+    if "TRM" in line:
         return 2
+    return -1
 
 
 # find energy
 def get_energy(f):
-    try:
-        line = next(l for l in f if "Total energy uncorrected" in l)
-        total_energy = float(line.split()[5])
-    except StopIteration:
-        exit()
+    line = next(l for l in f if "Total energy corrected" in l)
+    total_energy = float(line.split()[5])
     line = next(l for l in f if "Electronic free energy" in l)
     free_energy = float(line.split()[5])
     return total_energy, free_energy
@@ -45,8 +45,12 @@ def parser(f, n_init=0, optimizer=2):
     while not converged and not abort:
         n_rel += 1
         status = 0
-        energy, free_energy = get_energy(f)
-        max_force = get_forces(f)
+        try:
+            energy, free_energy = get_energy(f)
+            max_force = get_forces(f)
+        except StopIteration:
+            break
+
         for line in f:
             if "Present geometry is converged." in line:
                 converged = 1

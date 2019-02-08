@@ -4,7 +4,7 @@ from json import dumps
 from pathlib import Path
 from configparser import ConfigParser
 from hashlib import sha1 as hash_sha
-from .converters import atoms2json
+from .converters import atoms2json, get_json
 
 def hashfunc(string, empty_str=""):
     """ Wrap the sha hash function and check for empty objects """
@@ -48,6 +48,15 @@ def hash_traj(ca, meta, hash_meta=False):
     if hash_meta:
         return hashfunc(dumps(dct)).hexdigest(), hashfunc(dumps(meta)).hexdigest()
     return hashfunc(dumps(dct)).hexdigest()
+
+def hash_dict(dct):
+    if "calculator_parameters" in dct:
+        if "species_dir" in dct["calculator_parameters"]:
+            dct["calculator_parameters"]["species_dir"] = Path(
+                dct["calculator_parameters"]["species_dir"]
+            ).parts[-1]
+
+    return hashfunc(get_json(dct)).hexdigest()
 
 def hash_atoms(atoms):
     """ hash only the atoms object """

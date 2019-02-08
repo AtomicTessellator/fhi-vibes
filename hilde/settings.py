@@ -4,6 +4,8 @@ import configparser
 import json
 
 from ase.io import read
+from ase.atoms import Atoms
+
 
 from hilde._defaults import (
     DEFAULT_CONFIG_FILE,
@@ -13,6 +15,7 @@ from hilde._defaults import (
 )
 from hilde import __version__ as version
 from hilde.helpers.attribute_dict import AttributeDict
+from hilde.helpers.warnings import warn
 
 
 class Config(configparser.ConfigParser):
@@ -37,7 +40,7 @@ class Config(configparser.ConfigParser):
 class ConfigDict(AttributeDict):
     """Dictionary that holds the configuration settings"""
 
-    def __init__(self, config_files=["hilde.cfg"], *args, **kwargs):
+    def __init__(self, *args, config_files=["hilde.cfg"], **kwargs):
 
         super().__init__(*args, **kwargs)
 
@@ -51,7 +54,13 @@ class ConfigDict(AttributeDict):
                 val = config.getval(sec, key)
                 self[sec][key] = val
 
+    def __str__(self):
+        """ for printing the object """
+
+        return self.get_string()
+
     def print(self):
+        """ literally print(self) """
         print(self.get_string())
 
     def write(self, filename=DEFAULT_SETTINGS_FILE, pickle=False):
@@ -72,6 +81,9 @@ class ConfigDict(AttributeDict):
         """ return string representation for writing etc. """
         string = ""
         for sec in self:
+            # Filter out the private attributes
+            if sec.startswith("_"):
+                continue
             string += f"\n[{sec}]\n"
             for key in self[sec]:
                 elem = self[sec][key]
@@ -107,6 +119,11 @@ class Settings(ConfigDict):
         fireworks_file=DEFAULT_FIREWORKS_FILE,
         write=False,
     ):
+        self._settings_file = settings_file
+        self._config_file = config_file
+        self._fireworks_file = fireworks_file
+        self._atoms = None
+
         config_files = [config_file, settings_file, fireworks_file]
 
         super().__init__(config_files=[file for file in config_files if file])
@@ -114,11 +131,25 @@ class Settings(ConfigDict):
         if write:
             self.write(DEFAULT_TEMP_SETTINGS_FILE)
 
+    @property
+    def atoms(self, format="aims"):
+        """ Return the settings.atoms object """
+        if self._atoms:
+            return self._atoms
+
+        if "geometry" in self and "file" in self.geometry:
+            self._atoms = read(self.geometry.file, format=format)
+            return self._atoms
+
+        warn(f"No geometry specified in {self._settings_file}, return None", level=1)
+        return None
+
+    @atoms.setter
+    def atoms(self, object):
+        """ Set the settings.atoms object """
+        assert isinstance(object, Atoms), type(object)
+        self._atoms = object
+
     def get_atoms(self, format="aims"):
         """ parse the geometry described in settings.in and return as atoms """
-        if "atoms" in self:
-            return self.atoms
-        elif "geometry" in self:
-            if "file" in self.geometry:
-                self.atoms = read(self.geometry.file, format=format)
-                return self.atoms
+        return self.atoms

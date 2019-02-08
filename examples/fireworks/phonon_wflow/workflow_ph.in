@@ -5,9 +5,9 @@ file = geometry.in
 [general]
 workdir_cluster = "test_run/"
 workdir_local = "test_run/"
-use_third = True
+use_third = False
 basisset = light
-kgrid_dfunc_min = 1e12
+kgrid_dfunc_min = 1e-4
 
 [control]
 xc =                 pbe

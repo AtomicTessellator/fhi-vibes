@@ -71,6 +71,5 @@ def update_k_grid_calc_dict(calc_dict, recipcell, pbc, kptdensity, even=True):
     """ update the k_grid in dictionary representation of a calculator with the respective density """
     k_grid = d2k_cellinfo(recipcell, pbc, kptdensity, even)
 
-    if "k_grid" in calc_dict["calculator_parameters"]:
-        calc_dict["calculator_parameters"]["k_grid"] = k_grid
+    calc_dict["calculator_parameters"]["k_grid"] = k_grid
     return calc_dict

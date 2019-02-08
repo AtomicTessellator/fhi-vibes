@@ -2,37 +2,36 @@
 
 import numpy as np
 
-from hilde.helpers.pickle import pread
-from hilde.helpers.hash import hash_atoms_and_calc
-from hilde.phonon_db.database_interface import to_database, from_database
+from hilde.phonon_db.database_interface import traj_to_database, from_database
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonopy.postprocess import postprocess
-# Connect to the database
+
 db_path = "test.db"
-traj = "trajectory_phonopy.yaml"
 
-# Load the atoms and phonopy objects from the pick file
-hashes = to_database(db_path, obj=traj)
+trajectory_file = "trajectory_phonopy.yaml"
 
-phonon = postprocess(trajectory="trajectory_phonopy.yaml")
-ph_db = from_database(db_path, identifier=("traj_hash", hashes["traj_hash"]), get_phonon=True)
+# Add the phonopy calculation contained in the trajectory to the database
+phonon_hash = traj_to_database(db_path, trajectory_file)
 
-assert np.max(np.abs(ph_db.get_force_constants() - phonon.get_force_constants()[:])) < 1e-14
+# Create phonopy object from trajectory directly
+phonon = postprocess(trajectory=trajectory_file)
 
-# Get the row from the database
+# Retrieve the phonopy object from the database
+phonon_db = from_database(db_path, ph_hash=phonon_hash)
+
+# compute difference in force constants to see if they are similar
+diff = np.max(np.abs(phonon_db.get_force_constants() - phonon.get_force_constants()[:]))
+
+assert diff < 1e-14
+
+## Manipulate the database directly
+# Connect to the database
 db = connect(db_path)
-row = list(
-    db.select(
-        sc_matrix_2=phonon.get_supercell_matrix(),
-        atoms_hash=hashes["atoms_hash"],
-        calc_hash=hashes["calc_hash"],
-        has_fc2=True,
-        columns=["id", "fc_2", "sc_matrix_2"],
-    )
-)[0]
 
-# Compare the second order force constants and the Helmholtz free energies of the phonopy and row objects
-print(
-    "Both force constant matrices are the same:",
-    np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-14,
-)
+# Get the row from the database directly
+row = list(db.select(hash=phonon_hash))[0]
+
+# Compare the second order force constants of the phonopy and row objects
+diff = np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:]))
+
+print("\nBoth force constant matrices are the same:", diff < 1e-14)

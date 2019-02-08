@@ -20,15 +20,12 @@ def run_phonopy(**kwargs):
 
     completed = calculate_socket(**args)
 
-    if not completed and not "fireworks" in kwargs:
+    if not completed:
         restart()
-    elif "fireworks" in kwargs:
-        return False
     else:
         print("Start postprocess.")
         postprocess(**args)
         print("done.")
-        return True
 
 
 def bootstrap(name="phonopy", settings=None, **kwargs):

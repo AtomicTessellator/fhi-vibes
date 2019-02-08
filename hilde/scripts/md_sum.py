@@ -7,6 +7,7 @@ from hilde.trajectory import reader
 
 
 def parse_log(filename):
+    """ parse the ASE logfile, typically md.log """
     e_kin = []
     e_pot = []
     temp = []
@@ -43,7 +44,8 @@ def main():
         e_kin = [atoms.get_kinetic_energy() for atoms in trajectory]
         e_pot = [atoms.get_potential_energy() for atoms in trajectory]
         temp = [atoms.get_temperature() for atoms in trajectory]
-        time = [atoms.info["nsteps"] * atoms.info["dt"] * 0.001 for atoms in trajectory]
+        # sum up time steps, necessary if dt changes during md
+        time = np.cumsum([atoms.info["dt"] * 0.001 for atoms in trajectory])
     elif "log" in infile.suffix:
         e_kin, e_pot, temp, time = parse_log(infile)
 
