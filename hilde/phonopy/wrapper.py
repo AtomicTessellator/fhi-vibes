@@ -139,7 +139,7 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
     bands, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
 
-    phonon.set_band_structure(bands)
+    phonon.set_band_structure(bands, labels=labels)
 
     return (*phonon.get_band_structure(), labels)
 
@@ -149,7 +149,7 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
 
     *_, labels = get_bandstructure(phonon, paths, force_sets)
 
-    plt = phonon.plot_band_structure(labels=labels)
+    plt = phonon.plot_band_structure()
 
     plt.savefig(file)
 
