@@ -123,7 +123,7 @@ def inform(cell, dft=False, fname=None, verbosity=0, symprec=symprec):
     print(f"  Number of atoms:   {len(cell)}")
     print(f"  Species:           {', '.join(np.unique(cell.symbols))}")
     print(f"  Periodicity:       {cell.pbc}")
-    if any(cell.pbc):
+    if verbosity > 0 and any(cell.pbc):
         print(f"  Lattice:  ")
         for vec in cell.cell:
             print(f"    {vec}")
@@ -142,9 +142,10 @@ def inform(cell, dft=False, fname=None, verbosity=0, symprec=symprec):
             f"  Equivalent atoms:    "
             + ", ".join(f"{c}*{a}" for (a, c) in sds.equivalent_atoms_unique)
         )
-        print(f"  Standard lattice:  ")
-        for vec in sds.std_lattice:
-            print(f"    {vec}")
+        if verbosity > 0:
+            print(f"  Standard lattice:  ")
+            for vec in sds.std_lattice:
+                print(f"    {vec}")
 
     # Info
     for ii, (key, val) in enumerate(cell.info.items()):

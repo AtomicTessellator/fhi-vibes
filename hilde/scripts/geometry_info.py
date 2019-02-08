@@ -14,7 +14,7 @@ def main():
     ### Greet
     fname = args.geom
     cell = read(fname, format=args.format)
-    inform(cell, fname=fname, symprec=args.tolerance)
+    inform(cell, fname=fname, symprec=args.tolerance, verbosity=1)
 
 
 if __name__ == "__main__":
