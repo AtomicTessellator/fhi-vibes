@@ -150,6 +150,11 @@ def generate_phonon_fw(
         update_settings (dict): calculator update settings
     Returns (Firework): Firework for the phonon initialization
     '''
+    if qadapter and "walltime" in qadapter:
+        ph_settings["walltime"] = get_time(qadapter["walltime"])
+    else:
+        ph_settings["walltime"] = 1800
+
     update_settings = {}
     if "basisset_type" in ph_settings:
         update_settings["basisset_type"] = ph_settings.pop("basisset_type")
@@ -166,7 +171,6 @@ def generate_phonon_fw(
     return generate_fw(
         atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec
     )
-
 
 def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=None):
     '''
@@ -294,14 +298,8 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
 
     if "phonopy_qadapter" in workflow:
         qadapter = workflow["phonopy_qadapter"]
-        if "walltime" in qadapter:
-            phonopy_set["walltime"] = get_time(qadapter["walltime"])
-        else:
-            phonopy_set["walltime"] = 1800
     else:
         qadapter = None
-        phonopy_set["walltime"] = 1800
-    phonopy_set["walltime"] -= 100
     if "phonopy" in workflow:
         for key, val in workflow.phonopy.items():
             if key != "walltime":
@@ -342,14 +340,8 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
 
         if "phono3py_qadapter" in workflow:
             qadapter = workflow["phono3py_qadapter"]
-            if "walltime" in qadapter:
-                phono3py_set["walltime"] = get_time(qadapter["walltime"])
-            else:
-                phono3py_set["walltime"] = 1800
         else:
             qadapter = None
-            phono3py_set["walltime"] = 1800
-        phono3py_set["walltime"] -= 100
         if "phono3py" in workflow:
             for key, val in workflow.phono3py.items():
                 if key != "walltime":

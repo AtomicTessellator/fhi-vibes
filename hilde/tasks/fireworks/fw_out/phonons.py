@@ -275,17 +275,20 @@ def converge_phonons(
         if kwargs["workdir"][0] == "/":
             analysis_wd = [""] + analysis_wd
 
-        if analysis_wd[-1] == "":
-            del analysis_wd[-1]
         if len(analysis_wd[-1]) > 9 and analysis_wd[-1][9] == "sc_natoms_":
-            a_wd = "/".join(analysis_wd[:-2]) + f"/sc_natoms_{int(np.linalg.det(sc_mat)*len(pc.numbers)+0.5)}"
+            a_wd = "/".join(analysis_wd[:-1])
         else:
-            a_wd = "/".join(analysis_wd[:-1]) + f"/sc_natoms_{int(np.linalg.det(sc_mat)*len(pc.numbers)+0.5)}"
+            a_wd = "/".join(analysis_wd)
+
+        a_wd += f"/sc_natoms_{int(np.linalg.det(sc_mat)*len(pc.numbers)+0.5)}"
+
         kwargs["prev_dos_fp"] = dos_fp
         kwargs["trajectory"] = kwargs["trajectory"].split("/")[-1]
+
         analysis_fw = generate_phonon_postprocess_fw(
             pc, a_wd, fw_settings, kwargs, wd_init=wd
         )
+
         analysis_fw.parents = [init_fw]
         detours = [init_fw, analysis_fw]
         wf = Workflow(detours, {init_fw: [analysis_fw]})

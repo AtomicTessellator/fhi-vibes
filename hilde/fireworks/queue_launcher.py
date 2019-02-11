@@ -125,7 +125,7 @@ def launch_rocket_to_queue(
                                     fw.spec["_queueadapter"]["nodes"] *= int(np.ceil(time_req/wts[-1]))
                                 else:
                                     fw.spec["_queueadapter"]["nodes"] = int(np.ceil(time_req/wts[-1]))
-                                fw.spec["_queueadapter"]["nodes"] = qadapter["walltimes"][-1]
+                                fw.spec["_queueadapter"]["walltime"] = qadapter["walltimes"][-1]
                             else:
                                 fw.spec['_queueadapter']['queue'] = qadapter["queues"][inds[0]]
                         elif "queue" in fw.spec["_queueadapter"]:

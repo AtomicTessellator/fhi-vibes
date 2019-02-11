@@ -23,12 +23,12 @@ def get_time(time_str):
     time_set = time_str.split(":")
     time = 0
     for ii, tt in enumerate(time_set):
-        time += int(tt) * 60 ** (len(time_set) - 1 - ii)
+        time += int(round(float(tt))) * 60 ** (len(time_set) - 1 - ii)
     return int(time)
 
 def to_time_str(n_sec):
     '''Converts a number of seconds into a time string'''
-    secs = n_sec % 60
+    secs = int(n_sec % 60)
     mins = int(n_sec / 60) % 60
     hrs = int(n_sec / 3600)
     return f"{hrs}:{mins}:{secs}"
@@ -220,6 +220,7 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
         make_abs_path (bool): If True make the paths of directories absolute
     Return (TaskSpec): The specification object of the task
     """
+    func_kwargs["init_wd"] = func_kwargs["workdir"]
     if "converge_phonons" in func_kwargs and func_kwargs["converge_phonons"]:
         func_out = "hilde.tasks.fireworks.fw_out.phonons.converge_phonons"
     else:
