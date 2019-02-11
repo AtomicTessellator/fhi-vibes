@@ -24,7 +24,7 @@ def get_time(time_str):
     time = 0
     for ii, tt in enumerate(time_set):
         time += int(tt) * 60 ** (len(time_set) - 1 - ii)
-    return time
+    return int(time)
 
 def to_time_str(n_sec):
     '''Converts a number of seconds into a time string'''

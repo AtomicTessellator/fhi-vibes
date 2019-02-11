@@ -11,7 +11,7 @@ from hilde.fireworks.workflows.phonon_wf import generate_phonon_fw, generate_pho
 from hilde.helpers.converters import calc2dict, atoms2dict
 from hilde.helpers.k_grid import k2d
 from hilde.helpers.supercell import make_cubic_supercell
-from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy, fp_tup
+from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy, fp_tup, scalar_product
 from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader
 
@@ -180,6 +180,12 @@ def add_single_calc_to_detours(
 def converge_phonons(
     func, func_fw_out, *args, fw_settings=None, **kwargs
 ):
+    if fw_settings:
+        fw_settings["from_db"] = False
+        if "in_spec_calc" in fw_settings:
+            fw_settings.pop("in_spec_calc")
+        if "in_spec_atoms" in fw_settings:
+            fw_settings.pop("in_spec_atoms")
     _, metadata = reader(kwargs["trajectory"], True)
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
@@ -187,26 +193,28 @@ def converge_phonons(
     prev_dos_fp = None
     if isinstance(ph, Phonopy):
         ph.set_mesh([51,51,51])
-        ph.set_total_DOS()
         if "prev_dos_fp" in kwargs:
             prev_dos_fp = kwargs["prev_dos_fp"].copy()
-            dos_fp = get_phonon_dos_fingerprint_phononpy(
-                ph,
-                min_e=np.min(prev_dos_fp[0]),
-                max_e=np.max(prev_dos_fp[0]),
-                nbins=prev_dos_fp[-1],
-            )
+            de = prev_dos_fp[0][0][1] - prev_dos_fp[0][0][0]
+            min_f = prev_dos_fp[0][0][0] - 0.5*de
+            max_f = prev_dos_fp[0][0][-1] + 0.5*de
+            ph.set_total_DOS(freq_min=min_f, freq_max=max_f, tetrahedron_method=True)
         else:
-            dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
-        conv_crit = 0.9 if "conv_crit" not in kwargs else kwargs["conv_crit"]
+            ph.set_total_DOS(tetrahedron_method=True)
+        dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
+        conv_crit = 0.95 if "conv_crit" not in kwargs else kwargs["conv_crit"]
         if prev_dos_fp is not None and check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
             return FWAction()
+        # Reset dos_fp to include full Energy Range for the material
+        ph.set_total_DOS(tetrahedron_method=True)
+        dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
 
         # If Not Converged update phonons
         pc = to_Atoms(ph.get_primitive())
         _, sc_mat = make_cubic_supercell(
             pc,
-            len(pc.numbers)*np.linalg.det(ph.get_supercell_matrix())+50
+            len(pc.numbers)*np.linalg.det(ph.get_supercell_matrix())+50,
+            deviation=0.4,
         )
         fw_settings["in_spec_calc"] = "calculator"
         update_spec = {"calculator": calc_dict, "prev_dos_fp": dos_fp}
@@ -222,6 +230,7 @@ def converge_phonons(
             "displacement": ph._displacement_dataset['first_atoms'][0]['displacement'][0],
             "supercell_matrix": sc_mat,
             "serial": kwargs["serial"],
+            "converge_phonons" : True,
         }
         kwargs.update(func_kwargs)
 
@@ -230,21 +239,27 @@ def converge_phonons(
         else:
             fw_settings["spec"] = {"prev_dos_fp": dos_fp}
 
-        if "queueadapter" in fw_settings:
+        if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"] :
             time_scaling = min(16, (np.linalg.det(sc_mat)/np.linalg.det(ph.get_supercell_matrix()))**3.0)
-            if "walltime" in fw_settings["queueadapter"]:
-                fw_settings["queueadapter"]["walltime"] = to_time_str(
-                    get_time(fw_settings["queueadapter"]["walltime"])*time_scaling
+            if "walltime" in fw_settings["spec"]["_queueadapter"]:
+                fw_settings["spec"]["_queueadapter"]["walltime"] = to_time_str(
+                    get_time(fw_settings["spec"]["_queueadapter"]["walltime"])*time_scaling
                 )
-            elif "nodes" in fw_settings["queueadapter"]:
-                fw_settings["queueadapter"]["nodes"] *= int(time_scaling)
+            elif "nodes" in fw_settings["spec"]["_queueadapter"]:
+                fw_settings["spec"]["_queueadapter"]["nodes"] *= int(time_scaling)
             else:
-                fw_settings["queueadapter"]["nodes"] = int(time_scaling)
-            qadapter = fw_settings["queueadapter"]
+                fw_settings["spec"]["_queueadapter"]["nodes"] = int(time_scaling)
+            qadapter = fw_settings["spec"]["_queueadapter"]
         else:
             qadapter = None
 
         init_wd = kwargs["init_wd"].split("/")
+
+        while "" in init_wd:
+            init_wd.remove("")
+        if kwargs["init_wd"][0] == "/":
+            init_wd = [""] + init_wd
+
         if len(init_wd[-1]) > 9 and init_wd[-1][:9] == "sc_natoms_":
             wd = "/".join(init_wd[:-1])
         else:
@@ -255,6 +270,11 @@ def converge_phonons(
         )
 
         analysis_wd = kwargs["workdir"].split("/")
+        while "" in analysis_wd:
+            analysis_wd.remove("")
+        if kwargs["workdir"][0] == "/":
+            analysis_wd = [""] + analysis_wd
+
         if analysis_wd[-1] == "":
             del analysis_wd[-1]
         if len(analysis_wd[-1]) > 9 and analysis_wd[-1][9] == "sc_natoms_":
@@ -275,7 +295,6 @@ def converge_phonons(
     return FWAction()
 
 def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
-    from hilde.materials_fp.material_fingerprint import scalar_product
     for ll in range(4):
         prev_dos_fp[ll] = np.array(prev_dos_fp[ll])
     prev_dos_fp = fp_tup(prev_dos_fp[0], prev_dos_fp[1], prev_dos_fp[2], prev_dos_fp[3])

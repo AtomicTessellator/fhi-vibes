@@ -7,7 +7,8 @@ workdir_cluster = "test_run/"
 workdir_local = "test_run/"
 use_third = False
 basisset = light
-kgrid_dfunc_min = 1e-4
+use_tight_relax = True
+kgrid_dfunc_min = 1e4
 
 [control]
 xc =                 pbe
@@ -25,10 +26,15 @@ supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 walltime = 3500
 serial = False
 displacement = 0.01
+converge_phonons = True
 
-[phono3py]
-supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-walltime = 3500
-serial = True
-displacement = 0.01
-cutoff_pair_distance = 5.0
+[phonopy_qadapter]
+walltime = 1:00:00
+nodes = 1
+
+#[phono3py]
+#supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+#walltime = 3500
+#serial = True
+#displacement = 0.01
+#cutoff_pair_distance = 5.0

@@ -185,11 +185,6 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=
     fw_settings["mod_spec_add"] += "_forces"
     fw_settings["fw_name"] = ph_settings.pop("type") + "_analysis"
 
-    # if "converge_sc" in ph_settings and ph_settings["converge_sc"]:
-    #     func_out_kwargs = dict(db_kwargs, converge_sc=ph_settings.pop("converge_sc"))
-    # else:
-    #     func_out_kwargs = dict(db_kwargs, converge_sc=False)
-
     func_kwargs = ph_settings.copy()
     func_kwargs["workdir"] = wd + "/" + fw_settings["fw_name"] + "/"
     func_kwargs["init_wd"] = wd_init
@@ -264,7 +259,10 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         basis = workflow.general.pop("basisset")
     else:
         basis = "tight"
-    if basis == "tight":
+    use_tight_relax = False
+    if "use_tight_relax" in workflow.general:
+        use_tight_relax = True
+    if basis == "tight" or use_tight_relax:
         tight_relax_set = {"basisset_type": "tight"}
         if "tight_rel_qadapter" in workflow:
             qadapter = workflow["tight_rel_qadapter"]
@@ -292,6 +290,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     del phonopy_set["q_mesh"]
     phonopy_set["serial"] = True
     phonopy_set["type"] = "phonopy"
+    phonopy_set["basisset_type"] = basis
 
     if "phonopy_qadapter" in workflow:
         qadapter = workflow["phonopy_qadapter"]
@@ -336,6 +335,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         phono3py_set = ph3_defaults.copy()
         phono3py_set["serial"] = True
         phono3py_set["type"] = "phono3py"
+        phono3py_set["basisset_type"] = basis
         del phono3py_set["displacement"]
         del phono3py_set["cutoff_pair_distance"]
         del phono3py_set["q_mesh"]
