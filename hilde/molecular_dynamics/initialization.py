@@ -5,7 +5,7 @@ import numpy as np
 from ase import units as u
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.warnings import warn
-from .velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 
 
 def setup_md(
@@ -101,9 +101,12 @@ def initialize_md(
     if force_constants is not None:
         print("Initialize positions and velocities using force constants.")
         force_constants = np.loadtxt(force_constants)
-        PhononHarmonics(
-            atoms, force_constants, quantum=quantum, temp=temperature, force_temp=True
-        )
+        PhononHarmonics(atoms, force_constants, quantum=quantum, temp=temperature)
+        if force_temp:
+            temp0 = atoms.get_kinetic_energy() / len(atoms) / 1.5
+            gamma = temp / temp0
+            atoms.set_momenta(atoms.get_momenta() * np.sqrt(gamma))
+
     else:
         print("Initialize velocities according to Maxwell-Boltzmann distribution.")
         MaxwellBoltzmannDistribution(
