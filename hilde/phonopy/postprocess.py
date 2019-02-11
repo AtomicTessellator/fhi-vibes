@@ -88,6 +88,18 @@ def extract_results(
     if tdep:
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
         fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
+
+        # reproduce reduces force constants
+        phonon.produce_force_constants(calculate_full_force_constants=False)
+
+        write_FORCE_CONSTANTS(
+            phonon.get_force_constants(),
+            filename=force_constants_file,
+            p2s_map=phonon.get_primitive().get_primitive_to_supercell_map(),
+        )
+
+        print(f"Reduced force constants saved to {force_constants_file}.")
+
     else:
         write_settings = {"format": "aims", "scaled": True}
         fnames = {
@@ -103,13 +115,14 @@ def extract_results(
     supercell.write(fname, **write_settings)
     print(f"Supercell cell written to {fname}")
 
-    # reproduce reduces force constants
-    phonon.produce_force_constants(calculate_full_force_constants=False)
+    # save as force_constants.dat
+    phonon.produce_force_constants()
+    n_atoms = phonon.get_supercell().get_number_of_atoms()
 
-    write_FORCE_CONSTANTS(
-        phonon.get_force_constants(),
-        filename=args.force_constants_file,
-        p2s_map=phonon.get_primitive().get_primitive_to_supercell_map(),
+    force_constants = (
+        phonon.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
     )
 
-    print(f"Force constants saved to {args.force_constants_file}.")
+    fname = "force_constants.dat"
+    np.savetxt(fname, force_constants)
+    print(f"Full force constants as numpy matrix written to {fname}.")

@@ -3,9 +3,10 @@
 from pathlib import Path
 import numpy as np
 from ase import units as u
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
+
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.warnings import warn
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 
 
 def setup_md(
@@ -89,6 +90,7 @@ def initialize_md(
     force_constants=None,
     quantum=False,
     force_temp=True,
+    deterministic=True,
     **kwargs,
 ):
     """ Either use Maxwell Boltzmann or PhononHarmonics to prepare the MD run """
@@ -101,10 +103,16 @@ def initialize_md(
     if force_constants is not None:
         print("Initialize positions and velocities using force constants.")
         force_constants = np.loadtxt(force_constants)
-        PhononHarmonics(atoms, force_constants, quantum=quantum, temp=temperature)
+        PhononHarmonics(
+            atoms,
+            force_constants,
+            quantum=quantum,
+            temp=temperature * u.kB,
+            plus_minus=deterministic,
+        )
         if force_temp:
             temp0 = atoms.get_kinetic_energy() / len(atoms) / 1.5
-            gamma = temp / temp0
+            gamma = temperature * u.kB / temp0
             atoms.set_momenta(atoms.get_momenta() * np.sqrt(gamma))
 
     else:
