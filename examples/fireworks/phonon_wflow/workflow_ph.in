@@ -7,16 +7,15 @@ workdir_cluster = "test_run/"
 workdir_local = "test_run/"
 use_third = False
 basisset = light
-use_tight_relax = True
+use_tight_relax = False
 kgrid_dfunc_min = 1e4
 
 [control]
-xc =                 pbe
+xc =                 pw-lda
 sc_accuracy_rho =    1e-6
 sc_accuracy_forces = 5E-4
 output_level =       MD_light
 relativistic =       "atomic_zora scalar"
-vdw_correction_hirshfeld = True
 
 [control_kpt]
 density = 1
@@ -26,7 +25,11 @@ supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 walltime = 3500
 serial = False
 displacement = 0.01
-converge_phonons = True
+
+[harmonic_analysis]
+temperatures = [300, 600, 900]
+n_samples = 1
+serial = False
 
 [phonopy_qadapter]
 walltime = 1:00:00

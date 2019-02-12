@@ -125,7 +125,8 @@ def generate_firework(
         else:
             at = atoms
             cl = calc
-            setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
+            if update_calc_settings.keys():
+                setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
 
         if "kpoint_density_spec" in fw_settings:
             calc_spec = "calculator"
@@ -146,7 +147,6 @@ def generate_firework(
     return Firework(
         setup_tasks + job_tasks, name=fw_settings["fw_name"], spec=fw_settings["spec"]
     )
-
 
 def get_phonon_task(func_kwargs, fw_settings=None):
     """
@@ -207,6 +207,22 @@ def get_phonon_task(func_kwargs, fw_settings=None):
         make_abs_path=False,
     )
 
+def get_ha_task(func_kwargs):
+    """
+    Generate a Harmonic Analysis task
+    Args:
+        func_kwargs (dict): The defined kwargs for func
+    Return (TaskSpec): The specification object of the task
+    """
+    return TaskSpec(
+        "hilde.tasks.fireworks.phonopy_phono3py_functions.setup_harmonic_analysis",
+        "hilde.tasks.fireworks.fw_out.phonons.post_harmonic_analysis",
+        True,
+        func_kwargs,
+        inputs=["ph_dict"],
+        func_fw_out_kwargs=func_kwargs,
+        make_abs_path=False,
+    )
 
 def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path=False):
     """
@@ -220,11 +236,12 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
         make_abs_path (bool): If True make the paths of directories absolute
     Return (TaskSpec): The specification object of the task
     """
-    func_kwargs["init_wd"] = func_kwargs["workdir"]
+    if "workdir" in func_kwargs and "init_wd" not in func_kwargs:
+        func_kwargs["init_wd"] = func_kwargs["workdir"]
     if "converge_phonons" in func_kwargs and func_kwargs["converge_phonons"]:
         func_out = "hilde.tasks.fireworks.fw_out.phonons.converge_phonons"
     else:
-        func_out = "hilde.tasks.fireworks.fw_out.general.fireworks_no_mods_gen_function"
+        func_out = "hilde.tasks.fireworks.fw_out.phonons.add_phonon_to_spec"
 
     if "workdir" not in func_kwargs:
         func_kwargs["workdir"] = "."
@@ -259,7 +276,6 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
     )
     return task_spec_list
 
-
 def get_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
     ''' Gets the task spec for a relaxation step'''
     return TaskSpec(
@@ -270,7 +286,6 @@ def get_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
         func_fw_out_kwargs=func_fw_out_kwargs,
         make_abs_path=make_abs_path,
     )
-
 
 def get_aims_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
     ''' Gets the task spec for an aims relaxation step'''
@@ -283,7 +298,6 @@ def get_aims_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
         make_abs_path=make_abs_path,
     )
 
-
 def get_kgrid_task(func_kwargs, make_abs_path=False):
     '''gets the task spec for a k-grid optimization'''
     return TaskSpec(
@@ -293,7 +307,6 @@ def get_kgrid_task(func_kwargs, make_abs_path=False):
         func_kwargs,
         make_abs_path=make_abs_path,
     )
-
 
 def get_step_fw(step_settings, atoms=None, make_abs_path=False):
     """
@@ -390,6 +403,13 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
                 func_kwargs, fw_settings=fw_settings
             )
         )
+    elif "harmonic_analysis" in step_settings:
+        fw_settings["fw_name"] = "harmonic_analysis"
+        at = "ph_supercell"
+        cl = "ph_calculator"
+        fw_settings.in_spec_atoms = at
+        fw_settings.in_spec_calc = cl
+        task_spec_list.append(get_ha_task(step_settings.harmonic_analysis))
     else:
         raise ValueError("Type not defiend")
     fw_settings[
@@ -440,7 +460,6 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         generate_firework(task_spec_list, None, None, fw_settings=fw_settings)
     )
     return fw_list, {fw_list[0]: fw_list[1]}
-
 
 def generate_workflow(
     steps=Settings(), fw_settings=None, atoms=None, make_abs_path=False, no_dep=False

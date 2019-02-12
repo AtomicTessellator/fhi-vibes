@@ -10,6 +10,7 @@ from hilde.fireworks.workflow_generator import (
     get_time,
     get_aims_relax_task,
     get_kgrid_task,
+    get_ha_task,
 )
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.phonopy.wrapper import defaults as ph_defaults
@@ -190,7 +191,9 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=
     fw_settings["fw_name"] = ph_settings.pop("type") + "_analysis"
 
     func_kwargs = ph_settings.copy()
-    func_kwargs["workdir"] = wd + "/" + fw_settings["fw_name"] + "/"
+    if "workdir" in func_kwargs:
+        func_kwargs.pop("workdir")
+    func_kwargs["analysis_workdir"] = wd + "/" + fw_settings["fw_name"] + "/"
     func_kwargs["init_wd"] = wd_init
     task_spec = get_phonon_analysis_task(
         "hilde." + fw_settings["fw_name"][:-9] + ".postprocess.postprocess",
@@ -203,6 +206,35 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=
         "fw_name"
     ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
+
+def generate_ha_fw(
+    atoms, wd, fw_settings, qadapter, ha_settings
+):
+    '''
+    Generates a Firework for the phonon initialization
+    Args:
+        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
+        wd (str): Workdirectory
+        fw_settings (dict): Firework settings for the step
+        qadapter (dict): The queueadapter for the step
+        ph_settings (dict): kwargs for the phonons
+        update_settings (dict): calculator update settings
+    Returns (Firework): Firework for the phonon initialization
+    '''
+    if qadapter and "walltime" in qadapter:
+        ha_settings["walltime"] = get_time(qadapter["walltime"])
+    else:
+        ha_settings["walltime"] = 1800
+    fw_settings["fw_name"] = "harmonic_analysis"
+    fw_settings["in_spec_atoms"] = "ph_supercell"
+    fw_settings["in_spec_calc"] = "ph_calculator"
+    fw_settings.pop("kpoint_density_spec")
+    fw_settings["from_db"] = True
+    ha_settings["workdir"] = wd + "/harmonic_analysis/"
+    task_spec = get_ha_task(ha_settings)
+    return generate_fw(
+        atoms, task_spec, fw_settings, qadapter, None, False
+    )
 
 
 def generate_phonon_workflow(workflow, atoms, fw_settings):
@@ -370,6 +402,28 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
             )
         )
         fw_dep[fw_steps[-2]] = fw_steps[-1]
+
+    # Harmonic Analysis
+    if "phonopy_qadapter" in workflow:
+        qadapter = workflow["phonopy_qadapter"]
+    else:
+        qadapter = None
+
+    ha_set = {}
+    if "harmonic_analysis" in workflow:
+        for key, val in workflow.harmonic_analysis.items():
+            if key != "walltime":
+                ha_set[key] = val
+    fw_steps.append(
+        generate_ha_fw(
+            atoms,
+            workflow.general.workdir_cluster,
+            fw_settings,
+            qadapter,
+            ha_set.copy(),
+        )
+    )
+    fw_dep[fw_steps[-2]] = fw_steps[-1]
 
     if "launchpad_yaml" in fw_settings:
         launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])

@@ -1,10 +1,16 @@
 '''Functions used to wrap around HiLDe Phonopy/Phono3py functions'''
+from ase.md.velocitydistribution import PhononHarmonics
+from ase import units as u
 from pathlib import Path
 
+import numpy as np
+
 from hilde.helpers.converters import dict2atoms
+from hilde.phonon_db.row import PhononRow
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.workflow import bootstrap
 from hilde.settings import Settings, AttributeDict
+from hilde.structure.convert import to_Atoms
 from hilde.trajectory import step2file, metadata2file
 from hilde.tasks.calculate import calculate_socket
 
@@ -12,7 +18,7 @@ from hilde.tasks.calculate import calculate_socket
 def bootstrap_phonon(
     atoms,
     calc,
-    kpt_density,
+    kpt_density=None,
     phonopy_settings=None,
     phono3py_settings=None,
     fw_settings=None,
@@ -66,7 +72,6 @@ def bootstrap_phonon(
         )
 
     return outputs
-
 
 def wrap_calc_socket(
     atoms_dict_to_calculate,
@@ -122,7 +127,6 @@ def wrap_calc_socket(
         **kwargs,
     )
 
-
 def collect_to_trajectory(trajectory, calculated_atoms, metadata):
     '''
     Collects forces to a single trajectory file
@@ -156,3 +160,40 @@ def collect_to_trajectory(trajectory, calculated_atoms, metadata):
     for atoms in calculated_atoms:
         if atoms:
             step2file(atoms, atoms.calc, trajectory)
+
+def setup_harmonic_analysis(
+    atoms,
+    calc,
+    phonon_dict,
+    temperatures,
+    n_samples=1,
+    deterministic=False,
+    fw_settings=None,
+    **kwargs,
+):
+    '''
+    Initializes harmonic analysis functions
+    Args:
+    Return:
+    '''
+    phonon_dict["forces_2"] = np.array(phonon_dict["forces_2"])
+    ph = PhononRow(dct=phonon_dict).to_phonon()
+    n_atoms = ph.get_supercell().get_number_of_atoms()
+    force_constants = (
+        ph.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
+    )
+    sc = to_Atoms(ph.get_supercell())
+    atoms_to_calc = []
+    for temp in temperatures:
+        atoms_to_calc.append({"temperature": temp, "calc_atoms": []})
+        for ii in range(n_samples):
+            atoms = sc.copy()
+            PhononHarmonics(
+                atoms,
+                force_constants,
+                quantum=False,
+                temp=temp * u.kB,
+                plus_minus=deterministic,
+            )
+            atoms_to_calc[-1]["calc_atoms"].append(atoms)
+    return atoms_to_calc
