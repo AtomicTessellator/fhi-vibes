@@ -1,6 +1,7 @@
-import os
 from argparse import ArgumentParser as argpars
 from hilde.io import read, inform
+from hilde.structure.misc import get_sysname
+from hilde.spglib.wrapper import get_symmetry_dataset
 
 
 def main():
@@ -9,12 +10,18 @@ def main():
     parser.add_argument("geom", type=str, help="geometry input file")
     parser.add_argument("-t", "--tolerance", type=float, default=1e-5)
     parser.add_argument("--format", default="aims")
+    parser.add_argument("-s", "--short", action="store_true", help="Only print name")
     args = parser.parse_args()
 
     ### Greet
     fname = args.geom
     cell = read(fname, format=args.format)
-    inform(cell, fname=fname, symprec=args.tolerance, verbosity=1)
+
+    if args.short:
+        sds = get_symmetry_dataset(cell)
+        print(get_sysname(cell, sds))
+    else:
+        inform(cell, fname=fname, symprec=args.tolerance, verbosity=1)
 
 
 if __name__ == "__main__":
