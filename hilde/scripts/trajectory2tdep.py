@@ -10,7 +10,7 @@ def main():
     parser = ArgumentParser(description="Update trajectory file")
     parser.add_argument("trajectory")
     parser.add_argument("-s", "--skip", default=1, type=int)
-    parser.add_argument("-f", "--folder", default=".")
+    parser.add_argument("-f", "--folder", default="tdep")
     args = parser.parse_args()
 
     trajectory = reader(args.trajectory)
