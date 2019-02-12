@@ -154,7 +154,7 @@ def get_detours(
         update_spec[prefix + "_calculated_atoms"] = [
             atoms2dict(at) for at in atoms_to_calculate
         ]
-        update_spec[calc_spec] = calc_dict
+        update_spec[prefix + "_calculator"] = calc_dict
         fw_settings["spec"].update(update_spec)
         fw_settings["calc_atoms_spec"] = prefix + "_calculated_atoms"
         fw_settings["calc_spec"] = prefix + "_calculator"
