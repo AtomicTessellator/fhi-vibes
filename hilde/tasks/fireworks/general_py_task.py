@@ -171,11 +171,12 @@ def atoms_calculate_task(
 
     default_settings = Settings(DEFAULT_CONFIG_FILE)
     calc_dict["command"] = default_settings.machine.aims_command
-    calc_dict["calculator_parameters"]["species_dir"] = (
-        str(default_settings.machine.basissetloc)
-        + "/"
-        + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
-    )
+    if "species_dir" in calc_dict["calculator_parameters"]:
+        calc_dict["calculator_parameters"]["species_dir"] = (
+            str(default_settings.machine.basissetloc)
+            + "/"
+            + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
+        )
 
     for key, val in calc_dict.items():
         atoms_dict[key] = val
