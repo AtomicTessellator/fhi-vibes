@@ -33,7 +33,7 @@ def main():
     parser = ArgumentParser(description="Read md.log and make simple statistics")
     parser.add_argument("file", help="md.log or trajectory.yaml input file")
     parser.add_argument("-p", "--plot", action="store_true", help="plot to pdf")
-    parser.add_argument("--avg", type=int, help="running avg in plot", default=50)
+    parser.add_argument("--avg", type=int, help="running avg in plot", default=100)
     parser.add_argument("-v", "--verbose", action="store_true", help="give more info")
     args = parser.parse_args()
 
@@ -87,34 +87,50 @@ def plot_temperature(time, temperatures, running_avg=50):
 
     data = pd.Series(temperatures, time)
 
-    temp_2 = data.iloc[len(data) // 2 :]
+    temp_2 = data.iloc[-len(data) // 3 :]
 
     ax = data.plot(
         x="time",
         y="temperatures",
-        color=tc[0],
+        color=tc[2],
         title=f"Nuclear Temperature",
-        legend=["Instant. Temp."],
+        label="Instant. Temp.",
     )
-    # ax.legend(["Instant. Temp."])
+
+    plot_settings = {"x": "time", "y": "temperatures", "ax": ax}
 
     if running_avg > 1:
         roll = data.rolling(window=running_avg, min_periods=0).mean()
         roll.plot(
-            x="time",
-            y="temperatures",
-            ax=ax,
+            **plot_settings,
             style="--",
-            color=tc[1],
+            color=tc[0],
             title=(
-                f"Nucl. Temp. with runnig avg. (window = {running_avg})"
-                f"\nTemperature (last 1/2): {temp_2.mean():.2f} +/- {temp_2.std():.2f}K"
+                f"Nuclear Temperature"
+                f"\nTemperature (last 1/3): {temp_2.mean():.2f} +/- {temp_2.std():.2f}K"
             ),
-            legend=["Instant. Temp.", "Running mean"],
+            label=f"Running mean ({running_avg})",
+        )
+
+        # roll2 = data.rolling(window=2 * running_avg, min_periods=0).mean()
+        # roll2.plot(
+        #     **plot_settings,
+        #     style="--",
+        #     color=tc[1],
+        #     label=f"Running mean {2*running_avg}",
+        # )
+
+        exp = data.expanding(min_periods=running_avg).mean()
+        exp.plot(
+            **plot_settings,
+            style="-.",
+            color=tc[1],
+            label=f"Aggregated mean ({running_avg})",
         )
 
     ax.set_xlabel("Time [ps]")
     ax.set_ylabel("Nucl. Temperature [K]")
+    ax.legend()
     fig = ax.get_figure()
     fig.savefig("temp.pdf")
 
