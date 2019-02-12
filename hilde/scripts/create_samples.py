@@ -11,6 +11,7 @@ from hilde.molecular_dynamics import initialize_md
 
 
 def get_frequencies(atoms, force_constants):
+    """ create dynamical matrix, return frequencies for sanity checks """
     masses = atoms.get_masses()
     # Build dynamical matrix
     rminv = (masses ** -0.5).repeat(3)
@@ -23,12 +24,14 @@ def get_frequencies(atoms, force_constants):
 
 
 def main():
+    """ main function """
     parser = argpars(description="Read geometry create supercell")
     parser.add_argument("geom", type=str, help="geometry input file")
     parser.add_argument("temperature", type=int)
     parser.add_argument("-fc", "--force_constants")
     parser.add_argument("-n", type=int, default=1, help="no. of samples")
     parser.add_argument("--quantum", action="store_true")
+    parser.add_argument("--deterministic", action="store_true")
     parser.add_argument("--ignore_negative", action="store_false")
     parser.add_argument("--format", default="aims")
     args = parser.parse_args()
@@ -42,8 +45,8 @@ def main():
 
         # Check dyn. matrix
         w2 = get_frequencies(atoms, force_constants)
-        print("The first 10 frequencies:")
-        for ii, freq in enumerate(w2[:10]):
+        print("The first 6 frequencies:")
+        for ii, freq in enumerate(w2[:6]):
             print(f" {ii + 1:4d}: {np.sign(freq) * np.sqrt(abs(freq))}")
 
         print("Highest 6 frequencies")
@@ -60,6 +63,7 @@ def main():
             temperature=args.temperature,
             force_constants=args.force_constants,
             quantum=args.quantum,
+            deterministic=args.deterministic,
         )
 
         if args.force_constants is not None:

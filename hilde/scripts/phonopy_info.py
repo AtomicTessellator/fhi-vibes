@@ -3,6 +3,9 @@
 import numpy as np
 from argparse import ArgumentParser
 from pathlib import Path
+from hilde.helpers.pickle import pread
+from hilde.phonopy.postprocess import extract_results
+from hilde.phonopy.wrapper import summarize_bandstructure
 
 
 def preprocess(args):
@@ -34,26 +37,6 @@ def preprocess(args):
     print(f"  Number of displacements: {len(scs)} ({len(scs_ref)})")
 
 
-def postprocess(args):
-    from hilde.helpers.pickle import pread
-    from hilde.phonopy.wrapper import plot_bandstructure, plot_bandstructure_and_dos
-    from hilde.phonopy.wrapper import summarize_bandstructure, get_force_constants
-
-    phonon = pread(args.infile)
-
-    plot_bandstructure(phonon, file="bandstructure.pdf")
-    if args.dos == "t":
-        plot_bandstructure_and_dos(phonon, file="bands_and_dos.pdf")
-    elif args.dos == "p":
-        plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
-    summarize_bandstructure(phonon, fp_file=args.fp_file)
-
-    force_costants = get_force_constants(phonon)
-    filname = "force_constants.dat"
-    np.savetxt(filname, force_constants)
-    print(f"Force constants saved to {filname}.")
-
-
 def main():
     """ main routine """
     parser = ArgumentParser(description="information about phonopy task")
@@ -62,9 +45,9 @@ def main():
     parser.add_argument("--config_file", default="settings.in")
     parser.add_argument("--format", default="aims")
     parser.add_argument("--fp_file", default=None, help="File to store the fingerprint")
-    parser.add_argument(
-        "--dos", nargs="?", const="t", default=None, help="plot dos as well"
-    )
+    parser.add_argument("--dos", action="store_true")
+    parser.add_argument("--pdos", action="store_true")
+    parser.add_argument("--tdep", action="store_true")
     args = parser.parse_args()
 
     suffix = Path(args.infile).suffix
@@ -72,7 +55,9 @@ def main():
         preprocess(args)
 
     elif suffix == ".pick" or suffix == ".gz":
-        postprocess(args)
+        phonon = pread(args.infile)
+        summarize_bandstructure(phonon, fp_file=args.fp_file)
+        extract_results(phonon, plot_dos=args.dos, plot_pdos=args.pdos, tdep=args.tdep)
     else:
         print("*** Nothing happened.")
 

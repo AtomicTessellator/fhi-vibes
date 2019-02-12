@@ -57,3 +57,72 @@ def postprocess(
     timer("done")
 
     return phonon
+
+
+def extract_results(
+    phonon,
+    plot_bandstructure=True,
+    plot_dos=False,
+    plot_pdos=False,
+    tdep=False,
+    force_constants_file="FORCE_CONSTANTS",
+):
+    """ Extract results from phonopy object and present them.
+        With `tdep=True`, the necessary input files for TDEP's
+          `convert_phonopy_to_forceconstant`
+        are written. """
+    from hilde.phonopy.wrapper import plot_bandstructure, plot_bandstructure_and_dos
+    from hilde.structure.convert import to_Atoms
+    from phonopy.file_IO import write_FORCE_CONSTANTS
+
+    plot_bandstructure(phonon, file="bandstructure.pdf")
+    if plot_dos:
+        plot_bandstructure_and_dos(phonon, file="bands_and_dos.pdf")
+    if plot_pdos:
+        plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
+
+    # print structures:
+    primitive = to_Atoms(phonon.get_primitive())
+    supercell = to_Atoms(phonon.get_supercell())
+
+    if tdep:
+        write_settings = {"format": "vasp", "direct": True, "vasp5": True}
+        fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
+
+        # reproduce reduces force constants
+        phonon.produce_force_constants(calculate_full_force_constants=False)
+
+        write_FORCE_CONSTANTS(
+            phonon.get_force_constants(),
+            filename=force_constants_file,
+            p2s_map=phonon.get_primitive().get_primitive_to_supercell_map(),
+        )
+
+        print(f"Reduced force constants saved to {force_constants_file}.")
+
+    else:
+        write_settings = {"format": "aims", "scaled": True}
+        fnames = {
+            "primitive": "geometry.in.primitive",
+            "supercell": "geometry.in.supercell",
+        }
+
+    fname = fnames["primitive"]
+    primitive.write(fname, **write_settings)
+    print(f"Primitive cell written to {fname}")
+
+    fname = fnames["supercell"]
+    supercell.write(fname, **write_settings)
+    print(f"Supercell cell written to {fname}")
+
+    # save as force_constants.dat
+    phonon.produce_force_constants()
+    n_atoms = phonon.get_supercell().get_number_of_atoms()
+
+    force_constants = (
+        phonon.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
+    )
+
+    fname = "force_constants.dat"
+    np.savetxt(fname, force_constants)
+    print(f"Full force constants as numpy matrix written to {fname}.")

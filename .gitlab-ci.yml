@@ -1,4 +1,4 @@
-image: registry.gitlab.com/flokno/hilde:reference
+image: registry.gitlab.com/flokno/hilde:update
 
 before_script:
   - cp hilde.cfg.template hilde.cfg

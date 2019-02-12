@@ -1,8 +1,8 @@
 from ase.atoms import Atoms
-from phonopy.structure.atoms import PhonopyAtoms
 import numpy as np
 
 def to_phonopy_atoms(structure, wrap=False):
+    from phonopy.structure.atoms import PhonopyAtoms
     phonopy_atoms = PhonopyAtoms(
         symbols=structure.get_chemical_symbols(),
         cell=structure.get_cell(),
