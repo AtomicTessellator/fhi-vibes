@@ -58,7 +58,8 @@ def parse_tdep_forceconstant(fname="infile.forceconstant_remapped", remapped=Tru
             n_neighbors = int(next(fo).split()[0])
             for _ in range(n_neighbors):
                 i2 = int(next(fo).split()[0]) - 1
-                # lp = np.array(next(fo).split(), dtype=float)
+                # skip the lattice point
+                _ = np.array(next(fo).split(), dtype=float)
                 phi = np.array([next(fo).split() for _ in range(3)], dtype=float)
 
                 force_constants[i1, :, i2, :] = phi
