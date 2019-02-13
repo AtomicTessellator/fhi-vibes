@@ -20,7 +20,7 @@ def main():
     atoms = read(fname)
 
     print(f"Perfom symmetry refinement for")
-    inform(atoms)
+    inform(atoms, symprec=args.tolerance)
 
     if args.prim:
         atoms = standardize_cell(atoms, to_primitve=True, symprec=args.tolerance)

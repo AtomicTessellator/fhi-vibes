@@ -48,6 +48,9 @@ class WallTimeWatchdog:
             import sys
 
             stop_file.unlink()
+
+            with self.logfile.open(mode) as f:
+                f.write("*** stop file found")
             sys.exit("*** Watchdog: stop flag was found: remove it and exit.")
 
         # is sufficient time left?
