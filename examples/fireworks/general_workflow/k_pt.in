@@ -1,5 +1,5 @@
 [control]
-xc =              pbe
+xc =              pw-lda
 sc_accuracy_rho = 1e-6
 output_level =    MD_light
 
