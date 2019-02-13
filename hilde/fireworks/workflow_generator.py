@@ -407,8 +407,9 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         fw_settings["fw_name"] = "harmonic_analysis"
         at = "ph_supercell"
         cl = "ph_calculator"
-        fw_settings.in_spec_atoms = at
-        fw_settings.in_spec_calc = cl
+        fw_settings["in_spec_atoms"] = at
+        fw_settings["in_spec_calc"] = cl
+        fw_settings["from_db"] = True
         task_spec_list.append(get_ha_task(step_settings.harmonic_analysis))
     else:
         raise ValueError("Type not defiend")
@@ -485,7 +486,10 @@ def generate_workflow(
         fw_list, step_dep = get_step_fw(step, atoms, make_abs_path)
         if len(fw_steps) != 0:
             for fw in fw_steps[-1]:
-                fw_dep[fw] = fw_list
+                if fw in fw_dep:
+                    fw_dep[fw] = [fw_dep[fw]] + fw_list
+                else:
+                    fw_dep[fw] = fw_list
         for key, val in step_dep.items():
             fw_dep[key] = val
         fw_steps.append(fw_list)

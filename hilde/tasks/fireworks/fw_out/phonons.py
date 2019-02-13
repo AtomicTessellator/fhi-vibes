@@ -444,15 +444,23 @@ def post_harmonic_analysis(
         fw_settings = dict()
     detours = []
     for ha_struct in outputs:
-        up_spec = dict()
+        temp_str = str(ha_struct["temperature"])
+        prefix = "ha_" + temp_str
+        ha_fw_set = fw_settings.copy()
+        ha_fw_set["metadata_spec"] = prefix + "_metadata"
+        ha_fw_set["mod_spec_add"] = prefix + "_forces"
+
+        up_spec = {
+            "ha_" + temp_str + "_metadata": ha_struct["metadata"]
+        }
         f_kwargs = func_kwargs.copy()
-        f_kwargs["workdir"] += "/" + str(ha_struct["temperature"])
+        f_kwargs["workdir"] += "/" + temp_str
         detours = get_detours(
             ha_struct["calc_atoms"],
             calc,
-            "ha_" + str(ha_struct["temperature"]),
+            prefix,
             func_kwargs,
-            fw_settings,
+            ha_fw_set,
             up_spec,
             atoms=atoms,
             detours=detours

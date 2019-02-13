@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
-from hilde.helpers.converters import dict2atoms
+from hilde.helpers.converters import dict2atoms, calc2dict, atoms2dict, input2dict
 from hilde.phonon_db.row import PhononRow
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.workflow import bootstrap
@@ -184,8 +184,17 @@ def setup_harmonic_analysis(
     )
     sc = to_Atoms(ph.get_supercell())
     atoms_to_calc = []
+    ha_metadata = {
+        # "calculator": calc2dict(calc),
+        # "atoms": atoms2dict(sc),
+        "deterministic": deterministic,
+        "n_samples": n_samples,
+        **input2dict(sc, calc)
+    }
     for temp in temperatures:
         atoms_to_calc.append({"temperature": temp, "calc_atoms": []})
+        ha_metadata["temperature"] = temp
+        atoms_to_calc[-1]["metadata"] = ha_metadata
         for ii in range(n_samples):
             atoms = sc.copy()
             PhononHarmonics(

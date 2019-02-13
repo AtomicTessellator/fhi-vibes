@@ -404,26 +404,26 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
         fw_dep[fw_steps[-2]] = fw_steps[-1]
 
     # Harmonic Analysis
-    if "phonopy_qadapter" in workflow:
-        qadapter = workflow["phonopy_qadapter"]
-    else:
-        qadapter = None
-
-    ha_set = {}
     if "harmonic_analysis" in workflow:
+        if "phonopy_qadapter" in workflow:
+            qadapter = workflow["phonopy_qadapter"]
+        else:
+            qadapter = None
+
+        ha_set = {}
         for key, val in workflow.harmonic_analysis.items():
             if key != "walltime":
                 ha_set[key] = val
-    fw_steps.append(
-        generate_ha_fw(
-            atoms,
-            workflow.general.workdir_cluster,
-            fw_settings,
-            qadapter,
-            ha_set.copy(),
+        fw_steps.append(
+            generate_ha_fw(
+                atoms,
+                workflow.general.workdir_cluster,
+                fw_settings,
+                qadapter,
+                ha_set.copy(),
+            )
         )
-    )
-    fw_dep[fw_steps[-2]] = fw_steps[-1]
+        fw_dep[fw_steps[-2]] = fw_steps[-1]
 
     if "launchpad_yaml" in fw_settings:
         launchpad = LaunchPadHilde.from_file(fw_settings["launchpad_yaml"])
