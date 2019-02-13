@@ -4,8 +4,11 @@ from time import time
 
 
 class Timer:
-    def __init__(self):
+    def __init__(self, message=None):
         self.time = time()
+
+        if message:
+            print(message)
 
     def __call__(self, info_str=""):
         """ print how much time elapsed """

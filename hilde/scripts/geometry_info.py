@@ -21,7 +21,7 @@ def main():
         sds = get_symmetry_dataset(cell)
         print(get_sysname(cell, sds))
     else:
-        inform(cell, fname=fname, symprec=args.tolerance, verbosity=1)
+        inform(cell, fname=fname, symprec=args.tolerance, verbosity=0)
 
 
 if __name__ == "__main__":

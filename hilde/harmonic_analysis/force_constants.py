@@ -1,6 +1,7 @@
 """ Tools for dealing with force constants """
 
 import numpy as np
+from hilde.helpers import Timer
 from hilde.helpers.numerics import clean_matrix
 from hilde.helpers.lattice_points import get_lattice_points, map_I_to_iL
 
@@ -34,3 +35,35 @@ def reshape_force_constants(
             new_force_constants[i1, L1, i2, L2] = clean_matrix(phi)
 
     return new_force_constants
+
+
+def parse_tdep_forceconstant(fname="infile.forceconstant_remapped", remapped=True):
+    """ parse the remapped forceconstants from TDEP """
+    timer = Timer()
+
+    if not remapped:
+        raise RuntimeError("Only remapped forceconstants can be parsed currently.")
+
+    print(f"Parse force constants from\n  {fname}")
+    with open(fname) as fo:
+        n_atoms = int(next(fo).split()[0])
+        cutoff = float(next(fo).split()[0])
+
+        print(f".. Number of atoms:   {n_atoms}")
+        print(f".. Real space cutoff: {cutoff:.3f} \AA")
+
+        force_constants = np.zeros([n_atoms, 3, n_atoms, 3])
+
+        for i1 in range(n_atoms):
+            n_neighbors = int(next(fo).split()[0])
+            for _ in range(n_neighbors):
+                i2 = int(next(fo).split()[0]) - 1
+                # skip the lattice point
+                _ = np.array(next(fo).split(), dtype=float)
+                phi = np.array([next(fo).split() for _ in range(3)], dtype=float)
+
+                force_constants[i1, :, i2, :] = phi
+
+    timer()
+
+    return force_constants.reshape(2 * (3 * n_atoms,))

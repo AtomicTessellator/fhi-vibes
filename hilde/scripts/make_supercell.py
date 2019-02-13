@@ -34,6 +34,7 @@ def main():
     parser.add_argument("--limit", type=int, default=2)
     parser.add_argument("--dry", action="store_true", help="Do not write output file")
     parser.add_argument("--format", default="aims")
+    parser.add_argument("--frac", action="store_true")
     args = parser.parse_args()
 
     timer = Timer()
@@ -77,7 +78,7 @@ def main():
             clean_atoms(supercell),
             output_filename,
             spacegroup=spacegroup,
-            scaled=False,
+            scaled=args.frac,
             format=args.format,
         )
         print(f"\nSupercell written to {output_filename}")

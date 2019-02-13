@@ -114,6 +114,8 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
 
 
 def inform(cell, dft=False, fname=None, verbosity=0, symprec=symprec):
+    """ geometry information """
+    unique_symbols, multiplicity = np.unique(cell.symbols, return_counts=True)
     # Structure info:
     print(f"\nGeometry info for:")
     print(f"  input geometry:    {get_sysname(cell)}")
@@ -121,7 +123,9 @@ def inform(cell, dft=False, fname=None, verbosity=0, symprec=symprec):
         print(f"  from:              {fname}")
     print(f"  Symmetry prec.:    {symprec}")
     print(f"  Number of atoms:   {len(cell)}")
-    print(f"  Species:           {', '.join(np.unique(cell.symbols))}")
+    print(
+        f"  Species:           {', '.join([f'{sym} ({mult})' for (sym, mult) in zip(unique_symbols, multiplicity)])}"
+    )
     print(f"  Periodicity:       {cell.pbc}")
     if verbosity > 0 and any(cell.pbc):
         print(f"  Lattice:  ")
