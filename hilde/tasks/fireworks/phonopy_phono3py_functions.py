@@ -194,7 +194,7 @@ def setup_harmonic_analysis(
     for temp in temperatures:
         atoms_to_calc.append({"temperature": temp, "calc_atoms": []})
         ha_metadata["temperature"] = temp
-        atoms_to_calc[-1]["metadata"] = ha_metadata
+        atoms_to_calc[-1]["metadata"] = ha_metadata.copy()
         for ii in range(n_samples):
             atoms = sc.copy()
             PhononHarmonics(

@@ -459,7 +459,7 @@ def post_harmonic_analysis(
             ha_struct["calc_atoms"],
             calc,
             prefix,
-            func_kwargs,
+            f_kwargs,
             ha_fw_set,
             up_spec,
             atoms=atoms,
