@@ -5,6 +5,6 @@ jupyter
 h5py
 spglib
 https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz
-phonopy==1.14.2
+phonopy==2.0.0
 phono3py==1.14.3
 fireworks
