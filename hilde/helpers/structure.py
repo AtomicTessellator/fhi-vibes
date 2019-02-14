@@ -27,8 +27,6 @@ def clean_atoms(input_atoms, align=False, tolerance=1e-9):
     else:
         new_lattice = clean_matrix(old_lattice)
 
-    print(new_lattice, old_lattice)
-
     # Sanity check
     vol0 = np.linalg.det(old_lattice)
     vol1 = np.linalg.det(new_lattice)
