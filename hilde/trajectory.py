@@ -124,6 +124,8 @@ class Trajectory(list):
         folder = Path(folder)
         folder.mkdir(exist_ok=True)
 
+        print(f"Write tdep input files to {folder}:")
+
         # meta
         n_atoms = len(self[0])
         n_steps = len(self) - skip
@@ -134,22 +136,33 @@ class Trajectory(list):
             T0 = 0
 
         lines = [f"{n_atoms}", f"{n_steps}", f"{dt}", f"{T0}"]
-        with (folder / "infile.meta").open("w") as fo:
+
+        fname = folder / "infile.meta"
+
+        with fname.open("w") as fo:
             fo.write("\n".join(lines))
+            print(f".. {fname} written.")
 
         # supercell and fake unit cell
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
         if "primitive" in self.metadata:
             primitive = dict2results(self.metadata["primitive"]["atoms"])
-            primitive.write(str(folder / "infile.ucposcar"), **write_settings)
+            fname = folder / "infile.ucposcar"
+            primitive.write(str(fname), **write_settings)
+            print(f".. {fname} written.")
         if "supercell" in self.metadata:
             supercell = dict2results(self.metadata["supercell"]["atoms"])
-            supercell.write(str(folder / "infile.ssposcar"), **write_settings)
+            fname = folder / "infile.ssposcar"
+            supercell.write(str(fname), **write_settings)
+            print(f".. {fname} written.")
 
         with ExitStack() as stack:
-            fp = stack.enter_context((folder / "infile.positions").open("w"))
-            ff = stack.enter_context((folder / "infile.forces").open("w"))
-            fs = stack.enter_context((folder / "infile.stat").open("w"))
+            pdir = folder / "infile.positions"
+            fdir = folder / "infile.forces"
+            sdir = folder / "infile.stat"
+            fp = stack.enter_context(pdir.open("w"))
+            ff = stack.enter_context(fdir.open("w"))
+            fs = stack.enter_context(sdir.open("w"))
 
             for ii, atoms in enumerate(self[skip:]):
                 # stress and pressure in GPa
@@ -174,4 +187,6 @@ class Trajectory(list):
 
                 fs.write(f"{stat}\n")
 
-        print(f"Files written to {folder}.")
+        print(f".. {sdir} written.")
+        print(f".. {pdir} written.")
+        print(f".. {fdir} written.")
