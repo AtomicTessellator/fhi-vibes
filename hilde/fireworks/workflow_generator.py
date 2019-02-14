@@ -1,12 +1,15 @@
 """Functions used to generate a FireWorks Workflow"""
 import numpy as np
-
+from ase.symbols import symbols2numbers
 from fireworks import Workflow, Firework
 
 from hilde.fireworks.launchpad import LaunchPadHilde
-from hilde.helpers.converters import atoms2dict, calc2dict
+from hilde.helpers.converters import atoms2dict, calc2dict, dict2atoms
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.k_grid import update_k_grid, update_k_grid_calc_dict
+from hilde.helpers.pickle import pread
+from hilde.phonon_db.row import phonon_to_dict
+from hilde.phonopy.postprocess import postprocess
 from hilde.settings import Settings
 from hilde.tasks.fireworks.general_py_task import (
     TaskSpec,
@@ -16,6 +19,7 @@ from hilde.tasks.fireworks.general_py_task import (
 )
 from hilde.tasks.fireworks.utility_tasks import update_calc
 from hilde.templates.aims import setup_aims
+from hilde.trajectory import reader
 
 
 def get_time(time_str):
@@ -214,12 +218,25 @@ def get_ha_task(func_kwargs):
         func_kwargs (dict): The defined kwargs for func
     Return (TaskSpec): The specification object of the task
     """
+    if "phonon_file" in func_kwargs:
+        ph_file = func_kwargs["phonon_file"]
+        inputs = list()
+        if ph_file.split(".")[-1] == "yaml":
+            ph = postprocess(ph_file)
+            args = [phonon_to_dict(postprocess(ph_file))]
+        elif ph_file.split(".")[-1] == "gz" or  ph_file.split(".")[-1] == "pick":
+            ph = pread(ph_file)
+            args = [phonon_to_dict(pread(ph_file))]
+    else:
+        args = list()
+        inputs = ["ph_dict"]
     return TaskSpec(
         "hilde.tasks.fireworks.phonopy_phono3py_functions.setup_harmonic_analysis",
         "hilde.tasks.fireworks.fw_out.phonons.post_init_mult_calcs",
         True,
         func_kwargs,
-        inputs=["ph_dict"],
+        args=args,
+        inputs=inputs,
         func_fw_out_kwargs=func_kwargs,
         make_abs_path=False,
     )
@@ -405,11 +422,36 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         )
     elif "harmonic_analysis" in step_settings:
         fw_settings["fw_name"] = "harmonic_analysis"
-        at = "ph_supercell"
-        cl = "ph_calculator"
-        fw_settings["in_spec_atoms"] = at
-        fw_settings["in_spec_calc"] = cl
-        fw_settings["from_db"] = True
+        if "phonon_file" in step_settings.harmonic_analysis:
+            ph_file_suff = step_settings.harmonic_analysis.phonon_file.split(".")[-1]
+            if ph_file_suff == "yaml":
+                _, meta = reader(step_settings.harmonic_analysis.phonon_file, True)
+                for key, val in meta["calculator"].items():
+                    if key == "calculator":
+                        val = val.lower()
+                    meta["atoms"][key] = val
+                meta["atoms"]["numbers"] = symbols2numbers(meta["atoms"]["symbols"])
+                if "cell" in meta["atoms"]:
+                    meta["atoms"]["pbc"] = True
+                at = dict2atoms(meta["atoms"])
+                cl = at.calc
+            elif ph_file_suff == "gz" or ph_file_suff == "pick":
+                ph = pread(step_settings.harmonic_analysis.phonon_file)
+                at = to_Atoms(ph.get_supercell())
+                cl = cl
+            else:
+                raise InputError("File type not supported")
+            fw_settings["from_db"] = False
+            if "in_spec_atoms" in fw_settings:
+                fw_settings.pop("in_spec_atoms")
+            if "in_spec_calc" in fw_settings:
+                fw_settings.pop("in_spec_calc")
+        else:
+            at = "ph_supercell"
+            cl = "ph_calculator"
+            fw_settings["in_spec_atoms"] = at
+            fw_settings["in_spec_calc"] = cl
+            fw_settings["from_db"] = True
         task_spec_list.append(get_ha_task(step_settings.harmonic_analysis))
     else:
         raise ValueError("Type not defiend")

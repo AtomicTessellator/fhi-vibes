@@ -112,7 +112,7 @@ def setup_harmonic_analysis(
         "n_samples": n_samples,
         **input2dict(sc, calc)
     }
-    ha_metadata["supercell"] = {"atoms": ha_metadata.pop("atoms"), "calculator": {}}
+    ha_metadata["supercell"] = {"atoms": ha_metadata["atoms"], "calculator": {}}
     ha_metadata["primitive"] = input2dict(at)
     for temp in temperatures:
         to_out = dict()
