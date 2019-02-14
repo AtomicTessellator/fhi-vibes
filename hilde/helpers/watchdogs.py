@@ -9,7 +9,7 @@ class WallTimeWatchdog:
     """ Watched the walltime """
 
     def __init__(
-        self, walltime, history=10, buffer=1.5, log="watchdog.log", verbose=True, **kwargs
+        self, walltime, history=10, buffer=2, log="watchdog.log", verbose=True, **kwargs
     ):
         """ Watchdog that controls the walltime everytime it is called
 
