@@ -57,22 +57,88 @@ def bootstrap_phonon(
         if "aims_command" in settings.control:
             del settings.control["aims_command"]
 
-    outputs = {}
+    outputs = []
+    at = atoms.copy()
+    at.set_calculator(None)
     if phonopy_settings:
         settings["phonopy"] = phonopy_settings.copy()
         if "serial" in settings.phonopy:
             del settings.phonopy["serial"]
-        outputs["phonopy"] = bootstrap(name="phonopy", settings=settings, **kwargs_boot)
+        ph_out = bootstrap(name="phonopy", settings=settings, **kwargs_boot)
+        ph_out["metadata"]["supercell"] = {"atoms": ph_out["metadata"]["atoms"], "calculator": {}}
+        ph_out["metadata"]["primitive"] = input2dict(at)
+        ph_out["prefix"] = "ph"
+        ph_out["settings"] = phonopy_settings.copy()
+        outputs.append(ph_out)
     if phono3py_settings:
         settings["phono3py"] = phono3py_settings.copy()
         if "serial" in settings.phono3py:
             del settings.phono3py["serial"]
-        outputs["phono3py"] = bootstrap(
-            name="phono3py", settings=settings, **kwargs_boot
-        )
-
+        ph3_out = bootstrap(name="phono3py", settings=settings, **kwargs_boot)
+        ph3_out["metadata"]["supercell"] = {"atoms": ph3_out["metadata"]["atoms"], "calculator": {}}
+        ph3_out["metadata"]["primitive"] = input2dict(at)
+        ph3_out["prefix"] = "ph3"
+        ph3_out["settings"] = phono3py_settings.copy()
+        outputs.append(ph3_out)
     return outputs
 
+def setup_harmonic_analysis(
+    atoms,
+    calc,
+    phonon_dict,
+    temperatures,
+    n_samples=1,
+    deterministic=False,
+    fw_settings=None,
+    **kwargs,
+):
+    '''
+    Initializes harmonic analysis functions
+    Args:
+    Return:
+    '''
+    phonon_dict["forces_2"] = np.array(phonon_dict["forces_2"])
+    ph = PhononRow(dct=phonon_dict).to_phonon()
+    n_atoms = ph.get_supercell().get_number_of_atoms()
+    force_constants = (
+        ph.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
+    )
+    sc = to_Atoms(ph.get_supercell())
+    at = atoms.copy()
+    at.set_calculator(None)
+    outputs = []
+    ha_metadata = {
+        "deterministic": deterministic,
+        "n_samples": n_samples,
+        **input2dict(sc, calc)
+    }
+    ha_metadata["supercell"] = {"atoms": ha_metadata.pop("atoms"), "calculator": {}}
+    ha_metadata["primitive"] = input2dict(at)
+    for temp in temperatures:
+        to_out = dict()
+        ha_metadata["temperature"] = temp
+        to_out["metadata"] = ha_metadata.copy()
+        to_out["prefix"] = "ha_" + str(temp)
+        to_out["settings"] = {
+            "n_samples": n_samples,
+            "deterministic": deterministic,
+            **kwargs
+        }
+        calc_atoms = list()
+        for ii in range(n_samples):
+            atoms = sc.copy()
+            PhononHarmonics(
+                atoms,
+                force_constants,
+                quantum=False,
+                temp=temp * u.kB,
+                plus_minus=deterministic,
+                failfast=False,
+            )
+            calc_atoms.append(atoms)
+        to_out["atoms_to_calculate"] = calc_atoms
+        outputs.append(to_out)
+    return outputs
 def wrap_calc_socket(
     atoms_dict_to_calculate,
     calc_dict,
@@ -160,49 +226,3 @@ def collect_to_trajectory(trajectory, calculated_atoms, metadata):
     for atoms in calculated_atoms:
         if atoms:
             step2file(atoms, atoms.calc, trajectory)
-
-def setup_harmonic_analysis(
-    atoms,
-    calc,
-    phonon_dict,
-    temperatures,
-    n_samples=1,
-    deterministic=False,
-    fw_settings=None,
-    **kwargs,
-):
-    '''
-    Initializes harmonic analysis functions
-    Args:
-    Return:
-    '''
-    phonon_dict["forces_2"] = np.array(phonon_dict["forces_2"])
-    ph = PhononRow(dct=phonon_dict).to_phonon()
-    n_atoms = ph.get_supercell().get_number_of_atoms()
-    force_constants = (
-        ph.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
-    )
-    sc = to_Atoms(ph.get_supercell())
-    atoms_to_calc = []
-    ha_metadata = {
-        # "calculator": calc2dict(calc),
-        # "atoms": atoms2dict(sc),
-        "deterministic": deterministic,
-        "n_samples": n_samples,
-        **input2dict(sc, calc)
-    }
-    for temp in temperatures:
-        atoms_to_calc.append({"temperature": temp, "calc_atoms": []})
-        ha_metadata["temperature"] = temp
-        atoms_to_calc[-1]["metadata"] = ha_metadata.copy()
-        for ii in range(n_samples):
-            atoms = sc.copy()
-            PhononHarmonics(
-                atoms,
-                force_constants,
-                quantum=False,
-                temp=temp * u.kB,
-                plus_minus=deterministic,
-            )
-            atoms_to_calc[-1]["calc_atoms"].append(atoms)
-    return atoms_to_calc

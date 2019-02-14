@@ -198,7 +198,7 @@ def get_phonon_task(func_kwargs, fw_settings=None):
 
     return TaskSpec(
         "hilde.tasks.fireworks.phonopy_phono3py_functions.bootstrap_phonon",
-        "hilde.tasks.fireworks.fw_out.phonons.post_bootstrap",
+        "hilde.tasks.fireworks.fw_out.phonons.post_init_mult_calcs",
         True,
         kwargs_init,
         inputs=inputs,
@@ -216,7 +216,7 @@ def get_ha_task(func_kwargs):
     """
     return TaskSpec(
         "hilde.tasks.fireworks.phonopy_phono3py_functions.setup_harmonic_analysis",
-        "hilde.tasks.fireworks.fw_out.phonons.post_harmonic_analysis",
+        "hilde.tasks.fireworks.fw_out.phonons.post_init_mult_calcs",
         True,
         func_kwargs,
         inputs=["ph_dict"],

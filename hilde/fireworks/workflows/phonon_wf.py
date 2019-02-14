@@ -296,7 +296,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     else:
         basis = "tight"
     use_tight_relax = False
-    if "use_tight_relax" in workflow.general:
+    if "use_tight_relax" in workflow.general and workflow.general["use_tight_relax"]:
         use_tight_relax = True
     if basis == "tight" or use_tight_relax:
         tight_relax_set = {"basisset_type": "tight"}
