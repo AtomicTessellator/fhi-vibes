@@ -99,7 +99,7 @@ def main():
         roll = data.rolling(window=args.avg, min_periods=0).mean()
         roll.plot(style="--", color=tc[0], label=f"Running mean ({args.avg})", ax=ax)
 
-        exp = data.iloc[args.avg :].expanding().mean()
+        exp = data.iloc[min(len(data) // 2, args.avg) :].expanding().mean()
         exp.plot(style="-.", color=tc[1], label=f"Expanding mean ({args.avg}", ax=ax)
 
         ax.set_xlabel("Time [ps]")
