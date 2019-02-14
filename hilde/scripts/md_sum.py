@@ -143,7 +143,7 @@ def main():
         ax2.set_xlabel("Time [ps]")
         ax2.set_ylabel("Energy [eV]")
 
-        fig.tight_layout()
+        # fig.tight_layout()
         fname = "md_summary.pdf"
         fig.savefig(fname)
         print(f".. summary plotted to {fname}")

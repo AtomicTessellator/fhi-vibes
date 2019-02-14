@@ -48,7 +48,7 @@ def get_hashes_from_trajectory(trajectory):
     return hashes
 
 
-def reader(file, get_metadata=False):
+def reader(file="trajectory.yaml", get_metadata=False):
     """ convert information in trajectory and metadata files to atoms objects
      and return them """
 
@@ -99,15 +99,33 @@ class Trajectory(list):
            - extract and plot several statistics on the MD trajectory
            - convert to other formats like xyz or TDEP """
 
-    def __init__(self, metadata=None):
-        super().__init__()
+    def __init__(self, *args, metadata=None):
+        super().__init__(*args)
 
-        self._metadata = metadata
+        if metadata:
+            self._metadata = metadata
+        else:
+            self._metadata = {}
+
+    @classmethod
+    def from_file(cls, file):
+        """ Read trajectory from file """
+        trajectory = reader(file)
+        return trajectory
 
     @property
     def metadata(self):
         """ Return metadata """
         return self._metadata
+
+    #     fkdev: Might be useful?
+    #     @property
+    #     def ref_atoms(self):
+    #         """ Reference atoms object for computing displacements etc """
+    #         if "supercell" in self.metadata:
+    #             return dict2results(self.metadata["supercell"]["atoms"])
+    #         else:
+    #             return self[0]
 
     def to_xyz(self, file="positions.xyz"):
         """ Write positions to simple xyz file for e.g. viewing with VMD """
@@ -190,3 +208,46 @@ class Trajectory(list):
         print(f".. {sdir} written.")
         print(f".. {pdir} written.")
         print(f".. {fdir} written.")
+
+    def get_average_displacements(self, ref_atoms=None, window=-1):
+        """ Return averaged displacements """
+
+        import numpy as np
+        from hilde.harmonic_analysis.displacements import get_dR
+
+        # reference atoms
+        if not ref_atoms:
+            if "supercell" in self.metadata:
+                ref_atoms = dict2results(self.metadata["supercell"]["atoms"])
+            else:
+                ref_atoms = self[0]
+
+        # this will hold the averaged displacement
+        avg_displacement = np.zeros_like(ref_atoms.get_positions())
+
+        weigth = 1 / len(self)
+
+        for atoms in self:
+            avg_displacement += weigth * get_dR(ref_atoms, atoms)
+
+        return avg_displacement
+
+    def get_average_positions(self, ref_atoms=None, window=-1):
+        """ Return averaged positions """
+
+        # reference atoms
+        if not ref_atoms:
+            if "supercell" in self.metadata:
+                ref_atoms = dict2results(self.metadata["supercell"]["atoms"])
+            else:
+                ref_atoms = self[0]
+
+        avg_displacement = self.get_average_displacements(
+            ref_atoms=ref_atoms, window=window
+        )
+
+        avg_atoms = ref_atoms.copy()
+        avg_atoms.positions += avg_displacement
+        avg_atoms.wrap()
+
+        return avg_atoms.get_positions()
