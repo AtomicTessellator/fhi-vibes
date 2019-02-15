@@ -64,6 +64,7 @@ def main():
             force_constants=args.force_constants,
             quantum=args.quantum,
             deterministic=args.deterministic,
+            failfast=args.ignore_negative,
         )
 
         if args.force_constants is not None:

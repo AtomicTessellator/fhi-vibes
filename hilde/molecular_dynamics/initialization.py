@@ -109,6 +109,7 @@ def initialize_md(
             quantum=quantum,
             temp=temperature * u.kB,
             plus_minus=deterministic,
+            **kwargs,
         )
         if force_temp:
             temp0 = atoms.get_kinetic_energy() / len(atoms) / 1.5
