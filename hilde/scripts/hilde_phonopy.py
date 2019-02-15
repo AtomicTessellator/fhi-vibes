@@ -48,22 +48,25 @@ def main():
     parser.add_argument("--dos", action="store_true")
     parser.add_argument("--pdos", action="store_true")
     parser.add_argument("--tdep", action="store_true")
+    parser.add_argument("--born", default=None, help="BORN file")
     args = parser.parse_args()
+
+    extract_settings = {"plot_dos": args.dos, "plot_pdos": args.pdos, "tdep": args.tdep}
 
     suffix = Path(args.infile).suffix
     if suffix == ".in":
         preprocess(args)
+        return
 
     elif suffix == ".yaml":
-        phonon = postprocess(args.infile)
-        extract_results(phonon, plot_dos=args.dos, plot_pdos=args.pdos, tdep=args.tdep)
-
+        phonon = postprocess(args.infile, born_charges_file=args.born)
     elif suffix == ".pick" or suffix == ".gz":
         phonon = pread(args.infile)
-        summarize_bandstructure(phonon, fp_file=args.fp_file)
-        extract_results(phonon, plot_dos=args.dos, plot_pdos=args.pdos, tdep=args.tdep)
     else:
         print("*** Nothing happened.")
+
+    extract_results(phonon, **extract_settings)
+    summarize_bandstructure(phonon, fp_file=args.fp_file)
 
 
 if __name__ == "__main__":
