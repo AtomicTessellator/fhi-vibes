@@ -4,7 +4,7 @@ import numpy as np
 from argparse import ArgumentParser
 from pathlib import Path
 from hilde.helpers.pickle import pread
-from hilde.phonopy.postprocess import extract_results
+from hilde.phonopy.postprocess import extract_results, postprocess
 from hilde.phonopy.wrapper import summarize_bandstructure
 
 
@@ -53,6 +53,10 @@ def main():
     suffix = Path(args.infile).suffix
     if suffix == ".in":
         preprocess(args)
+
+    elif suffix == ".yaml":
+        phonon = postprocess(args.infile)
+        extract_results(phonon, plot_dos=args.dos, plot_pdos=args.pdos, tdep=args.tdep)
 
     elif suffix == ".pick" or suffix == ".gz":
         phonon = pread(args.infile)
