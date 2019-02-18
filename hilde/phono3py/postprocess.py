@@ -12,7 +12,6 @@ from hilde.phonopy.postprocess import postprocess as postprocess2
 
 
 def postprocess(
-    *args,
     trajectory="phono3py/trajectory.yaml",
     trajectory_fc2="phonopy/trajectory.yaml",
     pickle_file="phonon3.pick",
