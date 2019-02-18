@@ -20,6 +20,7 @@ from hilde.trajectory import reader
 def post_init_mult_calcs(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
+    print("out")
     if fw_settings is None:
         fw_settings = dict()
     update_spec = dict()
@@ -53,6 +54,7 @@ def post_init_mult_calcs(
             atoms,
             detours,
         )
+    print("outs")
     return FWAction(update_spec=update_spec, detours=detours)
 
 def post_bootstrap(

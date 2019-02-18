@@ -37,6 +37,7 @@ def bootstrap_phonon(
         fw_settings (dict): FireWork specific settings
     Returns (dict): The output of hilde.phonopy.workflow.bootstrap for phonopy and phono3py
     '''
+    print("bootstrap")
     settings = Settings(settings_file=None)
     settings.atoms = atoms
     if kpt_density:
@@ -83,6 +84,7 @@ def bootstrap_phonon(
         ph3_out["prefix"] = "ph3"
         ph3_out["settings"] = ph3_settings.copy()
         outputs.append(ph3_out)
+    print("out bootstrap")
     return outputs
 
 def setup_harmonic_analysis(
