@@ -16,7 +16,7 @@ from hilde.tasks.fireworks.general_py_task import get_func
 from hilde.tdep.wrapper import generate_cannonical_configurations
 from hilde.trajectory import step2file, metadata2file
 
-from hiphive.structure_generation import generate_mc_rattled_structures
+# from hiphive.structure_generation import generate_mc_rattled_structures
 
 def bootstrap_phonon(
     atoms,
@@ -37,7 +37,6 @@ def bootstrap_phonon(
         fw_settings (dict): FireWork specific settings
     Returns (dict): The output of hilde.phonopy.workflow.bootstrap for phonopy and phono3py
     '''
-    print("bootstrap")
     settings = Settings(settings_file=None)
     settings.atoms = atoms
     if kpt_density:
@@ -84,7 +83,6 @@ def bootstrap_phonon(
         ph3_out["prefix"] = "ph3"
         ph3_out["settings"] = ph3_settings.copy()
         outputs.append(ph3_out)
-    print("out bootstrap")
     return outputs
 
 def setup_harmonic_analysis(
@@ -135,9 +133,9 @@ def setup_harmonic_analysis(
         }
         # print(to_out["settings"]["workdir"])
         to_out["settings"]["workdir"] += "/" + str(temp)
-        # calc_atoms = generate_cannonical_configurations(
-        #     ph=ph, temperature=temp, n_sample=n_samples
-        # )
+        calc_atoms = generate_cannonical_configurations(
+            ph=ph, temperature=temp, n_sample=n_samples
+        )
         # calc_atoms = list()
         # for ii in range(n_samples):
         #     atoms = sc.copy()
@@ -150,9 +148,9 @@ def setup_harmonic_analysis(
         #         failfast=True,
         #     )
         #     calc_atoms.append(atoms)
-        calc_atoms = generate_mc_rattled_structures(
-            sc.copy(), n_samples, 0.03, 0.67*to_Atoms(ph.get_primitive()).cell[0,1]
-        )
+        # calc_atoms = generate_mc_rattled_structures(
+        #     sc.copy(), n_samples, 0.03, 0.67*to_Atoms(ph.get_primitive()).cell[0,1]
+        # )
         to_out["atoms_to_calculate"] = calc_atoms
         outputs.append(to_out)
     return outputs
