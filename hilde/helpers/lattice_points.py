@@ -51,7 +51,12 @@ def map_L_to_i(indeces):
 
 
 def map_I_to_iL(
-    in_atoms, in_supercell, lattice_points=None, extended=False, tolerance=1e-5
+    in_atoms,
+    in_supercell,
+    lattice_points=None,
+    extended=False,
+    return_inverse=False,
+    tolerance=1e-5,
 ):
     """ write positions in the supercell as (i, L), where i is the respective index
         in the primitive cell and L is the lattice point """
@@ -124,7 +129,34 @@ def map_I_to_iL(
 
     timer(f"matched {len(matches)} positions in supercell and primitive cell")
 
+    # return inverse?
+    if return_inverse:
+        inv = map_iL_to_I(indices)
+        return indices, inv
+
     return indices
+
+
+def map_iL_to_I(I_to_iL_map):
+    """ map (i, L) back to supercell index I """
+
+    I2iL = np.array(I_to_iL_map)
+
+    n_atoms = int(I2iL[:, 0].max() + 1)
+    n_lps = int(I2iL[:, 1].max() + 1)
+
+    iL2I = np.zeros([n_atoms, n_lps], dtype=int)
+
+    for II, (ii, LL) in enumerate(I_to_iL_map):
+        iL2I[ii, LL] = II
+
+    # sanity check:
+    for II in range(n_atoms * n_lps):
+        iL = I2iL[II]
+        I = iL2I[iL[0], iL[1]]
+        assert II == I, (II, iL, I)
+
+    return iL2I
 
 
 def get_lattice_points(atoms, supercell, fortran=True, **kwargs):
