@@ -50,7 +50,7 @@ init_fw = generate_firework(
     atoms=atoms,
     calc=calc,
     args=[1.0],
-    func_fw_out_kwargs={"phonopy_settings": kwargs_init_fw_out},
+    func_fw_out_kwargs={"ph_settings": kwargs_init_fw_out},
     atoms_calc_from_spec=False,
     fw_settings=fw_settings,
 )
