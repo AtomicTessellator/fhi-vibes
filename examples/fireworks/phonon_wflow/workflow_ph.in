@@ -23,13 +23,14 @@ density = 1
 [phonopy]
 supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 walltime = 3500
-serial = False
+serial = True
 displacement = 0.01
+converge_phonons = True
 
-[harmonic_analysis]
-temperatures = [300, 600, 900]
-n_samples = 1
-serial = False
+#[harmonic_analysis]
+#temperatures = [300, 600, 900]
+#n_samples = 1
+#serial = True
 
 [phonopy_qadapter]
 walltime = 1:00:00

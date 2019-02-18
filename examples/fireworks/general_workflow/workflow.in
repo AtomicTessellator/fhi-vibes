@@ -3,5 +3,5 @@
 file = geometry.in
 
 [workflow]
-step_files = ["phonons.in", "harmonic_analysis.in"]
+step_files = ["harmonic_analysis.in"]
 fw = True

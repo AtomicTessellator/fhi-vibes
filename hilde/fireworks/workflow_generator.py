@@ -166,15 +166,15 @@ def get_phonon_task(func_kwargs, fw_settings=None):
     kwargs_init = {}
     kwargs_init_fw_out = {}
     preprocess_keys = {
-        "phonopy_settings": ["supercell_matrix", "displacement"],
-        "phono3py_settings": [
+        "ph_settings": ["supercell_matrix", "displacement"],
+        "ph3_settings": [
             "supercell_matrix",
             "displacement",
             "cutoff_pair_distance",
         ],
     }
     out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
-    for set_key in ["phonopy_settings", "phono3py_settings"]:
+    for set_key in ["ph_settings", "ph3_settings"]:
         if set_key in func_kwargs:
             kwargs_init[set_key] = {}
             if "workdir" in func_kwargs[set_key]:
@@ -241,7 +241,7 @@ def get_ha_task(func_kwargs):
         make_abs_path=False,
     )
 
-def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path=False):
+def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, time_key, make_abs_path=False):
     """
     Generate a serial Phononpy or Phono3py calculation task
     Args:
@@ -284,9 +284,11 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
     )
     task_spec_list.append(
         TaskSpec(
-            func,
+            "hilde.tasks.fireworks.phonopy_phono3py_functions.phonon_postprocess",
             func_out,
             False,
+            args=[func],
+            inputs=["phonon_times"],
             func_kwargs=func_kwargs,
             make_abs_path=make_abs_path,
         )
@@ -391,26 +393,26 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         fw_settings["fw_name"] = "phonon_init"
 
         if "phonopy" in step_settings:
-            func_kwargs["phonopy_settings"] = step_settings.phonopy
+            func_kwargs["ph_settings"] = step_settings.phonopy
         if "phono3py" in step_settings:
-            func_kwargs["phono3py_settings"] = step_settings.phono3py
+            func_kwargs["ph3_settings"] = step_settings.phono3py
         if (
             "spec" in fw_settings
             and "_queueadapter" in fw_settings["spec"]
             and "walltime" in fw_settings["spec"]["_queueadapter"]
         ):
             if (
-                "phonopy_settings" in func_kwargs
-                and func_kwargs["phonopy_settings"]["serial"]
+                "ph_settings" in func_kwargs
+                and func_kwargs["ph_settings"]["serial"]
             ):
-                func_kwargs["phonopy_settings"]["walltime"] = get_time(
+                func_kwargs["ph_settings"]["walltime"] = get_time(
                     fw_settings["spec"]["_queueadapter"]["walltime"]
                 )
             if (
-                "phono3py_settings" in func_kwargs
-                and func_kwargs["phono3py_settings"]["serial"]
+                "ph3_settings" in func_kwargs
+                and func_kwargs["ph3_settings"]["serial"]
             ):
-                func_kwargs["phono3py_settings"]["walltime"] = get_time(
+                func_kwargs["ph3_settings"]["walltime"] = get_time(
                     fw_settings["spec"]["_queueadapter"]["walltime"]
                 )
         if "control_kpt" in step_settings:

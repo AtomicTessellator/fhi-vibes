@@ -6,6 +6,7 @@ from fireworks import PyTask
 
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.helpers.converters import dict2atoms
+from hilde.helpers.timer import Timer
 from hilde.settings import Settings
 from hilde.tasks import fireworks as fw
 
@@ -75,7 +76,6 @@ def generate_task(task_spec, fw_settings, atoms, calc):
         }
     )
 
-
 def generate_update_calc_task(calc_spec, updated_settings):
     """
     Generate a calculator update task
@@ -91,7 +91,6 @@ def generate_update_calc_task(calc_spec, updated_settings):
             "inputs": [calc_spec],
         }
     )
-
 
 def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     """
@@ -184,16 +183,17 @@ def atoms_calculate_task(
         del atoms_dict["results"]
     atoms = dict2atoms(atoms_dict)
     try:
+        func_timer = Timer()
         if len(args) > 0:
             outputs = func(atoms, atoms.calc, *args, **func_kwargs)
         else:
             outputs = func(atoms, atoms.calc, **func_kwargs)
+        func_fw_out_kwargs["run_time"] = func_timer()
     except:
         os.chdir(start_dir)
         raise RuntimeError(
             f"Function calculation failed, moving to {start_dir} to finish Firework."
         )
-
     os.chdir(start_dir)
     fw_acts = func_fw_out(
         atoms_dict,
@@ -225,7 +225,7 @@ def general_function_task(
     Returns (FWAction): The FWAction func_fw_out outputs
     """
     if fw_settings is None:
-        fw_settings = {}
+        fw_settings = dict()
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 
@@ -282,17 +282,17 @@ class TaskSpec:
                 )
             self.func_fw_out_kwargs = func_fw_out_kwargs
         else:
-            self.func_fw_out_kwargs = {}
+            self.func_fw_out_kwargs = dict()
 
         if args:
             self.args = args
         else:
-            self.args = []
+            self.args = list()
 
         if inputs:
             self.inputs = inputs
         else:
-            self.inputs = []
+            self.inputs = list()
 
     def get_pt_args(self):
         """ get the PyTask args for the task """

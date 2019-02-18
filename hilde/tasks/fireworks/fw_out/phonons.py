@@ -28,6 +28,8 @@ def post_init_mult_calcs(
         prefix = out["prefix"]
         fw_set = fw_settings.copy()
         func_set = out["settings"]
+        if prefix + "_settings" in func_fw_kwargs:
+            func_set = dict(func_set, **func_fw_kwargs[prefix + "_settings"])
         if "serial" not in func_set:
             func_set["serial"] = True
         update_spec[prefix + "_metadata"] = out["metadata"]
@@ -327,6 +329,11 @@ def converge_phonons(
                 trajectory (str): trajectory file name
     Returns (FWAction): Increases the supercell size or adds the phonon_dict to the spec
     '''
+    if "serial" in kwargs and kwargs["serial"]:
+        calc_time = np.sum(args[1])
+    else:
+        calc_time = np.max(args[1])
+
     if fw_settings:
         fw_settings["from_db"] = False
         if "in_spec_calc" in fw_settings:
@@ -380,7 +387,7 @@ def converge_phonons(
         displacement = ph._displacement_dataset['first_atoms'][0]['displacement']
         disp_mag = np.linalg.norm(displacement)
         func_kwargs = {
-            "type" : "phonopy",
+            "type" : "ph",
             "displacement": disp_mag,
             "supercell_matrix": sc_mat,
             "serial": kwargs["serial"],
@@ -394,15 +401,9 @@ def converge_phonons(
             fw_settings["spec"] = {"prev_dos_fp": dos_fp}
 
         if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"] :
-            time_scaling = min(16, (np.linalg.det(sc_mat)/np.linalg.det(ph.get_supercell_matrix()))**3.0)
-            if "walltime" in fw_settings["spec"]["_queueadapter"]:
-                fw_settings["spec"]["_queueadapter"]["walltime"] = to_time_str(
-                    get_time(fw_settings["spec"]["_queueadapter"]["walltime"])*time_scaling
-                )
-            elif "nodes" in fw_settings["spec"]["_queueadapter"]:
-                fw_settings["spec"]["_queueadapter"]["nodes"] *= int(time_scaling)
-            else:
-                fw_settings["spec"]["_queueadapter"]["nodes"] = int(time_scaling)
+            time_scaling = (np.linalg.det(sc_mat)/np.linalg.det(ph.get_supercell_matrix()))**3.0
+            fw_settings["spec"]["_queueadapter"]["walltime"] = to_time_str(calc_time*time_scaling)
+            fw_settings["spec"]["_queueadapter"]["nodes"] = 1
             qadapter = fw_settings["spec"]["_queueadapter"]
         else:
             qadapter = None

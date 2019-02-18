@@ -164,6 +164,8 @@ def generate_phonon_fw(
     elif "use_pimd_wrapper" in ph_settings:
         update_settings["use_pimd_wrapper"] = ph_settings.pop("use_pimd_wrapper")
 
+    fw_settings["time_spec_add"] = "phonon_times"
+
     typ = ph_settings.pop("type")
     fw_settings["fw_name"] = typ
     ph_settings["workdir"] = wd + "/" + typ + "/"
@@ -183,12 +185,13 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=
         ph_settings (dict): kwargs for the phonon analysis
     Returns (Firework): Firework for the phonon analysis
     '''
-    if ph_settings["type"] == "phonopy":
+    if ph_settings.pop("type") == "ph":
         fw_settings["mod_spec_add"] = "ph"
+        fw_settings["fw_name"] = "phonopy_analysis"
     else:
+        fw_settings["fw_name"] = "phono3py_analysis"
         fw_settings["mod_spec_add"] = "ph3"
     fw_settings["mod_spec_add"] += "_forces"
-    fw_settings["fw_name"] = ph_settings.pop("type") + "_analysis"
 
     func_kwargs = ph_settings.copy()
     if "workdir" in func_kwargs:
@@ -230,6 +233,7 @@ def generate_ha_fw(
     fw_settings["in_spec_calc"] = "ph_calculator"
     fw_settings.pop("kpoint_density_spec")
     fw_settings["from_db"] = True
+    fw_settings["time_spec_add"] = "ha_times"
     ha_settings["workdir"] = wd + "/harmonic_analysis/"
     task_spec = get_ha_task(ha_settings)
     return generate_fw(
@@ -325,7 +329,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     del phonopy_set["trigonal"]
     del phonopy_set["q_mesh"]
     phonopy_set["serial"] = True
-    phonopy_set["type"] = "phonopy"
+    phonopy_set["type"] = "ph"
     phonopy_set["basisset_type"] = basis
 
     if "phonopy_qadapter" in workflow:
@@ -364,7 +368,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     ) and "phono3py" in workflow:
         phono3py_set = ph3_defaults.copy()
         phono3py_set["serial"] = True
-        phono3py_set["type"] = "phono3py"
+        phono3py_set["type"] = "ph3"
         phono3py_set["basisset_type"] = basis
         del phono3py_set["displacement"]
         del phono3py_set["cutoff_pair_distance"]

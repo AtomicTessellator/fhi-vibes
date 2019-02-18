@@ -19,3 +19,4 @@ class Timer:
             print(f".. {info_str} in {time_str}")
         else:
             print(f".. time elapsed: {time_str}")
+        return float(time_str[:-1])

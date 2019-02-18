@@ -11,16 +11,19 @@ from hilde.phonopy import displacement_id_str
 from hilde.phonopy.workflow import bootstrap
 from hilde.settings import Settings, AttributeDict
 from hilde.structure.convert import to_Atoms
-from hilde.trajectory import step2file, metadata2file
 from hilde.tasks.calculate import calculate_socket
+from hilde.tasks.fireworks.general_py_task import get_func
+from hilde.tdep.wrapper import generate_cannonical_configurations
+from hilde.trajectory import step2file, metadata2file
 
+from hiphive.structure_generation import generate_mc_rattled_structures
 
 def bootstrap_phonon(
     atoms,
     calc,
     kpt_density=None,
-    phonopy_settings=None,
-    phono3py_settings=None,
+    ph_settings=None,
+    ph3_settings=None,
     fw_settings=None,
 ):
     '''
@@ -29,8 +32,8 @@ def bootstrap_phonon(
         atoms (ASE Atoms Object): Atoms object of the primitive cell
         calc (ASE Calculator): Calculator for the force calculations
         kpt_density (float): k-point density for the MP-Grid
-        phonopy_settings (dict): kwargs for phonopy setup
-        phono3py_settings (dict): kwargs for phono3py setup
+        ph_settings (dict): kwargs for phonopy setup
+        ph3_settings (dict): kwargs for phono3py setup
         fw_settings (dict): FireWork specific settings
     Returns (dict): The output of hilde.phonopy.workflow.bootstrap for phonopy and phono3py
     '''
@@ -47,11 +50,11 @@ def bootstrap_phonon(
             sd = settings["control"].pop("species_dir")
             settings["basisset"] = AttributeDict({"type": sd.split("/")[-1]})
 
-        if (phonopy_settings and "use_pimd_wrapper" in phonopy_settings) or (
-            phono3py_settings and "use_pimd_wrapper" in phono3py_settings
+        if (ph_settings and "use_pimd_wrapper" in ph_settings) or (
+            ph3_settings and "use_pimd_wrapper" in ph3_settings
         ):
             settings["socketio"] = AttributeDict(
-                {"port": phonopy_settings.pop("use_pimd_wrapper")}
+                {"port": ph_settings.pop("use_pimd_wrapper")}
             )
 
         if "aims_command" in settings.control:
@@ -60,25 +63,25 @@ def bootstrap_phonon(
     outputs = []
     at = atoms.copy()
     at.set_calculator(None)
-    if phonopy_settings:
-        settings["phonopy"] = phonopy_settings.copy()
+    if ph_settings:
+        settings["phonopy"] = ph_settings.copy()
         if "serial" in settings.phonopy:
             del settings.phonopy["serial"]
         ph_out = bootstrap(name="phonopy", settings=settings, **kwargs_boot)
         ph_out["metadata"]["supercell"] = {"atoms": ph_out["metadata"]["atoms"], "calculator": {}}
         ph_out["metadata"]["primitive"] = input2dict(at)
         ph_out["prefix"] = "ph"
-        ph_out["settings"] = phonopy_settings.copy()
+        ph_out["settings"] = ph_settings.copy()
         outputs.append(ph_out)
-    if phono3py_settings:
-        settings["phono3py"] = phono3py_settings.copy()
+    if ph3_settings:
+        settings["phono3py"] = ph3_settings.copy()
         if "serial" in settings.phono3py:
             del settings.phono3py["serial"]
         ph3_out = bootstrap(name="phono3py", settings=settings, **kwargs_boot)
         ph3_out["metadata"]["supercell"] = {"atoms": ph3_out["metadata"]["atoms"], "calculator": {}}
         ph3_out["metadata"]["primitive"] = input2dict(at)
         ph3_out["prefix"] = "ph3"
-        ph3_out["settings"] = phono3py_settings.copy()
+        ph3_out["settings"] = ph3_settings.copy()
         outputs.append(ph3_out)
     return outputs
 
@@ -90,6 +93,7 @@ def setup_harmonic_analysis(
     n_samples=1,
     deterministic=False,
     fw_settings=None,
+    fc_file=None,
     **kwargs,
 ):
     '''
@@ -100,9 +104,12 @@ def setup_harmonic_analysis(
     phonon_dict["forces_2"] = np.array(phonon_dict["forces_2"])
     ph = PhononRow(dct=phonon_dict).to_phonon()
     n_atoms = ph.get_supercell().get_number_of_atoms()
-    force_constants = (
-        ph.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
-    )
+    if fc_file is None:
+        force_constants = (
+            ph.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
+        )
+    else:
+        force_constants = np.genfromtxt(fc_file)
     sc = to_Atoms(ph.get_supercell())
     at = atoms.copy()
     at.set_calculator(None)
@@ -112,8 +119,8 @@ def setup_harmonic_analysis(
         "n_samples": n_samples,
         **input2dict(sc, calc)
     }
-    ha_metadata["supercell"] = {"atoms": ha_metadata["atoms"], "calculator": {}}
-    ha_metadata["primitive"] = input2dict(at)
+    ha_metadata["supercell"] = input2dict(at)
+    ha_metadata["primitive"] = input2dict(to_Atoms(ph.get_primitive()))
     for temp in temperatures:
         to_out = dict()
         ha_metadata["temperature"] = temp
@@ -124,21 +131,30 @@ def setup_harmonic_analysis(
             "deterministic": deterministic,
             **kwargs
         }
-        calc_atoms = list()
-        for ii in range(n_samples):
-            atoms = sc.copy()
-            PhononHarmonics(
-                atoms,
-                force_constants,
-                quantum=False,
-                temp=temp * u.kB,
-                plus_minus=deterministic,
-                failfast=False,
-            )
-            calc_atoms.append(atoms)
+        # print(to_out["settings"]["workdir"])
+        to_out["settings"]["workdir"] += "/" + str(temp)
+        # calc_atoms = generate_cannonical_configurations(
+        #     ph=ph, temperature=temp, n_sample=n_samples
+        # )
+        # calc_atoms = list()
+        # for ii in range(n_samples):
+        #     atoms = sc.copy()
+        #     PhononHarmonics(
+        #         atoms,
+        #         force_constants,
+        #         quantum=False,
+        #         temp=temp * u.kB,
+        #         plus_minus=deterministic,
+        #         failfast=True,
+        #     )
+        #     calc_atoms.append(atoms)
+        calc_atoms = generate_mc_rattled_structures(
+            sc.copy(), n_samples, 0.03, 0.67*to_Atoms(ph.get_primitive()).cell[0,1]
+        )
         to_out["atoms_to_calculate"] = calc_atoms
         outputs.append(to_out)
     return outputs
+
 def wrap_calc_socket(
     atoms_dict_to_calculate,
     calc_dict,
@@ -226,3 +242,7 @@ def collect_to_trajectory(trajectory, calculated_atoms, metadata):
     for atoms in calculated_atoms:
         if atoms:
             step2file(atoms, atoms.calc, trajectory)
+
+def phonon_postprocess(func_path, phonon_times, **kwargs):
+    func = get_func(func_path)
+    return func(**kwargs)
