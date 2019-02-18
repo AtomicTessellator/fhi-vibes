@@ -55,7 +55,10 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
         times = args[3].copy()
     else:
         times = list()
-    watchdog_log = Path(kwargs["workdir"]) / "calculations" / "watchdog.log"
+    if "workdir" in kwargs:
+        watchdog_log = Path(kwargs["workdir"]) / "calculations" / "watchdog.log"
+    else:
+        watchdog_log = Path(".") / "calculations" / "watchdog.log"
     if watchdog_log.exists():
         cur_times = np.genfromtxt(str(watchdog_log))
         if len(cur_times.shape) == 1:
@@ -68,15 +71,14 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
         fw_settings["calc_atoms_spec"]: args[0],
         fw_settings["calc_spec"]: args[1],
         fw_settings["metadata_spec"]: args[2],
+        "phonon_times": times + cur_times,
     }
     inputs = [
         fw_settings["calc_atoms_spec"],
         fw_settings["calc_spec"],
         fw_settings["metadata_spec"],
+        "phonon_times",
     ]
-    if "time_spec_add" in fw_settings:
-        update_spec[fw_settings["time_spec_add"]] = times + cur_times
-        inputs += [fw_settings["time_spec_add"]]
     if kwargs["outputs"]:
         if "workdir" in kwargs:
             wd = Path(kwargs["workdir"])

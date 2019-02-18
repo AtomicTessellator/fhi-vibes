@@ -46,7 +46,7 @@ kwargs_init_fw_out = {"workdir": workdir, "serial": True}
 init_fw = generate_firework(
     func="hilde.tasks.fireworks.phonopy_phono3py_functions.bootstrap_phonon",
     func_fw_out="hilde.tasks.fireworks.fw_out.phonons.post_init_mult_calcs",
-    func_kwargs={"phonopy_settings": kwargs_init},
+    func_kwargs={"ph_settings": kwargs_init},
     atoms=atoms,
     calc=calc,
     args=[1.0],
@@ -57,7 +57,7 @@ init_fw = generate_firework(
 
 kwargs = {"fireworks": True, "workdir": workdir + "/analysis"}
 task_spec_list = get_phonon_analysis_task(
-    "hilde.phonopy.postprocess.postprocess", kwargs, "ph_metadata", "ph_forces"
+    "hilde.phonopy.postprocess.postprocess", kwargs, "ph_metadata", "ph_forces", "phonon_times"
 )
 
 anal_fw = generate_firework(task_spec_list, fw_settings=fw_settings)
