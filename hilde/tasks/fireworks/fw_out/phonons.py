@@ -43,6 +43,8 @@ def post_init_mult_calcs(
             calc_dict = calc2dict(out["calculator"])
         else:
             calc_dict = calc.copy()
+        if "prev_dos_fp" in fw_set and "walltime" in fw_set and "serial" in func_set and func_set["serial"]:
+            fw_set["walltime"] = to_time_str(get_time(fw_set["walltime"])*len(out["atoms_to_calculate"]))
         detours = get_detours(
             out["atoms_to_calculate"],
             calc_dict,
@@ -53,117 +55,6 @@ def post_init_mult_calcs(
             atoms,
             detours,
         )
-    return FWAction(update_spec=update_spec, detours=detours)
-
-def post_bootstrap(
-    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
-):
-    """
-    Generate an FWAction to add either the serial or parallel phonon workflow calculations
-    Args:
-        atoms (dict): Dictionary representing the ASE Atoms object of theprimitive cell
-        calc (dict): Dictionary representing the ASE Calculator for the force calculations
-        outputs (dict): The outputs generated from the bootstrap function
-        func (str): path to the bootstrap function
-        func_fw_out (str): path to this function
-        func_kwargs (dict): kwargs used in the bootstrapping
-        func_fw_kwargs (dict): kwargs used for the force calculations
-        fw_settings (dict): FireWorks settings
-    Returns (FWAction): The updated spec and detours to calculate the phonon
-                        supercells with displacements
-    """
-    detours = []
-    update_spec = {}
-    if "phonopy" in outputs:
-        ph_fw_set = fw_settings.copy()
-        ph_outputs = outputs["phonopy"]
-        ph_settings = func_fw_kwargs["phonopy_settings"].copy()
-        update_spec["ph_metadata"] = ph_outputs["metadata"]
-        if "spec" in ph_fw_set:
-            ph_fw_set["spec"].update(update_spec)
-        else:
-            ph_fw_set["spec"] = update_spec.copy()
-        ph_fw_set["metadata_spec"] = "ph_metadata"
-        ph_fw_set["mod_spec_add"] = "ph_forces"
-        calc_dict = calc2dict(ph_outputs["calculator"])
-        detours = get_detours(
-            ph_outputs["atoms_to_calculate"],
-            calc_dict,
-            "ph",
-            ph_settings,
-            ph_fw_set,
-            update_spec,
-            atoms,
-            detours,
-        )
-    if "phono3py" in outputs:
-        ph3_fw_set = fw_settings.copy()
-        ph3_outputs = outputs["phono3py"]
-        ph3_settings = func_fw_kwargs["phono3py_settings"].copy()
-        update_spec["ph3_metadata"] = ph3_outputs["metadata"]
-        if "spec" in ph3_fw_set:
-            ph3_fw_set["spec"].update(update_spec)
-        else:
-            ph3_fw_set["spec"] = update_spec.copy()
-        ph3_fw_set["mod_spec_add"] = "ph3_forces"
-        ph3_fw_set["metadata_spec"] = "ph3_metadata"
-        calc_dict = calc2dict(ph3_outputs["calculator"])
-        detours = get_detours(
-            ph3_outputs["atoms_to_calculate"],
-            calc_dict,
-            "ph3",
-            ph3_settings,
-            ph3_fw_set,
-            update_spec,
-            atoms,
-            detours,
-        )
-    return FWAction(update_spec=update_spec, detours=detours)
-
-def post_harmonic_analysis(
-    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
-):
-    '''
-    Set up a harmonic analysis calculation After a phonon calculation
-    Args:
-        atoms (dict): Dictionary representing the ASE Atoms object of theprimitive cell
-        calc (dict): Dictionary representing the ASE Calculator for the force calculations
-        outputs (dict): The outputs generated from the bootstrap function
-        func (str): path to the bootstrap function
-        func_fw_out (str): path to this function
-        func_kwargs (dict): kwargs used in the bootstrapping
-        func_fw_kwargs (dict): kwargs used for the force calculations
-        fw_settings (dict): FireWorks settings
-    Returns (FWAction): The updated spec and detours to calculate the phonon
-                        supercells with displacements
-    '''
-    update_spec = dict()
-    if fw_settings is None:
-        fw_settings = dict()
-    detours = []
-    for ha_struct in outputs:
-        temp_str = str(ha_struct["temperature"])
-        prefix = "ha_" + temp_str
-        ha_fw_set = fw_settings.copy()
-        ha_fw_set["metadata_spec"] = prefix + "_metadata"
-        ha_fw_set["mod_spec_add"] = prefix + "_forces"
-
-        up_spec = {
-            "ha_" + temp_str + "_metadata": ha_struct["metadata"]
-        }
-        f_kwargs = func_kwargs.copy()
-        f_kwargs["workdir"] += "/" + temp_str
-        detours = get_detours(
-            ha_struct["calc_atoms"],
-            calc,
-            prefix,
-            f_kwargs,
-            ha_fw_set,
-            up_spec,
-            atoms=atoms,
-            detours=detours
-        )
-        update_spec.update(up_spec)
     return FWAction(update_spec=update_spec, detours=detours)
 
 def get_detours(
@@ -329,10 +220,7 @@ def converge_phonons(
                 trajectory (str): trajectory file name
     Returns (FWAction): Increases the supercell size or adds the phonon_dict to the spec
     '''
-    if "serial" in kwargs and kwargs["serial"]:
-        calc_time = np.sum(args[1])
-    else:
-        calc_time = np.max(args[1])
+    calc_time = np.max(args[1])
 
     if fw_settings:
         fw_settings["from_db"] = False

@@ -133,23 +133,29 @@ def setup_harmonic_analysis(
         }
         # print(to_out["settings"]["workdir"])
         to_out["settings"]["workdir"] += "/" + str(temp)
-        calc_atoms = generate_cannonical_configurations(
-            ph=ph, temperature=temp, n_sample=n_samples
-        )
-        # calc_atoms = list()
-        # for ii in range(n_samples):
-        #     atoms = sc.copy()
-        #     PhononHarmonics(
-        #         atoms,
-        #         force_constants,
-        #         quantum=False,
-        #         temp=temp * u.kB,
-        #         plus_minus=deterministic,
-        #         failfast=True,
-        #     )
-        #     calc_atoms.append(atoms)
+        # calc_atoms = generate_cannonical_configurations(
+        #     ph=ph, temperature=temp, n_sample=n_samples
+        # )
+        calc_atoms = list()
+        for ii in range(n_samples):
+            atoms = sc.copy()
+            PhononHarmonics(
+                atoms,
+                force_constants,
+                quantum=False,
+                temp=temp * u.kB,
+                plus_minus=deterministic,
+                failfast=True,
+            )
+            calc_atoms.append(atoms)
+        # prim_cell = to_Atoms(ph.get_primitive())
+        # print(prim_cell.get_all_distances(mic=True))
+        # dists = prim_cell.get_all_distances(mic=True).flatten()
+        # dists[np.where(dists < 1e-4)[0]] = 1e10
+        # min_dist = np.min(dists.flatten())
+        # print(min_dist)
         # calc_atoms = generate_mc_rattled_structures(
-        #     sc.copy(), n_samples, 0.03, 0.67*to_Atoms(ph.get_primitive()).cell[0,1]
+        #     sc.copy(), n_samples, temp*0.5e-4*min_dist, min_dist, max_attempts=50000
         # )
         to_out["atoms_to_calculate"] = calc_atoms
         outputs.append(to_out)
