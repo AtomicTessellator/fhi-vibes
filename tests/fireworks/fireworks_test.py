@@ -62,13 +62,13 @@ task_spec_list = get_phonon_analysis_task(
 
 anal_fw = generate_firework(task_spec_list, fw_settings=fw_settings)
 
-lp = LaunchPadHilde()
+lp = LaunchPadHilde(strm_lvl="INFO")
 lp.reset("", require_password=False)
 wf = Workflow([init_fw, anal_fw], {init_fw: [anal_fw]})
 lp.add_wf(wf)
 
 with cwd(workdir + "/fireworks", mkdir=True):
-    rapidfire(lp, wflow_id=wf.root_fw_ids, strm_lvl="CRITICAL")
+    rapidfire(lp, wflow_id=wf.root_fw_ids, strm_lvl="INFO")
 
 phonon = pread(workdir + "/analysis/phonon.pick.gz")
 
