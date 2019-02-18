@@ -161,13 +161,16 @@ def atoms_calculate_task(
                             used in func_fw_out
     Returns (FWAction): The FWAction func_fw_out outputs
     """
+    print("atoms_task")
     start_dir = os.getcwd()
     if fw_settings is None:
         fw_settings = {}
 
+    print("get func")
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 
+    print("settings")
     default_settings = Settings(DEFAULT_CONFIG_FILE)
     calc_dict["command"] = default_settings.machine.aims_command
     if "species_dir" in calc_dict["calculator_parameters"]:
@@ -182,6 +185,7 @@ def atoms_calculate_task(
     if "results" in atoms_dict:
         del atoms_dict["results"]
     atoms = dict2atoms(atoms_dict)
+    print("out")
     try:
         func_timer = Timer()
         if len(args) > 0:
@@ -205,6 +209,7 @@ def atoms_calculate_task(
         func_fw_out_kwargs,
         fw_settings,
     )
+    print("ret")
     return fw_acts
 
 
@@ -224,6 +229,7 @@ def general_function_task(
         kwargs (dict): A dict of key word arguments to pass to the func and func_fw_out
     Returns (FWAction): The FWAction func_fw_out outputs
     """
+    print("gen_func")
     if fw_settings is None:
         fw_settings = dict()
     func = get_func(func_path)
@@ -231,6 +237,7 @@ def general_function_task(
 
     kwargs["outputs"] = func(*args, **kwargs)
 
+    print("out")
     return func_fw_out(
         func_path, func_fw_out_path, *args, fw_settings=fw_settings, **kwargs
     )
