@@ -68,7 +68,7 @@ wf = Workflow([init_fw, anal_fw], {init_fw: [anal_fw]})
 lp.add_wf(wf)
 
 with cwd(workdir + "/fireworks", mkdir=True):
-    rapidfire(lp, wflow_id=wf.root_fw_ids)
+    rapidfire(lp, wflow_id=wf.root_fw_ids, strm_lvl="CRITICAL")
 
 phonon = pread(workdir + "/analysis/phonon.pick.gz")
 
