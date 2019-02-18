@@ -64,6 +64,7 @@ def main():
             force_constants=args.force_constants,
             quantum=args.quantum,
             deterministic=args.deterministic,
+            failfast=args.ignore_negative,
         )
 
         if args.force_constants is not None:
@@ -74,7 +75,10 @@ def main():
                 f"T = {args.temperature} K",
             ]
 
-        filename = f"{args.geom}.{args.temperature}K.{ii:03d}"
+        filename = f"{args.geom}.{args.temperature}K"
+        if args.n > 1:
+            filename += f".{ii:03d}"
+
         sample.write(filename, info_str=info_str, velocities=True, format=args.format)
 
         print(f"Temperature in sample: {sample.get_temperature():.3f}K")

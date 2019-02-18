@@ -18,7 +18,7 @@ class WallTimeWatchdog:
             history (int, optional):
                 Defaults to 5. How many steps should be used to project the runtime
             buffer (int, optional):
-                Defaults to 5. How many steps of buffer before watchdog should alert.
+                Defaults to 2. How many steps of buffer before watchdog should alert.
         """
 
         self.buffer = buffer
@@ -49,7 +49,7 @@ class WallTimeWatchdog:
 
             stop_file.unlink()
 
-            with self.logfile.open(mode) as f:
+            with self.logfile.open("a") as f:
                 f.write("*** stop file found")
             sys.exit("*** Watchdog: stop flag was found: remove it and exit.")
 

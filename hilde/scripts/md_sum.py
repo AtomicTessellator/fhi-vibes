@@ -74,65 +74,79 @@ def main():
     print(f"Potential energy:        {np.mean(e_pot):.2f} +/- {np.std(e_pot):.2f}eV")
 
     if args.plot:
-        plot_temperature(time, temp, args.avg)
+        import matplotlib
 
+        matplotlib.use("pdf")
 
-def plot_temperature(time, temperatures, running_avg=50):
-    """ Plot the nuclear temperature and save to pdf """
-    import pandas as pd
-    import matplotlib
-    from hilde.helpers.plotting import tableau_colors as tc
+        from matplotlib import pyplot as plt
+        import pandas as pd
 
-    matplotlib.use("pdf")
+        from hilde.helpers.plotting import tableau_colors as tc
 
-    data = pd.Series(temperatures, time)
+        # plot temperatures
+        data = pd.Series(temp, time)
 
-    temp_2 = data.iloc[-len(data) // 3 :]
+        fig, (ax, ax2) = plt.subplots(ncols=2)
 
-    ax = data.plot(
-        x="time",
-        y="temperatures",
-        color=tc[2],
-        title=f"Nuclear Temperature",
-        label="Instant. Temp.",
-    )
-
-    plot_settings = {"x": "time", "y": "temperatures", "ax": ax}
-
-    if running_avg > 1:
-        roll = data.rolling(window=running_avg, min_periods=0).mean()
-        roll.plot(
-            **plot_settings,
-            style="--",
+        data.plot(
             color=tc[0],
-            title=(
-                f"Nuclear Temperature"
-                f"\nTemperature (last 1/3): {temp_2.mean():.2f} +/- {temp_2.std():.2f}K"
-            ),
-            label=f"Running mean ({running_avg})",
+            title="Nuclear Temperature",
+            label="",
+            ax=ax,
+            alpha=0.3,
         )
 
-        # roll2 = data.rolling(window=2 * running_avg, min_periods=0).mean()
-        # roll2.plot(
-        #     **plot_settings,
-        #     style="--",
-        #     color=tc[1],
-        #     label=f"Running mean {2*running_avg}",
-        # )
+        roll = data.rolling(window=args.avg, min_periods=0).mean()
+        roll.plot(color=tc[0], label=f"T_nucl", ax=ax)
 
-        exp = data.expanding(min_periods=running_avg).mean()
+        # exp = data.iloc[min(len(data) // 2, args.avg) :].expanding().mean()
+        # exp.plot( color=tc[5], label=f"Expanding mean ({args.avg}", ax=ax)
+
+        ax.set_xlabel("Time [ps]")
+        ax.set_ylabel("Nucl. Temperature [K]")
+        ax.legend()
+
+        # fig.savefig("temp.pdf")
+
+        # plot energies in one plot
+        # fig, ax = plt.subplots()
+
+        e_kin = pd.Series(e_kin, time)
+        # e_kin -= e_kin.min()
+
+        e_pot = pd.Series(e_pot, time)
+        e_pot -= e_pot.min()
+
+        e_tot = e_pot + e_kin
+        e_dif = e_pot - e_kin
+
+        e_tot.plot(color=tc[0], title="Total Energy", label="", ax=ax2, alpha=0.3)
+        roll = e_tot.rolling(window=args.avg, min_periods=0).mean()
+        roll.plot(
+            color=tc[0], ax=ax2, label="E_tot"
+        )  # label=f"E_tot_mean ({args.avg})"
+
+        e_pot.plot(color=tc[3], label="", ax=ax2, alpha=0.3)
+        roll = e_pot.rolling(window=args.avg, min_periods=0).mean()
+        roll.plot(
+            color=tc[3], ax=ax2, label="E_pot"
+        )  # , label=f"Running mean ({args.avg})"
+
+        ax2.axhline(0, linewidth=1, color="k")
+        e_dif.plot(color=tc[1], label="", ax=ax2, alpha=0.3)
+        exp = e_dif.rolling(min_periods=0, window=args.avg).mean()
         exp.plot(
-            **plot_settings,
-            style="-.",
-            color=tc[1],
-            label=f"Aggregated mean ({running_avg})",
-        )
+            color=tc[1], ax=ax2, label="E_pot - E_kin"
+        )  # , label=f"Rolling mean ({args.avg})"
 
-    ax.set_xlabel("Time [ps]")
-    ax.set_ylabel("Nucl. Temperature [K]")
-    ax.legend()
-    fig = ax.get_figure()
-    fig.savefig("temp.pdf")
+        ax2.legend()
+        ax2.set_xlabel("Time [ps]")
+        ax2.set_ylabel("Energy [eV]")
+
+        # fig.tight_layout()
+        fname = "md_summary.pdf"
+        fig.savefig(fname)
+        print(f".. summary plotted to {fname}")
 
 
 if __name__ == "__main__":

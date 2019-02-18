@@ -15,6 +15,7 @@ def postprocess(
     trajectory="phonopy/trajectory.yaml",
     pickle_file="phonon.pick",
     write_files=True,
+    born_charges_file=None,
     **kwargs,
 ):
     """ Phonopy postprocess """
@@ -38,6 +39,18 @@ def postprocess(
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
 
     phonon.produce_force_constants(force_sets)
+
+    # born charges?
+    if born_charges_file:
+        from phonopy.file_IO import get_born_parameters
+
+        prim = phonon.get_primitive()
+        psym = phonon.get_primitive_symmetry()
+        print(f".. read born effective charges from {born_charges_file}")
+        nac_params = get_born_parameters(open(born_charges_file), prim, psym)
+        phonon.set_nac_params(nac_params)
+
+    # save pickled phonopy object
     if pickle_file and write_files:
         fname = trajectory.parent / pickle_file
         psave(phonon, fname)

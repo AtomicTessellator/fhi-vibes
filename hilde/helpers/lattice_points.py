@@ -77,26 +77,37 @@ def map_I_to_iL(
             all_positions.append(pos + lp)
             tuples.append((ii, LL))
 
-    indices = []
+    # prepare the list of indices
+    indices = len(supercell) * [(-1, -1)]
     matches = []
-    for jj, spos in enumerate(supercell.positions):
-        for ii, pos in enumerate(atoms.positions):
+
+    for satom in supercell:
+        spos, ssym, jj = satom.position, satom.symbol, satom.index
+        for atom in atoms:
+            pos, sym, ii = atom.position, atom.symbol, atom.index
+            # discard rightaway if not the correct species
+            if ssym != sym:
+                continue
             for LL, lp in enumerate(lattice_points):
                 if la.norm(spos - pos - lp) < tolerance:
-                    indices.append((ii, LL))
+                    indices[jj] = (ii, LL)
                     matches.append(jj)
                     break
 
     # catch possibly unwrapped atoms
-    for jj, spos in enumerate(supercell.positions):
+    for satom in supercell:
+        spos, ssym, jj = satom.position, satom.symbol, satom.index
         if jj in matches:
             continue
         for LL, lp in enumerate(lattice_points):
-            for ii, pos in enumerate(atoms.positions):
+            for atom in atoms:
+                pos, sym, ii = atom.position, atom.symbol, atom.index
+                if ssym != sym:
+                    continue
                 fpos = fractional(spos - pos - lp, supercell.cell)
                 tol = tolerance
                 if la.norm((fpos + tol) % 1 - tol) < tolerance:
-                    indices.append((ii, LL))
+                    indices[jj] = (ii, LL)
                     matches.append(jj)
                     break
 
@@ -107,6 +118,9 @@ def map_I_to_iL(
                 print(f"Missing: {ii} {supercell.positions[ii]}")
 
     assert len(np.unique(indices, axis=0)) == len(supercell), (indices, len(supercell))
+
+    # should never arrive here
+    assert not any(-1 in l for l in indices), ("Indices found: ", indices)
 
     timer(f"matched {len(matches)} positions in supercell and primitive cell")
 

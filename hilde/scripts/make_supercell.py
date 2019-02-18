@@ -57,7 +57,6 @@ def main():
 
     print(f"\nSupercell matrix:")
     print(" python:  {}".format(np.array2string(smatrix.flatten(), separator=", ")))
-    print(" phonopy: {}".format(np.array2string(smatrix.T.flatten(), separator=", ")))
     print(" cmdline: {}".format(" ".join([f"{el}" for el in smatrix.flatten()])))
     print(" 2d:")
     print_matrix(smatrix, indent=0)
