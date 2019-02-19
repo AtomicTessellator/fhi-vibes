@@ -6,7 +6,7 @@ from scipy.constants import physical_constants
 
 # physical constants
 AMU = physical_constants["atomic mass constant"] # = 1.66053904e-27  # [kg]
-LIGHT = physical_constants["speed of light in vacuum  "] # = 299792458  # [m / s]
+LIGHT = physical_constants["speed of light in vacuum"] # = 299792458  # [m / s]
 PLANCK_CONSTANT = physical_constants["Planck constant"] # = 6.62607015e-34  # [J s]
 BOLTZMANN = physical_constants["Boltzmann constant"] # = 1.38064852e-23  # [J / K]
 AVOGADRO = physical_constants["Avogadro constant"] # = 6.02214076e23  # [1]
@@ -25,7 +25,7 @@ THZ = 1 / PICO  # [1/s]
 # Atomic units
 ELECTRON_MASS = physical_constants["electron mass"] # = 5.48579909070e-4 * AMU  # [kg]
 HARTREE = physical_constants["Hartree energy"] # = 27.21138602 * EV  # [J]
-BOHR = physical_constants["Bohr radius  "] # = 0.52917721092 * AA  # [m]
+BOHR = physical_constants["Bohr radius"] # = 0.52917721092 * AA  # [m]
 HBAR = physical_constants["Planck constant over 2 pi"] # = PLANCK_CONSTANT / 2 / PI  # [J s]
 
 atomic_units = AttributeDict(
