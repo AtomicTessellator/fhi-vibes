@@ -19,7 +19,7 @@ PI = pi
 AA = 1e-10  # [m]
 PICO = 1e-12  # [s]
 FEMTO = 1e-3 * PICO  # [s]
-EV = physical_constants["electron volt  "] # = 1.60217733e-19  # [J]
+EV = physical_constants["electron volt"] # = 1.60217733e-19  # [J]
 THZ = 1 / PICO  # [1/s]
 
 # Atomic units
