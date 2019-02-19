@@ -93,6 +93,7 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
         ca = traj_reader(str((wd / traj).absolute()), False)
         update_spec[fw_settings["mod_spec_add"]] = [atoms2dict(at) for at in ca]
         return FWAction(update_spec=update_spec)
+    fw_settings["spec"].update(update_spec)
     fw = generate_firework(
         func="hilde.tasks.fireworks.phonopy_phono3py_functions.wrap_calc_socket",
         func_fw_out="hilde.tasks.fireworks.fw_out.calculate.socket_calc_check",
