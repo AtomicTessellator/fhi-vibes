@@ -91,7 +91,6 @@ def setup_multiple(cells, calculator, workdir, mkdir):
 def calculate_socket(
     atoms_to_calculate,
     calculator,
-    args*,
     metadata=None,
     trajectory="trajectory.yaml",
     workdir="calculations",
