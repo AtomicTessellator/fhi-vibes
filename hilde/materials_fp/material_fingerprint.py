@@ -1,3 +1,4 @@
+import re
 import sqlite3
 import numpy as np
 import yaml
@@ -394,9 +395,9 @@ def to_dict(fp, to_mongo=False):
     else:
         if len(fp[2]) > 1:
             for aa in range(len(fp[2])):
-                fp_dict[str(fp[2][aa])] = np.array([fp[0][aa], fp[1][aa]]).T
+                fp_dict[re.sub("[.]", "_", str(fp[2][aa]))] = np.array([fp[0][aa], fp[1][aa]]).T
         else:
-            fp_dict[str(fp[2][0])] = np.array([fp[0], fp[1]]).T
+            fp_dict[re.sub("[.]", "_", str(fp[2][0]))] = np.array([fp[0], fp[1]]).T
     return fp_dict
 
 

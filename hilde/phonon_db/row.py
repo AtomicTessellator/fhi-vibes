@@ -2,6 +2,7 @@
 A file defining a row object for the phonon database
 """
 import numpy as np
+import re
 
 from ase.db.row import AtomsRow, atoms2dict
 from ase.io.jsonio import decode
@@ -59,10 +60,10 @@ def phonon_to_dict(phonon, to_mongo=False):
         dct["phonon_bs_fp"] = to_dict(
             get_phonon_bs_fingerprint_phononpy(phonon, dct["qpoints"]), to_mongo
         )
-        if to_mongo:
+        if to_mongo and "qpoints" in dct:
             q_pt = {}
             for pt in dct["qpoints"]:
-                q_pt[str(pt)] = dct["qpoints"][pt]
+                q_pt[re.sub("[.]", "_", str(pt))] = dct["qpoints"][pt]
             dct["qpoints"] = q_pt
     if phonon.thermal_properties is not None:
         dct["tp_ZPE"] = phonon.thermal_properties.zero_point_energy
