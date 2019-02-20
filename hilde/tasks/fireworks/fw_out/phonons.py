@@ -322,7 +322,7 @@ def converge_phonons(
         if kwargs["workdir"][0] == "/":
             analysis_wd = [""] + analysis_wd
 
-        if len(analysis_wd[-1]) > 9 and analysis_wd[-1][9] == "sc_natoms_":
+        if len(analysis_wd[-1]) > 9 and analysis_wd[-1][:9] == "sc_natoms_":
             a_wd = "/".join(analysis_wd[:-1])
         else:
             a_wd = "/".join(analysis_wd)

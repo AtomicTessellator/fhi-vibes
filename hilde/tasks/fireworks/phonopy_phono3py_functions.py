@@ -165,6 +165,7 @@ def wrap_calc_socket(
     atoms_dict_to_calculate,
     calc_dict,
     metadata,
+    phonon_times=None,
     trajectory="trajectory.yaml",
     workdir=".",
     backup_folder="backups",
