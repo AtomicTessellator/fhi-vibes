@@ -1,0 +1,3 @@
+[submodule "doc/heat_flux"]
+	path = doc/heat_flux
+	url = https://git.overleaf.com/5c6d256d5771e269e831a9ca

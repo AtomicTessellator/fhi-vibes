@@ -88,16 +88,14 @@ def main():
 
         fig, (ax, ax2) = plt.subplots(ncols=2)
 
-        data.plot(
-            color=tc[0],
-            title="Nuclear Temperature",
-            label="",
-            ax=ax,
-            alpha=0.3,
-        )
+        # settings for the immediate plot
+        plot_settings = {"alpha": 0.4, "linewidth": 1.0, "label": ""}
+        avg_settings = {"linewidth": 1.5}
+
+        data.plot(color=tc[0], title="Nuclear Temperature", ax=ax, **plot_settings)
 
         roll = data.rolling(window=args.avg, min_periods=0).mean()
-        roll.plot(color=tc[0], label=f"T_nucl", ax=ax)
+        roll.plot(color=tc[0], label=f"T_nucl", ax=ax, **avg_settings)
 
         # exp = data.iloc[min(len(data) // 2, args.avg) :].expanding().mean()
         # exp.plot( color=tc[5], label=f"Expanding mean ({args.avg}", ax=ax)
@@ -120,24 +118,18 @@ def main():
         e_tot = e_pot + e_kin
         e_dif = e_pot - e_kin
 
-        e_tot.plot(color=tc[0], title="Total Energy", label="", ax=ax2, alpha=0.3)
+        e_tot.plot(color=tc[0], title="Total Energy", ax=ax2, **plot_settings)
         roll = e_tot.rolling(window=args.avg, min_periods=0).mean()
-        roll.plot(
-            color=tc[0], ax=ax2, label="E_tot"
-        )  # label=f"E_tot_mean ({args.avg})"
+        roll.plot(color=tc[0], ax=ax2, label="E_tot", **avg_settings)
 
-        e_pot.plot(color=tc[3], label="", ax=ax2, alpha=0.3)
+        e_pot.plot(color=tc[3], ax=ax2, **plot_settings)
         roll = e_pot.rolling(window=args.avg, min_periods=0).mean()
-        roll.plot(
-            color=tc[3], ax=ax2, label="E_pot"
-        )  # , label=f"Running mean ({args.avg})"
+        roll.plot(color=tc[3], ax=ax2, label="E_pot", **avg_settings)
 
         ax2.axhline(0, linewidth=1, color="k")
-        e_dif.plot(color=tc[1], label="", ax=ax2, alpha=0.3)
+        e_dif.plot(color=tc[1], ax=ax2, **plot_settings)
         exp = e_dif.rolling(min_periods=0, window=args.avg).mean()
-        exp.plot(
-            color=tc[1], ax=ax2, label="E_pot - E_kin"
-        )  # , label=f"Rolling mean ({args.avg})"
+        exp.plot(color=tc[1], ax=ax2, label="E_pot - E_kin", **avg_settings)
 
         ax2.legend()
         ax2.set_xlabel("Time [ps]")
