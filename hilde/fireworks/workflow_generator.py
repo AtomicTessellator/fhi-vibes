@@ -1,5 +1,6 @@
 """Functions used to generate a FireWorks Workflow"""
 import numpy as np
+from ase.io import read
 from ase.symbols import symbols2numbers
 from fireworks import Workflow, Firework
 
@@ -10,6 +11,7 @@ from hilde.helpers.k_grid import update_k_grid, update_k_grid_calc_dict
 from hilde.helpers.pickle import pread
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonopy.postprocess import postprocess
+from hilde.phonopy.wrapper import preprocess
 from hilde.settings import Settings
 from hilde.structure.convert import to_Atoms
 from hilde.tasks.fireworks.general_py_task import (
@@ -224,10 +226,14 @@ def get_ha_task(func_kwargs):
         inputs = list()
         if ph_file.split(".")[-1] == "yaml":
             ph = postprocess(ph_file)
-            args = [phonon_to_dict(postprocess(ph_file))]
         elif ph_file.split(".")[-1] == "gz" or  ph_file.split(".")[-1] == "pick":
             ph = pread(ph_file)
-            args = [phonon_to_dict(pread(ph_file), to_mongo=True)]
+        args = [phonon_to_dict(ph, to_mongo=True)]
+    elif "prim_cell_file" in func_kwargs and "fc2_supercell_matrix" in func_kwargs:
+        ph, _, _ = preprocess(read(func_kwargs["prim_cell_file"]), func_kwargs["fc2_supercell_matrix"])
+        func_kwargs["phonon_dict"] = phonon_to_dict(ph, to_mongo=True)
+        args = list()
+        inputs = list()
     else:
         args = list()
         inputs = ["ph_dict"]

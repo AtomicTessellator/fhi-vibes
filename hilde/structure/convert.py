@@ -25,8 +25,8 @@ def to_Atoms_db(structure, info={}, pbc=True):
 
     atoms_dict = {
         "symbols": structure.get_chemical_symbols(),
-        "cell": np.round(structure.get_cell(), 15),
-        "positions": np.round(structure.get_positions(), 15),
+        "cell": np.round(structure.get_cell(), 14),
+        "positions": np.round(structure.get_positions(), 14),
         "pbc": pbc,
         "info": info,
     }

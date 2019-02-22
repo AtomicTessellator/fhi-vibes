@@ -3,28 +3,33 @@ from ase.io.aims import read_aims
 from subprocess import run
 from pathlib import Path
 
+from hilde.harmonic_analysis.force_constants import parse_tdep_forceconstant
 from hilde.helpers.paths import cwd
 from hilde.helpers import Timer
 from hilde.phonopy.postprocess import extract_results
 from hilde.trajectory import reader
 
+def remap_force_constants(
+    ph, new_supercell, workdir='tdep', logfile="rempa_fc.log"
+):
+    command = ["remap_forceconstant"]
+    with cwd(workdir, mkdir=True), open(logfile, "w") as file:
+        convert_phonopy_to_dep(ph, ".", False)
+        new_supercell.write("infile.newposcar", format="vasp", vasp5=True, direct=True)
+        run(command, stdout=file)
+        return parse_tdep_forceconstant("outfile.forceconstant_remapped")
+
 def convert_phonopy_to_dep(
-    ph, workdir="tdep", logfile="convert_phonopy_to_dep.log"
+    ph, workdir="tdep", reduce_ph_fc=True, logfile="convert_phonopy_to_dep.log"
 ):
     command = ["convert_phonopy_to_forceconstant", "--truncate"]
     with cwd(workdir, mkdir=True), open(logfile, "w") as file:
-        extract_results(ph, tdep=True)
+        extract_results(ph, tdep=True, tdep_reduce_fc=reduce_ph_fc)
         run(command, stdout=file)
         outfile = Path("outfile.converted_forceconstant")
         infile = Path("infile.forceconstant")
         if infile.exists():
-            proceed = input(f"Symlink {infile} exists. Proceed? (y/n) ")
-            if proceed.lower() == "y":
-                infile.unlink()
-            else:
-                print(".. Symlink NOT created.")
-                return
-
+            infile.unlink()
         infile.symlink_to(outfile)
         print(f".. Symlink {infile} created.")
 

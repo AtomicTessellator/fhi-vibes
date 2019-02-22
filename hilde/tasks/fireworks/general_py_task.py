@@ -36,7 +36,6 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
         pt_args += [atoms, calc, *args]
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
 
-
 def setup_general_task(task_spec, fw_settings):
     """
     Setups a general task
@@ -50,7 +49,6 @@ def setup_general_task(task_spec, fw_settings):
     pt_inputs = task_spec.get_pt_inputs()
     pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
-
 
 def generate_task(task_spec, fw_settings, atoms, calc):
     """
@@ -124,7 +122,6 @@ def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
         }
     )
 
-
 def get_func(func_path):
     """A function that takes in a path to a python function and returns that function"""
     toks = func_path.rsplit(".", 1)
@@ -134,7 +131,6 @@ def get_func(func_path):
         return getattr(mod, funcname)
     # Handle built in functions.
     return getattr("builtins", toks[0])
-
 
 def atoms_calculate_task(
     func_path,
@@ -206,7 +202,6 @@ def atoms_calculate_task(
         fw_settings,
     )
     return fw_acts
-
 
 def general_function_task(
     func_path, func_fw_out_path, *args, fw_settings=None, **kwargs

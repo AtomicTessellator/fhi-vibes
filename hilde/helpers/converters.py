@@ -115,7 +115,6 @@ def dict2results(atoms_dict, calc_dict=None):
         velocities = atoms_dict.pop("velocities")
     except KeyError:
         velocities = None
-
     atoms = Atoms(**atoms_dict, pbc=pbc)
 
     if velocities is not None:

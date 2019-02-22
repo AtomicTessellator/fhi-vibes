@@ -11,9 +11,10 @@ from hilde.fireworks.workflow_generator import (
     get_aims_relax_task,
     get_kgrid_task,
     get_ha_task,
+    to_time_str,
 )
 from hilde.helpers.hash import hash_atoms_and_calc
-from hilde.phonopy.wrapper import defaults as ph_defaults
+from hilde.phonopy.wrapper import defaults as ph_defaults, preprocess
 from hilde.phono3py.wrapper import defaults as ph3_defaults
 
 
@@ -151,6 +152,10 @@ def generate_phonon_fw(
         update_settings (dict): calculator update settings
     Returns (Firework): Firework for the phonon initialization
     '''
+    if "serial" in ph_settings and ph_settings["serial"] and "spec" in fw_settings and "prev_dos_fp" in fw_settings["spec"]:
+        _, _, scs = preprocess(atoms, ph_settings["supercell_matrix"])
+        qadapter["walltime"] = to_time_str(get_time(qadapter["walltime"]) * len(scs))
+
     if qadapter and "walltime" in qadapter:
         ph_settings["walltime"] = get_time(qadapter["walltime"])
     else:

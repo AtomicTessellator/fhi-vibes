@@ -78,6 +78,7 @@ def extract_results(
     plot_dos=False,
     plot_pdos=False,
     tdep=False,
+    tdep_reduce_fc=True,
     force_constants_file="FORCE_CONSTANTS",
 ):
     """ Extract results from phonopy object and present them.
@@ -85,7 +86,7 @@ def extract_results(
           `convert_phonopy_to_forceconstant`
         are written. """
     from hilde.phonopy.wrapper import plot_bandstructure, plot_bandstructure_and_dos
-    from hilde.structure.convert import to_Atoms
+    from hilde.structure.convert import to_Atoms_db
     from phonopy.file_IO import write_FORCE_CONSTANTS
 
     plot_bandstructure(phonon, file="bandstructure.pdf")
@@ -94,16 +95,16 @@ def extract_results(
     if plot_pdos:
         plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
 
-    # print structures:
-    primitive = to_Atoms(phonon.get_primitive())
-    supercell = to_Atoms(phonon.get_supercell())
+    primitive = to_Atoms_db(phonon.get_primitive())
+    supercell = to_Atoms_db(phonon.get_supercell())
 
     if tdep:
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
         fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
 
         # reproduce reduces force constants
-        phonon.produce_force_constants(calculate_full_force_constants=False)
+        if tdep_reduce_fc:
+            phonon.produce_force_constants(calculate_full_force_constants=False)
 
         write_FORCE_CONSTANTS(
             phonon.get_force_constants(),
@@ -129,7 +130,8 @@ def extract_results(
     print(f"Supercell cell written to {fname}")
 
     # save as force_constants.dat
-    phonon.produce_force_constants()
+    if tdep_reduce_fc:
+        phonon.produce_force_constants()
     n_atoms = phonon.get_supercell().get_number_of_atoms()
 
     force_constants = (

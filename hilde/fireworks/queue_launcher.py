@@ -49,6 +49,13 @@ def conv_t_to_sec(time_str):
         t += int(tt) * 60**(len(ts)-1-ii)
     return t
 
+def to_time_str(n_sec):
+    '''Converts a number of seconds into a time string'''
+    secs = int(n_sec % 60)
+    mins = int(n_sec / 60) % 60
+    hrs = int(n_sec / 3600)
+    return f"{hrs}:{mins}:{secs}"
+
 def launch_rocket_to_queue(
     launchpad,
     fworker,
@@ -120,12 +127,14 @@ def launch_rocket_to_queue(
                             wts = np.array([conv_t_to_sec(wt) for wt in qadapter["walltimes"]])
                             inds = np.where(time_req <= wts)[0]
                             if len(inds) == 0:
-                                fw.spec["_queueadapter"]["queue"] = qadapter["queues"][-1]
+                                # fw.spec["_queueadapter"]["queue"] = qadapter["queues"][-1]
                                 if "nodes" in fw.spec["_queueadapter"]:
+                                    n_nodes_strat = fw.spec["_queueadapter"]["nodes"]
                                     fw.spec["_queueadapter"]["nodes"] *= int(np.ceil(time_req/wts[-1]))
                                 else:
+                                    n_nodes_strat = 1
                                     fw.spec["_queueadapter"]["nodes"] = int(np.ceil(time_req/wts[-1]))
-                                fw.spec["_queueadapter"]["walltime"] = qadapter["walltimes"][-1]
+                                fw.spec["_queueadapter"]["walltime"] = to_time_str(time_req * float(n_nodes_strat) / float(fw.spec["_queueadapter"]["nodes"]))
                             else:
                                 fw.spec['_queueadapter']['queue'] = qadapter["queues"][inds[0]]
                         elif "queue" in fw.spec["_queueadapter"]:

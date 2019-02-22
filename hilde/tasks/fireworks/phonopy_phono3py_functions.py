@@ -5,15 +5,19 @@ from pathlib import Path
 
 import numpy as np
 
+from h5py import File
+
+from hilde import konstanten as const
 from hilde.helpers.converters import dict2atoms, calc2dict, atoms2dict, input2dict
-from hilde.phonon_db.row import PhononRow
+from hilde.phonon_db.row import PhononRow, phonon_to_dict
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.workflow import bootstrap
+from hilde.phonopy.wrapper import preprocess
 from hilde.settings import Settings, AttributeDict
-from hilde.structure.convert import to_Atoms
+from hilde.structure.convert import to_Atoms_db
 from hilde.tasks.calculate import calculate_socket
 from hilde.tasks.fireworks.general_py_task import get_func
-from hilde.tdep.wrapper import generate_cannonical_configurations
+from hilde.tdep.wrapper import remap_force_constants
 from hilde.trajectory import step2file, metadata2file
 
 # from hiphive.structure_generation import generate_mc_rattled_structures
@@ -89,7 +93,8 @@ def setup_harmonic_analysis(
     atoms,
     calc,
     phonon_dict,
-    temperatures,
+    temperatures=None,
+    debye_temp_fact=None,
     n_samples=1,
     deterministic=False,
     fw_settings=None,
@@ -101,26 +106,58 @@ def setup_harmonic_analysis(
     Args:
     Return:
     '''
+    if temperatures is None:
+        temperatures = list()
     phonon_dict["forces_2"] = np.array(phonon_dict["forces_2"])
     ph = PhononRow(dct=phonon_dict).to_phonon()
+
+    if "supercell_matrix" in kwargs:
+        ph_new, sc, _ = preprocess(atoms, kwargs["supercell_matrix"])
+    else:
+        sc = to_Atoms_db(ph.get_supercell())
+
     n_atoms = ph.get_supercell().get_number_of_atoms()
-    if fc_file is None:
+    if fc_file:
+        if fc_file.split(".")[-1] == "hdf5" or fc_file.split(".")[-1] == "h5":
+            fc = np.array(File(fc_file)['fc2'])
+        else:
+            fc = np.genfromtxt(fc_file).reshape(n_atoms,3,n_atoms,3).swapaxes(1,2)
+        ph.set_force_constants(fc)
+        phonon_dict = phonon_to_dict(ph, to_mongo=True, add_fc=True)
+
+    if ph.get_force_constants().shape[0] != len(sc.numbers):
+        force_constants = remap_force_constants(ph, sc)
+        n_atoms = ph_new.get_supercell().get_number_of_atoms()
+        ph_new.set_force_constants(force_constants.reshape(n_atoms, 3, n_atoms, 3).swapaxes(1,2))
+        phonon_dict = phonon_to_dict(ph_new, to_mongo=True, add_fc=True)
+    else:
         force_constants = (
             ph.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
         )
-    else:
-        force_constants = np.genfromtxt(fc_file)
-    sc = to_Atoms(ph.get_supercell())
-    at = atoms.copy()
-    at.set_calculator(None)
-    outputs = []
+
+    if debye_temp_fact is not None:
+        ph.set_mesh([51,51,51])
+        ph.set_total_DOS(freq_pitch=0.01)
+        ph.set_Debye_frequency()
+        debye_temp = ph.get_Debye_frequency() * const.THzToEv / const.kB
+        temperatures += [tt * debye_temp for tt in debye_temp_fact]
+    elif temperatures is None:
+        raise IOError("temperatures must be given to do harmonic analysis")
+
+    del_keys = ["qpoints", "phonon_dos_fp", "q_points", "tp_ZPE", "tp_high_T_S", "tp_T", "tp_A", "tp_S", "tp_Cv", "phonon_bs_fp"]
+    for key in del_keys:
+        if key in phonon_dict:
+            phonon_dict.pop(key)
     ha_metadata = {
         "deterministic": deterministic,
         "n_samples": n_samples,
-        **input2dict(sc, calc)
+        "ph_dict": phonon_dict,
+        "supercell": input2dict(sc),
+        "primitive": input2dict(to_Atoms_db(ph.get_primitive())),
+        **input2dict(sc, calc),
     }
-    ha_metadata["supercell"] = input2dict(at)
-    ha_metadata["primitive"] = input2dict(to_Atoms(ph.get_primitive()))
+
+    outputs = []
     for temp in temperatures:
         to_out = dict()
         ha_metadata["temperature"] = temp
@@ -131,11 +168,7 @@ def setup_harmonic_analysis(
             "deterministic": deterministic,
             **kwargs
         }
-        # print(to_out["settings"]["workdir"])
         to_out["settings"]["workdir"] += "/" + str(temp)
-        # calc_atoms = generate_cannonical_configurations(
-        #     ph=ph, temperature=temp, n_sample=n_samples
-        # )
         calc_atoms = list()
         for ii in range(n_samples):
             atoms = sc.copy()
@@ -148,15 +181,6 @@ def setup_harmonic_analysis(
                 failfast=True,
             )
             calc_atoms.append(atoms)
-        # prim_cell = to_Atoms(ph.get_primitive())
-        # print(prim_cell.get_all_distances(mic=True))
-        # dists = prim_cell.get_all_distances(mic=True).flatten()
-        # dists[np.where(dists < 1e-4)[0]] = 1e10
-        # min_dist = np.min(dists.flatten())
-        # print(min_dist)
-        # calc_atoms = generate_mc_rattled_structures(
-        #     sc.copy(), n_samples, temp*0.5e-4*min_dist, min_dist, max_attempts=50000
-        # )
         to_out["atoms_to_calculate"] = calc_atoms
         outputs.append(to_out)
     return outputs
