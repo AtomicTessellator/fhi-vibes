@@ -1,4 +1,4 @@
-""" helps to find lattice points in supercell, match positions to images in the 
+""" helps to find lattice points in supercell, match positions to images in the
 unit cell etc. """
 
 from itertools import product
@@ -12,7 +12,7 @@ from hilde.helpers.supercell import supercell as sc
 def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
     """ For a commensurate q_points we have
 
-        exp( 2\pi q . L_k ) = 1 for any k and L_k being the supercell lattice vectors
+        exp( 2*pi q . L_k ) = 1 for any k and L_k being the supercell lattice vectors
 
         in other workds, q is a linear combination of G_k, where G_k are the inverse
         lattice vectors of the supercell lattice. Only thos are counted which fit into
@@ -131,13 +131,13 @@ def map_I_to_iL(
 
     # return inverse?
     if return_inverse:
-        inv = map_iL_to_I(indices)
+        inv = _map_iL_to_I(indices)
         return indices, inv
 
     return indices
 
 
-def map_iL_to_I(I_to_iL_map):
+def _map_iL_to_I(I_to_iL_map):
     """ map (i, L) back to supercell index I """
 
     I2iL = np.array(I_to_iL_map)
@@ -156,7 +156,7 @@ def map_iL_to_I(I_to_iL_map):
         I = iL2I[iL[0], iL[1]]
         assert II == I, (II, iL, I)
 
-    return iL2I
+    return iL2I.squeeze()
 
 
 def get_lattice_points(atoms, supercell, fortran=True, **kwargs):
@@ -164,13 +164,14 @@ def get_lattice_points(atoms, supercell, fortran=True, **kwargs):
     return _get_lattice_points(atoms.cell, supercell.cell, fortran=fortran, **kwargs)
 
 
-def get_supercell_positions(atoms, supercell):
-    """ find all positions in the supercell including the boundary atom """
-
-    timer = Timer()
-    tol = tolerance
-
-    lattice_points, lattice_points_ext = get_lattice_points(atoms, supercell)
+# flokno: what is this?
+# def get_supercell_positions(atoms, supercell):
+#     """ find all positions in the supercell including the boundary atom """
+#
+#     timer = Timer()
+#     tol = tolerance
+#
+#     lattice_points, lattice_points_ext = get_lattice_points(atoms, supercell)
 
 
 def _get_lattice_points(

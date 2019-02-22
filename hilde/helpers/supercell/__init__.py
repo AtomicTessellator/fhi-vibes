@@ -1,11 +1,13 @@
+""" helpers for working with supercell """
+
 import numpy as np
-from ase.build.supercells import make_supercell as ase_make_supercell
-from . import supercell as sc
 from ase.spacegroup import get_spacegroup
+from ase.build.supercells import make_supercell as ase_make_supercell
 from hilde.structure.misc import get_sysname
 from hilde.helpers.geometry import get_cubicness
 from hilde.helpers.numerics import clean_matrix
-from warnings import warn
+from hilde.helpers.warnings import warn
+from . import supercell as sc
 
 
 def find_cubic_cell(
@@ -26,9 +28,7 @@ def find_cubic_cell(
     return np.asarray(smatrix, dtype=int)
 
 
-def make_cubic_supercell(
-    atoms, target_size=100, deviation=0.2, limit=2, verbose=False
-):
+def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose=False):
     """ Create a supercell of target size that is as cubic as possible.
 
     Args:
@@ -82,16 +82,22 @@ def make_supercell(*args, info={}, **kwargs):
     return supercell
 
 
-def match_positions(atoms1, atoms2, tol=1e-5):
-    """ match positions in two structures and return a list of corresponding indeces """
+def map_indices(atoms1, atoms2, tol=1e-5):
+    """ return indices of atoms in atoms1 in atoms2.
 
-    assert len(atoms1) == len(atoms2)
-    match_list = []
-    for ii, pos1 in enumerate(atoms1.positions):
-        for jj, pos2 in enumerate(atoms2.positions):
-            if np.linalg.norm(pos1 - pos2) < tol:
-                match_list.append((ii, jj))
+    Example:
+        atoms1 = [H, O1, O2]
+        atoms2 = [O1, H, O2]
 
-    assert len(match_list) == len(atoms1), (len(atoms1), len(match_list))
+        -> map_indices(atoms1, atoms2) = [1, 0, 2]
 
-    return match_list
+    For background, see
+    https://gitlab.com/flokno/hilde/blob/devel/examples/devel/sort_atoms/sort.ipynb"""
+
+    from hilde.helpers.lattice_points import map_I_to_iL
+
+    _, index_map = map_I_to_iL(atoms2, atoms1, return_inverse=True)
+
+    assert len(np.unique(index_map)) == len(atoms1)
+
+    return index_map
