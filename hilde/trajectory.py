@@ -13,6 +13,7 @@ from hilde import __version__ as version
 from hilde.helpers.converters import results2dict, dict2results
 from hilde.helpers.fileformats import to_yaml, from_yaml
 from hilde.helpers.hash import hash_atoms
+from hilde.helpers import Timer
 
 
 def step2file(atoms, calc, file="trajectory.yaml", append_cell=False):
@@ -52,6 +53,8 @@ def reader(file="trajectory.yaml", get_metadata=False):
     """ convert information in trajectory and metadata files to atoms objects
      and return them """
 
+    timer = Timer()
+
     try:
         metadata, *pre_trajectory = from_yaml(file, use_json=True)
     except json.decoder.JSONDecodeError:
@@ -89,6 +92,9 @@ def reader(file="trajectory.yaml", get_metadata=False):
             atoms.info.update(obj["MD"])
 
         trajectory.append(atoms)
+
+    timer(f"{file} parsed")
+
     if get_metadata:
         return trajectory, metadata
     return trajectory

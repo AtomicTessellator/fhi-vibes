@@ -11,6 +11,7 @@ from hilde.helpers.lattice_points import (
     get_commensurate_q_points,
 )
 from hilde.helpers import Timer
+from hilde.helpers.warnings import warn
 from .dynamical_matrix import get_dynamical_matrices
 from .displacements import get_U, get_dUdt
 from .normal_modes import u_I_to_u_s, get_A_qst2, get_phi_qst
@@ -21,11 +22,15 @@ from .normal_modes import u_I_to_u_s, get_A_qst2, get_phi_qst
 class HarmonicAnalysis:
     """ provide tools to perform harmonic analysis in periodic systems """
 
-    def __init__(self, primitive, supercell, force_constants, q_points=None):
+    def __init__(
+        self, primitive, supercell, force_constants=None, q_points=None, verbose=False
+    ):
         """ Initialize lattice points, commensurate q-points, and solve eigenvalue
             problem at each q-point. Save the results """
 
         timer = Timer()
+
+        vbsty = {"verbose": verbose}
 
         self.primitive = primitive
         self.supercell = supercell
@@ -35,13 +40,17 @@ class HarmonicAnalysis:
         self._dynamical_matrices = None
 
         # find lattice points:
-        self.lattice_points, _ = get_lattice_points(primitive, supercell)
+        self.lattice_points, _ = get_lattice_points(primitive, supercell, **vbsty)
 
         # find commensurate q_points
         if q_points is None:
-            self.q_points = get_commensurate_q_points(primitive, supercell)
+            self.q_points = get_commensurate_q_points(primitive, supercell, **vbsty)
         else:
             self.q_points = q_points
+
+        if self.force_constants is None:
+            print(f"** Force constants not set, your choice.")
+            return
 
         # solve eigenvalue problem
         self.omegas2, self.eigenvectors = self.diagonalize_dynamical_matrices()
@@ -83,7 +92,13 @@ class HarmonicAnalysis:
         return omegas2, eigenvectors
 
     def project(self, trajectory, atoms0=None, times=None):
-        """ perform mode projection for atoms objects in trajectory """
+        """ perform mode projection for atoms objects in trajectory 
+
+        Return:
+        Amplitdues, Angles, Energies in shape [q, s, t]
+        """
+
+        timer = Timer()
 
         if atoms0 is None:
             atoms0 = self.supercell
@@ -122,5 +137,7 @@ class HarmonicAnalysis:
         phi_qst = get_phi_qst(U_t, V_t, self.omegas, in_times=times)
 
         E_qst = 0.5 * self.omegas2[None, :, :] * A_qst2
+
+        timer("project trajectory")
 
         return A_qst2, phi_qst, E_qst

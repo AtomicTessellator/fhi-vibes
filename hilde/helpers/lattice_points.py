@@ -28,7 +28,9 @@ def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
     inv_lattice = la.inv(lattice)
     inv_superlattice = la.inv(superlattice)
 
-    inv_lattice_points, _ = _get_lattice_points(inv_superlattice, inv_lattice, **kwargs)
+    inv_lattice_points, _ = _get_lattice_points(
+        inv_superlattice, inv_lattice, tolerance, **kwargs
+    )
 
     return inv_lattice_points
 
@@ -182,7 +184,7 @@ def _get_lattice_points(
 
         M = supercell_matrix """
 
-    timer = Timer()
+    timer = Timer("get_lattice_points()\n--------------------")
     tol = tolerance
 
     inv_lattice = la.inv(lattice)
@@ -260,6 +262,7 @@ def _get_lattice_points(
     timer(
         f"found {len(lattice_points)} ({len(lattice_points_extended)}) lattice points"
     )
+    print()
 
     if sort:
         lattice_points = np.asarray(sort_lattice_points(lattice_points))
