@@ -11,7 +11,7 @@ from hilde.helpers.lattice_points import (
     get_commensurate_q_points,
 )
 from hilde.helpers import Timer
-from hilde.helpers.warnings import warn
+from hilde.structure.misc import get_sysname
 from .dynamical_matrix import get_dynamical_matrices
 from .displacements import get_U, get_dUdt
 from .normal_modes import u_I_to_u_s, get_A_qst2, get_phi_qst
@@ -28,7 +28,7 @@ class HarmonicAnalysis:
         """ Initialize lattice points, commensurate q-points, and solve eigenvalue
             problem at each q-point. Save the results """
 
-        timer = Timer()
+        timer = Timer(f"Set up harmonic analysis for {get_sysname(primitive)}:")
 
         vbsty = {"verbose": verbose}
 
@@ -50,6 +50,7 @@ class HarmonicAnalysis:
 
         if self.force_constants is None:
             print(f"** Force constants not set, your choice.")
+            timer()
             return
 
         # solve eigenvalue problem
@@ -61,7 +62,7 @@ class HarmonicAnalysis:
         # # find map from supercell to primitive + lattice point
         # self.indeces = map_I_to_iL(primitive, supercell)
 
-        timer(f"setup for harmonic analysis finished")
+        timer()
 
     @property
     def dynamical_matrices(self):

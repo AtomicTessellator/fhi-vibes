@@ -184,8 +184,11 @@ def _get_lattice_points(
 
         M = supercell_matrix """
 
-    timer = Timer("get_lattice_points()\n--------------------")
+    timer = Timer()
     tol = tolerance
+
+    if verbose:
+        print("get_lattice_points()\n--------------------")
 
     inv_lattice = la.inv(lattice)
     inv_superlattice = la.inv(superlattice)
@@ -262,7 +265,6 @@ def _get_lattice_points(
     timer(
         f"found {len(lattice_points)} ({len(lattice_points_extended)}) lattice points"
     )
-    print()
 
     if sort:
         lattice_points = np.asarray(sort_lattice_points(lattice_points))
