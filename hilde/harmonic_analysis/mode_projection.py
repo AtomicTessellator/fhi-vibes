@@ -11,7 +11,9 @@ from hilde.helpers.lattice_points import (
     get_commensurate_q_points,
 )
 from hilde.helpers import Timer
+from hilde.helpers.numerics import clean_matrix
 from hilde.structure.misc import get_sysname
+from hilde.spglib.q_mesh import get_ir_reciprocal_mesh
 from .dynamical_matrix import get_dynamical_matrices
 from .displacements import get_U, get_dUdt
 from .normal_modes import u_I_to_u_s, get_A_qst2, get_phi_qst
@@ -38,6 +40,7 @@ class HarmonicAnalysis:
 
         # intialize
         self._dynamical_matrices = None
+        self._irreducible_q_points = None
 
         # find lattice points:
         self.lattice_points, _ = get_lattice_points(primitive, supercell, **vbsty)
@@ -75,6 +78,32 @@ class HarmonicAnalysis:
 
         return self._dynamical_matrices
 
+    @property
+    def q_points_frac(self):
+        """ return relative q points """
+        return np.round(self.q_points @ self.supercell.cell.T).astype(int)
+
+    @property
+    def q_points_frac_primitive(self):
+        """ return relative q points """
+        return clean_matrix(self.q_points @ self.primitive.cell.T)
+
+    @property
+    def irreducible_q_points(self, is_time_reversal=True, symprec=1e-5):
+        """ return the irreducible q grid + mapping """
+
+        if self._irreducible_q_points is None:
+            mapping, ir_grid = get_ir_reciprocal_mesh(
+                self.q_points_frac,
+                self.primitive,
+                is_time_reversal=is_time_reversal,
+                symprec=symprec,
+            )
+
+            self._irreducible_q_points = (mapping, ir_grid)
+
+        return self._irreducible_q_points
+
     def diagonalize_dynamical_matrices(self, q_points=None):
         """ solve eigenvalue problem for dyn. matrices at (commensurate) q-points """
 
@@ -93,7 +122,7 @@ class HarmonicAnalysis:
         return omegas2, eigenvectors
 
     def project(self, trajectory, atoms0=None, times=None):
-        """ perform mode projection for atoms objects in trajectory 
+        """ perform mode projection for atoms objects in trajectory
 
         Return:
         Amplitdues, Angles, Energies in shape [q, s, t]
