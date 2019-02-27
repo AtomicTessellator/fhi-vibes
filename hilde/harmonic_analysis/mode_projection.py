@@ -41,6 +41,7 @@ class HarmonicAnalysis:
         # intialize
         self._dynamical_matrices = None
         self._irreducible_q_points = None
+        self._irreducible_q_points_mapping = None
 
         # find lattice points:
         self.lattice_points, _ = get_lattice_points(primitive, supercell, **vbsty)
@@ -103,7 +104,8 @@ class HarmonicAnalysis:
             symprec=symprec,
         )
 
-        self._irreducible_q_points = (mapping, ir_grid)
+        self._irreducible_q_points_mapping = mapping
+        self._irreducible_q_points = ir_grid
 
     def get_irreducible_q_points_frac(self, is_time_reversal=True, symprec=1e-5):
         """ return the irreducible q grid in fractionals + mapping """
@@ -115,6 +117,20 @@ class HarmonicAnalysis:
 
         return self._irreducible_q_points
 
+    def get_irreducible_q_points_mapping(self, is_time_reversal=True, symprec=1e-5):
+        """ return the map from q points to irreducibe qpoints """
+        if self._irreducible_q_points is None:
+            self.set_irreducible_q_points(
+                is_time_reversal=is_time_reversal, symprec=symprec
+            )
+
+        return self._irreducible_q_points_mapping
+
+    @property
+    def irreducible_q_points_mapping(self):
+        """ return mapping from full to irred. q points """
+        return self.get_irreducible_q_points_mapping()
+
     @property
     def irreducible_q_points_frac(self):
         """ return irreducible qpoints in basis of the reciprocal lattice """
@@ -123,16 +139,16 @@ class HarmonicAnalysis:
     @property
     def irreducible_q_points(self):
         """ return irreducible qpoints in cartesian """
-        (mapping, ir_grid) = self.get_irreducible_q_points_frac()
+        ir_grid = self.get_irreducible_q_points_frac()
 
-        return mapping, clean_matrix(ir_grid @ self.supercell.get_reciprocal_cell())
+        return clean_matrix(ir_grid @ self.supercell.get_reciprocal_cell())
 
     @property
     def irreducible_q_points_frac_primitive(self):
         """ return irreducible qpoints in basis of the reciprocal lattice """
-        (mapping, ir_grid) = self.irreducible_q_points
+        ir_grid = self.irreducible_q_points
 
-        return mapping, clean_matrix(ir_grid @ self.primitive.cell.T)
+        return clean_matrix(ir_grid @ self.primitive.cell.T)
 
     def diagonalize_dynamical_matrices(self, q_points=None):
         """ solve eigenvalue problem for dyn. matrices at (commensurate) q-points """
