@@ -57,27 +57,17 @@ class HarmonicAnalysis:
             timer()
             return
 
-        # solve eigenvalue problem
-        self.omegas2, self.eigenvectors = self.diagonalize_dynamical_matrices()
+        # Write as property instead
+        ## solve eigenvalue problem
+        # self.omegas2, self.eigenvectors = self.diagonalize_dynamical_matrices()
 
-        # square root respecting the sign
-        self.omegas = np.sign(self.omegas2) * np.sqrt(abs(self.omegas2))
+        ## square root respecting the sign
+        # self.omegas = np.sign(self.omegas2) * np.sqrt(abs(self.omegas2))
 
         # # find map from supercell to primitive + lattice point
         # self.indeces = map_I_to_iL(primitive, supercell)
 
         timer()
-
-    @property
-    def dynamical_matrices(self):
-        """ return dynamical matrices at (commensurate) q-points """
-
-        if self._dynamical_matrices is None:
-            self._dynamical_matrices = get_dynamical_matrices(
-                self.q_points, self.primitive, self.supercell, self.force_constants
-            )
-
-        return self._dynamical_matrices
 
     @property
     def q_points_frac(self):
@@ -150,14 +140,26 @@ class HarmonicAnalysis:
 
         return clean_matrix(ir_grid @ self.primitive.cell.T)
 
+    def get_dynamical_matrices(self, q_points=None):
+        """ return dynamical matrices at (commensurate) q-points """
+
+        if q_points is not None:
+            return get_dynamical_matrices(
+                q_points, self.primitive, self.supercell, self.force_constants
+            )
+
+        if self._dynamical_matrices is None:
+            self._dynamical_matrices = get_dynamical_matrices(
+                self.q_points, self.primitive, self.supercell, self.force_constants
+            )
+
+        return self._dynamical_matrices
+
     def diagonalize_dynamical_matrices(self, q_points=None):
         """ solve eigenvalue problem for dyn. matrices at (commensurate) q-points """
 
-        if q_points is not None:
-            self.q_points = q_points
-
         omegas2, eigenvectors = [], []
-        for dyn_matrix in self.dynamical_matrices:
+        for dyn_matrix in self.get_dynamical_matrices(q_points):
             w_2, ev = la.eigh(dyn_matrix)
             omegas2.append(w_2)
             eigenvectors.append(ev)
@@ -166,6 +168,18 @@ class HarmonicAnalysis:
         eigenvectors = np.array(eigenvectors)
 
         return omegas2, eigenvectors
+
+    def omegas2(self, q_points=None):
+        """ return square of angular frequencies """
+        omegas2, _ = self.diagonalize_dynamical_matrices(q_points)
+        return omegas2
+
+    def omegas(self, q_points=None):
+        """ return angular frequencies """
+        omegas2 = self.omegas2(q_points)
+
+        ## square root respecting the sign
+        return np.sign(omegas2) * np.sqrt(abs(omegas2))
 
     def project(self, trajectory, atoms0=None, times=None):
         """ perform mode projection for atoms objects in trajectory
@@ -187,12 +201,15 @@ class HarmonicAnalysis:
 
         indeces = map_I_to_iL(self.primitive, atoms0)
 
+        omegas2, eigenvectors = self.diagonalize_dynamical_matrices()
+        omegas = self.omegas()
+
         U_t = [
             u_I_to_u_s(
                 get_U(atoms0, atoms),
                 self.q_points,
                 self.lattice_points,
-                self.eigenvectors,
+                eigenvectors,
                 indeces,
             )
             for atoms in trajectory
@@ -203,16 +220,16 @@ class HarmonicAnalysis:
                 get_dUdt(atoms),
                 self.q_points,
                 self.lattice_points,
-                self.eigenvectors,
+                eigenvectors,
                 indeces,
             )
             for atoms in trajectory
         ]
 
-        A_qst2 = get_A_qst2(U_t, V_t, self.omegas2)
-        phi_qst = get_phi_qst(U_t, V_t, self.omegas, in_times=times)
+        A_qst2 = get_A_qst2(U_t, V_t, omegas2)
+        phi_qst = get_phi_qst(U_t, V_t, omegas, in_times=times)
 
-        E_qst = 0.5 * self.omegas2[None, :, :] * A_qst2
+        E_qst = 0.5 * omegas2[None, :, :] * A_qst2
 
         timer("project trajectory")
 
