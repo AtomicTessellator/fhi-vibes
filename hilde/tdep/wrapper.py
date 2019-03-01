@@ -3,8 +3,42 @@
 from subprocess import run
 from pathlib import Path
 
+import numpy as np
+
 from hilde.helpers.paths import cwd
 from hilde.helpers import Timer
+
+
+def parse_tdep_forceconstant(fname="infile.forceconstant_remapped", remapped=True):
+    """ parse the remapped forceconstants from TDEP """
+    timer = Timer()
+
+    if not remapped:
+        raise RuntimeError("Only remapped forceconstants can be parsed currently.")
+
+    print(f"Parse force constants from\n  {fname}")
+    with open(fname) as fo:
+        n_atoms = int(next(fo).split()[0])
+        cutoff = float(next(fo).split()[0])
+
+        print(f".. Number of atoms:   {n_atoms}")
+        print(rf".. Real space cutoff: {cutoff:.3f} \AA")
+
+        force_constants = np.zeros([n_atoms, 3, n_atoms, 3])
+
+        for i1 in range(n_atoms):
+            n_neighbors = int(next(fo).split()[0])
+            for _ in range(n_neighbors):
+                i2 = int(next(fo).split()[0]) - 1
+                # skip the lattice point
+                _ = np.array(next(fo).split(), dtype=float)
+                phi = np.array([next(fo).split() for _ in range(3)], dtype=float)
+
+                force_constants[i1, :, i2, :] = phi
+
+    timer()
+
+    return force_constants.reshape(2 * (3 * n_atoms,))
 
 
 def extract_forceconstants(
@@ -63,7 +97,7 @@ def phonon_dispersion_relations(workdir="tdep", gnuplot=True, logfile="dispersio
             run(command, stdout=file)
 
             if gnuplot:
-                print(f'.. use gnuplot to plot dispersion to pdf')
+                print(f".. use gnuplot to plot dispersion to pdf")
                 command = "gnuplot -p outfile.dispersion_relations.gnuplot_pdf".split()
                 run(command, stdout=file)
 
