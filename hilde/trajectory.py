@@ -133,6 +133,18 @@ class Trajectory(list):
     #         else:
     #             return self[0]
 
+    @property
+    def primitive(self):
+        """ Return the primitive cell if it is there """
+        if "primitive" in self.metadata:
+            return dict2results(self.metadata["primitive"]["atoms"])
+
+    @property
+    def supercell(self):
+        """ Return the supercell if it is there """
+        if "supercell" in self.metadata:
+            return dict2results(self.metadata["supercell"]["atoms"])
+
     def to_xyz(self, file="positions.xyz"):
         """ Write positions to simple xyz file for e.g. viewing with VMD """
         from ase.io.xyz import simple_write_xyz
@@ -169,15 +181,13 @@ class Trajectory(list):
 
         # supercell and fake unit cell
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
-        if "primitive" in self.metadata:
-            primitive = dict2results(self.metadata["primitive"]["atoms"])
+        if self.primitive:
             fname = folder / "infile.ucposcar"
-            primitive.write(str(fname), **write_settings)
+            self.primitive.write(str(fname), **write_settings)
             print(f".. {fname} written.")
-        if "supercell" in self.metadata:
-            supercell = dict2results(self.metadata["supercell"]["atoms"])
+        if self.supercell:
             fname = folder / "infile.ssposcar"
-            supercell.write(str(fname), **write_settings)
+            self.supercell.write(str(fname), **write_settings)
             print(f".. {fname} written.")
 
         with ExitStack() as stack:
