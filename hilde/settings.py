@@ -2,6 +2,7 @@
 import time
 import configparser
 import json
+from os import path
 
 from ase.io import read
 from ase.atoms import Atoms
@@ -12,6 +13,7 @@ from hilde._defaults import (
     DEFAULT_FIREWORKS_FILE,
     DEFAULT_SETTINGS_FILE,
     DEFAULT_TEMP_SETTINGS_FILE,
+    DEFAULT_GEOMETRY_FILE,
 )
 from hilde import __version__ as version
 from hilde.helpers.attribute_dict import AttributeDict
@@ -127,6 +129,13 @@ class Settings(ConfigDict):
         config_files = [config_file, settings_file, fireworks_file]
 
         super().__init__(config_files=[file for file in config_files if file])
+
+        if "geometry" not in self:
+            self["geometry"] = AttributeDict({"file": DEFAULT_GEOMETRY_FILE})
+            warn(f"[geometry] not found in {settings_file}, use default geometry.in")
+
+        if not path.exists(self.geometry.file):
+            warn(f"Geometry file {self.geometry.file} not found.", level=1)
 
         if write:
             self.write(DEFAULT_TEMP_SETTINGS_FILE)
