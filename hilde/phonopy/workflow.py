@@ -18,7 +18,11 @@ def run_phonopy(**kwargs):
 
     args = bootstrap(**kwargs)
 
-    completed = calculate_socket(**args)
+    try:
+        postprocess(**args)
+        exit("** Postprocess could be performed from previous calculations. Check!")
+    except FileNotFoundError:
+        completed = calculate_socket(**args)
 
     if not completed:
         restart()
