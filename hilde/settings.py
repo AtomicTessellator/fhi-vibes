@@ -130,13 +130,6 @@ class Settings(ConfigDict):
 
         super().__init__(config_files=[file for file in config_files if file])
 
-        if "geometry" not in self:
-            self["geometry"] = AttributeDict({"file": DEFAULT_GEOMETRY_FILE})
-            warn(f"[geometry] not found in {settings_file}, use default geometry.in")
-
-        if not path.exists(self.geometry.file):
-            warn(f"Geometry file {self.geometry.file} not found.", level=1)
-
         if write:
             self.write(DEFAULT_TEMP_SETTINGS_FILE)
 
@@ -146,11 +139,18 @@ class Settings(ConfigDict):
         if self._atoms:
             return self._atoms
 
-        if "geometry" in self and "file" in self.geometry:
+        # use the file specified in geometry.file or the default (geometry.in)
+        if "geometry" in self and "file" in self.geometry and self.geometry.file:
+            file = self.geometry.file
+        else:
+            file = DEFAULT_GEOMETRY_FILE
+
+        if path.exists(str(file)):
             self._atoms = read(self.geometry.file, format=format)
             return self._atoms
 
-        warn(f"No geometry specified in {self._settings_file}, return None", level=1)
+        warn(f"Geometry file {file} not found.", level=1)
+
         return None
 
     @atoms.setter
