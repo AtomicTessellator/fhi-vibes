@@ -1,22 +1,20 @@
-# configfile written at 2019/01/28 12:07:54
-
-[geometry]
-file:                geometry.in
+# configfile written at 2019/03/06 16:45:00
 
 [control]
-xc:                  pw-lda
-
-[control_kpt]
-density:             2
+xc:                            pw-lda
+k_grid:                        [2, 2, 2]
 
 [basisset]
-type:                light
+type:                          light
 
 [socketio]
-port:                12345
+port:                          12345
 
 [phonopy]
-supercell_matrix:    [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 
 [restart]
-command:             python run_phonopy.py
+command:                       python run_phonopy.py
+
+[geometry]
+file:                          geometry.in

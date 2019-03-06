@@ -1,23 +1,23 @@
 #===============================================================================
 # FHI-aims file: ./control.in
 # Created using the Atomic Simulation Environment (ASE)
-# Mon Jan 28 12:12:43 2019
+# Wed Mar  6 16:48:21 2019
 # 
 # List of parameters used to initialize the calculator:
 #     output_level : MD_light
 #     xc : pw-lda
+#     k_grid : [2, 2, 2]
 #     relativistic : atomic_zora scalar
 #     species_dir : /home/knoop/FHIaims/aimsfiles/species_defaults/light
 #     compute_forces : True
 #     use_pimd_wrapper : ('localhost', 12345)
-#     k_grid : [4, 4, 4]
 #===============================================================================
 output_level                       MD_light
 xc                                 pw-lda
+k_grid                             2 2 2
 relativistic                       atomic_zora scalar
 compute_forces                     .true.
 use_pimd_wrapper                   localhost 12345
-k_grid                             4 4 4
 #===============================================================================
 
 ################################################################################
