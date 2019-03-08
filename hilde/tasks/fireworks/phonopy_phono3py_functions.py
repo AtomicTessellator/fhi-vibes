@@ -126,7 +126,10 @@ def setup_harmonic_analysis(
         phonon_dict = phonon_to_dict(ph, to_mongo=True, add_fc=True)
 
     if ph.get_force_constants().shape[0] != len(sc.numbers):
-        force_constants = remap_force_constants(ph, sc)
+        if "remap_wd" in kwargs:
+            force_constants = remap_force_constants(ph, sc, workdir=kwargs["remap_wd"])
+        else:
+            force_constants = remap_force_constants(ph, sc)
         n_atoms = ph_new.get_supercell().get_number_of_atoms()
         ph_new.set_force_constants(force_constants.reshape(n_atoms, 3, n_atoms, 3).swapaxes(1,2))
         phonon_dict = phonon_to_dict(ph_new, to_mongo=True, add_fc=True)
@@ -151,7 +154,7 @@ def setup_harmonic_analysis(
     ha_metadata = {
         "deterministic": deterministic,
         "n_samples": n_samples,
-        "ph_dict": phonon_dict,
+        # "ph_dict": phonon_dict,
         "supercell": input2dict(sc),
         "primitive": input2dict(to_Atoms_db(ph.get_primitive())),
         **input2dict(sc, calc),

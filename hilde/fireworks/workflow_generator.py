@@ -438,11 +438,11 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
                 for key, val in meta["calculator"].items():
                     if key == "calculator":
                         val = val.lower()
-                    meta["atoms"][key] = val
-                meta["atoms"]["numbers"] = symbols2numbers(meta["atoms"]["symbols"])
-                if "cell" in meta["atoms"]:
-                    meta["atoms"]["pbc"] = True
-                at = dict2atoms(meta["atoms"])
+                    meta["Phonopy"]["primitive"][key] = val
+                meta["Phonopy"]["primitive"]["numbers"] = symbols2numbers(meta["Phonopy"]["primitive"]["symbols"])
+                if "cell" in meta["Phonopy"]["primitive"]:
+                    meta["Phonopy"]["primitive"]["pbc"] = True
+                at = dict2atoms(meta["Phonopy"]["primitive"])
                 cl = at.calc
             elif ph_file_suff == "gz" or ph_file_suff == "pick":
                 ph = pread(step_settings.harmonic_analysis.phonon_file)
@@ -455,12 +455,6 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
                 fw_settings.pop("in_spec_atoms")
             if "in_spec_calc" in fw_settings:
                 fw_settings.pop("in_spec_calc")
-        else:
-            at = "ph_supercell"
-            cl = "ph_calculator"
-            fw_settings["in_spec_atoms"] = at
-            fw_settings["in_spec_calc"] = cl
-            fw_settings["from_db"] = True
         task_spec_list.append(get_ha_task(step_settings.harmonic_analysis))
     else:
         raise ValueError("Type not defiend")

@@ -313,19 +313,24 @@ def converge_phonons(
         )
 
         analysis_wd = kwargs["workdir"].split("/")
+
         while "" in analysis_wd:
             analysis_wd.remove("")
+
         while "phonopy_analysis" in analysis_wd:
             analysis_wd.remove("phonopy_analysis")
+
         while "phono3py_analysis" in analysis_wd:
             analysis_wd.remove("phono3py_analysis")
+
         if kwargs["workdir"][0] == "/":
             analysis_wd = [""] + analysis_wd
 
-        if len(analysis_wd[-1]) > 9 and analysis_wd[-1][:9] == "sc_natoms_":
+        if "sc_natoms" in analysis_wd[-1]:
             a_wd = "/".join(analysis_wd[:-1])
         else:
             a_wd = "/".join(analysis_wd)
+
 
         a_wd += f"/sc_natoms_{int(np.linalg.det(sc_mat)*len(pc.numbers)+0.5)}"
 
