@@ -54,6 +54,7 @@ def generate_fw(
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         task_list (list of TaskSpecs): Definitions for the tasks to be run
         fw_settings (dict): FireWork settings for the step
+        qadapter (dict): The queueadapter for the step
         update_settings (dict): update calculator settings
         update_in_spec (bool): If True move the current out_spec to be in_spec
     Returns (Firework): A firework for the task
@@ -183,7 +184,6 @@ def generate_phonon_fw(
         atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec
     )
 
-
 def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=None):
     """
     Generates a Firework for the phonon analysis
@@ -192,6 +192,7 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=
         wd (str): Workdirectory
         fw_settings (dict): Firework settings for the step
         ph_settings (dict): kwargs for the phonon analysis
+        wd_init (str): workdir for the initial phonon force calculations
     Returns (Firework): Firework for the phonon analysis
     """
     if ph_settings.pop("type") == "ph":
@@ -228,9 +229,8 @@ def generate_ha_fw(atoms, wd, fw_settings, qadapter, ha_settings):
         wd (str): Workdirectory
         fw_settings (dict): Firework settings for the step
         qadapter (dict): The queueadapter for the step
-        ph_settings (dict): kwargs for the phonons
-        update_settings (dict): calculator update settings
-    Returns (Firework): Firework for the phonon initialization
+        ha_settings (dict): kwargs for the harmonic analysis
+    Returns (Firework): Firework for the harmonic analysis initialization
     """
     if qadapter and "walltime" in qadapter:
         ha_settings["walltime"] = get_time(qadapter["walltime"])
@@ -251,8 +251,9 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     """
     Generates a workflow from given set of steps
     Args
-        steps (list of dicts): List of parameters for all the steps in a given system
+        workflow (list of dicts): List of parameters for all the steps in a given system
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
+        fw_settings (dict): Firework settings for the step
     Returns (Workflow or None):
         Either adds the workflow to the launchpad or returns it
     """

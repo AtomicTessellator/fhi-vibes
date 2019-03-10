@@ -32,6 +32,20 @@ from hilde.trajectory import reader
 def post_init_mult_calcs(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
+    """
+    @brief      postprocessing for initializing parallel force calculaitons
+
+    @param      atoms           The ASE atoms object
+    @param      calc            The ASE calculate
+    @param      outputs         The outputs after setting up claculations
+    @param      func            The function used to initialize the calculations
+    @param      func_fw_out     The path to this function
+    @param      func_kwargs     The kwargs for the initializer
+    @param      func_fw_kwargs  The kwargs for this function
+    @param      fw_settings     The FireWorks settings
+
+    @return     FWAction that will run all force calculations
+    """
     if fw_settings is None:
         fw_settings = dict()
     update_spec = dict()
@@ -162,7 +176,7 @@ def add_single_calc_to_detours(
         detours (list of Fireworks): Current list of detours
         func_kwargs (dict): kwargs needed to do the socket I/O calculation
         atoms (dict): Dictionary representing the ASE Atoms object of theprimitive cell
-        atosm_list (list of Atoms): List of supercells to perform force calculations on
+        atoms_list (list of Atoms): List of supercells to perform force calculations on
         calc_dict (dict): Dictionary representing the ASE Calculator for the force calculations
         fw_settings (dict): FireWorks settings
         prefix (str): ph for phonopy and ph3 for phono3py calculations

@@ -97,7 +97,7 @@ def setup_harmonic_analysis(
     temperatures=None,
     debye_temp_fact=None,
     n_samples=1,
-    deterministic=False,
+    deterministic=True,
     fw_settings=None,
     fc_file=None,
     **kwargs,
@@ -105,7 +105,16 @@ def setup_harmonic_analysis(
     """
     Initializes harmonic analysis functions
     Args:
-    Return:
+        atoms (ASE Atoms Object): Atoms object of the primitive cell
+        calc (ASE Calculator): Calculator for the force calculations
+        phonon_dict (dict): Dictionary representation of the phonopy object
+        temperatures (list): List of temperatures to set up displacements
+        debye_temp_fact (list): List of temperatures based on factors of the debye temperature
+        n_samples (int): number of samples to calculate
+        deterministic (bool): If True use a deterministic model to set up the displacments
+        fw_settings (dict): FireWork specific settings
+        fc_file (str): force constant file
+    Return (dict): Dictionary of the force calculations to run
     """
     if temperatures is None:
         temperatures = list()
@@ -222,6 +231,7 @@ def wrap_calc_socket(
         calc_dict (dict): A dictionary representation of the ASE Calculator used to calculate
                           the Forces
         metadata (dict): metadata for the force trajectory file
+        phonon_time (list): List of times needed to calculate the supercell forces
         trajectory (str): file name for the trajectory file
         workdir (str): work directory for the force calculations
         backup_folder (str): Directory to store backups
@@ -263,7 +273,6 @@ def collect_to_trajectory(trajectory, calculated_atoms, metadata):
     """
     Collects forces to a single trajectory file
     Args:
-        workdir (str): Path to the work directory
         trajectory (str): file name for the trajectory file
         calculated_atoms (list of ASE Atoms): Results of the force calculations
         metadata (dict): metadata for the phonon calculations

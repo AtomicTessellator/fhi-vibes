@@ -11,7 +11,6 @@ from hilde.settings import Settings
 
 module_name = __name__
 
-
 def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     """
     Setups an ASE Atoms task
@@ -159,6 +158,7 @@ def atoms_calculate_task(
         func_kwargs (dict): A dictionary describing the key word arguments to func
         atoms_dict (dict): A dictionary describing the ASE Atoms object
         calc_dict (dict): A dictionary describing the ASE Calculator object
+        args (list): a list of function arguments passed to func
         fw_settings (dict): A dictionary describing the FireWorks specific settings
                             used in func_fw_out
     Returns (FWAction): The FWAction func_fw_out outputs
