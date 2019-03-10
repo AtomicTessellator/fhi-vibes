@@ -4,7 +4,7 @@ from ase.io import read
 
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.settings import Settings
-from hilde.fireworks.workflow_generator import generate_workflow
+from hilde.fireworks.workflows.workflow_generator import generate_workflow
 
 
 def main():

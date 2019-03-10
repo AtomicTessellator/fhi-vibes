@@ -1,4 +1,4 @@
-'''Standardize python function for FW PyTasks'''
+"""Standardize python function for FW PyTasks"""
 from pathlib import Path
 import os
 
@@ -8,9 +8,9 @@ from hilde import DEFAULT_CONFIG_FILE
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers.timer import Timer
 from hilde.settings import Settings
-from hilde.tasks import fireworks as fw
 
 module_name = __name__
+
 
 def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     """
@@ -36,6 +36,7 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
         pt_args += [atoms, calc, *args]
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
 
+
 def setup_general_task(task_spec, fw_settings):
     """
     Setups a general task
@@ -49,6 +50,7 @@ def setup_general_task(task_spec, fw_settings):
     pt_inputs = task_spec.get_pt_inputs()
     pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
+
 
 def generate_task(task_spec, fw_settings, atoms, calc):
     """
@@ -74,6 +76,7 @@ def generate_task(task_spec, fw_settings, atoms, calc):
         }
     )
 
+
 def generate_update_calc_task(calc_spec, updated_settings):
     """
     Generate a calculator update task
@@ -89,6 +92,7 @@ def generate_update_calc_task(calc_spec, updated_settings):
             "inputs": [calc_spec],
         }
     )
+
 
 def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     """
@@ -118,9 +122,10 @@ def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
             "func": "hilde.tasks.fireworks.utility_tasks.mod_calc",
             "args": args,
             "inputs": inputs,
-            "kwargs": kwargs
+            "kwargs": kwargs,
         }
     )
+
 
 def get_func(func_path):
     """A function that takes in a path to a python function and returns that function"""
@@ -131,6 +136,7 @@ def get_func(func_path):
         return getattr(mod, funcname)
     # Handle built in functions.
     return getattr("builtins", toks[0])
+
 
 def atoms_calculate_task(
     func_path,
@@ -203,6 +209,7 @@ def atoms_calculate_task(
     )
     return fw_acts
 
+
 def general_function_task(
     func_path, func_fw_out_path, *args, fw_settings=None, **kwargs
 ):
@@ -231,6 +238,9 @@ def general_function_task(
     )
 
 class TaskSpec:
+    """
+    @brief      Class used to define a task spec in a standardized way
+    """
     def __init__(
         self,
         func,

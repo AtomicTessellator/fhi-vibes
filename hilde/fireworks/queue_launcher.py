@@ -42,30 +42,33 @@ __maintainer__ = "Anubhav Jain"
 __email__ = "ajain@lbl.gov"
 __date__ = "Dec 12, 2012"
 
+
 def conv_t_to_sec(time_str):
     ts = time_str.split(":")
     t = 0
     for ii, tt in enumerate(ts):
-        t += int(tt) * 60**(len(ts)-1-ii)
+        t += int(tt) * 60 ** (len(ts) - 1 - ii)
     return t
 
+
 def to_time_str(n_sec):
-    '''Converts a number of seconds into a time string'''
+    """Converts a number of seconds into a time string"""
     secs = int(n_sec % 60)
     mins = int(n_sec / 60) % 60
     hrs = int(n_sec / 3600)
     return f"{hrs}:{mins}:{secs}"
 
+
 def launch_rocket_to_queue(
     launchpad,
     fworker,
     qadapter,
-    launcher_dir='.',
+    launcher_dir=".",
     reserve=False,
-    strm_lvl='INFO',
+    strm_lvl="INFO",
     create_launcher_dir=False,
     fill_mode=False,
-    fw_id=None
+    fw_id=None,
 ):
     """
     Submit a single job to the queue.
@@ -84,74 +87,106 @@ def launch_rocket_to_queue(
     """
     fworker = fworker if fworker else FWorker()
     launcher_dir = os.path.abspath(launcher_dir)
-    l_logger = get_fw_logger('queue.launcher', l_dir=launchpad.logdir, stream_level=strm_lvl)
+    l_logger = get_fw_logger(
+        "queue.launcher", l_dir=launchpad.logdir, stream_level=strm_lvl
+    )
 
-    l_logger.debug('getting queue adapter')
-    qadapter = load_object(qadapter.to_dict())  # make a defensive copy, mainly for reservation mode
+    l_logger.debug("getting queue adapter")
+    qadapter = load_object(
+        qadapter.to_dict()
+    )  # make a defensive copy, mainly for reservation mode
 
     fw, launch_id = None, None  # only needed in reservation mode
     if not os.path.exists(launcher_dir):
-        raise ValueError('Desired launch directory {} does not exist!'.format(launcher_dir))
+        raise ValueError(
+            "Desired launch directory {} does not exist!".format(launcher_dir)
+        )
 
-    if '--offline' in qadapter['rocket_launch'] and not reserve:
-        raise ValueError("Must use reservation mode (-r option) of qlaunch "
-                         "when using offline option of rlaunch!!")
+    if "--offline" in qadapter["rocket_launch"] and not reserve:
+        raise ValueError(
+            "Must use reservation mode (-r option) of qlaunch "
+            "when using offline option of rlaunch!!"
+        )
 
-    if reserve and 'singleshot' not in qadapter.get('rocket_launch', ''):
-        raise ValueError('Reservation mode of queue launcher only works for singleshot Rocket Launcher!')
+    if reserve and "singleshot" not in qadapter.get("rocket_launch", ""):
+        raise ValueError(
+            "Reservation mode of queue launcher only works for singleshot Rocket Launcher!"
+        )
 
     if fill_mode and reserve:
         raise ValueError("Fill_mode cannot be used in conjunction with reserve mode!")
 
     if fw_id and not reserve:
-        raise ValueError("qlaunch for specific fireworks may only be used in reservation mode.")
+        raise ValueError(
+            "qlaunch for specific fireworks may only be used in reservation mode."
+        )
     if fill_mode or launchpad.run_exists(fworker):
         launch_id = None
         try:
             if reserve:
                 if fw_id:
-                    l_logger.debug('finding a FW to reserve...')
+                    l_logger.debug("finding a FW to reserve...")
                 fw, launch_id = launchpad.reserve_fw(fworker, launcher_dir, fw_id=fw_id)
                 if not fw:
-                    l_logger.info('No jobs exist in the LaunchPad for submission to queue!')
+                    l_logger.info(
+                        "No jobs exist in the LaunchPad for submission to queue!"
+                    )
                     return False
-                l_logger.info('reserved FW with fw_id: {}'.format(fw.fw_id))
+                l_logger.info("reserved FW with fw_id: {}".format(fw.fw_id))
                 # update qadapter job_name based on FW name
                 job_name = get_slug(fw.name)[0:QUEUE_JOBNAME_MAXLEN]
-                qadapter.update({'job_name': job_name})
-                if '_queueadapter' in fw.spec:
-                    l_logger.debug('updating queue params using Firework spec..')
+                qadapter.update({"job_name": job_name})
+                if "_queueadapter" in fw.spec:
+                    l_logger.debug("updating queue params using Firework spec..")
                     if "walltimes" in qadapter and "queues" in qadapter:
                         if "walltime" in fw.spec["_queueadapter"]:
-                            time_req = conv_t_to_sec(fw.spec["_queueadapter"]["walltime"])
-                            wts = np.array([conv_t_to_sec(wt) for wt in qadapter["walltimes"]])
+                            time_req = conv_t_to_sec(
+                                fw.spec["_queueadapter"]["walltime"]
+                            )
+                            wts = np.array(
+                                [conv_t_to_sec(wt) for wt in qadapter["walltimes"]]
+                            )
                             inds = np.where(time_req <= wts)[0]
                             if len(inds) == 0:
                                 # fw.spec["_queueadapter"]["queue"] = qadapter["queues"][-1]
                                 if "nodes" in fw.spec["_queueadapter"]:
                                     n_nodes_strat = fw.spec["_queueadapter"]["nodes"]
-                                    fw.spec["_queueadapter"]["nodes"] *= int(np.ceil(time_req/wts[-1]))
+                                    fw.spec["_queueadapter"]["nodes"] *= int(
+                                        np.ceil(time_req / wts[-1])
+                                    )
                                 else:
                                     n_nodes_strat = 1
-                                    fw.spec["_queueadapter"]["nodes"] = int(np.ceil(time_req/wts[-1]))
-                                fw.spec["_queueadapter"]["walltime"] = to_time_str(time_req * float(n_nodes_strat) / float(fw.spec["_queueadapter"]["nodes"]))
+                                    fw.spec["_queueadapter"]["nodes"] = int(
+                                        np.ceil(time_req / wts[-1])
+                                    )
+                                fw.spec["_queueadapter"]["walltime"] = to_time_str(
+                                    time_req
+                                    * float(n_nodes_strat)
+                                    / float(fw.spec["_queueadapter"]["nodes"])
+                                )
                             else:
-                                fw.spec['_queueadapter']['queue'] = qadapter["queues"][inds[0]]
+                                fw.spec["_queueadapter"]["queue"] = qadapter["queues"][
+                                    inds[0]
+                                ]
                         elif "queue" in fw.spec["_queueadapter"]:
                             qs = np.array(qadapter["queues"])
                             inds = np.where(qs == fw.spec["_queueadapter"]["queue"])[0]
                             if len(inds) == 0:
-                                raise ValueError("Queue not listed in available queue list")
-                            fw.spec['_queueadapter']["walltime"] = qadapter["walltimes"][inds[0]]
-                        del(qadapter["walltimes"])
-                        del(qadapter["queues"])
-                    qadapter.update(fw.spec['_queueadapter'])
+                                raise ValueError(
+                                    "Queue not listed in available queue list"
+                                )
+                            fw.spec["_queueadapter"]["walltime"] = qadapter[
+                                "walltimes"
+                            ][inds[0]]
+                        del (qadapter["walltimes"])
+                        del (qadapter["queues"])
+                    qadapter.update(fw.spec["_queueadapter"])
                 # reservation mode includes --fw_id in rocket launch
-                qadapter['rocket_launch'] += ' --fw_id {}'.format(fw.fw_id)
+                qadapter["rocket_launch"] += " --fw_id {}".format(fw.fw_id)
 
                 # update launcher_dir if _launch_dir is selected in reserved fw
-                if '_launch_dir' in fw.spec:
-                    fw_launch_dir = os.path.expandvars(fw.spec['_launch_dir'])
+                if "_launch_dir" in fw.spec:
+                    fw_launch_dir = os.path.expandvars(fw.spec["_launch_dir"])
 
                     if not os.path.isabs(fw_launch_dir):
                         fw_launch_dir = os.path.join(launcher_dir, fw_launch_dir)
@@ -163,51 +198,65 @@ def launch_rocket_to_queue(
                     launchpad.change_launch_dir(launch_id, launcher_dir)
                 elif create_launcher_dir:
                     # create launcher_dir
-                    launcher_dir = create_datestamp_dir(launcher_dir, l_logger, prefix='launcher_')
+                    launcher_dir = create_datestamp_dir(
+                        launcher_dir, l_logger, prefix="launcher_"
+                    )
                     launchpad.change_launch_dir(launch_id, launcher_dir)
 
             elif create_launcher_dir:
                 # create launcher_dir
-                launcher_dir = create_datestamp_dir(launcher_dir, l_logger, prefix='launcher_')
+                launcher_dir = create_datestamp_dir(
+                    launcher_dir, l_logger, prefix="launcher_"
+                )
 
             # move to the launch directory
-            l_logger.info('moving to launch_dir {}'.format(launcher_dir))
+            l_logger.info("moving to launch_dir {}".format(launcher_dir))
 
             with cd(launcher_dir):
 
-                if '--offline' in qadapter['rocket_launch']:
+                if "--offline" in qadapter["rocket_launch"]:
                     setup_offline_job(launchpad, fw, launch_id)
 
-                l_logger.debug('writing queue script')
-                with open(SUBMIT_SCRIPT_NAME, 'w') as f:
+                l_logger.debug("writing queue script")
+                with open(SUBMIT_SCRIPT_NAME, "w") as f:
                     queue_script = qadapter.get_script_str(launcher_dir)
                     f.write(queue_script)
 
-                l_logger.info('submitting queue script')
+                l_logger.info("submitting queue script")
                 reservation_id = qadapter.submit_to_queue(SUBMIT_SCRIPT_NAME)
                 if not reservation_id:
-                    raise RuntimeError('queue script could not be submitted, check queue '
-                                       'script/queue adapter/queue server status!')
+                    raise RuntimeError(
+                        "queue script could not be submitted, check queue "
+                        "script/queue adapter/queue server status!"
+                    )
                 elif reserve:
                     launchpad.set_reservation_id(launch_id, reservation_id)
             return reservation_id
 
         except:
-            log_exception(l_logger, 'Error writing/submitting queue script!')
+            log_exception(l_logger, "Error writing/submitting queue script!")
             if reserve and launch_id is not None:
                 try:
-                    l_logger.info('Un-reserving FW with fw_id, launch_id: {}, {}'.format(
-                        fw.fw_id, launch_id))
+                    l_logger.info(
+                        "Un-reserving FW with fw_id, launch_id: {}, {}".format(
+                            fw.fw_id, launch_id
+                        )
+                    )
                     launchpad.cancel_reservation(launch_id)
                     launchpad.forget_offline(launch_id)
                 except:
-                    log_exception(l_logger, 'Error unreserving FW with fw_id {}'.format(fw.fw_id))
+                    log_exception(
+                        l_logger, "Error unreserving FW with fw_id {}".format(fw.fw_id)
+                    )
 
             return False
 
     else:
-        l_logger.info('No jobs exist in the LaunchPad for submission to queue!')
-        return None  # note: this is a hack (rather than False) to indicate a soft failure to rapidfire()
+        l_logger.info("No jobs exist in the LaunchPad for submission to queue!")
+        return (
+            None
+        )  # note: this is a hack (rather than False) to indicate a soft failure to rapidfire()
+
 
 def rapidfire(
     launchpad,

@@ -1,7 +1,7 @@
 from ase.io import read
 
 from hilde.settings import Settings
-from hilde.fireworks.workflow_generator import generate_workflow
+from hilde.fireworks.workflows.workflow_generator import generate_workflow
 
 settings = Settings()
 print(settings)

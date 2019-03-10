@@ -74,7 +74,7 @@ def rapidfire(
     num_loops = 0
 
     def time_ok():
-        ''' Determines if the rapidfire run has timed out'''
+        """ Determines if the rapidfire run has timed out"""
         return (
             timeout is None or (datetime.now() - start_time).total_seconds() < timeout
         )

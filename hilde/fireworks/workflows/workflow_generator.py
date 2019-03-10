@@ -26,19 +26,21 @@ from hilde.trajectory import reader
 
 
 def get_time(time_str):
-    '''Converts a time step to the number of seconds that time stamp represents'''
+    """Converts a time step to the number of seconds that time stamp represents"""
     time_set = time_str.split(":")
     time = 0
     for ii, tt in enumerate(time_set):
         time += int(round(float(tt))) * 60 ** (len(time_set) - 1 - ii)
     return int(time)
 
+
 def to_time_str(n_sec):
-    '''Converts a number of seconds into a time string'''
+    """Converts a number of seconds into a time string"""
     secs = int(n_sec % 60)
     mins = int(n_sec / 60) % 60
     hrs = int(n_sec / 3600)
     return f"{hrs}:{mins}:{secs}"
+
 
 def generate_firework(
     task_spec_list=None,
@@ -114,10 +116,17 @@ def generate_firework(
             if not isinstance(calc, str):
                 if "k_grid_density" in update_calc_settings:
                     if not isinstance(calc, dict):
-                        update_k_grid(atoms, calc, update_calc_settings["k_grid_density"])
+                        update_k_grid(
+                            atoms, calc, update_calc_settings["k_grid_density"]
+                        )
                     else:
                         recipcell = np.linalg.pinv(at["cell"]).transpose()
-                        calc = update_k_grid_calc_dict(calc, recipcell, at["pbc"], update_calc_settings["k_grid_density"])
+                        calc = update_k_grid_calc_dict(
+                            calc,
+                            recipcell,
+                            at["pbc"],
+                            update_calc_settings["k_grid_density"],
+                        )
 
                 cl = calc2dict(calc)
 
@@ -128,17 +137,18 @@ def generate_firework(
                     at[key] = val
             else:
                 cl = calc
-                setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
+                setup_tasks.append(
+                    generate_update_calc_task(calc, update_calc_settings)
+                )
         else:
             at = atoms
             cl = calc
             if update_calc_settings.keys():
-                setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
+                setup_tasks.append(
+                    generate_update_calc_task(calc, update_calc_settings)
+                )
 
         if "kpoint_density_spec" in fw_settings:
-            calc_spec = "calculator"
-            if "in_spec_calc" in fw_settings:
-                calc_spec = fw_settings["in_spec_calc"]
             setup_tasks.append(
                 generate_mod_calc_task(
                     at, cl, "calculator", fw_settings["kpoint_density_spec"]
@@ -155,6 +165,7 @@ def generate_firework(
         setup_tasks + job_tasks, name=fw_settings["fw_name"], spec=fw_settings["spec"]
     )
 
+
 def get_phonon_task(func_kwargs, fw_settings=None):
     """
     Generate a parallel Phononpy or Phono3py calculation task
@@ -170,11 +181,7 @@ def get_phonon_task(func_kwargs, fw_settings=None):
     kwargs_init_fw_out = {}
     preprocess_keys = {
         "ph_settings": ["supercell_matrix", "displacement"],
-        "ph3_settings": [
-            "supercell_matrix",
-            "displacement",
-            "cutoff_pair_distance",
-        ],
+        "ph3_settings": ["supercell_matrix", "displacement", "cutoff_pair_distance"],
     }
     out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
     for set_key in ["ph_settings", "ph3_settings"]:
@@ -202,7 +209,6 @@ def get_phonon_task(func_kwargs, fw_settings=None):
         inputs = []
         args = [None]
 
-
     return TaskSpec(
         "hilde.tasks.fireworks.phonopy_phono3py_functions.bootstrap_phonon",
         "hilde.tasks.fireworks.fw_out.phonons.post_init_mult_calcs",
@@ -213,6 +219,7 @@ def get_phonon_task(func_kwargs, fw_settings=None):
         func_fw_out_kwargs=kwargs_init_fw_out,
         make_abs_path=False,
     )
+
 
 def get_ha_task(func_kwargs):
     """
@@ -226,11 +233,13 @@ def get_ha_task(func_kwargs):
         inputs = list()
         if ph_file.split(".")[-1] == "yaml":
             ph = postprocess(ph_file)
-        elif ph_file.split(".")[-1] == "gz" or  ph_file.split(".")[-1] == "pick":
+        elif ph_file.split(".")[-1] == "gz" or ph_file.split(".")[-1] == "pick":
             ph = pread(ph_file)
         args = [phonon_to_dict(ph, to_mongo=True)]
     elif "prim_cell_file" in func_kwargs and "fc2_supercell_matrix" in func_kwargs:
-        ph, _, _ = preprocess(read(func_kwargs["prim_cell_file"]), func_kwargs["fc2_supercell_matrix"])
+        ph, _, _ = preprocess(
+            read(func_kwargs["prim_cell_file"]), func_kwargs["fc2_supercell_matrix"]
+        )
         func_kwargs["phonon_dict"] = phonon_to_dict(ph, to_mongo=True)
         args = list()
         inputs = list()
@@ -248,7 +257,10 @@ def get_ha_task(func_kwargs):
         make_abs_path=False,
     )
 
-def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, time_key, make_abs_path=False):
+
+def get_phonon_analysis_task(
+    func, func_kwargs, metakey, forcekey, make_abs_path=False
+):
     """
     Generate a serial Phononpy or Phono3py calculation task
     Args:
@@ -302,8 +314,9 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, time_key, mak
     )
     return task_spec_list
 
+
 def get_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
-    ''' Gets the task spec for a relaxation step'''
+    """ Gets the task spec for a relaxation step"""
     return TaskSpec(
         "hilde.relaxation.bfgs.relax",
         "hilde.tasks.fireworks.fw_out.relax.check_relaxation_complete",
@@ -313,8 +326,9 @@ def get_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
         make_abs_path=make_abs_path,
     )
 
+
 def get_aims_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
-    ''' Gets the task spec for an aims relaxation step'''
+    """ Gets the task spec for an aims relaxation step"""
     return TaskSpec(
         "hilde.tasks.calculate.calculate",
         "hilde.tasks.fireworks.fw_out.relax.check_aims_relaxation_complete",
@@ -324,8 +338,9 @@ def get_aims_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
         make_abs_path=make_abs_path,
     )
 
+
 def get_kgrid_task(func_kwargs, make_abs_path=False):
-    '''gets the task spec for a k-grid optimization'''
+    """gets the task spec for a k-grid optimization"""
     return TaskSpec(
         "hilde.k_grid.converge_kgrid.converge_kgrid",
         "hilde.tasks.fireworks.fw_out.optimizations.check_kgrid_opt_completion",
@@ -333,6 +348,7 @@ def get_kgrid_task(func_kwargs, make_abs_path=False):
         func_kwargs,
         make_abs_path=make_abs_path,
     )
+
 
 def get_step_fw(step_settings, atoms=None, make_abs_path=False):
     """
@@ -408,27 +424,17 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             and "_queueadapter" in fw_settings["spec"]
             and "walltime" in fw_settings["spec"]["_queueadapter"]
         ):
-            if (
-                "ph_settings" in func_kwargs
-                and func_kwargs["ph_settings"]["serial"]
-            ):
+            if "ph_settings" in func_kwargs and func_kwargs["ph_settings"]["serial"]:
                 func_kwargs["ph_settings"]["walltime"] = get_time(
                     fw_settings["spec"]["_queueadapter"]["walltime"]
                 )
-            if (
-                "ph3_settings" in func_kwargs
-                and func_kwargs["ph3_settings"]["serial"]
-            ):
+            if "ph3_settings" in func_kwargs and func_kwargs["ph3_settings"]["serial"]:
                 func_kwargs["ph3_settings"]["walltime"] = get_time(
                     fw_settings["spec"]["_queueadapter"]["walltime"]
                 )
         if "control_kpt" in step_settings:
             func_kwargs["kpt_density"] = step_settings.control_kpt.density
-        task_spec_list.append(
-            get_phonon_task(
-                func_kwargs, fw_settings=fw_settings
-            )
-        )
+        task_spec_list.append(get_phonon_task(func_kwargs, fw_settings=fw_settings))
     elif "harmonic_analysis" in step_settings:
         fw_settings["fw_name"] = "harmonic_analysis"
         if "phonon_file" in step_settings.harmonic_analysis:
@@ -439,7 +445,9 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
                     if key == "calculator":
                         val = val.lower()
                     meta["Phonopy"]["primitive"][key] = val
-                meta["Phonopy"]["primitive"]["numbers"] = symbols2numbers(meta["Phonopy"]["primitive"]["symbols"])
+                meta["Phonopy"]["primitive"]["numbers"] = symbols2numbers(
+                    meta["Phonopy"]["primitive"]["symbols"]
+                )
                 if "cell" in meta["Phonopy"]["primitive"]:
                     meta["Phonopy"]["primitive"]["pbc"] = True
                 at = dict2atoms(meta["Phonopy"]["primitive"])
@@ -449,7 +457,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
                 at = to_Atoms(ph.get_supercell())
                 cl = cl
             else:
-                raise InputError("File type not supported")
+                raise IOError("File type not supported")
             fw_settings["from_db"] = False
             if "in_spec_atoms" in fw_settings:
                 fw_settings.pop("in_spec_atoms")
@@ -506,6 +514,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         generate_firework(task_spec_list, None, None, fw_settings=fw_settings)
     )
     return fw_list, {fw_list[0]: fw_list[1]}
+
 
 def generate_workflow(
     steps=Settings(), fw_settings=None, atoms=None, make_abs_path=False, no_dep=False

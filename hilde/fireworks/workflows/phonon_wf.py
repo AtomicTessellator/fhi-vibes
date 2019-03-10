@@ -1,9 +1,8 @@
 """ Generate a phonon workflow for Fireworks """
-from pathlib import Path
 import numpy as np
 from fireworks import Workflow
 from hilde.fireworks.launchpad import LaunchPadHilde
-from hilde.fireworks.workflow_generator import (
+from hilde.fireworks.workflows.workflow_generator import (
     generate_firework,
     get_phonon_task,
     get_phonon_analysis_task,
@@ -19,7 +18,7 @@ from hilde.phono3py.wrapper import defaults as ph3_defaults
 
 
 def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=True):
-    '''
+    """
     update the fw_settings for the next step
     Args:
         fw_settings(dict): Current fw_settings
@@ -27,7 +26,7 @@ def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=T
         queueadapter(dict): dict describing the queueadapter changes for this firework
         update_in_spec(bool): If true move current out_spec to be in_spec
     Returns(dict): The updated fw_settings
-    '''
+    """
     if "out_spec_atoms" in fw_settings and update_in_spec:
         fw_settings["in_spec_atoms"] = fw_settings["out_spec_atoms"]
         fw_settings["in_spec_calc"] = fw_settings["out_spec_calc"]
@@ -49,7 +48,7 @@ def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=T
 def generate_fw(
     atoms, task_list, fw_settings, qadapter, update_settings=None, update_in_spec=True
 ):
-    '''
+    """
     Generates a FireWork
     Args:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
@@ -58,7 +57,7 @@ def generate_fw(
         update_settings (dict): update calculator settings
         update_in_spec (bool): If True move the current out_spec to be in_spec
     Returns (Firework): A firework for the task
-    '''
+    """
     fw_settings = update_fw_settings(
         fw_settings, fw_settings["fw_name"], qadapter, update_in_spec=update_in_spec
     )
@@ -77,7 +76,7 @@ def generate_fw(
 
 
 def generate_kgrid_fw(atoms, wd, fw_settings, qadapter, dfunc_min=1e-12):
-    '''
+    """
     Generate a k-grid optimization Firework
     Args:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
@@ -86,18 +85,23 @@ def generate_kgrid_fw(atoms, wd, fw_settings, qadapter, dfunc_min=1e-12):
         qadapter (dict): The queueadapter for the step
         dfunc_min (float): minimum value for the change in total energy when converging the k-grid
     Returns (Firework): Firework for the k-grid optimization
-    '''
+    """
     func_kwargs = {
         "workdir": wd + "/" + fw_settings["fw_name"] + "/",
         "trajectory": "kpt_trajectory.yaml",
         "dfunc_min": dfunc_min,
     }
+    if qadapter and "walltime" in qadapter:
+        func_kwargs["walltime"] = get_time(qadapter["walltime"])
+    else:
+        func_kwargs["walltime"] = 1800
+
     task_spec = get_kgrid_task(func_kwargs)
     return generate_fw(atoms, task_spec, fw_settings, qadapter)
 
 
 def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
-    '''
+    """
     Generates a Firework for the relaxation step
     Args:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
@@ -106,7 +110,7 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
         qadapter (dict): The queueadapter for the step
         rel_settings (dict): kwargs for the relaxation step
     Returns (Firework): Firework for the relaxation step
-    '''
+    """
     fw_settings["fw_name"] = rel_settings["basisset_type"] + "_relax"
     func_kwargs = {"workdir": wd + "/" + fw_settings["fw_name"] + "/"}
     fw_out_kwargs = {"relax_step": 0}
@@ -129,19 +133,13 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
         "scaled": True,
         "use_sym": True,
     }
-    return generate_fw(
-        atoms,
-        task_spec,
-        fw_settings,
-        qadapter,
-        update_settings,
-        True,
-    )
+    return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, True)
+
 
 def generate_phonon_fw(
     atoms, wd, fw_settings, qadapter, ph_settings, update_in_spec=True
 ):
-    '''
+    """
     Generates a Firework for the phonon initialization
     Args:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
@@ -151,8 +149,13 @@ def generate_phonon_fw(
         ph_settings (dict): kwargs for the phonons
         update_settings (dict): calculator update settings
     Returns (Firework): Firework for the phonon initialization
-    '''
-    if "serial" in ph_settings and ph_settings["serial"] and "spec" in fw_settings and "prev_dos_fp" in fw_settings["spec"]:
+    """
+    if (
+        "serial" in ph_settings
+        and ph_settings["serial"]
+        and "spec" in fw_settings
+        and "prev_dos_fp" in fw_settings["spec"]
+    ):
         _, _, scs = preprocess(atoms, ph_settings["supercell_matrix"])
         qadapter["walltime"] = to_time_str(get_time(qadapter["walltime"]) * len(scs))
 
@@ -180,8 +183,9 @@ def generate_phonon_fw(
         atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec
     )
 
+
 def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=None):
-    '''
+    """
     Generates a Firework for the phonon analysis
     Args:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
@@ -189,7 +193,7 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=
         fw_settings (dict): Firework settings for the step
         ph_settings (dict): kwargs for the phonon analysis
     Returns (Firework): Firework for the phonon analysis
-    '''
+    """
     if ph_settings.pop("type") == "ph":
         fw_settings["mod_spec_add"] = "ph"
         fw_settings["fw_name"] = "phonopy_analysis"
@@ -215,10 +219,9 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=
     ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
-def generate_ha_fw(
-    atoms, wd, fw_settings, qadapter, ha_settings
-):
-    '''
+
+def generate_ha_fw(atoms, wd, fw_settings, qadapter, ha_settings):
+    """
     Generates a Firework for the phonon initialization
     Args:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
@@ -228,7 +231,7 @@ def generate_ha_fw(
         ph_settings (dict): kwargs for the phonons
         update_settings (dict): calculator update settings
     Returns (Firework): Firework for the phonon initialization
-    '''
+    """
     if qadapter and "walltime" in qadapter:
         ha_settings["walltime"] = get_time(qadapter["walltime"])
     else:
@@ -241,9 +244,7 @@ def generate_ha_fw(
     fw_settings["time_spec_add"] = "ha_times"
     ha_settings["workdir"] = wd + "/harmonic_analysis/"
     task_spec = get_ha_task(ha_settings)
-    return generate_fw(
-        atoms, task_spec, fw_settings, qadapter, None, False
-    )
+    return generate_fw(atoms, task_spec, fw_settings, qadapter, None, False)
 
 
 def generate_phonon_workflow(workflow, atoms, fw_settings):
@@ -407,7 +408,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
                 workflow.general.workdir_local,
                 fw_settings,
                 phono3py_set,
-                wd_init=workflow.general.workdir_cluster
+                wd_init=workflow.general.workdir_cluster,
             )
         )
         fw_dep[fw_steps[-2]] = fw_steps[-1]
@@ -439,4 +440,3 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     else:
         launchpad = LaunchPadHilde.auto_load()
     launchpad.add_wf(Workflow(fw_steps, fw_dep, name=fw_settings["name"]))
-    return None

@@ -1,11 +1,11 @@
 """Functions that generate FWActions after performing Aims Calculations"""
-import os
-import numpy as np
-
 from pathlib import Path
+
 from fireworks import FWAction
 
-from hilde.fireworks.workflow_generator import generate_firework
+import numpy as np
+
+from hilde.fireworks.workflows.workflow_generator import generate_firework
 from hilde.helpers.converters import atoms2dict
 from hilde.trajectory import reader as traj_reader
 
@@ -26,15 +26,11 @@ def mod_spec_add(
     Returns (FWAction): Modifies the spec to add the current atoms list to it
     """
     atoms_dict = atoms2dict(outputs)
-    mod_spec = [
-        {
-            "_push": {
-                fw_settings["mod_spec_add"]: atoms_dict,
-            }
-        }
-    ]
+    mod_spec = [{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}]
     if "time_spec_add" in fw_settings:
-        mod_spec[0]["_push"][fw_settings["time_spec_add"]] = func_fw_kwargs.pop("run_time")
+        mod_spec[0]["_push"][fw_settings["time_spec_add"]] = func_fw_kwargs.pop(
+            "run_time"
+        )
 
     return FWAction(mod_spec=mod_spec)
 
@@ -64,7 +60,7 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
         if len(cur_times.shape) == 1:
             cur_times = [cur_times[3]]
         else:
-            cur_times = list(cur_times[:,3])
+            cur_times = list(cur_times[:, 3])
     else:
         cur_times = []
     update_spec = {
@@ -80,16 +76,8 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
         "phonon_times",
     ]
     if kwargs["outputs"]:
-        if "workdir" in kwargs:
-            wd = Path(kwargs["workdir"])
-        else:
-            wd = Path(".")
-
-        if "trajectory" in kwargs:
-            traj = kwargs["trajectory"]
-        else:
-            traj = "trajectory.yaml"
-
+        wd = Path(kwargs.get("workdir", "."))
+        traj = kwargs.get("trajectory", "trajectory.yaml")
         ca = traj_reader(str((wd / traj).absolute()), False)
         update_spec[fw_settings["mod_spec_add"]] = [atoms2dict(at) for at in ca]
         return FWAction(update_spec=update_spec)

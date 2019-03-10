@@ -3,7 +3,7 @@ from pathlib import Path
 
 from fireworks import FWAction
 
-from hilde.fireworks.workflow_generator import generate_firework
+from hilde.fireworks.workflows.workflow_generator import generate_firework
 from hilde.helpers.converters import calc2dict
 from hilde.helpers.fileformats import last_from_yaml
 

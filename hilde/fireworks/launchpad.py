@@ -1,6 +1,7 @@
 """ Modified Launchpad class from FireWorks"""
 from fireworks.core.launchpad import LaunchPad
 
+
 class LaunchPadHilde(LaunchPad):
     """
     The modified Launchpad that manges the FireWorks database
