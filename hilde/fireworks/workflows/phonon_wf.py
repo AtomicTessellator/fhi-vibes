@@ -92,6 +92,11 @@ def generate_kgrid_fw(atoms, wd, fw_settings, qadapter, dfunc_min=1e-12):
         "trajectory": "kpt_trajectory.yaml",
         "dfunc_min": dfunc_min,
     }
+    if qadapter and "walltime" in qadapter:
+        func_kwargs["walltime"] = get_time(qadapter["walltime"])
+    else:
+        func_kwargs["walltime"] = 1800
+
     task_spec = get_kgrid_task(func_kwargs)
     return generate_fw(atoms, task_spec, fw_settings, qadapter)
 
