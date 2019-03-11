@@ -4,7 +4,7 @@ from pathlib import Path
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import launch_rocket
 
-from hilde.fireworks.workflow_generator import generate_firework
+from hilde.fireworks.workflows.workflow_generator import generate_firework
 from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.tasks.fireworks.fw_out.general import fireworks_no_mods_gen_function
 from hilde.tasks.fireworks.general_py_task import TaskSpec

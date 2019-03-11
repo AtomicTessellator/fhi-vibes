@@ -2,7 +2,6 @@
 from fireworks import FWAction
 from hilde.helpers.converters import atoms2dict
 
-
 def mod_spec_add(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):

@@ -4,9 +4,10 @@ from pathlib import Path
 from fireworks import FWAction
 from ase.io.aims import read_aims
 
-from hilde.fireworks.workflow_generator import generate_firework
+from hilde.fireworks.workflows.workflow_generator import generate_firework
 from hilde.helpers.converters import atoms2dict, calc2dict
 from hilde.helpers.fileformats import last_from_yaml
+
 
 def check_relaxation_complete(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings

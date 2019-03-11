@@ -1,7 +1,8 @@
-'''Utility functions used in for HiLDe'''
+"""Utility functions used in for HiLDe"""
 from fireworks import FWAction
 import numpy as np
 from hilde.helpers.k_grid import update_k_grid_calc_dict
+
 
 def mod_calc(param_key, calc_spec, calc, val, atoms=None, spec_key=None):
     """

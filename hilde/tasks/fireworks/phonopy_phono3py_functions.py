@@ -1,14 +1,15 @@
-'''Functions used to wrap around HiLDe Phonopy/Phono3py functions'''
-from ase.md.velocitydistribution import PhononHarmonics
-from ase import units as u
+"""Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
-import numpy as np
+from ase import units as u
+from ase.md.velocitydistribution import PhononHarmonics
 
 from h5py import File
 
+import numpy as np
+
 from hilde import konstanten as const
-from hilde.helpers.converters import dict2atoms, calc2dict, atoms2dict, input2dict
+from hilde.helpers.converters import dict2atoms, input2dict
 from hilde.phonon_db.row import PhononRow, phonon_to_dict
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.workflow import bootstrap
@@ -20,17 +21,10 @@ from hilde.tasks.fireworks.general_py_task import get_func
 from hilde.tdep.wrapper import remap_force_constants
 from hilde.trajectory import step2file, metadata2file
 
-# from hiphive.structure_generation import generate_mc_rattled_structures
-
 def bootstrap_phonon(
-    atoms,
-    calc,
-    kpt_density=None,
-    ph_settings=None,
-    ph3_settings=None,
-    fw_settings=None,
+    atoms, calc, kpt_density=None, ph_settings=None, ph3_settings=None, fw_settings=None
 ):
-    '''
+    """
     Creates a Settings object and passes it to the bootstrap function
     Args:
         atoms (ASE Atoms Object): Atoms object of the primitive cell
@@ -40,7 +34,7 @@ def bootstrap_phonon(
         ph3_settings (dict): kwargs for phono3py setup
         fw_settings (dict): FireWork specific settings
     Returns (dict): The output of hilde.phonopy.workflow.bootstrap for phonopy and phono3py
-    '''
+    """
     settings = Settings(settings_file=None)
     settings.atoms = atoms
     if kpt_density:
@@ -72,7 +66,10 @@ def bootstrap_phonon(
         if "serial" in settings.phonopy:
             del settings.phonopy["serial"]
         ph_out = bootstrap(name="phonopy", settings=settings, **kwargs_boot)
-        ph_out["metadata"]["supercell"] = {"atoms": ph_out["metadata"]["atoms"], "calculator": {}}
+        ph_out["metadata"]["supercell"] = {
+            "atoms": ph_out["metadata"]["atoms"],
+            "calculator": {},
+        }
         ph_out["metadata"]["primitive"] = input2dict(at)
         ph_out["prefix"] = "ph"
         ph_out["settings"] = ph_settings.copy()
@@ -82,12 +79,16 @@ def bootstrap_phonon(
         if "serial" in settings.phono3py:
             del settings.phono3py["serial"]
         ph3_out = bootstrap(name="phono3py", settings=settings, **kwargs_boot)
-        ph3_out["metadata"]["supercell"] = {"atoms": ph3_out["metadata"]["atoms"], "calculator": {}}
+        ph3_out["metadata"]["supercell"] = {
+            "atoms": ph3_out["metadata"]["atoms"],
+            "calculator": {},
+        }
         ph3_out["metadata"]["primitive"] = input2dict(at)
         ph3_out["prefix"] = "ph3"
         ph3_out["settings"] = ph3_settings.copy()
         outputs.append(ph3_out)
     return outputs
+
 
 def setup_harmonic_analysis(
     atoms,
@@ -96,16 +97,25 @@ def setup_harmonic_analysis(
     temperatures=None,
     debye_temp_fact=None,
     n_samples=1,
-    deterministic=False,
+    deterministic=True,
     fw_settings=None,
     fc_file=None,
     **kwargs,
 ):
-    '''
+    """
     Initializes harmonic analysis functions
     Args:
-    Return:
-    '''
+        atoms (ASE Atoms Object): Atoms object of the primitive cell
+        calc (ASE Calculator): Calculator for the force calculations
+        phonon_dict (dict): Dictionary representation of the phonopy object
+        temperatures (list): List of temperatures to set up displacements
+        debye_temp_fact (list): List of temperatures based on factors of the debye temperature
+        n_samples (int): number of samples to calculate
+        deterministic (bool): If True use a deterministic model to set up the displacments
+        fw_settings (dict): FireWork specific settings
+        fc_file (str): force constant file
+    Return (dict): Dictionary of the force calculations to run
+    """
     if temperatures is None:
         temperatures = list()
     phonon_dict["forces_2"] = np.array(phonon_dict["forces_2"])
@@ -119,9 +129,9 @@ def setup_harmonic_analysis(
     n_atoms = ph.get_supercell().get_number_of_atoms()
     if fc_file:
         if fc_file.split(".")[-1] == "hdf5" or fc_file.split(".")[-1] == "h5":
-            fc = np.array(File(fc_file)['fc2'])
+            fc = np.array(File(fc_file)["fc2"])
         else:
-            fc = np.genfromtxt(fc_file).reshape(n_atoms,3,n_atoms,3).swapaxes(1,2)
+            fc = np.genfromtxt(fc_file).reshape(n_atoms, 3, n_atoms, 3).swapaxes(1, 2)
         ph.set_force_constants(fc)
         phonon_dict = phonon_to_dict(ph, to_mongo=True, add_fc=True)
 
@@ -131,7 +141,9 @@ def setup_harmonic_analysis(
         else:
             force_constants = remap_force_constants(ph, sc)
         n_atoms = ph_new.get_supercell().get_number_of_atoms()
-        ph_new.set_force_constants(force_constants.reshape(n_atoms, 3, n_atoms, 3).swapaxes(1,2))
+        ph_new.set_force_constants(
+            force_constants.reshape(n_atoms, 3, n_atoms, 3).swapaxes(1, 2)
+        )
         phonon_dict = phonon_to_dict(ph_new, to_mongo=True, add_fc=True)
     else:
         force_constants = (
@@ -139,7 +151,7 @@ def setup_harmonic_analysis(
         )
 
     if debye_temp_fact is not None:
-        ph.set_mesh([51,51,51])
+        ph.set_mesh([51, 51, 51])
         ph.set_total_DOS(freq_pitch=0.01)
         ph.set_Debye_frequency()
         debye_temp = ph.get_Debye_frequency() * const.THzToEv / const.kB
@@ -147,7 +159,18 @@ def setup_harmonic_analysis(
     elif temperatures is None:
         raise IOError("temperatures must be given to do harmonic analysis")
 
-    del_keys = ["qpoints", "phonon_dos_fp", "q_points", "tp_ZPE", "tp_high_T_S", "tp_T", "tp_A", "tp_S", "tp_Cv", "phonon_bs_fp"]
+    del_keys = [
+        "qpoints",
+        "phonon_dos_fp",
+        "q_points",
+        "tp_ZPE",
+        "tp_high_T_S",
+        "tp_T",
+        "tp_A",
+        "tp_S",
+        "tp_Cv",
+        "phonon_bs_fp",
+    ]
     for key in del_keys:
         if key in phonon_dict:
             phonon_dict.pop(key)
@@ -169,11 +192,11 @@ def setup_harmonic_analysis(
         to_out["settings"] = {
             "n_samples": n_samples,
             "deterministic": deterministic,
-            **kwargs
+            **kwargs,
         }
         to_out["settings"]["workdir"] += "/" + str(temp)
         calc_atoms = list()
-        for ii in range(n_samples):
+        for _ in range(n_samples):
             atoms = sc.copy()
             PhononHarmonics(
                 atoms,
@@ -188,6 +211,7 @@ def setup_harmonic_analysis(
         outputs.append(to_out)
     return outputs
 
+
 def wrap_calc_socket(
     atoms_dict_to_calculate,
     calc_dict,
@@ -199,7 +223,7 @@ def wrap_calc_socket(
     walltime=1800,
     **kwargs,
 ):
-    '''
+    """
     Wrapper for the clalculate_socket function
     Args:
         atoms_dict_to_calculate (list of dicts): A list of dicts representing the cells
@@ -207,12 +231,13 @@ def wrap_calc_socket(
         calc_dict (dict): A dictionary representation of the ASE Calculator used to calculate
                           the Forces
         metadata (dict): metadata for the force trajectory file
+        phonon_time (list): List of times needed to calculate the supercell forces
         trajectory (str): file name for the trajectory file
         workdir (str): work directory for the force calculations
         backup_folder (str): Directory to store backups
         walltime (int): number of seconds to run the calculation for
     Returns (bool): True if all the calculations completed
-    '''
+    """
     atoms_to_calculate = []
     if calc_dict["calculator"].lower() == "aims":
         settings = Settings(settings_file=None)
@@ -243,15 +268,15 @@ def wrap_calc_socket(
         **kwargs,
     )
 
+
 def collect_to_trajectory(trajectory, calculated_atoms, metadata):
-    '''
+    """
     Collects forces to a single trajectory file
     Args:
-        workdir (str): Path to the work directory
         trajectory (str): file name for the trajectory file
         calculated_atoms (list of ASE Atoms): Results of the force calculations
         metadata (dict): metadata for the phonon calculations
-    '''
+    """
     traj = Path(trajectory)
     traj.parent.mkdir(exist_ok=True, parents=True)
     if "Phonopy" in metadata:
@@ -277,6 +302,16 @@ def collect_to_trajectory(trajectory, calculated_atoms, metadata):
         if atoms:
             step2file(atoms, atoms.calc, trajectory)
 
+
 def phonon_postprocess(func_path, phonon_times, **kwargs):
+    """
+    @brief      performs phonon postprocessing steps
+
+    @param      func_path     The path to the postprocessing function
+    @param      phonon_times  The time it took to calculate the phonon forces
+    @param      kwargs        The keyword arguments for the phonon calculations
+
+    @return     { description_of_the_return_value }
+    """
     func = get_func(func_path)
     return func(**kwargs)
