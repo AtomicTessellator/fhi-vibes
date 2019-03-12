@@ -170,7 +170,7 @@ def plot_bandstructure_and_dos(
         phonon.set_total_DOS(tetrahedron_method=True)
         pdos_indices = None
 
-    plt = phonon.plot_band_structure_and_dos(pdos_indices=pdos_indices, labels=labels)
+    plt = phonon.plot_band_structure_and_dos(pdos_indices=pdos_indices)
     plt.savefig(file)
 
 
