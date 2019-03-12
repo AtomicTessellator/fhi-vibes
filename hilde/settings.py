@@ -112,7 +112,7 @@ class Configuration(ConfigDict):
 
 
 class Settings(ConfigDict):
-    """ Class to hold the settings parsed from settings.in (+ the configuration)"""
+    """ Class to hold the settings parsed from settings.in (+ the configuration) """
 
     def __init__(
         self,

@@ -21,7 +21,7 @@ def run_phonopy(**kwargs):
     try:
         postprocess(**args)
         exit("** Postprocess could be performed from previous calculations. Check!")
-    except FileNotFoundError:
+    except (FileNotFoundError, RuntimeError):
         completed = calculate_socket(**args)
 
     if not completed:
