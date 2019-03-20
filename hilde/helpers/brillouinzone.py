@@ -20,7 +20,7 @@ def get_paths(atoms):
     paths = special_paths[cellinfo.lattice].split(',')
     return paths
 
-def get_sp_points(atoms):
+def get_special_points(atoms):
     return get_special_points(atoms.cell)
 
 def get_bands(atoms, paths=None):
