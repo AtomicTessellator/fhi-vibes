@@ -174,6 +174,11 @@ class HarmonicAnalysis:
         omegas2, _ = self.diagonalize_dynamical_matrices(q_points)
         return omegas2
 
+    def eigenvectors(self, q_points=None):
+        """ return eigenvectors """
+        _, eigenvectors = self.diagonalize_dynamical_matrices(q_points)
+        return eigenvectors
+
     def omegas(self, q_points=None):
         """ return angular frequencies """
         omegas2 = self.omegas2(q_points)
