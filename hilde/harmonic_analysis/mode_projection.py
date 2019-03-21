@@ -14,7 +14,8 @@ from hilde.helpers import Timer
 from hilde.helpers.numerics import clean_matrix
 from hilde.structure.misc import get_sysname
 from hilde.spglib.q_mesh import get_ir_reciprocal_mesh
-from .dynamical_matrix import get_dynamical_matrices
+
+# from .dynamical_matrix import get_dynamical_matrices
 from .displacements import get_U, get_dUdt
 from .normal_modes import u_I_to_u_s, get_A_qst2, get_phi_qst
 
@@ -25,7 +26,14 @@ class HarmonicAnalysis:
     """ provide tools to perform harmonic analysis in periodic systems """
 
     def __init__(
-        self, primitive, supercell, force_constants=None, q_points=None, verbose=False
+        self,
+        primitive,
+        supercell,
+        force_constants=None,
+        lattice_points_frac=None,
+        lattice_points=None,
+        q_points=None,
+        verbose=False,
     ):
         """ Initialize lattice points, commensurate q-points, and solve eigenvalue
             problem at each q-point. Save the results """
@@ -36,15 +44,35 @@ class HarmonicAnalysis:
 
         self.primitive = primitive
         self.supercell = supercell
-        self.force_constants = force_constants
 
         # intialize
         self._dynamical_matrices = None
         self._irreducible_q_points = None
         self._irreducible_q_points_mapping = None
 
-        # find lattice points:
-        self.lattice_points, _ = get_lattice_points(primitive, supercell, **vbsty)
+        # set or find lattice points, Cartesian and Fractional:
+        if lattice_points_frac is not None:
+            self.lattice_points_frac = lattice_points_frac
+            lps = clean_matrix(lattice_points_frac @ self.primitive.cell)
+            self.lattice_points = lps
+        elif lattice_points is not None:
+            self.lattice_points = lattice_points
+            lps = clean_matrix(lattice_points @ la.inv(self.primitive.cell))
+            self.lattice_points_frac = lps
+        else:
+            self.lattice_points, _ = get_lattice_points(primitive, supercell, **vbsty)
+            lps = clean_matrix(self.lattice_points @ la.inv(self.primitive.cell))
+            self.lattice_points_frac = lps
+
+        # Attach force constants in the shape fc[N_L, N_i, 3, N_j, 3]
+        if force_constants is not None:
+            self.force_constants = force_constants
+
+        # Sanity check for dimensions
+        dim = self.force_constants.shape
+        assert dim[0] == self.lattice_points.shape[0], (dim, self.lattice_points.shape)
+        assert dim[1] == dim[3] == len(self.primitive), dim
+        assert dim[2] == dim[4] == 3, dim
 
         # find commensurate q_points
         if q_points is None:
@@ -71,14 +99,7 @@ class HarmonicAnalysis:
 
     @property
     def q_points_frac(self):
-        """ return relative q points
-        Fractional q points: frac_q = q . L.T """
-
-        return np.round(self.q_points @ self.supercell.cell.T).astype(int)
-
-    @property
-    def q_points_frac_primitive(self):
-        """ return relative q points
+        """ return fractional q points w.r.t to primitive cell
         Fractional q points: frac_q = q . L.T """
 
         return clean_matrix(self.q_points @ self.primitive.cell.T)
@@ -86,8 +107,10 @@ class HarmonicAnalysis:
     def set_irreducible_q_points(self, is_time_reversal=True, symprec=1e-5):
         """ determine the irreducible q grid in fractionals + mapping """
 
+        fq_supercell = np.round(self.q_points @ self.supercell.cell.T).astype(int)
+
         mapping, ir_grid = get_ir_reciprocal_mesh(
-            self.q_points_frac,
+            fq_supercell,
             self.primitive,
             self.supercell,
             is_time_reversal=is_time_reversal,
@@ -122,11 +145,6 @@ class HarmonicAnalysis:
         return self.get_irreducible_q_points_mapping()
 
     @property
-    def irreducible_q_points_frac(self):
-        """ return irreducible qpoints in basis of the reciprocal lattice """
-        return self.get_irreducible_q_points_frac()
-
-    @property
     def irreducible_q_points(self):
         """ return irreducible qpoints in cartesian """
         ir_grid = self.get_irreducible_q_points_frac()
@@ -134,32 +152,45 @@ class HarmonicAnalysis:
         return clean_matrix(ir_grid @ self.supercell.get_reciprocal_cell())
 
     @property
-    def irreducible_q_points_frac_primitive(self):
+    def irreducible_q_points_frac(self):
         """ return irreducible qpoints in basis of the reciprocal lattice """
         ir_grid = self.irreducible_q_points
 
         return clean_matrix(ir_grid @ self.primitive.cell.T)
 
-    def get_dynamical_matrices(self, q_points=None):
-        """ return dynamical matrices at (commensurate) q-points """
+    def get_Dx(self):
+        """ return mass-scaled hessian """
+        na = len(self.primitive)
+        fc = self.force_constants.reshape([-1, 3 * na, 3 * na])
 
-        if q_points is not None:
-            return get_dynamical_matrices(
-                q_points, self.primitive, self.supercell, self.force_constants
-            )
+        m = self.primitive.get_masses().repeat(3)
 
-        if self._dynamical_matrices is None:
-            self._dynamical_matrices = get_dynamical_matrices(
-                self.q_points, self.primitive, self.supercell, self.force_constants
-            )
+        return fc / np.sqrt(m[:, None] * m[None, :])
 
-        return self._dynamical_matrices
+    def get_Dq(self, q=np.array([0.0, 0.0, 0.0]), fractional=True):
+        """ return dynamical matrix at q. """
+        if fractional:
+            phases = np.exp(2j * np.pi * self.lattice_points_frac @ q)
+        else:
+            phases = np.exp(2j * np.pi * self.lattice_points @ q)
+        Dx = self.get_Dx()
+
+        Dq = (phases[:, None, None] * Dx).sum(axis=0)
+
+        # check for hermiticity
+        assert la.norm(Dq - Dq.conj().T) < 1e-12
+
+        return Dq
 
     def diagonalize_dynamical_matrices(self, q_points=None):
         """ solve eigenvalue problem for dyn. matrices at (commensurate) q-points """
 
+        if q_points is None:
+            q_points = self.q_points_frac
+
         omegas2, eigenvectors = [], []
-        for dyn_matrix in self.get_dynamical_matrices(q_points):
+        for q in q_points:
+            dyn_matrix = self.get_Dq(q)
             w_2, ev = la.eigh(dyn_matrix)
             omegas2.append(w_2)
             eigenvectors.append(ev)
@@ -212,8 +243,8 @@ class HarmonicAnalysis:
         U_t = [
             u_I_to_u_s(
                 get_U(atoms0, atoms),
-                self.q_points,
-                self.lattice_points,
+                self.q_points_frac,
+                self.lattice_points_frac,
                 eigenvectors,
                 indeces,
             )
@@ -223,8 +254,8 @@ class HarmonicAnalysis:
         V_t = [
             u_I_to_u_s(
                 get_dUdt(atoms),
-                self.q_points,
-                self.lattice_points,
+                self.q_points_frac,
+                self.lattice_points_frac,
                 eigenvectors,
                 indeces,
             )
