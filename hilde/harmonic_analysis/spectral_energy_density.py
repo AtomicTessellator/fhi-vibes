@@ -31,7 +31,9 @@ def compute_sed(traj, ideal, prim, k_points):
     masses = prim.get_masses()
     indices, offsets = _index_offset(ideal, prim)
 
-    pos = np.dot(k_points, np.dot(offsets, prim.cell).T)
+    # pos = np.dot(k_points, np.dot(offsets, prim.cell).T)
+    pos = np.dot(k_points, ideal.positions.T)
+
     exppos = np.exp(1.0j * pos)
     density = np.zeros((len(k_points), velocities.shape[2]))
     for alpha in range(3):
@@ -41,6 +43,7 @@ def compute_sed(traj, ideal, prim, k_points):
                 index = indices[i]
                 if index != b:
                     continue
+                # sum similar atoms with the same phase
                 tmp += np.outer(exppos[:, i], velocities[i, alpha])
 
             density += masses[b] * np.abs(tmp)**2
