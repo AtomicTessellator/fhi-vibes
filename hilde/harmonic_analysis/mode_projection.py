@@ -182,6 +182,15 @@ class HarmonicAnalysis:
 
         return Dq
 
+    def solve_Dq(self, q=np.array([0.0, 0.0, 0.0]), fractional=True):
+        """ solve eigenvalue problem for dynamical matrix at q """
+
+        Dq = self.get_Dq(q, fractional=fractional)
+
+        w_2, ev = la.eigh(Dq)
+
+        return w_2, ev
+
     def diagonalize_dynamical_matrices(self, q_points=None):
         """ solve eigenvalue problem for dyn. matrices at (commensurate) q-points """
 
@@ -190,8 +199,7 @@ class HarmonicAnalysis:
 
         omegas2, eigenvectors = [], []
         for q in q_points:
-            dyn_matrix = self.get_Dq(q)
-            w_2, ev = la.eigh(dyn_matrix)
+            w_2, ev = self.solve_Dq(q=q)
             omegas2.append(w_2)
             eigenvectors.append(ev)
 
