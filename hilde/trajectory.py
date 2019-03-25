@@ -6,14 +6,18 @@ Logic:
 
 """
 
+import os
 import json
+import shutil
+
+import numpy as np
 
 from ase import units
 from hilde import __version__ as version
 from hilde.helpers.converters import results2dict, dict2results
 from hilde.helpers.fileformats import to_yaml, from_yaml
 from hilde.helpers.hash import hash_atoms
-from hilde.helpers import Timer
+from hilde.helpers import Timer, warn
 
 
 def step2file(atoms, calc, file="trajectory.yaml", append_cell=False):
@@ -138,12 +142,57 @@ class Trajectory(list):
         """ Return the primitive cell if it is there """
         if "primitive" in self.metadata:
             return dict2results(self.metadata["primitive"]["atoms"])
+        warn("primitive cell not provided in trajectory metadata")
 
     @property
     def supercell(self):
         """ Return the supercell if it is there """
         if "supercell" in self.metadata:
             return dict2results(self.metadata["supercell"]["atoms"])
+        warn("supercell not provided in trajectory metadata")
+
+    def clean_drift(self):
+        """ Clean constant drift CAUTION: respect ASE time unit correctly! """
+
+        timer = Timer("Clean trajectory from constant drift")
+
+        fs = self.metadata["MD"]["fs"]
+        p_drift = np.mean([a.get_momenta().sum(axis=0) for a in self], axis=0)
+
+        print(f".. drift momentum is {p_drift}")
+
+        times = np.cumsum([a.info["dt"] * fs for a in self])
+
+        for atoms, time in zip(self, times):
+            atoms.set_momenta(atoms.get_momenta() - p_drift / len(atoms))
+
+            # the displacement
+            disp = p_drift / atoms.get_masses().sum() * time
+            atoms.positions = atoms.positions - disp
+
+        timer("velocities and positions cleaned from drift")
+
+    def write(self, file="trajectory.yaml"):
+        """ Write to yaml file """
+
+        timer = Timer(f"Write trajectory to {file}")
+
+        temp_file = "temp.yaml"
+
+        # check for file and make backup
+        if os.path.exists(file):
+            ofile = f"{file}.bak"
+            shutil.copy(file, ofile)
+            print(f".. {file} copied to {ofile}")
+
+        to_yaml(self.metadata, temp_file, mode="w")
+
+        for elem in self:
+            to_yaml(results2dict(elem), temp_file)
+
+        shutil.move(temp_file, file)
+
+        timer()
 
     def to_xyz(self, file="positions.xyz"):
         """ Write positions to simple xyz file for e.g. viewing with VMD """
@@ -228,7 +277,6 @@ class Trajectory(list):
     def get_average_displacements(self, ref_atoms=None, window=-1):
         """ Return averaged displacements """
 
-        import numpy as np
         from hilde.harmonic_analysis.displacements import get_dR
 
         # reference atoms
@@ -248,7 +296,7 @@ class Trajectory(list):
 
         return avg_displacement
 
-    def get_average_positions(self, ref_atoms=None, window=-1):
+    def get_average_positions(self, ref_atoms=None, window=-1, wrap=False):
         """ Return averaged positions """
 
         # reference atoms
@@ -264,6 +312,8 @@ class Trajectory(list):
 
         avg_atoms = ref_atoms.copy()
         avg_atoms.positions += avg_displacement
-        avg_atoms.wrap()
+
+        if wrap:
+            avg_atoms.wrap()
 
         return avg_atoms.get_positions()
