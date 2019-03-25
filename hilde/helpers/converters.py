@@ -65,8 +65,11 @@ def input2dict(atoms, calc=None, settings=False):
     return input_dict
 
 
-def results2dict(atoms, calc, append_cell=False):
+def results2dict(atoms, calc=None, append_cell=False):
     """ extract information from atoms and calculator and convert to plain dict """
+
+    if calc is None:
+        calc = atoms.calc
 
     if atoms.info:
         atoms_dict = {"info": atoms.info}
