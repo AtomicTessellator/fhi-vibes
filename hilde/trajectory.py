@@ -14,7 +14,7 @@ import numpy as np
 
 from ase import units
 from hilde import __version__ as version
-from hilde.helpers.converters import results2dict, dict2results
+from hilde.helpers.converters import results2dict, dict2results, input2dict
 from hilde.helpers.fileformats import to_yaml, from_yaml
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import Timer, warn
@@ -144,12 +144,28 @@ class Trajectory(list):
             return dict2results(self.metadata["primitive"]["atoms"])
         warn("primitive cell not provided in trajectory metadata")
 
+    @primitive.setter
+    def primitive(self, atoms):
+        """ Set the supercell atoms object """
+        dct = input2dict(atoms)
+
+        self.metadata["primitive"] = dct
+        print(".. primitive added to metadata.")
+
     @property
     def supercell(self):
         """ Return the supercell if it is there """
         if "supercell" in self.metadata:
             return dict2results(self.metadata["supercell"]["atoms"])
         warn("supercell not provided in trajectory metadata")
+
+    @supercell.setter
+    def supercell(self, atoms):
+        """ Set the supercell atoms object """
+        dct = input2dict(atoms)
+
+        self.metadata["supercell"] = dct
+        print(".. supercell added to metadata.")
 
     def clean_drift(self):
         """ Clean constant drift CAUTION: respect ASE time unit correctly! """
