@@ -86,7 +86,7 @@ def reader(file="trajectory.yaml", get_metadata=False):
         # info
         if "MD" in metadata:
             if "dt" in atoms.info:
-                atoms.info["dt"] /= md_metadata["fs"]
+                atoms.info["dt_fs"] = atoms.info["dt"] / md_metadata["fs"]
         elif "info" in obj:
             info = obj["info"]
             atoms.info.update(info)
