@@ -15,7 +15,7 @@ from hilde.helpers.numerics import clean_matrix
 from hilde.structure.misc import get_sysname
 from hilde.spglib.q_mesh import get_ir_reciprocal_mesh
 
-# from .dynamical_matrix import get_dynamical_matrices
+
 from .displacements import get_U, get_dUdt
 from .normal_modes import u_I_to_u_s, get_A_qst2, get_phi_qst
 
@@ -32,6 +32,7 @@ class HarmonicAnalysis:
         force_constants=None,
         lattice_points_frac=None,
         lattice_points=None,
+        force_constants_supercell=None,
         q_points=None,
         verbose=False,
     ):
@@ -65,25 +66,27 @@ class HarmonicAnalysis:
             self.lattice_points_frac = lps
 
         # Attach force constants in the shape fc[N_L, N_i, 3, N_j, 3]
-        if force_constants is not None:
-            self.force_constants = force_constants
+        self.force_constants = force_constants
+        if self.force_constants is not None:
+            # Sanity check for dimensions
+            dim = self.force_constants.shape
+            assert dim[0] == self.lattice_points.shape[0], (
+                dim,
+                self.lattice_points.shape,
+            )
+            assert dim[1] == dim[3] == len(self.primitive), dim
+            assert dim[2] == dim[4] == 3, dim
+        else:
+            print(f"** Force constants not set, your choice.")
 
-        # Sanity check for dimensions
-        dim = self.force_constants.shape
-        assert dim[0] == self.lattice_points.shape[0], (dim, self.lattice_points.shape)
-        assert dim[1] == dim[3] == len(self.primitive), dim
-        assert dim[2] == dim[4] == 3, dim
+        # Attach force constant matrix for supercell
+        self.force_constants_supercell = force_constants_supercell
 
         # find commensurate q_points
         if q_points is None:
             self.q_points = get_commensurate_q_points(primitive, supercell, **vbsty)
         else:
             self.q_points = q_points
-
-        if self.force_constants is None:
-            print(f"** Force constants not set, your choice.")
-            timer()
-            return
 
         # Write as property instead
         ## solve eigenvalue problem
@@ -159,11 +162,20 @@ class HarmonicAnalysis:
         return clean_matrix(ir_grid @ self.primitive.cell.T)
 
     def get_Dx(self):
-        """ return mass-scaled hessian """
+        """ return mass-scaled force constants for each lattice point """
         na = len(self.primitive)
         fc = self.force_constants.reshape([-1, 3 * na, 3 * na])
 
         m = self.primitive.get_masses().repeat(3)
+
+        return fc / np.sqrt(m[:, None] * m[None, :])
+
+    def get_Dx_supercell(self):
+        """ return mass-scaled hessian for supercell"""
+        na = len(self.supercell)
+        fc = self.force_constants_supercell.reshape(2 * [3 * na])
+
+        m = self.supercell.get_masses().repeat(3)
 
         return fc / np.sqrt(m[:, None] * m[None, :])
 
@@ -179,6 +191,9 @@ class HarmonicAnalysis:
 
         # check for hermiticity
         assert la.norm(Dq - Dq.conj().T) < 1e-12
+
+        if la.norm(Dq.imag) < 1e-12:
+            return Dq.real
 
         return Dq
 
@@ -198,6 +213,7 @@ class HarmonicAnalysis:
             q_points = self.q_points_frac
 
         omegas2, eigenvectors = [], []
+
         for q in q_points:
             w_2, ev = self.solve_Dq(q=q)
             omegas2.append(w_2)
@@ -243,7 +259,10 @@ class HarmonicAnalysis:
         # sanity check:
         # if la.norm(atoms0.positions - trajectory[0].positions) / len(atoms) > 1
 
-        indeces = map_I_to_iL(self.primitive, atoms0)
+        # lattice points for the supercell
+        lattice_points, _ = get_lattice_points(self.primitive, atoms0)
+
+        indeces = map_I_to_iL(self.primitive, atoms0, lattice_points=lattice_points)
 
         omegas2, eigenvectors = self.diagonalize_dynamical_matrices()
         omegas = self.omegas()
@@ -251,8 +270,8 @@ class HarmonicAnalysis:
         U_t = [
             u_I_to_u_s(
                 get_U(atoms0, atoms),
-                self.q_points_frac,
-                self.lattice_points_frac,
+                self.q_points,
+                lattice_points,
                 eigenvectors,
                 indeces,
             )
@@ -261,11 +280,7 @@ class HarmonicAnalysis:
 
         V_t = [
             u_I_to_u_s(
-                get_dUdt(atoms),
-                self.q_points_frac,
-                self.lattice_points_frac,
-                eigenvectors,
-                indeces,
+                get_dUdt(atoms), self.q_points, lattice_points, eigenvectors, indeces
             )
             for atoms in trajectory
         ]
