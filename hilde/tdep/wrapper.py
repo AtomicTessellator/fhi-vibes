@@ -14,7 +14,7 @@ def parse_tdep_forceconstant(fname="infile.forceconstant", force_remap=False):
     timer = Timer()
 
     remapped = force_remap
-    if "remap" in fname:
+    if "remap" in str(fname):
         remapped = True
 
     print(f"Parse force constants from\n  {fname}")
@@ -54,10 +54,11 @@ def parse_tdep_forceconstant(fname="infile.forceconstant", force_remap=False):
         n_unique = len(np.unique(lattice_points, axis=0))
         print(f".. Number of lattice points: {len(lattice_points)} ({n_unique} unique)")
 
+    timer()
+
     if remapped:
         force_constants = np.sum(force_constants, axis=0)
-
-    timer()
+        return force_constants.reshape(2 * (3 * n_atoms,))
 
     return np.array(force_constants), np.array(lattice_points)
 
