@@ -27,7 +27,7 @@ class NumpyEncoder(JSONEncoder):
     """ Decode numerical objects that json cannot parse by default"""
 
     def default(self, obj):
-        if isinstance(obj, np.ndarray):
+        if hasattr(obj, "tolist") and callable(obj.tolist):
             return obj.tolist()
         if isinstance(obj, (np.int32, np.int64)):
             return int(obj)

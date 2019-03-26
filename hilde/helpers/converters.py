@@ -14,7 +14,10 @@ from ase.constraints import voigt_6_to_full_3x3_stress
 
 
 def input2dict(atoms, calc=None, settings=False):
-    """ convert metadata information to plain dict """
+    """ convert metadata information to plain dict 
+    
+    Returns:
+        {'calculator': calc, 'atoms': atoms} """
 
     if calc is None:
         calc = atoms.calc
