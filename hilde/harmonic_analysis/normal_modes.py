@@ -23,8 +23,10 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
             * eigenvectors
             * u_q[:, None, :]
         )
+        # assert it's real
+        assert np.linalg.norm(u_temp.imag) < 1e-14, np.linalg.norm(u_temp.imag)
         # sum and reshape to [N_atoms, 3]
-        u_I[L_maps[LL]] = (u_temp).sum(axis=(0, 2)).reshape(-1, 3)
+        u_I[L_maps[LL]] = (u_temp.real).sum(axis=(0, 2)).reshape(-1, 3)
 
     # normalize 1/sqrt(N)
     u_I /= len(q_points) ** 0.5
@@ -46,6 +48,9 @@ def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
             np.exp(-2j * np.pi * q_points @ R_L)[:, None]
             * u_I[L_maps[LL]].flatten()[None, :]
         )
+
+        # assert it's real
+        assert np.linalg.norm(u_L.imag) < 1e-14, (LL, R_L, u_L)
 
     # swapaxes effectively transposes eigenvectors at each q_point
     ievs = eigenvectors.conj().swapaxes(1, 2)
@@ -115,7 +120,7 @@ def get_phi_qst(in_U_t, in_V_t, in_omegas, in_times=None):
         times = np.array(in_times)
         omega_t = omegas[None, :, :] * times[:, None, None]
 
-    phi_qst = np.arctan2(- V_t - omega_t, omegas[None, :, :] * U_t - omega_t)
+    phi_qst = np.arctan2(-V_t - omega_t, omegas[None, :, :] * U_t - omega_t)
 
     # phase not well defined for 0 modes, set to 0:
     phi_qst[:, 0, :3] = 0
