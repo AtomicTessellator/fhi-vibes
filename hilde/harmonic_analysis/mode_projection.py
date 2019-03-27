@@ -241,6 +241,35 @@ class HarmonicAnalysis:
         ## square root respecting the sign
         return np.sign(omegas2) * np.sqrt(abs(omegas2))
 
+    def get_Ut(
+        self, trajectory, lattice_points, indeces, atoms0=None, velocities=False
+    ):
+        """ Get the mode projected positions, weighted by mass.
+            With `velocities=True`, return mode projected velocities. """
+
+        d = {}
+        if velocities:
+            dU = get_dUdt
+        else:
+            dU = get_U
+            assert isinstance(atoms0, Atoms)
+            d["atoms0"] = atoms0
+
+        Ut = np.array(
+            [
+                u_I_to_u_s(
+                    dU(atoms, **d),
+                    self.q_points,
+                    lattice_points,
+                    self.eigenvectors(),
+                    indeces,
+                )
+                for atoms in trajectory
+            ]
+        )
+
+        return Ut
+
     def project(self, trajectory, atoms0=None, times=None):
         """ perform mode projection for atoms objects in trajectory
 
@@ -264,26 +293,17 @@ class HarmonicAnalysis:
 
         indeces = map_I_to_iL(self.primitive, atoms0, lattice_points=lattice_points)
 
-        omegas2, eigenvectors = self.diagonalize_dynamical_matrices()
         omegas = self.omegas()
+        omegas2 = omegas ** 2
 
-        U_t = [
-            u_I_to_u_s(
-                get_U(atoms0, atoms),
-                self.q_points,
-                lattice_points,
-                eigenvectors,
-                indeces,
-            )
-            for atoms in trajectory
-        ]
+        args = {
+            "trajectory": trajectory,
+            "lattice_points": lattice_points,
+            "indeces": indeces,
+        }
 
-        V_t = [
-            u_I_to_u_s(
-                get_dUdt(atoms), self.q_points, lattice_points, eigenvectors, indeces
-            )
-            for atoms in trajectory
-        ]
+        U_t = self.get_Ut(**{**args, "atoms0": atoms0})
+        V_t = self.get_Ut(**{**args, "velocities": True})
 
         A_qst2 = get_A_qst2(U_t, V_t, omegas2)
         phi_qst = get_phi_qst(U_t, V_t, omegas, in_times=times)
