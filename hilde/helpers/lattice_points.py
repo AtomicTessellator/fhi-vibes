@@ -137,7 +137,7 @@ def map_I_to_iL(
         inv = _map_iL_to_I(indices)
         return indices, inv
 
-    return indices
+    return np.array(indices)
 
 
 def _map_iL_to_I(I_to_iL_map):
