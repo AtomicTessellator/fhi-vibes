@@ -2,20 +2,13 @@
 
 import os
 
-try:
-    from tqdm import tqdm
-except ModuleNotFoundError:
-    tqdm = lambda x: x
-
 from ase import units
 from ase.calculators.lammpsrun import LAMMPS
 from ase.md.verlet import VelocityVerlet
 
-# from ase.md.langevin import Langevin
-# from ase.md.nvtberendsen import NVTBerendsen
-
 from hilde.io import read
 from hilde.tdep.wrapper import parse_tdep_forceconstant
+from hilde.helpers import progressbar
 
 from hilde.molecular_dynamics.utils import FCCalculator, MDLogger
 
@@ -66,7 +59,7 @@ def run(
     logger = MDLogger(atoms, trajectory, metadata=metadata, overwrite=True)
 
     atoms.calc = calc
-    for _ in tqdm(range(maxsteps)):
+    for _ in progressbar(range(maxsteps)):
         logger(atoms, info={"MD": {"nsteps": md.nsteps, "dt": md.dt}})
         md.run(1)
 

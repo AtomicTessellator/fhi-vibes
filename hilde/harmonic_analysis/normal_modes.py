@@ -49,8 +49,8 @@ def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
             * u_I[L_maps[LL]].flatten()[None, :]
         )
 
-        # assert it's real
-        assert np.linalg.norm(u_L.imag) < 1e-14, (LL, R_L, u_L)
+    # assert it's real
+    # assert np.linalg.norm(u_L.imag) < 1e-14, (LL, R_L, u_L)
 
     # swapaxes effectively transposes eigenvectors at each q_point
     ievs = eigenvectors.conj().swapaxes(1, 2)
@@ -61,6 +61,34 @@ def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
     u_s /= len(q_points) ** 0.5
 
     return np.array(u_s).real
+
+
+def get_Zqst(in_U_t, in_V_t, in_omegas):
+    r""" compute squared amplitude from mass scaled positions and velocities
+
+        Z_s(q, t) = \dot{u}_s(q, t) + \im \omega_s(q) u^2_s(q, t)
+
+        -> E_s(q, t) = |Z_s(q, t)|^2
+
+        Parameters:
+
+        in_U_t: list [N_t, N_atoms, 3]
+            mass scaled displacements for each time step
+        in_V_t: list [N_t, N_atoms, 3]
+            mass scaled velocities for each time step
+        in_omegas: list [N_q, N_s]
+            eigenfrequencies of dynamical matrices at commensurate q-points
+        """
+
+    U_t = np.array(in_U_t)
+    V_t = np.array(in_V_t)
+
+    omegas = np.array(in_omegas)
+    omegas[0, :3] = 0
+
+    Z_qst = V_t - 1.0j * omegas[None, :, :] * U_t
+
+    return Z_qst
 
 
 def get_A_qst2(in_U_t, in_V_t, in_omegas2):
