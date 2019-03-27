@@ -1,6 +1,16 @@
 """ A simple timer """
 
+import sys
 from time import time
+
+try:
+    from tqdm import tqdm
+except ModuleNotFoundError:
+    tqdm = lambda x, *args: x
+
+
+def progressbar(func):
+    return tqdm(func, file=sys.stdout)
 
 
 class Timer:

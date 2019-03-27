@@ -5,7 +5,7 @@ from itertools import product
 import numpy as np
 import scipy.linalg as la
 from hilde.helpers.numerics import clean_matrix
-from hilde.helpers.timer import Timer
+from hilde.helpers.utils import Timer
 from hilde.helpers.lattice import fractional
 from hilde.helpers.supercell import supercell as sc
 
