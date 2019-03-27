@@ -10,16 +10,14 @@ from hilde.helpers.lattice_points import (
     get_lattice_points,
     get_commensurate_q_points,
 )
-from hilde.helpers import Timer
+from hilde.helpers import Timer, progressbar
 from hilde.helpers.numerics import clean_matrix
 from hilde.structure.misc import get_sysname
 from hilde.spglib.q_mesh import get_ir_reciprocal_mesh
 
 
 from .displacements import get_U, get_dUdt
-from .normal_modes import u_I_to_u_s, get_A_qst2, get_phi_qst
-
-# from .force_constants import reshape_force_constants
+from .normal_modes import u_I_to_u_s, get_A_qst2, get_phi_qst, get_Zqst
 
 
 class HarmonicAnalysis:
@@ -31,13 +29,23 @@ class HarmonicAnalysis:
         supercell,
         force_constants=None,
         lattice_points_frac=None,
-        lattice_points=None,
         force_constants_supercell=None,
         q_points=None,
         verbose=False,
     ):
-        """ Initialize lattice points, commensurate q-points, and solve eigenvalue
-            problem at each q-point. Save the results """
+        """Initialize unit cell, supercell, force_constants and lattice points.
+
+        Args:
+            primitive (Atoms): unit cell
+            supercell (Atoms): supercell
+            force_constants (np.array): force constants as obtained from TDEP
+                {inf,out}file.forceconstant
+            lattice_points_frac (np.array): lattice points in fractional coordinates as
+                obtained from TDEP {inf,out}file.forceconstant
+            force_constants_supercell (np.array): force constants in the shape of the
+                supercell (3N, 3N), e.g. obtained from infile.forceconstant_remapped
+
+            """
 
         timer = Timer(f"Set up harmonic analysis for {get_sysname(primitive)}:")
 
@@ -56,26 +64,26 @@ class HarmonicAnalysis:
             self.lattice_points_frac = lattice_points_frac
             lps = clean_matrix(lattice_points_frac @ self.primitive.cell)
             self.lattice_points = lps
-        elif lattice_points is not None:
-            self.lattice_points = lattice_points
-            lps = clean_matrix(lattice_points @ la.inv(self.primitive.cell))
-            self.lattice_points_frac = lps
-        else:
-            self.lattice_points, _ = get_lattice_points(primitive, supercell, **vbsty)
-            lps = clean_matrix(self.lattice_points @ la.inv(self.primitive.cell))
-            self.lattice_points_frac = lps
+
+        # set the lattice points that are contained in the supercell
+        # these are in CARTESIAN coordinates!
+        lattice_points, _ = get_lattice_points(primitive, supercell, **vbsty)
+        self.lattice_points_supercell = lattice_points
+
+        # get the map from supercell index I, to (i, L) as index in unit cell + lattice
+        self.I_to_iL = map_I_to_iL(
+            self.primitive, self.supercell, lattice_points=lattice_points
+        )
 
         # Attach force constants in the shape fc[N_L, N_i, 3, N_j, 3]
+        # and check dimensions
         self.force_constants = force_constants
         if self.force_constants is not None:
-            # Sanity check for dimensions
-            dim = self.force_constants.shape
-            assert dim[0] == self.lattice_points.shape[0], (
-                dim,
-                self.lattice_points.shape,
-            )
-            assert dim[1] == dim[3] == len(self.primitive), dim
-            assert dim[2] == dim[4] == 3, dim
+            fshape = self.force_constants.shape
+            lshape = self.lattice_points.shape
+            assert fshape[0] == lshape[0], (fshape, lshape)
+            assert fshape[1] == fshape[3] == len(self.primitive), fshape
+            assert fshape[2] == fshape[4] == 3, fshape
         else:
             print(f"** Force constants not set, your choice.")
 
@@ -224,91 +232,78 @@ class HarmonicAnalysis:
 
         return omegas2, eigenvectors
 
-    def omegas2(self, q_points=None):
-        """ return square of angular frequencies """
-        omegas2, _ = self.diagonalize_dynamical_matrices(q_points)
-        return omegas2
-
-    def eigenvectors(self, q_points=None):
+    @property
+    def eigenvectors(self):
         """ return eigenvectors """
-        _, eigenvectors = self.diagonalize_dynamical_matrices(q_points)
+        _, eigenvectors = self.diagonalize_dynamical_matrices()
         return eigenvectors
 
-    def omegas(self, q_points=None):
+    @property
+    def omegas(self):
         """ return angular frequencies """
-        omegas2 = self.omegas2(q_points)
+        omegas2, _ = self.diagonalize_dynamical_matrices()
 
         ## square root respecting the sign
         return np.sign(omegas2) * np.sqrt(abs(omegas2))
 
-    def get_Ut(
-        self, trajectory, lattice_points, indeces, atoms0=None, velocities=False
-    ):
+    def get_Ut(self, trajectory, displacements=True, velocities=True):
         """ Get the mode projected positions, weighted by mass.
-            With `velocities=True`, return mode projected velocities. """
+            With `displacements=True`, return mode projected displacements.
+            With `velocities=True`, return mode projected velocities.
+        Returns:
+            (U_qst, V_qst): tuple of np.ndarrays for mode projected displacements and
+                velocities """
 
-        d = {}
-        if velocities:
-            dU = get_dUdt
-        else:
-            dU = get_U
-            assert isinstance(atoms0, Atoms)
-            d["atoms0"] = atoms0
+        args = {
+            "q_points": self.q_points,
+            "lattice_points": self.lattice_points_supercell,
+            "eigenvectors": self.eigenvectors,
+            "indeces": self.I_to_iL,
+        }
 
-        Ut = np.array(
-            [
-                u_I_to_u_s(
-                    dU(atoms, **d),
-                    self.q_points,
-                    lattice_points,
-                    self.eigenvectors(),
-                    indeces,
-                )
-                for atoms in trajectory
-            ]
-        )
+        print(f"Project trajectory onto modes:")
+        shape = [len(trajectory), len(self.q_points), 3 * len(self.primitive)]
+        Ut = np.zeros(shape)
+        Vt = np.zeros(shape)
 
-        return Ut
+        atoms0 = self.supercell
+        masses = trajectory[0].get_masses()
+        for ii in progressbar(range(len(trajectory))):
+            atoms = trajectory[ii]
+            if displacements:
+                Ut[ii] = u_I_to_u_s(get_U(atoms, atoms0=atoms0, masses=masses), **args)
+            if velocities:
+                Vt[ii] = u_I_to_u_s(get_dUdt(atoms, masses=masses), **args)
 
-    def project(self, trajectory, atoms0=None, times=None):
+        return Ut, Vt
+
+    def get_Zqst(self, trajectory):
+        """ Return the imaginary mode amplitude for [t, q, s] """
+
+        U_t, V_t = self.get_Ut(trajectory)
+
+        Z_qst = get_Zqst(U_t, V_t, self.omegas)
+
+        return Z_qst
+
+    def project(self, trajectory, times=None):
         """ perform mode projection for atoms objects in trajectory
 
         Return:
         Amplitdues, Angles, Energies in shape [q, s, t]
         """
 
-        timer = Timer()
-
-        if atoms0 is None:
-            atoms0 = self.supercell
+        timer = Timer("Perform mode analysis for trajectory")
 
         if isinstance(trajectory, Atoms):
             trajectory = [trajectory]
 
-        # sanity check:
-        # if la.norm(atoms0.positions - trajectory[0].positions) / len(atoms) > 1
+        U_t, V_t = self.get_Ut(trajectory)
 
-        # lattice points for the supercell
-        lattice_points, _ = get_lattice_points(self.primitive, atoms0)
+        A_qst2 = get_A_qst2(U_t, V_t, self.omegas ** 2)
+        phi_qst = get_phi_qst(U_t, V_t, self.omegas, in_times=times)
 
-        indeces = map_I_to_iL(self.primitive, atoms0, lattice_points=lattice_points)
-
-        omegas = self.omegas()
-        omegas2 = omegas ** 2
-
-        args = {
-            "trajectory": trajectory,
-            "lattice_points": lattice_points,
-            "indeces": indeces,
-        }
-
-        U_t = self.get_Ut(**{**args, "atoms0": atoms0})
-        V_t = self.get_Ut(**{**args, "velocities": True})
-
-        A_qst2 = get_A_qst2(U_t, V_t, omegas2)
-        phi_qst = get_phi_qst(U_t, V_t, omegas, in_times=times)
-
-        E_qst = 0.5 * omegas2[None, :, :] * A_qst2
+        E_qst = 0.5 * (self.omegas ** 2)[None, :, :] * A_qst2
 
         timer("project trajectory")
 
