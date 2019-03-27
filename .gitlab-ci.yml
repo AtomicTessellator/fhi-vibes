@@ -14,6 +14,7 @@ all_tests:
     - cd ../phonopy; python run_phonopy.py
     - python run_phono3py.py
     - cd ../md; python run_md.py
+    - cd ../harmonic_analysis; python mode_projection.py
     - cd ../phonon_db; python phonon_db.py; python phonon_db.py;
     - cd ../fireworks; python fireworks_test.py
     - cd $CI_PROJECT_DIR/examples/devel
