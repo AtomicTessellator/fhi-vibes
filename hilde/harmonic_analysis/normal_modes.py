@@ -60,7 +60,7 @@ def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
     # normalize 1/sqrt(N)
     u_s /= len(q_points) ** 0.5
 
-    return np.array(u_s).real
+    return np.array(u_s)
 
 
 def get_Zqst(in_U_t, in_V_t, in_omegas):

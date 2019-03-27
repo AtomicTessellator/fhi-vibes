@@ -263,8 +263,8 @@ class HarmonicAnalysis:
 
         print(f"Project trajectory onto modes:")
         shape = [len(trajectory), len(self.q_points), 3 * len(self.primitive)]
-        Ut = np.zeros(shape)
-        Vt = np.zeros(shape)
+        Ut = np.zeros(shape, dtype=complex)
+        Vt = np.zeros(shape, dtype=complex)
 
         atoms0 = self.supercell
         masses = trajectory[0].get_masses()
