@@ -3,6 +3,7 @@
 
 import numpy as np
 from hilde.helpers.lattice_points import map_L_to_i
+from hilde.helpers import warn
 
 
 def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
@@ -136,8 +137,10 @@ def get_phi_qst(in_U_t, in_V_t, in_omegas, in_times=None):
 
     """
 
-    U_t = np.array(in_U_t)
-    V_t = np.array(in_V_t)
+    U_t = np.array(in_U_t).real
+    V_t = np.array(in_V_t).real
+
+    warn("Cast mode amplitudes to real values, is this correct?", level=1)
 
     omegas = np.array(in_omegas)
     omegas[0, :3] = -1
