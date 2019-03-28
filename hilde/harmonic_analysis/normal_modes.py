@@ -35,7 +35,7 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
 
 
 def projector(q_points, lattice_points, eigenvectors, indeces, flat=True):
-    """ obtain the projector onto normal modes for vector product with displacements 
+    """ obtain the projector onto normal modes for vector product with displacements
 
     Args:
         q_points: (commensurate) q points
@@ -97,29 +97,29 @@ def get_Zqst(in_Uqst, in_Vqst, in_omegas):
     return Z_qst
 
 
-def get_A_qst2(in_U_t, in_V_t, in_omegas2):
+def get_A_qst2(in_U_qst, in_V_qst, in_omegas2):
     r""" compute squared amplitude from mass scaled positions and velocities
 
         A^2_s(q, t) = u^2_s(q, t) + \omega_s(q)**-2 * \dot{u}^2_s(q, t)
 
         Parameters:
 
-        in_U_t: list [N_t, N_atoms, 3]
+        in_U_qst: list [N_t, N_atoms, 3]
             mass scaled displacements for each time step
-        in_V_t: list [N_t, N_atoms, 3]
+        in_V_qst: list [N_t, N_atoms, 3]
             mass scaled velocities for each time step
         in_omegas2: list [N_q, N_s]
             eigenvalues (= squared frequencies) of dynamical matrices at commensurate
             q-points
         """
 
-    U_t = np.array(in_U_t)
-    V_t = np.array(in_V_t)
+    U_qst = np.array(in_U_qst)
+    V_qst = np.array(in_V_qst)
 
     omegas2 = np.array(in_omegas2)
     omegas2[0, :3] = 1e12
 
-    A_qst2 = abs(U_t) ** 2 + omegas2[None, :, :] ** -1 * abs(V_t) ** 2
+    A_qst2 = abs(U_qst) ** 2 + omegas2[None, :, :] ** -1 * abs(V_qst) ** 2
 
     A_qst2[:, 0, :3] = 0
 
@@ -207,4 +207,3 @@ def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
     u_s /= len(q_points) ** 0.5
 
     return np.array(u_s)
-

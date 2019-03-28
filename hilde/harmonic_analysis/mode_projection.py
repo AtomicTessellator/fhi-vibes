@@ -17,7 +17,7 @@ from hilde.spglib.q_mesh import get_ir_reciprocal_mesh
 
 
 from .displacements import get_U, get_dUdt
-from .normal_modes import u_I_to_u_s, get_A_qst2, get_phi_qst, get_Zqst
+from .normal_modes import get_A_qst2, get_phi_qst, get_Zqst, projector as mode_projector
 
 
 class HarmonicAnalysis:
@@ -246,7 +246,23 @@ class HarmonicAnalysis:
         ## square root respecting the sign
         return np.sign(omegas2) * np.sqrt(abs(omegas2))
 
-    def get_Ut(self, trajectory, displacements=True, velocities=True):
+    @property
+    def mode_projector(self):
+        """ return unitary transformation for projecting displacements and velocities
+            onto eigenmodes """
+
+        kwargs = {
+            "q_points": self.q_points,
+            "lattice_points": self.lattice_points_supercell,
+            "eigenvectors": self.eigenvectors,
+            "indeces": self.I_to_iL,
+        }
+
+        proj = mode_projector(**kwargs, flat=True)
+
+        return proj
+
+    def get_Uqst(self, trajectory, displacements=True, velocities=True):
         """ Get the mode projected positions, weighted by mass.
             With `displacements=True`, return mode projected displacements.
             With `velocities=True`, return mode projected velocities.
@@ -254,35 +270,30 @@ class HarmonicAnalysis:
             (U_qst, V_qst): tuple of np.ndarrays for mode projected displacements and
                 velocities """
 
-        args = {
-            "q_points": self.q_points,
-            "lattice_points": self.lattice_points_supercell,
-            "eigenvectors": self.eigenvectors,
-            "indeces": self.I_to_iL,
-        }
-
         print(f"Project trajectory onto modes:")
         shape = [len(trajectory), len(self.q_points), 3 * len(self.primitive)]
-        Ut = np.zeros(shape, dtype=complex)
-        Vt = np.zeros(shape, dtype=complex)
+        Uqst = np.zeros(shape, dtype=complex)
+        Vqst = np.zeros(shape, dtype=complex)
+
+        proj = self.mode_projector
 
         atoms0 = self.supercell
         masses = trajectory[0].get_masses()
         for ii in progressbar(range(len(trajectory))):
             atoms = trajectory[ii]
             if displacements:
-                Ut[ii] = u_I_to_u_s(get_U(atoms, atoms0=atoms0, masses=masses), **args)
+                Uqst[ii] = proj @ get_U(atoms, atoms0=atoms0, masses=masses).flatten()
             if velocities:
-                Vt[ii] = u_I_to_u_s(get_dUdt(atoms, masses=masses), **args)
+                Vqst[ii] = proj @ get_dUdt(atoms, masses=masses).flatten()
 
-        return Ut, Vt
+        return Uqst, Vqst
 
     def get_Zqst(self, trajectory):
         """ Return the imaginary mode amplitude for [t, q, s] """
 
-        U_t, V_t = self.get_Ut(trajectory)
+        Uqst, Vqst = self.get_Uqst(trajectory)
 
-        Z_qst = get_Zqst(U_t, V_t, self.omegas)
+        Z_qst = get_Zqst(Uqst, Vqst, self.omegas)
 
         return Z_qst
 
@@ -298,13 +309,40 @@ class HarmonicAnalysis:
         if isinstance(trajectory, Atoms):
             trajectory = [trajectory]
 
-        U_t, V_t = self.get_Ut(trajectory)
+        U_qst, V_qst = self.get_Uqst(trajectory)
 
-        A_qst2 = get_A_qst2(U_t, V_t, self.omegas ** 2)
-        phi_qst = get_phi_qst(U_t, V_t, self.omegas, in_times=times)
+        A_qst2 = get_A_qst2(U_qst, V_qst, self.omegas ** 2)
+        phi_qst = get_phi_qst(U_qst, V_qst, self.omegas, in_times=times)
 
         E_qst = 0.5 * (self.omegas ** 2)[None, :, :] * A_qst2
 
         timer("project trajectory")
 
         return A_qst2, phi_qst, E_qst
+
+
+# archive
+# def get_Ut(self, trajectory, displacements=True, velocities=True, flat=True):
+#     """ Get the positions, weighted by mass.
+#         With `displacements=True`, return displacements.
+#         With `velocities=True`, return velocities.
+#     Returns:
+#         (U_t, V_t): tuple of np.ndarrays, ready for mode projection """
+#
+#     print(f"Obtain mass weighted displacements and velocities:")
+#     shape = [len(trajectory), *self.supercell.positions.shape]
+#     Ut = np.zeros(shape)
+#     Vt = np.zeros(shape)
+#
+#     atoms0 = self.supercell
+#     masses = trajectory[0].get_masses()
+#     for ii in progressbar(range(len(trajectory))):
+#         atoms = trajectory[ii]
+#         if displacements:
+#             Ut[ii] = get_U(atoms, atoms0=atoms0, masses=masses)
+#         if velocities:
+#             Vt[ii] = get_dUdt(atoms, masses=masses)
+#
+#     if flat:
+#         return Ut.reshape(len(trajectory), -1), Vt.reshape(len(trajectory), -1)
+#     return Ut, Vt
