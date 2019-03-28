@@ -169,19 +169,33 @@ class Trajectory(list):
         self.metadata["supercell"] = dct
         print(".. supercell added to metadata.")
 
+    @property
+    def times(self):
+        """ return the times as numpy array """
+        try:
+            fs = self.metadata["MD"]["fs"]
+        except KeyError:
+            warn("time unit not found in trajectory metadata, use ase.units.fs")
+            fs = units.fs
+
+        times = np.cumsum([a.info["dt"] * fs for a in self])
+        return times
+
+    @property
+    def temperatures(self):
+        """ return the temperatues as 1d array """
+        return np.array([a.get_temperature() for a in self])
+
     def clean_drift(self):
         """ Clean constant drift CAUTION: respect ASE time unit correctly! """
 
         timer = Timer("Clean trajectory from constant drift")
 
-        fs = self.metadata["MD"]["fs"]
         p_drift = np.mean([a.get_momenta().sum(axis=0) for a in self], axis=0)
 
         print(f".. drift momentum is {p_drift}")
 
-        times = np.cumsum([a.info["dt"] * fs for a in self])
-
-        for atoms, time in zip(self, times):
+        for atoms, time in zip(self, self.times):
             atoms.set_momenta(atoms.get_momenta() - p_drift / len(atoms))
 
             # the displacement
