@@ -34,37 +34,42 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
     return np.array(u_I).real
 
 
-def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
-    r""" u_s(q) = 1/sqrt(N) e_is(q) . \sum_iL \exp(-i q.R_L) u_iL """
+def projector(q_points, lattice_points, eigenvectors, indeces, flat=True):
+    """ obtain the projector onto normal modes for vector product with displacements 
 
-    n_q, n_s = eigenvectors.shape[0:2]
-    L_maps = map_L_to_i(indeces)
+    Args:
+        q_points: (commensurate) q points
+        lattice_points: lattice points within supercell
+        eigenvectors: set of eigenvectors of dynamical matrix for each q points
+        indeces: index map from supercell index I to image index and lattice point index
+            (i, L)
+        flat: return representation for scalar product with flattened positions """
 
-    u_s = np.zeros([n_q, n_s])
+    na = len(indeces)
+    nq, ns = eigenvectors.shape[:2]
 
-    u_L = np.zeros([n_q, n_s], dtype=complex)
+    # complex conjugate of eigenvectors, shaped to [Nq, Ns, Na_prim, 3]
+    ievs = eigenvectors.conj().swapaxes(1, 2).reshape(nq, ns, ns // 3, 3)
 
-    for LL, R_L in enumerate(lattice_points):
-        u_L += (
-            np.exp(-2j * np.pi * q_points @ R_L)[:, None]
-            * u_I[L_maps[LL]].flatten()[None, :]
-        )
+    # lattice points for each positions in the supercell, shape [Na, 3]
+    RLs = lattice_points[indeces[:, 1]]
 
-    # assert it's real
-    # assert np.linalg.norm(u_L.imag) < 1e-14, (LL, R_L, u_L)
+    ## define augmented eigenvector that applies the unitary transformation
+    # i) exponentiated scalar product q . R in shape [Nq, Na, 3]
+    qR = (q_points @ RLs.T).repeat(3, axis=1).reshape(nq, na, -1)
+    # ii) phases = exp(-2 * \pi * q. R)
+    phases = np.exp(-2j * np.pi * qR)
+    # iii) normalization
+    prefactor = 1 / (nq ** 0.5)
+    # iv) patch together in shape [Nq, Ns, Na, 3]
+    ev = prefactor * phases[:, None, :, :] * ievs[:, :, indeces[:, 0], :]
 
-    # swapaxes effectively transposes eigenvectors at each q_point
-    ievs = eigenvectors.conj().swapaxes(1, 2)
-
-    u_s = (ievs * u_L[:, None, :]).sum(axis=2)
-
-    # normalize 1/sqrt(N)
-    u_s /= len(q_points) ** 0.5
-
-    return np.array(u_s)
+    if flat:
+        return ev.reshape(*ev.shape[:-2], -1)
+    return ev
 
 
-def get_Zqst(in_U_t, in_V_t, in_omegas):
+def get_Zqst(in_Uqst, in_Vqst, in_omegas):
     r""" compute squared amplitude from mass scaled positions and velocities
 
         Z_s(q, t) = \dot{u}_s(q, t) + \im \omega_s(q) u^2_s(q, t)
@@ -73,21 +78,21 @@ def get_Zqst(in_U_t, in_V_t, in_omegas):
 
         Parameters:
 
-        in_U_t: list [N_t, N_atoms, 3]
+        in_Uqst: list [N_t, N_atoms, 3]
             mass scaled displacements for each time step
-        in_V_t: list [N_t, N_atoms, 3]
+        in_Vqst: list [N_t, N_atoms, 3]
             mass scaled velocities for each time step
         in_omegas: list [N_q, N_s]
             eigenfrequencies of dynamical matrices at commensurate q-points
         """
 
-    U_t = np.array(in_U_t)
-    V_t = np.array(in_V_t)
+    Uqst = np.array(in_Uqst)
+    Vqst = np.array(in_Vqst)
 
     omegas = np.array(in_omegas)
     omegas[0, :3] = 0
 
-    Z_qst = V_t - 1.0j * omegas[None, :, :] * U_t
+    Z_qst = Vqst - 1.0j * omegas[None, :, :] * Uqst
 
     return Z_qst
 
@@ -169,3 +174,37 @@ def get_E_qst(in_U_t, in_V_t, in_omegas2):
     E_qst = 0.5 * omegas2[None, :, :] * A_qst2
 
     return E_qst
+
+
+# old stuff
+def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
+    r""" u_s(q) = 1/sqrt(N) e_is(q) . \sum_iL \exp(-i q.R_L) u_iL """
+
+    warn("DEPRECATED: Usenormal_modes.projector instead", level=1)
+
+    n_q, n_s = eigenvectors.shape[0:2]
+    L_maps = map_L_to_i(indeces)
+
+    u_s = np.zeros([n_q, n_s])
+
+    u_L = np.zeros([n_q, n_s], dtype=complex)
+
+    for LL, R_L in enumerate(lattice_points):
+        u_L += (
+            np.exp(-2j * np.pi * q_points @ R_L)[:, None]
+            * u_I[L_maps[LL]].flatten()[None, :]
+        )
+
+    # assert it's real
+    # assert np.linalg.norm(u_L.imag) < 1e-14, (LL, R_L, u_L)
+
+    # swapaxes effectively transposes eigenvectors at each q_point
+    ievs = eigenvectors.conj().swapaxes(1, 2)
+
+    u_s = (ievs * u_L[:, None, :]).sum(axis=2)
+
+    # normalize 1/sqrt(N)
+    u_s /= len(q_points) ** 0.5
+
+    return np.array(u_s)
+
