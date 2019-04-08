@@ -132,8 +132,17 @@ def get_dos(
 
 
 def get_bandstructure(phonon, paths=None, force_sets=None):
-    """ Compute bandstructure for given path """
-
+    """
+    Compute bandstructure for given path
+    Args:
+        phonon: phonopy.api_phonopy.Phonopy
+        paths: list of str
+            e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
+    Returns:
+        tuple (band_structure_dict, labels)
+            band_structure_dict: dict
+            labels: list of str
+    """
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
 
@@ -141,13 +150,13 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
     phonon.set_band_structure(bands, labels=labels)
 
-    return (*phonon.get_band_structure(), labels)
+    return (phonon.get_band_structure_dict(), labels)
 
 
 def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
     """ Plot bandstructure for given path and save to file """
 
-    *_, labels = get_bandstructure(phonon, paths, force_sets)
+    _, labels = get_bandstructure(phonon, paths, force_sets)
 
     plt = phonon.plot_band_structure()
 
@@ -159,7 +168,7 @@ def plot_bandstructure_and_dos(
 ):
     """ Plot bandstructure and PDOS """
 
-    *_, labels = get_bandstructure(phonon)
+    _, labels = get_bandstructure(phonon)
 
     if partial:
         phonon.set_mesh(q_mesh, is_eigenvectors=True, is_mesh_symmetry=False)
