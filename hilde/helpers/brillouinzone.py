@@ -45,13 +45,13 @@ def get_labels(paths, latex=True):
         labels = [*paths[0]]
     else:
         labels = [*"|".join(paths)]
-        for ii, l in enumerate(labels):
-            if l == "|":
-                labels[ii] = f"{labels[ii-1]}|{labels[ii+1]}"
-                labels[ii - 1], labels[ii + 1] = "", ""
-            if l == "G" and latex:
-                labels[ii] = "\\Gamma"
-        labels = [l for l in labels if l]
+    for ii, l in enumerate(labels):
+        if l == "|":
+            labels[ii] = f"{labels[ii-1]}|{labels[ii+1]}"
+            labels[ii - 1], labels[ii + 1] = "", ""
+        if l == "G" and latex:
+            labels[ii] = "\\Gamma"
+    labels = [l for l in labels if l]
 
     latexify = lambda sym: "$\\mathrm{\\mathsf{" + str(sym) + "}}$"
     if latex:
