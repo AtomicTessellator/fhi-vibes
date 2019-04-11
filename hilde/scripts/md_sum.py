@@ -3,6 +3,7 @@
 from pathlib import Path
 from argparse import ArgumentParser
 import numpy as np
+
 from hilde.trajectory import reader
 
 
@@ -45,7 +46,7 @@ def main():
         e_pot = [atoms.get_potential_energy() for atoms in trajectory]
         temp = [atoms.get_temperature() for atoms in trajectory]
         # sum up time steps, necessary if dt changes during md
-        time = np.cumsum([atoms.info["dt"] * 0.001 for atoms in trajectory])
+        time = np.cumsum([atoms.info["dt_fs"] * 0.001 for atoms in trajectory])
     elif "log" in infile.suffix:
         e_kin, e_pot, temp, time = parse_log(infile)
 
