@@ -47,4 +47,5 @@ setup(
     },
     data_files=[(".", ["hilde.cfg", "fireworks.cfg"])],
     zip_safe=False,
+    install_requires=["numpy", "scipy", "ase"],
 )
