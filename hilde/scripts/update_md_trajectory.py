@@ -4,8 +4,7 @@ from argparse import ArgumentParser
 import shutil
 
 from hilde.io import read
-from hilde.helpers.converters import input2dict
-from hilde.helpers.fileformats import from_yaml, to_yaml
+from hilde.trajectory import reader
 
 
 def main():
@@ -17,29 +16,21 @@ def main():
     parser.add_argument("--format", default="aims")
     args = parser.parse_args()
 
-    trajectory = args.trajectory
+    trajectory = reader(args.trajectory)
     new_trajectory = "temp.yaml"
-
-    metadata, *traj = from_yaml(trajectory)
 
     if args.uc:
         atoms = read(args.uc, format=args.format)
-        metadata["primitive"] = input2dict(atoms)
+        trajectory.primitive = atoms
 
     if args.sc:
         atoms = read(args.sc, format=args.format)
-        metadata["supercell"] = input2dict(atoms)
+        trajectory.supercell = atoms
 
-    to_yaml(metadata, new_trajectory, mode="w")
+    trajectory.write(file=new_trajectory)
 
-    for elem in traj:
-        if "MD" in elem:
-            info = elem.pop("MD")
-            elem["atoms"].update({"info": info})
-        to_yaml(elem, new_trajectory)
-
-    shutil.copy(trajectory, f"{trajectory}.bak")
-    shutil.move(new_trajectory, trajectory)
+    shutil.copy(args.trajectory, f"{args.trajectory}.bak")
+    shutil.move(new_trajectory, args.trajectory)
 
 
 if __name__ == "__main__":

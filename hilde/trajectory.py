@@ -219,7 +219,8 @@ class Trajectory(list):
 
         to_yaml(self.metadata, temp_file, mode="w")
 
-        for elem in self:
+        print(f"Write to {temp_file}:")
+        for elem in progressbar(self):
             to_yaml(results2dict(elem), temp_file)
 
         shutil.move(temp_file, file)
