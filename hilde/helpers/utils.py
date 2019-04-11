@@ -10,6 +10,7 @@ except ModuleNotFoundError:
 
 
 def progressbar(func):
+    """ show progressbar when looping """
     return tqdm(func, file=sys.stdout)
 
 
@@ -29,3 +30,9 @@ class Timer:
             print(f".. {info_str} in {time_str}")
         else:
             print(f".. time elapsed: {time_str}")
+
+
+# print in bold
+def bold(text):
+    """ print test in bold face """
+    return "\033[1m" + text + "\033[0m"
