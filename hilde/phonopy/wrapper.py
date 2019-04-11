@@ -128,7 +128,7 @@ def get_dos(
         phonon.write_total_dos()
         Path("total_dos.dat").rename(filename)
 
-    return phonon.get_total_DOS()
+    return phonon.get_total_dos_dict()
 
 
 def get_bandstructure(phonon, paths=None, force_sets=None):
@@ -184,7 +184,7 @@ def plot_bandstructure_and_dos(
 
 
 def summarize_bandstructure(phonon, fp_file=None):
-    """ print a concise symmary of the bandstructure fingerpirnt """
+    """ print a concise symmary of the bandstructure fingerprint """
     from hilde.konstanten.einheiten import THz_to_cm
 
     get_bandstructure(phonon)
