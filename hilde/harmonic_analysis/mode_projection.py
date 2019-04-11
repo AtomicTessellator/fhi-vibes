@@ -67,7 +67,7 @@ class HarmonicAnalysis:
 
         # set the lattice points that are contained in the supercell
         # these are in CARTESIAN coordinates!
-        lattice_points, _ = get_lattice_points(primitive, supercell, **vbsty)
+        lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell, **vbsty)
         self.lattice_points_supercell = lattice_points
 
         # get the map from supercell index I, to (i, L) as index in unit cell + lattice
@@ -92,7 +92,9 @@ class HarmonicAnalysis:
 
         # find commensurate q_points
         if q_points is None:
-            self.q_points = get_commensurate_q_points(primitive, supercell, **vbsty)
+            self.q_points = get_commensurate_q_points(
+                primitive.cell, supercell.cell, **vbsty
+            )
         else:
             self.q_points = q_points
 

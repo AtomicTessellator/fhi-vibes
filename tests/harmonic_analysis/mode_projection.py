@@ -34,11 +34,11 @@ def main():
 
     masses = supercell.get_masses()
 
-    lattice_points, _ = get_lattice_points(primitive, supercell)
+    lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)
     indeces = map_I_to_iL(primitive, supercell)
 
     # check if the commensurate q point is correct
-    q_points = get_commensurate_q_points(primitive, supercell)
+    q_points = get_commensurate_q_points(primitive.cell, supercell.cell)
     assert la.norm(q_points[1] - [0.18429553175324292, 0.0, 0.0]) < 1e-14, q_points
 
     # diagonalize dynamical matrices at commensurate q points

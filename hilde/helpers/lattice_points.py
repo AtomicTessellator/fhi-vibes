@@ -4,13 +4,16 @@ unit cell etc. """
 from itertools import product
 import numpy as np
 import scipy.linalg as la
+
+from ase import Atoms
 from hilde.helpers.numerics import clean_matrix
 from hilde.helpers.utils import Timer
 from hilde.helpers.lattice import fractional
 from hilde.helpers.supercell import supercell as sc
+from hilde.helpers import warn
 
 
-def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
+def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
     """ For a commensurate q_points we have
 
         exp( 2*pi q . L_k ) = 1 for any k and L_k being the supercell lattice vectors
@@ -21,15 +24,28 @@ def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
         This means we have to call lattice_points.get_lattice_points with the inverse
         lattices.
 
+    Args:
+        cell (ndarray): cell matrix of primitive cell
+        supercell (ndarray): cell matrix of supercell
+
     """
 
-    lattice = atoms.cell.T
-    superlattice = supercell.cell.T
+    # check if cell is array
+    if isinstance(cell, Atoms):
+        warn("DEPRECATED: Please provide 3x3 matrix instead of Atoms object")
+        cell = cell.cell
+    # check if cell is array
+    if isinstance(supercell, Atoms):
+        warn("DEPRECATED: Please provide 3x3 matrix instead of Atoms object")
+        supercell = supercell.cell
+
+    lattice = cell.T
+    superlattice = supercell.T
 
     inv_lattice = la.inv(lattice)
     inv_superlattice = la.inv(superlattice)
 
-    inv_lattice_points, _ = _get_lattice_points(
+    inv_lattice_points, _ = get_lattice_points(
         inv_superlattice, inv_lattice, tolerance, **kwargs
     )
 
@@ -73,9 +89,9 @@ def map_I_to_iL(
 
     if lattice_points is None:
         if extended:
-            _, lattice_points = get_lattice_points(atoms, supercell)
+            _, lattice_points = get_lattice_points(atoms.cell, supercell.cell)
         else:
-            lattice_points, _ = get_lattice_points(atoms, supercell)
+            lattice_points, _ = get_lattice_points(atoms.cell, supercell.cell)
 
     # create all positions R = r_i + L
     all_positions = []
@@ -162,34 +178,36 @@ def _map_iL_to_I(I_to_iL_map):
     return iL2I.squeeze()
 
 
-def get_lattice_points(atoms, supercell, fortran=True, **kwargs):
-    """ wrap _get_lattice_points """
-    return _get_lattice_points(atoms.cell, supercell.cell, fortran=fortran, **kwargs)
-
-
-# flokno: what is this?
-# def get_supercell_positions(atoms, supercell):
-#     """ find all positions in the supercell including the boundary atom """
-#
-#     timer = Timer()
-#     tol = tolerance
-#
-#     lattice_points, lattice_points_ext = get_lattice_points(atoms, supercell)
-
-
-def _get_lattice_points(
-    lattice, superlattice, tolerance=1e-5, sort=True, fortran=True, verbose=False
+def get_lattice_points(
+    cell, supercell, tolerance=1e-5, sort=True, fortran=True, verbose=False
 ):
     """
         S = M . L
 
-        M = supercell_matrix """
+        M = supercell_matrix
+
+    Args:
+        cell (ndarray): lattice matrix of primitive cell
+        supercell (ndarray): lattice matrix of supercell
+        """
 
     timer = Timer()
     tol = tolerance
 
+    # check if cell is array
+    if isinstance(cell, Atoms):
+        warn("DEPRECATED: Please provide 3x3 matrix instead of Atoms object")
+        cell = cell.cell
+    # check if cell is array
+    if isinstance(supercell, Atoms):
+        warn("DEPRECATED: Please provide 3x3 matrix instead of Atoms object")
+        supercell = supercell.cell
+
     if verbose:
         print("get_lattice_points()\n--------------------")
+
+    lattice = cell.copy()
+    superlattice = supercell.copy()
 
     inv_lattice = la.inv(lattice)
     inv_superlattice = la.inv(superlattice)

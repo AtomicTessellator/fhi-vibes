@@ -11,7 +11,7 @@ def reshape_force_constants(
     """ reshape from (3N x 3N) into 3x3 blocks labelled by (i,L) """
 
     if lattice_points is None:
-        lattice_points, _ = get_lattice_points(primitive, supercell)
+        lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)
 
     indeces = map_I_to_iL(primitive, supercell, lattice_points=lattice_points)
 

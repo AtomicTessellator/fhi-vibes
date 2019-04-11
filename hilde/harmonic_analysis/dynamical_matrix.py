@@ -24,7 +24,7 @@ def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
 def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=1e-12):
     """ build the dynamical matrix for each q_point """
 
-    lattice_points, _ = get_lattice_points(primitive, supercell)
+    lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)
 
     force_constants_reshaped = reshape_force_constants(
         primitive, supercell, force_constants, lattice_points=lattice_points
