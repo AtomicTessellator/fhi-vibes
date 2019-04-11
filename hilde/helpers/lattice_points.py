@@ -4,7 +4,8 @@ unit cell etc. """
 from itertools import product
 import numpy as np
 import scipy.linalg as la
-from hilde.helpers.timer import Timer
+from hilde.helpers.numerics import clean_matrix
+from hilde.helpers.utils import Timer
 from hilde.helpers.lattice import fractional
 from hilde.helpers.supercell import supercell as sc
 
@@ -32,7 +33,7 @@ def get_commensurate_q_points(atoms, supercell, tolerance=1e-5, **kwargs):
         inv_superlattice, inv_lattice, tolerance, **kwargs
     )
 
-    return inv_lattice_points
+    return clean_matrix(inv_lattice_points)
 
 
 def map_L_to_i(indeces):
@@ -136,7 +137,7 @@ def map_I_to_iL(
         inv = _map_iL_to_I(indices)
         return indices, inv
 
-    return indices
+    return np.array(indices)
 
 
 def _map_iL_to_I(I_to_iL_map):

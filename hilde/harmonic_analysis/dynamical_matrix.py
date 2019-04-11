@@ -47,11 +47,7 @@ def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=
             for ii in range(n_prim):
                 for jj in range(n_prim):
                     dyn_matrix[ii, jj, :, :] += (
-                        0.5 * prefactor * force_constants_reshaped[ii, 0, jj, LL]
-                    )
-
-                    dyn_matrix[ii, jj, :, :] += (
-                        0.5 * prefactor * force_constants_reshaped[jj, LL, ii, 0]
+                        prefactor * force_constants_reshaped[ii, 0, jj, LL]
                     )
 
         for ii in range(n_prim):

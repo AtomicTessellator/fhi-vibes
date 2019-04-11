@@ -9,14 +9,17 @@ from hilde.helpers.paths import cwd
 from hilde.helpers import Timer
 
 
-def parse_tdep_forceconstant(fname="infile.forceconstant_remapped", remapped=True):
+def parse_tdep_forceconstant(fname="infile.forceconstant", force_remap=False):
     """ parse the remapped forceconstants from TDEP """
     timer = Timer()
 
-    if not remapped:
-        raise RuntimeError("Only remapped forceconstants can be parsed currently.")
+    remapped = force_remap
+    if "remap" in str(fname):
+        remapped = True
 
     print(f"Parse force constants from\n  {fname}")
+    print(f".. remap representation for supercell: ", remapped)
+
     with open(fname) as fo:
         n_atoms = int(next(fo).split()[0])
         cutoff = float(next(fo).split()[0])
@@ -24,21 +27,40 @@ def parse_tdep_forceconstant(fname="infile.forceconstant_remapped", remapped=Tru
         print(f".. Number of atoms:   {n_atoms}")
         print(rf".. Real space cutoff: {cutoff:.3f} \AA")
 
-        force_constants = np.zeros([n_atoms, 3, n_atoms, 3])
+        # Not yet clear how many lattice points / force constants we will get
+        lattice_points = []
+        force_constants = []
 
         for i1 in range(n_atoms):
             n_neighbors = int(next(fo).split()[0])
             for _ in range(n_neighbors):
+                fc = np.zeros([n_atoms, 3, n_atoms, 3])
+
+                # neighbour index
                 i2 = int(next(fo).split()[0]) - 1
-                # skip the lattice point
-                _ = np.array(next(fo).split(), dtype=float)
+
+                # lattice vector
+                lp = np.array(next(fo).split(), dtype=float)
+
+                # the force constant matrix for pair (i1, i2)
                 phi = np.array([next(fo).split() for _ in range(3)], dtype=float)
 
-                force_constants[i1, :, i2, :] = phi
+                fc[i1, :, i2, :] = phi
+
+                lattice_points.append(lp)
+                # force_constants.append(fc.reshape((3 * n_atoms, 3 * n_atoms)))
+                force_constants.append(fc)
+
+        n_unique = len(np.unique(lattice_points, axis=0))
+        print(f".. Number of lattice points: {len(lattice_points)} ({n_unique} unique)")
 
     timer()
 
-    return force_constants.reshape(2 * (3 * n_atoms,))
+    if remapped:
+        force_constants = np.sum(force_constants, axis=0)
+        return force_constants.reshape(2 * (3 * n_atoms,))
+
+    return np.array(force_constants), np.array(lattice_points)
 
 
 def extract_forceconstants(

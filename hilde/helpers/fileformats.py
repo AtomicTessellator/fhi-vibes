@@ -19,8 +19,7 @@ except ImportError:
     from yaml import SafeLoader as Loader
 
 from hilde.konstanten.io import n_yaml_digits
-from hilde.helpers import list_dim
-from hilde.helpers.warnings import warn
+from hilde.helpers import list_dim, warn, progressbar
 
 
 class NumpyEncoder(JSONEncoder):
@@ -161,7 +160,7 @@ def from_json(file):
     else:
         blobs = Path(file).read_text().split("---")
 
-    return [json_loads(blob) for blob in blobs if blob.strip()]
+    return [json_loads(blob) for blob in progressbar(blobs) if blob.strip()]
 
 
 def to_json(obj, file, mode="a", indent=1):

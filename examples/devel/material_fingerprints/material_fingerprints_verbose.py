@@ -3,7 +3,7 @@ from glob import glob
 from pathlib import Path
 import numpy as np
 
-from hilde.helpers.brillouinzone import get_bands, get_sp_points
+from hilde.helpers.brillouinzone import get_bands, get_special_points
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import scalar_product
@@ -99,7 +99,7 @@ for phonon, sc, scs, wd in phonon_calcs:
     bands = get_bands(atoms)
     phonon.set_band_structure(bands)
 
-    fp = get_phonon_bs_fingerprint_phononpy(phonon, get_sp_points(atoms), binning=False)
+    fp = get_phonon_bs_fingerprint_phononpy(phonon, get_special_points(atoms), binning=False)
     fp_list.append(fp)
 
     q_mesh = [45, 45, 45]
