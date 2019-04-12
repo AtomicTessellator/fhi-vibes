@@ -145,8 +145,8 @@ class Settings(ConfigDict):
         else:
             file = DEFAULT_GEOMETRY_FILE
 
-        if path.exists(str(file)):
-            self._atoms = read(self.geometry.file, format=format)
+        if path.exists(file):
+            self._atoms = read(file, format=format)
             return self._atoms
 
         warn(f"Geometry file {file} not found.", level=1)
