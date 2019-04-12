@@ -117,11 +117,11 @@ def get_dos(
     if freq_max == "auto":
         freq_max = phonon.get_mesh()[2].max() * 1.05
 
-    phonon.run_total_DOS(
+    phonon.run_total_dos(
         freq_min=freq_min,
         freq_max=freq_max,
         freq_pitch=freq_pitch,
-        tetrahedron_method=tetrahedron_method,
+        use_tetrahedron_method=tetrahedron_method,
     )
 
     if write:
