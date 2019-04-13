@@ -6,7 +6,7 @@ from fireworks import PyTask
 
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.helpers.converters import dict2atoms
-from hilde.helpers.timer import Timer
+from hilde.helpers import Timer
 from hilde.settings import Settings
 
 module_name = __name__
