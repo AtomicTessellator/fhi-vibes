@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 
->>>>>>> 6f9292d396cf64e71c96b5cc29b8f0aa1aae773c
 from hilde.helpers.paths import cwd
 from hilde.helpers import Timer
 from hilde.phonopy.postprocess import extract_results
