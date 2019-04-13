@@ -1,28 +1,32 @@
 """ tools for conerting atoms objects to json representations """
 
+try:
+    from ujson import loads as json_loads
+except ModuleNotFoundError:
+    from json import loads as json_loads
 
-import json
+from json import JSONEncoder, JSONDecodeError, dumps as json_dumps
+
 from pathlib import Path
 from bz2 import open as bzopen
 import numpy as np
 
 import yaml
-from hilde.helpers.warnings import warn
 
 try:
-    from yaml import CSafeLoader as Loader, CDumper as Dumper
+    from yaml import CSafeLoader as Loader
 except ImportError:
-    from yaml import SafeLoader as Loader, Dumper
+    from yaml import SafeLoader as Loader
 
-from hilde.helpers import list_dim
 from hilde.konstanten.io import n_yaml_digits
+from hilde.helpers import list_dim, warn, progressbar
 
 
-class NumpyEncoder(json.JSONEncoder):
+class NumpyEncoder(JSONEncoder):
     """ Decode numerical objects that json cannot parse by default"""
 
     def default(self, obj):
-        if isinstance(obj, np.ndarray):
+        if hasattr(obj, "tolist") and callable(obj.tolist):
             return obj.tolist()
         if isinstance(obj, (np.int32, np.int64)):
             return int(obj)
@@ -34,6 +38,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 def backup(file):
+    """ back up a file"""
     if Path(file).exists():
         if "traj" in str(file):
             raise Exception("Possibly overwriting a trajectory, please check")
@@ -62,7 +67,7 @@ def from_yaml(file, use_json=True):
         if use_json:
             try:
                 return from_json(file)
-            except json.JSONDecodeError:
+            except JSONDecodeError:
                 warn("Fall back to yaml reader")
 
         stream = yaml.load_all(f, Loader=Loader)
@@ -98,7 +103,7 @@ def dict2json(dct, indent=0, outer=True):
             isinstance(val, list)
             and len(list_dim(val)) == 2
             and list_dim(val)[1] == 3
-            and type(val[0][0]) == float
+            and isinstance(val[0][0], float)
         ):
             # this is most likely positions, velocities, forces, etc. -> format!
             rep = [
@@ -114,7 +119,7 @@ def dict2json(dct, indent=0, outer=True):
             isinstance(val, list)
             and len(list_dim(val)) == 3
             and list_dim(val)[1:3] == [3, 3]
-            and type(val[0][0][0]) == float
+            and isinstance(val[0][0][0], float)
         ):
             # this is most likely atomic stress -> format!
             rep = [
@@ -134,7 +139,7 @@ def dict2json(dct, indent=0, outer=True):
             rep += "]"
 
         else:
-            rep = json.dumps(val, cls=NumpyEncoder)
+            rep = json_dumps(val, cls=NumpyEncoder)
 
         parts.append(f'{ind}"{key}": {rep}')
 
@@ -155,7 +160,7 @@ def from_json(file):
     else:
         blobs = Path(file).read_text().split("---")
 
-    return [json.loads(blob) for blob in blobs if blob.strip()]
+    return [json_loads(blob) for blob in progressbar(blobs) if blob.strip()]
 
 
 def to_json(obj, file, mode="a", indent=1):
@@ -170,7 +175,7 @@ def to_json(obj, file, mode="a", indent=1):
         reps = [dict2json(elem) for elem in obj]
         rep = "[" + ",\n".join(reps) + "]"
     else:
-        rep = json.dumps(obj, cls=NumpyEncoder, indent=indent)
+        rep = json_dumps(obj, cls=NumpyEncoder, indent=indent)
 
     with open(file, mode) as f:
         if "a" in mode:

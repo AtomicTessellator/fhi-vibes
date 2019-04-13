@@ -6,15 +6,20 @@ Logic:
 
 """
 
+import os
 import json
+import shutil
+
+import numpy as np
 
 import numpy as np
 
 from ase import units
 from hilde import __version__ as version
-from hilde.helpers.converters import results2dict, dict2results
+from hilde.helpers.converters import results2dict, dict2results, input2dict
 from hilde.helpers.fileformats import to_yaml, from_yaml
 from hilde.helpers.hash import hash_atoms
+from hilde.helpers import Timer, warn, progressbar
 
 
 def step2file(atoms, calc, file="trajectory.yaml", append_cell=False):
@@ -54,6 +59,9 @@ def reader(file="trajectory.yaml", get_metadata=False):
     """ convert information in trajectory and metadata files to atoms objects
      and return them """
 
+    timer = Timer(f"Parse trajectory in {file}")
+
+    print(".. read file:")
     try:
         metadata, *pre_trajectory = from_yaml(file, use_json=True)
     except json.decoder.JSONDecodeError:
@@ -69,7 +77,8 @@ def reader(file="trajectory.yaml", get_metadata=False):
         md_metadata = metadata["MD"]
 
     trajectory = Trajectory(metadata=metadata)
-    for obj in pre_trajectory:
+    print(".. process file:")
+    for obj in progressbar(pre_trajectory):
 
         atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
 
@@ -81,7 +90,7 @@ def reader(file="trajectory.yaml", get_metadata=False):
         # info
         if "MD" in metadata:
             if "dt" in atoms.info:
-                atoms.info["dt"] /= md_metadata["fs"]
+                atoms.info["dt_fs"] = atoms.info["dt"] / md_metadata["fs"]
         elif "info" in obj:
             info = obj["info"]
             atoms.info.update(info)
@@ -91,6 +100,9 @@ def reader(file="trajectory.yaml", get_metadata=False):
             atoms.info.update(obj["MD"])
 
         trajectory.append(atoms)
+
+    timer()
+
     if get_metadata:
         return trajectory, metadata
     return trajectory
@@ -129,6 +141,94 @@ class Trajectory(list):
     #         else:
     #             return self[0]
 
+    @property
+    def primitive(self):
+        """ Return the primitive cell if it is there """
+        if "primitive" in self.metadata:
+            return dict2results(self.metadata["primitive"]["atoms"])
+        warn("primitive cell not provided in trajectory metadata")
+
+    @primitive.setter
+    def primitive(self, atoms):
+        """ Set the supercell atoms object """
+        dct = input2dict(atoms)
+
+        self.metadata["primitive"] = dct
+        print(".. primitive added to metadata.")
+
+    @property
+    def supercell(self):
+        """ Return the supercell if it is there """
+        if "supercell" in self.metadata:
+            return dict2results(self.metadata["supercell"]["atoms"])
+        warn("supercell not provided in trajectory metadata")
+
+    @supercell.setter
+    def supercell(self, atoms):
+        """ Set the supercell atoms object """
+        dct = input2dict(atoms)
+
+        self.metadata["supercell"] = dct
+        print(".. supercell added to metadata.")
+
+    @property
+    def times(self):
+        """ return the times as numpy array """
+        try:
+            fs = self.metadata["MD"]["fs"]
+        except KeyError:
+            warn("time unit not found in trajectory metadata, use ase.units.fs")
+            fs = units.fs
+
+        times = np.cumsum([a.info["dt"] * fs for a in self])
+        return times
+
+    @property
+    def temperatures(self):
+        """ return the temperatues as 1d array """
+        return np.array([a.get_temperature() for a in self])
+
+    def clean_drift(self):
+        """ Clean constant drift CAUTION: respect ASE time unit correctly! """
+
+        timer = Timer("Clean trajectory from constant drift")
+
+        p_drift = np.mean([a.get_momenta().sum(axis=0) for a in self], axis=0)
+
+        print(f".. drift momentum is {p_drift}")
+
+        for atoms, time in zip(self, self.times):
+            atoms.set_momenta(atoms.get_momenta() - p_drift / len(atoms))
+
+            # the displacement
+            disp = p_drift / atoms.get_masses().sum() * time
+            atoms.positions = atoms.positions - disp
+
+        timer("velocities and positions cleaned from drift")
+
+    def write(self, file="trajectory.yaml"):
+        """ Write to yaml file """
+
+        timer = Timer(f"Write trajectory to {file}")
+
+        temp_file = "temp.yaml"
+
+        # check for file and make backup
+        if os.path.exists(file):
+            ofile = f"{file}.bak"
+            shutil.copy(file, ofile)
+            print(f".. {file} copied to {ofile}")
+
+        to_yaml(self.metadata, temp_file, mode="w")
+
+        print(f"Write to {temp_file}:")
+        for elem in progressbar(self):
+            to_yaml(results2dict(elem), temp_file)
+
+        shutil.move(temp_file, file)
+
+        timer()
+
     def to_xyz(self, file="positions.xyz"):
         """ Write positions to simple xyz file for e.g. viewing with VMD """
         from ase.io.xyz import simple_write_xyz
@@ -166,15 +266,13 @@ class Trajectory(list):
 
         # supercell and fake unit cell
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
-        if "primitive" in self.metadata:
-            primitive = dict2results(self.metadata["primitive"]["atoms"])
+        if self.primitive:
             fname = folder / "infile.ucposcar"
-            primitive.write(str(fname), **write_settings)
+            self.primitive.write(str(fname), **write_settings)
             print(f".. {fname} written.")
-        if "supercell" in self.metadata:
-            supercell = dict2results(self.metadata["supercell"]["atoms"])
+        if self.supercell:
             fname = folder / "infile.ssposcar"
-            supercell.write(str(fname), **write_settings)
+            self.supercell.write(str(fname), **write_settings)
             print(f".. {fname} written.")
 
         with ExitStack() as stack:
@@ -219,7 +317,6 @@ class Trajectory(list):
     def get_average_displacements(self, ref_atoms=None, window=-1):
         """ Return averaged displacements """
 
-        import numpy as np
         from hilde.harmonic_analysis.displacements import get_dR
 
         # reference atoms
@@ -239,7 +336,7 @@ class Trajectory(list):
 
         return avg_displacement
 
-    def get_average_positions(self, ref_atoms=None, window=-1):
+    def get_average_positions(self, ref_atoms=None, window=-1, wrap=False):
         """ Return averaged positions """
 
         # reference atoms
@@ -255,6 +352,8 @@ class Trajectory(list):
 
         avg_atoms = ref_atoms.copy()
         avg_atoms.positions += avg_displacement
-        avg_atoms.wrap()
+
+        if wrap:
+            avg_atoms.wrap()
 
         return avg_atoms.get_positions()

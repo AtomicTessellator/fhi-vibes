@@ -1,6 +1,17 @@
 """ A simple timer """
 
+import sys
 from time import time
+
+try:
+    from tqdm import tqdm
+except ModuleNotFoundError:
+    tqdm = lambda x, *args: x
+
+
+def progressbar(func):
+    """ show progressbar when looping """
+    return tqdm(func, file=sys.stdout)
 
 
 class Timer:
@@ -20,3 +31,9 @@ class Timer:
         else:
             print(f".. time elapsed: {time_str}")
         return float(time_str[:-1])
+
+
+# print in bold
+def bold(text):
+    """ print test in bold face """
+    return "\033[1m" + text + "\033[0m"

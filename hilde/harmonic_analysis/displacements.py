@@ -5,7 +5,7 @@ from hilde.helpers.numerics import clean_matrix
 from hilde.konstanten import v_unit
 
 
-def get_dR(atoms0, atoms, wrap_tol=1e-5):
+def get_dR(atoms, atoms0, wrap_tol=1e-5):
     """ Compute and return dR = R - R^0 respecting possibly wrapped atoms """
 
     # get fractional coordinates
@@ -23,7 +23,7 @@ def get_dR(atoms0, atoms, wrap_tol=1e-5):
     return dR
 
 
-def get_U(atoms0, atoms, masses=None, wrap_tol=1e-5):
+def get_U(atoms, atoms0, masses=None, wrap_tol=1e-5):
     """ Compute dR = R - R^0 and return U = sqrt(M) . dR """
 
     dR = get_dR(atoms0, atoms, wrap_tol=wrap_tol)

@@ -112,42 +112,51 @@ def get_dos(
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
 
-    phonon.set_mesh(q_mesh)
+    phonon.run_mesh(q_mesh)
 
     if freq_max == "auto":
         freq_max = phonon.get_mesh()[2].max() * 1.05
 
-    phonon.set_total_DOS(
+    phonon.run_total_dos(
         freq_min=freq_min,
         freq_max=freq_max,
         freq_pitch=freq_pitch,
-        tetrahedron_method=tetrahedron_method,
+        use_tetrahedron_method=tetrahedron_method,
     )
 
     if write:
-        phonon.write_total_DOS()
+        phonon.write_total_dos()
         Path("total_dos.dat").rename(filename)
 
-    return phonon.get_total_DOS()
+    return phonon.get_total_dos_dict()
 
 
 def get_bandstructure(phonon, paths=None, force_sets=None):
-    """ Compute bandstructure for given path """
-
+    """
+    Compute bandstructure for given path
+    Args:
+        phonon: phonopy.api_phonopy.Phonopy
+        paths: list of str
+            e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
+    Returns:
+        tuple (band_structure_dict, labels)
+            band_structure_dict: dict
+            labels: list of str
+    """
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
 
     bands, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
 
-    phonon.set_band_structure(bands, labels=labels)
+    phonon.run_band_structure(bands, labels=labels)
 
-    return (*phonon.get_band_structure(), labels)
+    return (phonon.get_band_structure_dict(), labels)
 
 
 def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
     """ Plot bandstructure for given path and save to file """
 
-    *_, labels = get_bandstructure(phonon, paths, force_sets)
+    _, labels = get_bandstructure(phonon, paths, force_sets)
 
     plt = phonon.plot_band_structure()
 
@@ -159,23 +168,23 @@ def plot_bandstructure_and_dos(
 ):
     """ Plot bandstructure and PDOS """
 
-    *_, labels = get_bandstructure(phonon)
+    _, labels = get_bandstructure(phonon)
 
     if partial:
-        phonon.set_mesh(q_mesh, is_eigenvectors=True, is_mesh_symmetry=False)
-        phonon.set_partial_DOS(tetrahedron_method=True)
+        phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
+        phonon.run_projected_dos(tetrahedron_method=True)
         pdos_indices = map_unique_to_atoms(phonon.get_primitive())
     else:
-        phonon.set_mesh(q_mesh)
-        phonon.set_total_DOS(tetrahedron_method=True)
+        phonon.run_mesh(q_mesh)
+        phonon.run_total_DOS(tetrahedron_method=True)
         pdos_indices = None
 
-    plt = phonon.plot_band_structure_and_dos(pdos_indices=pdos_indices, labels=labels)
+    plt = phonon.plot_band_structure_and_dos(pdos_indices=pdos_indices)
     plt.savefig(file)
 
 
 def summarize_bandstructure(phonon, fp_file=None):
-    """ print a concise symmary of the bandstructure fingerpirnt """
+    """ print a concise symmary of the bandstructure fingerprint """
     from hilde.konstanten.einheiten import THz_to_cm
 
     get_bandstructure(phonon)

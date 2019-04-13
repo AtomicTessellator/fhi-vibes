@@ -1,4 +1,4 @@
-# configfile written at 2019/01/28 12:32:35
+# configfile written at 2019/03/06 16:48:21
 
 [common]
 home_dir:                      /home/knoop/local/hilde
@@ -17,14 +17,9 @@ token:                         0cwpbfxHVv3Lt0ybxYIjSPOt2CRLZhJKWM54kFYi1YRFyT4wz
 [socketio]
 port:                          12345
 
-[geometry]
-file:                          geometry.in
-
 [control]
 xc:                            pw-lda
-
-[control_kpt]
-density:                       2
+k_grid:                        [2, 2, 2]
 
 [basisset]
 type:                          light
@@ -34,3 +29,6 @@ supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 
 [restart]
 command:                       python run_phonopy.py
+
+[geometry]
+file:                          geometry.in

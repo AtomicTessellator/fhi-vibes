@@ -3,7 +3,9 @@ from ase.io.aims import read_aims
 from subprocess import run
 from pathlib import Path
 
-from hilde.harmonic_analysis.force_constants import parse_tdep_forceconstant
+import numpy as np
+
+>>>>>>> 6f9292d396cf64e71c96b5cc29b8f0aa1aae773c
 from hilde.helpers.paths import cwd
 from hilde.helpers import Timer
 from hilde.phonopy.postprocess import extract_results
@@ -59,6 +61,60 @@ def extract_forceconstants_from_trajectory(
         skip = 0
     trajectory.to_tdep(folder=workdir, skip=0)
     extract_forceconstants(workdir, rc2, remapped, logfile, **kwargs)
+
+def parse_tdep_forceconstant(fname="infile.forceconstant", force_remap=False):
+    """ parse the remapped forceconstants from TDEP """
+    timer = Timer()
+
+    remapped = force_remap
+    if "remap" in str(fname):
+        remapped = True
+
+    print(f"Parse force constants from\n  {fname}")
+    print(f".. remap representation for supercell: ", remapped)
+
+    with open(fname) as fo:
+        n_atoms = int(next(fo).split()[0])
+        cutoff = float(next(fo).split()[0])
+
+        print(f".. Number of atoms:   {n_atoms}")
+        print(rf".. Real space cutoff: {cutoff:.3f} \AA")
+
+        # Not yet clear how many lattice points / force constants we will get
+        lattice_points = []
+        force_constants = []
+
+        for i1 in range(n_atoms):
+            n_neighbors = int(next(fo).split()[0])
+            for _ in range(n_neighbors):
+                fc = np.zeros([n_atoms, 3, n_atoms, 3])
+
+                # neighbour index
+                i2 = int(next(fo).split()[0]) - 1
+
+                # lattice vector
+                lp = np.array(next(fo).split(), dtype=float)
+
+                # the force constant matrix for pair (i1, i2)
+                phi = np.array([next(fo).split() for _ in range(3)], dtype=float)
+
+                fc[i1, :, i2, :] = phi
+
+                lattice_points.append(lp)
+                # force_constants.append(fc.reshape((3 * n_atoms, 3 * n_atoms)))
+                force_constants.append(fc)
+
+        n_unique = len(np.unique(lattice_points, axis=0))
+        print(f".. Number of lattice points: {len(lattice_points)} ({n_unique} unique)")
+
+    timer()
+
+    if remapped:
+        force_constants = np.sum(force_constants, axis=0)
+        return force_constants.reshape(2 * (3 * n_atoms,))
+
+    return np.array(force_constants), np.array(lattice_points)
+
 
 def extract_forceconstants(
     workdir="tdep", rc2=10, remapped=True, logfile="fc.log", **kwargs
@@ -116,7 +172,7 @@ def phonon_dispersion_relations(workdir="tdep", gnuplot=True, logfile="dispersio
             run(command, stdout=file)
 
             if gnuplot:
-                print(f'.. use gnuplot to plot dispersion to pdf')
+                print(f".. use gnuplot to plot dispersion to pdf")
                 command = "gnuplot -p outfile.dispersion_relations.gnuplot_pdf".split()
                 run(command, stdout=file)
 

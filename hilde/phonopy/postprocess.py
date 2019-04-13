@@ -22,9 +22,9 @@ def postprocess(
     """ Phonopy postprocess """
 
     timer = Timer()
+    trajectory = Path(trajectory)
     if not silent:
         print("Start phonopy postprocess:")
-    trajectory = Path(trajectory)
 
     calculated_atoms, metadata = reader(trajectory, True)
     for disp in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:

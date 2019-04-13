@@ -17,7 +17,11 @@ def warn(message, level=0):
 
     stars = "*" + "*" * level
 
-    print(f"{stars} {typ} from file {frame[1]}, line {frame[2]}, function {frame[3]}:")
+    file = frame[1].split("hilde")[-1]
+
+    print(
+        f"{stars} {typ} from file hilde{file}, line {frame[2]}, function {frame[3]}:"
+    )
     print(f"--> {message}\n")
 
     if typ == "Error":
