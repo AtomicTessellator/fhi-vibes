@@ -91,6 +91,8 @@ def main():
     amplitudes[0, :3] = 0
 
     const = 1 / (2 * kB) / 4 / 2 / 3
+    print("\n\n\n")
+    print(la.norm(const * (amplitudes ** 2 * omegas ** 2).sum() - temp))
     assert la.norm(const * (amplitudes ** 2 * omegas ** 2).sum() - temp) < 1e-14
 
     # \dot u = \omega * A
