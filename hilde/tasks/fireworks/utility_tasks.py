@@ -9,6 +9,7 @@ def mod_calc(param_key, calc_spec, calc, val, atoms=None, spec_key=None):
     Function to modify a calculator within the MongoDB
     Args:
         param_key (str): key in the calculator dictionary to change
+        calc_spec (str): key for the calculator spec
         calc (dict): a dict representing an ASE Calculator
         val: the new value calc[param_key] should be updated to
         atoms (dict): A dict representing an ASE Atoms object

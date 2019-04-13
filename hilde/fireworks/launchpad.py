@@ -61,6 +61,7 @@ class LaunchPadHilde(LaunchPad):
 
     @classmethod
     def auto_load(cls):
+        '''auto_load from default file'''
         if LAUNCHPAD_LOC:
             return LaunchPadHilde.from_file(LAUNCHPAD_LOC)
         return LaunchPadHilde()

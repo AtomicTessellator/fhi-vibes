@@ -106,7 +106,6 @@ def get_detours(
     Args:
         atoms_to_calculate (list of ASE Atoms objects): List of structures to calculate forces for
         calc_dict (dict): Dictionary representation of the ASE Calculator Object
-        serial (bool): True if forces to be calculated in serial
         prefix (str): prefix to add to force calculations
         calc_kwargs (dict): A set of kwargs for the Force calculations
         fw_settings (dict): A dictionary describing all FireWorks settings

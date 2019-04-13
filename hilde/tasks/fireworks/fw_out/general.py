@@ -15,6 +15,7 @@ def mod_spec_add(
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         func_kwargs (dict): keyword arguments for func
+        func_fw_kwargs (dict): Keyword arguments for fw_out function
         fw_settings (dict): FireWorks specific settings
     Returns (FWAction): Action to added the calculated atoms to the spec
     """
@@ -34,6 +35,7 @@ def fireworks_no_mods(
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         func_kwargs (dict): keyword arguments for func
+        func_fw_kwargs (dict): Keyword arguments for fw_out function
         fw_settings (dict): FireWorks specific settings
     Returns (FWAction): An empty FWAction
     """

@@ -44,6 +44,7 @@ __date__ = "Dec 12, 2012"
 
 
 def conv_t_to_sec(time_str):
+    """converts a time string to number of seconds"""
     ts = time_str.split(":")
     t = 0
     for ii, tt in enumerate(ts):

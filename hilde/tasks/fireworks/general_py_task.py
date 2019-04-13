@@ -76,7 +76,6 @@ def generate_task(task_spec, fw_settings, atoms, calc):
         }
     )
 
-
 def generate_update_calc_task(calc_spec, updated_settings):
     """
     Generate a calculator update task
@@ -92,7 +91,6 @@ def generate_update_calc_task(calc_spec, updated_settings):
             "inputs": [calc_spec],
         }
     )
-
 
 def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     """
@@ -126,7 +124,6 @@ def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
         }
     )
 
-
 def get_func(func_path):
     """A function that takes in a path to a python function and returns that function"""
     toks = func_path.rsplit(".", 1)
@@ -136,7 +133,6 @@ def get_func(func_path):
         return getattr(mod, funcname)
     # Handle built in functions.
     return getattr("builtins", toks[0])
-
 
 def atoms_calculate_task(
     func_path,
@@ -157,6 +153,7 @@ def atoms_calculate_task(
         func_fw_out_path (str): Path to the function that describes how the func inputs/outputs
                                 should alter the FireWorks Workflow
         func_kwargs (dict): A dictionary describing the key word arguments to func
+        func_fw_out_kwargs (dict): Keyword arguments for fw_out function
         atoms_dict (dict): A dictionary describing the ASE Atoms object
         calc_dict (dict): A dictionary describing the ASE Calculator object
         args (list): a list of function arguments passed to func

@@ -24,6 +24,7 @@ def check_relaxation_complete(
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         func_kwargs (dict): keyword arguments for func
+        func_fw_kwargs (dict): Keyword arguments for fw_out function
         fw_settings (dict): FireWorks specific settings
     Returns (FWAction): The correct action (restart or updated spec) if convergence is reached
     """
@@ -97,6 +98,7 @@ def check_aims_relaxation_complete(
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         func_kwargs (dict): keyword arguments for func
+        func_fw_kwargs (dict): Keyword arguments for fw_out function
         fw_settings (dict): FireWorks specific settings
     Returns (FWAction): The correct action (restart or updated spec) if convergence is reached
     """
