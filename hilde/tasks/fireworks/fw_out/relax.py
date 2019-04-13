@@ -111,7 +111,10 @@ def check_aims_relaxation_complete(
         print(new_atoms_dict["cell"])
     except:
         if not converged:
-            if "*** WARNING: FHI-aims is terminating due to walltime restrictions\n" in aims_out:
+            if (
+                "*** WARNING: FHI-aims is terminating due to walltime restrictions\n"
+                in aims_out
+            ):
                 pass
             else:
                 raise IOError(
@@ -131,10 +134,12 @@ def check_aims_relaxation_complete(
             }
         )
     else:
-        update_spec={
+        update_spec = {
             fw_settings["in_spec_atoms"]: new_atoms_dict,
             fw_settings["in_spec_calc"]: calc,
-            fw_settings["kpoint_density_spec"]: k2d(new_atoms, calc["calculator_parameters"]["k_grid"])
+            fw_settings["kpoint_density_spec"]: k2d(
+                new_atoms, calc["calculator_parameters"]["k_grid"]
+            ),
         }
     del calc["results"]
     fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(

@@ -57,7 +57,7 @@ def converge_kgrid(
         "logfile": str(workdir / logfile),
     }
     if "k_grid" in calc.parameters:
-        kpt_settings["kpts_density_init"] = k2d(calc.parameters["k_grid"])
+        kpt_settings["kpts_density_init"] = k2d(atoms, calc.parameters["k_grid"])
     if socketio_port is None:
         socket_calc = None
     else:

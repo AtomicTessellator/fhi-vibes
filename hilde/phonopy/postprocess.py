@@ -16,12 +16,14 @@ def postprocess(
     pickle_file="phonon.pick",
     write_files=True,
     born_charges_file=None,
+    silent=False,
     **kwargs,
 ):
     """ Phonopy postprocess """
 
     timer = Timer()
-    print("Start phonopy postprocess:")
+    if not silent:
+        print("Start phonopy postprocess:")
     trajectory = Path(trajectory)
 
     calculated_atoms, metadata = reader(trajectory, True)
@@ -46,7 +48,8 @@ def postprocess(
 
         prim = phonon.get_primitive()
         psym = phonon.get_primitive_symmetry()
-        print(f".. read born effective charges from {born_charges_file}")
+        if not silent:
+            print(f".. read born effective charges from {born_charges_file}")
         nac_params = get_born_parameters(open(born_charges_file), prim, psym)
         phonon.set_nac_params(nac_params)
 
@@ -54,20 +57,23 @@ def postprocess(
     if pickle_file and write_files:
         fname = trajectory.parent / pickle_file
         psave(phonon, fname)
-        print(f".. Pickled phonopy object written to {fname}")
+        if not silent:
+            print(f".. Pickled phonopy object written to {fname}")
 
     if write_files:
         # Save the supercell
         fname = "geometry.in.supercell"
         write(supercell, fname)
-        print(f".. Supercell written to {fname}")
+        if not silent:
+            print(f".. Supercell written to {fname}")
 
         force_constants = get_force_constants(phonon)
         fname = "force_constants.dat"
         np.savetxt(fname, force_constants)
-        print(f".. Force constants saved to {fname}.")
-
-    timer("done")
+        if not silent:
+            print(f".. Force constants saved to {fname}.")
+    if not silent:
+        timer("done")
 
     return phonon
 

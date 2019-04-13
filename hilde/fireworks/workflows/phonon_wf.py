@@ -184,6 +184,7 @@ def generate_phonon_fw(
         atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec
     )
 
+
 def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=None):
     """
     Generates a Firework for the phonon analysis

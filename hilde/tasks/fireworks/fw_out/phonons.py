@@ -127,14 +127,9 @@ def get_detours(
         fw_settings["calc_spec"] = prefix + "_calculator"
         return add_socket_calc_to_detours(detours, calc_kwargs, fw_settings, prefix)
     return add_single_calc_to_detours(
-        detours,
-        calc_kwargs,
-        atoms,
-        atoms_to_calculate,
-        calc_dict,
-        fw_settings,
-        prefix,
+        detours, calc_kwargs, atoms, atoms_to_calculate, calc_dict, fw_settings, prefix
     )
+
 
 def add_socket_calc_to_detours(detours, func_kwargs, fw_settings, prefix):
     """
@@ -292,17 +287,17 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
         # If Not Converged update phonons
         pc = to_Atoms(ph.get_primitive())
-        if "add_atoms" in kwargs and kwargs["add_atoms"]:
-            _, sc_mat = make_cubic_supercell(
-                pc,
-                len(pc.numbers) * np.linalg.det(ph.get_supercell_matrix()) + 50,
-                deviation=0.4,
-            )
-        else:
-            sc_mat = ph.get_supercell_matrix()
-            sc_mat[0] += 1
-            sc_mat[4] += 1
-            sc_mat[8] += 1
+        # if "add_atoms" in kwargs and kwargs["add_atoms"]:
+        _, sc_mat = make_cubic_supercell(
+            pc,
+            len(pc.numbers) * np.linalg.det(ph.get_supercell_matrix()) + 50,
+            deviation=0.4,
+        )
+        # else:
+        #     sc_mat = ph.get_supercell_matrix()
+        #     sc_mat[0] += 1
+        #     sc_mat[4] += 1
+        #     sc_mat[8] += 1
         fw_settings["in_spec_calc"] = "calculator"
         update_spec = {"calculator": calc_dict, "prev_dos_fp": dos_fp}
         if "kpoint_density_spec" not in fw_settings:

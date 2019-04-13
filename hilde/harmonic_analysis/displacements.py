@@ -36,10 +36,11 @@ def get_U(atoms0, atoms, masses=None, wrap_tol=1e-5):
 
     return dU
 
+
 def get_dUdt(atoms, masses=None, wrap_tol=1e-5):
     """ Compute V and return dU/dt = sqrt(M) . V """
 
-    V = atoms.get_velocities() #/ v_unit
+    V = atoms.get_velocities()  # / v_unit
 
     if V is None:
         V = np.zeros_like(atoms.positions)

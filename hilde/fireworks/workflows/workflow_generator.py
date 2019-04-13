@@ -263,9 +263,7 @@ def get_ha_task(func_kwargs):
     )
 
 
-def get_phonon_analysis_task(
-    func, func_kwargs, metakey, forcekey, make_abs_path=False
-):
+def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path=False):
     """
     Generate a serial Phononpy or Phono3py calculation task
     Args:

@@ -51,8 +51,13 @@ def calculate(atoms, calculator, workdir="."):
             calc_atoms.calc.calculate(calc_atoms)
         except:
             lines = open("aims.out").readlines()
-            if "*** WARNING: FHI-aims is terminating due to walltime restrictions\n" not in lines:
-                raise IOError("FHI-aims failed to converge, and it is not a walltime issue")
+            if (
+                "*** WARNING: FHI-aims is terminating due to walltime restrictions\n"
+                not in lines
+            ):
+                raise IOError(
+                    "FHI-aims failed to converge, and it is not a walltime issue"
+                )
         return calc_atoms
 
 
@@ -174,8 +179,13 @@ def calculate_socket(
                     _ = atoms.get_forces()
                 except:
                     lines = open("aims.out").readlines()
-                    if "lines WARNING: FHI-aims is terminating due to walltime restrictions\n" not in lines:
-                        raise IOError("FHI-aims failed to converge, and it is not a walltime issue")
+                    if (
+                        "lines WARNING: FHI-aims is terminating due to walltime restrictions\n"
+                        not in lines
+                    ):
+                        raise IOError(
+                            "FHI-aims failed to converge, and it is not a walltime issue"
+                        )
                     else:
                         break
 

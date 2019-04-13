@@ -5,7 +5,8 @@ from hilde.helpers.k_grid import d2k
 
 
 class KPointOptimizer(Dynamics):
-    '''ASE Optimizer Class for K-point optimization'''
+    """ASE Optimizer Class for K-point optimization"""
+
     def __init__(
         self,
         atoms,

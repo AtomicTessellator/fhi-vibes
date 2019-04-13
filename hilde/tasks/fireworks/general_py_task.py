@@ -11,6 +11,7 @@ from hilde.settings import Settings
 
 module_name = __name__
 
+
 def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     """
     Setups an ASE Atoms task
@@ -237,10 +238,12 @@ def general_function_task(
         func_path, func_fw_out_path, *args, fw_settings=fw_settings, **kwargs
     )
 
+
 class TaskSpec:
     """
     @brief      Class used to define a task spec in a standardized way
     """
+
     def __init__(
         self,
         func,

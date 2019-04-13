@@ -115,7 +115,7 @@ def get_phi_qst(in_U_t, in_V_t, in_omegas, in_times=None):
         times = np.array(in_times)
         omega_t = omegas[None, :, :] * times[:, None, None]
 
-    phi_qst = np.arctan2(- V_t - omega_t, omegas[None, :, :] * U_t - omega_t)
+    phi_qst = np.arctan2(-V_t - omega_t, omegas[None, :, :] * U_t - omega_t)
 
     # phase not well defined for 0 modes, set to 0:
     phi_qst[:, 0, :3] = 0
