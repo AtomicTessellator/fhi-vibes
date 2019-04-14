@@ -44,7 +44,7 @@ def bootstrap():
 
     settings = Settings()
     atoms = settings.get_atoms()
-    calc = setup_aims({"compute_forces": True}, settings=settings)
+    calc = setup_aims(settings=settings, custom_settings={"compute_forces": True})
 
     if "md" not in settings:
         warn("Settings do not contain MD instructions.", level=2)

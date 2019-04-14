@@ -20,11 +20,17 @@ def create_species_dir(atoms, settings, tmp_folder="basissets"):
         basissets (list): the individual basisset types
     """
 
+    loc = Path(settings.machine.basissetloc)
+    default = settings.basissets.default
+
+    # return default if no atom is given for reference
+    if atoms is None:
+        default_path = loc / default
+        warn(f"no Atoms object given, return default path {default_path} for basissets")
+        return default_path
+
     folder = Path(tmp_folder)
     folder.mkdir(exist_ok=True)
-
-    loc = Path(settings.machine.basissetloc)
-    default = settings.basisset.default
 
     symbols = atoms.get_chemical_symbols()
     numbers = atoms.symbols.numbers
@@ -33,11 +39,11 @@ def create_species_dir(atoms, settings, tmp_folder="basissets"):
 
     key_vals = (
         (key.capitalize(), val)
-        for (key, val) in settings.basisset.items()
+        for (key, val) in settings.basissets.items()
         if "default" not in key
     )
 
-    if len(settings.basisset) > 1:
+    if len(settings.basissets) > 1:
         for (key, val) in key_vals:
             # copy the respective basisset
             shutil.copy(loc / val / f"{dct[key]:02d}_{key}_default", folder)
@@ -52,9 +58,9 @@ def create_species_dir(atoms, settings, tmp_folder="basissets"):
 
 
 def setup_aims(
-    custom_settings={},
-    settings=None,
     atoms=None,
+    settings=None,
+    custom_settings={},
     workdir=None,
     config_file=DEFAULT_CONFIG_FILE,
     output_level="MD_light",
@@ -62,9 +68,12 @@ def setup_aims(
     """Set up an aims calculator.
 
     Args:
-        custom_settings (dict): Settings that replace the minimal defaults
+        atoms (Atoms): Atoms object that will be used for computation.
+        settings (Settings): the hilde settings
+        custom_settings (dict): for working interactively
         workdir (str): directory to work in
         config_file (str): path to config file
+        output_level (str): the default output level if not specified explicitly
 
     Returns:
         Aims: ASE calculator object
@@ -90,21 +99,11 @@ def setup_aims(
         default_settings.update({"relativistic": "atomic_zora scalar"})
         warn("relativistic flag not set in settings.in, set to atomic_zora scalar")
 
-    ase_settings = {
-        "aims_command": settings.machine.aims_command,
-#        "species_dir": path.join(settings.machine.basissetloc, settings.basisset.type),
-    }
+    ase_settings = {"aims_command": settings.machine.aims_command}
 
     # Check if basisset type is supposed to be changed by custom settings
     if "species_type" in custom_settings:
-        species_type = custom_settings["species_type"]
-        if "species_dir" not in custom_settings:
-            species_dir = path.join(settings.machine.basissetloc, species_type)
-        else:
-            species_dir = path.join(custom_settings["species_dir"], species_type)
-
-        custom_settings["species_dir"] = species_dir
-        del custom_settings["species_type"]
+        warn("Please use `settings.basissets` section in the config file.", level=2)
 
     if "socketio" in settings and settings.socketio.port is not None:
         custom_settings.update(

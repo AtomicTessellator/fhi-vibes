@@ -61,7 +61,9 @@ def bootstrap(name="phonopy", settings=None, **kwargs):
 
     calc = kwargs.get(
         "calculator",
-        setup_aims({"compute_forces": True}, settings=settings, atoms=supercell),
+        setup_aims(
+            atoms=supercell, settings=settings, custom_settings={"compute_forces": True}
+        ),
     )
 
     # save metadata

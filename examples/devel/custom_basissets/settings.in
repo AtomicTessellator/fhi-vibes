@@ -2,6 +2,6 @@
 xc: pw-lda
 k_grid: [2, 2, 2]
 
-[basisset]
+[basissets]
 default: light
 Pb: intermediate
