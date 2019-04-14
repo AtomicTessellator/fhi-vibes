@@ -21,7 +21,15 @@ def create_species_dir(atoms, settings, tmp_folder="basissets"):
     """
 
     loc = Path(settings.machine.basissetloc)
-    default = settings.basissets.default
+
+    # if old section with `basisset.type` is used:
+    if "basisset" in settings and "type" in settings.basisset:
+        default = settings.basisset.type
+        return loc / default
+    elif "basissets" in settings and "default" in settings.basissets:
+        default = settings.basissets.default
+    else:
+        warn("basissets not specified in settings.file.", level=2)
 
     # return default if no atom is given for reference
     if atoms is None:
