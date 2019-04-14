@@ -9,7 +9,13 @@ class WallTimeWatchdog:
     """ Watched the walltime """
 
     def __init__(
-        self, walltime, history=10, buffer=2, log="watchdog.log", verbose=True, **kwargs
+        self,
+        walltime=None,
+        history=10,
+        buffer=2,
+        log="watchdog.log",
+        verbose=True,
+        **kwargs,
     ):
         """ Watchdog that controls the walltime everytime it is called
 
@@ -20,6 +26,10 @@ class WallTimeWatchdog:
             buffer (int, optional):
                 Defaults to 2. How many steps of buffer before watchdog should alert.
         """
+
+        if walltime is None:
+            warn("walltime not set, use 1 day")
+            walltime = 86400
 
         self.buffer = buffer
         self.start_time = time()
