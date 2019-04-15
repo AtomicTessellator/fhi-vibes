@@ -10,7 +10,7 @@ from hilde.helpers import Timer
 from hilde.phonopy.postprocess import extract_results
 from hilde.trajectory import reader
 
-def remap_force_constants(
+def remap_forceconstant(
     ph, new_supercell, workdir='tdep', logfile="rempa_fc.log"
 ):
     command = ["remap_forceconstant"]
@@ -34,7 +34,7 @@ def convert_phonopy_to_dep(
         infile.symlink_to(outfile)
         print(f".. Symlink {infile} created.")
 
-def generate_cannonical_configurations(
+def canonical_configuration(
      ph=None, workdir="tdep", temperature=300, n_sample=5, quantum=False, logfile="canon_conf.log"
 ):
     if ph:
