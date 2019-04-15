@@ -121,7 +121,6 @@ def dict2results(atoms_dict, calc_dict=None):
         velocities = atoms_dict.pop("velocities")
     except KeyError:
         velocities = None
-
     atoms = Atoms(**atoms_dict, pbc=pbc)
 
     if velocities is not None:
@@ -174,6 +173,8 @@ def atoms2dict(atoms):
     Returns: atoms_dict (dict)
         The dictionary of atoms
     """
+    if atoms is None:
+        return None
     if isinstance(atoms, dict):
         return atoms
     atoms_dict = ase_atoms2dict(atoms)

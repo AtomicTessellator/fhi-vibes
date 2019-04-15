@@ -12,6 +12,8 @@ import shutil
 
 import numpy as np
 
+import numpy as np
+
 from ase import units
 from hilde import __version__ as version
 from hilde.helpers.converters import results2dict, dict2results, input2dict
@@ -247,10 +249,11 @@ class Trajectory(list):
         # meta
         n_atoms = len(self[0])
         n_steps = len(self) - skip
-        dt = self.metadata["MD"]["timestep"] / self.metadata["MD"]["fs"]
         try:
+            dt = self.metadata["MD"]["timestep"] / self.metadata["MD"]["fs"]
             T0 = self.metadata["MD"]["temperature"] / units.kB
         except KeyError:
+            dt = 1.0
             T0 = 0
 
         lines = [f"{n_atoms}", f"{n_steps}", f"{dt}", f"{T0}"]
@@ -282,8 +285,12 @@ class Trajectory(list):
 
             for ii, atoms in enumerate(self[skip:]):
                 # stress and pressure in GPa
-                stress = atoms.get_stress(voigt=True) / units.GPa
-                pressure = -1 / 3 * sum(stress[:3])
+                try:
+                    stress = atoms.get_stress(voigt=True) / units.GPa
+                    pressure = -1 / 3 * sum(stress[:3])
+                except:
+                    stress = np.zeros(6)
+                    pressure = 0.0
                 e_tot = atoms.get_total_energy()
                 e_kin = atoms.get_kinetic_energy()
                 e_pot = e_tot - e_kin

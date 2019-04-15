@@ -8,7 +8,7 @@ from fireworks import FWorker, Workflow
 
 from hilde.fireworks.combined_launcher import rapidfire
 from hilde.fireworks.launchpad import LaunchPadHilde
-from hilde.fireworks.workflow_generator import generate_firework
+from hilde.fireworks.workflows.workflow_generator import generate_firework
 from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
 from hilde.tasks.calculate import calculate as hilde_calc

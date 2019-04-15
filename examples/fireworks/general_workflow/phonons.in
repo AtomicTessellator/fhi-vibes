@@ -1,15 +1,14 @@
 # config file to control phonopy workflow
 [control]
-xc =                 pbe
+xc =                 pw-lda
 sc_accuracy_rho =    1e-6
 sc_accuracy_forces = 5E-4
 output_level =       MD_light
 relativistic =       "atomic_zora scalar"
-vdw_correction_hirshfeld = True
 basis_threshold = 1e-10
 
 [control_kpt]
-density =         .5
+density = 1.0 
 
 [basisset]
 type = light
@@ -23,22 +22,22 @@ displacement = 0.01
 fireworks = True
 serial = False
 
-[phono3py]
-walltime = 1600
-supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-workdir = test_run/phonopy
-analysis_workdir = test_run/phono3py/analysis
-displacement = 0.01
-fireworks = True
-serial = True
-cutoff_pair_distance = 5.0
+#[phono3py]
+#walltime = 1600
+#supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+#workdir = test_run/phonopy
+#analysis_workdir = test_run/phono3py/analysis
+#displacement = 0.01
+#fireworks = True
+#serial = True
+#cutoff_pair_distance = 5.0
 
 [restart]
 command = python run_phonopy.py
 
 [fw_settings]
-in_spec_atoms = light_relaxed_atoms
-in_spec_calc = light_relaxed_calc
-from_db = True
-kpoint_density_spec = kgrid
+#in_spec_atoms = light_relaxed_atoms
+#in_spec_calc = light_relaxed_calc
+from_db = False
+#kpoint_density_spec = kgrid
 

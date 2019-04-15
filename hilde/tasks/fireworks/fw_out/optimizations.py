@@ -3,7 +3,7 @@ from pathlib import Path
 
 from fireworks import FWAction
 
-from hilde.fireworks.workflow_generator import generate_firework
+from hilde.fireworks.workflows.workflow_generator import generate_firework
 from hilde.helpers.converters import calc2dict
 from hilde.helpers.fileformats import last_from_yaml
 
@@ -23,7 +23,8 @@ def check_kgrid_opt_completion(
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         func_kwargs (dict): keyword arguments for func
-        fw_settings (dict): FireWorks specific settings
+        func_fw_kwargs (dict): Keyword arguments for fw_out function
+        fw_setstings (dict): FireWorks specific settings
     Returns (FWAction): Either another k-grid optimization step, or an updated spec
     """
     trajectory = Path(func_kwargs["workdir"]) / func_kwargs["trajectory"]

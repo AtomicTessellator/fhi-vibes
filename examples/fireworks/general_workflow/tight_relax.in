@@ -1,13 +1,12 @@
 # information to build a default control.in
 [control]
-xc =                 pbe
+xc =                 pw-lda
 sc_accuracy_rho =    1e-6
 sc_accuracy_forces = 5E-4
 output_level =       MD_light
 relativistic =       "atomic_zora scalar"
 relax_geometry =     "ltrm 7.5E-3"
 relax_unit_cell =    full
-vdw_correction_hirshfeld = True
 basis_threshold = 1e-10
 
 use_sym = True

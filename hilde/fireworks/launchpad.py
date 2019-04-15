@@ -1,5 +1,7 @@
 """ Modified Launchpad class from FireWorks"""
 from fireworks.core.launchpad import LaunchPad
+from fireworks.fw_config import LAUNCHPAD_LOC
+
 
 class LaunchPadHilde(LaunchPad):
     """
@@ -56,3 +58,10 @@ class LaunchPadHilde(LaunchPad):
             ssl_keyfile,
             ssl_pem_passphrase,
         )
+
+    @classmethod
+    def auto_load(cls):
+        '''auto_load from default file'''
+        if LAUNCHPAD_LOC:
+            return LaunchPadHilde.from_file(LAUNCHPAD_LOC)
+        return LaunchPadHilde()

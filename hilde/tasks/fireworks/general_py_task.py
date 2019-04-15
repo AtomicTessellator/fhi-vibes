@@ -1,4 +1,4 @@
-'''Standardize python function for FW PyTasks'''
+"""Standardize python function for FW PyTasks"""
 from pathlib import Path
 import os
 
@@ -6,10 +6,11 @@ from fireworks import PyTask
 
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.helpers.converters import dict2atoms
+from hilde.helpers import Timer
 from hilde.settings import Settings
-from hilde.tasks import fireworks as fw
 
 module_name = __name__
+
 
 def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     """
@@ -75,7 +76,6 @@ def generate_task(task_spec, fw_settings, atoms, calc):
         }
     )
 
-
 def generate_update_calc_task(calc_spec, updated_settings):
     """
     Generate a calculator update task
@@ -92,7 +92,6 @@ def generate_update_calc_task(calc_spec, updated_settings):
         }
     )
 
-
 def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     """
     Generate a calculator modifier task
@@ -107,21 +106,23 @@ def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     """
     args = ["k_grid_density", calc_spec]
     kwargs = {"spec_key": kpt_spec}
-    if isinstance(at, dict):
-        args.append(cl)
-        kwargs["atoms"] = at
-        inputs = [kpt_spec]
+    if isinstance(cl, str):
+        inputs = [cl, kpt_spec]
     else:
-        inputs = [cl, kpt_spec, at]
+        args.append(cl)
+        inputs = [kpt_spec]
+    if isinstance(at, dict):
+        kwargs["atoms"] = at
+    else:
+        inputs.append(at)
     return PyTask(
         {
             "func": "hilde.tasks.fireworks.utility_tasks.mod_calc",
             "args": args,
             "inputs": inputs,
-            "kwargs": kwargs
+            "kwargs": kwargs,
         }
     )
-
 
 def get_func(func_path):
     """A function that takes in a path to a python function and returns that function"""
@@ -132,7 +133,6 @@ def get_func(func_path):
         return getattr(mod, funcname)
     # Handle built in functions.
     return getattr("builtins", toks[0])
-
 
 def atoms_calculate_task(
     func_path,
@@ -153,8 +153,10 @@ def atoms_calculate_task(
         func_fw_out_path (str): Path to the function that describes how the func inputs/outputs
                                 should alter the FireWorks Workflow
         func_kwargs (dict): A dictionary describing the key word arguments to func
+        func_fw_out_kwargs (dict): Keyword arguments for fw_out function
         atoms_dict (dict): A dictionary describing the ASE Atoms object
         calc_dict (dict): A dictionary describing the ASE Calculator object
+        args (list): a list of function arguments passed to func
         fw_settings (dict): A dictionary describing the FireWorks specific settings
                             used in func_fw_out
     Returns (FWAction): The FWAction func_fw_out outputs
@@ -167,8 +169,7 @@ def atoms_calculate_task(
     func_fw_out = get_func(func_fw_out_path)
 
     default_settings = Settings(DEFAULT_CONFIG_FILE)
-    if "command" in calc_dict:
-        calc_dict["command"] = default_settings.machine.aims_command
+    calc_dict["command"] = default_settings.machine.aims_command
     if "species_dir" in calc_dict["calculator_parameters"]:
         calc_dict["calculator_parameters"]["species_dir"] = (
             str(default_settings.machine.basissetloc)
@@ -178,19 +179,21 @@ def atoms_calculate_task(
 
     for key, val in calc_dict.items():
         atoms_dict[key] = val
-    del atoms_dict["results"]
+    if "results" in atoms_dict:
+        del atoms_dict["results"]
     atoms = dict2atoms(atoms_dict)
     try:
+        func_timer = Timer()
         if len(args) > 0:
             outputs = func(atoms, atoms.calc, *args, **func_kwargs)
         else:
             outputs = func(atoms, atoms.calc, **func_kwargs)
+        func_fw_out_kwargs["run_time"] = func_timer()
     except:
         os.chdir(start_dir)
         raise RuntimeError(
             f"Function calculation failed, moving to {start_dir} to finish Firework."
         )
-
     os.chdir(start_dir)
     fw_acts = func_fw_out(
         atoms_dict,
@@ -222,7 +225,7 @@ def general_function_task(
     Returns (FWAction): The FWAction func_fw_out outputs
     """
     if fw_settings is None:
-        fw_settings = {}
+        fw_settings = dict()
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 
@@ -232,7 +235,12 @@ def general_function_task(
         func_path, func_fw_out_path, *args, fw_settings=fw_settings, **kwargs
     )
 
+
 class TaskSpec:
+    """
+    @brief      Class used to define a task spec in a standardized way
+    """
+
     def __init__(
         self,
         func,
@@ -279,17 +287,17 @@ class TaskSpec:
                 )
             self.func_fw_out_kwargs = func_fw_out_kwargs
         else:
-            self.func_fw_out_kwargs = {}
+            self.func_fw_out_kwargs = dict()
 
         if args:
             self.args = args
         else:
-            self.args = []
+            self.args = list()
 
         if inputs:
             self.inputs = inputs
         else:
-            self.inputs = []
+            self.inputs = list()
 
     def get_pt_args(self):
         """ get the PyTask args for the task """

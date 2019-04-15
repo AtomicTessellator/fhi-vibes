@@ -1,5 +1,5 @@
 """ a wrapper for TDEP """
-
+from ase.io.aims import read_aims
 from subprocess import run
 from pathlib import Path
 
@@ -7,7 +7,59 @@ import numpy as np
 
 from hilde.helpers.paths import cwd
 from hilde.helpers import Timer
+from hilde.phonopy.postprocess import extract_results
+from hilde.trajectory import reader
 
+def remap_forceconstant(
+    ph, new_supercell, workdir='tdep', logfile="rempa_fc.log"
+):
+    command = ["remap_forceconstant"]
+    with cwd(workdir, mkdir=True), open(logfile, "w") as file:
+        convert_phonopy_to_dep(ph, ".", False)
+        new_supercell.write("infile.newposcar", format="vasp", vasp5=True, direct=True)
+        run(command, stdout=file)
+        return parse_tdep_forceconstant("outfile.forceconstant_remapped")
+
+def convert_phonopy_to_dep(
+    ph, workdir="tdep", reduce_ph_fc=True, logfile="convert_phonopy_to_dep.log"
+):
+    command = ["convert_phonopy_to_forceconstant", "--truncate"]
+    with cwd(workdir, mkdir=True), open(logfile, "w") as file:
+        extract_results(ph, tdep=True, tdep_reduce_fc=reduce_ph_fc)
+        run(command, stdout=file)
+        outfile = Path("outfile.converted_forceconstant")
+        infile = Path("infile.forceconstant")
+        if infile.exists():
+            infile.unlink()
+        infile.symlink_to(outfile)
+        print(f".. Symlink {infile} created.")
+
+def canonical_configuration(
+     ph=None, workdir="tdep", temperature=300, n_sample=5, quantum=False, logfile="canon_conf.log"
+):
+    if ph:
+        convert_phonopy_to_dep(ph, workdir)
+    command = ["canonical_configuration"]
+    if quantum:
+        command.append(f"--quantum")
+    command.extend("-of 4".split())
+    command.extend(f"-n {n_sample}".split())
+    command.extend(f"-t {temperature}".split())
+    with cwd(workdir, mkdir=True), open(logfile, "w") as file:
+        run(command, stdout=file)
+    outfiles = Path(workdir).glob("aims_conf*")
+    return [read_aims(of) for of in outfiles]
+
+def extract_forceconstants_from_trajectory(
+    trajectory_file, workdir="tdep", rc2=10, remapped=True, logfile="fc.log", **kwargs
+):
+    trajectory = reader(trajectory_file)
+    if "skip" in kwargs:
+        skip = kwargs["skip"]
+    else:
+        skip = 0
+    trajectory.to_tdep(folder=workdir, skip=0)
+    extract_forceconstants(workdir, rc2, remapped, logfile, **kwargs)
 
 def parse_tdep_forceconstant(fname="infile.forceconstant", force_remap=False):
     """ parse the remapped forceconstants from TDEP """

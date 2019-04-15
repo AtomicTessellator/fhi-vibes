@@ -3,7 +3,9 @@ from pathlib import Path
 
 from fireworks import FWAction
 
-from hilde.fireworks.workflow_generator import generate_firework
+import numpy as np
+
+from hilde.fireworks.workflows.workflow_generator import generate_firework
 from hilde.helpers.converters import atoms2dict
 from hilde.trajectory import reader as traj_reader
 
@@ -20,11 +22,18 @@ def mod_spec_add(
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         func_kwargs (dict): keyword arguments for func
+        func_fw_kwargs (dict): Keyword arguments for fw_out function
         fw_settings (dict): FireWorks specific settings
     Returns (FWAction): Modifies the spec to add the current atoms list to it
     """
     atoms_dict = atoms2dict(outputs)
-    return FWAction(mod_spec=[{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}])
+    mod_spec = [{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}]
+    if "time_spec_add" in fw_settings:
+        mod_spec[0]["_push"][fw_settings["time_spec_add"]] = func_fw_kwargs.pop(
+            "run_time"
+        )
+
+    return FWAction(mod_spec=mod_spec)
 
 
 def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
@@ -39,35 +48,47 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
     Returns (FWAction): Either a new Firework to restart the calculation or an updated
                         spec with the list of atoms
     """
+    if len(args) > 3 and isinstance(args[3], list):
+        times = args[3].copy()
+    else:
+        times = list()
+    if "workdir" in kwargs:
+        watchdog_log = Path(kwargs["workdir"]) / "calculations" / "watchdog.log"
+    else:
+        watchdog_log = Path(".") / "calculations" / "watchdog.log"
+    if watchdog_log.exists():
+        cur_times = np.genfromtxt(str(watchdog_log))
+        if len(cur_times.shape) == 1:
+            cur_times = [cur_times[3]]
+        else:
+            cur_times = list(cur_times[:, 3])
+    else:
+        cur_times = []
     update_spec = {
         fw_settings["calc_atoms_spec"]: args[0],
         fw_settings["calc_spec"]: args[1],
         fw_settings["metadata_spec"]: args[2],
+        "phonon_times": times + cur_times,
     }
+    inputs = [
+        fw_settings["calc_atoms_spec"],
+        fw_settings["calc_spec"],
+        fw_settings["metadata_spec"],
+        "phonon_times",
+    ]
     if kwargs["outputs"]:
-        if "workdir" in kwargs:
-            wd = Path(kwargs["workdir"])
-        else:
-            wd = Path(".")
-
-        if "trajectory" in kwargs:
-            traj = kwargs["trajectory"]
-        else:
-            traj = "trajectory.yaml"
-
+        wd = Path(kwargs.get("workdir", "."))
+        traj = kwargs.get("trajectory", "trajectory.yaml")
         ca = traj_reader(str((wd / traj).absolute()), False)
         update_spec[fw_settings["mod_spec_add"]] = [atoms2dict(at) for at in ca]
         return FWAction(update_spec=update_spec)
+    fw_settings["spec"].update(update_spec)
     fw = generate_firework(
         func="hilde.tasks.fireworks.phonopy_phono3py_functions.wrap_calc_socket",
         func_fw_out="hilde.tasks.fireworks.fw_out.calculate.socket_calc_check",
         func_kwargs=kwargs,
         atoms_calc_from_spec=False,
-        inputs=[
-            fw_settings["calc_atoms_spec"],
-            fw_settings["calc_spec"],
-            fw_settings["metadata_spec"],
-        ],
+        inputs=inputs,
         fw_settings=fw_settings,
     )
     return FWAction(update_spec=update_spec, detours=[fw])

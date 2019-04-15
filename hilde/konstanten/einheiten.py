@@ -3,14 +3,13 @@ from numpy import pi
 from ase import units as ase_units
 from hilde.helpers import AttributeDict
 
-
 # physical constants
-AMU = 1.66053904e-27  # [kg]
-LIGHT = 299792458  # [m / s]
-PLANCK_CONSTANT = 6.62607015e-34  # [J s]
-BOLTZMANN = 1.38064852e-23  # [J / K]
-AVOGADRO = 6.02214076e23  # [1]
-ALPHA = 1 / 137.035999046  # [1]
+AMU = ase_units._amu # = 1.66053904e-27  # [kg]
+LIGHT = ase_units._c # = 299792458  # [m / s]
+PLANCK_CONSTANT = ase_units._hplanck # = 6.62607015e-34  # [J s]
+BOLTZMANN = ase_units._k # = 1.38064852e-23  # [J / K]
+AVOGADRO = ase_units._Nav # = 6.02214076e23  # [1]
+ALPHA = ase_units.alpha # = 1 / 137.035999046  # [1]
 
 # Mathematical constants
 PI = pi
@@ -19,14 +18,14 @@ PI = pi
 AA = 1e-10  # [m]
 PICO = 1e-12  # [s]
 FEMTO = 1e-3 * PICO  # [s]
-EV = 1.60217733e-19  # [J]
+EV = ase_units._e # = 1.60217733e-19  # [J]
 THZ = 1 / PICO  # [1/s]
 
 # Atomic units
-ELECTRON_MASS = 5.48579909070e-4 * AMU  # [kg]
-HARTREE = 27.21138602 * EV  # [J]
-BOHR = 0.52917721092 * AA  # [m]
-HBAR = PLANCK_CONSTANT / 2 / PI  # [J s]
+ELECTRON_MASS = ase_units._me # = 5.48579909070e-4 * AMU  # [kg]
+HARTREE = ase_units.Hartree # = 27.21138602 * EV  # [J]
+BOHR = ase_units.Bohr # = 0.52917721092 * AA  # [m]
+HBAR = ase_units._hbar # = PLANCK_CONSTANT / 2 / PI  # [J s]
 
 atomic_units = AttributeDict(
     {

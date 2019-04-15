@@ -12,7 +12,7 @@ from hilde.fireworks.rocket_launcher import rapidfire
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.paths import cwd
 from hilde.helpers.pickle import pread
-from hilde.fireworks.workflow_generator import (
+from hilde.fireworks.workflows.workflow_generator import (
     generate_firework,
     get_phonon_analysis_task,
 )
@@ -45,7 +45,7 @@ kwargs_init_fw_out = {"workdir": workdir, "serial": True}
 
 init_fw = generate_firework(
     func="hilde.tasks.fireworks.phonopy_phono3py_functions.bootstrap_phonon",
-    func_fw_out="hilde.tasks.fireworks.fw_out.phonons.post_bootstrap",
+    func_fw_out="hilde.tasks.fireworks.fw_out.phonons.post_init_mult_calcs",
     func_kwargs={"phonopy_settings": kwargs_init},
     atoms=atoms,
     calc=calc,

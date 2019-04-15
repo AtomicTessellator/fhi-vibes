@@ -16,14 +16,15 @@ def postprocess(
     pickle_file="phonon.pick",
     write_files=True,
     born_charges_file=None,
+    verbose=True,
     **kwargs,
 ):
     """ Phonopy postprocess """
 
     timer = Timer()
     trajectory = Path(trajectory)
-
-    print("Start phonopy postprocess:")
+    if verbose:
+        print("Start phonopy postprocess:")
 
     calculated_atoms, metadata = reader(trajectory, True)
     for disp in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
@@ -47,7 +48,8 @@ def postprocess(
 
         prim = phonon.get_primitive()
         psym = phonon.get_primitive_symmetry()
-        print(f".. read born effective charges from {born_charges_file}")
+        if verbose:
+            print(f".. read born effective charges from {born_charges_file}")
         nac_params = get_born_parameters(open(born_charges_file), prim, psym)
         phonon.set_nac_params(nac_params)
 
@@ -55,20 +57,23 @@ def postprocess(
     if pickle_file and write_files:
         fname = trajectory.parent / pickle_file
         psave(phonon, fname)
-        print(f".. Pickled phonopy object written to {fname}")
+        if verbose:
+            print(f".. Pickled phonopy object written to {fname}")
 
     if write_files:
         # Save the supercell
         fname = "geometry.in.supercell"
         write(supercell, fname)
-        print(f".. Supercell written to {fname}")
+        if verbose:
+            print(f".. Supercell written to {fname}")
 
         force_constants = get_force_constants(phonon)
         fname = "force_constants.dat"
         np.savetxt(fname, force_constants)
-        print(f".. Force constants saved to {fname}.")
-
-    timer("done")
+        if verbose:
+            print(f".. Force constants saved to {fname}.")
+    if verbose:
+        timer("done")
 
     return phonon
 
@@ -79,6 +84,7 @@ def extract_results(
     plot_dos=False,
     plot_pdos=False,
     tdep=False,
+    tdep_reduce_fc=True,
     force_constants_file="FORCE_CONSTANTS",
 ):
     """ Extract results from phonopy object and present them.
@@ -86,7 +92,7 @@ def extract_results(
           `convert_phonopy_to_forceconstant`
         are written. """
     from hilde.phonopy.wrapper import plot_bandstructure, plot_bandstructure_and_dos
-    from hilde.structure.convert import to_Atoms
+    from hilde.structure.convert import to_Atoms_db
     from phonopy.file_IO import write_FORCE_CONSTANTS
 
     plot_bandstructure(phonon, file="bandstructure.pdf")
@@ -95,16 +101,16 @@ def extract_results(
     if plot_pdos:
         plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
 
-    # print structures:
-    primitive = to_Atoms(phonon.get_primitive())
-    supercell = to_Atoms(phonon.get_supercell())
+    primitive = to_Atoms_db(phonon.get_primitive())
+    supercell = to_Atoms_db(phonon.get_supercell())
 
     if tdep:
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
         fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
 
         # reproduce reduces force constants
-        phonon.produce_force_constants(calculate_full_force_constants=False)
+        if tdep_reduce_fc:
+            phonon.produce_force_constants(calculate_full_force_constants=False)
 
         write_FORCE_CONSTANTS(
             phonon.get_force_constants(),
@@ -130,7 +136,8 @@ def extract_results(
     print(f"Supercell cell written to {fname}")
 
     # save as force_constants.dat
-    phonon.produce_force_constants()
+    if tdep_reduce_fc:
+        phonon.produce_force_constants()
     n_atoms = phonon.get_supercell().get_number_of_atoms()
 
     force_constants = (

@@ -4,9 +4,11 @@ from pathlib import Path
 from fireworks import FWAction
 from ase.io.aims import read_aims
 
-from hilde.fireworks.workflow_generator import generate_firework
+from hilde.fireworks.workflows.workflow_generator import generate_firework
 from hilde.helpers.converters import atoms2dict, calc2dict
 from hilde.helpers.fileformats import last_from_yaml
+from hilde.helpers.k_grid import k2d
+
 
 def check_relaxation_complete(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
@@ -22,6 +24,7 @@ def check_relaxation_complete(
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         func_kwargs (dict): keyword arguments for func
+        func_fw_kwargs (dict): Keyword arguments for fw_out function
         fw_settings (dict): FireWorks specific settings
     Returns (FWAction): The correct action (restart or updated spec) if convergence is reached
     """
@@ -69,7 +72,6 @@ def check_relaxation_complete(
     except:
         new_traj_list[-2] += "_restart_1"
         func_kwargs["trajectory"] = ".".join(new_traj_list)
-
     fw = generate_firework(
         func=func,
         func_fw_out=func_fw_out,
@@ -96,6 +98,7 @@ def check_aims_relaxation_complete(
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         func_kwargs (dict): keyword arguments for func
+        func_fw_kwargs (dict): Keyword arguments for fw_out function
         fw_settings (dict): FireWorks specific settings
     Returns (FWAction): The correct action (restart or updated spec) if convergence is reached
     """
@@ -106,28 +109,45 @@ def check_aims_relaxation_complete(
     try:
         new_atoms = read_aims(func_kwargs["workdir"] + "/geometry.in.next_step")
         new_atoms.set_calculator(outputs.get_calculator())
-        new_atoms = atoms2dict(new_atoms)
+        new_atoms_dict = atoms2dict(new_atoms)
+        print(new_atoms_dict["cell"])
     except:
         if not converged:
-            raise IOError(
-                "There was a problem with the FHI Aims calculation stopping program here"
-            )
-        new_atoms = atoms2dict(outputs)
+            if (
+                "*** WARNING: FHI-aims is terminating due to walltime restrictions\n"
+                in aims_out
+            ):
+                pass
+            else:
+                raise IOError(
+                    "There was a problem with the FHI Aims calculation stopping program here"
+                )
+        new_atoms = outputs
+        new_atoms_dict = atoms2dict(outputs)
     for key, val in atoms["info"].items():
-        if key not in new_atoms["info"]:
-            new_atoms["info"][key] = val
+        if key not in new_atoms_dict["info"]:
+            new_atoms_dict["info"][key] = val
+    update_spec = dict()
     if converged:
         return FWAction(
             update_spec={
-                fw_settings["out_spec_atoms"]: new_atoms,
+                fw_settings["out_spec_atoms"]: new_atoms_dict,
                 fw_settings["out_spec_calc"]: calc,
             }
         )
-
+    else:
+        update_spec = {
+            fw_settings["in_spec_atoms"]: new_atoms_dict,
+            fw_settings["in_spec_calc"]: calc,
+            fw_settings["kpoint_density_spec"]: k2d(
+                new_atoms, calc["calculator_parameters"]["k_grid"]
+            ),
+        }
     del calc["results"]
     fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(
         func_fw_kwargs["relax_step"]
     )
+    fw_settings["spec"].update(update_spec)
 
     if "to_launchpad" in fw_settings and fw_settings["to_launchpad"]:
         fw_settings["to_launchpad"] = False
@@ -136,9 +156,9 @@ def check_aims_relaxation_complete(
         func=func,
         func_fw_out=func_fw_out,
         func_kwargs=func_kwargs,
-        atoms=atoms,
+        atoms=new_atoms_dict,
         calc=calc,
         func_fw_out_kwargs=func_fw_kwargs,
         fw_settings=fw_settings,
     )
-    return FWAction(detours=[fw])
+    return FWAction(detours=[fw], update_spec=update_spec)

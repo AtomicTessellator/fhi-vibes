@@ -2,6 +2,7 @@
 A file defining a row object for the phonon database
 """
 import numpy as np
+import re
 
 from ase.db.row import AtomsRow, atoms2dict
 from ase.io.jsonio import decode
@@ -16,7 +17,7 @@ from hilde.materials_fp.material_fingerprint import to_dict
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 
 
-def phonon_to_dict(phonon, to_mongo=False):
+def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
     """
     Converts a phonopy object to a dictionary
     Args:
@@ -34,14 +35,16 @@ def phonon_to_dict(phonon, to_mongo=False):
         dct["natoms_in_sc_2"] = len(dct["numbers"]) * int(
             round(np.linalg.det(phonon.get_supercell_matrix()))
         )
+    if not add_fc:
+        dct["forces_2"] = []
+        for disp1 in phonon._displacement_dataset["first_atoms"]:
+            if "forces" in disp1:
+                dct["forces_2"].append(disp1.pop("forces"))
 
-    dct["forces_2"] = []
-    for disp1 in phonon._displacement_dataset["first_atoms"]:
-        if "forces" in disp1:
-            dct["forces_2"].append(disp1.pop("forces"))
-
-    dct["forces_2"] = np.array(dct["forces_2"])
-
+        dct["forces_2"] = np.array(dct["forces_2"])
+    else:
+        n_atoms = phonon.get_supercell().get_number_of_atoms()
+        dct["_fc_2"] = np.array(phonon.get_force_constants())
     dct["displacement_dataset_2"] = phonon._displacement_dataset
 
     if phonon.mesh is not None:
@@ -59,10 +62,10 @@ def phonon_to_dict(phonon, to_mongo=False):
         dct["phonon_bs_fp"] = to_dict(
             get_phonon_bs_fingerprint_phononpy(phonon, dct["qpoints"]), to_mongo
         )
-        if to_mongo:
+        if to_mongo and "qpoints" in dct:
             q_pt = {}
             for pt in dct["qpoints"]:
-                q_pt[str(pt)] = dct["qpoints"][pt]
+                q_pt[re.sub("[.]", "_", str(pt))] = dct["qpoints"][pt]
             dct["qpoints"] = q_pt
     if phonon.thermal_properties is not None:
         dct["tp_ZPE"] = phonon.thermal_properties.zero_point_energy
@@ -71,7 +74,6 @@ def phonon_to_dict(phonon, to_mongo=False):
             "tp_Cv"
         ] = phonon.get_thermal_properties()
     return dct
-
 
 def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
     """
@@ -133,7 +135,6 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
         dct["qmesh"] = phonon3.get_thermal_conductivity().get_mesh_numbers()
 
     return dct
-
 
 class PhononRow(AtomsRow):
     """
@@ -211,7 +212,6 @@ class PhononRow(AtomsRow):
 
     def get_fc_2(self):
         from phonopy import Phonopy
-
         phonon = Phonopy(
             to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
@@ -269,7 +269,9 @@ class PhononRow(AtomsRow):
             factor=const.omega_to_THz,
         )
         phonon.set_displacement_dataset(self.displacement_dataset_2)
-        if "forces_2" in self and len(self.forces_2) > 0:
+        if "_fc_2" in self:
+            phonon.set_force_constants(self.fc_2)
+        elif "forces_2" in self and len(self.forces_2) > 0:
             phonon.produce_force_constants(self.forces_2)
             self.__dict__["_fc_2"] = phonon.get_force_constants()
         if "qmesh" in self and self.qmesh is not None:

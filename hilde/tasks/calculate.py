@@ -4,6 +4,8 @@
 import numpy as np
 
 from pathlib import Path
+from time import time
+
 from ase.calculators.socketio import SocketIOCalculator
 from hilde import Settings
 from hilde.helpers.compression import backup_folder as backup
@@ -45,7 +47,17 @@ def calculate(atoms, calculator, workdir="."):
     calc_atoms.calc = calculator
     with cwd(workdir, mkdir=True):
         calc_atoms.write("geometry.in")
-        calc_atoms.calc.calculate(calc_atoms)
+        try:
+            calc_atoms.calc.calculate(calc_atoms)
+        except:
+            lines = open("aims.out").readlines()
+            if (
+                "*** WARNING: FHI-aims is terminating due to walltime restrictions\n"
+                not in lines
+            ):
+                raise IOError(
+                    "FHI-aims failed to converge, and it is not a walltime issue"
+                )
         return calc_atoms
 
 
@@ -148,7 +160,7 @@ def calculate_socket(
                 if "forces" in calc.results:
                     del calc.results["forces"]
                 atoms.calc = calc
-
+                atoms.calc.parameters["walltime"] = watchdog.walltime - time() - 120
                 if cell is None:
                     continue
                 # if precomputed:
@@ -163,7 +175,19 @@ def calculate_socket(
                 # update calculation_atoms and compute force
                 atoms.info = cell.info
                 atoms.positions = cell.positions
-                _ = atoms.get_forces()
+                try:
+                    _ = atoms.get_forces()
+                except:
+                    lines = open("aims.out").readlines()
+                    if (
+                        "lines WARNING: FHI-aims is terminating due to walltime restrictions\n"
+                        not in lines
+                    ):
+                        raise IOError(
+                            "FHI-aims failed to converge, and it is not a walltime issue"
+                        )
+                    else:
+                        break
 
                 step2file(atoms, atoms.calc, trajectory)
 

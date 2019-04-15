@@ -8,6 +8,7 @@ from hilde.helpers.converters import input2dict
 from hilde.helpers.paths import cwd
 from hilde.trajectory import metadata2file, step2file
 from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
+from hilde.helpers.k_grid import k2d
 
 
 def converge_kgrid(
@@ -21,7 +22,7 @@ def converge_kgrid(
     trajectory="kpt_trajectory.yaml",
     logfile="kpoint_conv.log",
     socketio_port=None,
-    walltime=1800,
+    walltime=None,
     workdir=".",
 ):
     """
@@ -55,7 +56,8 @@ def converge_kgrid(
         "even": even,
         "logfile": str(workdir / logfile),
     }
-
+    if "k_grid" in calc.parameters:
+        kpt_settings["kpts_density_init"] = k2d(atoms, calc.parameters["k_grid"])
     if socketio_port is None:
         socket_calc = None
     else:
