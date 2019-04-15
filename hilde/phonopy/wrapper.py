@@ -98,6 +98,7 @@ def get_force_constants(phonon, force_sets=None):
 
 def get_dos(
     phonon,
+    total=True,
     q_mesh=defaults.q_mesh,
     freq_min=0,
     freq_max="auto",
@@ -106,30 +107,53 @@ def get_dos(
     write=False,
     filename="total_dos.dat",
     force_sets=None,
+    direction=None,
+    xyz_projection=False,
 ):
     """ Compute the DOS (and save to file) """
 
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
 
-    phonon.run_mesh(q_mesh)
+    if total:
+        phonon.run_mesh(q_mesh)
 
-    if freq_max == "auto":
-        freq_max = phonon.get_mesh()[2].max() * 1.05
+        if freq_max == "auto":
+            freq_max = phonon.get_mesh()[2].max() * 1.05
+        phonon.run_total_dos(
+            freq_min=freq_min,
+            freq_max=freq_max,
+            freq_pitch=freq_pitch,
+            use_tetrahedron_method=tetrahedron_method,
+        )
 
-    phonon.run_total_dos(
-        freq_min=freq_min,
-        freq_max=freq_max,
-        freq_pitch=freq_pitch,
-        use_tetrahedron_method=tetrahedron_method,
-    )
+        if write:
+            phonon.write_total_dos()
+            Path("total_dos.dat").rename(filename)
 
-    if write:
-        phonon.write_total_dos()
-        Path("total_dos.dat").rename(filename)
+        return phonon.get_total_dos_dict()
+    else:
+        phonon.run_mesh(
+            q_mesh,
+            is_mesh_symmetry=False,
+            with_eigenvectors=True,
+        )
 
-    return phonon.get_total_dos_dict()
+        if freq_max == "auto":
+            freq_max = phonon.get_mesh()[2].max() * 1.05
 
+        phonon.run_projected_dos(
+            freq_min=freq_min,
+            freq_max=freq_max,
+            freq_pitch=freq_pitch,
+            use_tetrahedron_method=tetrahedron_method,
+            direction=direction,
+            xyz_projection=xyz_projection,
+        )
+        if write:
+            phonon.write_projected_dos()
+            Path("projected_dos.dat").rename(filename)
+        return phonon.get_projected_dos_dict()
 
 def get_bandstructure(phonon, paths=None, force_sets=None):
     """

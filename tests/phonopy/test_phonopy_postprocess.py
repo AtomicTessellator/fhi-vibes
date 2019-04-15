@@ -12,4 +12,10 @@ dos = np.loadtxt("total_dos.dat")
 assert np.abs(np.max(dos[:,0] - total_dos["frequency_points"])) < 1e-13
 assert np.abs(np.max(dos[:,1] - total_dos["total_dos"])) < 1e-10
 
+projected_dos = get_dos(ph, total=False, write=True, filename="projected_dos.dat")
+dos = np.loadtxt("projected_dos.dat")
+assert np.abs(np.max(dos[:,0] - projected_dos["frequency_points"])) < 1e-13
+assert np.abs(np.max(dos[:,1] - projected_dos["projected_dos"])) < 1e-10
+
 phonon_bs = get_bandstructure(ph)
+
