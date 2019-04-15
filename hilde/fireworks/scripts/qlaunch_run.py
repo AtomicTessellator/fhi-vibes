@@ -218,7 +218,7 @@ def qlaunch():
         help="path to a directory containing the config file (used if -l, -w, -q unspecified)",
         default=CONFIG_FILE_DIR,
     )
-    rapid_parser.add_argument(
+    parser.add_argument(
         "-fm",
         "--fill_mode",
         help="launch queue submissions even when there is nothing to run",
