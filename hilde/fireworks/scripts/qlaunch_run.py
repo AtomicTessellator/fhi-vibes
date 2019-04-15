@@ -33,6 +33,7 @@ from fireworks.utilities.fw_serializers import load_object_from_file
 
 from hilde.fireworks.queue_launcher import rapidfire
 from hilde.fireworks.launchpad import LaunchPadHilde as LaunchPad
+from hilde.fireworks.scripts.claunch_run import fw_defaults
 
 __authors__ = (
     "Anubhav Jain, Shyue Ping Ong. Modified by Thomas Purcell to redirect rapidfire"
@@ -118,6 +119,7 @@ def qlaunch():
     )
 
     parser = ArgumentParser(description=m_description)
+
     subparsers = parser.add_subparsers(help="command", dest="command")
     single_parser = subparsers.add_parser(
         "singleshot", help="launch a single rocket to the queue"
@@ -129,6 +131,7 @@ def qlaunch():
     parser.add_argument(
         "-rh",
         "--remote_host",
+        default=fw_defaults["remote_host"],
         nargs="*",
         help="Remote host to exec qlaunch. Right now, "
         "only supports running from a config dir.",
@@ -137,6 +140,7 @@ def qlaunch():
         "-rc",
         "--remote_config_dir",
         nargs="+",
+        default=fw_defaults["remote_config_dir"],
         help="Remote config dir location(s). Defaults to "
         "~/.fireworks. You can specify multiple "
         "locations if you have multiple configurations "
@@ -145,14 +149,17 @@ def qlaunch():
         "argument (or other single arg) options as "
         "argparse may not be able to find "
         "the find command while it consumes args.",
-        default=["~/.fireworks"],
     )
     parser.add_argument(
-        "-ru", "--remote_user", help="Username to login to remote host."
+        "-ru",
+        "--remote_user",
+        default=fw_defaults["remote_user"],
+        help="Username to login to remote host.",
     )
     parser.add_argument(
         "-rp",
         "--remote_password",
+        default=fw_defaults["remote_password"],
         help="Password for remote host (if necessary). For "
         "best operation, it is recommended that you do "
         "passwordless ssh.",
@@ -173,6 +180,12 @@ def qlaunch():
     )
     parser.add_argument(
         "-rgss", "--gss_auth", help="use gss_api authorization", action="store_true"
+    )
+    parser.add_argument(
+        "-rro",
+        "--remote_recover_offline",
+        action="store_true",
+        help="recover offline jobs from remote host",
     )
     parser.add_argument(
         "-d",
@@ -205,7 +218,7 @@ def qlaunch():
         help="path to a directory containing the config file (used if -l, -w, -q unspecified)",
         default=CONFIG_FILE_DIR,
     )
-    parser.add_argument(
+    rapid_parser.add_argument(
         "-fm",
         "--fill_mode",
         help="launch queue submissions even when there is nothing to run",
@@ -231,20 +244,20 @@ def qlaunch():
         "-m",
         "--maxjobs_queue",
         help="maximum jobs to keep in queue for this user",
-        default=0,
+        default=fw_defaults["njobs_queue"],
         type=int,
     )
     rapid_parser.add_argument(
         "-b",
         "--maxjobs_block",
         help="maximum jobs to put in a block",
-        default=500,
+        default=fw_defaults["njobs_block"],
         type=int,
     )
     rapid_parser.add_argument(
         "--nlaunches",
         help='num_launches (int or "infinite"; default 0 is all jobs in DB)',
-        default=0,
+        default=fw_defaults["nlaunches"],
     )
     rapid_parser.add_argument(
         "--timeout",
@@ -253,9 +266,19 @@ def qlaunch():
         type=int,
     )
     rapid_parser.add_argument(
-        "--sleep", help="sleep time between loops", default=None, type=int
+        "--sleep",
+        help="sleep time between loops",
+        default=fw_defaults["sleep_time"],
+        type=int,
     )
-
+    rapid_parser.add_argument(
+        "-tq",
+        "--tasks_to_queue",
+        nargs="+",
+        type=str,
+        default=fw_defaults["tasks2queue"],
+        help="list of tasks to be sent to the queue",
+    )
     single_parser.add_argument(
         "-f",
         "--fw_id",
@@ -301,20 +324,25 @@ def qlaunch():
                         if os.path.isfile(f):
                             conn.put(f, os.path.join(r, f))
     non_default = []
-    for k in ["maxjobs_queue", "maxjobs_block", "nlaunches", "sleep"]:
-        v = getattr(args, k, None)
-        if v != rapid_parser.get_default(k):
-            non_default.append("--{} {}".format(k, v))
-    val = getattr(args, "firework_ids", None)
-    if val != rapid_parser.get_default("firework_ids"):
-        non_default.append("--{} {}".format("firework_ids", val[0]))
-        for v in val[1:]:
-            non_default[-1] += " {}".format(v)
-    val = getattr(args, "wflow", None)
-    if val != rapid_parser.get_default("wflow"):
-        non_default.append("--{} {}".format("wflow", val[0]))
-        for v in val[1:]:
-            non_default[-1] += " {}".format(v)
+    if args.command == "rapidfire":
+        for k in ["maxjobs_queue", "maxjobs_block", "nlaunches", "sleep"]:
+            v = getattr(args, k, None)
+            if v is not None and v != rapid_parser.get_default(k):
+                non_default.append("--{} {}".format(k, v))
+        val = getattr(args, "firework_ids", None)
+        if val is not None and val != rapid_parser.get_default("firework_ids"):
+            non_default.append("--{} {}".format("firework_ids", val[0]))
+            for v in val[1:]:
+                non_default[-1] += " {}".format(v)
+        val = getattr(args, "wflow", None)
+        if val is not None and val != rapid_parser.get_default("wflow"):
+            non_default.append("--{} {}".format("wflow", val[0]))
+            for v in val[1:]:
+                non_default[-1] += " {}".format(v)
+    else:
+        val = getattr(args, "fw_id", None)
+        if val is not None and val != single_parser.get_default("fw_id"):
+            non_default.append("--{} {}".format("fw_id", val))
     non_default = " ".join(non_default)
 
     pre_non_default = []
@@ -326,16 +354,19 @@ def qlaunch():
 
     interval = args.daemon
     while True:
+        connect_kwargs = {"gss_auth" : args.gss_auth}
+        if args.remote_password is not None:
+            connect_kwargs["password"] = args.remote_password
+        print(args.gss_auth)
+        print(args.remote_password)
+        print(args.remote_user)
         if args.remote_host:
             for h in args.remote_host:
                 with fabric.Connection(
                     host=h,
                     user=args.remote_user,
                     config=fabric.Config({"run": {"shell": args.remote_shell}}),
-                    connect_kwargs={
-                        "password": args.remote_password,
-                        "gss_auth": args.gss_auth,
-                    },
+                    connect_kwargs=connect_kwargs,
                 ) as conn:
                     for r in args.remote_config_dir:
                         r = os.path.expanduser(r)
