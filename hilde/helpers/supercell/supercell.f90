@@ -152,8 +152,10 @@ module supercell
       lp                      = 0.0d0
       elp                     = 0.0d0
 
-      write(*,*) 'Settings:'
-      write (*,"(A,/,(I3))") 'n_lattice_points', n_lattice_points
+      ! if (vrbs) then
+      !   write(*,*) 'Settings:'
+      !   write (*,"(A,/,(I3))") 'n_lattice_points', n_lattice_points
+      ! end if
 
       !> Expand brute force
       counter     = 0

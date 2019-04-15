@@ -4,7 +4,7 @@ Similar to generate_structure from TDEP.
 """
 from argparse import ArgumentParser as argpars
 import numpy as np
-from hilde.io import read, write
+from hilde.io import read, get_info_str
 from hilde.structure.io import inform
 from hilde.helpers.supercell import make_cubic_supercell, make_supercell
 from hilde.helpers.geometry import get_cubicness
@@ -62,7 +62,7 @@ def main():
     print_matrix(smatrix, indent=0)
 
     print(f"\nSuperlattice:")
-    print(supercell.cell)
+    print(supercell.cell.array)
     print(f"\nNumber of atoms:  {len(supercell)}")
     print(
         "Cubicness:        {:.3f} ({:.3f})".format(
@@ -73,12 +73,10 @@ def main():
     if not args.dry:
         spacegroup = get_spacegroup(cell)
         output_filename = f"{args.geom}.supercell_{len(supercell)}"
-        write(
-            clean_atoms(supercell),
-            output_filename,
-            spacegroup=spacegroup,
-            scaled=args.frac,
-            format=args.format,
+        info_str = get_info_str(supercell, spacegroup)
+        info_str += [f"Supercell matrix:    {smatrix.flatten()}"]
+        supercell.write(
+            output_filename, format=args.format, scaled=args.frac, info_str=info_str
         )
         print(f"\nSupercell written to {output_filename}")
 
