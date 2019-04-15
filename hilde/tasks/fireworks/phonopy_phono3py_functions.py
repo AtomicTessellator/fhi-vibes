@@ -18,7 +18,7 @@ from hilde.settings import Settings, AttributeDict
 from hilde.structure.convert import to_Atoms_db
 from hilde.tasks.calculate import calculate_socket
 from hilde.tasks.fireworks.general_py_task import get_func
-from hilde.tdep.wrapper import remap_force_constants
+from hilde.tdep.wrapper import remap_forceconstant
 from hilde.trajectory import step2file, metadata2file
 
 
@@ -138,9 +138,9 @@ def setup_harmonic_analysis(
 
     if ph.get_force_constants().shape[0] != len(sc.numbers):
         if "remap_wd" in kwargs:
-            force_constants = remap_force_constants(ph, sc, workdir=kwargs["remap_wd"])
+            force_constants = remap_forceconstant(ph, sc, workdir=kwargs["remap_wd"])
         else:
-            force_constants = remap_force_constants(ph, sc)
+            force_constants = remap_forceconstant(ph, sc)
         n_atoms = ph_new.get_supercell().get_number_of_atoms()
         ph_new.set_force_constants(
             force_constants.reshape(n_atoms, 3, n_atoms, 3).swapaxes(1, 2)
