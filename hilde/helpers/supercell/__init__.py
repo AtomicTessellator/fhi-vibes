@@ -254,7 +254,7 @@ def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose
     return supercell, smatrix
 
 
-def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5):
+def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
     """ Create the lattice points within supercell and attach atoms to each of them
     Args:
         atoms (Atoms): primitive cell as atoms object
@@ -275,6 +275,9 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5):
     # check number of atoms
     n_target = int(np.round(np.linalg.det(supercell_matrix) * len(atoms)))
     assert n_target == len(superatoms), (n_target, len(superatoms))
+
+    if wrap:
+        superatoms.wrap(eps=tol)
 
     return superatoms
 
