@@ -27,6 +27,7 @@ def run_relaxation(**kwargs):
         print("done.")
     else:
         print("Relaxation not converged, please inspect.")
+    return completed
 
 
 def bootstrap(settings=None, **kwargs):
