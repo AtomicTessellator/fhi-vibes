@@ -1,5 +1,6 @@
 """ socket io helpers """
 import numpy as np
+from hilde.helpers import talk
 from hilde.helpers.warnings import warn
 from hilde.konstanten.einheiten import atomic_units
 
@@ -15,9 +16,9 @@ def get_port(calculator):
 
     if "use_pimd_wrapper" in calculator.parameters:
         port = calculator.parameters["use_pimd_wrapper"][1]
-        warn(f"Use SocketIO with port {port}")
+        talk(f"Use SocketIO with port {port}")
     else:
-        warn(f"Socketio not used with calculator {calculator.name}")
+        talk(f"Socketio not used with calculator {calculator.name}")
 
     return port
 
@@ -37,7 +38,7 @@ def socket_stress_off(calc):
     if "socketio" in calc.name.lower():
         calc.server.protocol.sendmsg("STRESSES_OFF")
     else:
-        warn(f"Calculator {calc.name} is not a socket calculator.")
+        talk(f"Calculator {calc.name} is not a socket calculator.")
 
 
 def socket_stress_on(calc):
@@ -45,4 +46,4 @@ def socket_stress_on(calc):
     if "socketio" in calc.name.lower():
         calc.server.protocol.sendmsg("STRESSES_ON")
     else:
-        warn(f"Calculator {calc.name} is not a socket calculator.")
+        talk(f"Calculator {calc.name} is not a socket calculator.")

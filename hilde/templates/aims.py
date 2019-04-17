@@ -7,9 +7,9 @@ from pathlib import Path
 from ase.calculators.aims import Aims
 from hilde.settings import Settings
 from hilde import DEFAULT_CONFIG_FILE
+from hilde.helpers import talk
 from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.warnings import warn
-
 
 def create_species_dir(atoms, settings, tmp_folder="basissets"):
     """ create a custom bassiset folder for the computation
@@ -34,7 +34,7 @@ def create_species_dir(atoms, settings, tmp_folder="basissets"):
     # return default if no atom is given for reference
     if atoms is None:
         default_path = loc / default
-        warn(f"no Atoms object given, return default path {default_path} for basissets")
+        talk(f"no Atoms object given, return default path {default_path} for basissets")
         return str(default_path)
 
     folder = Path(tmp_folder)
@@ -95,17 +95,17 @@ def setup_aims(
 
     if "control" not in settings:
         msg = f"No [control] section in {config_file}, return calc=None, good luck!"
-        warn(msg, level=1)
+        talk(msg)
         return None
 
     default_settings = {"output_level": output_level, **settings.control}
 
     if not "output_level" in settings.control:
-        warn("output_level MD_light has been set.")
+        talk("output_level MD_light has been set.")
 
     if "relativistic" not in default_settings:
         default_settings.update({"relativistic": "atomic_zora scalar"})
-        warn("relativistic flag not set in settings.in, set to atomic_zora scalar")
+        talk("relativistic flag not set in settings.in, set to atomic_zora scalar")
 
     ase_settings = {"aims_command": settings.machine.aims_command}
 
@@ -136,6 +136,6 @@ def setup_aims(
         update_k_grid(atoms, calc, settings.control_kpt.density)
 
     if "k_grid" not in calc.parameters:
-        warn("No k_grid in aims calculator. Check!", level=1)
+        talk("No k_grid in aims calculator. Check!")
 
     return calc
