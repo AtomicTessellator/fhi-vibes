@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
-from hilde.helpers import brillouinzone as bz
+from hilde.helpers import brillouinzone as bz, talk
 from hilde.materials_fp.material_fingerprint import (
     get_phonon_bs_fingerprint_phononpy,
     to_dict,
@@ -133,11 +133,7 @@ def get_dos(
 
         return phonon.get_total_dos_dict()
     else:
-        phonon.run_mesh(
-            q_mesh,
-            is_mesh_symmetry=False,
-            with_eigenvectors=True,
-        )
+        phonon.run_mesh(q_mesh, is_mesh_symmetry=False, with_eigenvectors=True)
 
         if freq_max == "auto":
             freq_max = phonon.get_mesh()[2].max() * 1.05
@@ -154,6 +150,7 @@ def get_dos(
             phonon.write_projected_dos()
             Path("projected_dos.dat").rename(filename)
         return phonon.get_projected_dos_dict()
+
 
 def get_bandstructure(phonon, paths=None, force_sets=None):
     """
@@ -184,7 +181,10 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
 
     plt = phonon.plot_band_structure()
 
-    plt.savefig(file)
+    try:
+        plt.savefig(file)
+    except FileNotFoundError:
+        talk("saving the phonon dispersion not possible, latex probably missing")
 
 
 def plot_bandstructure_and_dos(
