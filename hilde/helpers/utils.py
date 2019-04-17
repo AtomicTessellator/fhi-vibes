@@ -2,6 +2,7 @@
 
 import sys
 from time import time
+import inspect
 
 try:
     from tqdm import tqdm
@@ -37,3 +38,15 @@ class Timer:
 def bold(text):
     """ print test in bold face """
     return "\033[1m" + text + "\033[0m"
+
+
+def talk(message):
+    """ https://stackoverflow.com/a/2654130/5172579 """
+
+    curframe = inspect.currentframe()
+    frame = inspect.getouterframes(curframe, 2)[1]
+
+    file = frame[1].split("hilde")[-1]
+
+    print(f"[hilde]: {message}\n")
+    print(f".. from file hilde{file}, line {frame[2]}, function {frame[3]}")
