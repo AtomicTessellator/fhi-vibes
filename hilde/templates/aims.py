@@ -25,7 +25,7 @@ def create_species_dir(atoms, settings, tmp_folder="basissets"):
     # if old section with `basisset.type` is used:
     if "basisset" in settings and "type" in settings.basisset:
         default = settings.basisset.type
-        return loc / default
+        return str(loc / default)
     elif "basissets" in settings and "default" in settings.basissets:
         default = settings.basissets.default
     else:
@@ -35,7 +35,7 @@ def create_species_dir(atoms, settings, tmp_folder="basissets"):
     if atoms is None:
         default_path = loc / default
         warn(f"no Atoms object given, return default path {default_path} for basissets")
-        return default_path
+        return str(default_path)
 
     folder = Path(tmp_folder)
     folder.mkdir(exist_ok=True)
@@ -62,7 +62,7 @@ def create_species_dir(atoms, settings, tmp_folder="basissets"):
         # copy the respective basisset
         shutil.copy(loc / default / f"{dct[key]:02d}_{key}_default", folder)
 
-    return folder.absolute()
+    return str(folder.absolute())
 
 
 def setup_aims(
