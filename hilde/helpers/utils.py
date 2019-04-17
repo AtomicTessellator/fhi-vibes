@@ -7,7 +7,7 @@ import inspect
 try:
     from tqdm import tqdm
 except ModuleNotFoundError:
-    tqdm = lambda x, *args: x
+    tqdm = lambda x, *args, **kwargs: x
 
 
 def progressbar(func):
