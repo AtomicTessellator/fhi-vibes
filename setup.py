@@ -12,7 +12,7 @@ ext = Extension(
 
 setup(
     name="HiLDe",
-    version="0.1.2",
+    version="0.1.3",
     description="Haber Institute Lattice Dynamics Package",
     author="Florian Knoop, Thomas Purcell",
     author_email="knoop@fhi-berlin.mpg.de, purcell@fhi-berlin.mpg.de",
