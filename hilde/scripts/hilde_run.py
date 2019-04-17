@@ -11,7 +11,7 @@ def main():
     parser.add_argument("--dry", action="store_true", help="only show configuration")
     args = parser.parse_args()
 
-    if args.dy:
+    if args.dry:
         print("Summary of settings:")
         settings = Settings()
         settings.print()
