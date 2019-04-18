@@ -1,13 +1,12 @@
 """
  Functions to run several related calculations with using trajectories as cache
 """
-import numpy as np
-
 from pathlib import Path
 from time import time
 
 from ase.calculators.socketio import SocketIOCalculator
 from hilde import Settings
+from hilde.helpers import talk
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
 from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
@@ -190,6 +189,8 @@ def calculate_socket(
                         break
 
                 step2file(atoms, atoms.calc, trajectory)
+
+                talk(f"computed structure {n_cell + 1} of {len(atoms_to_calculate)}")
 
                 if watchdog():
                     break
