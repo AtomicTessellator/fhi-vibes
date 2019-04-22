@@ -2,7 +2,6 @@
  Functions to run several related calculations with using trajectories as cache
 """
 from pathlib import Path
-from time import time
 
 from ase.calculators.socketio import SocketIOCalculator
 from hilde import Settings
@@ -45,18 +44,10 @@ def calculate(atoms, calculator, workdir="."):
     calc_atoms = atoms.copy()
     calc_atoms.calc = calculator
     with cwd(workdir, mkdir=True):
-        calc_atoms.write("geometry.in")
         try:
             calc_atoms.calc.calculate(calc_atoms)
         except:
-            lines = open("aims.out").readlines()
-            if (
-                "*** WARNING: FHI-aims is terminating due to walltime restrictions\n"
-                not in lines
-            ):
-                raise IOError(
-                    "FHI-aims failed to converge, and it is not a walltime issue"
-                )
+            pass
         return calc_atoms
 
 
@@ -155,38 +146,17 @@ def calculate_socket(
                 calc = calculator
 
             for n_cell, cell in enumerate(atoms_to_calculate):
-                # Needed if not using the socket
-                if "forces" in calc.results:
-                    del calc.results["forces"]
-                atoms.calc = calc
-                atoms.calc.parameters["walltime"] = watchdog.walltime - time() - 120
                 if cell is None:
                     continue
                 # if precomputed:
                 if hash_atoms(cell) in precomputed_hashes:
                     continue
-
-                if "forces" in calc.results:
-                    del calc.results["forces"]
-
+                calc.results = {}
                 atoms.calc = calc
-
                 # update calculation_atoms and compute force
                 atoms.info = cell.info
                 atoms.positions = cell.positions
-                try:
-                    _ = atoms.get_forces()
-                except:
-                    lines = open("aims.out").readlines()
-                    if (
-                        "lines WARNING: FHI-aims is terminating due to walltime restrictions\n"
-                        not in lines
-                    ):
-                        raise IOError(
-                            "FHI-aims failed to converge, and it is not a walltime issue"
-                        )
-                    else:
-                        break
+                atoms.calc.calculate(atoms)
 
                 step2file(atoms, atoms.calc, trajectory)
 

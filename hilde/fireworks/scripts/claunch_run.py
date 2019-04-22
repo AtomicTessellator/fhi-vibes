@@ -254,7 +254,7 @@ def claunch():
         pass
 
     args = parser.parse_args()
-
+    print(args)
     if not args.launchpad_file and os.path.exists(
         os.path.join(args.config_dir, "my_launchpad.yaml")
     ):

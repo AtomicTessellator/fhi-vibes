@@ -7,7 +7,7 @@ from hilde.fireworks.workflows.workflow_generator import (
     get_phonon_task,
     get_phonon_analysis_task,
     get_time,
-    get_aims_relax_task,
+    get_aims_task,
     get_kgrid_task,
     get_ha_task,
     to_time_str,
@@ -115,7 +115,7 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
     fw_settings["fw_name"] = rel_settings["basisset_type"] + "_relax"
     func_kwargs = {"workdir": wd + "/" + fw_settings["fw_name"] + "/"}
     fw_out_kwargs = {"relax_step": 0}
-    task_spec = get_aims_relax_task(func_kwargs, fw_out_kwargs)
+    task_spec = get_aims_task(func_kwargs, fw_out_kwargs)
 
     if "rel_method" in rel_settings:
         method = func_kwargs.pop("rel_method")

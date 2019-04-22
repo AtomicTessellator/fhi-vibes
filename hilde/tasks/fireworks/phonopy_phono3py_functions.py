@@ -252,24 +252,36 @@ def wrap_calc_socket(
                 settings.machine.basissetloc, species_type
             )
         calc_dict["command"] = settings.machine.aims_command
+        calc_dict["calculator_parameters"]["walltime"] = walltime - 180
 
     for at_dict in atoms_dict_to_calculate:
         for key, val in calc_dict.items():
             at_dict[key] = val
         atoms_to_calculate.append(dict2atoms(at_dict))
     calculator = dict2atoms(atoms_dict_to_calculate[0]).calc
-    return calculate_socket(
-        atoms_to_calculate,
-        calculator,
-        metadata=metadata,
-        trajectory=trajectory,
-        workdir=workdir,
-        backup_folder=backup_folder,
-        walltime=walltime,
-        **kwargs,
-    )
-
-
+    try:
+        return calculate_socket(
+            atoms_to_calculate,
+            calculator,
+            metadata=metadata,
+            trajectory=trajectory,
+            workdir=workdir,
+            backup_folder=backup_folder,
+            walltime=walltime,
+            **kwargs,
+        )
+    except:
+        if calc_dict["calculator"].lower() == "aims":
+            lines = open(workdir + "/aims.out").readlines()
+            if (
+                "lines WARNING: FHI-aims is terminating due to walltime restrictions\n"
+                not in lines
+            ):
+                raise RuntimeError(
+                    "FHI-aims failed to converge, and it is not a walltime issue"
+                )
+        else:
+            raise RuntimeError("The calculation failed")
 def collect_to_trajectory(trajectory, calculated_atoms, metadata):
     """
     Collects forces to a single trajectory file

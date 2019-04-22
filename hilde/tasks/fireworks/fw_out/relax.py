@@ -4,7 +4,7 @@ from pathlib import Path
 from fireworks import FWAction
 from ase.io.aims import read_aims
 
-from hilde.fireworks.workflows.workflow_generator import generate_firework
+from hilde.fireworks.workflows.workflow_generator import generate_firework, get_time, to_time_str
 from hilde.helpers.converters import atoms2dict, calc2dict
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.k_grid import k2d
@@ -84,7 +84,7 @@ def check_relaxation_complete(
     return FWAction(detours=[fw])
 
 
-def check_aims_relaxation_complete(
+def check_aims_complete(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
     """
@@ -104,15 +104,16 @@ def check_aims_relaxation_complete(
     """
     func_fw_kwargs["relax_step"] += 1
     aims_out = open(func_kwargs["workdir"] + "/aims.out").readlines()
-    converged = "Have a nice day" in aims_out[-2]
+    completed = "Have a nice day" in aims_out[-2]
     calc = calc2dict(outputs.get_calculator())
     try:
-        new_atoms = read_aims(func_kwargs["workdir"] + "/geometry.in.next_step")
-        new_atoms.set_calculator(outputs.get_calculator())
-        new_atoms_dict = atoms2dict(new_atoms)
-        print(new_atoms_dict["cell"])
+        if "relax_geometry" in calc["calculator_parameters"]:
+            new_atoms = read_aims(func_kwargs["workdir"] + "/geometry.in.next_step")
+            new_atoms.set_calculator(outputs.get_calculator())
+        else:
+            new_atoms = atoms.copy()
     except:
-        if not converged:
+        if not completed:
             if (
                 "*** WARNING: FHI-aims is terminating due to walltime restrictions\n"
                 in aims_out
@@ -123,12 +124,12 @@ def check_aims_relaxation_complete(
                     "There was a problem with the FHI Aims calculation stopping program here"
                 )
         new_atoms = outputs
-        new_atoms_dict = atoms2dict(outputs)
+    new_atoms_dict = atoms2dict(new_atoms)
     for key, val in atoms["info"].items():
         if key not in new_atoms_dict["info"]:
             new_atoms_dict["info"][key] = val
     update_spec = dict()
-    if converged:
+    if completed:
         return FWAction(
             update_spec={
                 fw_settings["out_spec_atoms"]: new_atoms_dict,
@@ -143,11 +144,14 @@ def check_aims_relaxation_complete(
                 new_atoms, calc["calculator_parameters"]["k_grid"]
             ),
         }
+        if "relax_geometry" not in calc["calculator_parameters"]:
+            calc.parameters["walltime"] = to_time_str(2*get_time(fw_settings["spec"]["walltime"]))
     del calc["results"]
     fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(
         func_fw_kwargs["relax_step"]
     )
     fw_settings["spec"].update(update_spec)
+    fw_settings["from_db"] = False
 
     if "to_launchpad" in fw_settings and fw_settings["to_launchpad"]:
         fw_settings["to_launchpad"] = False
