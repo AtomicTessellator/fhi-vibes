@@ -129,6 +129,9 @@ def calculate_socket(
     with cwd(calc_dir, mkdir=True):
         settings.write()
 
+   # save fist atoms object for computation
+    atoms = atoms_to_calculate[0].copy()
+
     # handle the socketio
     socketio_port = get_port(calculator)
     if socketio_port is None:
@@ -136,10 +139,7 @@ def calculate_socket(
     else:
         socket_calc = calculator
 
-    # save fist atoms object for computation
-    atoms = atoms_to_calculate[0].copy()
-
-    # fetch list of hashes from trajectory
+     # fetch list of hashes from trajectory
     precomputed_hashes = get_hashes_from_trajectory(trajectory)
 
     # perform calculation
@@ -153,6 +153,14 @@ def calculate_socket(
                 calc = iocalc
             else:
                 calc = calculator
+
+                # fix for EMT calculator
+                try:
+                    calc.initialize(atoms)
+                    talk("calculator initialized.")
+                except AttributeError:
+                    pass
+
 
             for n_cell, cell in enumerate(atoms_to_calculate):
 
