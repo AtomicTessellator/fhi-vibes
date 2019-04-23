@@ -1,6 +1,7 @@
 # USAGE:  ./get_relaxation_info.py  aims.out (aims.out.2 ...)
 #
 # Revision 2018/08: FK
+# 23/4/2019: give max. force in meV/AA instead of eV/AA
 
 from argparse import ArgumentParser as argpars
 
@@ -74,8 +75,8 @@ def parser(f, n_init=0, optimizer=2):
 
 def print_status(n_rel, energy, de, free_energy, df, max_force, status_string):
     print(
-        "{:5d}   {:16.8f} {:14.6f}   {:16.8f} {:14.6f} {:10.6f}  {}".format(
-            n_rel, energy, de, free_energy, df, max_force, status_string
+        "{:5d}   {:16.8f} {:14.6f}   {:16.8f} {:14.6f} {:10.3f}  {}".format(
+            n_rel, energy, de, free_energy, df, max_force * 1000, status_string
         )
     )
 
@@ -92,7 +93,7 @@ def main():
     # Run
     print(
         "\n# Step Total energy [eV]   E-E(1) [meV]   Free energy [eV]   F-F(1)"
-        + " [meV]   max. force [eV/AA]\n"
+        + " [meV]   max. force [meV/AA]\n"
     )
 
     for infile in args.aimsouts:
