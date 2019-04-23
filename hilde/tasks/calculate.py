@@ -170,7 +170,7 @@ def calculate_socket(
                 atoms.info = cell.info
                 atoms.positions = cell.positions
 
-                atoms.calc.calculate(atoms)
+                atoms.calc.calculate(atoms, system_changes=["positions"])
 
                 step2file(atoms, atoms.calc, trajectory)
 
