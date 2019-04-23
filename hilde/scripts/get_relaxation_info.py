@@ -55,7 +55,6 @@ def parser(f, n_init=0, optimizer=2):
         try:
             energy, free_energy = get_energy(f)
             max_force = get_forces(f)
-            volume = get_volume(f)
         except StopIteration:
             break
 
@@ -74,15 +73,17 @@ def parser(f, n_init=0, optimizer=2):
             #            elif '**' in line:
             #                status = 3
             elif "Finished advancing geometry" in line:
+                volume = get_volume(f)
                 break
             elif "Updated atomic structure" in line:
+                volume = get_volume(f)
                 break
         yield n_rel, energy, free_energy, max_force, volume, status, converged, abort
 
 
 def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_string):
     print(
-        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {:15.3f} {}".format(
+        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {:15.4f} {}".format(
             n_rel, energy, free_energy, df, max_force * 1000, volume, status_string
         )
     )
