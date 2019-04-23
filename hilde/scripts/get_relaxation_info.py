@@ -40,8 +40,13 @@ def get_forces(f):
 
 # get current volume
 def get_volume(f):
-    line = next(l for l in f if "| Unit cell volume " in l)
-    return float(line.split()[5])
+    for line in f:
+        if "| Unit cell volume " in line:
+            return float(line.split()[5])
+        if "Begin self-consistency loop:" in line:
+            return -1
+        if "Final output of selected total energy values:" in line:
+            return -1
 
 
 # parse info of one step
@@ -82,9 +87,16 @@ def parser(f, n_init=0, optimizer=2):
 
 
 def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_string):
+    """ Print the status line, skip volume if not found """
+
+    if volume < 0:
+        vol_str = ""
+    else:
+        vol_str = f"{volume:15.4f}"
+
     print(
-        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {:15.4f} {}".format(
-            n_rel, energy, free_energy, df, max_force * 1000, volume, status_string
+        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {} {}".format(
+            n_rel, energy, free_energy, df, max_force * 1000, vol_str, status_string
         )
     )
 
