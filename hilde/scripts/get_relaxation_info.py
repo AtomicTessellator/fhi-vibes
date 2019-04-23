@@ -75,7 +75,7 @@ def parser(f, n_init=0, optimizer=2):
 
 def print_status(n_rel, energy, de, free_energy, df, max_force, status_string):
     print(
-        "{:5d}   {:16.8f} {:14.6f}   {:16.8f} {:14.6f} {:10.3f}  {}".format(
+        "{:5d}   {:16.8f} {:14.6f}   {:16.8f} {:14.6f} {:13.5f}  {}".format(
             n_rel, energy, de, free_energy, df, max_force * 1000, status_string
         )
     )
