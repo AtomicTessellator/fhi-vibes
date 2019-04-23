@@ -2,7 +2,6 @@
  Functions to run several related calculations with using trajectories as cache
 """
 from pathlib import Path
-from time import time
 
 from ase.calculators.socketio import SocketIOCalculator
 from hilde import Settings
@@ -121,6 +120,7 @@ def calculate_socket(
     trajectory = (workdir / trajectory).absolute()
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
+
     # perform backup if calculation folder exists
     if calc_dir.exists():
         backup(calc_dir, target_folder=backup_folder)
@@ -155,38 +155,22 @@ def calculate_socket(
                 calc = calculator
 
             for n_cell, cell in enumerate(atoms_to_calculate):
-                # Needed if not using the socket
-                if "forces" in calc.results:
-                    del calc.results["forces"]
-                atoms.calc = calc
-                atoms.calc.parameters["walltime"] = watchdog.walltime - time() - 120
+
+                # skip if cell is None or already computed
                 if cell is None:
                     continue
-                # if precomputed:
                 if hash_atoms(cell) in precomputed_hashes:
                     continue
 
-                if "forces" in calc.results:
-                    del calc.results["forces"]
-
+                # make sure a new calculation is started
+                calc.results = {}
                 atoms.calc = calc
 
                 # update calculation_atoms and compute force
                 atoms.info = cell.info
                 atoms.positions = cell.positions
-                try:
-                    _ = atoms.get_forces()
-                except:
-                    lines = open("aims.out").readlines()
-                    if (
-                        "lines WARNING: FHI-aims is terminating due to walltime restrictions\n"
-                        not in lines
-                    ):
-                        raise IOError(
-                            "FHI-aims failed to converge, and it is not a walltime issue"
-                        )
-                    else:
-                        break
+
+                atoms.calc.calculate(atoms)
 
                 step2file(atoms, atoms.calc, trajectory)
 
