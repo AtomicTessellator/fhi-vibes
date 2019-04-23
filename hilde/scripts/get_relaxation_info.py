@@ -38,6 +38,12 @@ def get_forces(f):
     return float(line.split()[4])
 
 
+# get current volume
+def get_volume(f):
+    line = next(l for l in f if "| Unit cell volume " in l)
+    return float(line.split()[5])
+
+
 # parse info of one step
 def parser(f, n_init=0, optimizer=2):
     n_rel = n_init
@@ -49,6 +55,7 @@ def parser(f, n_init=0, optimizer=2):
         try:
             energy, free_energy = get_energy(f)
             max_force = get_forces(f)
+            volume = get_volume(f)
         except StopIteration:
             break
 
@@ -70,13 +77,13 @@ def parser(f, n_init=0, optimizer=2):
                 break
             elif "Updated atomic structure" in line:
                 break
-        yield n_rel, energy, free_energy, max_force, status, converged, abort
+        yield n_rel, energy, free_energy, max_force, volume, status, converged, abort
 
 
-def print_status(n_rel, energy, de, free_energy, df, max_force, status_string):
+def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_string):
     print(
-        "{:5d}   {:16.8f} {:14.6f}   {:16.8f} {:14.6f} {:13.5f}  {}".format(
-            n_rel, energy, de, free_energy, df, max_force * 1000, status_string
+        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {:15.3f} {}".format(
+            n_rel, energy, free_energy, df, max_force * 1000, volume, status_string
         )
     )
 
@@ -92,8 +99,8 @@ def main():
 
     # Run
     print(
-        "\n# Step Total energy [eV]   E-E(1) [meV]   Free energy [eV]   F-F(1)"
-        + " [meV]   max. force [meV/AA]\n"
+        "\n# Step Total energy [eV]   Free energy [eV]   F-F(1)"
+        + " [meV]   max. force [meV/AA]  Volume [AA^3]\n"
     )
 
     for infile in args.aimsouts:
@@ -101,17 +108,18 @@ def main():
             # Check optimizer
             optimizer = get_optimizer(f)
             ps = parser(f, n_init=n_rel or 0, optimizer=optimizer)
-            for (n_rel, energy, free_energy, max_force, status, converged, abort) in ps:
+            for (n_rel, ener, free_ener, fmax, vol, status, converged, abort) in ps:
                 if not init:
-                    first_energy, first_free_energy = energy, free_energy
+                    first_energy, first_free_energy = ener, free_ener
                     init = 1
                 print_status(
                     n_rel,
-                    energy,
-                    1000 * (energy - first_energy),
-                    free_energy,
-                    1000 * (free_energy - first_free_energy),
-                    max_force,
+                    ener,
+                    1000 * (ener - first_energy),
+                    free_ener,
+                    1000 * (free_ener - first_free_energy),
+                    fmax,
+                    vol,
                     status_string[status],
                 )
 
