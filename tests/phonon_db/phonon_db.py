@@ -15,7 +15,7 @@ hashes_ph = traj_to_database(db_path, "trajectory_phonopy.yaml", True)
 # Update the database with third order properties
 hashes_ph3 = traj_to_database(db_path, "trajectory_phono3py.yaml", True)
 
-phonon = postprocess_ph(trajectory="trajectory_phonopy.yaml")
+phonon = postprocess_ph(trajectory="trajectory_phonopy.yaml", calculate_full_force_constants=True)
 phonon3 = postprocess_ph3(trajectory="trajectory_phono3py.yaml")
 
 ph3_db = from_database(

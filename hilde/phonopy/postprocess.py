@@ -3,6 +3,8 @@ from pathlib import Path
 
 import numpy as np
 
+from phonopy.file_IO import write_FORCE_CONSTANTS
+
 from hilde.helpers.converters import dict2results
 from hilde.helpers import Timer
 from hilde.phonopy.wrapper import prepare_phonopy, get_force_constants
@@ -15,6 +17,8 @@ def postprocess(
     trajectory="phonopy/trajectory.yaml",
     pickle_file="phonon.pick",
     write_files=True,
+    calculate_full_force_constants=False,
+    force_constants_file="FORCE_CONSTANTS",
     born_charges_file=None,
     verbose=True,
     **kwargs,
@@ -40,7 +44,9 @@ def postprocess(
 
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
 
-    phonon.produce_force_constants(force_sets)
+    phonon.produce_force_constants(
+        force_sets, calculate_full_force_constants=calculate_full_force_constants
+    )
 
     # born charges?
     if born_charges_file:
@@ -67,11 +73,19 @@ def postprocess(
         if verbose:
             print(f".. Supercell written to {fname}")
 
-        force_constants = get_force_constants(phonon)
-        fname = "force_constants.dat"
-        np.savetxt(fname, force_constants)
-        if verbose:
-            print(f".. Force constants saved to {fname}.")
+        write_FORCE_CONSTANTS(
+            phonon.get_force_constants(),
+            filename=force_constants_file,
+            p2s_map=phonon.get_primitive().get_primitive_to_supercell_map(),
+        )
+
+        print(f"Reduced force constants saved to {force_constants_file}.")
+
+        # force_constants = get_force_constants(phonon)
+        # fname = "force_constants.dat"
+        # np.savetxt(fname, force_constants)
+        # if verbose:
+        #     print(f".. Force constants saved to {fname}.")
     if verbose:
         timer("done")
 
@@ -85,7 +99,6 @@ def extract_results(
     plot_pdos=False,
     tdep=False,
     tdep_reduce_fc=True,
-    force_constants_file="FORCE_CONSTANTS",
 ):
     """ Extract results from phonopy object and present them.
         With `tdep=True`, the necessary input files for TDEP's
@@ -93,7 +106,6 @@ def extract_results(
         are written. """
     from hilde.phonopy.wrapper import plot_bandstructure, plot_bandstructure_and_dos
     from hilde.structure.convert import to_Atoms_db
-    from phonopy.file_IO import write_FORCE_CONSTANTS
 
     plot_bandstructure(phonon, file="bandstructure.pdf")
     if plot_dos:
@@ -111,14 +123,6 @@ def extract_results(
         # reproduce reduces force constants
         if tdep_reduce_fc:
             phonon.produce_force_constants(calculate_full_force_constants=False)
-
-        write_FORCE_CONSTANTS(
-            phonon.get_force_constants(),
-            filename=force_constants_file,
-            p2s_map=phonon.get_primitive().get_primitive_to_supercell_map(),
-        )
-
-        print(f"Reduced force constants saved to {force_constants_file}.")
 
     else:
         write_settings = {"format": "aims", "scaled": True}
