@@ -16,7 +16,7 @@ from hilde.fireworks.workflows.phonon_wf import (
     generate_phonon_fw,
     generate_phonon_postprocess_fw,
 )
-from hilde.helpers.converters import calc2dict, atoms2dict
+from hilde.phonon_db.database_interface import calc2dict, atoms2dict
 from hilde.helpers.k_grid import k2d
 from hilde.helpers.supercell import make_cubic_supercell
 from hilde.materials_fp.material_fingerprint import (
