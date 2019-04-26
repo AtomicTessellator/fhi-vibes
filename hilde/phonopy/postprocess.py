@@ -81,11 +81,14 @@ def postprocess(
 
         print(f"Reduced force constants saved to {force_constants_file}.")
 
-        # force_constants = get_force_constants(phonon)
-        # fname = "force_constants.dat"
-        # np.savetxt(fname, force_constants)
-        # if verbose:
-        #     print(f".. Force constants saved to {fname}.")
+    if calculate_full_force_constants:
+        phonon.produce_force_constants(force_sets, calculate_full_force_constants=True)
+
+        force_constants = get_force_constants(phonon)
+        fname = "force_constants.dat"
+        np.savetxt(fname, force_constants)
+        print(f".. Force constants saved to {fname}.")
+
     if verbose:
         timer("done")
 
