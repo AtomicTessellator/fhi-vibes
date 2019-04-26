@@ -13,16 +13,9 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import voigt_6_to_full_3x3_stress
 
 
-def input2dict(atoms, calc=None, settings=False):
-    """ convert metadata information to plain dict 
-    
-    Returns:
-        {'calculator': calc, 'atoms': atoms} """
+def atoms2dict(atoms):
+    """ Converts an Atoms object into a dict """
 
-    if calc is None:
-        calc = atoms.calc
-
-    # structure
     atoms_dict = {
         "symbols": [f"{sym}" for sym in atoms.symbols],
         "masses": atoms.get_masses().tolist(),
@@ -40,22 +33,51 @@ def input2dict(atoms, calc=None, settings=False):
     if atoms.info != {}:
         atoms_dict.update({"info": atoms.info})
 
-    if calc is None:
-        calc_dict = {}
-    else:
-        params = calc.todict()
-        for key, val in params.items():
-            if isinstance(val, tuple):
-                params[key] = list(val)
+    return atoms_dict
 
-        calc_dict = {
-            "calculator": calc.__class__.__name__,
-            "calculator_parameters": params,
-        }
-        if hasattr(calc_dict, "command"):
-            calc_dict.update({"command": calc.command})
+
+def calc2dict(calc):
+    """ Converts an ase calculator calc into a dict"""
+
+    if calc is None:
+        return {}
+    elif isinstance(calc, dict):
+        return calc
+
+    params = calc.todict()
+    for key, val in params.items():
+        if isinstance(val, tuple):
+            params[key] = list(val)
+
+    calc_dict = {"calculator": calc.__class__.__name__, "calculator_parameters": params}
+    if hasattr(calc_dict, "command"):
+        calc_dict.update({"command": calc.command})
+
+    return calc_dict
+
+
+def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=False):
+    """ convert metadata information to plain dict
+
+    Returns:
+        {'calculator': calc, 'atoms': atoms} """
+
+    # structure
+    atoms_dict = atoms2dict(atoms)
+
+    # calculator
+    if calc is None:
+        calc = atoms.calc
+
+    calc_dict = calc2dict(calc)
 
     input_dict = {"calculator": calc_dict, "atoms": atoms_dict}
+
+    if primitive:
+        input_dict.update({"primitive": atoms2dict(primitive)})
+
+    if supercell:
+        input_dict.update({"supercell": atoms2dict(supercell)})
 
     # save the configuration
     if settings:
@@ -145,48 +167,6 @@ def dict2results(atoms_dict, calc_dict=None):
     atoms.calc = calc
 
     return atoms
-
-
-def calc2dict(calc):
-    """ Converts an ase calculator calc into a dict"""
-    if calc is None:
-        return {}
-    elif isinstance(calc, dict):
-        return calc
-    calc_dict = {}
-    calc_dict["calculator"] = calc.name.lower()
-    calc_dict["calculator_parameters"] = calc.todict()
-    try:
-        calc_dict["command"] = calc.command
-    except:
-        pass
-    calc_dict["results"] = calc.results
-    return calc_dict
-
-
-def atoms2dict(atoms):
-    """
-    Converts a pAtoms object into a dict
-    Args:
-        atoms: pAtoms or Atoms object
-            The pAtoms or Atoms object to be converted into a dictionary
-    Returns: atoms_dict (dict)
-        The dictionary of atoms
-    """
-    if atoms is None:
-        return None
-    if isinstance(atoms, dict):
-        return atoms
-    atoms_dict = ase_atoms2dict(atoms)
-
-    # add information that is missing after using ase.atoms2dict
-    atoms_dict["info"] = atoms.info
-
-    # attach calculator
-    for key, val in calc2dict(atoms.calc).items():
-        atoms_dict[key] = val
-
-    return atoms_dict
 
 
 def dict2atoms(atoms_dict):
