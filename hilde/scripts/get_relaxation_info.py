@@ -89,10 +89,10 @@ def parser(f, n_init=0, optimizer=2):
 def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_string):
     """ Print the status line, skip volume if not found """
 
-    if volume < 0:
-        vol_str = ""
-    else:
+    if volume and volume > 0:
         vol_str = f"{volume:15.4f}"
+    else:
+        vol_str = ""
 
     print(
         "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {} {}".format(
