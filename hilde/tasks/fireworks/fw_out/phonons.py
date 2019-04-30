@@ -117,6 +117,19 @@ def get_detours(
     if detours is None:
         detours = []
     fw_settings["time_spec_add"] = prefix + "_times"
+    if "walltime" in calc_kwargs:
+        if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
+            if "walltime" in fw_settings["spec"]["_queueadapter"]:
+                calc_kwargs["walltime"] = get_time(fw_settings["spec"]["_queueadapter"]["walltime"]) - 120
+            else:
+                fw_settings["spec"]["_queueadapter"]["walltime"] = to_time_str(calc_kwargs["walltime"]) + 120
+        else:
+            if "spec" not in fw_settings:
+                fw_settings["spec"] = dict()
+            fw_settings["spec"]["_queueadapter"] = {
+                "walltime": to_time_str(calc_kwargs["walltime"]) + 120
+            }
+
     if calc_kwargs["serial"]:
         update_spec[prefix + "_calculated_atoms"] = [
             atoms2dict(at) for at in atoms_to_calculate
