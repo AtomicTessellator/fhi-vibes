@@ -265,7 +265,7 @@ def get_ha_task(func_kwargs):
     )
 
 
-def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path=False):
+def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, timekey, make_abs_path=False):
     """
     Generate a serial Phononpy or Phono3py calculation task
     Args:
@@ -311,7 +311,7 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
             func_out,
             False,
             args=[func],
-            inputs=["phonon_times"],
+            inputs=[timekey],
             func_kwargs=func_kwargs,
             make_abs_path=make_abs_path,
         )
@@ -495,6 +495,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             step_settings.phonopy,
             "ph_metadata",
             "ph_forces",
+            "ph_times",
             make_abs_path,
         )
         for task in ts_list:
@@ -505,6 +506,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             step_settings.phono3py,
             "ph3_metadata",
             "ph3_forces",
+            "ph3_times",
             make_abs_path,
         )
         for task in ts_list:

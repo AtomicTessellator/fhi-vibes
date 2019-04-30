@@ -173,8 +173,6 @@ def generate_phonon_fw(
     elif "use_pimd_wrapper" in ph_settings:
         update_settings["use_pimd_wrapper"] = ph_settings.pop("use_pimd_wrapper")
 
-    fw_settings["time_spec_add"] = "phonon_times"
-
     typ = ph_settings.pop("type")
     fw_settings["fw_name"] = typ
     ph_settings["workdir"] = wd + "/" + typ + "/"

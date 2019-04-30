@@ -24,7 +24,7 @@ from hilde.materials_fp.material_fingerprint import (
     fp_tup,
     scalar_product,
 )
-from hilde.phonon_db.row import phonon_to_dict
+from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict
 from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader
 
@@ -116,6 +116,7 @@ def get_detours(
     """
     if detours is None:
         detours = []
+    fw_settings["time_spec_add"] = prefix + "_times"
     if calc_kwargs["serial"]:
         update_spec[prefix + "_calculated_atoms"] = [
             atoms2dict(at) for at in atoms_to_calculate
@@ -221,12 +222,18 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     _, metadata = reader(kwargs["trajectory"], True)
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
-
-    update_spec = {
-        "ph_dict": phonon_to_dict(kwargs["outputs"]),
-        "ph_calculator": calc_dict,
-        "ph_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_primitive())),
-    }
+    if "phono3py" in args[0]:
+        update_spec = {
+            "ph3_dict": phonon3_to_dict(kwargs["outputs"]),
+            "ph3_calculator": calc_dict,
+            "ph3_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_primitive())),
+        }
+    else:
+        update_spec = {
+            "ph_dict": phonon_to_dict(kwargs["outputs"]),
+            "ph_calculator": calc_dict,
+            "ph_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_primitive())),
+        }
     return FWAction(update_spec=update_spec)
 
 
