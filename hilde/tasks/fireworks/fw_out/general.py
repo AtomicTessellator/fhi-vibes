@@ -1,6 +1,6 @@
 """General purpose FWAction Generators"""
 from fireworks import FWAction
-from hilde.phonon_db.database_interface import atoms2dict
+from hilde.phonon_db.ase_converters import atoms2dict
 
 
 def mod_spec_add(

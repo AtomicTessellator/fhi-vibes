@@ -10,7 +10,7 @@ from ase.io.jsonio import decode
 from spglib import get_spacegroup
 
 from hilde import konstanten as const
-from hilde.helpers.converters import dict2atoms
+from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import to_dict

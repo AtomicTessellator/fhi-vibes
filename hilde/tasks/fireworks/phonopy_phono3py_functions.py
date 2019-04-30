@@ -9,7 +9,8 @@ from h5py import File
 import numpy as np
 
 from hilde import konstanten as const
-from hilde.helpers.converters import dict2atoms, input2dict
+from hilde.helpers.converters import input2dict
+from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.phonon_db.row import PhononRow, phonon_to_dict
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.workflow import bootstrap
