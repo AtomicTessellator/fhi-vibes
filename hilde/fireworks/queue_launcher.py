@@ -150,7 +150,7 @@ def launch_rocket_to_queue(
                             fw.spec["_queueadapter"]["walltime"] = qadapter[
                                 "walltimes"
                             ][inds[0]]
-                        else
+                        else:
                             if "walltime" in fw.spec["_queueadapter"]:
                                 time_req = conv_t_to_sec(
                                     fw.spec["_queueadapter"]["walltime"]

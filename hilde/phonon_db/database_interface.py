@@ -3,13 +3,11 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.symbols import symbols2numbers
-from ase.db.row import atoms2dict as ase_atoms2dict
-from ase.db.row import AtomsRow
-
 from phonopy import Phonopy
 
 from hilde.helpers.hash import hash_atoms_and_calc, hash_dict, hash_traj
 from hilde.helpers.warnings import warn
+from hilde.phonon_db.ase_converters import dict2atoms, atoms2dict
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonon_db.row import phonon3_to_dict
