@@ -146,6 +146,10 @@ def add_socket_calc_to_detours(detours, func_kwargs, fw_settings, prefix):
     for key in calc_keys:
         if key in func_kwargs:
             calc_kwargs[key] = func_kwargs[key]
+    fw_set = fw_settings.copy()
+    fw_set["fw_name"] = (
+            prefix + f"_serial_forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
+        )
     fw = generate_firework(
         func="hilde.tasks.fireworks.phonopy_phono3py_functions.wrap_calc_socket",
         func_fw_out="hilde.tasks.fireworks.fw_out.calculate.socket_calc_check",
@@ -156,7 +160,7 @@ def add_socket_calc_to_detours(detours, func_kwargs, fw_settings, prefix):
             prefix + "_calculator",
             prefix + "_metadata",
         ],
-        fw_settings=fw_settings.copy(),
+        fw_settings=fw_set.copy(),
     )
     detours.append(fw)
     return detours
