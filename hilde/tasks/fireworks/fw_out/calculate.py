@@ -68,13 +68,13 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
         fw_settings["calc_atoms_spec"]: args[0],
         fw_settings["calc_spec"]: args[1],
         fw_settings["metadata_spec"]: args[2],
-        "phonon_times": times + cur_times,
+        fw_settings["time_spec_add"]: times + cur_times,
     }
     inputs = [
         fw_settings["calc_atoms_spec"],
         fw_settings["calc_spec"],
         fw_settings["metadata_spec"],
-        "phonon_times",
+        fw_settings["time_spec_add"],
     ]
     if kwargs["outputs"]:
         wd = Path(kwargs.get("workdir", "."))

@@ -125,17 +125,18 @@ def get_detours(
         fw_settings["spec"].update(update_spec)
         fw_settings["calc_atoms_spec"] = prefix + "_calculated_atoms"
         fw_settings["calc_spec"] = prefix + "_calculator"
-        return add_socket_calc_to_detours(detours, calc_kwargs, fw_settings, prefix)
+        return add_socket_calc_to_detours(detours, atoms, calc_kwargs, fw_settings, prefix)
     return add_single_calc_to_detours(
         detours, calc_kwargs, atoms, atoms_to_calculate, calc_dict, fw_settings, prefix
     )
 
 
-def add_socket_calc_to_detours(detours, func_kwargs, fw_settings, prefix):
+def add_socket_calc_to_detours(detours, atoms, func_kwargs, fw_settings, prefix):
     """
     Generates a Firework to run a socket calculator and adds it to the detours
     Args:
         detours (list of Fireworks): Current list of detours
+        atoms (ASE Atoms Object): Initial ASE Atoms object representation of the structure
         func_kwargs (dict): kwargs needed to do the socket I/O calculation
         fw_settings (dict): FireWorks settings
         prefix (str): ph for phonopy and ph3 for phono3py calculations
@@ -148,7 +149,7 @@ def add_socket_calc_to_detours(detours, func_kwargs, fw_settings, prefix):
             calc_kwargs[key] = func_kwargs[key]
     fw_set = fw_settings.copy()
     fw_set["fw_name"] = (
-            prefix + f"_serial_forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
+            prefix + f"_serial_forces_{Symbols(atoms['numbers']).get_chemical_formula()}"
         )
     fw = generate_firework(
         func="hilde.tasks.fireworks.phonopy_phono3py_functions.wrap_calc_socket",
@@ -194,7 +195,7 @@ def add_single_calc_to_detours(
             sc_dict[key] = val
         calc_kwargs = {"workdir": func_fw_kwargs["workdir"] + f"/{i:05d}"}
         fw_settings["fw_name"] = (
-            prefix + f"forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
+            prefix + f"forces_{Symbols(sc_dict['numbers']).get_chemical_formula()}_{i}"
         )
         detours.append(
             generate_firework(
