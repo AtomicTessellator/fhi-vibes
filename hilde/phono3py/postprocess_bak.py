@@ -4,7 +4,7 @@ from pathlib import Path
 import pickle
 import numpy as np
 
-from hilde.helpers.converters import dict2atoms
+from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.phonon_db.database_interface import update_phonon_db
 from hilde.phonon_db.row import PhononRow
 import hilde.phono3py.wrapper as ph3

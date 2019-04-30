@@ -6,7 +6,7 @@ from fireworks import FWAction
 import numpy as np
 
 from hilde.fireworks.workflows.workflow_generator import generate_firework
-from hilde.helpers.converters import atoms2dict
+from hilde.phonon_db.ase_converters import atoms2dict
 from hilde.trajectory import reader as traj_reader
 
 

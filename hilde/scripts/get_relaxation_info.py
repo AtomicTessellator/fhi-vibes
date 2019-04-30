@@ -1,6 +1,7 @@
 # USAGE:  ./get_relaxation_info.py  aims.out (aims.out.2 ...)
 #
 # Revision 2018/08: FK
+# 23/4/2019: give max. force in meV/AA instead of eV/AA
 
 from argparse import ArgumentParser as argpars
 
@@ -37,6 +38,17 @@ def get_forces(f):
     return float(line.split()[4])
 
 
+# get current volume
+def get_volume(f):
+    for line in f:
+        if "| Unit cell volume " in line:
+            return float(line.split()[5])
+        if "Begin self-consistency loop:" in line:
+            return -1
+        if "Final output of selected total energy values:" in line:
+            return -1
+
+
 # parse info of one step
 def parser(f, n_init=0, optimizer=2):
     n_rel = n_init
@@ -66,16 +78,25 @@ def parser(f, n_init=0, optimizer=2):
             #            elif '**' in line:
             #                status = 3
             elif "Finished advancing geometry" in line:
+                volume = get_volume(f)
                 break
             elif "Updated atomic structure" in line:
+                volume = get_volume(f)
                 break
-        yield n_rel, energy, free_energy, max_force, status, converged, abort
+        yield n_rel, energy, free_energy, max_force, volume, status, converged, abort
 
 
-def print_status(n_rel, energy, de, free_energy, df, max_force, status_string):
+def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_string):
+    """ Print the status line, skip volume if not found """
+
+    if volume and volume > 0:
+        vol_str = f"{volume:15.4f}"
+    else:
+        vol_str = ""
+
     print(
-        "{:5d}   {:16.8f} {:14.6f}   {:16.8f} {:14.6f} {:10.6f}  {}".format(
-            n_rel, energy, de, free_energy, df, max_force, status_string
+        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {} {}".format(
+            n_rel, energy, free_energy, df, max_force * 1000, vol_str, status_string
         )
     )
 
@@ -91,8 +112,8 @@ def main():
 
     # Run
     print(
-        "\n# Step Total energy [eV]   E-E(1) [meV]   Free energy [eV]   F-F(1)"
-        + " [meV]   max. force [eV/AA]\n"
+        "\n# Step Total energy [eV]   Free energy [eV]   F-F(1)"
+        + " [meV]   max. force [meV/AA]  Volume [AA^3]\n"
     )
 
     for infile in args.aimsouts:
@@ -100,17 +121,18 @@ def main():
             # Check optimizer
             optimizer = get_optimizer(f)
             ps = parser(f, n_init=n_rel or 0, optimizer=optimizer)
-            for (n_rel, energy, free_energy, max_force, status, converged, abort) in ps:
+            for (n_rel, ener, free_ener, fmax, vol, status, converged, abort) in ps:
                 if not init:
-                    first_energy, first_free_energy = energy, free_energy
+                    first_energy, first_free_energy = ener, free_ener
                     init = 1
                 print_status(
                     n_rel,
-                    energy,
-                    1000 * (energy - first_energy),
-                    free_energy,
-                    1000 * (free_energy - first_free_energy),
-                    max_force,
+                    ener,
+                    1000 * (ener - first_energy),
+                    free_ener,
+                    1000 * (free_ener - first_free_energy),
+                    fmax,
+                    vol,
                     status_string[status],
                 )
 

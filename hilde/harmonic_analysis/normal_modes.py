@@ -176,11 +176,9 @@ def get_E_qst(in_U_t, in_V_t, in_omegas2):
     return E_qst
 
 
-# old stuff
+# old stuff, deprecated, but used for testing. why?
 def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
     r""" u_s(q) = 1/sqrt(N) e_is(q) . \sum_iL \exp(-i q.R_L) u_iL """
-
-    warn("DEPRECATED: Usenormal_modes.projector instead", level=1)
 
     n_q, n_s = eigenvectors.shape[0:2]
     L_maps = map_L_to_i(indeces)

@@ -49,6 +49,7 @@ def main():
     parser.add_argument("--pdos", action="store_true")
     parser.add_argument("--tdep", action="store_true")
     parser.add_argument("--born", default=None, help="BORN file")
+    parser.add_argument("--full_fc", action="store_true")
     args = parser.parse_args()
 
     extract_settings = {"plot_dos": args.dos, "plot_pdos": args.pdos, "tdep": args.tdep}
@@ -59,7 +60,11 @@ def main():
         return
 
     elif suffix == ".yaml":
-        phonon = postprocess(args.infile, born_charges_file=args.born)
+        phonon = postprocess(
+            args.infile,
+            born_charges_file=args.born,
+            calculate_full_force_constants=args.full_fc,
+        )
     elif suffix == ".pick" or suffix == ".gz":
         phonon = pread(args.infile)
     else:

@@ -5,7 +5,7 @@ from ase.symbols import symbols2numbers
 from fireworks import Workflow, Firework
 
 from hilde.fireworks.launchpad import LaunchPadHilde
-from hilde.helpers.converters import atoms2dict, calc2dict, dict2atoms
+from hilde.phonon_db.ase_converters import atoms2dict, calc2dict, dict2atoms
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.k_grid import update_k_grid, update_k_grid_calc_dict
 from hilde.helpers.pickle import pread

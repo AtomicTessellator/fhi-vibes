@@ -112,6 +112,7 @@ def calculate_socket(
     trajectory = (workdir / trajectory).absolute()
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
+
     # perform backup if calculation folder exists
     if calc_dir.exists():
         backup(calc_dir, target_folder=backup_folder)
@@ -120,6 +121,9 @@ def calculate_socket(
     with cwd(calc_dir, mkdir=True):
         settings.write()
 
+   # save fist atoms object for computation
+    atoms = atoms_to_calculate[0].copy()
+
     # handle the socketio
     socketio_port = get_port(calculator)
     if socketio_port is None:
@@ -127,10 +131,7 @@ def calculate_socket(
     else:
         socket_calc = calculator
 
-    # save fist atoms object for computation
-    atoms = atoms_to_calculate[0].copy()
-
-    # fetch list of hashes from trajectory
+     # fetch list of hashes from trajectory
     precomputed_hashes = get_hashes_from_trajectory(trajectory)
 
     # perform calculation
@@ -145,18 +146,27 @@ def calculate_socket(
             else:
                 calc = calculator
 
+                # fix for EMT calculator
+                try:
+                    calc.initialize(atoms)
+                    talk("calculator initialized.")
+                except AttributeError:
+                    pass
+
+
             for n_cell, cell in enumerate(atoms_to_calculate):
+                # skip if cell is None or already computed
                 if cell is None:
                     continue
-                # if precomputed:
                 if hash_atoms(cell) in precomputed_hashes:
                     continue
+                # make sure a new calculation is started
                 calc.results = {}
                 atoms.calc = calc
                 # update calculation_atoms and compute force
                 atoms.info = cell.info
                 atoms.positions = cell.positions
-                atoms.calc.calculate(atoms)
+                atoms.calc.calculate(atoms, system_changes=["positions"])
 
                 step2file(atoms, atoms.calc, trajectory)
 

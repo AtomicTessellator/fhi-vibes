@@ -5,7 +5,7 @@ from fireworks import FWAction
 from ase.io.aims import read_aims
 
 from hilde.fireworks.workflows.workflow_generator import generate_firework, get_time, to_time_str
-from hilde.helpers.converters import atoms2dict, calc2dict
+from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.k_grid import k2d
 

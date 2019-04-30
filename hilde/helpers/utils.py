@@ -31,7 +31,7 @@ def talk(message):
 
     timestr = strftime("%H:%M:%S %Y/%m/%d")
 
-    print(f"[{timestr} from {file}, l. {frame[2]}, {frame[3]}()]:")
+    print(f"[{timestr} from {file}, l. {frame[2]}, {frame[3]}():")
     print(f"  {message}\n")
 
 

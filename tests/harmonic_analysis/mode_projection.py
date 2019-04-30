@@ -4,7 +4,6 @@ import numpy as np
 import scipy.linalg as la
 
 from hilde.io import read
-from hilde.helpers.numerics import clean_matrix
 
 # from hilde.helpers.supercell import map_indices
 from hilde.helpers.lattice_points import (
@@ -15,7 +14,7 @@ from hilde.helpers.lattice_points import (
 from hilde.harmonic_analysis import HarmonicAnalysis
 from hilde.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
 from hilde.harmonic_analysis.displacements import get_U, get_dUdt
-from hilde.harmonic_analysis.normal_modes import u_I_to_u_s, u_s_to_u_I, get_A_qst2
+from hilde.harmonic_analysis.normal_modes import projector, u_s_to_u_I, get_A_qst2
 from hilde.trajectory import reader
 from hilde.tdep.wrapper import parse_tdep_forceconstant
 
@@ -48,7 +47,7 @@ def main():
     )
 
     omegas2, evs = [], []
-    for k, dyn_matrix in zip(q_points, dyn_matrices):
+    for _, dyn_matrix in zip(q_points, dyn_matrices):
         w_2, ev = la.eigh(dyn_matrix)
         omegas2.append(w_2)
         evs.append(ev)
@@ -63,6 +62,8 @@ def main():
         "indeces": indeces,
     }
 
+    P = projector(**aux_args)
+
     # check if eigenvectors are orthogonal
     for iq, q in enumerate(q_points):
         e = evs[iq, :, :]
@@ -71,7 +72,6 @@ def main():
 
     # check if transformation is unitary by probing each mode
 
-    U = np.zeros_like(supercell.positions)
     u_qs = np.zeros((4, 6))
 
     for (i, j) in np.ndindex(u_qs.shape):
@@ -79,7 +79,8 @@ def main():
         u_qs[i, j] = -4
         u_I = u_s_to_u_I(u_qs, **aux_args)
 
-        assert la.norm(u_qs - u_I_to_u_s(u_I, **aux_args)) < 1e-14, (u_qs, u_I)
+        diff = la.norm(u_qs - P @ u_I.flatten())
+        assert diff < 1e-14, (u_qs, u_I)
 
     # set velocities such that temperature is 100K
     temp = 100
@@ -122,15 +123,15 @@ def main():
 
     atoms_displaced = traj[0]
 
-    u_qst = [u_I_to_u_s(get_U(atoms_displaced, supercell), **aux_args)]
-    v_qst = [u_I_to_u_s(get_dUdt(atoms_displaced), **aux_args)]
+    u_qst = [P @ get_U(atoms_displaced, supercell).flatten()]
+    v_qst = [P @ get_dUdt(atoms_displaced).flatten()]
 
     new_amplitudes = get_A_qst2(u_qst, v_qst, omegas2) ** 0.5
     assert la.norm(new_amplitudes - amplitudes) < 1e-10, (new_amplitudes, amplitudes)
 
     # check that mode projection preserves kinetic energy
-    U_t = [u_I_to_u_s(get_U(atoms, supercell), **aux_args) for atoms in traj]
-    V_t = [u_I_to_u_s(get_dUdt(atoms), **aux_args) for atoms in traj]
+    U_t = [P @ get_U(atoms, supercell).flatten() for atoms in traj]
+    V_t = [P @ get_dUdt(atoms).flatten() for atoms in traj]
 
     const = 1 / kB / 4 / 2 / 3
 
@@ -152,7 +153,7 @@ def main():
     fcs, lps = parse_tdep_forceconstant("infile.forceconstant")
 
     ha = HarmonicAnalysis(primitive, supercell, fcs, lps)
-    A, p, E = ha.project(traj)
+    _, _, E = ha.project(traj)
 
     # check that eigenvectors coincide
     for ii, q in enumerate(ha.q_points_frac):

@@ -1,10 +1,13 @@
-'''Interface Functions for the database'''
+"""Interface Functions for the database"""
+import numpy as np
+
 from ase.atoms import Atoms
 from ase.symbols import symbols2numbers
+from ase.db.row import atoms2dict as ase_atoms2dict
+from ase.db.row import AtomsRow
 
 from phonopy import Phonopy
 
-from hilde.helpers.converters import atoms2dict, dict2atoms
 from hilde.helpers.hash import hash_atoms_and_calc, hash_dict, hash_traj
 from hilde.helpers.warnings import warn
 from hilde.phonon_db.phonon_db import connect
@@ -70,7 +73,9 @@ def traj_to_database(db_path, traj, ret_all_hashes=False):
     )
 
 
-def to_database(db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=False, traj_hash=None):
+def to_database(
+    db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=False, traj_hash=None
+):
     """
     Adds a Phonopy, Phono3py or ASE Atoms object to the database
     Args:
@@ -190,6 +195,7 @@ def to_database(db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=F
         return hashes
     return hash_dict(dct)
 
+
 def obj2dict(obj):
     """
     Converts a Phonopy, Phono3py, or ASE Atoms Object to a dict
@@ -206,6 +212,7 @@ def obj2dict(obj):
     else:
         try:
             from phono3py.phonon3 import Phono3py
+
             if isinstance(obj, Phono3py):
                 return phonon3_to_dict(obj)
         except:
