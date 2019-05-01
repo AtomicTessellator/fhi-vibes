@@ -212,6 +212,7 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=
         func_kwargs,
         fw_settings["mod_spec_add"][:-7] + "_metadata",
         fw_settings["mod_spec_add"],
+        fw_settings["mod_spec_add"][:-7] + "_times",
         False,
     )
     fw_settings[

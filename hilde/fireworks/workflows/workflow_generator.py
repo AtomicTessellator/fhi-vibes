@@ -334,7 +334,7 @@ def get_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
 def get_aims_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
     """ Gets the task spec for an FHI-aims calculations"""
     return TaskSpec(
-        "hilde.tasks.calculate.calculate",
+        "hilde.tasks.fireworks.calculate_wrapper.wrap_calculate",
         "hilde.tasks.fireworks.fw_out.relax.check_aims_complete",
         True,
         func_kwargs,

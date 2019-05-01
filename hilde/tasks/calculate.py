@@ -44,11 +44,8 @@ def calculate(atoms, calculator, workdir="."):
     calc_atoms = atoms.copy()
     calc_atoms.calc = calculator
     with cwd(workdir, mkdir=True):
-        try:
-            calc_atoms.calc.calculate(calc_atoms)
-        except:
-            pass
-        return calc_atoms
+        calc_atoms.calc.calculate(calc_atoms)
+    return calc_atoms
 
 
 def calculate_multiple(cells, calculator, workdir):
