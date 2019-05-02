@@ -166,7 +166,7 @@ def launch_rocket_to_queue(
                             )
                             inds = np.where(time_req <= wts)[0]
                             if len(inds) == 0:
-                                # fw.spec["_queueadapter"]["queue"] = qadapter["queues"][-1]
+                                fw.spec["_queueadapter"]["queue"] = qadapter["queues"][-1]
                                 if "nodes" in fw.spec["_queueadapter"]:
                                     n_nodes_strat = fw.spec["_queueadapter"]["nodes"]
                                     fw.spec["_queueadapter"]["nodes"] *= int(
@@ -182,6 +182,7 @@ def launch_rocket_to_queue(
                                     * float(n_nodes_strat)
                                     / float(fw.spec["_queueadapter"]["nodes"])
                                 )
+                                print(fw.spec["_queueadapter"]["nodes"])
                             else:
                                 fw.spec["_queueadapter"]["queue"] = qadapter["queues"][
                                     inds[0]

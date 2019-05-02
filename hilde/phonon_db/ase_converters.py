@@ -78,7 +78,7 @@ def calc2dict(calc):
     calc_dict["calculator_parameters"] = calc.todict()
     try:
         calc_dict["command"] = calc.command
-    except:
+    except AttributeError:
         pass
     calc_dict["results"] = calc.results
     return calc_dict

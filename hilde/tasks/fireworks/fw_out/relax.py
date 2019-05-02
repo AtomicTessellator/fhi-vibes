@@ -69,7 +69,7 @@ def check_relaxation_complete(
         temp_list[-1] = str(int(temp_list[-1]) + 1)
         new_traj_list[-2] = "_".join(temp_list)
         func_kwargs["trajectory"] = ".".join(new_traj_list)
-    except:
+    except ValueError:
         new_traj_list[-2] += "_restart_1"
         func_kwargs["trajectory"] = ".".join(new_traj_list)
     fw = generate_firework(
@@ -112,12 +112,13 @@ def check_aims_complete(
             new_atoms.set_calculator(outputs.get_calculator())
         else:
             new_atoms = atoms.copy()
-    except:
+    except FileNotFoundError:
         if not completed:
             if (
                 "*** WARNING: FHI-aims is terminating due to walltime restrictions\n"
                 in aims_out
             ):
+                calc.parameters["walltime"] = to_time_str(2*get_time(fw_settings["spec"]["walltime"]))
                 pass
             else:
                 raise IOError(

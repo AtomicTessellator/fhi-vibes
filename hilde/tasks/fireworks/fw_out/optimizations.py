@@ -51,7 +51,7 @@ def check_kgrid_opt_completion(
         temp_list[-1] = str(int(temp_list[-1]) + 1)
         new_traj_list[-2] = "_".join(temp_list)
         trajectory = ".".join(new_traj_list)
-    except:
+    except ValueError:
         new_traj_list[-2] += "_restart_1"
         trajectory = ".".join(new_traj_list)
 

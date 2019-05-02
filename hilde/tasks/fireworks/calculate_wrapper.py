@@ -1,3 +1,5 @@
+from ase.calculators.calculator import CalculationFailed
+
 from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.phonopy.wrapper import preprocess
 from hilde.settings import Settings
@@ -60,7 +62,7 @@ def wrap_calc_socket(
             walltime=walltime,
             **kwargs,
         )
-    except:
+    except CalculationFailed:
         if calc_dict["calculator"].lower() == "aims":
             lines = open(workdir + "/aims.out").readlines()
             if (
@@ -93,7 +95,7 @@ def wrap_calculate(
             calc,
             workdir
         )
-    except:
+    except CalculationFailed:
         if calc.name.lower() == "aims":
             lines = open(workdir + "/aims.out").readlines()
             if (

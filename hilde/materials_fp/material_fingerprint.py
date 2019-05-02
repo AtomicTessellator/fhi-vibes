@@ -338,7 +338,7 @@ def get_phonon_dos_fingerprint_phononpy(phonon, binning=True, min_e=None, max_e=
     )
 
 
-def scalar_product(fp1, fp2, col=0, pt="All", normalize=False):
+def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
     """
     Calculates the dot product between two finger prints
     Args:
@@ -363,16 +363,21 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False):
         fp2_dict = to_dict(fp2)
     else:
         fp2_dict = fp2
-    rescale = 1.0
+
     if pt == 'All':
         vec1 = np.array([pt[col] for pt in fp1_dict.values()]).flatten()
         vec2 = np.array([pt[col] for pt in fp2_dict.values()]).flatten()
-        if normalize:
-            rescale = np.linalg.norm(vec1) * np.linalg.norm(vec2)
-        return np.dot(vec1, vec2) / rescale
-    if normalize:
-        rescale = np.linalg.norm(fp1_dict[fp1[2][pt]][col]) * np.linalg.norm(fp2_dict[fp2[2][pt]][col])
-    return np.dot(fp1_dict[fp1[2][pt]][col], fp2_dict[fp2[2][pt]][col]) / rescale
+    else:
+        vec1 = fp1_dict[fp1[2][pt]][col]
+        vec2 = fp2_dict[fp2[2][pt]][col]
+
+    rescale = 1.0
+    if tanimoto:
+        rescale = np.linalg.norm(vec1)**2 + np.linalg.norm(vec2)**2 - np.dot(vec1, vec2)
+    elif normalize:
+        rescale = np.linalg.norm(vec1) * np.linalg.norm(vec2)
+
+    return np.dot(vec1, vec2) / rescale
 
 
 def to_dict(fp, to_mongo=False):
@@ -465,7 +470,7 @@ class MaterialsFingerprint(object):
             return frmt
         return ""
 
-    def scalar_product(self, fp2, col=0, pt="All", normalize=True):
+    def scalar_product(self, fp2, col=0, pt="All", normalize=True, tanimoto=False):
         """
         Calculates the dot product between the fingerprint and another fingerprint
         Args:
@@ -480,7 +485,7 @@ class MaterialsFingerprint(object):
         Returns: float
             The dot product
         """
-        return scalar_product(self.fingerprint, fp2.fingerprint, col, pt, normalize)
+        return scalar_product(self.fingerprint, fp2.fingerprint, col, pt, normalize, tanimoto)
 
 
 class DOSFingerprint(MaterialsFingerprint):

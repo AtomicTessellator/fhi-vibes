@@ -423,4 +423,4 @@ def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
     for ll in range(4):
         prev_dos_fp[ll] = np.array(prev_dos_fp[ll])
     prev_dos_fp = fp_tup(prev_dos_fp[0], prev_dos_fp[1], prev_dos_fp[2], prev_dos_fp[3])
-    return scalar_product(dos_fp, prev_dos_fp, col=1, pt=0, normalize=True) >= conv_crit
+    return scalar_product(dos_fp, prev_dos_fp, col=1, pt=0, normalize=False, tanimoto=True) >= conv_crit
