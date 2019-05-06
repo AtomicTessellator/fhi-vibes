@@ -7,7 +7,7 @@ from hilde.fireworks.workflows.workflow_generator import (
     get_phonon_task,
     get_phonon_analysis_task,
     get_time,
-    get_aims_relax_task,
+    get_aims_task,
     get_kgrid_task,
     get_ha_task,
     to_time_str,
@@ -115,7 +115,7 @@ def generate_relax_fw(atoms, wd, fw_settings, qadapter, rel_settings):
     fw_settings["fw_name"] = rel_settings["basisset_type"] + "_relax"
     func_kwargs = {"workdir": wd + "/" + fw_settings["fw_name"] + "/"}
     fw_out_kwargs = {"relax_step": 0}
-    task_spec = get_aims_relax_task(func_kwargs, fw_out_kwargs)
+    task_spec = get_aims_task(func_kwargs, fw_out_kwargs)
 
     if "rel_method" in rel_settings:
         method = func_kwargs.pop("rel_method")
@@ -173,8 +173,6 @@ def generate_phonon_fw(
     elif "use_pimd_wrapper" in ph_settings:
         update_settings["use_pimd_wrapper"] = ph_settings.pop("use_pimd_wrapper")
 
-    fw_settings["time_spec_add"] = "phonon_times"
-
     typ = ph_settings.pop("type")
     fw_settings["fw_name"] = typ
     ph_settings["workdir"] = wd + "/" + typ + "/"
@@ -214,6 +212,7 @@ def generate_phonon_postprocess_fw(atoms, wd, fw_settings, ph_settings, wd_init=
         func_kwargs,
         fw_settings["mod_spec_add"][:-7] + "_metadata",
         fw_settings["mod_spec_add"],
+        fw_settings["mod_spec_add"][:-7] + "_times",
         False,
     )
     fw_settings[
@@ -285,7 +284,10 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     fw_settings["kpoint_density_spec"] = "kgrid"
     del fw_settings["out_spec_k_den"]
     fw_settings["from_db"] = True
-    light_relax_set = {"basisset_type": "light"}
+    if "basisset" in workflow.general and workflow.general.basisset == "light_intermedite":
+        light_relax_set = {"basisset_type": workflow.general.basisset}
+    else:
+        light_relax_set = {"basisset_type": "light"}
     if "light_rel_qadapter" in workflow:
         qadapter = workflow["light_rel_qadapter"]
     else:

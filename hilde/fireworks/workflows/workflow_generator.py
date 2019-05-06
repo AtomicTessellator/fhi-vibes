@@ -90,6 +90,8 @@ def generate_firework(
         fw_settings["spec"] = {}
     if update_calc_settings is None:
         update_calc_settings = {}
+    if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"] and "walltime" in fw_settings["spec"]["_queueadapter"]:
+        update_calc_settings["walltime"] = get_time(fw_settings["spec"]["_queueadapter"]["walltime"]) - 180
     if func:
         if task_spec_list:
             raise AttributeError(
@@ -263,7 +265,7 @@ def get_ha_task(func_kwargs):
     )
 
 
-def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path=False):
+def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, timekey, make_abs_path=False):
     """
     Generate a serial Phononpy or Phono3py calculation task
     Args:
@@ -309,7 +311,7 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, make_abs_path
             func_out,
             False,
             args=[func],
-            inputs=["phonon_times"],
+            inputs=[timekey],
             func_kwargs=func_kwargs,
             make_abs_path=make_abs_path,
         )
@@ -329,11 +331,11 @@ def get_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
     )
 
 
-def get_aims_relax_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
-    """ Gets the task spec for an aims relaxation step"""
+def get_aims_task(func_kwargs, func_fw_out_kwargs, make_abs_path=False):
+    """ Gets the task spec for an FHI-aims calculations"""
     return TaskSpec(
-        "hilde.tasks.calculate.calculate",
-        "hilde.tasks.fireworks.fw_out.relax.check_aims_relaxation_complete",
+        "hilde.tasks.fireworks.calculate_wrapper.wrap_calculate",
+        "hilde.tasks.fireworks.fw_out.relax.check_aims_complete",
         True,
         func_kwargs,
         func_fw_out_kwargs=func_fw_out_kwargs,
@@ -398,7 +400,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         task_spec_list.append(
             get_relax_task(step_settings.relaxation, db_kwargs, make_abs_path)
         )
-    elif "aims_relaxation" in step_settings:
+    elif "aims_calculation" in step_settings:
         fw_settings["fw_name"] = f"a_rel_{step_settings.basisset.type[:2]}"
         if db_kwargs:
             db_kwargs["calc_type"] = f"relaxation_{step_settings.basisset.type}"
@@ -406,8 +408,8 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
         else:
             fw_out_kwargs = {"relax_step": 0}
         task_spec_list.append(
-            get_aims_relax_task(
-                step_settings.aims_relaxation, fw_out_kwargs, make_abs_path
+            get_aims_task(
+                step_settings.aims_calculation, fw_out_kwargs, make_abs_path
             )
         )
     elif "kgrid_opt" in step_settings:
@@ -493,6 +495,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             step_settings.phonopy,
             "ph_metadata",
             "ph_forces",
+            "ph_times",
             make_abs_path,
         )
         for task in ts_list:
@@ -503,6 +506,7 @@ def get_step_fw(step_settings, atoms=None, make_abs_path=False):
             step_settings.phono3py,
             "ph3_metadata",
             "ph3_forces",
+            "ph3_times",
             make_abs_path,
         )
         for task in ts_list:

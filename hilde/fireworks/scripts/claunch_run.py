@@ -47,12 +47,12 @@ launch_params = settings.launch_params if "launch_params" in settings else {}
 
 fw_defaults = {
     "launch_dir": (remote_setup.launch_dir if "launch_dir" in remote_setup else "."),
-    "remote_host": (remote_setup.remote_host if "remote_host" in remote_setup else 0),
+    "remote_host": (remote_setup.remote_host if "remote_host" in remote_setup else None),
     "remote_config_dir": (
-        remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else 0
+        remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else ["~/.fireworks"]
     ),
     "remote_user": (
-        remote_host_auth.remote_user if "remote_user" in remote_host_auth else 500
+        remote_host_auth.remote_user if "remote_user" in remote_host_auth else None
     ),
     "remote_password": (
         remote_host_auth.remote_password
@@ -60,17 +60,17 @@ fw_defaults = {
         else None
     ),
     "njobs_queue": (
-        remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else None
+        remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else 0
     ),
     "njobs_block": (
         remote_queue_param.njobs_block
         if "njobs_block" in remote_queue_param
-        else "localhost"
+        else 500
     ),
-    "nlaunches": (launch_params.nlaunches if "nlaunches" in launch_params else None),
+    "nlaunches": (launch_params.nlaunches if "nlaunches" in launch_params else 0),
     "sleep_time": (launch_params.sleep_time if "sleep_time" in launch_params else None),
     "tasks2queue": (
-        launch_params.tasks2queue if "tasks2queue" in launch_params else None
+        launch_params.tasks2queue if "tasks2queue" in launch_params else []
     ),
 }
 
@@ -254,7 +254,7 @@ def claunch():
         pass
 
     args = parser.parse_args()
-
+    print(args)
     if not args.launchpad_file and os.path.exists(
         os.path.join(args.config_dir, "my_launchpad.yaml")
     ):

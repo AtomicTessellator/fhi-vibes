@@ -44,19 +44,8 @@ def calculate(atoms, calculator, workdir="."):
     calc_atoms = atoms.copy()
     calc_atoms.calc = calculator
     with cwd(workdir, mkdir=True):
-        calc_atoms.write("geometry.in")
-        try:
-            calc_atoms.calc.calculate(calc_atoms)
-        except:
-            lines = open("aims.out").readlines()
-            if (
-                "*** WARNING: FHI-aims is terminating due to walltime restrictions\n"
-                not in lines
-            ):
-                raise IOError(
-                    "FHI-aims failed to converge, and it is not a walltime issue"
-                )
-        return calc_atoms
+        calc_atoms.calc.calculate(calc_atoms)
+    return calc_atoms
 
 
 def calculate_multiple(cells, calculator, workdir):
@@ -163,21 +152,17 @@ def calculate_socket(
 
 
             for n_cell, cell in enumerate(atoms_to_calculate):
-
                 # skip if cell is None or already computed
                 if cell is None:
                     continue
                 if hash_atoms(cell) in precomputed_hashes:
                     continue
-
                 # make sure a new calculation is started
                 calc.results = {}
                 atoms.calc = calc
-
                 # update calculation_atoms and compute force
                 atoms.info = cell.info
                 atoms.positions = cell.positions
-
                 atoms.calc.calculate(atoms, system_changes=["positions"])
 
                 step2file(atoms, atoms.calc, trajectory)

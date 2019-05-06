@@ -357,9 +357,6 @@ def qlaunch():
         connect_kwargs = {"gss_auth" : args.gss_auth}
         if args.remote_password is not None:
             connect_kwargs["password"] = args.remote_password
-        print(args.gss_auth)
-        print(args.remote_password)
-        print(args.remote_user)
         if args.remote_host:
             for h in args.remote_host:
                 with fabric.Connection(

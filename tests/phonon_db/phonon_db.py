@@ -28,9 +28,9 @@ ph3_db = from_database(
     ph_hash=hashes_ph["ph_hash"],
     ph3_hash=hashes_ph3["ph3_hash"],
 )
-
-assert np.max(np.abs(ph3_db.get_fc2()[:] - phonon.get_force_constants()[:])) < 1e-14
-assert np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])) < 1e-14
+print(np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])))
+assert np.max(np.abs(ph3_db.get_fc2()[:] - phonon.get_force_constants()[:])) < 1e-12
+assert np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])) < 1e-12
 
 # Get the row from the database
 db = connect(db_path)
@@ -46,5 +46,5 @@ row = list(
     )
 )[0]
 
-assert np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-14
-assert np.max(np.abs(row.fc_3[:] - phonon3.get_fc3()[:])) < 1e-14
+assert np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-12
+assert np.max(np.abs(row.fc_3[:] - phonon3.get_fc3()[:])) < 1e-12

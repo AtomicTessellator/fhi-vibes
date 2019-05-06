@@ -35,7 +35,6 @@ def mod_spec_add(
 
     return FWAction(mod_spec=mod_spec)
 
-
 def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
     """
     A function that checks if a socket calculation is done, and if not restarts
@@ -68,13 +67,13 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
         fw_settings["calc_atoms_spec"]: args[0],
         fw_settings["calc_spec"]: args[1],
         fw_settings["metadata_spec"]: args[2],
-        "phonon_times": times + cur_times,
+        fw_settings["time_spec_add"]: times + cur_times,
     }
     inputs = [
         fw_settings["calc_atoms_spec"],
         fw_settings["calc_spec"],
         fw_settings["metadata_spec"],
-        "phonon_times",
+        fw_settings["time_spec_add"],
     ]
     if kwargs["outputs"]:
         wd = Path(kwargs.get("workdir", "."))
@@ -84,7 +83,7 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
         return FWAction(update_spec=update_spec)
     fw_settings["spec"].update(update_spec)
     fw = generate_firework(
-        func="hilde.tasks.fireworks.phonopy_phono3py_functions.wrap_calc_socket",
+        func="hilde.tasks.fireworks.calculate_wrapper.wrap_calc_socket",
         func_fw_out="hilde.tasks.fireworks.fw_out.calculate.socket_calc_check",
         func_kwargs=kwargs,
         atoms_calc_from_spec=False,

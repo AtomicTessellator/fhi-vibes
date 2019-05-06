@@ -18,6 +18,11 @@ def atoms2dict(atoms):
     if isinstance(atoms, dict):
         return atoms
     atoms_dict = ase_atoms2dict(atoms)
+    if "cell" in atoms_dict:
+        try:
+            atoms_dict["cell"] = atoms.cell.array
+        except AttributeError:
+            atoms_dict["cell"] = atoms.cell
 
     # add information that is missing after using ase.atoms2dict
     atoms_dict["info"] = atoms.info
@@ -73,7 +78,7 @@ def calc2dict(calc):
     calc_dict["calculator_parameters"] = calc.todict()
     try:
         calc_dict["command"] = calc.command
-    except:
+    except AttributeError:
         pass
     calc_dict["results"] = calc.results
     return calc_dict
