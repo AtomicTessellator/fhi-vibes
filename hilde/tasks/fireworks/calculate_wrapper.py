@@ -1,4 +1,5 @@
 from ase.calculators.calculator import CalculationFailed
+import os
 
 from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.phonopy.wrapper import preprocess
