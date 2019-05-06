@@ -146,17 +146,17 @@ def check_aims_complete(
 
     else:
         update_spec = {}
-        if "in_spec_atoms" in fw_settings
+        if "in_spec_atoms" in fw_settings:
             update_spec[fw_settings["in_spec_atoms"]] = new_atoms_dict
-        if "in_spec_calc" in fw_settings
+        if "in_spec_calc" in fw_settings:
             update_spec[fw_settings["in_spec_calc"]] = calc
-        if "kpoint_density_spec" in fw_settings
+        if "kpoint_density_spec" in fw_settings:
             update_spec[fw_settings["kpoint_density_spec"]] = k2d(
                 new_atoms, calc["calculator_parameters"]["k_grid"]
             )
         if "relax_geometry" not in calc["calculator_parameters"]:
             calc.parameters["walltime"] = to_time_str(2*get_time(fw_settings["spec"]["walltime"]))
-        os.system(f"cp {func_kwargs['workdir']}/aims.out {func_kwargs['workdir']}/aims.out.{func_fw_kwargs["relax_step"]}")
+        os.system(f"cp {func_kwargs['workdir']}/aims.out {func_kwargs['workdir']}/aims.out.{func_fw_kwargs['relax_step']}")
     del calc["results"]
     fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(
         func_fw_kwargs["relax_step"]
