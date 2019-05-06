@@ -1,4 +1,5 @@
 """FWAction generators for relaxations"""
+import os
 from pathlib import Path
 
 from fireworks import FWAction
