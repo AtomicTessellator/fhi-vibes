@@ -131,6 +131,12 @@ def check_aims_complete(
             new_atoms_dict["info"][key] = val
     update_spec = dict()
     if completed:
+        update_spec = {}
+        if "out_spec_atoms" in fw_settings:
+            update_spec[fw_settings["out_spec_atoms"]] = new_atoms_dict
+        if "out_spec_calc" in fw_settings:
+            update_spec[fw_settings["out_spec_calc"]] = calc
+
         return FWAction(
             update_spec={
                 fw_settings["out_spec_atoms"]: new_atoms_dict,
@@ -138,13 +144,15 @@ def check_aims_complete(
             }
         )
     else:
-        update_spec = {
-            fw_settings["in_spec_atoms"]: new_atoms_dict,
-            fw_settings["in_spec_calc"]: calc,
-            fw_settings["kpoint_density_spec"]: k2d(
+        update_spec = {}
+        if "in_spec_atoms" in fw_settings
+            update_spec[fw_settings["in_spec_atoms"]] = new_atoms_dict
+        if "in_spec_calc" in fw_settings
+            update_spec[fw_settings["in_spec_calc"]] = calc
+        if "kpoint_density_spec" in fw_settings
+            update_spec[fw_settings["kpoint_density_spec"]] = k2d(
                 new_atoms, calc["calculator_parameters"]["k_grid"]
-            ),
-        }
+            )
         if "relax_geometry" not in calc["calculator_parameters"]:
             calc.parameters["walltime"] = to_time_str(2*get_time(fw_settings["spec"]["walltime"]))
     del calc["results"]
