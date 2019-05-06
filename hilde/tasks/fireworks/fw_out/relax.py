@@ -139,10 +139,7 @@ def check_aims_complete(
             update_spec[fw_settings["out_spec_calc"]] = calc
 
         return FWAction(
-            update_spec={
-                fw_settings["out_spec_atoms"]: new_atoms_dict,
-                fw_settings["out_spec_calc"]: calc,
-            }
+            update_spec=update_spec
         )
 
     else:
