@@ -143,6 +143,7 @@ def check_aims_complete(
                 fw_settings["out_spec_calc"]: calc,
             }
         )
+
     else:
         update_spec = {}
         if "in_spec_atoms" in fw_settings
@@ -155,6 +156,7 @@ def check_aims_complete(
             )
         if "relax_geometry" not in calc["calculator_parameters"]:
             calc.parameters["walltime"] = to_time_str(2*get_time(fw_settings["spec"]["walltime"]))
+        os.system(f"cp {func_kwargs['workdir']}/aims.out {func_kwargs['workdir']}/aims.out.{func_fw_kwargs["relax_step"]}")
     del calc["results"]
     fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(
         func_fw_kwargs["relax_step"]
