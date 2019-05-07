@@ -19,7 +19,7 @@ def main():
     args = parser.parse_args()
 
     workflow = Settings(settings_file=args.workflow)
-    atoms = read(workflow.geometry.file)
+    atoms = read(workflow.geometry.file, format='aims')
     steps = []
 
     for step_file in workflow.workflow.step_files:
