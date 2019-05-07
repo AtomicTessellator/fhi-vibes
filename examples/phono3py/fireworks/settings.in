@@ -29,7 +29,7 @@ serial = False
 [phono3py]
 walltime = 1600
 supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-workdir = test_run/phonopy
+workdir = test_run/phono3py
 analysis_workdir = test_run/phono3py/analysis
 displacement = 0.01
 fireworks = True
