@@ -14,6 +14,9 @@ data/*
 # hilde config file
 hilde.cfg
 
+# fireworks config file
+fireworks.cfg
+
 # Python
 *.ipynb_checkpoints
 *.pyc
