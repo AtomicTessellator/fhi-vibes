@@ -132,6 +132,12 @@ class Trajectory(list):
         """ Return metadata """
         return self._metadata
 
+    @metadata.setter
+    def metadata(self, metadata):
+        """ Set the metadata """
+        assert isinstance(metadata, dict)
+        self._metadata = metadata
+
     #     fkdev: Might be useful?
     #     @property
     #     def ref_atoms(self):
@@ -219,7 +225,7 @@ class Trajectory(list):
             shutil.copy(file, ofile)
             print(f".. {file} copied to {ofile}")
 
-        to_yaml(self.metadata, temp_file, mode="w")
+        metadata2file(self.metadata, temp_file)
 
         print(f"Write to {temp_file}:")
         for elem in progressbar(self):
