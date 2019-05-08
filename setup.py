@@ -41,6 +41,7 @@ setup(
             "claunch_hilde = hilde.fireworks.scripts.claunch_run:claunch",
             "nomad_upload = hilde.scripts.nomad_upload:main",
             "update_md_trajectory = hilde.scripts.update_md_trajectory:main",
+            "create_trajectory= hilde.scripts.create_trajectory:main",
             "trajectory2tdep = hilde.scripts.trajectory2tdep:main",
             "trajectory2xyz = hilde.scripts.trajectory2xyz:main",
             "suggest_k_grid = hilde.scripts.suggest_k_grid:main",
