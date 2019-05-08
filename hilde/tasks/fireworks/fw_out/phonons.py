@@ -127,7 +127,7 @@ def get_detours(
             if "spec" not in fw_settings:
                 fw_settings["spec"] = dict()
             fw_settings["spec"]["_queueadapter"] = {
-                "walltime": to_time_str(calc_kwargs["walltime"]) + 120
+                "walltime": to_time_str(calc_kwargs["walltime"] + 120)
             }
 
     if calc_kwargs["serial"]:
