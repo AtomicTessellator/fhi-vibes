@@ -3,13 +3,11 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.symbols import symbols2numbers
-from ase.db.row import atoms2dict as ase_atoms2dict
-from ase.db.row import AtomsRow
-
 from phonopy import Phonopy
 
 from hilde.helpers.hash import hash_atoms_and_calc, hash_dict, hash_traj
 from hilde.helpers.warnings import warn
+from hilde.phonon_db.ase_converters import dict2atoms, atoms2dict
 from hilde.phonon_db.phonon_db import connect
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonon_db.row import phonon3_to_dict
@@ -131,7 +129,7 @@ def to_database(
                     "cutoff_distance"
                 ]
         except:
-            raise IOError("phonon is of the wrong type")
+            raise IOError("phonon3py is not installed, either phonon is of a type that is not defined or phono3py object")
     atoms.set_calculator(calc)
     if "calc_hash" in key_val_pairs or "atoms_hash" in key_val_pairs:
         warn("Replacing the atoms and calc hashes")
@@ -216,7 +214,8 @@ def obj2dict(obj):
             if isinstance(obj, Phono3py):
                 return phonon3_to_dict(obj)
         except:
-            raise IOError("obj has to be a dict, Phonopy, Phono3py, or Atoms object")
+            raise IOError("Phono3py is not installed, obj has to be a dict, Phonopy, or Atoms object")
+        raise IOError("obj has to be a dict, Phonopy, Phono3py, or Atoms object")
 
 
 def from_database(
@@ -273,80 +272,3 @@ def from_database(
     else:
         to_ret = to_ret[0]
     return to_ret
-
-
-def atoms2dict(atoms):
-    """
-    Converts a pAtoms object into a dict
-    Args:
-        atoms: pAtoms or Atoms object
-            The pAtoms or Atoms object to be converted into a dictionary
-    Returns: atoms_dict (dict)
-        The dictionary of atoms
-    """
-    if atoms is None:
-        return None
-    if isinstance(atoms, dict):
-        return atoms
-    atoms_dict = ase_atoms2dict(atoms)
-
-    # add information that is missing after using ase.atoms2dict
-    atoms_dict["info"] = atoms.info
-
-    # attach calculator
-    for key, val in calc2dict(atoms.calc).items():
-        atoms_dict[key] = val
-
-    return atoms_dict
-
-
-def dict2atoms(atoms_dict):
-    """
-    Converts a dict into a pAtoms object
-    Args:
-        atoms_dict: dict
-            A dictionary representing the pAtoms object
-    Returns: pAtoms
-        The corresponding pAtoms object
-    """
-    try:
-        atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=True)
-    except AttributeError:
-        atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=False)
-
-    # Attach missing information
-    if "info" in atoms_dict:
-        atoms.info = atoms_dict["info"]
-    if "command" in atoms_dict:
-        atoms.calc.command = atoms_dict["command"]
-    if "results" in atoms_dict:
-        atoms.calc.results = atoms_dict["results"]
-
-    # attach calculator
-    if atoms.calc:
-        for key, val in atoms.calc.results.items():
-            if isinstance(val, list):
-                atoms.calc.results[key] = np.array(val)
-    if "use_pimd_wrapper" in atoms.calc.parameters:
-        pimd = atoms.calc.parameters["use_pimd_wrapper"]
-        if isinstance(pimd, int):
-            atoms.calc.parameters["use_pimd_wrapper"] = ("localhost", pimd)
-
-    return atoms
-
-
-def calc2dict(calc):
-    """ Converts an ase calculator calc into a dict"""
-    if calc is None:
-        return {}
-    elif isinstance(calc, dict):
-        return calc
-    calc_dict = {}
-    calc_dict["calculator"] = calc.name.lower()
-    calc_dict["calculator_parameters"] = calc.todict()
-    try:
-        calc_dict["command"] = calc.command
-    except:
-        pass
-    calc_dict["results"] = calc.results
-    return calc_dict

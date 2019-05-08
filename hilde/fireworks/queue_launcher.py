@@ -140,16 +140,33 @@ def launch_rocket_to_queue(
                 if "_queueadapter" in fw.spec:
                     l_logger.debug("updating queue params using Firework spec..")
                     if "walltimes" in qadapter and "queues" in qadapter:
-                        if "walltime" in fw.spec["_queueadapter"]:
-                            time_req = conv_t_to_sec(
-                                fw.spec["_queueadapter"]["walltime"]
-                            )
+                        if "queue" in fw.spec["_queueadapter"]:
+                            qs = np.array(qadapter["queues"])
+                            inds = np.where(qs == fw.spec["_queueadapter"]["queue"])[0]
+                            if len(inds) == 0:
+                                raise ValueError(
+                                    "Queue not listed in available queue list"
+                                )
+                            fw.spec["_queueadapter"]["walltime"] = qadapter[
+                                "walltimes"
+                            ][inds[0]]
+                        else:
+                            if "walltime" in fw.spec["_queueadapter"]:
+                                time_req = conv_t_to_sec(
+                                    fw.spec["_queueadapter"]["walltime"]
+                                )
+                            elif "walltime" in qadapter:
+                                time_req = conv_t_to_sec(
+                                    qadapter['walltime']
+                                )
+                            else:
+                                raise IOError("no valid time/queue given to add a calculation")
                             wts = np.array(
                                 [conv_t_to_sec(wt) for wt in qadapter["walltimes"]]
                             )
                             inds = np.where(time_req <= wts)[0]
                             if len(inds) == 0:
-                                # fw.spec["_queueadapter"]["queue"] = qadapter["queues"][-1]
+                                fw.spec["_queueadapter"]["queue"] = qadapter["queues"][-1]
                                 if "nodes" in fw.spec["_queueadapter"]:
                                     n_nodes_strat = fw.spec["_queueadapter"]["nodes"]
                                     fw.spec["_queueadapter"]["nodes"] *= int(
@@ -165,20 +182,11 @@ def launch_rocket_to_queue(
                                     * float(n_nodes_strat)
                                     / float(fw.spec["_queueadapter"]["nodes"])
                                 )
+                                print(fw.spec["_queueadapter"]["nodes"])
                             else:
                                 fw.spec["_queueadapter"]["queue"] = qadapter["queues"][
                                     inds[0]
                                 ]
-                        elif "queue" in fw.spec["_queueadapter"]:
-                            qs = np.array(qadapter["queues"])
-                            inds = np.where(qs == fw.spec["_queueadapter"]["queue"])[0]
-                            if len(inds) == 0:
-                                raise ValueError(
-                                    "Queue not listed in available queue list"
-                                )
-                            fw.spec["_queueadapter"]["walltime"] = qadapter[
-                                "walltimes"
-                            ][inds[0]]
                         del (qadapter["walltimes"])
                         del (qadapter["queues"])
                     qadapter.update(fw.spec["_queueadapter"])

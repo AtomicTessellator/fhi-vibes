@@ -9,7 +9,8 @@ from h5py import File
 import numpy as np
 
 from hilde import konstanten as const
-from hilde.helpers.converters import dict2atoms, input2dict
+from hilde.helpers.converters import input2dict
+from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.phonon_db.row import PhononRow, phonon_to_dict
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.workflow import bootstrap
@@ -211,63 +212,6 @@ def setup_harmonic_analysis(
         to_out["atoms_to_calculate"] = calc_atoms
         outputs.append(to_out)
     return outputs
-
-
-def wrap_calc_socket(
-    atoms_dict_to_calculate,
-    calc_dict,
-    metadata,
-    phonon_times=None,
-    trajectory="trajectory.yaml",
-    workdir=".",
-    backup_folder="backups",
-    walltime=1800,
-    **kwargs,
-):
-    """
-    Wrapper for the clalculate_socket function
-    Args:
-        atoms_dict_to_calculate (list of dicts): A list of dicts representing the cells
-                                                 to calculate the forces on
-        calc_dict (dict): A dictionary representation of the ASE Calculator used to calculate
-                          the Forces
-        metadata (dict): metadata for the force trajectory file
-        phonon_time (list): List of times needed to calculate the supercell forces
-        trajectory (str): file name for the trajectory file
-        workdir (str): work directory for the force calculations
-        backup_folder (str): Directory to store backups
-        walltime (int): number of seconds to run the calculation for
-    Returns (bool): True if all the calculations completed
-    """
-    atoms_to_calculate = []
-    if calc_dict["calculator"].lower() == "aims":
-        settings = Settings(settings_file=None)
-        if "species_dir" in calc_dict["calculator_parameters"]:
-            from os import path
-
-            species_type = calc_dict["calculator_parameters"]["species_dir"].split("/")[
-                -1
-            ]
-            calc_dict["calculator_parameters"]["species_dir"] = path.join(
-                settings.machine.basissetloc, species_type
-            )
-        calc_dict["command"] = settings.machine.aims_command
-
-    for at_dict in atoms_dict_to_calculate:
-        for key, val in calc_dict.items():
-            at_dict[key] = val
-        atoms_to_calculate.append(dict2atoms(at_dict))
-    calculator = dict2atoms(atoms_dict_to_calculate[0]).calc
-    return calculate_socket(
-        atoms_to_calculate,
-        calculator,
-        metadata=metadata,
-        trajectory=trajectory,
-        workdir=workdir,
-        backup_folder=backup_folder,
-        walltime=walltime,
-        **kwargs,
-    )
 
 
 def collect_to_trajectory(trajectory, calculated_atoms, metadata):

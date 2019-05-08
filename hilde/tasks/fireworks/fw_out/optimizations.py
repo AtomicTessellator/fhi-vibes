@@ -4,7 +4,7 @@ from pathlib import Path
 from fireworks import FWAction
 
 from hilde.fireworks.workflows.workflow_generator import generate_firework
-from hilde.helpers.converters import calc2dict
+from hilde.phonon_db.ase_converters import calc2dict
 from hilde.helpers.fileformats import last_from_yaml
 
 
@@ -51,7 +51,7 @@ def check_kgrid_opt_completion(
         temp_list[-1] = str(int(temp_list[-1]) + 1)
         new_traj_list[-2] = "_".join(temp_list)
         trajectory = ".".join(new_traj_list)
-    except:
+    except ValueError:
         new_traj_list[-2] += "_restart_1"
         trajectory = ".".join(new_traj_list)
 

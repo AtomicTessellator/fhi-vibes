@@ -57,7 +57,7 @@ init_fw = generate_firework(
 
 kwargs = {"fireworks": True, "workdir": workdir + "/analysis"}
 task_spec_list = get_phonon_analysis_task(
-    "hilde.phonopy.postprocess.postprocess", kwargs, "ph_metadata", "ph_forces", "phonon_times"
+    "hilde.phonopy.postprocess.postprocess", kwargs, "ph_metadata", "ph_forces", "ph_times"
 )
 
 anal_fw = generate_firework(task_spec_list, fw_settings=fw_settings)

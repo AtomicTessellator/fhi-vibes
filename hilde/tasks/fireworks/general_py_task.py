@@ -5,7 +5,7 @@ import os
 from fireworks import PyTask
 
 from hilde import DEFAULT_CONFIG_FILE
-from hilde.helpers.converters import dict2atoms
+from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.helpers import Timer
 from hilde.settings import Settings
 

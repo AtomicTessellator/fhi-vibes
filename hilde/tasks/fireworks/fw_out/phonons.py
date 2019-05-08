@@ -16,7 +16,7 @@ from hilde.fireworks.workflows.phonon_wf import (
     generate_phonon_fw,
     generate_phonon_postprocess_fw,
 )
-from hilde.phonon_db.database_interface import calc2dict, atoms2dict
+from hilde.phonon_db.ase_converters import calc2dict, atoms2dict
 from hilde.helpers.k_grid import k2d
 from hilde.helpers.supercell import make_cubic_supercell
 from hilde.materials_fp.material_fingerprint import (
@@ -24,7 +24,7 @@ from hilde.materials_fp.material_fingerprint import (
     fp_tup,
     scalar_product,
 )
-from hilde.phonon_db.row import phonon_to_dict
+from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict
 from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader
 
@@ -116,6 +116,20 @@ def get_detours(
     """
     if detours is None:
         detours = []
+    fw_settings["time_spec_add"] = prefix + "_times"
+    if "walltime" in calc_kwargs:
+        if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
+            if "walltime" in fw_settings["spec"]["_queueadapter"]:
+                calc_kwargs["walltime"] = get_time(fw_settings["spec"]["_queueadapter"]["walltime"]) - 120
+            else:
+                fw_settings["spec"]["_queueadapter"]["walltime"] = to_time_str(calc_kwargs["walltime"]) + 120
+        else:
+            if "spec" not in fw_settings:
+                fw_settings["spec"] = dict()
+            fw_settings["spec"]["_queueadapter"] = {
+                "walltime": to_time_str(calc_kwargs["walltime"]) + 120
+            }
+
     if calc_kwargs["serial"]:
         update_spec[prefix + "_calculated_atoms"] = [
             atoms2dict(at) for at in atoms_to_calculate
@@ -124,17 +138,18 @@ def get_detours(
         fw_settings["spec"].update(update_spec)
         fw_settings["calc_atoms_spec"] = prefix + "_calculated_atoms"
         fw_settings["calc_spec"] = prefix + "_calculator"
-        return add_socket_calc_to_detours(detours, calc_kwargs, fw_settings, prefix)
+        return add_socket_calc_to_detours(detours, atoms, calc_kwargs, fw_settings, prefix)
     return add_single_calc_to_detours(
         detours, calc_kwargs, atoms, atoms_to_calculate, calc_dict, fw_settings, prefix
     )
 
 
-def add_socket_calc_to_detours(detours, func_kwargs, fw_settings, prefix):
+def add_socket_calc_to_detours(detours, atoms, func_kwargs, fw_settings, prefix):
     """
     Generates a Firework to run a socket calculator and adds it to the detours
     Args:
         detours (list of Fireworks): Current list of detours
+        atoms (ASE Atoms Object): Initial ASE Atoms object representation of the structure
         func_kwargs (dict): kwargs needed to do the socket I/O calculation
         fw_settings (dict): FireWorks settings
         prefix (str): ph for phonopy and ph3 for phono3py calculations
@@ -145,8 +160,12 @@ def add_socket_calc_to_detours(detours, func_kwargs, fw_settings, prefix):
     for key in calc_keys:
         if key in func_kwargs:
             calc_kwargs[key] = func_kwargs[key]
+    fw_set = fw_settings.copy()
+    fw_set["fw_name"] = (
+            prefix + f"_serial_forces_{Symbols(atoms['numbers']).get_chemical_formula()}"
+        )
     fw = generate_firework(
-        func="hilde.tasks.fireworks.phonopy_phono3py_functions.wrap_calc_socket",
+        func="hilde.tasks.fireworks.calculate_wrapper.wrap_calc_socket",
         func_fw_out="hilde.tasks.fireworks.fw_out.calculate.socket_calc_check",
         func_kwargs=calc_kwargs,
         atoms_calc_from_spec=False,
@@ -155,7 +174,7 @@ def add_socket_calc_to_detours(detours, func_kwargs, fw_settings, prefix):
             prefix + "_calculator",
             prefix + "_metadata",
         ],
-        fw_settings=fw_settings.copy(),
+        fw_settings=fw_set.copy(),
     )
     detours.append(fw)
     return detours
@@ -189,11 +208,11 @@ def add_single_calc_to_detours(
             sc_dict[key] = val
         calc_kwargs = {"workdir": func_fw_kwargs["workdir"] + f"/{i:05d}"}
         fw_settings["fw_name"] = (
-            prefix + f"forces_{Symbols(atoms['numbers']).get_chemical_formula()}_{i}"
+            prefix + f"forces_{Symbols(sc_dict['numbers']).get_chemical_formula()}_{i}"
         )
         detours.append(
             generate_firework(
-                func="hilde.tasks.calculate.calculate",
+                func="hilde.tasks.fireworks.calculate_wrapper.wrap_calculate",
                 func_fw_out="hilde.tasks.fireworks.fw_out.calculate.mod_spec_add",
                 func_kwargs=calc_kwargs,
                 atoms=sc_dict,
@@ -221,12 +240,18 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     _, metadata = reader(kwargs["trajectory"], True)
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
-
-    update_spec = {
-        "ph_dict": phonon_to_dict(kwargs["outputs"]),
-        "ph_calculator": calc_dict,
-        "ph_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_primitive())),
-    }
+    if "phono3py" in args[0]:
+        update_spec = {
+            "ph3_dict": phonon3_to_dict(kwargs["outputs"]),
+            "ph3_calculator": calc_dict,
+            "ph3_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_primitive())),
+        }
+    else:
+        update_spec = {
+            "ph_dict": phonon_to_dict(kwargs["outputs"]),
+            "ph_calculator": calc_dict,
+            "ph_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_primitive())),
+        }
     return FWAction(update_spec=update_spec)
 
 
@@ -398,4 +423,4 @@ def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
     for ll in range(4):
         prev_dos_fp[ll] = np.array(prev_dos_fp[ll])
     prev_dos_fp = fp_tup(prev_dos_fp[0], prev_dos_fp[1], prev_dos_fp[2], prev_dos_fp[3])
-    return scalar_product(dos_fp, prev_dos_fp, col=1, pt=0, normalize=True) >= conv_crit
+    return scalar_product(dos_fp, prev_dos_fp, col=1, pt=0, normalize=False, tanimoto=True) >= conv_crit
