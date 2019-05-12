@@ -74,7 +74,7 @@ def converge_kgrid(
 
         opt = KPointOptimizer(opt_atoms, **kpt_settings)
         # log very initial step and metadata
-        if opt.nsteps == 0:
+        if opt.nsteps == 0 and not trajectory.exists():
             metadata = input2dict(atoms, calc)
             metadata["geometry_optimization"] = opt.todict()
             metadata2file(metadata, trajectory)

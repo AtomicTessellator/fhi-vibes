@@ -39,6 +39,7 @@ def postprocess(
         "cutoff_pair_distance": metadata["displacement_dataset"]["cutoff_distance"],
         "symprec": metadata["symprec"],
         "displacement_dataset": metadata["displacement_dataset"],
+        **kwargs
     }
 
     phonon3 = prepare_phono3py(**phono3py_settings)
