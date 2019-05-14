@@ -3,9 +3,11 @@
 from pathlib import Path
 import numpy as np
 from hilde.helpers.converters import dict2results
-from hilde.phonopy import displacement_id_str
-from hilde.trajectory import reader as traj_reader
+from hilde.helpers.hash import hash_atoms
 from hilde.helpers.pickle import psave
+from hilde.phonopy import displacement_id_str
+from hilde.structure.convert import to_Atoms
+from hilde.trajectory import reader as traj_reader
 
 from hilde.phono3py.wrapper import prepare_phono3py
 from hilde.phonopy.postprocess import postprocess as postprocess2
@@ -48,11 +50,18 @@ def postprocess(
     # collect the forces and put zeros where no supercell was created
     force_sets = []
     disp_scells = phonon3.get_supercells_with_displacements()
+    hash_dict = dict()
     for nn, scell in enumerate(disp_scells):
         if scell:
-            atoms = calculated_atoms.pop(0)
-            assert atoms.info[displacement_id_str] == nn
-            force_sets.append(atoms.get_forces())
+            # This is no longer simply pop since phono3py adds the same supercell multiple times
+            atoms = calculated_atoms[0]
+            if atoms.info[displacement_id_str] == nn:
+                force_sets.append(atoms.get_forces())
+                hash_dict[hash_atoms(to_Atoms(scell))] = nn
+                calculated_atoms.pop(0)
+            else:
+                # This is a repeated supercell, find it using the hash and add the forces
+                force_sets.append(force_sets[hash_dict[hash_atoms(to_Atoms(scell))]])
         else:
             force_sets.append(zero_force)
 
