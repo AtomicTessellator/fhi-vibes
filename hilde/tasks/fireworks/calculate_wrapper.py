@@ -67,8 +67,7 @@ def wrap_calc_socket(
         if calc_dict["calculator"].lower() == "aims":
             lines = open(workdir + "/aims.out").readlines()
             if (
-                "lines WARNING: FHI-aims is terminating due to walltime restrictions\n"
-                not in lines
+                "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"  not in lines
             ):
                 raise RuntimeError(
                     "FHI-aims failed to converge, and it is not a walltime issue"
@@ -100,7 +99,7 @@ def wrap_calculate(
         if calc.name.lower() == "aims":
             lines = open(workdir + "/aims.out").readlines()
             if (
-                "  ** WARNING: FHI-aims is terminating due to walltime restrictions\n" in lines
+                "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n" not in lines
             ):
                 return atoms
             elif "  ** Inconsistency of forces<->energy above specified tolerance.\n" in lines:

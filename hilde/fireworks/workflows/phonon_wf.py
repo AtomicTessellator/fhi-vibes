@@ -284,7 +284,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     fw_settings["kpoint_density_spec"] = "kgrid"
     del fw_settings["out_spec_k_den"]
     fw_settings["from_db"] = True
-    if "basisset" in workflow.general and workflow.general.basisset == "light_intermedite":
+    if "basisset" in workflow.general and workflow.general.basisset == "light_intermediate":
         light_relax_set = {"basisset_type": workflow.general.basisset}
     else:
         light_relax_set = {"basisset_type": "light"}
@@ -419,7 +419,9 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
 
     # Harmonic Analysis
     if "harmonic_analysis" in workflow:
-        if "phonopy_qadapter" in workflow:
+        if "harmonic_analysis_qadapter" in workflow:
+            qadapter = workflow["harmonic_analysis_qadapter"]
+        elif "phonopy_qadapter" in workflow:
             qadapter = workflow["phonopy_qadapter"]
         else:
             qadapter = None
