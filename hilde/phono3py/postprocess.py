@@ -52,9 +52,9 @@ def postprocess(
     disp_scells = phonon3.get_supercells_with_displacements()
     hash_dict = dict()
     for nn, scell in enumerate(disp_scells):
+        atoms = calculated_atoms[0]
         if scell:
             # This is no longer simply pop since phono3py adds the same supercell multiple times
-            atoms = calculated_atoms[0]
             if atoms.info[displacement_id_str] == nn:
                 hash_dict[hash_atoms(to_Atoms(scell))] = len(force_sets)
                 force_sets.append(atoms.get_forces())
@@ -63,6 +63,9 @@ def postprocess(
                 # This is a repeated supercell, find it using the hash and add the forces
                 force_sets.append(force_sets[hash_dict[hash_atoms(to_Atoms(scell))]])
         else:
+            #in case the trajectory contains data from higher cutoff calculations
+            if atoms.info[displacement_id_str] == nn:
+                calculated_atoms.pop(0)
             force_sets.append(zero_force)
 
     phonon3.produce_fc3(force_sets)
