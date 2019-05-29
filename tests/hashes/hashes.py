@@ -19,4 +19,4 @@ atomshash = hash_atoms(atoms)
 _, calchash = hash_atoms_and_calc(atoms, ignore_file=config_file)
 
 assert atomshash == "065d7dc8cde297d3691a7b776177780662acdc4c", atomshash
-assert calchash == "da39a3ee5e6b4b0d3255bfef95601890afd80709", calchash
+assert calchash == "fe6fd13301cc9523988c9b0df38393cf4fbdd242", calchash
