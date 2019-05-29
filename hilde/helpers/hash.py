@@ -53,7 +53,7 @@ def hash_atoms_and_calc(
         atoms, ignore_results, ignore_keys, ignore_calc_params
     )
 
-    atomshash = hashfunc(atomsjson).hexdigest()
+    atomshash = hashfunc(atomsjson)
     calchash = hashfunc(calcjson)
 
     return atomshash, calchash
