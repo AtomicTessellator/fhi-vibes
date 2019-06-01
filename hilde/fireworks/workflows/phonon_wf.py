@@ -284,10 +284,10 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     fw_settings["kpoint_density_spec"] = "kgrid"
     del fw_settings["out_spec_k_den"]
     fw_settings["from_db"] = True
-    if "basisset" in workflow.general and workflow.general.basisset == "light_intermediate":
-        light_relax_set = {"basisset_type": workflow.general.basisset}
-    else:
-        light_relax_set = {"basisset_type": "light"}
+    # if "basisset" in workflow.general and workflow.general.basisset == "light_intermediate":
+    #     light_relax_set = {"basisset_type": workflow.general.basisset}
+    # else:
+    light_relax_set = {"basisset_type": "light"}
     if "light_rel_qadapter" in workflow:
         qadapter = workflow["light_rel_qadapter"]
     else:
@@ -304,18 +304,25 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
     )
     fw_dep[fw_steps[-2]] = fw_steps[-1]
 
-    # Tight Basis Set Relaxation
+    # Tighter Basis Set Relaxation
     if "basisset" in workflow.general:
         basis = workflow.general.pop("basisset")
     else:
-        basis = "tight"
+        basis = None
     use_tight_relax = False
     if "use_tight_relax" in workflow.general and workflow.general["use_tight_relax"]:
         use_tight_relax = True
-    if basis == "tight" or use_tight_relax:
-        tight_relax_set = {"basisset_type": "tight"}
+    if basis != "light" or use_tight_relax:
+        if use_tight_relax:
+            tighter_relax_set = {"basisset_type": "tight"}
+        else:
+            tighter_relax_set = {"basisset_type": basis}
         if "tight_rel_qadapter" in workflow:
             qadapter = workflow["tight_rel_qadapter"]
+        elif f"{basis}_rel_qadapter" in workflow:
+            qadapter = workflow[f"{basis}_rel_qadapter"]
+        elif f"light_rel_qadapter":
+            qadapter = workflow["light_rel_qadapter"]
         else:
             qadapter = None
         fw_steps.append(
@@ -324,7 +331,7 @@ def generate_phonon_workflow(workflow, atoms, fw_settings):
                 workflow.general.workdir_cluster,
                 fw_settings,
                 qadapter,
-                tight_relax_set,
+                tighter_relax_set,
             )
         )
         fw_dep[fw_steps[-2]] = fw_steps[-1]
