@@ -12,8 +12,6 @@ import shutil
 
 import numpy as np
 
-import numpy as np
-
 from ase import units
 from hilde import __version__ as version
 from hilde.helpers.converters import results2dict, dict2results, input2dict

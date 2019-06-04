@@ -11,6 +11,9 @@ from hilde.phonopy.wrapper import prepare_phonopy, get_force_constants
 from hilde.trajectory import reader
 from hilde.helpers.pickle import psave
 from hilde.io import write
+from hilde.helpers import warn
+
+from . import displacement_id_str
 
 
 def postprocess(
@@ -31,6 +34,14 @@ def postprocess(
         print("Start phonopy postprocess:")
 
     calculated_atoms, metadata = reader(trajectory, True)
+
+    # make sure the calculated atoms are in order
+    for nn, atoms in enumerate(calculated_atoms):
+        atoms_id = atoms.info[displacement_id_str]
+        if atoms_id == nn:
+            continue
+        warn(f"Displacement ids are not in order. Inspect {trajectory}!", level=2)
+
     for disp in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
         disp["number"] = int(disp["number"])
     primitive = dict2results(metadata["Phonopy"]["primitive"])
