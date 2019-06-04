@@ -105,7 +105,7 @@ def wrap_calculate(
                 lines == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
             )[0]
             sum_present = len(line_sum) > 0
-            if sum_present and float(lines[line_sum[0]+1].split(":")[1].split("s")[1]) / walltime > 0.95::
+            if sum_present and float(lines[line_sum[0]+1].split(":")[1].split("s")[1]) / walltime > 0.95:
                 return atoms
             elif "  ** Inconsistency of forces<->energy above specified tolerance.\n" in lines:
                 return atoms
