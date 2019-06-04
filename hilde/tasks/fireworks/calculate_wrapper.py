@@ -65,13 +65,16 @@ def wrap_calc_socket(
         )
     except RuntimeError:
         if calc_dict["calculator"].lower() == "aims":
-            lines = open(workdir + "/aims.out").readlines()
-            if (
-                "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"  not in lines
-            ):
+            lines = np.array(open(workdir + "/aims.out").readlines())
+            line_sum = np.where(
+                lines == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
+            )[0]
+            sum_present = len(line_sum) > 0
+            if not sum_present or float(lines[line_sum[0]+1].split(":")[1].split("s")[1]) / walltime < 0.95:
                 raise RuntimeError(
                     "FHI-aims failed to converge, and it is not a walltime issue"
                 )
+            return True
         else:
             raise RuntimeError("The calculation failed")
 
@@ -97,10 +100,12 @@ def wrap_calculate(
         )
     except RuntimeError:
         if calc.name.lower() == "aims":
-            lines = open(workdir + "/aims.out").readlines()
-            if (
-                "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n" not in lines
-            ):
+            lines = np.array(open(workdir + "/aims.out").readlines())
+            line_sum = np.where(
+                lines == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
+            )[0]
+            sum_present = len(line_sum) > 0
+            if sum_present and float(lines[line_sum[0]+1].split(":")[1].split("s")[1]) / walltime > 0.95::
                 return atoms
             elif "  ** Inconsistency of forces<->energy above specified tolerance.\n" in lines:
                 return atoms

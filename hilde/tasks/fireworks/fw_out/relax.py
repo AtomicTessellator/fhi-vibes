@@ -104,7 +104,7 @@ def check_aims_complete(
     Returns (FWAction): The correct action (restart or updated spec) if convergence is reached
     """
     func_fw_kwargs["relax_step"] += 1
-    aims_out = open(func_kwargs["workdir"] + "/aims.out").readlines()
+    aims_out = np.array(open(func_kwargs["workdir"] + "/aims.out").readlines())
     completed = "Have a nice day" in aims_out[-2]
     calc = calc2dict(outputs.get_calculator())
     try:
@@ -115,11 +115,14 @@ def check_aims_complete(
             new_atoms = atoms.copy()
     except FileNotFoundError:
         if not completed:
-            if (
-                "*** WARNING: FHI-aims is terminating due to walltime restrictions\n"
-                in aims_out
-            ):
-                calc.parameters["walltime"] = to_time_str(2*get_time(fw_settings["spec"]["walltime"]))
+            line_sum = np.where(
+                aims_out == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
+            )[0]
+            sum_present = len(line_sum) > 0
+            walltime = get_time(fw_settings["spec"]["walltime"])
+            if sum_present and float(aims_out[line_sum[0]+1].split(":")[1].split("s")[1]) / walltime > 0.95:
+                calc.parameters["walltime"] = 2.0*walltime
+                fw_settings["spec"]["walltime"] = to_time_str(2*walltime)
                 pass
             else:
                 raise IOError(
