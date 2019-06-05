@@ -6,7 +6,7 @@ from pathlib import Path
 from ase.calculators.calculator import Calculator
 
 from hilde.harmonic_analysis.displacements import get_dR
-from hilde.trajectory import to_yaml, input2dict
+from hilde.trajectory import son, input2dict
 
 
 def get_F(dR, force_constants):
@@ -40,7 +40,7 @@ class MDLogger:
             Path(trajectory).unlink()
             print(f"** {trajectory} deleted.")
 
-        to_yaml({**metadata, **input2dict(atoms)}, self.trajectory, mode="w")
+        son.dump({**metadata, **input2dict(atoms)}, self.trajectory, is_metadata=True)
 
     def __call__(self, atoms, info={}):
         """ log the current step to the trajectory """
@@ -55,4 +55,4 @@ class MDLogger:
         }
         dct.update(info)
 
-        to_yaml(dct, self.trajectory)
+        son.dump(dct, self.trajectory)
