@@ -12,27 +12,31 @@ import shutil
 
 import numpy as np
 
+
 from ase import units
 from hilde import __version__ as version
+from hilde import son
 from hilde.helpers.converters import results2dict, dict2atoms, input2dict
-from hilde.helpers.fileformats import to_yaml, from_yaml
+from hilde.helpers.converters import dict2json as dumper
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import Timer, warn, progressbar
 
 
-def step2file(atoms, calc, file="trajectory.yaml", append_cell=False):
+def step2file(atoms, calc=None, file="trajectory.son", append_cell=False):
     """ Save the current step """
 
-    to_yaml(results2dict(atoms, calc, append_cell), file)
+    dct = results2dict(atoms, calc, append_cell)
+
+    son.dump(dct, file, dumper=dumper)
 
 
-def metadata2file(metadata, file="metadata.yaml"):
+def metadata2file(metadata, file="metadata.son"):
     """ save metadata to file """
 
     if metadata is None:
         metadata = {}
 
-    to_yaml({**metadata, "hilde": {"version": version}}, file, mode="w")
+    son.dump({**metadata, "hilde": {"version": version}}, file, is_metadata=True)
 
 
 def get_hashes_from_trajectory(trajectory):
@@ -53,7 +57,7 @@ def get_hashes_from_trajectory(trajectory):
     return hashes
 
 
-def reader(file="trajectory.yaml", get_metadata=False):
+def reader(file="trajectory.son", get_metadata=False):
     """ convert information in trajectory and metadata files to atoms objects
      and return them """
 
@@ -61,9 +65,9 @@ def reader(file="trajectory.yaml", get_metadata=False):
 
     print(".. read file:")
     try:
-        metadata, *pre_trajectory = from_yaml(file, use_json=True)
+        metadata, pre_trajectory = son.load(file)
     except json.decoder.JSONDecodeError:
-        metadata, *pre_trajectory = from_yaml(file, use_json=False)
+        metadata, pre_trajectory = son.load(file)
 
     pre_calc_dict = metadata["calculator"]
     pre_atoms_dict = metadata["atoms"]
@@ -210,12 +214,12 @@ class Trajectory(list):
 
         timer("velocities and positions cleaned from drift")
 
-    def write(self, file="trajectory.yaml"):
-        """ Write to yaml file """
+    def write(self, file="trajectory.son"):
+        """ Write to son file """
 
         timer = Timer(f"Write trajectory to {file}")
 
-        temp_file = "temp.yaml"
+        temp_file = "temp.son"
 
         # check for file and make backup
         if os.path.exists(file):
@@ -227,7 +231,7 @@ class Trajectory(list):
 
         print(f"Write to {temp_file}:")
         for elem in progressbar(self):
-            to_yaml(results2dict(elem), temp_file)
+            son.dump(results2dict(elem), temp_file)
 
         shutil.move(temp_file, file)
 
