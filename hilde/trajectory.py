@@ -14,7 +14,7 @@ import numpy as np
 
 from ase import units
 from hilde import __version__ as version
-from hilde.helpers.converters import results2dict, dict2results, input2dict
+from hilde.helpers.converters import results2dict, dict2atoms, input2dict
 from hilde.helpers.fileformats import to_yaml, from_yaml
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import Timer, warn, progressbar
@@ -83,7 +83,7 @@ def reader(file="trajectory.yaml", get_metadata=False):
         # remember that the results need to go to a dedicated results dict in calc
         calc_dict = {**pre_calc_dict, "results": obj["calculator"]}
 
-        atoms = dict2results(atoms_dict, calc_dict)
+        atoms = dict2atoms(atoms_dict, calc_dict)
 
         # info
         if "MD" in metadata:
@@ -141,7 +141,7 @@ class Trajectory(list):
     #     def ref_atoms(self):
     #         """ Reference atoms object for computing displacements etc """
     #         if "supercell" in self.metadata:
-    #             return dict2results(self.metadata["supercell"]["atoms"])
+    #             return dict2atoms(self.metadata["supercell"]["atoms"])
     #         else:
     #             return self[0]
 
@@ -149,7 +149,7 @@ class Trajectory(list):
     def primitive(self):
         """ Return the primitive cell if it is there """
         if "primitive" in self.metadata:
-            return dict2results(self.metadata["primitive"]["atoms"])
+            return dict2atoms(self.metadata["primitive"]["atoms"])
         warn("primitive cell not provided in trajectory metadata")
 
     @primitive.setter
@@ -164,7 +164,7 @@ class Trajectory(list):
     def supercell(self):
         """ Return the supercell if it is there """
         if "supercell" in self.metadata:
-            return dict2results(self.metadata["supercell"]["atoms"])
+            return dict2atoms(self.metadata["supercell"]["atoms"])
         warn("supercell not provided in trajectory metadata")
 
     @supercell.setter
@@ -326,7 +326,7 @@ class Trajectory(list):
         # reference atoms
         if not ref_atoms:
             if "supercell" in self.metadata:
-                ref_atoms = dict2results(self.metadata["supercell"]["atoms"])
+                ref_atoms = dict2atoms(self.metadata["supercell"]["atoms"])
             else:
                 ref_atoms = self[0]
 
@@ -346,7 +346,7 @@ class Trajectory(list):
         # reference atoms
         if not ref_atoms:
             if "supercell" in self.metadata:
-                ref_atoms = dict2results(self.metadata["supercell"]["atoms"])
+                ref_atoms = dict2atoms(self.metadata["supercell"]["atoms"])
             else:
                 ref_atoms = self[0]
 

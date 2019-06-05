@@ -2,7 +2,7 @@
 
 from pathlib import Path
 import numpy as np
-from hilde.helpers.converters import dict2results
+from hilde.helpers.converters import dict2atoms
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.pickle import psave
 from hilde.phonopy import displacement_id_str
@@ -35,11 +35,11 @@ def postprocess(
     # read the third order trajectory
     calculated_atoms, metadata_full = traj_reader(trajectory3, True)
     metadata = metadata_full["Phono3py"]
-    primitive = dict2results(metadata['primitive'])
-    supercell = dict2results(metadata_full['atoms'])
+    primitive = dict2atoms(metadata["primitive"])
+    supercell = dict2atoms(metadata_full["atoms"])
     supercell_matrix = metadata["supercell_matrix"]
     supercell.info = {"supercell_matrix": str(supercell_matrix)}
-    
+
     phono3py_settings = {
         "atoms": primitive,
         "supercell_matrix": supercell_matrix,
@@ -48,7 +48,7 @@ def postprocess(
         "cutoff_pair_distance": metadata["displacement_dataset"]["cutoff_distance"],
         "symprec": metadata["symprec"],
         "displacement_dataset": metadata["displacement_dataset"],
-        **kwargs
+        **kwargs,
     }
 
     phonon3 = prepare_phono3py(**phono3py_settings)
@@ -70,7 +70,7 @@ def postprocess(
                 # This is a repeated supercell, find it using the hash and add the forces
                 force_sets.append(force_sets[hash_dict[hash_atoms(to_Atoms(scell))]])
         else:
-            #in case the trajectory contains data from higher cutoff calculations
+            # in case the trajectory contains data from higher cutoff calculations
             if atoms.info[displacement_id_str] == nn:
                 calculated_atoms.pop(0)
             force_sets.append(zero_force)
@@ -79,12 +79,12 @@ def postprocess(
 
     if pickle_file and write_files:
         psave(phonon3, trajectory3.parent / pickle_file)
-        
+
     if write_files:
         # Save the supercell
         fname = "geometry.in.supercell3"
         write(supercell, fname)
         if verbose:
             print(f".. Third order supercell written to {fname}")
-    
+
     return phonon3

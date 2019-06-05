@@ -5,7 +5,7 @@ import numpy as np
 
 from phonopy.file_IO import write_FORCE_CONSTANTS
 
-from hilde.helpers.converters import dict2results
+from hilde.helpers.converters import dict2atoms
 from hilde.helpers import Timer
 from hilde.phonopy.wrapper import prepare_phonopy, get_force_constants
 from hilde.trajectory import reader
@@ -44,8 +44,8 @@ def postprocess(
 
     for disp in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
         disp["number"] = int(disp["number"])
-    primitive = dict2results(metadata["Phonopy"]["primitive"])
-    supercell = dict2results(metadata["atoms"])
+    primitive = dict2atoms(metadata["Phonopy"]["primitive"])
+    supercell = dict2atoms(metadata["atoms"])
     supercell_matrix = metadata["Phonopy"]["supercell_matrix"]
     supercell.info = {"supercell_matrix": str(supercell_matrix)}
     symprec = metadata["Phonopy"]["symprec"]

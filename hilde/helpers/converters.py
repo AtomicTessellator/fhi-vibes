@@ -1,11 +1,10 @@
-""" tools for conerting atoms objects to json representations """
+""" tools for converting atoms objects to json representations """
 
 
 import json
 from pathlib import Path
 import numpy as np
 from ase.db.row import atoms2dict as ase_atoms2dict
-from ase.db.row import AtomsRow
 from ase.io.jsonio import MyEncoder
 from ase.calculators.calculator import all_properties
 from ase.atoms import Atoms
@@ -132,7 +131,7 @@ def results2dict(atoms, calc=None, append_cell=False):
     return {"atoms": atoms_dict, "calculator": calc_dict}
 
 
-def dict2results(atoms_dict, calc_dict=None):
+def dict2atoms(atoms_dict, calc_dict=None):
     """ convert dictionaries into atoms and calculator objects """
 
     pbc = False
@@ -165,41 +164,6 @@ def dict2results(atoms_dict, calc_dict=None):
         calc = None
 
     atoms.calc = calc
-
-    return atoms
-
-
-def dict2atoms(atoms_dict):
-    """
-    Converts a dict into a pAtoms object
-    Args:
-        atoms_dict: dict
-            A dictionary representing the pAtoms object
-    Returns: pAtoms
-        The corresponding pAtoms object
-    """
-    try:
-        atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=True)
-    except AttributeError:
-        atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=False)
-
-    # Attach missing information
-    if "info" in atoms_dict:
-        atoms.info = atoms_dict["info"]
-    if "command" in atoms_dict:
-        atoms.calc.command = atoms_dict["command"]
-    if "results" in atoms_dict:
-        atoms.calc.results = atoms_dict["results"]
-
-    # attach calculator
-    if atoms.calc:
-        for key, val in atoms.calc.results.items():
-            if isinstance(val, list):
-                atoms.calc.results[key] = np.array(val)
-    if "use_pimd_wrapper" in atoms.calc.parameters:
-        pimd = atoms.calc.parameters["use_pimd_wrapper"]
-        if isinstance(pimd, int):
-            atoms.calc.parameters["use_pimd_wrapper"] = ("localhost", pimd)
 
     return atoms
 
