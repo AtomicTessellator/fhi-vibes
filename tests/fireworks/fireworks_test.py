@@ -11,11 +11,11 @@ from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.fireworks.rocket_launcher import rapidfire
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.paths import cwd
-from hilde.helpers.pickle import pread
 from hilde.fireworks.workflows.workflow_generator import (
     generate_firework,
     get_phonon_analysis_task,
 )
+from hilde.phonopy.postprocess import postprocess
 
 from fireworks import Workflow
 
