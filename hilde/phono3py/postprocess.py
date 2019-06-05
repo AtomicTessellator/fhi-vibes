@@ -11,12 +11,15 @@ from hilde.trajectory import reader as traj_reader
 
 from hilde.phono3py.wrapper import prepare_phono3py
 from hilde.phonopy.postprocess import postprocess as postprocess2
+from hilde.io import write
 
 
 def postprocess(
     trajectory="phono3py/trajectory.yaml",
     trajectory_fc2="phonopy/trajectory.yaml",
     pickle_file="phonon3.pick",
+    write_files=True,
+    verbose=True,
     **kwargs,
 ):
     """ Phono3py postprocess """
@@ -32,10 +35,14 @@ def postprocess(
     # read the third order trajectory
     calculated_atoms, metadata_full = traj_reader(trajectory3, True)
     metadata = metadata_full["Phono3py"]
-
+    primitive = dict2results(metadata['primitive'])
+    supercell = dict2results(metadata_full['atoms'])
+    supercell_matrix = metadata["supercell_matrix"]
+    supercell.info = {"supercell_matrix": str(supercell_matrix)}
+    
     phono3py_settings = {
-        "atoms": dict2results(metadata["primitive"]),
-        "supercell_matrix": metadata["supercell_matrix"],
+        "atoms": primitive,
+        "supercell_matrix": supercell_matrix,
         "phonon_supercell_matrix": phonon.get_supercell_matrix() if phonon else None,
         "fc2": phonon.get_force_constants() if phonon else None,
         "cutoff_pair_distance": metadata["displacement_dataset"]["cutoff_distance"],
@@ -70,7 +77,14 @@ def postprocess(
 
     phonon3.produce_fc3(force_sets)
 
-    if pickle_file:
+    if pickle_file and write_files:
         psave(phonon3, trajectory3.parent / pickle_file)
-
+        
+    if write_files:
+        # Save the supercell
+        fname = "geometry.in.supercell3"
+        write(supercell, fname)
+        if verbose:
+            print(f".. Third order supercell written to {fname}")
+    
     return phonon3
