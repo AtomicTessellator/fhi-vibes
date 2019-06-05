@@ -1,6 +1,5 @@
 # System informations, ADJUST!
 [common]
-home_dir =          /some/path/to/hilde
 email =             you@something.com
 
 [machine]
@@ -11,7 +10,6 @@ email =             you@something.com
  location =         ${common:home_dir}/examples/phonon_db
  name =             test.db
  db_path =          ${location}/${name}
-#db_path =          postgresql://user:passwd@host:port/db_name
 
 [watchdog]
 # 1800s = 30 minutes
