@@ -11,6 +11,24 @@ from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import voigt_6_to_full_3x3_stress
 
+from hilde.konstanten.io import n_yaml_digits
+from hilde.helpers import list_dim
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """ Decode numerical objects that json cannot parse by default"""
+
+    def default(self, obj):
+        if hasattr(obj, "tolist") and callable(obj.tolist):
+            return obj.tolist()
+        if isinstance(obj, (np.int32, np.int64)):
+            return int(obj)
+        if isinstance(obj, complex):
+            return (float(obj.real), float(obj.imag))
+        if isinstance(obj, np.bool_):
+            return bool(obj)
+        return super().default(obj)
+
 
 def atoms2dict(atoms):
     """ Converts an Atoms object into a dict """
@@ -166,6 +184,72 @@ def dict2atoms(atoms_dict, calc_dict=None):
     atoms.calc = calc
 
     return atoms
+
+
+def dict2json(dct, indent=0, outer=True):
+    """ convert python dictionary with scientific data to JSON """
+
+    parts = []
+    ind = indent * " "
+
+    for key, val in dct.items():
+        if isinstance(val, str):
+            rep = f'"{val}"'
+        elif isinstance(val, (float, np.float)):
+            rep = "{1: .{0}e}".format(n_yaml_digits, val)
+        elif isinstance(val, dict):
+            # recursive formatting
+            rep = f"{{\n{dict2json(val, 2*(1 + indent // 2), False)}}}"
+        elif (
+            isinstance(val, list)
+            and len(list_dim(val)) == 2
+            and list_dim(val)[1] == 3
+            and isinstance(val[0][0], float)
+        ):
+            # this is most likely positions, velocities, forces, etc. -> format!
+            rep = [
+                " [{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem)
+                for elem in val
+            ]
+            # join to have a comma separated list
+            rep = f",\n{2*ind}".join(rep)
+            # add leading [ and trailing ]
+            rep = f"\n{2*ind}[{rep[1:]}"
+            rep += "]"
+        elif (
+            isinstance(val, list)
+            and len(list_dim(val)) == 3
+            and list_dim(val)[1:3] == [3, 3]
+            and isinstance(val[0][0][0], float)
+        ):
+            # this is most likely atomic stress -> format!
+            rep = [
+                "["
+                + "[{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem[0])
+                + f",\n{2*ind} "
+                + "[{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem[1])
+                + f",\n{2*ind} "
+                + "[{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem[2])
+                + "]"
+                for elem in val
+            ]
+            # join to have a comma separated list
+            rep = f",\n{2*ind}".join(rep)
+            # add leading [ and trailing ]
+            rep = f"\n{(2*ind)[:-1]}[{rep}"
+            rep += "]"
+
+        else:
+            rep = json.dumps(val, cls=NumpyEncoder)
+
+        parts.append(f'{ind}"{key}": {rep}')
+
+    rep = ",\n".join(parts)
+
+    if outer:
+        rep = f"{{{rep}}}"
+    # make sure only " are used to be understood by JSON
+    return rep.replace("'", '"')
 
 
 def get_json(obj):

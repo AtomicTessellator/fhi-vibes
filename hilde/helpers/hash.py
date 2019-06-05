@@ -4,8 +4,7 @@ from json import dumps
 from pathlib import Path
 from configparser import ConfigParser
 from hashlib import sha1 as hash_sha
-from .converters import atoms2dict, atoms2json, get_json
-from .fileformats import dict2json
+from .converters import atoms2dict, atoms2json, get_json, dict2json
 
 
 def hashfunc(string, empty_str="", digest=True):
