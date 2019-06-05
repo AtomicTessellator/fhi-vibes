@@ -11,6 +11,6 @@ defaults = adict(
         "symprec": 1e-5,
         "trigonal": False,
         "is_diagonal": False,
-        "q_mesh": [11, 11, 11],
+        "q_mesh": [26, 26, 26],
     }
 )
