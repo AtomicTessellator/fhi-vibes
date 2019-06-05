@@ -93,3 +93,48 @@ def metadata2dict(phonon, calculator):
     supercell_data = input2dict(supercell, calculator)
 
     return {str(phonon.__class__.__name__): phonon_dict, **supercell_data}
+
+def get_force_constants_from_trajectory(traj, supercell=None, two_dim=False):
+    '''
+    Remaps the phonopy force constants into an fc matrix for a new structure
+    Args:
+        traj (Phonopy Object): Phonopy Object with the calculated force constants
+        supercell (ASE Atoms): Atoms Object of the new structure to map force constants onto
+        two_dim (bool): if True convert to 3*n_atoms x 3*n_atoms matrix
+    Returns (np.ndarray): new force constant matrix
+    '''
+    phonon = postprocess(traj)
+    if supercell is None:
+        supercell = to_Atoms(phonon.get_supercell())
+
+    n_atoms_new = len(supercell)
+
+    sds = get_symmetry_dataset(supercell)
+    map2prim = sds.mapping_to_primitive
+
+    sc = to_Atoms(phonon.get_supercell())
+    fc_in = phonon.get_force_constants().copy()
+
+    sc_r = np.zeros((fc_in.shape[0], fc_in.shape[1], 3))
+    for aa, a1 in enumerate(phonon.get_primitive().p2s_map):
+        sc_r[aa] = sc.get_distances(a1, range(len(sc)), mic=True, vector=True)
+
+    ref_struct_pos = supercell.get_scaled_positions(wrap=True)
+
+    fc_out = np.zeros((n_atoms_new, n_atoms_new, 3, 3))
+    for a1 in range(n_atoms_new):
+        r0 = supercell.positions[a1]
+        uc_index = map2prim[a1]
+        for sc_a2, sc_r2 in enumerate(sc_r[uc_index]):
+            r_pair = r0 + sc_r2
+            r_pair = np.linalg.solve(supercell.get_cell(complete=True).T, r_pair.T).T % 1.0
+            for a2 in range(n_atoms_new):
+                r_diff = np.abs(r_pair - ref_struct_pos[a2])
+                # Integer value is the equivalent of 0.0
+                r_diff -= np.floor(r_diff + 1e-13)
+                if np.sum(r_diff) < 1e-5:
+                    fc_out[a1, a2, :, :] = fc_in[uc_index, sc_a2, :, :]
+                    break
+    if two_dim:
+        fc_out = fc_out.swapaxes(1,2).reshape(2*(3*fc_out.shape[1],))
+    return fc_out
