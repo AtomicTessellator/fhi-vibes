@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import son
-from hilde.helpers.fileformats import dict2json
+from hilde import son
 
 new_trajectory = "test.son"
 
 meta, traj = son.load("trajectory.son")
 
-son.dump(meta, new_trajectory, dumper=dict2json, is_metadata=True)
+son.dump(meta, new_trajectory, is_metadata=True)
 
 for atoms in traj:
-    print(atoms)
-    son.dump(atoms, new_trajectory, dumper=dict2json)
+    son.dump(atoms, new_trajectory)
 
 
 new_meta, new_traj = son.load(new_trajectory)

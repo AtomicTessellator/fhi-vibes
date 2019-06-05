@@ -1,7 +1,7 @@
 """ prepare molecular dynamics simulations using the ASE classes """
 
 from ase import units as u
-from hilde.helpers import input2dict
+from hilde.helpers.converters import input2dict, results2dict
 
 
 def metadata2dict(atoms, calc, md):
