@@ -30,7 +30,7 @@ density:                       2
 type:                          light
 
 [phono3py]
-trajectory_fc2:                phonopy_trajectory.yaml
+trajectory_fc2:                phonopy_trajectory.son
 supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 
 [restart]

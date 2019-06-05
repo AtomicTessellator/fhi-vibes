@@ -24,7 +24,7 @@ def relax(
     unit_cell=True,
     cell_factor=None,
     maxsteps=100,
-    trajectory="trajectory.yaml",
+    trajectory="trajectory.son",
     logfile="relax.log",
     walltime=84400,
     workdir="bfgs",

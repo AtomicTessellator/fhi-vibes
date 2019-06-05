@@ -89,7 +89,7 @@ def generate_kgrid_fw(atoms, wd, fw_settings, qadapter, dfunc_min=1e-12):
     """
     func_kwargs = {
         "workdir": wd + "/" + fw_settings["fw_name"] + "/",
-        "trajectory": "kpt_trajectory.yaml",
+        "trajectory": "kpt_trajectory.son",
         "dfunc_min": dfunc_min,
     }
     if qadapter and "walltime" in qadapter:

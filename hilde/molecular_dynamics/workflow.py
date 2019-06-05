@@ -58,7 +58,7 @@ def run(
     md,
     compute_stresses=0,
     maxsteps=25000,
-    trajectory="trajectory.yaml",
+    trajectory="trajectory.son",
     metadata_file="md_metadata.yaml",
     workdir=".",
     backup_folder="backups",

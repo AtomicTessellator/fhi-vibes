@@ -32,7 +32,7 @@ def parse_log(filename):
 def main():
     """ main routine """
     parser = ArgumentParser(description="Read md.log and make simple statistics")
-    parser.add_argument("file", help="md.log or trajectory.yaml input file")
+    parser.add_argument("file", help="md.log or trajectory.son input file")
     parser.add_argument("-p", "--plot", action="store_true", help="plot to pdf")
     parser.add_argument("--avg", type=int, help="running avg in plot", default=100)
     parser.add_argument("-v", "--verbose", action="store_true", help="give more info")

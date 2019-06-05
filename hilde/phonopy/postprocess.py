@@ -17,7 +17,7 @@ from . import displacement_id_str
 
 
 def postprocess(
-    trajectory="phonopy/trajectory.yaml",
+    trajectory="phonopy/trajectory.son",
     pickle_file="phonon.pick",
     write_files=True,
     calculate_full_force_constants=False,

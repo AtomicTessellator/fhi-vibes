@@ -91,7 +91,7 @@ def calculate_socket(
     atoms_to_calculate,
     calculator,
     metadata=None,
-    trajectory="trajectory.yaml",
+    trajectory="trajectory.son",
     workdir="calculations",
     backup_folder="backups",
     **kwargs,

@@ -16,7 +16,7 @@ from hilde.trajectory import reader as traj_reader
 def postprocess(
     phonon3,
     calculated_atoms=None,
-    trajectory="trajectory.yaml",
+    trajectory="trajectory.son",
     workdir=".",
     force_constants_file="force_constants.dat",
     displacement=0.03,

@@ -35,7 +35,7 @@ def run(
     dt=1,
     harmonic=True,
     fc_file="infile.forceconstant_remapped",
-    trajectory="trajectory.yaml",
+    trajectory="trajectory.son",
 ):
     """ run Verlet MD, harmonic or force field """
     trajectory = trajectory

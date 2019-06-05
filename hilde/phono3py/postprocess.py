@@ -15,8 +15,8 @@ from hilde.io import write
 
 
 def postprocess(
-    trajectory="phono3py/trajectory.yaml",
-    trajectory_fc2="phonopy/trajectory.yaml",
+    trajectory="phono3py/trajectory.son",
+    trajectory_fc2="phonopy/trajectory.son",
     pickle_file="phonon3.pick",
     write_files=True,
     verbose=True,

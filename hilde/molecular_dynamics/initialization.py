@@ -23,7 +23,7 @@ def setup_md(
     """ create and ase.md object with respective settings """
 
     if trajectory is None:
-        trajectory = (Path(workdir) / "trajectory.yaml").absolute()
+        trajectory = (Path(workdir) / "trajectory.son").absolute()
     else:
         trajectory = Path(trajectory).absolute()
 
@@ -66,7 +66,7 @@ def setup_md(
     return atoms, md, prepared
 
 
-def prepare_from_trajectory(atoms, md, trajectory="trajectory.yaml", **kwargs):
+def prepare_from_trajectory(atoms, md, trajectory="trajectory.son", **kwargs):
     """ Take the last step from trajectory and initialize atoms + md accordingly """
 
     trajectory = Path(trajectory).absolute()

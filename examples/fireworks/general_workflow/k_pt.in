@@ -15,7 +15,7 @@ port = null
 [kgrid_opt]
 maxsteps = 200
 workdir = test_run//kgrid
-trajectory = trajectory.yaml
+trajectory = trajectory.son
 dfunc_min = 1e12
 even = True
 
