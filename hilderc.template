@@ -7,7 +7,7 @@ email =             you@something.com
  aims_command =     run_aims
 
 [database]
- location =         ${common:home_dir}/examples/phonon_db
+ location =         ~/hilde/examples/phonon_db
  name =             test.db
  db_path =          ${location}/${name}
 
