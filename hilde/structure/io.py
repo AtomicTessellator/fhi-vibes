@@ -1,6 +1,7 @@
 import datetime
 import numpy as np
 from scipy.linalg import norm
+from hilde.konstanten import v_unit
 from hilde.konstanten.io import n_geom_digits
 from hilde.konstanten.symmetry import symprec
 from hilde.helpers.numerics import clean_matrix
@@ -164,22 +165,7 @@ def inform(cell, dft=False, fname=None, verbosity=0, symprec=symprec):
     )
     print(f"  Volume:  {cell.get_volume():11.4f} \u212B**3")
 
-    if hasattr(cell, "dft_calculation") and dft:
-        print(f"  DFT calc performed:    yes")
-        if verbosity == 1:
-            dft_dict = cell.dft_calculation.__dict__
-            print(f"Full Summary of DFT Results:")
-            for key in dft_dict.keys():
-                print(f"  {key:25s}: {dft_dict[key]}")
-        #
-        print(f"Compact summary of DFT Results:")
-        print(f"  Forces computed:       {len(cell.get_forces()) > 0}")
-        print(f"  Stress computed:       {cell.get_stress() is not None}")
-        if cell.get_stress() is not None:
-            print(f"  Pressure:              {cell.get_pressure():12.4e} eV")
-        print(f"  Total energy:          {cell.get_total_energy():12.4e} eV")
-        if cell.get_chemical_potential():
-            print(f"  Fermi level:           {cell.get_chemical_potential():12.4e} eV")
-        else:
-            print(f"  Fermi level:           None")
-        print(f"  HOMO-LUMO gap:         {cell.get_homo_lumo_gap():12.4e} eV")
+    if cell.get_velocities() is not None:
+        v = cell.get_momenta().sum(axis=0) / v_unit / cell.get_masses().sum()
+        print(f"\n Net velocity: {v} \u212B/ps")
+
