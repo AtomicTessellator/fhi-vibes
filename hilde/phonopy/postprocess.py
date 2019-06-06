@@ -5,7 +5,7 @@ import numpy as np
 
 from phonopy.file_IO import write_FORCE_CONSTANTS
 
-from hilde.helpers.converters import dict2results
+from hilde.helpers.converters import dict2atoms
 from hilde.helpers import Timer
 from hilde.helpers.paths import cwd
 from hilde.phonopy.wrapper import(
@@ -26,7 +26,7 @@ from . import displacement_id_str
 
 
 def postprocess(
-    trajectory="phonopy/trajectory.yaml",
+    trajectory="phonopy/trajectory.son",
     calculate_full_force_constants=False,
     born_charges_file=None,
     verbose=True,
@@ -50,8 +50,8 @@ def postprocess(
 
     for disp in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
         disp["number"] = int(disp["number"])
-    primitive = dict2results(metadata["Phonopy"]["primitive"])
-    supercell = dict2results(metadata["atoms"])
+    primitive = dict2atoms(metadata["Phonopy"]["primitive"])
+    supercell = dict2atoms(metadata["atoms"])
     supercell_matrix = metadata["Phonopy"]["supercell_matrix"]
     supercell.info = {"supercell_matrix": str(supercell_matrix)}
     symprec = metadata["Phonopy"]["symprec"]

@@ -1,16 +1,33 @@
-""" tools for conerting atoms objects to json representations """
+""" tools for converting atoms objects to json representations """
 
 
 import json
 from pathlib import Path
 import numpy as np
 from ase.db.row import atoms2dict as ase_atoms2dict
-from ase.db.row import AtomsRow
 from ase.io.jsonio import MyEncoder
 from ase.calculators.calculator import all_properties
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import voigt_6_to_full_3x3_stress
+
+from hilde.konstanten.io import n_yaml_digits
+from hilde.helpers import list_dim
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """ Decode numerical objects that json cannot parse by default"""
+
+    def default(self, obj):
+        if hasattr(obj, "tolist") and callable(obj.tolist):
+            return obj.tolist()
+        if isinstance(obj, (np.int32, np.int64)):
+            return int(obj)
+        if isinstance(obj, complex):
+            return (float(obj.real), float(obj.imag))
+        if isinstance(obj, np.bool_):
+            return bool(obj)
+        return super().default(obj)
 
 
 def atoms2dict(atoms):
@@ -132,7 +149,7 @@ def results2dict(atoms, calc=None, append_cell=False):
     return {"atoms": atoms_dict, "calculator": calc_dict}
 
 
-def dict2results(atoms_dict, calc_dict=None):
+def dict2atoms(atoms_dict, calc_dict=None):
     """ convert dictionaries into atoms and calculator objects """
 
     pbc = False
@@ -169,39 +186,70 @@ def dict2results(atoms_dict, calc_dict=None):
     return atoms
 
 
-def dict2atoms(atoms_dict):
-    """
-    Converts a dict into a pAtoms object
-    Args:
-        atoms_dict: dict
-            A dictionary representing the pAtoms object
-    Returns: pAtoms
-        The corresponding pAtoms object
-    """
-    try:
-        atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=True)
-    except AttributeError:
-        atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=False)
+def dict2json(dct, indent=0, outer=True):
+    """ convert python dictionary with scientific data to JSON """
 
-    # Attach missing information
-    if "info" in atoms_dict:
-        atoms.info = atoms_dict["info"]
-    if "command" in atoms_dict:
-        atoms.calc.command = atoms_dict["command"]
-    if "results" in atoms_dict:
-        atoms.calc.results = atoms_dict["results"]
+    parts = []
+    ind = indent * " "
 
-    # attach calculator
-    if atoms.calc:
-        for key, val in atoms.calc.results.items():
-            if isinstance(val, list):
-                atoms.calc.results[key] = np.array(val)
-    if "use_pimd_wrapper" in atoms.calc.parameters:
-        pimd = atoms.calc.parameters["use_pimd_wrapper"]
-        if isinstance(pimd, int):
-            atoms.calc.parameters["use_pimd_wrapper"] = ("localhost", pimd)
+    for key, val in dct.items():
+        if isinstance(val, str):
+            rep = f'"{val}"'
+        elif isinstance(val, (float, np.float)):
+            rep = "{1: .{0}e}".format(n_yaml_digits, val)
+        elif isinstance(val, dict):
+            # recursive formatting
+            rep = f"{{\n{dict2json(val, 2*(1 + indent // 2), False)}}}"
+        elif (
+            isinstance(val, list)
+            and len(list_dim(val)) == 2
+            and list_dim(val)[1] == 3
+            and isinstance(val[0][0], float)
+        ):
+            # this is most likely positions, velocities, forces, etc. -> format!
+            rep = [
+                " [{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem)
+                for elem in val
+            ]
+            # join to have a comma separated list
+            rep = f",\n{2*ind}".join(rep)
+            # add leading [ and trailing ]
+            rep = f"\n{2*ind}[{rep[1:]}"
+            rep += "]"
+        elif (
+            isinstance(val, list)
+            and len(list_dim(val)) == 3
+            and list_dim(val)[1:3] == [3, 3]
+            and isinstance(val[0][0][0], float)
+        ):
+            # this is most likely atomic stress -> format!
+            rep = [
+                "["
+                + "[{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem[0])
+                + f",\n{2*ind} "
+                + "[{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem[1])
+                + f",\n{2*ind} "
+                + "[{1: .{0}e}, {2: .{0}e}, {3: .{0}e}]".format(n_yaml_digits, *elem[2])
+                + "]"
+                for elem in val
+            ]
+            # join to have a comma separated list
+            rep = f",\n{2*ind}".join(rep)
+            # add leading [ and trailing ]
+            rep = f"\n{(2*ind)[:-1]}[{rep}"
+            rep += "]"
 
-    return atoms
+        else:
+            rep = json.dumps(val, cls=NumpyEncoder)
+
+        parts.append(f'{ind}"{key}": {rep}')
+
+    rep = ",\n".join(parts)
+
+    if outer:
+        rep = f"{{{rep}}}"
+    # make sure only " are used to be understood by JSON
+    return rep.replace("'", '"')
 
 
 def get_json(obj):

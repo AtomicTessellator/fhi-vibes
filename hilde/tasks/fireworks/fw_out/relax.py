@@ -33,10 +33,10 @@ def check_relaxation_complete(
         last_step_dict = last_from_yaml(func_kwargs["trajectory"])
     elif "workdir" in func_kwargs:
         last_step_dict = last_from_yaml(
-            Path(func_kwargs["workdir"] + "/trajectory.yaml").absolute()
+            Path(func_kwargs["workdir"] + "/trajectory.son").absolute()
         )
     else:
-        last_step_dict = last_from_yaml(Path("./trajectory.yaml").absolute())
+        last_step_dict = last_from_yaml(Path("./trajectory.son").absolute())
 
     for key, val in last_step_dict["atoms"].items():
         atoms[key] = val
@@ -60,10 +60,10 @@ def check_relaxation_complete(
         new_traj_list = func_kwargs["trajectory"].split(".")
     elif "workdir" in func_kwargs:
         new_traj_list = str(
-            Path(func_kwargs["workdir"] + "/trajectory.yaml").absolute()
+            Path(func_kwargs["workdir"] + "/trajectory.son").absolute()
         ).split(".")
     else:
-        new_traj_list = str(Path("." + "/trajectory.yaml").absolute()).split(".")
+        new_traj_list = str(Path("." + "/trajectory.son").absolute()).split(".")
 
     try:
         temp_list = new_traj_list[-2].split("_")

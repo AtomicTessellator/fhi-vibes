@@ -14,7 +14,7 @@ def main():
     parser.add_argument("-sc", help="Add the respective supercell")
     parser.add_argument("--output_format", default="aims-output")
     parser.add_argument("--input_format", default="aims")
-    parser.add_argument("-fn", "--filename", default="trajectory.yaml")
+    parser.add_argument("-fn", "--filename", default="trajectory.son")
     args = parser.parse_args()
 
     trajectory = Trajectory()

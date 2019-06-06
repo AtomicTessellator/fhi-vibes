@@ -1,7 +1,7 @@
 """ Provide a full highlevel phonopy workflow
 
     Input: geometry.in and settings.in
-    Output: geometry.in.supercell and trajectory.yaml """
+    Output: geometry.in.supercell and trajectory.son """
 
 from hilde.settings import Settings
 from hilde.templates.aims import setup_aims

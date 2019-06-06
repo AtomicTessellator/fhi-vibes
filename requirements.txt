@@ -2,6 +2,7 @@ numpy
 scipy
 matplotlib
 jupyter
+son
 h5py
 spglib
 https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz

@@ -70,7 +70,7 @@ lp.add_wf(wf)
 with cwd(workdir + "/fireworks", mkdir=True):
     rapidfire(lp, wflow_id=wf.root_fw_ids, strm_lvl="INFO")
 
-phonon = postprocess(workdir + "/analysis/trajectory.yaml")
+phonon = postprocess(f"{workdir}/analysis/trajectory.son")
 
 phonon.set_mesh(3 * [5])
 _, _, frequencies, _ = phonon.get_mesh()

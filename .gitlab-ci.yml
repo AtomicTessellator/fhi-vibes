@@ -16,9 +16,9 @@ all_tests:
     - cd ../md; python run_md.py
     - cd ../harmonic_analysis; python mode_projection.py
     - cd ../phonon_db; python phonon_db.py; python phonon_db.py;
+    - cd ../trajectory; python test_son.py
     - cd $CI_PROJECT_DIR/tests/fireworks; python fireworks_test.py
     - cd $CI_PROJECT_DIR/examples/devel
-    - $jtest trajectory/pretty_json.ipynb
     - $jtest trajectory/read_trajectory.ipynb
     - python material_fingerprints/material_fingerprints.py
 

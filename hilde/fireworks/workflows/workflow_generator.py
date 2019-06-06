@@ -292,7 +292,7 @@ def get_phonon_analysis_task(func, func_kwargs, metakey, forcekey, timekey, make
     if "trajectory" in func_kwargs:
         traj = func_kwargs["trajectory"]
     else:
-        traj = "trajectory.yaml"
+        traj = "trajectory.son"
     func_kwargs["trajectory"] = func_kwargs["workdir"] + "/" + traj
     task_spec_list = []
     task_spec_list.append(

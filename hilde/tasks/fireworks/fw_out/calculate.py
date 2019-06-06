@@ -77,7 +77,7 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
     ]
     if kwargs["outputs"]:
         wd = Path(kwargs.get("workdir", "."))
-        traj = kwargs.get("trajectory", "trajectory.yaml")
+        traj = kwargs.get("trajectory", "trajectory.son")
         ca = traj_reader(str((wd / traj).absolute()), False)
         update_spec[fw_settings["mod_spec_add"]] = [atoms2dict(at) for at in ca]
         return FWAction(update_spec=update_spec)

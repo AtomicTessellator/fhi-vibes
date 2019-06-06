@@ -19,7 +19,7 @@ def converge_kgrid(
     dfunc_min=1e-12,
     even=True,
     maxsteps=100,
-    trajectory="kpt_trajectory.yaml",
+    trajectory="kpt_trajectory.son",
     logfile="kpoint_conv.log",
     socketio_port=None,
     walltime=None,

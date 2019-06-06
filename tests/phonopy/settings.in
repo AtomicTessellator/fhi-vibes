@@ -3,5 +3,5 @@
 supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
 
 [phono3py]
-trajectory_fc2 = phonopy/trajectory.yaml
+trajectory_fc2 = phonopy/trajectory.son
 supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
