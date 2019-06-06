@@ -133,8 +133,7 @@ def get_force_constants_from_trajectory(traj, supercell=None, two_dim=False):
                 # Integer value is the equivalent of 0.0
                 r_diff -= np.floor(r_diff + 1e-13)
                 if np.sum(r_diff) < 1e-5:
-                    fc_out[a1, a2, :, :] = fc_in[uc_index, sc_a2, :, :]
-                    break
+                    fc_out[a1, a2, :, :] += fc_in[uc_index, sc_a2, :, :]
     if two_dim:
         fc_out = fc_out.swapaxes(1,2).reshape(2*(3*fc_out.shape[1],))
     return fc_out
