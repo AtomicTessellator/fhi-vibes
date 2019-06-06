@@ -7,7 +7,16 @@ from phonopy.file_IO import write_FORCE_CONSTANTS
 
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers import Timer
-from hilde.phonopy.wrapper import prepare_phonopy, get_force_constants
+from hilde.helpers.paths import cwd
+from hilde.phonopy.wrapper import(
+    prepare_phonopy,
+    get_force_constants,
+    plot_bandstructure as plot_bs,
+    get_bandstructure,
+    plot_bandstructure_and_dos
+)
+from hilde.phonopy import defaults
+from hilde.structure.convert import to_Atoms, to_Atoms_db
 from hilde.trajectory import reader
 from hilde.helpers.pickle import psave
 from hilde.io import write
@@ -18,10 +27,7 @@ from . import displacement_id_str
 
 def postprocess(
     trajectory="phonopy/trajectory.son",
-    pickle_file="phonon.pick",
-    write_files=True,
     calculate_full_force_constants=False,
-    force_constants_file="FORCE_CONSTANTS",
     born_charges_file=None,
     verbose=True,
     **kwargs,
@@ -70,47 +76,32 @@ def postprocess(
         nac_params = get_born_parameters(open(born_charges_file), prim, psym)
         phonon.set_nac_params(nac_params)
 
-    # save pickled phonopy object
-    if pickle_file and write_files:
-        fname = trajectory.parent / pickle_file
-        psave(phonon, fname)
-        if verbose:
-            print(f".. Pickled phonopy object written to {fname}")
-
-    if write_files:
-        # Save the supercell
-        fname = "geometry.in.supercell"
-        write(supercell, fname)
-        if verbose:
-            print(f".. Supercell written to {fname}")
-
-        write_FORCE_CONSTANTS(
-            phonon.get_force_constants(),
-            filename=force_constants_file,
-            p2s_map=phonon.get_primitive().get_primitive_to_supercell_map(),
-        )
-
-        print(f"Reduced force constants saved to {force_constants_file}.")
 
     if calculate_full_force_constants:
         phonon.produce_force_constants(force_sets, calculate_full_force_constants=True)
 
-        force_constants = get_force_constants(phonon)
-        fname = "force_constants.dat"
-        np.savetxt(fname, force_constants)
-        print(f".. Force constants saved to {fname}.")
+        # force_constants = get_force_constants(phonon)
+        # fname = "force_constants.dat"
+        # np.savetxt(fname, force_constants)
+        # print(f".. Force constants saved to {fname}.")
 
     if verbose:
         timer("done")
-
     return phonon
-
 
 def extract_results(
     phonon,
+    write_geometries=True,
+    write_force_constants=True,
+    write_thermal_properties=False,
+    write_bandstructure=False,
+    write_dos=False,
+    write_pdos=False,
     plot_bandstructure=True,
     plot_dos=False,
     plot_pdos=False,
+    q_mesh=None,
+    output_dir="phonopy_output",
     tdep=False,
     tdep_reduce_fc=True,
 ):
@@ -118,14 +109,47 @@ def extract_results(
         With `tdep=True`, the necessary input files for TDEP's
           `convert_phonopy_to_forceconstant`
         are written. """
-    from hilde.phonopy.wrapper import plot_bandstructure, plot_bandstructure_and_dos
-    from hilde.structure.convert import to_Atoms_db
+    if q_mesh is None:
+        q_mesh = defaults.q_mesh.copy()
+    Path.mkdir(Path(output_dir), exist_ok=True)
+    with cwd(output_dir):
+        if write_geometries:
+            write(to_Atoms(phonon.get_supercell()), "geometry.in.supercell")
+            write(to_Atoms(phonon.get_primitive()), "geometry.in.primitive")
 
-    plot_bandstructure(phonon, file="bandstructure.pdf")
-    if plot_dos:
-        plot_bandstructure_and_dos(phonon, file="bands_and_dos.pdf")
-    if plot_pdos:
-        plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
+        if write_force_constants:
+            write_FORCE_CONSTANTS(
+                phonon.get_force_constants(),
+                filename="FORCE_CONSTANTS",
+                p2s_map=phonon.get_primitive().get_primitive_to_supercell_map(),
+            )
+
+        if write_thermal_properties:
+            phonon.run_mesh(q_mesh)
+            phonon.run_thermal_properties()
+            phonon.write_yaml_thermal_properties()
+
+        if plot_bandstructure:
+            plot_bs(phonon, file="bandstructure.pdf")
+        if write_bandstructure:
+            get_bandstructure(phonon)
+            phonon.write_yaml_band_structure()
+
+        if plot_dos:
+            plot_bandstructure_and_dos(phonon, file="bands_and_dos.pdf")
+        if write_dos:
+            phonon.run_mesh(q_mesh, with_eigenvectors=True)
+            phonon.run_total_dos(use_tetrahedron_method=True)
+            phonon.write_total_dos()
+
+        if plot_pdos:
+            plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
+        if write_pdos:
+            phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
+            phonon.run_projected_dos(
+                use_tetrahedron_method=True,
+            )
+            phonon.write_projected_dos()
 
     primitive = to_Atoms_db(phonon.get_primitive())
     supercell = to_Atoms_db(phonon.get_supercell())
@@ -153,15 +177,15 @@ def extract_results(
     supercell.write(fname, **write_settings)
     print(f"Supercell cell written to {fname}")
 
-    # save as force_constants.dat
-    if tdep_reduce_fc:
-        phonon.produce_force_constants()
-    n_atoms = phonon.get_supercell().get_number_of_atoms()
+    # # save as force_constants.dat
+    # if tdep_reduce_fc:
+    #     phonon.produce_force_constants()
+    # n_atoms = phonon.get_supercell().get_number_of_atoms()
 
-    force_constants = (
-        phonon.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
-    )
+    # force_constants = (
+    #     phonon.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
+    # )
 
-    fname = "force_constants.dat"
-    np.savetxt(fname, force_constants)
-    print(f"Full force constants as numpy matrix written to {fname}.")
+    # fname = "force_constants.dat"
+    # np.savetxt(fname, force_constants)
+    # print(f"Full force constants as numpy matrix written to {fname}.")

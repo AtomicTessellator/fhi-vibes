@@ -11,11 +11,11 @@ from hilde.fireworks.launchpad import LaunchPadHilde
 from hilde.fireworks.rocket_launcher import rapidfire
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.paths import cwd
-from hilde.helpers.pickle import pread
 from hilde.fireworks.workflows.workflow_generator import (
     generate_firework,
     get_phonon_analysis_task,
 )
+from hilde.phonopy.postprocess import postprocess
 
 from fireworks import Workflow
 
@@ -70,7 +70,7 @@ lp.add_wf(wf)
 with cwd(workdir + "/fireworks", mkdir=True):
     rapidfire(lp, wflow_id=wf.root_fw_ids, strm_lvl="INFO")
 
-phonon = pread(workdir + "/analysis/phonon.pick.gz")
+phonon = postprocess(workdir + "/analysis/trajectory.yaml")
 
 phonon.set_mesh(3 * [5])
 _, _, frequencies, _ = phonon.get_mesh()
