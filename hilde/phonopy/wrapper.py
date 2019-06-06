@@ -195,11 +195,15 @@ def plot_bandstructure_and_dos(
     _, labels = get_bandstructure(phonon)
 
     if partial:
-        phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
-        phonon.run_projected_dos(tetrahedron_method=True)
+        phonon.run_mesh(
+            q_mesh,
+            with_eigenvectors=True,
+            is_mesh_symmetry=False,
+        )
+        phonon.run_projected_dos(use_tetrahedron_method=True)
         pdos_indices = map_unique_to_atoms(phonon.get_primitive())
     else:
-        phonon.run_mesh(q_mesh)
+        phonon.run_mesh(q_mesh, with_eigenvectors=True,)
         phonon.run_total_dos(use_tetrahedron_method=True)
         pdos_indices = None
 
