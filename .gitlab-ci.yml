@@ -1,7 +1,7 @@
 image: registry.gitlab.com/flokno/hilde:update
 
 before_script:
-  - cp hilderc.template ~/.hilderc
+  - cp hilde/templates/config_files/hilderc.template ~/.hilderc
   - pip install .
   - jtest="jupyter nbconvert --execute"
   - service mongodb start --ipv6

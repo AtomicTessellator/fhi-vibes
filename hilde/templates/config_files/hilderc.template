@@ -1,0 +1,21 @@
+# System informations, ADJUST!
+[common]
+email =             you@something.com
+
+[machine]
+ basissetloc =      /some/path/to/FHIaims/aimsfiles/species_defaults
+ aims_command =     run_aims
+
+[database]
+ location =         ~/hilde/examples/phonon_db
+ name =             test.db
+ db_path =          ${location}/${name}
+
+[watchdog]
+# 1800s = 30 minutes
+# 14400 = 4h
+# 86400 = 1d
+walltime = 1800
+
+[nomad]
+token = null
