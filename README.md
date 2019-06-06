@@ -12,10 +12,10 @@ Install the python requirements in `requirements.txt` _in order_:
 cat requirements.txt | xargs -n 1 -L 1 pip install --user
 ```
 
-Configure Hilde by creating a `hilde.cfg` configuration file:
+Configure Hilde by creating a `~/.hilderc` configuration file in the home directory:
 
 ```
-cp hilde.cfg.template hilde.cfg
+cp hilde/location/hilderc.template ~/.hilderc
 ```
 
 and edit according to system. The `aims_command` is a command or script that takes care
