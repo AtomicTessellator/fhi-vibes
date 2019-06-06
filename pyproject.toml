@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "hilde"
-version = "0.2.0"
+version = "0.2.1.dev2"
 description = "Haber Institute Lattice Dynamics Environment"
 authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>"]
 license = "ISC"
 readme = "README.md"
-repository = "https://github.com/flokno/hilde"
+repository = "https://gitlab.com/flokno/hilde"
 
 keywords = ['physics']
 
@@ -28,5 +28,5 @@ black = "^18.9b0"
 make_supercell = 'hilde.scripts.make_supercell:main'
 
 [build-system]
-requires = ["poetry>=0.12, numpy"]
+requires = ["poetry>=0.12", "numpy"]
 build-backend = "poetry.masonry.api"
