@@ -12,6 +12,7 @@ from hilde.helpers.geometry import get_cubicness
 from hilde.helpers.lattice import fractional
 from hilde.helpers.numerics import clean_matrix
 from hilde.helpers.warnings import warn
+from hilde.phonopy.wrapper import preprocess
 from . import supercell as sc
 
 
@@ -262,24 +263,11 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
         info (dict): attach info dictionary to supercell atoms
         tol (float): numerical tolerance for finding lattice points """
 
-    supercell = clean_matrix(supercell_matrix @ atoms.cell)
-    lps, _ = get_lattice_points(atoms.cell, supercell, tolerance=tol)
-
-    superatoms = Atoms(cell=supercell, pbc=True, info=info)
-
-    for lp in lps:
-        shifted_atoms = atoms.copy()
-        shifted_atoms.positions += lp
-        superatoms.extend(shifted_atoms)
-
-    # check number of atoms
-    n_target = int(np.round(np.linalg.det(supercell_matrix) * len(atoms)))
-    assert n_target == len(superatoms), (n_target, len(superatoms))
-
+    _, supercell, _ = preprocess(atoms, supercell_matrix)
+    supercell.cell = clean_matrix(supercell.cell)
     if wrap:
-        superatoms.wrap(eps=tol)
-
-    return superatoms
+        supercell.set_scaled_positions(supercell.get_scaled_positions(wrap=True))
+    return supercell
 
 
 def map_indices(atoms1, atoms2, tol=1e-5):
