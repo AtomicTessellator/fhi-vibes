@@ -31,3 +31,7 @@ def test_r2():
 
     assert match_r2, r2
     assert match_r2_per_atom, r2_per_atom
+
+
+if __name__ == "__main__":
+    test_r2()
