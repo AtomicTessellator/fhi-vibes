@@ -30,7 +30,7 @@ def get_symmetry_dataset(atoms, symprec=default_symprec):
     dataset["wyckoffs_unique"] = [(w, c) for (w, c) in zip(uwcks, count)]
 
     ats, count = np.unique(dataset["equivalent_atoms"], return_counts=True)
-    dataset["equivalent_atoms_unique"] = zip(uwcks, count)
+    dataset["equivalent_atoms_unique"] = [(a, c) for (a, c) in zip(ats, count)]
 
     return AttributeDict(dataset)
 
