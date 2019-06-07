@@ -69,6 +69,13 @@ def reader(file="trajectory.son", get_metadata=False):
     except json.decoder.JSONDecodeError:
         metadata, pre_trajectory = son.load(file)
 
+    # legacy of trajectory.yaml
+    if metadata is None:
+        msg = f"metadata in {file} appears to be empty, assume old convention w/o === "
+        msg += f"was used. Let's see"
+        warn(msg, level=1)
+        metadata = pre_trajectory.pop(0)
+
     pre_calc_dict = metadata["calculator"]
     pre_atoms_dict = metadata["atoms"]
 
