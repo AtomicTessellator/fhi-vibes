@@ -20,6 +20,12 @@ son = "^0.1.6"
 spglib = "^1.12"
 phonopy = "^2.1"
 ase = {git = "https://gitlab.com/ase/ase.git"}
+fireworks = {version = "^1.9",optional = true}
+phono3py = {version = "^1.17",optional = true}
+
+[tool.poetry.extras]
+fireworks = ["fireworks"]
+phono3py = ["phono3py"]
 
 [tool.poetry.dev-dependencies]
 black = "^18.9b0"
