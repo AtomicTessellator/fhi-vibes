@@ -38,7 +38,7 @@ def main():
 
     # check if the commensurate q point is correct
     q_points = get_commensurate_q_points(primitive.cell, supercell.cell)
-    assert la.norm(q_points[1] - [0.18429553175324292, 0.0, 0.0]) < 1e-14, q_points
+    assert la.norm(q_points[1] - [0.184_295_531_753_242_92, 0.0, 0.0]) < 1e-14, q_points
 
     # diagonalize dynamical matrices at commensurate q points
 
@@ -169,4 +169,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import ase
+
+    if ase.__version__ >= "3.18":
+        main()
+    else:
+        print(f"ase version: {ase.__version__}, skip for now")

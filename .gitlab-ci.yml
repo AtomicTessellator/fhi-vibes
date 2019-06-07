@@ -1,30 +1,38 @@
-image: registry.gitlab.com/flokno/hilde:update
+image: registry.gitlab.com/flokno/hilde:poetry
 
 before_script:
-  - cp hilde/templates/config_files/hilderc.template ~/.hilderc
-  - pip install .
-  - jtest="jupyter nbconvert --execute"
   - service mongodb start --ipv6
-  - python --version
+  - cp hilde/templates/config_files/hilderc.template ~/.hilderc
+  - pip list
+  - poetry install --no-dev
+  - ppython="poetry run python"
+#  - jtest="jupyter nbconvert --execute"
+
+basic_tests:
+  script:
+    - $ppython $CI_PROJECT_DIR/tests/hashes/hashes.py
+    - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; $ppython test_lattice_points.py
+    - cd ../anharmonicity_score; python test_r2.py
+    - cd ../phonopy; $ppython run_phonopy.py
+    - cd ../md; $ppython run_md.py
+    - cd ../trajectory; $ppython test_son.py
+    - cd $CI_PROJECT_DIR/examples/devel
+    - $ppython material_fingerprints/material_fingerprints.py
+
+
 
 all_tests:
+  when: manual
   script:
-    - python $CI_PROJECT_DIR/tests/hashes/hashes.py
-    - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; python test_lattice_points.py
+    - $ppython $CI_PROJECT_DIR/tests/hashes/hashes.py
+    - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; $ppython test_lattice_points.py
     - cd ../anharmonicity_score; python test_r2.py
-    - cd ../phonopy; python run_phonopy.py
-    - python run_phono3py.py
-    - cd ../md; python run_md.py
-    - cd ../harmonic_analysis; python mode_projection.py
-    - cd ../phonon_db; python phonon_db.py; python phonon_db.py;
-    - cd ../trajectory; python test_son.py
-    - cd $CI_PROJECT_DIR/tests/fireworks; python fireworks_test.py
+    - cd ../phonopy; $ppython run_phonopy.py
+    - $ppython run_phono3py.py
+    - cd ../md; $ppython run_md.py
+    - cd ../harmonic_analysis; $ppython mode_projection.py
+    - cd ../phonon_db; $ppython phonon_db.py; $ppython phonon_db.py;
+    - cd ../trajectory; $ppython test_son.py
+    - cd $CI_PROJECT_DIR/tests/fireworks; $ppython fireworks_test.py
     - cd $CI_PROJECT_DIR/examples/devel
-    - $jtest trajectory/read_trajectory.ipynb
-    - python material_fingerprints/material_fingerprints.py
-
-# devel:
-#   script:
-
-
-
+    - $ppython material_fingerprints/material_fingerprints.py
