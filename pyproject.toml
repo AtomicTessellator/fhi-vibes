@@ -22,9 +22,13 @@ phonopy = "^2.1"
 ase = {git = "https://gitlab.com/ase/ase.git"}
 fireworks = {version = "^1.9",optional = true}
 phono3py = {version = "^1.17",optional = true}
+python-gssapi = {version = "^0.6.4",optional = true}
+pymongo = {version = "^3.8",optional = true}
+fabric2 = {version = "^2.4",optional = true}
+paramiko = {version = "^2.4",optional = true}
 
 [tool.poetry.extras]
-fireworks = ["fireworks"]
+fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric2", "paramiko"]
 phono3py = ["phono3py"]
 
 [tool.poetry.dev-dependencies]
