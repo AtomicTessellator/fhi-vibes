@@ -11,6 +11,7 @@ all_tests:
   script:
     - python $CI_PROJECT_DIR/tests/hashes/hashes.py
     - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; python test_lattice_points.py
+    - cd ../anharmonicity_score; python test_r2.py
     - cd ../phonopy; python run_phonopy.py
     - python run_phono3py.py
     - cd ../md; python run_md.py
