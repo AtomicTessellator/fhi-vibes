@@ -11,7 +11,7 @@ ext = Extension(
 )
 
 setup(
-    name="HiLDe",
+    name="hilde",
     version="0.1.3",
     description="Haber Institute Lattice Dynamics Package",
     author="Florian Knoop, Thomas Purcell",
