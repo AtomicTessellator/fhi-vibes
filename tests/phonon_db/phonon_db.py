@@ -1,13 +1,5 @@
 """ Test for the phonon database """
 
-try:
-    import phono3py
-
-    main()
-
-except ModuleNotFoundError:
-    print("phono3py not installed, skip")
-
 
 def main():
     import numpy as np
@@ -60,3 +52,12 @@ def main():
 
     assert np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-12
     assert np.max(np.abs(row.fc_3[:] - phonon3.get_fc3()[:])) < 1e-12
+
+
+try:
+    import phono3py
+
+    main()
+
+except ModuleNotFoundError:
+    print("phono3py not installed, skip")

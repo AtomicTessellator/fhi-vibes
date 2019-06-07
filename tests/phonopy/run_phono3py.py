@@ -1,13 +1,5 @@
 """ use the hilde phonopy workflow """
 
-try:
-    import phono3py
-
-    main()
-
-except ModuleNotFoundError:
-    print("phono3py not installed, skip")
-
 
 def main():
     from ase.build import bulk
@@ -19,3 +11,12 @@ def main():
     calc = EMT()
 
     run_phono3py(atoms=atoms, calculator=calc)
+
+
+try:
+    import phono3py
+
+    main()
+
+except ModuleNotFoundError:
+    print("phono3py not installed, skip")
