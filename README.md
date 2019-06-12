@@ -6,10 +6,20 @@ External dependencies:
 apt-get install gfortran liblapack-dev liblapacke-dev mongodb
 ```
 
-Install the python requirements in `requirements.txt` _in order_:
-
+Make sure `poetry` is installed:
 ```
-cat requirements.txt | xargs -n 1 -L 1 pip install --user
+pip install poetry
+```
+
+Create a virtual environment
+```
+python3 -m venv hilde_venv
+source hilde_venv/bin/activate
+```
+
+Install `hilde` with `poetry`
+```
+poetry install
 ```
 
 Configure Hilde by creating a `~/.hilderc` configuration file in the home directory:
@@ -22,26 +32,13 @@ and edit according to system. The `aims_command` is a command or script that tak
 of running aims. This can be either just `mpirun aims.x`, or a script loading necessary
 modules etc. and finally calling `srun aims.x` on a cluster.
 
-Install Hilde:
+**You're now good to go!** Just make sure your hilde virtual environment is activated.
 
-```
-pip install --user -U .
-```
-
-Alternatively, you can create and activate a virtual environment holding the
-Hilde installation and all dependencies like this:
-
-```
-python3 -m venv venv
-source venv/bin/activate
-cat requirements.txt | xargs -n 1 -L 1 pip install
-pip install .
-```
 
 **Settings Files**
 
 `hilde` uses the Python `configparser` module for parsing settings files named
-`settings.in` and the configuration file `hilde.cfg`. The
+`settings.in` and the configuration file `.hilderc`. The
 parser is augmented by `JSON` so it understands any input on the right hand side that is
 valid `JSON`. The inputs get converted to Python objects according to [this conversion
 table](https://realpython.com/python-json/#serializing-json).
