@@ -13,13 +13,13 @@ from hilde.helpers.converters import input2dict
 from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.phonon_db.row import PhononRow, phonon_to_dict
 from hilde.phonopy import displacement_id_str
+from hilde.phonopy.utils import remap_force_constants
 from hilde.phonopy.workflow import bootstrap
 from hilde.phonopy.wrapper import preprocess
 from hilde.settings import Settings, AttributeDict
 from hilde.structure.convert import to_Atoms_db
 from hilde.tasks.calculate import calculate_socket
 from hilde.tasks.fireworks.general_py_task import get_func
-from hilde.tdep.wrapper import remap_forceconstant
 from hilde.trajectory import step2file, metadata2file
 
 
@@ -138,10 +138,13 @@ def setup_harmonic_analysis(
         phonon_dict = phonon_to_dict(ph, to_mongo=True, add_fc=True)
 
     if ph.get_force_constants().shape[0] != len(sc.numbers):
-        if "remap_wd" in kwargs:
-            force_constants = remap_forceconstant(ph, sc, workdir=kwargs["remap_wd"])
-        else:
-            force_constants = remap_forceconstant(ph, sc)
+        force_constants = remap_force_constants(
+            ph.get_force_constants(),
+            to_Atoms(ph.get_primitive()),
+            to_Atoms(ph.get_supercell()),
+            sc,
+            two_dim=True,
+        )
         n_atoms = ph_new.get_supercell().get_number_of_atoms()
         ph_new.set_force_constants(
             force_constants.reshape(n_atoms, 3, n_atoms, 3).swapaxes(1, 2)

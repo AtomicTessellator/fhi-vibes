@@ -7,7 +7,7 @@ from ase.calculators.lammpsrun import LAMMPS
 from ase.md.verlet import VelocityVerlet
 
 from hilde.io import read
-from hilde.tdep.wrapper import parse_tdep_forceconstant
+from hilde.tdep.wrapper import parse_tdep_remapped_forceconstant
 from hilde.helpers import progressbar
 
 from hilde.molecular_dynamics.utils import FCCalculator, MDLogger
@@ -42,7 +42,7 @@ def run(
     atoms = read("geometry.in")
     supercell = read("geometry.in.supercell")
 
-    force_constants = parse_tdep_forceconstant(fc_file, force_remap=True)
+    force_constants = parse_tdep_remapped_forceconstant(fc_file, force_remap=True)
     force_constants.resize(2 * (3 * len(supercell),))
 
     if harmonic is True:

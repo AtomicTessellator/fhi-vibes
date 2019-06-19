@@ -1,6 +1,8 @@
 """ hilde quality of life """
+import numpy as np
 
 from phonopy.structure.atoms import PhonopyAtoms
+from hilde.helpers import Timer, progressbar
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
@@ -94,46 +96,137 @@ def metadata2dict(phonon, calculator):
 
     return {str(phonon.__class__.__name__): phonon_dict, **supercell_data}
 
-def get_force_constants_from_trajectory(traj, supercell=None, two_dim=False):
-    '''
+
+def get_force_constants_from_trajectory(
+    trajectory, supercell=None, reduce_fc=False, two_dim=False
+):
+    """
     Remaps the phonopy force constants into an fc matrix for a new structure
     Args:
-        traj (Phonopy Object): Phonopy Object with the calculated force constants
-        supercell (ASE Atoms): Atoms Object of the new structure to map force constants onto
-        two_dim (bool): if True convert to 3*n_atoms x 3*n_atoms matrix
-    Returns (np.ndarray): new force constant matrix
-    '''
-    phonon = postprocess(traj)
+        trajectory (hilde.Trajectory): phonopy trajectory
+        supercell (ase.Atoms): Atoms Object to map force constants onto
+        reduce_fc (bool): return in [N_prim, N_sc, 3, 3]  shape
+        two_dim (bool): return in [3*N_sc, 3*N_sc] shape
+    Returns:
+        (np.ndarray): new force constant matrix
+    """
+    from hilde.phonopy.postprocess import postprocess
+
+    if reduce_fc and two_dim:
+        raise IOError("Only one of reduce_fc and two_dim can be True")
+
+    phonon = postprocess(trajectory)
+
     if supercell is None:
         supercell = to_Atoms(phonon.get_supercell())
+        if reduce_fc:
+            return phonon.get_force_constants()
 
-    n_atoms_new = len(supercell)
+    return remap_force_constants(
+        phonon.get_force_constants(),
+        to_Atoms(phonon.get_primitive()),
+        to_Atoms(phonon.get_supercell()),
+        supercell,
+        reduce_fc,
+        two_dim,
+    )
 
-    sds = get_symmetry_dataset(supercell)
+
+def remap_force_constants(
+    force_constants,
+    primitive,
+    supercell,
+    new_supercell=None,
+    reduce_fc=False,
+    two_dim=False,
+    tol=1e-5,
+    eps=1e-13,
+):
+    """remap force constants [N_prim, N_sc, 3, 3] to [N_sc, N_sc, 3, 3]
+
+    Args:
+        force_constants (np.ndarray): force constants in [N_prim, N_sc, 3, 3] shape
+        primitive (ase.Atoms): primitive cell for reference
+        supercell (ase.Atoms): supercell for reference
+        new_supercell (ase.Atoms, optional): supercell to map to (default)
+        reduce_fc (bool): return in [N_prim, N_sc, 3, 3]  shape
+        two_dim (bool): return in [3*N_sc, 3*N_sc] shape
+        tol (float): tolerance to discern pairs
+        eps (float): finite zero
+
+    Returns:
+        newforce_constants (np.ndarray)
+
+    """
+    from hilde.spglib.wrapper import get_symmetry_dataset #, standardize_cell
+
+    timer = Timer("remap force constants")
+
+    if new_supercell is None:
+        new_supercell = supercell.copy()
+
+    primitive.wrap(eps=tol)
+    supercell.wrap(eps=tol)
+
+    # prim = standardize_cell(supercell, to_primitve=True, no_idealize=True)
+    # prim.set_scaled_positions(prim.get_scaled_positions(wrap=True))
+    # primitive.set_scaled_positions(primitive.get_scaled_positions(wrap=True))
+    # supercell.set_scaled_positions(supercell.get_scaled_positions(wrap=True))
+
+    # pos_diff = np.abs(primitive.get_scaled_positions() - prim.get_scaled_positions())
+    # pos_diff = pos_diff.flatten()
+    # pos_diff -= np.floor(pos_diff + eps)
+    # fail_cell = np.max(np.abs(primitive.cell - prim.cell).flatten()) > 1000 * eps
+    # fail_pos = np.max(pos_diff) > 1000 * eps
+    # if fail_cell or fail_pos:
+    #     msg = "primitive cell of the supercell and given primitive cell NOT equal"
+    #     raise IOError(msg)
+
+    n_sc = len(supercell)
+    n_sc_new = len(new_supercell)
+
+    sds = get_symmetry_dataset(new_supercell)
     map2prim = sds.mapping_to_primitive
+    uc_index = np.unique(map2prim)
 
-    sc = to_Atoms(phonon.get_supercell())
-    fc_in = phonon.get_force_constants().copy()
+    sc_r = np.zeros((force_constants.shape[0], force_constants.shape[1], 3))
+    for aa, a1 in enumerate(primitive):
+        diff = supercell.positions - a1.position
+        p2s = np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0]
+        sc_r[aa] = supercell.get_distances(p2s, range(n_sc), mic=True, vector=True)
 
-    sc_r = np.zeros((fc_in.shape[0], fc_in.shape[1], 3))
-    for aa, a1 in enumerate(phonon.get_primitive().p2s_map):
-        sc_r[aa] = sc.get_distances(a1, range(len(sc)), mic=True, vector=True)
+    ref_struct_pos = new_supercell.get_scaled_positions(wrap=True)
 
-    ref_struct_pos = supercell.get_scaled_positions(wrap=True)
-
-    fc_out = np.zeros((n_atoms_new, n_atoms_new, 3, 3))
-    for a1 in range(n_atoms_new):
-        r0 = supercell.positions[a1]
+    fc_out = np.zeros((n_sc_new, n_sc_new, 3, 3))
+    for a1, r0 in progressbar(enumerate(new_supercell.positions)):
         uc_index = map2prim[a1]
         for sc_a2, sc_r2 in enumerate(sc_r[uc_index]):
             r_pair = r0 + sc_r2
-            r_pair = np.linalg.solve(supercell.get_cell(complete=True).T, r_pair.T).T % 1.0
-            for a2 in range(n_atoms_new):
+            sc_temp = new_supercell.get_cell(complete=True)
+            r_pair = np.linalg.solve(sc_temp.T, r_pair.T).T % 1.0
+            for a2 in range(n_sc_new):
                 r_diff = np.abs(r_pair - ref_struct_pos[a2])
                 # Integer value is the equivalent of 0.0
-                r_diff -= np.floor(r_diff + 1e-13)
-                if np.sum(r_diff) < 1e-5:
-                    fc_out[a1, a2, :, :] += fc_in[uc_index, sc_a2, :, :]
+                r_diff -= np.floor(r_diff + eps)
+                if np.sum(np.abs(r_diff)) < tol:
+                    fc_out[a1, a2, :, :] += force_constants[uc_index, sc_a2, :, :]
+
+    timer()
+
     if two_dim:
-        fc_out = fc_out.swapaxes(1,2).reshape(2*(3*fc_out.shape[1],))
+        return fc_out.swapaxes(1, 2).reshape(2 * (3 * fc_out.shape[1],))
+
+    if reduce_fc:
+        return reduce_force_constants(fc_out, map2prim)
+
+    return fc_out
+
+
+def reduce_force_constants(fc_full, map2prim):
+    """reduce force constants from [N_sc, N_sc, 3, 3] to [N_prim, N_sc, 3, 3]"""
+    uc_index = np.unique(map2prim)
+    fc_out = np.zeros((len(uc_index), fc_full.shape[1], 3, 3))
+    for ii, _ in enumerate(uc_index):
+        fc_out[ii, :, :, :] = fc_full[uc_index, :, :, :]
+
     return fc_out
