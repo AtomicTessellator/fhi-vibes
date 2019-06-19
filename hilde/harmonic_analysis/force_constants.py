@@ -3,12 +3,27 @@
 import numpy as np
 from hilde.helpers.numerics import clean_matrix
 from hilde.helpers.lattice_points import get_lattice_points, map_I_to_iL
+from hilde.phonopy.utils import remap_force_constants
 
 
 def reshape_force_constants(
     primitive, supercell, force_constants, scale_mass=False, lattice_points=None
 ):
-    """ reshape from (3N x 3N) into 3x3 blocks labelled by (i,L) """
+    """ reshape from (N_prim x N_super x 3 x 3) into 3x3 blocks labelled by (i,L) """
+    if len(force_constants.shape) > 2:
+        if force_constants.shape[0] != force_constants.shape[1]:
+            force_constants = remap_force_constants(
+                force_constants,
+                primitive,
+                supercell,
+                new_supercell=None,
+                reduce_fc=False,
+                two_dim=True,
+            )
+        else:
+            force_constants = force_constants.swapaxes(1, 2).reshape(
+                2 * (3 * force_constants.shape[0])
+            )
 
     if lattice_points is None:
         lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)

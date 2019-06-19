@@ -16,7 +16,7 @@ from hilde.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
 from hilde.harmonic_analysis.displacements import get_U, get_dUdt
 from hilde.harmonic_analysis.normal_modes import projector, u_s_to_u_I, get_A_qst2
 from hilde.trajectory import reader
-from hilde.tdep.wrapper import parse_tdep_forceconstant
+from hilde.tdep.wrapper import parse_tdep_remapped_forceconstant
 
 from hilde.konstanten import kB
 from hilde.helpers import Timer
@@ -29,7 +29,7 @@ def main():
 
     primitive = read("geometry.in.primitive")
     supercell = read("geometry.in.supercell")
-    force_constants = parse_tdep_forceconstant("infile.forceconstant_remapped")
+    force_constants = parse_tdep_remapped_forceconstant("infile.forceconstant_remapped")
 
     masses = supercell.get_masses()
 
@@ -150,7 +150,7 @@ def main():
     assert E[:, 3:, :].std() / E.mean() < 0.01, E[:, 3:, :].std() / E.mean()
 
     # compare the high level access via HarmonicAnalysis
-    fcs, lps = parse_tdep_forceconstant("infile.forceconstant")
+    fcs, lps = parse_tdep_remapped_forceconstant("infile.forceconstant")
 
     ha = HarmonicAnalysis(primitive, supercell, fcs, lps)
     _, _, E = ha.project(traj)

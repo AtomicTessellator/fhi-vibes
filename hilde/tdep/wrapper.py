@@ -1,44 +1,61 @@
-""" a wrapper for TDEP """
-from ase.io.aims import read_aims
+"""a wrapper for TDEP"""
 from subprocess import run
 from pathlib import Path
 
 import numpy as np
 
-from hilde.helpers.paths import cwd
+from ase.io.vasp import read_vasp
+from ase.io.aims import read_aims
+
 from hilde.helpers import Timer
+from hilde.helpers.paths import cwd
 from hilde.phonopy.postprocess import extract_results
+from hilde.phonopy.utils import remap_force_constants
 from hilde.trajectory import reader
 
-def remap_forceconstant(
-    ph, new_supercell, workdir='tdep', logfile="rempa_fc.log"
-):
-    command = ["remap_forceconstant"]
-    with cwd(workdir, mkdir=True), open(logfile, "w") as file:
-        convert_phonopy_to_dep(ph, ".", False)
-        new_supercell.write("infile.newposcar", format="vasp", vasp5=True, direct=True)
-        run(command, stdout=file)
-        return parse_tdep_forceconstant("outfile.forceconstant_remapped")
 
-def convert_phonopy_to_dep(
-    ph, workdir="tdep", reduce_ph_fc=True, logfile="convert_phonopy_to_dep.log"
+def convert_phonopy_to_tdep(
+    phonon, workdir="tdep", logfile="convert_phonopy_to_tdep.log"
 ):
+    """convert phonopy FORCE_CONSTANTS to tdep outfile.forceconstant
+
+    Args:
+        phonon (phonopy.Phonopy): phonopy object
+        workdir (str/Path): working directory for the tdep binary
+        logfile (str/Path): log file
+
+    Returns:
+        writes output.forceconstant
+
+    """
     command = ["convert_phonopy_to_forceconstant", "--truncate"]
+
     with cwd(workdir, mkdir=True), open(logfile, "w") as file:
-        extract_results(ph, tdep=True, tdep_reduce_fc=reduce_ph_fc)
+        extract_results(
+            phonon,
+            tdep=True,
+            tdep_reduce_fc=True,
+            output_dir=".",
+            write_geometries=False,
+            plot_bandstructure=False,
+        )
+
         run(command, stdout=file)
-        outfile = Path("outfile.converted_forceconstant")
-        infile = Path("infile.forceconstant")
-        if infile.exists():
-            infile.unlink()
-        infile.symlink_to(outfile)
-        print(f".. Symlink {infile} created.")
+
+        print(f".. outfile.converted_forceconstant created.")
+
 
 def canonical_configuration(
-     ph=None, workdir="tdep", temperature=300, n_sample=5, quantum=False, logfile="canon_conf.log"
+    phonon=None,
+    workdir="tdep",
+    temperature=300,
+    n_sample=5,
+    quantum=False,
+    logfile="canon_conf.log",
 ):
-    if ph:
-        convert_phonopy_to_dep(ph, workdir)
+    """wrapper for tdep `canconical_configuration`"""
+    if phonon:
+        convert_phonopy_to_tdep(phonon, workdir)
     command = ["canonical_configuration"]
     if quantum:
         command.append(f"--quantum")
@@ -50,19 +67,30 @@ def canonical_configuration(
     outfiles = Path(workdir).glob("aims_conf*")
     return [read_aims(of) for of in outfiles]
 
-def extract_forceconstants_from_trajectory(
-    trajectory_file, workdir="tdep", rc2=10, remapped=True, logfile="fc.log", **kwargs
-):
-    trajectory = reader(trajectory_file)
-    if "skip" in kwargs:
-        skip = kwargs["skip"]
-    else:
-        skip = 0
-    trajectory.to_tdep(folder=workdir, skip=0)
-    extract_forceconstants(workdir, rc2, remapped, logfile, **kwargs)
 
-def parse_tdep_forceconstant(fname="infile.forceconstant", force_remap=False):
-    """ parse the remapped forceconstants from TDEP """
+def extract_forceconstants_from_trajectory(
+    trajectory_file, workdir="tdep", rc2=10, logfile="fc.log", skip=0, **kwargs
+):
+    """wrapper for tdep `extract_forceconstants`
+
+    Args:
+        trajectory_file (str/Path): location of trajectory
+        workdir (str/Path): working directory for tdep binary
+        rc2 (float): cutoff for force constants in Angstrom
+        logfile (str/Path): logfile
+        skip (int): number of steps to skip (from beginning of trajectory)
+        kwargs (dict): extra keywords
+
+    """
+
+    trajectory = reader(trajectory_file)
+
+    trajectory.to_tdep(folder=workdir, skip=skip)
+    extract_forceconstants(workdir, rc2, logfile, **kwargs)
+
+
+def parse_tdep_remapped_forceconstant(fname="infile.forceconstant", force_remap=False):
+    """parse the remapped forceconstants from TDEP"""
     timer = Timer()
 
     remapped = force_remap
@@ -115,10 +143,88 @@ def parse_tdep_forceconstant(fname="infile.forceconstant", force_remap=False):
     return np.array(force_constants), np.array(lattice_points)
 
 
-def extract_forceconstants(
-    workdir="tdep", rc2=10, remapped=True, logfile="fc.log", **kwargs
+def parse_tdep_forceconstant(
+    uc_filename="infile.ucposcar",
+    sc_filename="infile.ssposcar",
+    fc_filename="infile.forceconstant",
+    two_dim=False,
+    reduce_fc=True,
+    eps=1e-13,
+    tol=1e-5,
 ):
-    """ run tdep's extract_forceconstants in the working directory """
+    """
+    Parse the the TDEP force constants into the phonopy format
+    Args:
+        uc_filename (str/Path): tdep primitive unit cell
+        sc_filename (str/Path): tdep supercell
+        fc_filename (str/Path): tdep forceconstant file to parse
+        two_dim (bool): return in [3*N_sc, 3*N_sc] shape
+        reduce_fc (bool): return in [N_prim, N_sc, 3, 3]  shape
+        eps (float): finite zero
+        tol (float): tolerance to discern pairs
+
+    Returns:
+            force_constant (np.ndarray(dtype=float)):
+                Force constants in the desire shape. Default: (N_uc, N_sc, 3, 3)
+
+    """
+
+    try:
+        primitive = read_vasp(uc_filename)
+        supercell = read_vasp(sc_filename)
+    except ValueError:
+        primitive = read_aims(uc_filename)
+        supercell = read_aims(sc_filename)
+
+    primitive.wrap(eps=tol)
+    supercell.wrap(eps=tol)
+    # primitive.set_scaled_positions(primitive.get_scaled_positions(wrap=True))
+    # supercell.set_scaled_positions(supercell.get_scaled_positions(wrap=True))
+    n_uc = len(primitive)
+    n_sc = len(supercell)
+
+    force_constants = np.zeros((len(primitive), len(supercell), 3, 3))
+
+    with open(fc_filename) as fo:
+        n_atoms = int(next(fo).split()[0])
+        cutoff = float(next(fo).split()[0])
+
+        # make sure n_atoms coincides with number of atoms in supercell
+        assert n_atoms == n_uc, f"n_atoms == {n_atoms}, should be {n_uc}"
+
+        print(f".. Number of atoms:   {n_atoms}")
+        print(rf".. Real space cutoff: {cutoff:.3f} \AA")
+
+        for i1 in range(n_atoms):
+            n_neighbors = int(next(fo).split()[0])
+            for _ in range(n_neighbors):
+                # neighbour index
+                i2 = int(next(fo).split()[0]) - 1
+                # lattice vector
+                lp = np.array(next(fo).split(), dtype=float)
+                phi = np.array([next(fo).split() for _ in range(3)], dtype=float)
+                r_target = primitive.positions[i2] + np.dot(lp, primitive.cell)
+                for ii, r1 in enumerate(supercell.positions):
+                    r_diff = np.abs(r_target - r1)
+                    sc_temp = supercell.get_cell(complete=True)
+                    r_diff = np.linalg.solve(sc_temp.T, r_diff.T).T % 1.0
+                    r_diff -= np.floor(r_diff + eps)
+                    if np.sum(r_diff) < tol:
+                        force_constants[i1, ii, :, :] += phi
+
+    if not reduce_fc or two_dim:
+        force_constants = remap_force_constants(force_constants, primitive, supercell)
+
+    if two_dim:
+        return force_constants.swapaxes(2, 1).reshape(2 * (3 * n_sc,))
+
+    return force_constants
+
+
+def extract_forceconstants(
+    workdir="tdep", rc2=10, logfile="fc.log", create_symlink=False, **kwargs
+):
+    """run tdep's extract_forceconstants in the working directory"""
 
     timer = Timer()
 
@@ -128,28 +234,26 @@ def extract_forceconstants(
 
     command.extend(f"-rc2 {rc2}".split())
 
-    if remapped:
-        command.append("--printfc2remapped")
-
     with cwd(workdir), open(logfile, "w") as file:
         run(command, stdout=file)
         timer()
 
         # create the symlink of force constants
-        print(f".. Create symlink to forceconstant file")
-        outfile = Path("outfile.forceconstant")
-        infile = Path("infile" + outfile.suffix)
+        if create_symlink:
+            print(f".. Create symlink to forceconstant file")
+            outfile = Path("outfile.forceconstant")
+            infile = Path("infile" + outfile.suffix)
 
-        if infile.exists():
-            proceed = input(f"Symlink {infile} exists. Proceed? (y/n) ")
-            if proceed.lower() == "y":
-                infile.unlink()
-            else:
-                print(".. Symlink NOT created.")
-                return
+            if infile.exists():
+                proceed = input(f"Symlink {infile} exists. Proceed? (y/n) ")
+                if proceed.lower() == "y":
+                    infile.unlink()
+                else:
+                    print(".. Symlink NOT created.")
+                    return
 
-        infile.symlink_to(outfile)
-        print(f".. Symlink {infile} created.")
+            infile.symlink_to(outfile)
+            print(f".. Symlink {infile} created.")
 
 
 def phonon_dispersion_relations(workdir="tdep", gnuplot=True, logfile="dispersion.log"):
