@@ -1,0 +1,20 @@
+[geometry]
+files:                         geometry.in.???
+primitive:                     geometry.in.primitive
+supercell:                     geometry.in.supercell
+
+[control]
+xc:                            pw-lda
+k_grid:                        [2, 2, 2]
+sc_accuracy_rho:               1e-6
+relax_geometry:                trm 1e-3
+relax_unit_cell:               false
+use_symmetric_forces:          false
+
+[basissets]
+default:                       light
+# Si:                            intermediate
+# O:                             tight
+
+[socketio]
+port:                          12345

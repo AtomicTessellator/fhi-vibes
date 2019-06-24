@@ -20,9 +20,10 @@ def warn(message, level=0):
     file = frame[1].split("hilde")[-1]
 
     print(
-        f"{stars} {typ} from file hilde{file}, line {frame[2]}, function {frame[3]}:"
+        f"{stars} {typ} from file hilde{file}, line {frame[2]}, function {frame[3]}:",
+        flush=True,
     )
-    print(f"--> {message}\n")
+    print(f"--> {message}\n", flush=True)
 
     if typ == "Error":
         raise RuntimeError("see above")

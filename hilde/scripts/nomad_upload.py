@@ -2,7 +2,6 @@
 
 import subprocess
 from argparse import ArgumentParser
-from pathlib import Path
 from hilde import Settings
 from hilde.helpers import Timer
 
@@ -16,6 +15,37 @@ def upload_command(folder, token):
     return cmd
 
 
+def nomad_upload(folders, token=None, dry=False):
+    """upload folders with calculations to NOMAD"""
+    timer = Timer()
+
+    settings = Settings()
+
+    if not token and "nomad" in settings:
+        token = settings.nomad.token
+
+    if token is None:
+        exit("** Token is missing, chech your .hilderc or provide manually")
+
+    # from ASE
+    if not folders:
+        exit("No folders specified -- another job well done!")
+
+    for ii, folder in enumerate(folders):
+
+        cmd = upload_command(folder, token)
+
+        if dry:
+            print(f"Upload command {ii+1}:\n{cmd}")
+        else:
+            print(f"Upload folder {folder:30} ({ii+1} of {len(folders)})")
+
+            subprocess.check_call(cmd, shell=True)
+
+    if not dry:
+        timer(f"Nomad upload finished")
+
+
 def main():
     """ main routine """
     parser = ArgumentParser(description="Upload folder to Nomad")
@@ -24,35 +54,7 @@ def main():
     parser.add_argument("--dry", action="store_true", help="only show command")
     args = parser.parse_args()
 
-    timer = Timer()
-
-    settings = Settings()
-
-    token = args.token
-
-    if "nomad" in settings:
-        token = settings.nomad.token
-
-    if token is None:
-        exit("** Token is missing, chech your hilde.cfg or provide manually")
-
-    # from ASE
-    if not args.folders:
-        exit("No folders specified -- another job well done!")
-
-    for ii, folder in enumerate(args.folders):
-
-        cmd = upload_command(folder, token)
-
-        if args.dry:
-            print(f"Upload command {ii+1}:\n{cmd}")
-        else:
-            print(f"Uploading folder {ii+1} of {len(args.folders)}")
-
-            subprocess.check_call(cmd, shell=True)
-
-    if not args.dry:
-        timer(f"Nomad upload finished")
+    nomad_upload(args.folders, args.token, args.dry)
 
 
 if __name__ == "__main__":

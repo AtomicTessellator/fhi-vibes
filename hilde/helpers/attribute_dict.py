@@ -10,8 +10,14 @@ class AttributeDict(OrderedDict):
     def __getattr__(self, attr):
         if attr in self:
             return self[attr]
-        warn(f"Attribute {attr} not in dictionary, return None.", level=1)
-        return None
+        # warn(f"Attribute {attr} not in dictionary, return None.", level=1)
+        # return None
+
+    def __dict__(self):
+        return self.to_dict()
+
+    def __repr__(self):
+        return str(self.to_dict())
 
     def to_dict(self):
         """ (recursively) return plain python dictionary """

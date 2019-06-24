@@ -1,0 +1,37 @@
+# information to build a default control.in
+[geometry]
+file = geometry.in
+#files = */geometry.in
+
+[general]
+workdir_cluster = "test_run/"
+workdir_local   = "test_run/"
+use_third = False
+basisset = light
+use_tight_relax = False
+kgrid_dfunc_min = 1e4
+opt_kgrid = True
+relax_structure = True
+
+[control]
+xc =                 pw-lda
+sc_accuracy_rho =    1e-6
+sc_accuracy_forces = 5E-4
+output_level =       MD_light
+relativistic =       "atomic_zora scalar"
+
+[control_kpt]
+density = 1
+
+[phonopy]
+supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+conv_crit = 0.95
+walltime = 3500
+serial = True
+displacement = 0.01
+converge_phonons = True
+
+[phonopy_qadapter]
+walltime = 1:00:00
+nodes = 1
+

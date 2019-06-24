@@ -2,12 +2,7 @@
 #
 # Revision 2018/08: FK
 # 23/4/2019: give max. force in meV/AA instead of eV/AA
-
-from argparse import ArgumentParser as argpars
-
-parser = argpars(description="Summarize the relaxation path")
-parser.add_argument("aimsouts", type=str, nargs="+", help="aims output files")
-args = parser.parse_args()
+# 12/6/2019: refactor for hilde cli
 
 # Find the optimizer type
 def get_optimizer(f):
@@ -47,6 +42,7 @@ def get_volume(f):
             return -1
         if "Final output of selected total energy values:" in line:
             return -1
+    return -1
 
 
 # parse info of one step
@@ -54,6 +50,7 @@ def parser(f, n_init=0, optimizer=2):
     n_rel = n_init
     converged = 0
     abort = 0
+    volume = -1
     while not converged and not abort:
         n_rel += 1
         status = 0
@@ -101,7 +98,8 @@ def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_s
     )
 
 
-def main():
+def get_relaxation_info(filenames):
+    """print information about relaxation performed with FHIaims"""
     init, n_rel, converged, abort = 4 * (None,)
     status_string = [
         "",
@@ -116,7 +114,7 @@ def main():
         + " [meV]   max. force [meV/AA]  Volume [AA^3]\n"
     )
 
-    for infile in args.aimsouts:
+    for infile in filenames:
         with open(infile) as f:
             # Check optimizer
             optimizer = get_optimizer(f)
@@ -140,6 +138,17 @@ def main():
         print("--> converged.")
     if abort:
         print("*--> aborted, too many steps.")
+
+
+def main():
+    """wrap get_relaxation_info"""
+    from argparse import ArgumentParser as argpars
+
+    parser = argpars(description="Summarize the relaxation path")
+    parser.add_argument("aimsouts", type=str, nargs="+", help="aims output files")
+    args = parser.parse_args()
+
+    get_relaxation_info(args.aimsouts)
 
 
 if __name__ == "__main__":

@@ -3,12 +3,13 @@
     Input: geometry.in and settings.in
     Output: geometry.in.supercell and trajectory.son """
 
-from hilde.settings import Settings
-from hilde.templates.aims import setup_aims
 from hilde.tasks import calculate_socket
-from hilde.helpers.warnings import warn
 from hilde.helpers.restarts import restart
 
+from hilde.aims.context import AimsContext
+from hilde.aims.setup import setup_aims
+
+from .context import PhonopyContext
 from .postprocess import postprocess
 from . import metadata2dict
 
@@ -32,39 +33,47 @@ def run_phonopy(**kwargs):
         print("done.")
 
 
-def bootstrap(name="phonopy", settings=None, **kwargs):
+def bootstrap(ctx=None, name="phonopy", settings=None, workdir=None, **kwargs):
     """ load settings, prepare atoms, calculator, and phonopy """
+    if ctx is None and settings is None:
+        ctx = PhonopyContext()
+    elif ctx is None:
+        ctx = PhonopyContext(input_settings=settings)
+    if workdir:
+        ctx.workdir = workdir
+
+    settings = ctx.settings
+
+    if not name:
+        name = ctx.name
+
+    if ctx is None:
+        ctx = PhonopyContext()
+
+    if settings is None:
+        settings = ctx.settings
+
+    if not name:
+        name = ctx.name
 
     if name.lower() == "phonopy":
         from hilde.phonopy.wrapper import preprocess
     elif name.lower() == "phono3py":
         from hilde.phono3py.wrapper import preprocess
 
-    if settings is None:
-        settings = Settings()
-
-    if "atoms" not in kwargs:
-        atoms = settings.get_atoms()
-    else:
-        atoms = kwargs["atoms"]
-
-    phonopy_settings = {"atoms": atoms}
-
-    if name not in settings:
-        warn(f"Settings do not contain {name} instructions.", level=1)
-    else:
-        phonopy_settings.update(settings[name])
-
     # Phonopy preprocess
-    phonopy_settings.update(kwargs)
-    phonon, supercell, scs = preprocess(**phonopy_settings)
+    phonon, supercell, scs = preprocess(atoms=ctx.ref_atoms, **ctx.settings.obj)
 
-    calc = kwargs.get(
-        "calculator",
-        setup_aims(
-            atoms=supercell, settings=settings, custom_settings={"compute_forces": True}
-        ),
-    )
+    # if calculator not given, create an aims context for this calculation
+    if "calculator" not in kwargs:
+        aims_ctx = AimsContext(settings_file=ctx.settings_file, workdir=ctx.workdir, input_settings=settings)
+        # set reference structure for aims calculation and make sure forces are computed
+        aims_ctx.ref_atoms = supercell
+        aims_ctx.settings.obj["compute_forces"] = True
+
+        calc = setup_aims(aims_ctx)
+    else:
+        calc = kwargs["calculator"]
 
     # save metadata
     metadata = metadata2dict(phonon, calc)
@@ -73,6 +82,7 @@ def bootstrap(name="phonopy", settings=None, **kwargs):
         "atoms_to_calculate": scs,
         "calculator": calc,
         "metadata": metadata,
-        "workdir": name,
-        **phonopy_settings,
+        "workdir": ctx.workdir,
+        "settings": settings,
+        **settings.obj,
     }

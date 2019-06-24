@@ -3,9 +3,10 @@ import os
 import glob
 import time
 
-import numpy as np
 
 from datetime import datetime
+
+import numpy as np
 
 from monty.os import cd, makedirs_p
 
@@ -13,7 +14,6 @@ from fireworks import FWorker
 from fireworks.fw_config import (
     SUBMIT_SCRIPT_NAME,
     ALWAYS_CREATE_NEW_BLOCK,
-    QUEUE_RETRY_ATTEMPTS,
     QUEUE_UPDATE_INTERVAL,
     QSTAT_FREQUENCY,
     RAPIDFIRE_SLEEP_SECS,
@@ -33,7 +33,9 @@ from fireworks.utilities.fw_utilities import (
     create_datestamp_dir,
 )
 
-from .combined_launcher import get_ordred_fw_ids
+from hilde.fireworks.combined_launcher import get_ordred_fw_ids
+from hilde.fireworks._defaults import FW_DEFAULTS
+from hilde.fireworks.workflows.firework_generator import get_time
 
 __author__ = "Anubhav Jain, Michael Kocher, Modified by Thomas Purcell"
 __copyright__ = "Copyright 2012, The Materials Project, Modified 2.11.2018"
@@ -43,28 +45,11 @@ __email__ = "ajain@lbl.gov"
 __date__ = "Dec 12, 2012"
 
 
-def conv_t_to_sec(time_str):
-    """converts a time string to number of seconds"""
-    ts = time_str.split(":")
-    t = 0
-    for ii, tt in enumerate(ts):
-        t += int(tt) * 60 ** (len(ts) - 1 - ii)
-    return t
-
-
-def to_time_str(n_sec):
-    """Converts a number of seconds into a time string"""
-    secs = int(n_sec % 60)
-    mins = int(n_sec / 60) % 60
-    hrs = int(n_sec / 3600)
-    return f"{hrs}:{mins}:{secs}"
-
-
 def launch_rocket_to_queue(
     launchpad,
     fworker,
     qadapter,
-    launcher_dir=".",
+    launcher_dir=FW_DEFAULTS.launch_dir,
     reserve=False,
     strm_lvl="INFO",
     create_launcher_dir=False,
@@ -75,9 +60,9 @@ def launch_rocket_to_queue(
     Submit a single job to the queue.
 
     Args:
-        launchpad (LaunchPad)
-        fworker (FWorker)
-        qadapter (QueueAdapterBase)
+        launchpad (LaunchPad): LaunchPad for the launch
+        fworker (FWorker): FireWorker for the launch
+        qadapter (QueueAdapterBase): Queue Adapter for the resource
         launcher_dir (str): The directory where to submit the job
         reserve (bool): Whether to queue in reservation mode
         strm_lvl (str): level at which to stream log messages
@@ -127,7 +112,10 @@ def launch_rocket_to_queue(
             if reserve:
                 if fw_id:
                     l_logger.debug("finding a FW to reserve...")
-                fw, launch_id = launchpad.reserve_fw(fworker, launcher_dir, fw_id=fw_id)
+                fw = launchpad._get_a_fw_to_run(
+                    fworker.query, fw_id=fw_id, checkout=False
+                )
+                fw_id = fw.fw_id
                 if not fw:
                     l_logger.info(
                         "No jobs exist in the LaunchPad for submission to queue!"
@@ -139,57 +127,117 @@ def launch_rocket_to_queue(
                 qadapter.update({"job_name": job_name})
                 if "_queueadapter" in fw.spec:
                     l_logger.debug("updating queue params using Firework spec..")
-                    if "walltimes" in qadapter and "queues" in qadapter:
-                        if "queue" in fw.spec["_queueadapter"]:
-                            qs = np.array(qadapter["queues"])
-                            inds = np.where(qs == fw.spec["_queueadapter"]["queue"])[0]
-                            if len(inds) == 0:
-                                raise ValueError(
-                                    "Queue not listed in available queue list"
-                                )
-                            fw.spec["_queueadapter"]["walltime"] = qadapter[
-                                "walltimes"
-                            ][inds[0]]
+                    if "queues" in qadapter:
+                        nodes_needed = []
+                        if "expected_mem" in fw.spec["_queueadapter"]:
+                            expect_mem = fw.spec["_queueadapter"]["expected_mem"]
                         else:
-                            if "walltime" in fw.spec["_queueadapter"]:
-                                time_req = conv_t_to_sec(
-                                    fw.spec["_queueadapter"]["walltime"]
-                                )
-                            elif "walltime" in qadapter:
-                                time_req = conv_t_to_sec(
-                                    qadapter['walltime']
-                                )
-                            else:
-                                raise IOError("no valid time/queue given to add a calculation")
-                            wts = np.array(
-                                [conv_t_to_sec(wt) for wt in qadapter["walltimes"]]
-                            )
-                            inds = np.where(time_req <= wts)[0]
-                            if len(inds) == 0:
-                                fw.spec["_queueadapter"]["queue"] = qadapter["queues"][-1]
-                                if "nodes" in fw.spec["_queueadapter"]:
-                                    n_nodes_strat = fw.spec["_queueadapter"]["nodes"]
-                                    fw.spec["_queueadapter"]["nodes"] *= int(
-                                        np.ceil(time_req / wts[-1])
+                            expect_mem = 1e-10
+                        for queue in qadapter["queues"]:
+                            if "max_mem_per_rank" in queue:
+                                accessible_mem = queue["max_mem_per_rank"]
+                                if expect_mem > accessible_mem:
+                                    nodes_needed.append(
+                                        int(np.ceil(expect_mem / accessible_mem))
                                     )
                                 else:
-                                    n_nodes_strat = 1
-                                    fw.spec["_queueadapter"]["nodes"] = int(
-                                        np.ceil(time_req / wts[-1])
-                                    )
-                                fw.spec["_queueadapter"]["walltime"] = to_time_str(
-                                    time_req
-                                    * float(n_nodes_strat)
-                                    / float(fw.spec["_queueadapter"]["nodes"])
-                                )
-                                print(fw.spec["_queueadapter"]["nodes"])
+                                    nodes_needed.append(1)
                             else:
-                                fw.spec["_queueadapter"]["queue"] = qadapter["queues"][
-                                    inds[0]
+                                nodes_needed.append(0)
+                        if "queue" in fw.spec["_queueadapter"]:
+                            qu_ind = -1
+                            for ii, queue in enumerate(qadapter["queues"]):
+                                if queue["name"] == fw.spec["_queueadapter"]["queue"]:
+                                    qu_ind = ii
+                            if qu_ind < 0:
+                                raise ValueError(
+                                    "Queue Name not found for that resources"
+                                )
+                            if (
+                                qadapter["queues"][qu_ind]["max_nodes"]
+                                < nodes_needed[qu_ind]
+                            ):
+                                raise IOError(
+                                    "Requested resource does not have enough memory to complete the job"
+                                )
+                            if "walltime" not in fw.spec["_queueadapter"]:
+                                fw.spec["_queueadapter"]["walltime"] = qadapter[
+                                    "queues"
+                                ][qu_ind]["max_walltime"]
+                        elif "walltime" in fw.spec["_queueadapter"]:
+                            nodes = 1
+                            if "nodes" in fw.spec["_queueadapter"]:
+                                nodes = fw.spec["_queueadapter"]["nodes"]
+                            sc_wt = nodes * get_time(
+                                fw.spec["_queueadapter"]["walltime"]
+                            )
+                            min_acceptable_qu_ind = -1
+                            min_acceptable_qu_wt = 1.0e15
+                            min_acceptable_qu = None
+                            for ii, queue in enumerate(qadapter["queues"]):
+                                if nodes_needed[ii] > queue["max_nodes"]:
+                                    continue
+                                if (
+                                    min_acceptable_qu_wt
+                                    > get_time(queue["max_walltime"])
+                                    * queue["max_nodes"]
+                                    > sc_wt
+                                ):
+                                    min_acceptable_qu_wt = (
+                                        get_time(queue["max_walltime"])
+                                        * queue["max_nodes"]
+                                    )
+                                    min_acceptable_qu = queue["name"]
+                                    min_acceptable_qu_ind = ii
+                            if min_acceptable_qu is None:
+                                raise ValueError("Job can't run on requested resource")
+                            fw.spec["_queueadapter"]["queue"] = min_acceptable_qu
+                            if sc_wt < get_time(
+                                qadapter["queues"][min_acceptable_qu_ind][
+                                    "max_walltime"
                                 ]
-                        del (qadapter["walltimes"])
-                        del (qadapter["queues"])
+                            ):
+                                fw.spec["_queueadapter"]["nodes"] = 1
+                            else:
+                                fw.spec["_queueadapter"]["nodes"] = int(
+                                    np.ceil(
+                                        sc_wt
+                                        / get_time(
+                                            qadapter["queues"][min_acceptable_qu_ind][
+                                                "max_walltime"
+                                            ]
+                                        )
+                                    )
+                                )
+                                fw.spec["_queueadapter"]["walltime"] = qadapter[
+                                    "queues"
+                                ][min_acceptable_qu_ind]["max_walltime"]
+                            if (
+                                nodes_needed[min_acceptable_qu_ind]
+                                > fw.spec["_queueadapter"]["nodes"]
+                            ):
+                                fw.spec["_queueadapter"]["nodes"] = nodes_needed[
+                                    min_acceptable_qu_ind
+                                ]
+                        del qadapter["queues"]
                     qadapter.update(fw.spec["_queueadapter"])
+                if "walltime" in qadapter:
+                    for tt, task in enumerate(fw.spec["_tasks"]):
+                        if "kwargs" in task and "walltime" in task["kwargs"]:
+                            fw.spec["_tasks"][tt]["kwargs"]["walltime"] = (
+                                get_time(qadapter["walltime"]) - 180.0
+                            )
+                        elif "calculate" in task["func"]:
+                            fw.spec["_tasks"][tt]["args"][2]["walltime"] = (
+                                get_time(qadapter["walltime"]) - 180.0
+                            )
+                            fw.spec["_tasks"][tt]["args"][3]["walltime"] = (
+                                get_time(qadapter["walltime"]) - 180.0
+                            )
+
+                launchpad.update_spec([fw.fw_id], fw.spec)
+                fw, launch_id = launchpad.reserve_fw(fworker, launcher_dir, fw_id=fw_id)
+
                 # reservation mode includes --fw_id in rocket launch
                 qadapter["rocket_launch"] += " --fw_id {}".format(fw.fw_id)
 
@@ -238,10 +286,9 @@ def launch_rocket_to_queue(
                         "queue script could not be submitted, check queue "
                         "script/queue adapter/queue server status!"
                     )
-                elif reserve:
+                if reserve:
                     launchpad.set_reservation_id(launch_id, reservation_id)
             return reservation_id
-
         except:
             log_exception(l_logger, "Error writing/submitting queue script!")
             if reserve and launch_id is not None:
@@ -271,12 +318,12 @@ def rapidfire(
     launchpad,
     fworker,
     qadapter,
-    launch_dir=".",
-    nlaunches=0,
-    njobs_queue=0,
-    njobs_block=500,
-    sleep_time=None,
-    reserve=True,
+    launch_dir=FW_DEFAULTS.launch_dir,
+    nlaunches=FW_DEFAULTS.nlaunches,
+    njobs_queue=FW_DEFAULTS.njobs_queue,
+    njobs_block=FW_DEFAULTS.njobs_block,
+    sleep_time=FW_DEFAULTS.sleep_time,
+    reserve=False,
     strm_lvl="CRITICAL",
     timeout=None,
     fill_mode=False,
@@ -287,9 +334,9 @@ def rapidfire(
     Submit many jobs to the queue.
 
     Args:
-        launchpad (LaunchPad)
-        fworker (FWorker)
-        qadapter (QueueAdapterBase)
+        launchpad (LaunchPad): LaunchPad for the launch
+        fworker (FWorker): FireWorker for the launch
+        qadapter (QueueAdapterBase): Queue Adapter for the resource
         launch_dir (str): directory where we want to write the blocks
         nlaunches (int): total number of launches desired; "infinite" for loop, 0 for one round
         njobs_queue (int): stops submitting jobs when njobs_queue jobs are in the queue,
@@ -344,6 +391,7 @@ def rapidfire(
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
                 fw_ids = get_ordred_fw_ids(wflow)
+
             while launchpad.run_exists(fworker, ids=fw_ids) or (
                 fill_mode and not reserve
             ):

@@ -16,4 +16,4 @@ njobs_block = 500
 [launch_params]
 nlaunches = 0
 sleep_time = 60
-tasks2queue = ["hilde.relaxation.bfgs.relax""hilde.tasks.fireworks.calculate_wrapper.wrap_calc_socket", "hilde.k_grid.converge_kgrid.converge_kgrid", "hilde.tasks.fireworks.calculate_wrapper.wrap_calculate" ]
+tasks2queue = ["hilde.relaxation.bfgs.relax""hilde.fireworks.tasks.calculate_wrapper.wrap_calc_socket", "hilde.k_grid.converge_kgrid.converge_kgrid", "hilde.fireworks.tasks.calculate_wrapper.wrap_calculate" ]

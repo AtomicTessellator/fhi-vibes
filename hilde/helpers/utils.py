@@ -1,8 +1,9 @@
-""" A simple timer """
+"""A simple timer"""
 
 import sys
 from time import time, strftime
 import inspect
+import click
 
 try:
     from tqdm import tqdm
@@ -22,25 +23,57 @@ def bold(text):
 
 
 def talk(message):
-    """ https://stackoverflow.com/a/2654130/5172579 """
+    """hilde message output. Use instead of print. Sensitive to CLI context
 
-    curframe = inspect.currentframe()
-    frame = inspect.getouterframes(curframe, 2)[1]
+     https://stackoverflow.com/a/2654130/5172579
 
-    file = frame[1].split("hilde")[-1][1:]
+     """
+    # see if we are in a CLI context
+    verbose = 1
+    try:
+        ctx = click.get_current_context()
+        verbose = ctx.obj.verbose
+    except RuntimeError:
+        pass
 
-    timestr = strftime("%H:%M:%S %Y/%m/%d")
+    if verbose == 1:
+        print_msg(message)
+    elif verbose > 1:
+        curframe = inspect.currentframe()
+        frame = inspect.getouterframes(curframe, 2)[1]
 
-    print(f"[{timestr} from {file}, l. {frame[2]}, {frame[3]}():")
-    print(f"  {message}\n")
+        file = frame[1].split("hilde")[-1][1:]
+
+        timestr = strftime("%H:%M:%S %Y/%m/%d")
+
+        print(f"[{timestr} from {file}, l. {frame[2]} in {frame[3]}()]", flush=True)
+        print_msg(message, indent=2)
+        print()
+
+
+def print_msg(message, indent=0):
+    """print for talk"""
+    indent = indent * " "
+    if isinstance(message, list):
+        for msg in message:
+            print(f"{indent}{msg}", flush=True)
+    else:
+        print(f"{indent}{message}", flush=True)
 
 
 class Timer:
-    def __init__(self, message=None):
+    """simple timer"""
+
+    def __init__(self, message=None, use_talk=True):
         self.time = time()
 
+        if use_talk:
+            self.print = talk
+        else:
+            self.print = lambda msg: print(msg, flush=True)
+
         if message:
-            print(message)
+            self.print(message)
 
     def __call__(self, info_str=""):
         """ print how much time elapsed """
@@ -48,7 +81,7 @@ class Timer:
         time_str = f"{time() - self.time:.3f}s"
 
         if info_str.strip():
-            print(f".. {info_str} in {time_str}")
+            self.print(f".. {info_str} in {time_str}")
         else:
-            print(f".. time elapsed: {time_str}")
+            self.print(f".. time elapsed: {time_str}")
         return float(time_str[:-1])

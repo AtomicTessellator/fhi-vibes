@@ -1,0 +1,8 @@
+# config file to control phonopy workflow
+[statistical_sampling]
+supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
+temperatures = [300, 600, 900]
+deterministic = True
+n_samples = 1
+debye_temp_fact = [0.5, 1.0, 1.5]
+phonon_file = phonon_trajectory.son

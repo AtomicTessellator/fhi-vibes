@@ -1,12 +1,58 @@
 """ A watchdog keeping an eye on the time """
 
+import os
+from subprocess import check_output
 from time import time, strftime
 from pathlib import Path
-from hilde.helpers.warnings import warn
+from hilde.helpers import warn, talk
+
+
+def str2time(string):
+    """convert string of the shape D-HH:MM:SS to seconds"""
+
+    d, h, m, s = 0, 0, 0, 0
+    # split days
+    l1 = string.split("-")
+    if len(l1) == 2:
+        ds = l1[0]
+        d = int(ds)
+        s2 = l1[1]
+    else:
+        s2 = l1[0]
+
+    l2 = s2.split(":")
+
+    if len(l2) == 1:
+        s = int(l2[0])
+    elif len(l2) == 2:
+        m = int(l2[0])
+        s = int(l2[1])
+    elif len(l2) == 3:
+        h = int(l2[0])
+        m = int(l2[1])
+        s = int(l2[2])
+
+    return s + 60 * m + 3600 * h + 86400 * d
+
+
+def get_time(jobid):
+    """get current job time"""
+    squeue = check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
+    line = squeue.split("\n")[2]
+    time = line.split()[5]
+    return str2time(time)
+
+
+def get_timelimit(jobid):
+    """get job time limit"""
+    squeue = check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
+    line = squeue.split("\n")[2]
+    timelimit = line.split()[6]
+    return str2time(timelimit)
 
 
 class WallTimeWatchdog:
-    """ Watched the walltime """
+    """ Watches the walltime """
 
     def __init__(
         self,
@@ -28,12 +74,14 @@ class WallTimeWatchdog:
         """
 
         if walltime is None:
-            warn("walltime not set, use 1 day")
-            walltime = 86400
+            if verbose:
+                talk("walltime not set, disable watchdog")
+            self.walltime = None
+        else:
+            self.walltime = walltime + time()
 
         self.buffer = buffer
         self.start_time = time()
-        self.walltime = walltime + time()
         self.history = [time()]
         self.n_calls = 0
         self.logfile = None
@@ -49,6 +97,9 @@ class WallTimeWatchdog:
         Returns:
             bool: Are we approaching the walltime or is a 'stop' flag present?
         """
+
+        if self.walltime is None:
+            return False
 
         # update history
         self.history.append(time())
@@ -138,3 +189,25 @@ class WallTimeWatchdog:
 
         with self.logfile.open(mode) as f:
             f.write(info_str)
+
+
+class SlurmWatchdog(WallTimeWatchdog):
+    """Watch the slurm walltime"""
+
+    def __init__(self, buffer=2, history=10, log="watchdog.log", verbose=True):
+
+        # check jobid
+        try:
+            jobid = os.environ["SLURM_JOB_ID"]
+            self.jobid = jobid
+            walltime = get_timelimit(jobid)
+            super().__init__(walltime, history, buffer, log, verbose)
+        except KeyError:
+            if verbose:
+                talk("seems we are not on a cluster, nothing to do for watchdog")
+            super().__init__(None, history, buffer, log, verbose=False)
+
+    @property
+    def elapsed(self):
+        """ Return elapsed time since start """
+        return get_time(self.jobid)

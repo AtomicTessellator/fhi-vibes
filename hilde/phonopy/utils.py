@@ -1,12 +1,17 @@
 """ hilde quality of life """
 import numpy as np
 
+from ase.io import read
+from phonopy.file_IO import parse_FORCE_CONSTANTS
 from phonopy.structure.atoms import PhonopyAtoms
+
 from hilde.helpers import Timer, progressbar
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
-from ._defaults import displacement_id_str
+from hilde.phonopy._defaults import displacement_id_str
+from hilde.spglib.wrapper import get_symmetry_dataset
+from hilde.structure.convert import to_Atoms
 
 
 def last_calculation_id(trajectory):
@@ -158,7 +163,7 @@ def remap_force_constants(
         newforce_constants (np.ndarray)
 
     """
-    from hilde.spglib.wrapper import get_symmetry_dataset #, standardize_cell
+    from hilde.spglib.wrapper import get_symmetry_dataset  # , standardize_cell
 
     timer = Timer("remap force constants")
 
@@ -230,3 +235,41 @@ def reduce_force_constants(fc_full, map2prim):
         fc_out[ii, :, :, :] = fc_full[uc_index, :, :, :]
 
     return fc_out
+
+
+def parse_phonopy_force_constants(
+    uc_filename="geometry.primitive",
+    sc_filename="geometry.supercell",
+    fc_filename="FORCE_CONSTANTS",
+    two_dim=True,
+    eps=1e-13,
+    tol=1e-5,
+    format="aims",
+):
+    """parse phonopy FORCE_CONSTANTS file and return as 2D array
+
+    Args:
+        uc_filename (str/Path): primitive unit cell
+        sc_filename (str/Path): supercell
+        fc_filename (str/Path): phonopy forceconstant file to parse
+        two_dim (bool): return in [3*N_sc, 3*N_sc] shape
+        eps (float): finite zero
+        tol (float): tolerance to discern pairs
+
+    Returns:
+            force_constant (np.ndarray(dtype=float)):
+                Force constants in (3*N_sc, 3*N_sc) shape
+
+    """
+
+    if "poscar" in uc_filename.lower():
+        format = "vasp"
+
+    uc = read(uc_filename, format=format)
+    sc = read(sc_filename, format=format)
+
+    fc = parse_FORCE_CONSTANTS(fc_filename)
+
+    fc = remap_force_constants(fc, uc, sc, two_dim=two_dim, tol=tol, eps=eps)
+
+    return fc
