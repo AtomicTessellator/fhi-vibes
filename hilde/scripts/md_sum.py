@@ -29,18 +29,10 @@ def parse_log(filename):
     return e_kin, e_pot, temp, time
 
 
-def main():
-    """ main routine """
-    parser = ArgumentParser(description="Read md.log and make simple statistics")
-    parser.add_argument("file", help="md.log or trajectory.son input file")
-    parser.add_argument("-p", "--plot", action="store_true", help="plot to pdf")
-    parser.add_argument("--avg", type=int, help="running avg in plot", default=100)
-    parser.add_argument("-v", "--verbose", action="store_true", help="give more info")
-    args = parser.parse_args()
+def md_sum(file, plot, avg, verbose):
+    infile = Path(file)
 
-    infile = Path(args.file)
-
-    if "yaml" in infile.suffix:
+    if "yaml" in infile.suffix or "son" in infile.suffix:
         trajectory = reader(infile)[1:]
         e_kin = [atoms.get_kinetic_energy() for atoms in trajectory]
         e_pot = [atoms.get_potential_energy() for atoms in trajectory]
@@ -50,7 +42,7 @@ def main():
     elif "log" in infile.suffix:
         e_kin, e_pot, temp, time = parse_log(infile)
 
-    if args.verbose:
+    if verbose:
         n_range = min(20, len(trajectory) - 2)
         print(f"step   time   temperature")
         for ii in range(n_range):
@@ -74,7 +66,7 @@ def main():
     print(f"Kinetic energy:          {np.mean(e_kin):.2f} +/- {np.std(e_kin):.2f}eV")
     print(f"Potential energy:        {np.mean(e_pot):.2f} +/- {np.std(e_pot):.2f}eV")
 
-    if args.plot:
+    if plot:
         import matplotlib
 
         matplotlib.use("pdf")
@@ -95,7 +87,7 @@ def main():
 
         data.plot(color=tc[0], title="Nuclear Temperature", ax=ax, **plot_settings)
 
-        roll = data.rolling(window=args.avg, min_periods=0).mean()
+        roll = data.rolling(window=avg, min_periods=0).mean()
         roll.plot(color=tc[0], label=f"T_nucl", ax=ax, **avg_settings)
 
         # exp = data.iloc[min(len(data) // 2, args.avg) :].expanding().mean()
@@ -120,16 +112,16 @@ def main():
         e_dif = e_pot - e_kin
 
         e_tot.plot(color=tc[0], title="Total Energy", ax=ax2, **plot_settings)
-        roll = e_tot.rolling(window=args.avg, min_periods=0).mean()
+        roll = e_tot.rolling(window=avg, min_periods=0).mean()
         roll.plot(color=tc[0], ax=ax2, label="E_tot", **avg_settings)
 
         e_pot.plot(color=tc[3], ax=ax2, **plot_settings)
-        roll = e_pot.rolling(window=args.avg, min_periods=0).mean()
+        roll = e_pot.rolling(window=avg, min_periods=0).mean()
         roll.plot(color=tc[3], ax=ax2, label="E_pot", **avg_settings)
 
         ax2.axhline(0, linewidth=1, color="k")
         e_dif.plot(color=tc[1], ax=ax2, **plot_settings)
-        exp = e_dif.rolling(min_periods=0, window=args.avg).mean()
+        exp = e_dif.rolling(min_periods=0, window=avg).mean()
         exp.plot(color=tc[1], ax=ax2, label="E_pot - E_kin", **avg_settings)
 
         ax2.legend()
@@ -140,6 +132,18 @@ def main():
         fname = "md_summary.pdf"
         fig.savefig(fname)
         print(f".. summary plotted to {fname}")
+
+
+def main():
+    """ main routine """
+    parser = ArgumentParser(description="Read md.log and make simple statistics")
+    parser.add_argument("file", help="md.log or trajectory.son input file")
+    parser.add_argument("-p", "--plot", action="store_true", help="plot to pdf")
+    parser.add_argument("--avg", type=int, help="running avg in plot", default=100)
+    parser.add_argument("-v", "--verbose", action="store_true", help="give more info")
+    args = parser.parse_args()
+
+    md_sum(args.file, args.plot, args.avg, args.verbose)
 
 
 if __name__ == "__main__":

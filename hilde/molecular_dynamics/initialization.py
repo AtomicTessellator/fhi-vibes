@@ -11,7 +11,7 @@ from hilde.helpers.warnings import warn
 
 def setup_md(
     atoms,
-    algorithm="Verlet",
+    driver="Verlet",
     temperature=None,
     timestep=None,
     friction=None,
@@ -33,12 +33,12 @@ def setup_md(
     dt = timestep * u.fs
     md = None
 
-    if "verlet" in algorithm.lower():
+    if "verlet" in driver.lower():
         from ase.md.verlet import VelocityVerlet
 
         md = VelocityVerlet(atoms, timestep=dt, logfile=logfile)
 
-    elif "langevin" in algorithm.lower():
+    elif "langevin" in driver.lower():
         from ase.md.langevin import Langevin
 
         if temperature is None:

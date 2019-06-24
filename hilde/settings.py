@@ -12,12 +12,31 @@ from hilde._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
     DEFAULT_SETTINGS_FILE,
-    DEFAULT_TEMP_SETTINGS_FILE,
     DEFAULT_GEOMETRY_FILE,
 )
 from hilde import __version__ as version
 from hilde.helpers.attribute_dict import AttributeDict
 from hilde.helpers.warnings import warn
+
+
+class SettingsError(Exception):
+    """error in settings"""
+
+
+def verify_key(key, obj, hint=None, section=False, allowed_to_fail=False):
+    """verify that key is in object"""
+    if not hint:
+        hint = str(obj)
+
+    if key not in obj:
+        if section:
+            msg = f"\n  section [{key}] is missing in {hint}"
+        else:
+            msg = f"\n  key '{key}' is missing in {hint}"
+        if allowed_to_fail:
+            warn(msg, level=1)
+        else:
+            raise SettingsError(msg)
 
 
 class Config(configparser.ConfigParser):
@@ -42,7 +61,7 @@ class Config(configparser.ConfigParser):
 class ConfigDict(AttributeDict):
     """Dictionary that holds the configuration settings"""
 
-    def __init__(self, *args, config_files=["hilde.cfg"], **kwargs):
+    def __init__(self, *args, config_files=DEFAULT_CONFIG_FILE, **kwargs):
 
         super().__init__(*args, **kwargs)
 
@@ -58,12 +77,11 @@ class ConfigDict(AttributeDict):
 
     def __str__(self):
         """ for printing the object """
-
         return self.get_string()
 
-    def print(self):
+    def print(self, only_settings=False):
         """ literally print(self) """
-        print(self.get_string())
+        print(self.get_string(only_settings=only_settings))
 
     def write(self, filename=DEFAULT_SETTINGS_FILE, pickle=False):
         """write a settings object human readable and pickled"""
@@ -79,13 +97,19 @@ class ConfigDict(AttributeDict):
             with open(filename + ".pick", "wb") as f:
                 pickle.dump(self, f)
 
-    def get_string(self, width=30):
+    def get_string(self, width=30, only_settings=False):
         """ return string representation for writing etc. """
+        if only_settings:
+            ref_dict = Configuration()
+        else:
+            ref_dict = {}
+
         string = ""
         for sec in self:
             # Filter out the private attributes
-            if sec.startswith("_"):
+            if sec.startswith("_") or sec in ref_dict:
                 continue
+
             string += f"\n[{sec}]\n"
             for key in self[sec]:
                 elem = self[sec][key]
@@ -105,7 +129,7 @@ class Configuration(ConfigDict):
     """ class to hold the configuration from hilde.cfg """
 
     def __init__(self, config_file=DEFAULT_CONFIG_FILE):
-        super().__init__(config_files=[config_file])
+        super().__init__(config_files=config_file)
 
         # include the hilde version tag
         self.update({"hilde": {"version": version}})
@@ -119,25 +143,37 @@ class Settings(ConfigDict):
         settings_file=DEFAULT_SETTINGS_FILE,
         config_file=DEFAULT_CONFIG_FILE,
         fireworks_file=DEFAULT_FIREWORKS_FILE,
-        write=False,
     ):
         self._settings_file = settings_file
         self._config_file = config_file
         self._fireworks_file = fireworks_file
         self._atoms = None
+        self._obj = {}
 
         config_files = [config_file, settings_file, fireworks_file]
 
         super().__init__(config_files=[file for file in config_files if file])
 
-        if write:
-            self.write(DEFAULT_TEMP_SETTINGS_FILE)
+    @property
+    def settings_file(self):
+        return self._settings_file
 
     @property
-    def atoms(self, format="aims"):
+    def atoms(self):
         """ Return the settings.atoms object """
         if self._atoms:
             return self._atoms
+
+        return self.get_atoms()
+
+    @atoms.setter
+    def atoms(self, object):
+        """ Set the settings.atoms object """
+        assert isinstance(object, Atoms), type(object)
+        self._atoms = object
+
+    def get_atoms(self, format="aims"):
+        """ parse the geometry described in settings.in and return as atoms """
 
         # use the file specified in geometry.file or the default (geometry.in)
         if "geometry" in self and "file" in self.geometry and self.geometry.file:
@@ -153,12 +189,127 @@ class Settings(ConfigDict):
 
         return None
 
-    @atoms.setter
-    def atoms(self, object):
-        """ Set the settings.atoms object """
-        assert isinstance(object, Atoms), type(object)
-        self._atoms = object
+    @property
+    def obj(self):
+        """the object holding the specific settings for the task"""
+        return self._obj
 
-    def get_atoms(self, format="aims"):
-        """ parse the geometry described in settings.in and return as atoms """
-        return self.atoms
+
+class SettingsSection(AttributeDict):
+    """Wrapper for a section of settings.in"""
+
+    def __init__(self, name, settings_file, defaults=None, mandatory_keys=None, input_settings=None):
+        """Initialize Settings in a specific context
+
+        Args:
+            name (str): name of the section
+            settings_file (str/Path): location of settings file.
+            defaults (dict): dictionary with default key/value pairs
+            mandatory_keys (list): mandatory keys in the section
+
+        """
+
+        if defaults is None:
+            defaults = {}
+        if mandatory_keys is None:
+            mandatory_keys = []
+
+        if not path.exists(settings_file):
+            if input_settings is None:
+                raise FileNotFoundError(settings_file)
+            settings = input_settings
+        else:
+            settings = Settings(settings_file=settings_file)
+        super().__init__(settings[name])
+
+        self._name = name
+        self._settings_file = settings_file
+
+        # validate mandatory keys
+        for key in mandatory_keys:
+            self.verify_key(key)
+
+        for key in defaults.keys():
+            self[key] = self.get(key, defaults[key])
+
+    @property
+    def name(self):
+        """the name of the task/context"""
+        return self._name
+
+    def verify_key(self, key):
+        """verify that key is in self.obj"""
+        verify_key(key, self, hint=f"{self._settings_file}, section [{self.name}]")
+
+
+class WorkflowSettings(Settings):
+    """Wrapper for Settings in the context of a workflow"""
+
+    def __init__(
+        self,
+        name,
+        settings_file=None,
+        config_file=DEFAULT_CONFIG_FILE,
+        defaults=None,
+        mandatory_keys=None,
+        obj_key=None,
+        mandatory_obj_keys=None,
+        input_settings=None,
+    ):
+        """Initialize Settings in a specific context
+
+        Args:
+            name (str): name of the context or workflow
+            settings_file (str/Path): location of settings file. Otherwise inferred
+                from name
+            config_file (str/Path): location of configuration
+            defaults (dict): dictionary with default key/value pairs
+            mandatory_keys (list): mandatory keys in `settings`
+            mandatory_obj_keys (list): mandatory keys in `settings.name`
+
+        Attributes:
+            _obj (dict): this holds the sub dict with name `name`
+
+        """
+        if defaults is None:
+            defaults = {}
+        if mandatory_keys is None:
+            mandatory_keys = []
+        if mandatory_obj_keys is None:
+            mandatory_obj_keys = []
+        if settings_file is None:
+            settings_file = name + ".in"
+
+        if not path.exists(settings_file):
+            if input_settings is None:
+                raise FileNotFoundError(settings_file)
+            for key, val in input_settings.items():
+                self[key] = val
+            self.atoms = input_settings.atoms
+        else:
+            super().__init__(settings_file=settings_file, config_file=config_file)
+
+        self._name = name
+
+        if not obj_key:
+            obj_key = name
+
+        # validate mandatory keys
+        for key in mandatory_keys:
+            self.verify_key(key)
+
+        self[obj_key] = SettingsSection(
+            obj_key, settings_file, defaults, mandatory_obj_keys, input_settings
+        )
+        self._obj = self[obj_key]
+
+    @property
+    def name(self):
+        """the name of the task/context"""
+        return self._name
+
+    def verify_key(self, key):
+        """verify that key is in self"""
+        verify_key(
+            key, self, hint=f"{self.settings_file}", section=True, allowed_to_fail=True
+        )

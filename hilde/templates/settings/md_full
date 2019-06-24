@@ -1,0 +1,24 @@
+[geometry]
+file =             geometry.in
+
+[control]
+xc =               pw-lda
+k_grid =           [2, 2, 2]
+
+[basisset]
+type = light
+
+[socketio]
+port = 12345
+
+[md]
+driver =      Langevin
+timestep =    1
+temperature = 300
+friction =    0.02
+maxsteps =    10
+compute_stresses = 2
+workdir =     md_test
+
+[restart]
+command = hilde run md

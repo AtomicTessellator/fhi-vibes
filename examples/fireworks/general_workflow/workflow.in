@@ -1,7 +1,0 @@
-# information to build a default control.in
-[geometry]
-file = geometry.in
-
-[workflow]
-step_files = ["harmonic_analysis.in"]
-fw = True

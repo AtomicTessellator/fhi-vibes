@@ -1,4 +1,0 @@
-To run this example use the command:
-add_workflow_to_lp workflow.in 
-
-and then run the FireWorks workflow with ralaunch rapidfire (assuming no other active FireWorks on the LaunchPad)

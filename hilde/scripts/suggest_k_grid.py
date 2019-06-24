@@ -1,6 +1,36 @@
+"""hilde CLI wrapper ase kpt density tools"""
+
 from argparse import ArgumentParser as argpars
+
 from hilde.io import read, inform
+from hilde.helpers import talk
 from hilde.helpers.k_grid import d2k, k2d
+
+
+def suggest_k_grid(filename, density, uneven, format):
+    """suggest a k_grid for geometry in FILENAME based on density
+
+    Args:
+        filename (str/Path): geometry input file
+        density (float): kpoint density
+        uneven (bool): allow uneven values of k
+        format (str): file format of geometry file
+
+    """
+
+    cell = read(filename, format=format)
+    inform(cell, fname=filename, verbosity=0)
+
+    k_grid = d2k(cell, kptdensity=density, even=not uneven)
+
+    # the resulting density
+    density = k2d(cell, k_grid)
+
+    talk(f"\nSuggested k_grid for kpt-density {density}:")
+    k_grid = " ".join([f"{k}" for k in k_grid])
+    talk(f"  k_grid {k_grid}")
+    rep = "[{}]".format(", ".join([f"{d:.2f}" for d in density]))
+    talk(f"Resulting density: {density.mean():.2f} {rep}")
 
 
 def main():
@@ -12,20 +42,7 @@ def main():
     parser.add_argument("--format", default="aims")
     args = parser.parse_args()
 
-    ### Greet
-    fname = args.geom
-    cell = read(fname, format=args.format)
-    inform(cell, fname=fname)
-
-    k_grid = d2k(cell, kptdensity=args.density, even=not args.uneven)
-
-    # the resulting density
-    density = k2d(cell, k_grid)
-
-    print(f"\nSuggested k_grid for kpt-density {args.density}:")
-    print(f"  k_grid ", " ".join([f"{k}" for k in k_grid]))
-    rep = "[{}]".format(", ".join([f"{d:.2f}" for d in density]))
-    print(f"Resulting density: {density.mean():.2f} {rep}")
+    suggest_k_grid(args.geo, args.density, args.uneven, args.format)
 
 
 if __name__ == "__main__":

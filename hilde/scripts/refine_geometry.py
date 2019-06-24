@@ -7,55 +7,45 @@ from hilde.helpers import warn, bold
 from hilde.spglib.wrapper import refine_cell, standardize_cell
 
 
-def main():
-    parser = argpars(description="Read geometry and use spglib to refine")
-    parser.add_argument("geometry")
-    parser.add_argument("--prim", action="store_true", help="store primitive cell")
-    parser.add_argument("--conv", action="store_true", help="store conventional cell")
-    parser.add_argument("-t", "--tolerance", type=float, default=1e-5)
-    parser.add_argument("--format", default="aims")
-    parser.add_argument("--cart", action="store_true")
-    parser.add_argument("--center", action="store_true", help="center average position")
-    parser.add_argument("--origin", action="store_true", help="first atom to origin")
-    args = parser.parse_args()
-
+def refine_geometry(
+    filename, primitive, conventional, center, origin, cartesian, format, symprec
+):
+    """refine geometry with spglib and write to file"""
     ### Greet
-    fname = args.geometry
-
-    atoms = read(fname)
+    atoms = read(filename, format=format)
 
     print(f"Perfom geometry refinement for")
-    inform(atoms, symprec=args.tolerance)
 
-    if args.prim:
-        atoms = standardize_cell(atoms, to_primitve=True, symprec=args.tolerance)
-        outfile = f"{args.geometry}.primitive"
-    elif args.conv:
-        atoms = standardize_cell(atoms, to_primitve=False, symprec=args.tolerance)
-        outfile = f"{args.geometry}.conventional"
-    elif args.center:
-        atoms = center_atoms(atoms)
-        outfile = f"{args.geometry}.center"
-    elif args.origin:
-        atoms = center_atoms(atoms, origin=True)
-        outfile = f"{args.geometry}.origin"
+    inform(atoms, symprec=symprec)
+
+    outfile = f"{filename}"
+
+    if primitive:
+        atoms = standardize_cell(atoms, to_primitve=True, symprec=symprec)
+        outfile += ".primitive"
+    elif conventional:
+        atoms = standardize_cell(atoms, to_primitve=False, symprec=symprec)
+        outfile = f"{filename}.conventional"
     else:
-        atoms = refine_cell(atoms, symprec=args.tolerance)
-        outfile = f"{args.geometry}.refined"
+        atoms = refine_cell(atoms, symprec=symprec)
+        outfile += ".refined"
 
-    write(atoms, outfile, format=args.format, spacegroup=True, scaled=not args.cart)
+    if center:
+        atoms = center_atoms(atoms)
+        outfile += ".center"
+    elif origin:
+        atoms = center_atoms(atoms, origin=True)
+        outfile += ".origin"
+
+    write(atoms, outfile, format=format, spacegroup=True, scaled=not cartesian)
 
     coords = "fractional coordinates"
-    if args.cart:
+    if cartesian:
         coords = "cartesian coordinates"
 
     print()
-    print(f"New structure written in {bold(coords)} and {args.format} format to")
+    print(f"New structure written in {bold(coords)} and {format} format to")
     print(f"  {bold(outfile)}")
-
-
-if __name__ == "__main__":
-    main()
 
 
 def center_com(atoms):
@@ -114,3 +104,32 @@ def center_atoms(atoms, origin=False):
         atoms.wrap()
 
     return atoms
+
+
+def main():
+    parser = argpars(description="Read geometry and use spglib to refine")
+    parser.add_argument("geometry")
+    parser.add_argument("--prim", action="store_true", help="store primitive cell")
+    parser.add_argument("--conv", action="store_true", help="store conventional cell")
+    parser.add_argument("-t", "--tolerance", type=float, default=1e-5)
+    parser.add_argument("--format", default="aims")
+    parser.add_argument("--cart", action="store_true")
+    parser.add_argument("--center", action="store_true", help="center average position")
+    parser.add_argument("--origin", action="store_true", help="first atom to origin")
+    args = parser.parse_args()
+
+    refine_geometry(
+        args.geometry,
+        args.prim,
+        args.conv,
+        args.center,
+        args.origin,
+        args.cart,
+        args.format,
+        args.tolerance,
+    )
+
+
+if __name__ == "__main__":
+    main()
+

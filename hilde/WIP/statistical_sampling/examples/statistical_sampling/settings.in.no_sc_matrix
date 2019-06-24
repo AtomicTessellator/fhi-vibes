@@ -1,0 +1,6 @@
+# config file to control phonopy workflow
+[statistical_sampling]
+temperatures = [300, 600, 900]
+deterministic = True
+n_samples = 1
+fc_file = FORCE_CONSTANTS

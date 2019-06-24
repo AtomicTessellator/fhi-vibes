@@ -1,0 +1,19 @@
+[geometry]
+file:                         geometry.in
+
+[control]
+xc:                            pw-lda
+k_grid:                        [2, 2, 2]
+sc_accuracy_rho:               1e-7
+compute_forces:                true
+
+[basissets]
+default:                       light
+
+[socketio]
+port:                          12345
+
+[phonopy]
+supercell_matrix:              [1, 2, 1]
+displacement:                  0.01
+

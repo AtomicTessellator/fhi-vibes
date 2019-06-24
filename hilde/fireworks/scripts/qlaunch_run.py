@@ -32,8 +32,8 @@ from fireworks.queue.queue_launcher import launch_rocket_to_queue
 from fireworks.utilities.fw_serializers import load_object_from_file
 
 from hilde.fireworks.queue_launcher import rapidfire
-from hilde.fireworks.launchpad import LaunchPadHilde as LaunchPad
-from hilde.fireworks.scripts.claunch_run import fw_defaults
+from hilde.fireworks.launchpad import LaunchPad as LaunchPad
+from hilde.fireworks.combined_launcher import fw_defaults
 
 __authors__ = (
     "Anubhav Jain, Shyue Ping Ong. Modified by Thomas Purcell to redirect rapidfire"
@@ -301,8 +301,9 @@ def qlaunch():
     args = parser.parse_args()
 
     if args.remote_host and not HAS_FABRIC:
-        print("Remote options require the Fabric package v2+ to be installed!")
-        sys.exit(-1)
+        raise ImportError(
+            "Remote options require the Fabric package v2+ to be installed!"
+        )
 
     if args.remote_setup and args.remote_host:
         for h in args.remote_host:
@@ -354,7 +355,7 @@ def qlaunch():
 
     interval = args.daemon
     while True:
-        connect_kwargs = {"gss_auth" : args.gss_auth}
+        connect_kwargs = {"gss_auth": args.gss_auth}
         if args.remote_password is not None:
             connect_kwargs["password"] = args.remote_password
         if args.remote_host:

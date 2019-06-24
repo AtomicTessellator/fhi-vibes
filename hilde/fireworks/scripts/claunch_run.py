@@ -33,9 +33,9 @@ from fireworks.utilities.fw_serializers import load_object_from_file
 
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks.combined_launcher import rapidfire
-from hilde.fireworks.launchpad import LaunchPadHilde as LaunchPad
+from hilde.fireworks.launchpad import LaunchPad as LaunchPad
 from hilde.settings import Settings
-from hilde.tasks import fireworks as fw
+from hilde.fireworks import tasks as fw
 
 settings = Settings()
 remote_setup = settings.remote_setup if "remote_setup" in settings else {}
@@ -47,9 +47,13 @@ launch_params = settings.launch_params if "launch_params" in settings else {}
 
 fw_defaults = {
     "launch_dir": (remote_setup.launch_dir if "launch_dir" in remote_setup else "."),
-    "remote_host": (remote_setup.remote_host if "remote_host" in remote_setup else None),
+    "remote_host": (
+        remote_setup.remote_host if "remote_host" in remote_setup else None
+    ),
     "remote_config_dir": (
-        remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else ["~/.fireworks"]
+        remote_setup.remote_config_dir
+        if "remote_config_dir" in remote_setup
+        else "~/.fireworks"
     ),
     "remote_user": (
         remote_host_auth.remote_user if "remote_user" in remote_host_auth else None
@@ -63,14 +67,12 @@ fw_defaults = {
         remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else 0
     ),
     "njobs_block": (
-        remote_queue_param.njobs_block
-        if "njobs_block" in remote_queue_param
-        else 500
+        remote_queue_param.njobs_block if "njobs_block" in remote_queue_param else 500
     ),
     "nlaunches": (launch_params.nlaunches if "nlaunches" in launch_params else 0),
     "sleep_time": (launch_params.sleep_time if "sleep_time" in launch_params else None),
     "tasks2queue": (
-        launch_params.tasks2queue if "tasks2queue" in launch_params else []
+        launch_params.tasks2queue if "tasks2queue" in launch_params else ""
     ),
 }
 

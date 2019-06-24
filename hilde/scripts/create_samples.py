@@ -11,6 +11,112 @@ import ase.md.velocitydistribution as vd
 
 from hilde.structure.io import inform
 from hilde.konstanten.einheiten import omega_to_THz
+from hilde.helpers import talk
+
+
+def create_samples(
+    geometry,
+    temperature,
+    n_samples,
+    force_constants,
+    mc_rattle,
+    quantum,
+    deterministic,
+    random_seed,
+    format,
+):
+    """create samples for Monte Carlo sampling
+
+    Args:
+        geometry (str/Path): geometry input file
+        temperature (float): temperature in Kelvin
+        n_samples (int): number of samples to create
+        force_constants (str/Path): file holding force constants for phonon rattle
+        mc_ratte (bool): use hiphive mc rattle
+        quantum (bool): use Bose-Einstein distribution instead of Maxwell-Boltzmann
+        deterministic (bool): create sample deterministically
+        random_seed (int): seed the random number generator
+        format (str): ase file format for geometry files
+
+    """
+
+    atoms = read(geometry, format=format)
+    inform(atoms, verbosity=0)
+
+    seed = random_seed
+    temp = temperature
+    info_str = []
+
+    if mc_rattle:
+        try:
+            from hiphive.structure_generation import mc_rattle
+        except (ModuleNotFoundError, ImportError):
+            exit("** hiphive needs to be installed to use mc_rattle.")
+    else:
+        if not temp:
+            exit("** temperature needs to be given")
+
+    if seed:
+        talk(f"Random seed is {seed}")
+        rng = np.random.RandomState(seed)
+        info_str += [f"Random seed: {seed}"]
+    else:
+        rng = np.random
+
+    if force_constants is not None:
+        # if 3Nx3N shaped txt file:
+        try:
+            fc = np.loadtxt(force_constants)
+        except ValueError:
+            exit("other force constants not yet implemented")
+
+        # Check dyn. matrix
+        check_frequencies(atoms, fc)
+
+        # collect arguments for PhononHarmonics
+        phonon_harmonic_args = {
+            "force_constants": fc,
+            "quantum": quantum,
+            "temp": temp * u.kB,
+            "plus_minus": deterministic,
+            "failfast": True,
+            "rng": rng,
+        }
+        info_str += ["created from force constants", f"T = {temp} K"]
+        talk(f"Use force constants from {force_constants} to prepare samples")
+
+    else:
+        mb_args = {"temp": temp * u.kB, "rng": rng}
+        info_str += ["created from MB distrubtion", f"T = {temperature} K"]
+        talk(f"Use Maxwell Boltzamnn to set up samples")
+
+    for ii in range(n_samples):
+        talk(f"Sample {ii:3d}:")
+        sample = atoms.copy()
+
+        if force_constants is not None:
+            vd.PhononHarmonics(sample, **phonon_harmonic_args)
+
+        elif mc_rattle:
+            exit("mc_rattle not yet implemented")
+
+        else:
+            vd.MaxwellBoltzmannDistribution(sample, **mb_args)
+
+        talk(f".. remove net momentum from sample and force temperature")
+        talk(f".. temperature before cleaning: {sample.get_temperature():.3f}K")
+        vd.force_temperature(sample, temp)
+        vd.Stationary(sample)
+        vd.ZeroRotation(sample)
+
+        filename = f"{geometry}.{int(temp)}K"
+        if n_samples > 1:
+            filename += f".{ii+1:03d}"
+
+        sample.write(filename, info_str=info_str, velocities=True, format=format)
+
+        talk(f".. temperature in sample {ii}:     {sample.get_temperature():.3f}K")
+        talk(f".. written to {filename}")
 
 
 def main():
@@ -30,78 +136,17 @@ def main():
     parser.add_argument("--random_seed", type=int, default=None)
     args = parser.parse_args()
 
-    atoms = read(args.geom, format=args.format)
-    # inform(atoms)
-
-    seed = args.random_seed
-    temp = args.temperature
-    info_str = []
-
-    if args.mc_rattle:
-        try:
-            from hiphive.structure_generation import mc_rattle
-        except (ModuleNotFoundError, ImportError):
-            exit("** hiphive needs to be installed to use mc_rattle.")
-
-    if seed:
-        print(f"Random seed is {seed}")
-        rng = np.random.RandomState(seed)
-        info_str += [f"Random seed: {seed}"]
-    else:
-        rng = np.random
-
-    if args.force_constants is not None:
-        force_constants = np.loadtxt(args.force_constants)
-
-        # Check dyn. matrix
-        check_frequencies(atoms, force_constants)
-
-        # collect arguments for PhononHarmonics
-        phonon_harmonic_args = {
-            "force_constants": force_constants,
-            "quantum": args.quantum,
-            "temp": temp * u.kB,
-            "plus_minus": args.deterministic,
-            "failfast": args.ignore_negative,
-            "rng": rng,
-        }
-        info_str += ["created from force constants", f"T = {temp} K"]
-        print(f"Use force constants from {args.force_constants} to prepare samples")
-
-    else:
-        mb_args = {"temp": temp * u.kB, "rng": rng}
-        info_str += ["created from MB distrubtion", f"T = {args.temperature} K"]
-        print(f"Use Maxwell Boltzamnn to set up samples")
-
-    for ii in range(args.n_samples):
-        print(f"Sample {ii:3d}:")
-        sample = atoms.copy()
-
-        if args.force_constants is not None:
-            vd.PhononHarmonics(sample, **phonon_harmonic_args)
-
-        elif args.mc_rattle:
-            pass
-
-        else:
-            vd.MaxwellBoltzmannDistribution(sample, **mb_args)
-
-        if not args.non_enforced_temp:
-            force_temperature(sample, temp)
-
-        if not args.non_stationary:
-            print(f".. remove net momentum from sample")
-            vd.Stationary(sample)
-            vd.ZeroRotation(sample)
-
-        filename = f"{args.geom}.{temp}K"
-        if args.n_samples > 1:
-            filename += f".{ii+1:03d}"
-
-        sample.write(filename, info_str=info_str, velocities=True, format=args.format)
-
-        print(f".. temperature in sample {ii}: {sample.get_temperature():.3f}K")
-        print(f".. written to {filename}")
+    create_samples(
+        args.geom,
+        args.temperature,
+        args.n_samples,
+        args.force_constants,
+        args.mc_rattle,
+        args.quantum,
+        args.deterministic,
+        args.random_seed,
+        args.format,
+    )
 
 
 if __name__ == "__main__":
@@ -122,6 +167,7 @@ def get_frequencies(atoms, force_constants):
 
 
 def check_frequencies(atoms, force_constants):
+    """print lowest and highest frequencies obtained from force constants"""
     w2 = get_frequencies(atoms, force_constants)
     print("The first 6 frequencies:")
     for ii, freq in enumerate(w2[:6]):
@@ -130,11 +176,3 @@ def check_frequencies(atoms, force_constants):
     print("Highest 6 frequencies")
     for ii, freq in enumerate(w2[-6:]):
         print(f" {len(w2) - ii:4d}: {np.sign(freq) * np.sqrt(abs(freq))}")
-
-
-def force_temperature(atoms, temperature):
-    """ force (nucl.) temperature to have a precise value """
-    temp0 = atoms.get_kinetic_energy() / len(atoms) / 1.5
-    gamma = temperature * u.kB / temp0
-    atoms.set_momenta(atoms.get_momenta() * np.sqrt(gamma))
-

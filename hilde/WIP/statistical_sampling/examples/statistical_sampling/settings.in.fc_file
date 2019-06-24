@@ -1,0 +1,7 @@
+# config file to control phonopy workflow
+[statistical_sampling]
+supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
+temperatures = [300, 600, 900]
+deterministic = True
+n_samples = 1
+fc_file = FORCE_CONSTANTS

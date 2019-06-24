@@ -12,20 +12,22 @@ import shutil
 
 import numpy as np
 
-
 from ase import units
 from hilde import __version__ as version
 from hilde import son
 from hilde.helpers.converters import results2dict, dict2atoms, input2dict
 from hilde.helpers.converters import dict2json as dumper
 from hilde.helpers.hash import hash_atoms
-from hilde.helpers import Timer, warn, progressbar
+from hilde.helpers import Timer, warn, progressbar, talk
 
 
-def step2file(atoms, calc=None, file="trajectory.son", append_cell=False):
+def step2file(atoms, calc=None, file="trajectory.son", append_cell=False, metadata={}):
     """ Save the current step """
 
     dct = results2dict(atoms, calc, append_cell)
+
+    if metadata:
+        dct.update({"metadata": metadata})
 
     son.dump(dct, file, dumper=dumper)
 
@@ -39,11 +41,11 @@ def metadata2file(metadata, file="metadata.son"):
     son.dump({**metadata, "hilde": {"version": version}}, file, is_metadata=True)
 
 
-def get_hashes_from_trajectory(trajectory):
+def get_hashes_from_trajectory(trajectory, verbose=False):
     """ return all hashes from trajectory """
 
     try:
-        traj = reader(trajectory)
+        traj = reader(trajectory, verbose=verbose)
     except (FileNotFoundError, KeyError):
         return []
 
@@ -57,13 +59,15 @@ def get_hashes_from_trajectory(trajectory):
     return hashes
 
 
-def reader(file="trajectory.son", get_metadata=False):
+def reader(file="trajectory.son", get_metadata=False, verbose=True):
     """ convert information in trajectory and metadata files to atoms objects
      and return them """
 
     timer = Timer(f"Parse trajectory in {file}")
 
-    print(".. read file:")
+    if verbose:
+        talk(".. read file:")
+
     try:
         metadata, pre_trajectory = son.load(file)
     except json.decoder.JSONDecodeError:
@@ -86,7 +90,7 @@ def reader(file="trajectory.son", get_metadata=False):
         md_metadata = metadata["MD"]
 
     trajectory = Trajectory(metadata=metadata)
-    print(".. process file:")
+    talk(".. process file:")
     for obj in progressbar(pre_trajectory):
 
         atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
@@ -169,7 +173,7 @@ class Trajectory(list):
         dct = input2dict(atoms)
 
         self.metadata["primitive"] = dct
-        print(".. primitive added to metadata.")
+        talk(".. primitive added to metadata.")
 
     @property
     def supercell(self):
@@ -184,7 +188,7 @@ class Trajectory(list):
         dct = input2dict(atoms)
 
         self.metadata["supercell"] = dct
-        print(".. supercell added to metadata.")
+        talk(".. supercell added to metadata.")
 
     @property
     def times(self):
@@ -210,7 +214,7 @@ class Trajectory(list):
 
         p_drift = np.mean([a.get_momenta().sum(axis=0) for a in self], axis=0)
 
-        print(f".. drift momentum is {p_drift}")
+        talk(f".. drift momentum is {p_drift}")
 
         for atoms, time in zip(self, self.times):
             atoms.set_momenta(atoms.get_momenta() - p_drift / len(atoms))
@@ -232,11 +236,11 @@ class Trajectory(list):
         if os.path.exists(file):
             ofile = f"{file}.bak"
             shutil.copy(file, ofile)
-            print(f".. {file} copied to {ofile}")
+            talk(f".. {file} copied to {ofile}")
 
         metadata2file(self.metadata, temp_file)
 
-        print(f"Write to {temp_file}:")
+        talk(f"Write to {temp_file}:")
         for elem in progressbar(self):
             son.dump(results2dict(elem), temp_file)
 
@@ -259,7 +263,7 @@ class Trajectory(list):
         folder = Path(folder)
         folder.mkdir(exist_ok=True)
 
-        print(f"Write tdep input files to {folder}:")
+        talk(f"Write tdep input files to {folder}:")
 
         # meta
         n_atoms = len(self[0])
@@ -277,18 +281,18 @@ class Trajectory(list):
 
         with fname.open("w") as fo:
             fo.write("\n".join(lines))
-            print(f".. {fname} written.")
+            talk(f".. {fname} written.")
 
         # supercell and fake unit cell
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
         if self.primitive:
             fname = folder / "infile.ucposcar"
             self.primitive.write(str(fname), **write_settings)
-            print(f".. {fname} written.")
+            talk(f".. {fname} written.")
         if self.supercell:
             fname = folder / "infile.ssposcar"
             self.supercell.write(str(fname), **write_settings)
-            print(f".. {fname} written.")
+            talk(f".. {fname} written.")
 
         with ExitStack() as stack:
             pdir = folder / "infile.positions"
@@ -325,9 +329,9 @@ class Trajectory(list):
 
                 fs.write(f"{stat}\n")
 
-        print(f".. {sdir} written.")
-        print(f".. {pdir} written.")
-        print(f".. {fdir} written.")
+        talk(f".. {sdir} written.")
+        talk(f".. {pdir} written.")
+        talkl(f".. {fdir} written.")
 
     def get_average_displacements(self, ref_atoms=None, window=-1):
         """ Return averaged displacements """

@@ -1,63 +1,97 @@
 """ run molecular dynamics simulations using the ASE classes """
 
 from pathlib import Path
-from ase.calculators.socketio import SocketIOCalculator
 
-from hilde.settings import Settings
+import numpy as np
+
+from ase.calculators.socketio import SocketIOCalculator
+from ase import md as ase_md
+from ase import units as u
+
+from hilde import son
+from hilde.aims.context import AimsContext
 from hilde.trajectory import step2file, metadata2file
-from hilde.helpers.watchdogs import WallTimeWatchdog as Watchdog
+from hilde.helpers.aims import get_aims_uuid_dict
+from hilde.helpers.watchdogs import SlurmWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.socketio import socket_stress_on, socket_stress_off
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.restarts import restart
-from hilde.helpers.warnings import warn
-from hilde.templates.aims import setup_aims
-from .initialization import setup_md
+from hilde.helpers import talk, warn
 from . import metadata2dict
 
 
 _calc_dirname = "calculations"
 
 
-def run_md(logfile="md.log", **kwargs):
+def run_md(ctx):
     """ high level function to run MD """
 
-    args = bootstrap()
+    args = bootstrap(ctx)
 
-    md_settings = {"logfile": logfile, **args, **kwargs}
-
-    atoms, md, _ = setup_md(**md_settings)
-
-    md_settings.update({"atoms": atoms, "md": md})
-
-    converged = run(**md_settings)
+    converged = run(**args)
 
     if not converged:
-        restart()
+        restart(ctx.settings)
     else:
-        print("done.")
+        talk("done.")
 
 
-def bootstrap():
+def bootstrap(ctx):
     """ load settings, prepare atoms, calculator and MD algorithm """
 
-    settings = Settings()
-    atoms = settings.get_atoms()
-    calc = setup_aims(settings=settings, custom_settings={"compute_forces": True})
+    # read structure
+    atoms = ctx.settings.get_atoms()
 
-    if "md" not in settings:
-        warn("Settings do not contain MD instructions.", level=2)
+    # create aims from context
+    aims_ctx = AimsContext(settings_file=ctx.settings_file)
 
-    return {"atoms": atoms, "calc": calc, **settings.md}
+    # make sure `compute_forces .true.` is set
+    aims_ctx.settings.obj["compute_forces"] = True
+
+    calc = aims_ctx.get_calculator()
+
+    # create md from context
+    obj = ctx.settings.obj
+    # workdir has to exist
+    Path(ctx.workdir).mkdir(exist_ok=True)
+    md_settings = {
+        "atoms": atoms,
+        "timestep": obj.timestep * u.fs,
+        "logfile": Path(ctx.workdir) / obj.logfile,
+    }
+
+    if "verlet" in obj.driver.lower():
+        md = ase_md.VelocityVerlet(**md_settings)
+    if "langevin" in obj.driver.lower():
+        md = ase_md.Langevin(
+            temperature=obj.temperature * u.kB, friction=obj.friction, **md_settings
+        )
+
+    compute_stresses = 0
+    if "compute_stresses" in obj:
+        compute_stresses = obj.compute_stresses
+
+    # resume?
+    prepare_from_trajectory(atoms, md, ctx.trajectory)
+
+    return {
+        "atoms": atoms,
+        "calc": calc,
+        "md": md,
+        "maxsteps": ctx.maxsteps,
+        "compute_stresses": compute_stresses,
+        "workdir": ctx.workdir,
+    }
 
 
 def run(
     atoms,
     calc,
     md,
+    maxsteps,
     compute_stresses=0,
-    maxsteps=25000,
     trajectory="trajectory.son",
     metadata_file="md_metadata.yaml",
     workdir=".",
@@ -66,11 +100,8 @@ def run(
 ):
     """ run and MD for a specific time  """
 
-    # take the literal settings for running the task
-    settings = Settings()
-
     # create watchdog
-    watchdog = Watchdog(**{**settings.watchdog, **kwargs})
+    watchdog = Watchdog()
 
     # create working directories
     workdir = Path(workdir)
@@ -89,10 +120,7 @@ def run(
     # atomic stresses
     if calc.name == "aims":
         if compute_stresses:
-            warn(
-                "Switch heat flux / atomic stress computation on. "
-                + f"(Every {compute_stresses} steps)"
-            )
+            talk(f"Compute atomic stresses every {compute_stresses} steps")
             calc.parameters["compute_heat_flux"] = True
 
     # prepare the socketio stuff
@@ -103,9 +131,21 @@ def run(
         socket_calc = calc
     atoms.calc = calc
 
+    # does it make sense to start everything?
+    if md.nsteps >= maxsteps:
+        talk(f"MD run already finished, please inspect {workdir.absolute()}")
+        return True
+
+    # is the calculation similar enough?
+    metadata = metadata2dict(atoms, calc, md)
+    if trajectory.exists():
+        old_metadata, _ = son.load(trajectory)
+        check_metadata(metadata, old_metadata)
+
     # backup previously computed data
-    if calc_dir.exists():
-        backup(calc_dir, target_folder=backup_folder)
+    backup(calc_dir, target_folder=backup_folder)
+
+    talk("Start MD.")
 
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
         calc_dir, mkdir=True
@@ -114,40 +154,41 @@ def run(
         if socketio_port is not None:
             atoms.calc = iocalc
 
-        # store settings locally
-        settings.write()
-
         # log very initial step and metadata
-        metadata = metadata2dict(atoms, calc, md)
         if md.nsteps == 0:
             metadata2file(metadata, file=trajectory)
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
-            # step2file(atoms, atoms.calc, trajectory)
+            _ = atoms.get_forces()
+            meta = get_aims_uuid_dict()
+            step2file(atoms, atoms.calc, trajectory, metadata=meta)
 
         # store MD metadata locally
         metadata2file(metadata, file=metadata_file)
 
-        print("\nStart MD.")
-
         while not watchdog() and md.nsteps < maxsteps:
-            nsteps = md.nsteps
 
             md.run(1)
 
-            if compute_stresses_now(compute_stresses, nsteps):
+            talk(f"Step {md.nsteps} finished, log.")
+
+            if compute_stresses_now(compute_stresses, md.nsteps):
                 stresses = get_stresses(atoms)
                 atoms.calc.results["stresses"] = stresses
 
+            # peek into aims file and grep for uuid
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
-            step2file(atoms, atoms.calc, trajectory)
+            meta = get_aims_uuid_dict()
+            step2file(atoms, atoms.calc, trajectory, metadata=meta)
 
             if compute_stresses:
-                if compute_stresses_next(compute_stresses, nsteps):
+                if compute_stresses_next(compute_stresses, md.nsteps):
                     socket_stress_on(iocalc)
                 else:
                     socket_stress_off(iocalc)
 
-        print("Stop MD.\n")
+                continue
+
+        talk("Stop MD.\n")
 
     # restart
     if md.nsteps < maxsteps:
@@ -163,3 +204,49 @@ def compute_stresses_now(compute_stresses, nsteps):
 def compute_stresses_next(compute_stresses, nsteps):
     """ return if stress should be computed in the NEXT step """
     return compute_stresses_now(compute_stresses, nsteps + 1)
+
+
+def prepare_from_trajectory(atoms, md, trajectory):
+    """ Take the last step from trajectory and initialize atoms + md accordingly """
+
+    trajectory = Path(trajectory)
+    if trajectory.exists():
+        last_atoms = son.last_from(trajectory)
+        assert "info" in last_atoms["atoms"]
+        md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
+
+        atoms.set_positions(last_atoms["atoms"]["positions"])
+        atoms.set_velocities(last_atoms["atoms"]["velocities"])
+        talk(f"Resume MD from step {md.nsteps} in\n  {trajectory}\n")
+        return True
+
+    talk(f"** {trajectory} does not exist, nothing to prepare")
+    return False
+
+
+def check_metadata(new_metadata, old_metadata):
+    """sanity check if metadata sets coincide"""
+    om, nm = old_metadata["MD"], new_metadata["MD"]
+
+    # check if keys coincide:
+    # sanity check values:
+    check_keys = ("md-type", "timestep", "temperature", "friction", "fs")
+    keys = [k for k in check_keys if k in om.keys()]
+    for key in keys:
+        ov, nv = om[key], nm[key]
+        if isinstance(ov, float):
+            assert np.allclose(ov, nv, rtol=1e-10), f"{key} changed from {ov} to {nv}"
+        else:
+            assert ov == nv, f"{key} changed from {ov} to {nv}"
+
+    # calculator
+    om = old_metadata["calculator"]["calculator_parameters"]
+    nm = new_metadata["calculator"]["calculator_parameters"]
+
+    # sanity check values:
+    for key in ("xc", "k_grid", "relativistic"):
+        ov, nv = om[key], nm[key]
+        if isinstance(ov, float):
+            assert np.allclose(ov, nv, rtol=1e-10), f"{key} changed from {ov} to {nv}"
+        else:
+            assert ov == nv, f"{key} changed from {ov} to {nv}"

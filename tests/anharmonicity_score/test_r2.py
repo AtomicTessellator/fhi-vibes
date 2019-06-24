@@ -3,13 +3,12 @@
 import numpy as np
 
 from hilde.trajectory import reader
-from hilde.tdep.wrapper import parse_tdep_forceconstant
-
+from hilde.tdep.wrapper import parse_tdep_remapped_forceconstant
 import hilde.anharmonicity_score as score
 
 
 def test_r2():
-    fc = parse_tdep_forceconstant("outfile.forceconstant_remapped")
+    fc = parse_tdep_remapped_forceconstant("outfile.forceconstant_remapped")
 
     trajectory = reader("trajectory.son")
 

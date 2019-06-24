@@ -1,8 +1,10 @@
-**Installation**
+hilde
+===
+## Installation
 
 External dependencies:
 
-```
+```bash
 apt-get install gfortran liblapack-dev liblapacke-dev mongodb
 ```
 
@@ -12,13 +14,13 @@ pip install poetry
 ```
 
 Create a virtual environment
-```
+```bash
 python3 -m venv hilde_venv
 source hilde_venv/bin/activate
 ```
 
 Install `hilde` with `poetry`
-```
+```bash
 poetry install
 ```
 
@@ -34,8 +36,35 @@ modules etc. and finally calling `srun aims.x` on a cluster.
 
 **You're now good to go!** Just make sure your hilde virtual environment is activated.
 
+### Remarks for Cluster
+On clusters with `conda` environment, it is typically best to have a minimal base
+environment that holds nothing but `python`, `numpy`, and `scipy` to benefit from `mkl`
+speedup:
+```bash
+conda create -n py37 python=3.7 numpy scipy mkl
+```
+From within the conda environment (`conda activate py37`), a `venv` can be created that
+holds the other dependencies. To benefit from `numpy` and `mkl`, the `venv` can be
+created with
+```bash
+python3 -m venv hilde_venv --system-site-packages
+source hilde_venv/bin/activate
+```
+One should verify that the `numpy` and `scipy` packages are indeed the ones from the
+conda environment by inspecting 
+```bash
+conda list | grep numpy
+```
+ within conda and
+```bash
+pip list | grep numpy
+```
+with `hilde_venv`. To enforce this, the `pyproject.toml` file
+can be adjusted.
 
-**Settings Files**
+Don't forget to activate `hilde_venv` before starting to work!
+
+## Settings Files
 
 `hilde` uses the Python `configparser` module for parsing settings files named
 `settings.in` and the configuration file `.hilderc`. The
@@ -98,7 +127,7 @@ See also: `doc/README_FHI_FireWorksConnections.md`
   * To pass it functions give it the function_module.function_name as a str
   * Functions that are run on the local machine
     * All functions/files that set up FireWorks
-      * All scripts that initially call hilde.tasks.fireworks.generate_firework
+      * All scripts that initially call hilde.fireworks.tasks.generate_firework
       * .cfg Files that define the steps (if used)
       * All functions used by a Fireworks without a task that calls a function in task2queue list
     * claunch_hilde and associated functions
@@ -108,8 +137,8 @@ See also: `doc/README_FHI_FireWorksConnections.md`
   * Functions that can run on both machines
     * All FireWorks API functions
     * All database accessors functions
-    * Spec modifying functions (hilde.tasks.fireworks.fw_action_outs)
-    * hilde.tasks.fireworks.generate_firework
+    * Spec modifying functions (hilde.fireworks.tasks.fw_action_outs)
+    * hilde.fireworks.tasks.generate_firework
   * Machine specific settings such as the aims_command is handled dynamically
     * It automatically changes when called on a machine
     * Can always use local settings without an issue

@@ -58,7 +58,7 @@ def calc2dict(calc):
 
     if calc is None:
         return {}
-    elif isinstance(calc, dict):
+    if isinstance(calc, dict):
         return calc
 
     params = calc.todict()
@@ -73,7 +73,7 @@ def calc2dict(calc):
     return calc_dict
 
 
-def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=False):
+def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
     """ convert metadata information to plain dict
 
     Returns:
@@ -98,9 +98,7 @@ def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=False)
 
     # save the configuration
     if settings:
-        from hilde.settings import Settings
-
-        settings_dict = dict(Settings())
+        settings_dict = settings.to_dict()
 
         input_dict.update({"settings": settings_dict})
 

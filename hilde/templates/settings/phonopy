@@ -1,0 +1,17 @@
+[geometry]
+file:                          geometry.in
+
+[control]
+xc:                            pw-lda
+k_grid:                        [2, 2, 2]
+compute_forces:                true
+
+[basisset]
+type:                          light
+
+[socketio]
+port:                          12345
+
+[phonopy]
+workdir:                       phonopy
+supercell_matrix:              1

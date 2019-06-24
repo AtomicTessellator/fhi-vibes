@@ -1,30 +1,34 @@
 """ Summarize output from ASE.md class (in md.log) """
 
-import numpy as np
-from argparse import ArgumentParser
 from pathlib import Path
+from argparse import ArgumentParser
+import numpy as np
 from hilde.helpers.pickle import pread
 from hilde.phonopy.postprocess import extract_results, postprocess
 from hilde.phonopy.wrapper import summarize_bandstructure
 
 
-def preprocess(args):
-    import numpy as np
+def preprocess(filename, settings_file, dimension, format):
+    """inform about a phonopy calculation a priori"""
     from ase.io import read
     from hilde.settings import Settings
     import hilde.phonopy.wrapper as ph
 
-    atoms = read(args.infile, format=args.format)
+    settings = Settings(settings_file)
+
+    if filename:
+        atoms = read(filename, format=format)
+    else:
+        atoms = settings.get_atoms(format=format)
 
     _, _, scs_ref = ph.preprocess(atoms, supercell_matrix=1)
 
-    if args.dim is not None:
-        phonon, sc, scs = ph.preprocess(atoms, supercell_matrix=args.dim)
+    if dimension is not None:
+        phonon, sc, scs = ph.preprocess(atoms, supercell_matrix=dimension)
     else:
-        settings = Settings(args.config_file)
         phonon, sc, scs = ph.preprocess(atoms, **settings.phonopy)
-        print("Phonopy settings:")
-        settings.print()
+        print("hilde phonopy workflow settings (w/o configuration):")
+        settings.print(only_settings=True)
 
     sc_str = np.array2string(phonon.get_supercell_matrix().flatten(), separator=", ")
     print("Phonopy Information")
@@ -56,7 +60,7 @@ def main():
 
     suffix = Path(args.infile).suffix
     if suffix == ".in":
-        preprocess(args)
+        preprocess(args.infile, args.config_file, args.dim, args.format)
         return
 
     elif suffix == ".yaml":

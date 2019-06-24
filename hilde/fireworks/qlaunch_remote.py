@@ -32,7 +32,10 @@ def convert_input_to_param(param_name, param, param_list):
     Args:
         param_name (str): name of the parameter for qlaunch
         param (str): value of the parameter
-    Returns (str): command argument str for qlaunch
+        param_list   (list of str): List of all parameters
+
+    Returns:
+        (str): command argument str for qlaunch
     """
     if param is not None:
         param_list.append(f"--{param_name} {param}")
@@ -96,8 +99,9 @@ def qlaunch_remote(
     assert remote_host != "localhost"
 
     if not HAS_FABRIC:
-        print("Remote options require the Fabric package v2+ to be installed!")
-        sys.exit(-1)
+        raise ImportError(
+            "Remote options require the Fabric package v2+ to be installed!"
+        )
     if remote_config_dir is None:
         remote_config_dir = ["~/.fireworks"]
     non_default = []
@@ -125,7 +129,7 @@ def qlaunch_remote(
     if reserve:
         pre_non_default.append("--reserve")
     pre_non_default = " ".join(pre_non_default)
-    print(f"qlaunch_hilde {pre_non_default} {command} {non_default}")
+    print(f"hilde fireworks qlaunch {pre_non_default} {command} {non_default}")
     interval = daemon
     while True:
         for host in remote_host:
@@ -142,7 +146,7 @@ def qlaunch_remote(
                     remote = os.path.expanduser(remote)
                     with conn.cd(remote):
                         conn.run(
-                            "qlaunch_hilde {} {} {}".format(
+                            "hilde fireworks qlaunch {} {} {}".format(
                                 pre_non_default, command, non_default
                             )
                         )

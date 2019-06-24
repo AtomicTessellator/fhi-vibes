@@ -24,6 +24,7 @@ from fireworks.utilities.fw_utilities import (
 )
 
 from hilde.fireworks.qlaunch_remote import qlaunch_remote
+from hilde.fireworks._defaults import FW_DEFAULTS
 from hilde.settings import Settings
 
 try:
@@ -41,48 +42,16 @@ else:
 
     SSH_MULTIPLEXING = "controlpath" in SSHClient.connect.__doc__
 
-settings = Settings()
-remote_setup = settings.remote_setup if "remote_setup" in settings else {}
-remote_host_auth = settings.remote_host_auth if "remote_host_auth" in settings else {}
-remote_queue_param = (
-    settings.remote_queue_param if "remote_queue_param" in settings else {}
-)
-launch_params = settings.launch_params if "launch_params" in settings else {}
-
-fw_defaults = {
-    "launch_dir": (remote_setup.launch_dir if "launch_dir" in remote_setup else "."),
-    "remote_host": (remote_setup.remote_host if "remote_host" in remote_setup else 0),
-    "remote_config_dir": (
-        remote_setup.remote_config_dir if "remote_config_dir" in remote_setup else 0
-    ),
-    "reserve": (remote_setup.reserve if "reserve" in remote_setup else True),
-    "remote_user": (
-        remote_host_auth.remote_user if "remote_user" in remote_host_auth else 500
-    ),
-    "remote_password": (
-        remote_host_auth.remote_password
-        if "remote_password" in remote_host_auth
-        else None
-    ),
-    "gss_auth": (remote_host_auth.gss_auth if "gss_auth" in remote_host_auth else True),
-    "njobs_queue": (
-        remote_queue_param.njobs_queue if "njobs_queue" in remote_queue_param else None
-    ),
-    "njobs_block": (
-        remote_queue_param.njobs_block
-        if "njobs_block" in remote_queue_param
-        else "localhost"
-    ),
-    "nlaunches": (launch_params.nlaunches if "nlaunches" in launch_params else None),
-    "sleep_time": (launch_params.sleep_time if "sleep_time" in launch_params else None),
-    "tasks2queue": (
-        launch_params.tasks2queue if "tasks2queue" in launch_params else None
-    ),
-}
-
 
 def get_ordred_fw_ids(wflow):
-    """Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow"""
+    """
+    Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow
+    Args:
+        wflow (WorkFlow): WorkFlow to run
+
+    Returns:
+        fw_ids_ordered(list of ints): An ordered list for the desired workflow to run
+    """
     fw_ids_ordered = wflow.leaf_fw_ids
     parent_links = wflow.links.parent_links
     for fw_id in fw_ids_ordered:
@@ -94,7 +63,15 @@ def get_ordred_fw_ids(wflow):
 
 
 def use_queue_launch(fire_work, tasks2queue):
-    """Determines if a particular FireWork should be ran on a cluster"""
+    """
+    Determines if a particular FireWork should be ran on a cluster
+    Args:
+        fire_work (FireWork): FireWork to be run locally or remotely
+        tasks2queue (list of str): Paths of functions to run on the queue
+
+    Returns:
+        (bool): True if the task should be run on a cluster
+    """
     for task in fire_work.spec["_tasks"]:
         if task["args"][0] in tasks2queue:
             return True
@@ -106,23 +83,23 @@ def rapidfire(
     fworker=None,
     qadapter=None,
     launch_dir=".",
-    nlaunches=fw_defaults["nlaunches"],
-    njobs_queue=fw_defaults["njobs_queue"],
-    njobs_block=fw_defaults["njobs_block"],
-    sleep_time=fw_defaults["sleep_time"],
-    reserve=fw_defaults["reserve"],
+    nlaunches=FW_DEFAULTS.nlaunches,
+    njobs_queue=FW_DEFAULTS.njobs_queue,
+    njobs_block=FW_DEFAULTS.njobs_block,
+    sleep_time=FW_DEFAULTS.sleep_time,
+    reserve=False,
     strm_lvl="CRITICAL",
     timeout=None,
     fill_mode=False,
     fw_ids=None,
     wflow=None,
-    tasks2queue=fw_defaults["tasks2queue"],
-    gss_auth=fw_defaults["gss_auth"],
+    tasks2queue=FW_DEFAULTS.tasks2queue,
+    gss_auth=False,
     controlpath=None,
-    remote_host=fw_defaults["remote_host"],
-    remote_config_dir=fw_defaults["remote_config_dir"],
-    remote_user=fw_defaults["remote_user"],
-    remote_password=fw_defaults["remote_password"],
+    remote_host=FW_DEFAULTS.remote_host,
+    remote_config_dir=FW_DEFAULTS.remote_config_dir,
+    remote_user=FW_DEFAULTS.remote_user,
+    remote_password=FW_DEFAULTS.remote_password,
     remote_shell="/bin/bash -l -c",
     remote_recover_offline=False,
     daemon=0,

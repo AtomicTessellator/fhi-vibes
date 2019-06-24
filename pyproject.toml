@@ -12,11 +12,11 @@ keywords = ['physics']
 build = "build.py"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.6, <4.0"
 numpy = "^1.16"
-scipy = "^1.3"
+scipy = "~1.2.1"
 matplotlib = "^3.1"
-son = "^0.1.6"
+son = "^0.2.1"
 spglib = "^1.12"
 phonopy = "^2.1"
 ase = {git = "https://gitlab.com/ase/ase.git"}
@@ -24,19 +24,23 @@ fireworks = {version = "^1.9",optional = true}
 phono3py = {version = "^1.17",optional = true}
 python-gssapi = {version = "^0.6.4",optional = true}
 pymongo = {version = "^3.8",optional = true}
-fabric2 = {version = "^2.4",optional = true}
+fabric = {version = "^2.4",optional = true}
 paramiko = {version = "^2.4",optional = true}
+click = "^7.0"
+attrs = "^19.1"
+pandas = "^0.24.2"
 
 [tool.poetry.extras]
-fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric2", "paramiko"]
+fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
 phono3py = ["phono3py"]
 
 [tool.poetry.dev-dependencies]
 black = "^18.9b0"
 pytest = "^4.6"
+flake8 = "^3.7"
 
 [tool.poetry.scripts]
-make_supercell = 'hilde.scripts.make_supercell:main'
+hilde = 'hilde.cli:cli'
 
 [build-system]
 requires = ["poetry>=0.12", "numpy"]
