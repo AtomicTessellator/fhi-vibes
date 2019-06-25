@@ -5,18 +5,16 @@ from phonopy.file_IO import write_FORCE_CONSTANTS
 
 from hilde.helpers.brillouinzone import get_special_points
 from hilde.helpers.converters import dict2atoms
-from hilde.helpers import Timer
 from hilde.helpers.paths import cwd
 from hilde.phonopy.wrapper import (
     prepare_phonopy,
-    get_force_constants,
     plot_bandstructure as plot_bs,
     get_bandstructure,
     plot_bandstructure_and_dos,
     get_animation,
 )
 from hilde.phonopy import defaults
-from hilde.structure.convert import to_Atoms, to_Atoms_db
+from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader
 from hilde.io import write
 from hilde.helpers import warn, talk, Timer
