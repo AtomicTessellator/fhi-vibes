@@ -168,19 +168,20 @@ def extract_results(
             talk(f".. plot projected DOS")
             plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
 
-        animate_q_points = []
+        animate_q_points = {}
         if animate:
-            for q_pt in get_special_points(primitive).values():
-                animate_q_points.append(tuple(q_pt))
+            animate_q_points = get_special_points(primitive)
 
         elif animate_q:
-            animate_q_points = animate_q
+            for q_pt in animate_q:
+                key = "_".join(str(q) for q in q_pt)
+                animate_q_points.update({f"{key}": q_pt})
 
-        for q_pt in animate_q_points:
+        for key, val in animate_q_points.items():
             path = Path("animation")
             path.mkdir(exist_ok=True)
-            outfile = path / f"animation_{q_pt[0]}_{q_pt[1]}_{q_pt[2]}.ascii"
-            get_animation(phonon, q_pt, outfile)
+            outfile = path / f"animation_{key}.ascii"
+            get_animation(phonon, val, outfile)
             talk(f".. {outfile} written")
 
     if tdep:
