@@ -5,18 +5,16 @@ from phonopy.file_IO import write_FORCE_CONSTANTS
 
 from hilde.helpers.brillouinzone import get_special_points
 from hilde.helpers.converters import dict2atoms
-from hilde.helpers import Timer
 from hilde.helpers.paths import cwd
 from hilde.phonopy.wrapper import (
     prepare_phonopy,
-    get_force_constants,
     plot_bandstructure as plot_bs,
     get_bandstructure,
     plot_bandstructure_and_dos,
     get_animation,
 )
 from hilde.phonopy import defaults
-from hilde.structure.convert import to_Atoms, to_Atoms_db
+from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader
 from hilde.io import write
 from hilde.helpers import warn, talk, Timer
@@ -101,8 +99,8 @@ def extract_results(
     plot_bandstructure=True,
     plot_dos=False,
     plot_pdos=False,
-    animate_q_points=None,
-    animate_all_sp_pts=False,
+    animate=None,
+    animate_q=None,
     q_mesh=None,
     output_dir="phonopy_output",
     tdep=False,
@@ -170,16 +168,21 @@ def extract_results(
             talk(f".. plot projected DOS")
             plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
 
-        if animate_all_sp_pts:
-            if not animate_q_points:
-                animate_q_points = list()
+        animate_q_points = {}
+        if animate:
+            animate_q_points = get_special_points(primitive)
 
-            for q_pt in get_special_points(primitive).values():
-                animate_q_points.append(tuple(q_pt))
+        elif animate_q:
+            for q_pt in animate_q:
+                key = "_".join(str(q) for q in q_pt)
+                animate_q_points.update({f"{key}": q_pt})
 
-        if animate_q_points:
-            for q_pt in animate_q_points:
-                get_animation(phonon, q_pt, f"animation_{q_pt[0]}_{q_pt[1]}_{q_pt[2]}.ascii")
+        for key, val in animate_q_points.items():
+            path = Path("animation")
+            path.mkdir(exist_ok=True)
+            outfile = path / f"animation_{key}.ascii"
+            get_animation(phonon, val, outfile)
+            talk(f".. {outfile} written")
 
     if tdep:
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
