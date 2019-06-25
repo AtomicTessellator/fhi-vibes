@@ -66,7 +66,7 @@ class PhonopyContext:
 
     @property
     def ref_atoms(self):
-        if not self._ref_atoms and not self.input_settings.atoms:
+        if not self._ref_atoms and not getattr(self.input_settings, "atoms", None):
             self._ref_atoms = read(self.settings.geometry.file, format="aims")
         elif not self._ref_atoms:
             self._ref_atoms = self.input_settings.atoms
