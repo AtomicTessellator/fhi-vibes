@@ -246,3 +246,7 @@ def summarize_bandstructure(phonon, fp_file=None):
     for ii, freq in enumerate(gamma_freq[-3:]):
         p(len(gamma_freq) - 3 + ii, freq)
     return gamma_freq, max_freq
+
+def get_animation(phonon, q_point, filename):
+    return phonon.write_animation(q_point=q_point, filename=filename)
+

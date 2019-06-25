@@ -25,6 +25,8 @@ def output():
 @click.option("-tp", "--thermal_properties", is_flag=True)
 @click.option("--full", is_flag=True)
 @click.option("--tdep", is_flag=True, hidden=True)
+@click.option("--animate_q_pt", nargs=3, type=float, multiple=True)
+@click.option("--animate_all_sp_pts", is_flag=True)
 @click.pass_obj
 def phonopy_output(
     obj,
@@ -36,6 +38,8 @@ def phonopy_output(
     thermal_properties,
     full,
     tdep,
+    animate_q_pt,
+    animate_all_sp_pts,
 ):
     """perform phonopy postprocess for TRAJECTORY"""
     from hilde.phonopy.postprocess import postprocess, extract_results
@@ -60,6 +64,8 @@ def phonopy_output(
         "q_mesh": q_mesh,
         "output_dir": output_directory,
         "tdep": tdep,
+        "animate_q_points": list(animate_q_pt),
+        "animate_all_sp_pts": animate_all_sp_pts
     }
 
     extract_results(phonon, **kwargs)

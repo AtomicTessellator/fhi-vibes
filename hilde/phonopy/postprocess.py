@@ -3,6 +3,7 @@ from pathlib import Path
 
 from phonopy.file_IO import write_FORCE_CONSTANTS
 
+from hilde.helpers.brillouinzone import get_special_points
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers import Timer
 from hilde.helpers.paths import cwd
@@ -12,6 +13,7 @@ from hilde.phonopy.wrapper import (
     plot_bandstructure as plot_bs,
     get_bandstructure,
     plot_bandstructure_and_dos,
+    get_animation,
 )
 from hilde.phonopy import defaults
 from hilde.structure.convert import to_Atoms, to_Atoms_db
@@ -99,6 +101,8 @@ def extract_results(
     plot_bandstructure=True,
     plot_dos=False,
     plot_pdos=False,
+    animate_q_points=None,
+    animate_all_sp_pts=False,
     q_mesh=None,
     output_dir="phonopy_output",
     tdep=False,
@@ -161,9 +165,21 @@ def extract_results(
             phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
             phonon.run_projected_dos(use_tetrahedron_method=True)
             phonon.write_projected_dos()
+
         if plot_pdos:
             talk(f".. plot projected DOS")
             plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
+
+        if animate_all_sp_pts:
+            if not animate_q_points:
+                animate_q_points = list()
+
+            for q_pt in get_special_points(primitive).values():
+                animate_q_points.append(tuple(q_pt))
+
+        if animate_q_points:
+            for q_pt in animate_q_points:
+                get_animation(phonon, q_pt, f"animation_{q_pt[0]}_{q_pt[1]}_{q_pt[2]}.ascii")
 
     if tdep:
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
