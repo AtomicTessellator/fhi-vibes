@@ -11,6 +11,7 @@ def wrap_calc_socket(
     calc_dict,
     metadata,
     phonon_times=None,
+    mem_use=None,
     trajectory="trajectory.son",
     workdir=".",
     backup_folder="backups",
