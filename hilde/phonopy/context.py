@@ -5,6 +5,7 @@ from pathlib import Path
 from ase import Atoms
 from hilde.settings import WorkflowSettings
 from hilde.helpers.numerics import get_3x3_matrix
+from hilde.structure.misc import get_sysname
 from ._defaults import defaults, name, mandatory_base, mandatory_task
 
 
@@ -50,15 +51,34 @@ class PhonopyContext:
             The working directory for the workflow
         """
         self.settings = PhonopySettings(settings)
-        if workdir:
-            self.workdir = Path(workdir)
-        else:
-            if "workdir" in self.settings.obj:
-                self.workdir = Path(self.settings.obj.pop("workdir"))
-            else:
-                self.workdir = Path(name)
-
+        self._workdir = None
         self._ref_atoms = None
+
+        if "workdir" in self.settings.obj:
+            self.workdir = self.settings.obj.pop("workdir")
+        if workdir:
+            self.workdir = workdir
+        if not self.workdir:
+            self.workdir = "auto"
+
+    @property
+    def workdir(self):
+        """return the working directory"""
+        return self._workdir
+
+    @workdir.setter
+    def workdir(self, dir):
+        """set the working directory. Use a standard name if dir='auto'"""
+        if "auto" in str(dir).lower():
+            smatrix = self.settings.obj.supercell_matrix.flatten()
+            vol = self.ref_atoms.get_volume()
+            sysname = get_sysname(self.ref_atoms)
+            dirname = name + "_{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}".format(
+                sysname, *smatrix, vol
+            )
+            self._workdir = Path(dirname)
+        else:
+            self._workdir = Path(dir)
 
     @property
     def q_mesh(self):

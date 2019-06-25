@@ -33,7 +33,7 @@ def aims_run(obj, workdir, settings):
 
 
 @run.command("phonopy")
-@click.option("--workdir", default="phonopy", show_default=True, help="work directory")
+@click.option("--workdir", help="work directory")
 @click.option("--settings", default="phonopy.in", show_default=True)
 @click.pass_obj
 def phonopy_run(obj, workdir, settings):

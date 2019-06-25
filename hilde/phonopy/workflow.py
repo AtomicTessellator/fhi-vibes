@@ -8,6 +8,7 @@ from hilde.helpers.restarts import restart
 
 from hilde.aims.context import AimsContext
 from hilde.aims.setup import setup_aims
+from hilde.helpers import talk
 
 from .context import PhonopyContext
 from .postprocess import postprocess
@@ -28,9 +29,9 @@ def run_phonopy(**kwargs):
     if not completed:
         restart()
     else:
-        print("Start postprocess.")
+        talk("Start postprocess.")
         postprocess(**args)
-        print("done.")
+        talk("done.")
 
 
 def bootstrap(ctx=None, name=None, settings=None, workdir=None, **kwargs):
