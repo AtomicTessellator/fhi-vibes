@@ -19,10 +19,15 @@ def run_phonopy(**kwargs):
     """ high level function to run phonopy workflow """
 
     args = bootstrap(**kwargs)
+    workdir = args["workdir"]
+
+    talk(f"Run phonopy workflow in working directory\n  {workdir}")
 
     try:
         postprocess(**args)
-        exit("** Postprocess could be performed from previous calculations. Check!")
+        msg = "** Postprocess could be performed from previous calculations. Check"
+        msg += f"\n**  {workdir}"
+        exit(msg)
     except (FileNotFoundError, RuntimeError):
         completed = calculate_socket(**args)
 
