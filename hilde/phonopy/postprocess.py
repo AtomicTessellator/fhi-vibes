@@ -101,8 +101,8 @@ def extract_results(
     plot_bandstructure=True,
     plot_dos=False,
     plot_pdos=False,
-    animate_q_points=None,
-    animate_all_sp_pts=False,
+    animate=None,
+    animate_q=None,
     q_mesh=None,
     output_dir="phonopy_output",
     tdep=False,
@@ -170,16 +170,20 @@ def extract_results(
             talk(f".. plot projected DOS")
             plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
 
-        if animate_all_sp_pts:
-            if not animate_q_points:
-                animate_q_points = list()
-
+        animate_q_points = []
+        if animate:
             for q_pt in get_special_points(primitive).values():
                 animate_q_points.append(tuple(q_pt))
 
-        if animate_q_points:
-            for q_pt in animate_q_points:
-                get_animation(phonon, q_pt, f"animation_{q_pt[0]}_{q_pt[1]}_{q_pt[2]}.ascii")
+        elif animate_q:
+            animate_q_points = animate_q
+
+        for q_pt in animate_q_points:
+            path = Path("animation")
+            path.mkdir(exist_ok=True)
+            outfile = path / f"animation_{q_pt[0]}_{q_pt[1]}_{q_pt[2]}.ascii"
+            get_animation(phonon, q_pt, outfile)
+            talk(f".. {outfile} written")
 
     if tdep:
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
