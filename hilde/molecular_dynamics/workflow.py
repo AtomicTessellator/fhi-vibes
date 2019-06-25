@@ -18,7 +18,7 @@ from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.socketio import socket_stress_on, socket_stress_off
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.restarts import restart
-from hilde.helpers import talk, warn
+from hilde.helpers import talk
 from . import metadata2dict
 
 
@@ -45,7 +45,7 @@ def bootstrap(ctx):
     atoms = ctx.settings.get_atoms()
 
     # create aims from context
-    aims_ctx = AimsContext(settings_file=ctx.settings_file)
+    aims_ctx = AimsContext(settings=ctx.settings)
 
     # make sure `compute_forces .true.` is set
     aims_ctx.settings.obj["compute_forces"] = True

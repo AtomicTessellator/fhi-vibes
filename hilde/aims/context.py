@@ -1,7 +1,6 @@
 """Aims workflow context managing"""
 
 from pathlib import Path
-import attr
 import click
 
 from ase import Atoms
@@ -22,22 +21,21 @@ from ._defaults import (
 class AimsSettings(WorkflowSettings):
     """Aims settings. Ensures that settings are set up sensibly"""
 
-    def __init__(self, settings_file=name + ".in", input_settings=None):
+    def __init__(self, settings=None):
         """Settings in the context of a phonopy workflow
 
         Args:
-            settings_file (str/Path, optional): name of the settings file (aims.in)
+            settings (Settings): Settings object
 
         """
 
         super().__init__(
             name,
-            settings_file=settings_file,
+            settings=settings,
             defaults=defaults,
             mandatory_keys=mandatory_base,
             obj_key=obj_key,
             mandatory_obj_keys=mandatory_task,
-            input_settings=input_settings,
         )
 
         # basisset
@@ -46,28 +44,21 @@ class AimsSettings(WorkflowSettings):
             raise SettingsError(msg)
 
 
-@attr.s
 class AimsContext:
     """context for aims calculation"""
 
-    settings_file = attr.ib(default=name + ".in")
-    input_settings = attr.ib(default=None)
-    settings = attr.ib()
-    workdir = attr.ib()
-    _ref_atoms = None
-    _primitive = None
-    _supercell = None
-    _atoms_to_calculate = None
+    def __init__(self, settings, workdir=None):
+        self.settings = AimsSettings(settings)
 
-    @settings.default
-    def set_settings(self):
-        """initialize self.settings"""
-        return AimsSettings(self.settings_file, self.input_settings)
+        if workdir:
+            self.workdir = Path(workdir)
+        else:
+            self.workdir = Path(name)
 
-    @workdir.default
-    def set_workdir(self):
-        """return workdir from settings object"""
-        return Path(name)
+        self._ref_atoms = None
+        self._primitive = None
+        self._supercell = None
+        self._atoms_to_calculate = None
 
     @property
     def geometry_files(self):
@@ -80,7 +71,7 @@ class AimsContext:
                 path = next(Path().glob(s.geometry.file))
                 assert path.exists()
             except (AssertionError, StopIteration):
-                msg = f"Please inspect [geometry] in {self.settings_file}"
+                msg = f"Please inspect [geometry] in {self.settings.settings_file}"
                 raise click.FileError(s.geometry["file"], msg)
             filenames.append(path)
 
@@ -136,3 +127,7 @@ class AimsContext:
     def get_calculator(self):
         """return and ase aims calculator object based on the context"""
         return setup_aims(self)
+
+    @property
+    def name(self):
+        return self.settings.name
