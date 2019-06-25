@@ -9,6 +9,6 @@ atoms = bulk("Al")
 
 calc = EMT()
 
-settings = Settings()
+settings = Settings("phonopy.in")
 
 run_phonopy(atoms=atoms, calculator=calc, settings=settings)

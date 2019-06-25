@@ -33,25 +33,14 @@ def run_phonopy(**kwargs):
         print("done.")
 
 
-def bootstrap(ctx=None, name="phonopy", settings=None, workdir=None, **kwargs):
+def bootstrap(ctx=None, name=None, settings=None, workdir=None, **kwargs):
     """ load settings, prepare atoms, calculator, and phonopy """
-    if ctx is None and settings is None:
-        ctx = PhonopyContext()
-    elif ctx is None:
-        ctx = PhonopyContext(input_settings=settings)
+    if ctx is None:
+        ctx = PhonopyContext(settings=settings)
     if workdir:
         ctx.workdir = workdir
 
     settings = ctx.settings
-
-    if not name:
-        name = ctx.name
-
-    if ctx is None:
-        ctx = PhonopyContext()
-
-    if settings is None:
-        settings = ctx.settings
 
     if not name:
         name = ctx.name
@@ -66,7 +55,7 @@ def bootstrap(ctx=None, name="phonopy", settings=None, workdir=None, **kwargs):
 
     # if calculator not given, create an aims context for this calculation
     if "calculator" not in kwargs:
-        aims_ctx = AimsContext(settings_file=ctx.settings_file, workdir=ctx.workdir, input_settings=settings)
+        aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.workdir)
         # set reference structure for aims calculation and make sure forces are computed
         aims_ctx.ref_atoms = supercell
         aims_ctx.settings.obj["compute_forces"] = True

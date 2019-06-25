@@ -1,7 +1,6 @@
 """Phonopy workflow context managing"""
 
 from pathlib import Path
-import attr
 
 from ase import Atoms
 from hilde.settings import WorkflowSettings
@@ -12,20 +11,18 @@ from ._defaults import defaults, name, mandatory_base, mandatory_task
 class PhonopySettings(WorkflowSettings):
     """Phonopy settings. Ensures that settings.phonopy is set up sensibly"""
 
-    def __init__(self, settings_file=name + ".in", input_settings=None):
+    def __init__(self, settings):
         """Settings in the context of a phonopy workflow
 
         Args:
-            settings_file (str/Path, optional): name of the settings file (phonopy.in)
-
+            settings (Settings): Settings object with settings for phonopy
         """
         super().__init__(
             name,
-            settings_file=settings_file,
+            settings=settings,
             defaults=defaults,
             mandatory_keys=mandatory_base,
             mandatory_obj_keys=mandatory_task,
-            input_settings=input_settings,
         )
 
         # validate
@@ -37,27 +34,20 @@ class PhonopySettings(WorkflowSettings):
         return self.obj["supercell_matrix"]
 
 
-@attr.s
 class PhonopyContext:
     """context for phonopy calculation"""
 
-    settings_file = attr.ib(default=name + ".in")
-    input_settings = attr.ib(default=None)
-    settings = attr.ib()
-    workdir = attr.ib()
-    _ref_atoms = None
+    def __init__(self, settings, workdir=None):
+        self.settings = PhonopySettings(settings)
+        if workdir:
+            self.workdir = Path(workdir)
+        else:
+            if "workdir" in self.settings.obj:
+                self.workdir = Path(self.settings.obj.pop("workdir"))
+            else:
+                self.workdir = Path(name)
 
-    @settings.default
-    def set_settings(self):
-        """initialize self.settings"""
-        return PhonopySettings(self.settings_file, self.input_settings)
-
-    @workdir.default
-    def set_workdir(self):
-        """return workdir from settings object"""
-        if "workdir" in self.settings.obj:
-            return Path(self.settings.obj.pop("workdir"))
-        return Path(name)
+        self._ref_atoms = None
 
     @property
     def q_mesh(self):
@@ -76,3 +66,8 @@ class PhonopyContext:
     def ref_atoms(self, atoms):
         assert isinstance(atoms, Atoms)
         self._ref_atoms = atoms
+
+    @property
+    def name(self):
+        """return name of the workflow"""
+        return self.settings.name

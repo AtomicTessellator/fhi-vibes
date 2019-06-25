@@ -156,6 +156,7 @@ class Settings(ConfigDict):
 
     @property
     def settings_file(self):
+        """return path to the settings file"""
         return self._settings_file
 
     @property
@@ -197,19 +198,12 @@ class Settings(ConfigDict):
 class SettingsSection(AttributeDict):
     """Wrapper for a section of settings.in"""
 
-    def __init__(
-        self,
-        name,
-        settings_file,
-        defaults=None,
-        mandatory_keys=None,
-        input_settings=None,
-    ):
+    def __init__(self, name, settings=None, defaults=None, mandatory_keys=None):
         """Initialize Settings in a specific context
 
         Args:
             name (str): name of the section
-            settings_file (str/Path): location of settings file.
+            settings (Settings): Settings object
             defaults (dict): dictionary with default key/value pairs
             mandatory_keys (list): mandatory keys in the section
 
@@ -220,16 +214,10 @@ class SettingsSection(AttributeDict):
         if mandatory_keys is None:
             mandatory_keys = []
 
-        if not path.exists(settings_file):
-            if input_settings is None:
-                raise FileNotFoundError(settings_file)
-            settings = input_settings
-        else:
-            settings = Settings(settings_file=settings_file)
         super().__init__(settings[name])
 
         self._name = name
-        self._settings_file = settings_file
+        self._settings_file = settings.settings_file
 
         # validate mandatory keys
         for key in mandatory_keys:
@@ -254,13 +242,12 @@ class WorkflowSettings(Settings):
     def __init__(
         self,
         name,
-        settings_file=None,
+        settings=None,
         config_file=DEFAULT_CONFIG_FILE,
         defaults=None,
         mandatory_keys=None,
         obj_key=None,
         mandatory_obj_keys=None,
-        input_settings=None,
     ):
         """Initialize Settings in a specific context
 
@@ -283,17 +270,11 @@ class WorkflowSettings(Settings):
             mandatory_keys = []
         if mandatory_obj_keys is None:
             mandatory_obj_keys = []
-        if settings_file is None:
-            settings_file = name + ".in"
 
-        if not path.exists(settings_file):
-            if input_settings is None:
-                raise FileNotFoundError(settings_file)
-            for key, val in input_settings.items():
-                self[key] = val
-            self.atoms = input_settings.atoms
-        else:
-            super().__init__(settings_file=settings_file, config_file=config_file)
+        super().__init__(settings_file=settings.settings_file, config_file=config_file)
+
+        for key, val in settings.items():
+            self[key] = val
 
         self._name = name
 
@@ -304,9 +285,7 @@ class WorkflowSettings(Settings):
         for key in mandatory_keys:
             self.verify_key(key)
 
-        self[obj_key] = SettingsSection(
-            obj_key, settings_file, defaults, mandatory_obj_keys, input_settings
-        )
+        self[obj_key] = SettingsSection(obj_key, settings, defaults, mandatory_obj_keys)
         self._obj = self[obj_key]
 
     @property
