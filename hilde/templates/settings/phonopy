@@ -9,9 +9,6 @@ compute_forces:                true
 [basisset]
 type:                          light
 
-[socketio]
-port:                          12345
-
 [phonopy]
 workdir:                       phonopy
-supercell_matrix:              1
+supercell_matrix:              [1, 1, 1]
