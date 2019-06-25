@@ -161,19 +161,19 @@ class Settings(ConfigDict):
     @property
     def atoms(self):
         """ Return the settings.atoms object """
-        if self._atoms:
-            return self._atoms
+        if not self._atoms:
+            self._atoms = self.get_atoms()
 
-        return self.get_atoms()
+        return self._atoms
 
     @atoms.setter
-    def atoms(self, object):
+    def atoms(self, obj):
         """ Set the settings.atoms object """
-        assert isinstance(object, Atoms), type(object)
-        self._atoms = object
+        assert isinstance(obj, Atoms), type(obj)
+        self._atoms = obj
 
     def get_atoms(self, format="aims"):
-        """ parse the geometry described in settings.in and return as atoms """
+        """parse the geometry described in settings.in and return as atoms"""
 
         # use the file specified in geometry.file or the default (geometry.in)
         if "geometry" in self and "file" in self.geometry and self.geometry.file:
@@ -182,8 +182,7 @@ class Settings(ConfigDict):
             file = DEFAULT_GEOMETRY_FILE
 
         if path.exists(file):
-            self._atoms = read(file, format=format)
-            return self._atoms
+            return read(file, format=format)
 
         warn(f"Geometry file {file} not found.", level=1)
 
@@ -198,7 +197,14 @@ class Settings(ConfigDict):
 class SettingsSection(AttributeDict):
     """Wrapper for a section of settings.in"""
 
-    def __init__(self, name, settings_file, defaults=None, mandatory_keys=None, input_settings=None):
+    def __init__(
+        self,
+        name,
+        settings_file,
+        defaults=None,
+        mandatory_keys=None,
+        input_settings=None,
+    ):
         """Initialize Settings in a specific context
 
         Args:

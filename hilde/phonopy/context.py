@@ -3,7 +3,7 @@
 from pathlib import Path
 import attr
 
-from ase.io import read
+from ase import Atoms
 from hilde.settings import WorkflowSettings
 from hilde.helpers.numerics import get_3x3_matrix
 from ._defaults import defaults, name, mandatory_base, mandatory_task
@@ -66,10 +66,10 @@ class PhonopyContext:
 
     @property
     def ref_atoms(self):
-        if not self._ref_atoms and not getattr(self.input_settings, "atoms", None):
-            self._ref_atoms = read(self.settings.geometry.file, format="aims")
-        elif not self._ref_atoms:
-            self._ref_atoms = self.input_settings.atoms
+        """return the reference Atoms object for the given context"""
+        if not self._ref_atoms:
+            self._ref_atoms = self.settings.atoms
+
         return self._ref_atoms
 
     @ref_atoms.setter

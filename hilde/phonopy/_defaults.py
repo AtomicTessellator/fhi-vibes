@@ -14,7 +14,6 @@ defaults = adict(
         "displacement": 0.01,
         "symprec": 1e-5,
         "is_diagonal": False,
+        "q_mesh": [26, 26, 26],
     }
 )
-
-defaults_postprocess = {"q_mesh": [26, 26, 26]}

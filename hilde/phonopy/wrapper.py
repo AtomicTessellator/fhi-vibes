@@ -203,7 +203,7 @@ def plot_bandstructure_and_dos(
         phonon.run_projected_dos(use_tetrahedron_method=True)
         pdos_indices = map_unique_to_atoms(phonon.get_primitive())
     else:
-        phonon.run_mesh(q_mesh, with_eigenvectors=True,)
+        phonon.run_mesh(q_mesh) #, with_eigenvectors=True,)
         phonon.run_total_dos(use_tetrahedron_method=True)
         pdos_indices = None
 

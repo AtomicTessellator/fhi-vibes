@@ -3,8 +3,7 @@ from pathlib import Path
 
 import click
 
-from hilde.phonopy.context import PhonopyContext
-from hilde.phonopy._defaults import defaults_postprocess
+from hilde.phonopy._defaults import defaults
 
 from .misc import AliasedGroup
 
@@ -45,7 +44,7 @@ def phonopy_output(
     from hilde.phonopy.postprocess import postprocess, extract_results
 
     if not q_mesh:
-        q_mesh = defaults_postprocess["q_mesh"]
+        q_mesh = defaults.q_mesh.copy()
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
     phonon = postprocess(trajectory=trajectory)
@@ -65,7 +64,7 @@ def phonopy_output(
         "output_dir": output_directory,
         "tdep": tdep,
         "animate_q_points": list(animate_q_pt),
-        "animate_all_sp_pts": animate_all_sp_pts
+        "animate_all_sp_pts": animate_all_sp_pts,
     }
 
     extract_results(phonon, **kwargs)
