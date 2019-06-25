@@ -13,7 +13,6 @@ from hilde._defaults import DEFAULT_CONFIG_FILE
 from . import info, input, run, tools, output
 from .cli_tracker import CliTracker
 from .misc import AliasedGroup, check_path
-from hilde.fireworks.cli import fireworks
 
 @click.command(cls=AliasedGroup)
 @click.version_option(hilde_version, "-V", "--version")
@@ -41,7 +40,12 @@ cli.add_command(input.input)
 cli.add_command(run.run)
 cli.add_command(tools.tools)
 cli.add_command(output.output)
-cli.add_command(fireworks.fireworks)
+
+try:
+    from hilde.fireworks.cli import fireworks
+    cli.add_command(fireworks.fireworks)
+except ImportError:
+    pass
 
 @cli.command("status", hidden=True)
 @click.option("--verbose", is_flag=True)
