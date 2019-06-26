@@ -11,7 +11,7 @@ def compute_sed(traj, ideal, prim, k_points):
 
     Parameters
     ----------
-    traj : list
+    traj : list of Atoms
         trajectory with atoms objects with velocities
     ideal : ASE atoms object
         ideal atoms object
@@ -19,6 +19,11 @@ def compute_sed(traj, ideal, prim, k_points):
         compatible primitive cell. Must be aligned correctly
     k_points : list
         list of k points in cart coord (2pi must be included)
+
+    Returns
+    -------
+    density: np.ndarray(dtype=float, shape=(len(k_points), velocities.shape[2]))
+        The spectral density of the trajectory
     """
 
     velocities = []
@@ -52,6 +57,26 @@ def compute_sed(traj, ideal, prim, k_points):
 
 
 def _index_offset(atoms, prim, atol=1e-3, rtol=0.0):
+    """Computes the index_offset
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The atoms object
+    prim: ASE Atoms Object
+        The primitive cell
+    atol: float
+        The absolute tolerance
+    rtol: float
+        The relative tolerance
+
+    Returns
+    -------
+    index: np.ndarray(int)
+        The index array
+    offset: np.ndarray(int)
+        The offset
+    """
     index, offset = [], []
     for pos in atoms.positions:
         spos = np.linalg.solve(prim.cell.T, pos)

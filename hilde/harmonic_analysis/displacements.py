@@ -6,7 +6,22 @@ from hilde.konstanten import v_unit
 
 
 def get_dR(atoms, atoms0, wrap_tol=1e-5):
-    """ Compute and return dR = R - R^0 respecting possibly wrapped atoms """
+    """Compute and return dR = R - R^0 respecting possibly wrapped atoms
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The distorted structure
+    atoms0: ASE Atoms Object
+        The reference structure
+    wrap_tol: float
+        The tolerance for wrapping atoms at the cell edges
+
+    Returns
+    -------
+    dR: np.ndarray
+        R - R^0
+    """
 
     # get fractional coordinates
     fR0 = atoms0.get_scaled_positions()
@@ -24,7 +39,24 @@ def get_dR(atoms, atoms0, wrap_tol=1e-5):
 
 
 def get_U(atoms, atoms0, masses=None, wrap_tol=1e-5):
-    """ Compute dR = R - R^0 and return U = sqrt(M) . dR """
+    """ Compute dR = R - R^0 and return U = sqrt(M) . dR
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The distorted structure
+    atoms0: ASE Atoms Object
+        The reference structure
+    masses: np.ndarray
+        The mass of the atoms object
+    wrap_tol: float
+        The tolerance for wrapping atoms at the cell edges
+
+    Returns
+    -------
+    dU: np.ndarray
+        sqrt(M) . dR
+    """
 
     dR = get_dR(atoms0, atoms, wrap_tol=wrap_tol)
 
@@ -38,7 +70,22 @@ def get_U(atoms, atoms0, masses=None, wrap_tol=1e-5):
 
 
 def get_dUdt(atoms, masses=None, wrap_tol=1e-5):
-    """ Compute V and return dU/dt = sqrt(M) . V """
+    """ Compute V and return dU/dt = sqrt(M) . V
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The distorted structure
+    masses: np.ndarray
+        The mass of the atoms object
+    wrap_tol: float
+        The tolerance for wrapping atoms at the cell edges
+
+    Returns
+    -------
+    dUdt: np.ndarray
+        sqrt(M) . V
+    """
 
     V = atoms.get_velocities()  # / v_unit
 
