@@ -87,7 +87,7 @@ def move_to_dir(file, folder, exist_ok=False):
 
 
 def copy_to_dir(file, folder, exist_ok=False):
-     """Copy file to new directory
+    """Copy file to new directory
 
     Parameters
     ----------
