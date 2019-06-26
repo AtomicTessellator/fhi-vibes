@@ -3,7 +3,21 @@ import inspect
 
 
 def warn(message, level=0):
-    " https://stackoverflow.com/a/2654130/5172579 "
+    """Print warnings to the console
+
+    https://stackoverflow.com/a/2654130/5172579
+
+    Parameters
+    ----------
+    message: str
+        warning message to print
+    level: int (0, 1, 2)
+        How severe the warning is
+
+    Raises:
+    RuntimeError
+        If warning level=2 (Error)
+    """
 
     curframe = inspect.currentframe()
     frame = inspect.getouterframes(curframe, 2)[1]

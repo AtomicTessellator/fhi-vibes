@@ -19,6 +19,18 @@ class NumpyEncoder(json.JSONEncoder):
     """ Decode numerical objects that json cannot parse by default"""
 
     def default(self, obj):
+        """Default JSON encoding
+
+        Parameters
+        ----------
+        obj
+            The object to be encoded
+
+        Returns
+        -------
+        any
+            The JSON friendly version of the object
+        """
         if hasattr(obj, "tolist") and callable(obj.tolist):
             return obj.tolist()
         if isinstance(obj, (np.int32, np.int64)):
@@ -31,7 +43,18 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 def atoms2dict(atoms):
-    """ Converts an Atoms object into a dict """
+    """Converts an Atoms object into a dict
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to be converted to a dict
+
+    Returns
+    -------
+    atoms_dict: dict
+        The dict representation of atoms
+    """
 
     atoms_dict = {
         "symbols": [f"{sym}" for sym in atoms.symbols],
@@ -54,7 +77,18 @@ def atoms2dict(atoms):
 
 
 def calc2dict(calc):
-    """ Converts an ase calculator calc into a dict"""
+    """Converts an ase calculator calc into a dict
+
+    Parameters
+    ----------
+    calc: ASE Calculator Object
+        The calculator to be converted to a dict
+
+    Returns
+    -------
+    calc_dict: dict
+        The dict representation of calc
+    """
 
     if calc is None:
         return {}
@@ -74,10 +108,37 @@ def calc2dict(calc):
 
 
 def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
-    """ convert metadata information to plain dict
+    """Convert metadata information to plain dict
 
-    Returns:
-        {'calculator': calc, 'atoms': atoms} """
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to be converted to a dict
+    calc: ASE Calculator Object
+        The calculator to be converted to a dict
+    primitive: ASE Atoms Object
+        The primitive cell structure
+    supercell: ASE Atoms Object
+        The supercell cell structure
+    settings: Settings
+        The settings used to generate the inputs
+
+    Returns
+    -------
+    input_dict: dict
+        The dictionary items
+
+        calculator: dict
+            The calc_dict of the inputs
+        atoms: dict
+            The atoms_dict of the inputs
+        primitive: dict
+            The dict representation of the primitive cell structure
+        supercell: dict
+            The dict representation of the supercell cell structure
+        settings: dict
+            The dict representation of the settings used to generate the inputs
+    """
 
     # structure
     atoms_dict = atoms2dict(atoms)
@@ -106,7 +167,27 @@ def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
 
 
 def results2dict(atoms, calc=None, append_cell=False):
-    """ extract information from atoms and calculator and convert to plain dict """
+    """extract information from atoms and calculator and convert to plain dict
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to be converted to a dict
+    calc: ASE Calculator Object
+        The calculator to be converted to a dict
+    append_cell: bool
+        If True append the cell in atoms_dict
+
+    Returns
+    -------
+    dict
+        The dictionary items
+
+        calculator: dict
+            The calc_dict of the inputs
+        atoms: dict
+            The atoms_dict of the inputs
+    """
 
     if calc is None:
         calc = atoms.calc
@@ -148,7 +229,20 @@ def results2dict(atoms, calc=None, append_cell=False):
 
 
 def dict2atoms(atoms_dict, calc_dict=None):
-    """ convert dictionaries into atoms and calculator objects """
+    """Convert dictionaries into atoms and calculator objects
+
+    Parameters
+    ----------
+    atoms_dict: dict
+        The dict representation of atoms
+    calc_dict: dict
+        The dict representation of calc
+
+    Returns
+    -------
+    atoms: ASE Atoms Object
+        The atoms represented by atoms_dict with the calculator represented by calc_dict attached
+    """
 
     pbc = False
     if "cell" in atoms_dict:
@@ -185,7 +279,22 @@ def dict2atoms(atoms_dict, calc_dict=None):
 
 
 def dict2json(dct, indent=0, outer=True):
-    """ convert python dictionary with scientific data to JSON """
+    """convert python dictionary with scientific data to JSON
+
+    Parameters
+    ----------
+    dct: dict
+        Dictionary to convert to JSONAble format
+    indent: int
+        indentation for the json string
+    outer: bool
+        if True add outer { } to the string
+
+    Returns
+    -------
+    rep: str
+        json string of the dict
+    """
 
     parts = []
     ind = indent * " "
@@ -251,15 +360,43 @@ def dict2json(dct, indent=0, outer=True):
 
 
 def get_json(obj):
-    "Return json representation of obj"
+    """Return json representation of obj
+
+    Parameters
+    ----------
+    obj
+        Object to convert to json
+
+    Returns
+    -------
+    str
+        json string of obj
+    """
     return json.dumps(obj, cls=MyEncoder, sort_keys=True)
 
 
 def atoms2json(
     atoms, ignore_results=False, ignore_keys=["unique_id"], ignore_calc_params=[]
 ):
-    """ return json representation of atoms and calculator objects.
-        possibility to remove certain keys from the atoms dictionary, e.g. for hashing
+    """Return json representation of atoms and calculator objects. possibility to remove certain keys from the atoms dictionary, e.g. for hashing
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to be converted to a json with attached calculator
+    ignore_results: bool
+        If True ignore the results in atoms.calc
+    ignore_keys: list of str
+        Ignore all keys in this list
+    ignore_calc_params: list of str
+        Ignore all keys in this list that represent calculator parameters
+
+    Returns
+    -------
+    atoms_json: str
+        Json representation of the atoms dictionary
+    calc_json: str
+        Json representation of the calculator dictionary
     """
 
     # dictionary contains all the information in atoms object

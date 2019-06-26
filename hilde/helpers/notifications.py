@@ -2,6 +2,17 @@
 
 
 def send_simple_mail(message, to_addr, extra_message=""):
+    """Send simple e-mail message
+
+    Parameters
+    ----------
+    message: str
+        Message to send
+    to_addr: str
+        The e-mail address
+    extra_message:
+        Additional message to send
+    """
     import os
 
     log = os.system(

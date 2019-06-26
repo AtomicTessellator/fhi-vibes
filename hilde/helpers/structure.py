@@ -6,9 +6,20 @@ from hilde.helpers.numerics import clean_matrix
 
 # no ase
 def clean_atoms(input_atoms, align=False, tolerance=1e-9):
-    """Objective: Put position of atom 0 to origin,
-    align 1. lattice vector with x axis, 2. to xy plane
-    rotation: change lattice via rotations, else: change via cellpars
+    """Put position of atom 0 to origin, align 1. lattice vector with x axis, 2. to xy plane rotation: change lattice via rotations, else: change via cellpars
+
+    Parameters
+    ----------
+    input_atoms: ASE Atoms Object
+        input atoms to be cleaned
+    align: bool
+        If True align the cell based off of ase.geometry.cellpar_to_cell base alignment
+    tolerance: float
+        tolerance for the allowed change in volume
+
+    Returns
+    atoms: ASE Atoms Object
+        The cleaned atoms object
     """
 
     atoms = input_atoms.copy()
