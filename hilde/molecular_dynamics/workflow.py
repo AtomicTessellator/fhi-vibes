@@ -182,8 +182,10 @@ def run(
 
             if compute_stresses:
                 if compute_stresses_next(compute_stresses, md.nsteps):
+                    talk("switch stresses computation on")
                     socket_stress_on(iocalc)
                 else:
+                    talk("switch stresses computation off")
                     socket_stress_off(iocalc)
 
                 continue
