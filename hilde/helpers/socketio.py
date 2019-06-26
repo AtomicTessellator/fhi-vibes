@@ -1,8 +1,8 @@
 """ socket io helpers """
 import numpy as np
+from ase import units
 from hilde.helpers import talk
 from hilde.helpers.warnings import warn
-from hilde.konstanten.einheiten import atomic_units
 
 
 def get_port(calculator):
@@ -30,7 +30,7 @@ def get_stresses(atoms):
     assert msg == "STRESSREADY"
     natoms = atoms.calc.server.protocol.recv(1, np.int32)
     stresses = atoms.calc.server.protocol.recv((int(natoms), 3, 3), np.float64)
-    return stresses * atomic_units.eV
+    return stresses * units.Hartree
 
 
 def socket_stress_off(calc):

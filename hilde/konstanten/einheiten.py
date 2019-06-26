@@ -27,21 +27,21 @@ HARTREE = ase_units.Hartree # = 27.21138602 * EV  # [J]
 BOHR = ase_units.Bohr # = 0.52917721092 * AA  # [m]
 HBAR = ase_units._hbar # = PLANCK_CONSTANT / 2 / PI  # [J s]
 
-atomic_units = AttributeDict(
-    {
-        "bohr": BOHR,
-        "AA": BOHR / AA,
-        "hartree": HARTREE,
-        "eV": HARTREE / EV,
-        "c": 1 / ALPHA,
-        "kg": ELECTRON_MASS,
-        "u": ELECTRON_MASS / AMU,
-        "s": HBAR / HARTREE,
-        "fs": HBAR / HARTREE / FEMTO,
-        "kB": BOLTZMANN / HARTREE,
-        "K": HARTREE / BOLTZMANN,
-    }
-)
+# atomic_units = AttributeDict(
+#     {
+#         "bohr": BOHR,
+#         "AA": BOHR / AA,
+#         "hartree": HARTREE,
+#         "eV": HARTREE / EV,
+#         "c": 1 / ALPHA,
+#         "kg": ELECTRON_MASS,
+#         "u": ELECTRON_MASS / AMU,
+#         "s": HBAR / HARTREE,
+#         "fs": HBAR / HARTREE / FEMTO,
+#         "kB": BOLTZMANN / HARTREE,
+#         "K": HARTREE / BOLTZMANN,
+#     }
+# )
 
 # force constants
 omega_to_THz = (EV / AA ** 2 / AMU) ** 0.5 / THZ / 2 / PI  # 15.633302 THz
@@ -51,17 +51,17 @@ omega_to_cm = omega_to_THz * THz_to_cm
 amu_AA_THz_to_eV = AMU * AA ** 2 * THZ ** 2 / EV
 
 # old stuff
-Bohr_to_AA = atomic_units.AA
-Hartree_to_eV = atomic_units.eV
-au_to_kg = atomic_units.kg
-kg_to_au = 1 / au_to_kg
-u_in_kg = AMU
-u_in_au = u_in_kg * kg_to_au
-c_in_au = atomic_units.c
-au_to_s = atomic_units.s
-au_to_fs = atomic_units.fs
-au_to_cm = au_to_s * 2 * PI * 3e10
-au_to_K = atomic_units.K
+# Bohr_to_AA = atomic_units.AA
+# Hartree_to_eV = atomic_units.eV
+# au_to_kg = atomic_units.kg
+# kg_to_au = 1 / au_to_kg
+# u_in_kg = AMU
+# u_in_au = u_in_kg * kg_to_au
+# c_in_au = atomic_units.c
+# au_to_s = atomic_units.s
+# au_to_fs = atomic_units.fs
+# au_to_cm = au_to_s * 2 * PI * 3e10
+# au_to_K = atomic_units.K
 
 kB = BOLTZMANN / EV  # [eV/K] 8.6173383e-05
 EvTokJmol = EV / 1000 * AVOGADRO  # [kJ/mol] 96.4853910
