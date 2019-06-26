@@ -18,17 +18,26 @@ class KPointOptimizer(Dynamics):
         logfile="-",
         kpts_density_init=1.0,
     ):
-        """
-        Initializes the KPointOptimizer
-        Parameters:
-            atoms: (ASE Atoms object) geometry of the system you are converging the k-grid on with a calculator attached
-            func: (function) Function used to get the property the routine is trying to converge relative to the k-grid density
-            loss_func: (function) Function used to transform the property obtained in func into a score to compare agsint
-            dfunc_min: (float) Convergence criteria for the loss function
-            even: (bool) If True kgrid must be even valued
-            trajecotry: (str) file name to store the trajectory
-            logfile: (str) file name for the log file
-            kpts_density_init: (float) initial k-point density
+        """Initializes the KPointOptimizer
+
+        Parameters
+        ----------
+        atoms: ASE Atoms object
+            geometry of the system you are converging the k-grid on with a calculator attached
+        func: function
+            Function used to get the property the routine is trying to converge relative to the k-grid density
+        loss_func: function
+            Function used to transform the property obtained in func into a score to compare agsint
+        dfunc_min: float
+            Convergence criteria for the loss function
+        even: bool
+            If True kgrid must be even valued
+        trajecotry: str
+            file name to store the trajectory
+        logfile: str
+            file name for the log file
+        kpts_density_init: float
+            initial k-point density
         """
         Dynamics.__init__(
             self, atoms, logfile=logfile, trajectory=trajectory, append_trajectory=True
@@ -73,7 +82,17 @@ class KPointOptimizer(Dynamics):
         return {"type": "kpoint-optimizer"}
 
     def irun(self, steps=100):
-        """Iterative run functions, advances the calculation by one step"""
+        """Iterative run functions, advances the calculation by one step
+
+        Parameters
+        ----------
+        steps: int
+            Maximum number of steps
+
+        Yields
+        ------
+        The next step, if converged stop
+        """
         self.ref = self.func(self.atoms)
 
         for _ in range(steps):
