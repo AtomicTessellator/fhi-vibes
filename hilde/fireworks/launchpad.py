@@ -15,7 +15,7 @@ class LaunchPad(launchpad.LaunchPad):
         """
         Checks to see if the database contains any FireWorks of a given id set that are
         ready to run.
-        Args:
+        Parameters:
             fworker(FWorker): FireWorker for the queuery
             ids(list of ints): List of FireWork ids to query over
 
@@ -29,7 +29,7 @@ class LaunchPad(launchpad.LaunchPad):
 
     def future_run_exists(self, fworker=None, ids=None):
         """Check if database has any current OR future Fireworks available
-        Args:
+        Parameters:
             fworker(FWorker): FireWorker for the queuery
             ids(list of ints): List of FireWork ids to query over
 
@@ -56,7 +56,7 @@ class LaunchPad(launchpad.LaunchPad):
     def from_dict(cls, d):
         """
         Constructs a LaunchPad from a dict
-        Args:
+        Parameters:
             cls: Class of the LaunchPad
             d: dict describing it
 
@@ -94,7 +94,7 @@ class LaunchPad(launchpad.LaunchPad):
     def auto_load(cls):
         """
         auto_load from default file
-        Args:
+        Parameters:
             cls (Class Type): LaunchPad
 
         Returns:

@@ -26,7 +26,7 @@ from hilde.phonopy.wrapper import preprocess
 def get_time(time_str):
     """
     Converts a time step to the number of seconds that time stamp represents
-    Args:
+    Parameters:
         time_str (str): A string representing a specified time
 
     Returns:
@@ -42,7 +42,7 @@ def get_time(time_str):
 def to_time_str(n_sec):
     """
     Converts a number of seconds into a time string
-    Args:
+    Parameters:
         n_secs (int): A time presented as a number of seconds
 
     Returns:
@@ -57,7 +57,7 @@ def to_time_str(n_sec):
 def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=True):
     """
     update the fw_settings for the next step
-    Args:
+    Parameters:
         fw_settings(dict): Current fw_settings
         fw_name(str): name of the current step
         queueadapter(dict): dict describing the queueadapter changes for this firework
@@ -100,7 +100,7 @@ def generate_firework(
 ):
     """
     A function that takes in a set of inputs and returns a Firework to perform that operation
-    Args:
+    Parameters:
         task_spec_list (list of TaskSpecs): list of task specifications to perform
         atoms (ASE Atoms object, dictionary or str):
             If not atoms_calc_from_spec then this must be an ASE Atoms object or a
@@ -230,7 +230,7 @@ def generate_fw(
 ):
     """
     Generates a FireWork
-    Args:
+    Parameters:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         task_list (list of TaskSpecs): Definitions for the tasks to be run
         fw_settings (dict): FireWork settings for the step
@@ -269,7 +269,7 @@ def generate_fw(
 def generate_kgrid_fw(workflow, atoms, fw_settings):
     """
     Generate a k-grid optimization Firework
-    Args:
+    Parameters:
         workflow (Settings): workflow settings where the task is defined
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         fw_settings (dict): Firework settings for the step
@@ -310,7 +310,7 @@ def generate_kgrid_fw(workflow, atoms, fw_settings):
 def generate_relax_fw(workflow, atoms, fw_settings, basisset_type):
     """
     Generates a Firework for the relaxation step
-    Args:
+    Parameters:
         workflow (Settings): workflow settings where the task is defined
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         fw_settings (dict): Firework settings for the step
@@ -353,7 +353,7 @@ def generate_relax_fw(workflow, atoms, fw_settings, basisset_type):
 def generate_phonon_fw(workflow, atoms, fw_settings, typ):
     """
     Generates a Firework for the phonon initialization
-    Args:
+    Parameters:
         aworkflow (Settings): workflow settings where the task is defined
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         fw_settings (dict): Firework settings for the step
@@ -405,7 +405,7 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
 def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
     """
     Generates a Firework for the phonon analysis
-    Args:
+    Parameters:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         wd (str): Workdirectory
         fw_settings (dict): Firework settings for the step
@@ -451,7 +451,7 @@ def generate_phonon_fw_in_wf(
 ):
     """
     Generates a Firework for the phonon initialization
-    Args:
+    Parameters:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         wd (str): Workdirectory
         fw_settings (dict): Firework settings for the step
@@ -502,7 +502,7 @@ def generate_phonon_postprocess_fw_in_wf(
 ):
     """
     Generates a Firework for the phonon analysis
-    Args:
+    Parameters:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         wd (str): Workdirectory
         fw_settings (dict): Firework settings for the step
@@ -542,7 +542,7 @@ def generate_phonon_postprocess_fw_in_wf(
 def generate_stat_samp_fw(workflow, atoms, fw_settings):
     """
     Generates a Firework for the phonon initialization
-    Args:
+    Parameters:
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         wd (str): Workdirectory
         fw_settings (dict): Firework settings for the step
@@ -587,7 +587,7 @@ def generate_stat_samp_fw(workflow, atoms, fw_settings):
 def generate_aims_fw(workflow, atoms, fw_settings):
     """
     Generates a Firework for the relaxation step
-    Args:
+    Parameters:
         workflow (Settings): workflow settings where the task is defined
         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
         fw_settings (dict): Firework settings for the step

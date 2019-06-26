@@ -10,7 +10,7 @@ from hilde.helpers.k_grid import d2k, k2d
 def suggest_k_grid(filename, density, uneven, format):
     """suggest a k_grid for geometry in FILENAME based on density
 
-    Args:
+    Parameters:
         filename (str/Path): geometry input file
         density (float): kpoint density
         uneven (bool): allow uneven values of k

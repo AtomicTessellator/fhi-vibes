@@ -24,7 +24,7 @@ class AimsSettings(WorkflowSettings):
     def __init__(self, settings=None):
         """Settings in the context of a phonopy workflow
 
-        Args:
+        Parameters:
             settings (Settings): Settings object
 
         """

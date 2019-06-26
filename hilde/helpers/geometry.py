@@ -27,7 +27,7 @@ def get_cubicness(cell):
     Quantify 'how cubic' a given lattice or cell is by comparing the largest
     sphere that fits into the cell to a sphere that fits into a cubic cell
     of similar size
-    Args:
+    Parameters:
         cell: Lattice of the cell
     Returns:
         ratio of radii of the two spheres:

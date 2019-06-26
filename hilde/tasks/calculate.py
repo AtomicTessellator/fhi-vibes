@@ -33,7 +33,7 @@ def cells_and_workdirs(cells, base_dir):
 def calculate(atoms, calculator, workdir="."):
     """Short summary.
     Perform a dft calculation with ASE
-    Args:
+    Parameters:
         atoms (Atoms or pAtoms): Structure.
         calculator (calculator): Calculator.
         workdir (folder): Folder to perform calculation in.
@@ -68,7 +68,7 @@ def calculate_multiple(cells, calculator, workdir):
 def setup_multiple(cells, calculator, workdir, mkdir):
     """
     Write input files for calculations on a list of atoms objects
-    Args:
+    Parameters:
         cells (Atoms): List of atoms objects.
         calculator (calculator): Calculator to run calculation.
         workdir (str/Path): working directory
@@ -103,7 +103,7 @@ def calculate_socket(
 ):
     """ perform calculations for a set of atoms objects
 
-    Args:
+    Parameters:
         atoms_to_calculate (list): list with atoms to calculate
         calculator (ase.calculator): calculator to use
         metadata (dict): metadata information to store to trajectory

@@ -35,7 +35,7 @@ class HarmonicAnalysis:
     ):
         """Initialize unit cell, supercell, force_constants and lattice points.
 
-        Args:
+        Parameters:
             primitive (Atoms): unit cell
             supercell (Atoms): supercell
             force_constants (np.array): force constants as obtained from TDEP

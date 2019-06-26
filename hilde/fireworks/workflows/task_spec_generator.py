@@ -5,7 +5,7 @@ from hilde.fireworks.tasks.task_spec import TaskSpec
 def gen_phonon_task_spec(func_kwargs, fw_settings=None):
     """
     Generate a parallel Phononpy or Phono3py calculation task
-    Args:
+    Parameters:
         func_kwargs (dict): The defined kwargs for func
         fw_settings (dict): Settings used by fireworks to place objects in the right part of
                             the MongoDB
@@ -62,7 +62,7 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
 def gen_stat_samp_task_spec(func_kwargs, fw_settings=None):
     """
     Generate a Harmonic Analysis task
-    Args:
+    Parameters:
         func_kwargs (dict): The defined kwargs for func
         fw_settings (dict): Settings used by fireworks to place objects in the right part of
                             the MongoDB
@@ -129,7 +129,7 @@ def gen_phonon_analysis_task_spec(
 ):
     """
     Generate a serial Phononpy or Phono3py calculation task
-    Args:
+    Parameters:
         func (str): The function path to the serial calculator
         func_kwargs (dict): The defined kwargs for func
         metakey (str): Key to find the phonon calculation's metadata to recreate the trajectory
@@ -185,7 +185,7 @@ def gen_aims_task_spec(
 ):
     """
     Gets the task spec for an FHI-aims calculations
-    Args:
+    Parameters:
         func_kwargs (dict): The defined kwargs for func
         func_fw_outkwargs (dict): The defined kwargs for fw_out
         make_abs_path (bool): If True make the paths of directories absolute
@@ -210,7 +210,7 @@ def gen_aims_task_spec(
 def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
     """
     Gets the task spec for a k-grid optimization
-    Args:
+    Parameters:
         func_kwargs (dict): The defined kwargs for func
         make_abs_path (bool): If True make the paths of directories absolute
 

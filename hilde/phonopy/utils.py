@@ -41,7 +41,7 @@ def to_phonopy_atoms(atoms):
 def enumerate_displacements(cells, info_str=displacement_id_str):
     """ Assign a displacemt id to every atoms obect in cells.
 
-    Args:
+    Parameters:
         cells (list): atoms objects created by, e.g., phonopy
         info_str (str): how to name the child
 
@@ -107,7 +107,7 @@ def get_force_constants_from_trajectory(
 ):
     """
     Remaps the phonopy force constants into an fc matrix for a new structure
-    Args:
+    Parameters:
         trajectory (hilde.Trajectory): phonopy trajectory
         supercell (ase.Atoms): Atoms Object to map force constants onto
         reduce_fc (bool): return in [N_prim, N_sc, 3, 3]  shape
@@ -149,7 +149,7 @@ def remap_force_constants(
 ):
     """remap force constants [N_prim, N_sc, 3, 3] to [N_sc, N_sc, 3, 3]
 
-    Args:
+    Parameters:
         force_constants (np.ndarray): force constants in [N_prim, N_sc, 3, 3] shape
         primitive (ase.Atoms): primitive cell for reference
         supercell (ase.Atoms): supercell for reference
@@ -248,7 +248,7 @@ def parse_phonopy_force_constants(
 ):
     """parse phonopy FORCE_CONSTANTS file and return as 2D array
 
-    Args:
+    Parameters:
         uc_filename (str/Path): primitive unit cell
         sc_filename (str/Path): supercell
         fc_filename (str/Path): phonopy forceconstant file to parse

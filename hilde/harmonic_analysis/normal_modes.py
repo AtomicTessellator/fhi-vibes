@@ -37,7 +37,7 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
 def projector(q_points, lattice_points, eigenvectors, indeces, flat=True):
     """ obtain the projector onto normal modes for vector product with displacements
 
-    Args:
+    Parameters:
         q_points: (commensurate) q points
         lattice_points: lattice points within supercell
         eigenvectors: set of eigenvectors of dynamical matrix for each q points

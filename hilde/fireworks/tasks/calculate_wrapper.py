@@ -20,7 +20,7 @@ def wrap_calc_socket(
 ):
     """
     Wrapper for the clalculate_socket function
-    Args:
+    Parameters:
         atoms_dict_to_calculate (list of dicts): A list of dicts representing the cells
                                                  to calculate the forces on
         calc_dict (dict): A dictionary representation of the ASE Calculator used to calculate
@@ -89,7 +89,7 @@ def wrap_calc_socket(
 def wrap_calculate(atoms, calc, workdir=".", walltime=1800):
     """
     Wrapper for the clalculate_socket function
-    Args:
+    Parameters:
         atoms (Atoms): Structure.
         calculator (calculator): Calculator.
         workdir (folder): Folder to perform calculation in.

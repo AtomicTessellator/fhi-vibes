@@ -7,7 +7,7 @@ from ase.db.row import AtomsRow
 def atoms2dict(atoms):
     """
     Converts a pAtoms object into a dict
-    Args:
+    Parameters:
         atoms: pAtoms or Atoms object
             The pAtoms or Atoms object to be converted into a dictionary
     Returns: atoms_dict (dict)
@@ -36,7 +36,7 @@ def atoms2dict(atoms):
 def dict2atoms(atoms_dict):
     """
     Converts a dict into a pAtoms object
-    Args:
+    Parameters:
         atoms_dict: dict
             A dictionary representing the pAtoms object
     Returns: pAtoms

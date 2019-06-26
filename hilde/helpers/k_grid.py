@@ -8,7 +8,7 @@ def d2k(atoms, kptdensity=3.5, even=True):
     """
     [ase.calculators.calculator.kptdensity2monkhorstpack]
     Convert k-point density to Monkhorst-Pack grid size.
-    Args:
+    Parameters:
         atoms (Atoms object): Contains unit cell and information about boundary conditions.
         kptdensity (float or list of floats): Required k-point density.  Default value is 3.5 point per Ang^-1.
         even (bool): Round up to even numbers.
@@ -21,7 +21,7 @@ def d2k(atoms, kptdensity=3.5, even=True):
 def d2k_cellinfo(recipcell, pbc, kptdensity=3.5, even=True):
     """
     Convert k-point density to Monkhorst-Pack grid size.
-    Args:
+    Parameters:
         recipcell (ASE Cell object): The reciprocal cell
         pbc (list of Bools): If element of pbc is True then system is periodic in that direction
         kptdensity (float or list of floats): Required k-point density.  Default value is 3.5 point per Ang^-1.
@@ -47,7 +47,7 @@ def k2d(atoms, k_grid=[2, 2, 2]):
     """
     Generate the kpoint density in each direction from given k_grid.
 
-    Args:
+    Parameters:
         atoms (Atoms): Atoms object of interest.
         k_grid (list): k_grid that was used.
     Returns:

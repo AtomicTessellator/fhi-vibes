@@ -20,7 +20,7 @@ class TaskSpec:
     ):
         """
         TaskSpec Constructor
-        Args:
+        Parameters:
             func (str or Function): Function to be wrapped into a PyTask
             func_fw_out (str or Function): Function that converts the outputs of func into FWActions
             task_with_atoms_obj (bool): True if calculating using an ASE Atoms object

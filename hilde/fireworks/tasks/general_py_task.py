@@ -31,7 +31,7 @@ def atoms_calculate_task(
     """
     A wrapper function that converts a general function that performs some operation on
     ASE Atoms/Calculators into a FireWorks style operation
-    Args:
+    Parameters:
         func_path (str): Path to the function describing the desired set operations to
                          be performed on the Atoms/Calculator objects
         func_fw_out_path (str): Path to the function that describes how the func inputs/outputs
@@ -99,7 +99,7 @@ def general_function_task(
 ):
     """
     A wrapper function that converts a general python function into a FireWorks style operation
-    Args:
+    Parameters:
         func_path (str): Path to the function describing the desired set operations to be
                          performed on the Atoms/Calculator objects
         func_fw_out_path (str): Path to the function that describes how the func inputs/outputs

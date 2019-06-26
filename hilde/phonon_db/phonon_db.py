@@ -228,7 +228,7 @@ class PhononDatabase(Database):
         self, filename=None, create_indices=True, use_lock_file=False, serial=False
     ):
         """Database object.
-        Args:
+        Parameters:
             filename: str
                 Filename of the database
             create_indices: bool
@@ -256,7 +256,7 @@ class PhononDatabase(Database):
     def get_phonon(self, selection=None, get_id=False, **kwarg):
         """
         Gets a phonopy object from a database row
-        Args:
+        Parameters:
             selection: selection criteria for the database query
             kwargs   : additional selection criteria not stored in selection
         Returns:
@@ -270,7 +270,7 @@ class PhononDatabase(Database):
     def get_phonon3(self, selection=None, get_id=False, **kwarg):
         """
         Gets a phonopy object from a database row
-        Args:
+        Parameters:
             selection: selection criteria for the database query
             kwargs   : additional selection criteria not stored in selection
         Returns:

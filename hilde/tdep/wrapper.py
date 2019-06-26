@@ -19,7 +19,7 @@ def convert_phonopy_to_tdep(
 ):
     """convert phonopy FORCE_CONSTANTS to tdep outfile.forceconstant
 
-    Args:
+    Parameters:
         phonon (phonopy.Phonopy): phonopy object
         workdir (str/Path): working directory for the tdep binary
         logfile (str/Path): log file
@@ -73,7 +73,7 @@ def extract_forceconstants_from_trajectory(
 ):
     """wrapper for tdep `extract_forceconstants`
 
-    Args:
+    Parameters:
         trajectory_file (str/Path): location of trajectory
         workdir (str/Path): working directory for tdep binary
         rc2 (float): cutoff for force constants in Angstrom
@@ -154,7 +154,7 @@ def parse_tdep_forceconstant(
 ):
     """
     Parse the the TDEP force constants into the phonopy format
-    Args:
+    Parameters:
         uc_filename (str/Path): tdep primitive unit cell
         sc_filename (str/Path): tdep supercell
         fc_filename (str/Path): tdep forceconstant file to parse

@@ -46,7 +46,7 @@ else:
 def get_ordred_fw_ids(wflow):
     """
     Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow
-    Args:
+    Parameters:
         wflow (WorkFlow): WorkFlow to run
 
     Returns:
@@ -65,7 +65,7 @@ def get_ordred_fw_ids(wflow):
 def use_queue_launch(fire_work, tasks2queue):
     """
     Determines if a particular FireWork should be ran on a cluster
-    Args:
+    Parameters:
         fire_work (FireWork): FireWork to be run locally or remotely
         tasks2queue (list of str): Paths of functions to run on the queue
 
@@ -106,7 +106,7 @@ def rapidfire(
 ):
     """
     Submit many jobs to the queue.
-    Args:
+    Parameters:
         launchpad (LaunchPad)
         fworker (FWorker)
         qadapter (QueueAdapterBase)

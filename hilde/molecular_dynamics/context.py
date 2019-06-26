@@ -12,7 +12,7 @@ class MDSettings(WorkflowSettings):
     def __init__(self, settings):
         """Settings in the context of an md workflow
 
-        Args:
+        Parameters:
             settings_file (str/Path, optional): name of the settings file (phonopy.in)
 
         """

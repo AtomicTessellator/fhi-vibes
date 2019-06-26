@@ -41,7 +41,7 @@ results_keys = [
 def traj_to_database(db_path, traj, ret_all_hashes=False):
     """
     Processes a trajectory file and adds it to the database
-    Args:
+    Parameters:
         db_path (str): path to the database
         traj (str): The trajectory's path
         ret_all_hashes (bool): If True return all hashes
@@ -76,7 +76,7 @@ def to_database(
 ):
     """
     Adds a Phonopy, Phono3py or ASE Atoms object to the database
-    Args:
+    Parameters:
         db_path (str): Path to the database
         phonon (ASE Atoms, Phonopy, or Phono3py Object): Object to be added to the database
         calc (ASE Calculator): Calculator parameters to add to the Database
@@ -197,7 +197,7 @@ def to_database(
 def obj2dict(obj):
     """
     Converts a Phonopy, Phono3py, or ASE Atoms Object to a dict
-    Args:
+    Parameters:
         obj (Phonopy, Phono3py, or ASE Atoms Object): object to be converted to a dict
     Returns (dict): The dictionary representation of the obj
     """
@@ -229,7 +229,7 @@ def from_database(
 ):
     """
     Pulls an object from the database
-    Args:
+    Parameters:
         db_path (str): Path to the database
         selection (list): a list of tuples used as selection parameters
         get_id (bool): if True return row id

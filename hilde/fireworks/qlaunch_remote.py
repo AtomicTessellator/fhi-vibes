@@ -29,7 +29,7 @@ __date__ = "Jan 14, 2013, Adaptation: October 31, 2018"
 def convert_input_to_param(param_name, param, param_list):
     """
     Converts a function input into a qlaunch parameter
-    Args:
+    Parameters:
         param_name (str): name of the parameter for qlaunch
         param (str): value of the parameter
         param_list   (list of str): List of all parameters
@@ -66,7 +66,7 @@ def qlaunch_remote(
 ):
     """
     This function adapts the python definition of qlaunch in fireworks to a python function
-    Args:
+    Parameters:
         command (str): Whether to do a singleshot or rapidfire command
         maxjobs_queue (int): maximum jobs to keep in queue for this user
         maxjobs_block (int): maximum jobs to put in a block

@@ -5,7 +5,7 @@ from fireworks import PyTask
 def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     """
     Setups an ASE Atoms task
-    Args:
+    Parameters:
         task_spec (TaskSpec): Specification of the Firetask
         atoms (dict): Dictionary representation of the ASE Atoms Object
         calc (dict): Dictionary representation of the ASE Calculator Object
@@ -32,7 +32,7 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
 def setup_general_task(task_spec, fw_settings):
     """
     Setups a general task
-    Args:
+    Parameters:
         task_spec (TaskSpec): Specification of the Firetask
         fw_settings (dict): FireWorks specific parameters
 
@@ -49,7 +49,7 @@ def setup_general_task(task_spec, fw_settings):
 def generate_task(task_spec, fw_settings, atoms, calc):
     """
     Generates a PyTask for a Firework
-    Args:
+    Parameters:
         task_spec (TaskSpec): Specification of the Firetask
         fw_settings (dict): FireWorks specific parameters
         atoms (dict): Dictionary representation of the ASE Atoms Object
@@ -76,7 +76,7 @@ def generate_task(task_spec, fw_settings, atoms, calc):
 def generate_update_calc_task(calc_spec, updated_settings):
     """
     Generate a calculator update task
-    Args:
+    Parameters:
         calc_spec (str): Spec for the calculator in the Fireworks database
         updated_settings (dict): What parameters to update
 
@@ -95,7 +95,7 @@ def generate_update_calc_task(calc_spec, updated_settings):
 def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     """
     Generate a calculator modifier task
-    Args:
+    Parameters:
         at (dict or str): Either an Atoms dictionary or a spec key to get the
                           Atoms dictionary for the modified system
         cl (dict or str): Either a Calculator dictionary or a spec key to get

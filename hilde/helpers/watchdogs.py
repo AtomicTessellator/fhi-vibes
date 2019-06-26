@@ -65,7 +65,7 @@ class WallTimeWatchdog:
     ):
         """ Watchdog that controls the walltime everytime it is called
 
-        Args:
+        Parameters:
             walltime (int): Walltime in seconds
             history (int, optional):
                 Defaults to 5. How many steps should be used to project the runtime

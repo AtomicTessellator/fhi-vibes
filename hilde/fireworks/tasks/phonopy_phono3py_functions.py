@@ -14,7 +14,7 @@ from hilde.trajectory import step2file, metadata2file
 def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
     """
     Sets up a calculation
-    Args:
+    Parameters:
         settings (Settings): The settings object for the calculation
         calc (ASE Calculator): Calculator used for the calculation
         use_pimd_wrapper (dict): Dictionary to wrapper ipi parameters for calc
@@ -44,7 +44,7 @@ def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
 def setup_phonon_outs(ph_settings, settings, prefix, atoms, calc):
     """
     Sets up the phonon outputs
-    Args:
+    Parameters:
         ph_settings (dict): Settings object for the phonopy, phono3py object
         settings (Settings): General settings for the step
         prefix (str): key prefix for the task
@@ -77,7 +77,7 @@ def bootstrap_phonon(
 ):
     """
     Creates a Settings object and passes it to the bootstrap function
-    Args:
+    Parameters:
         atoms (ASE Atoms Object): Atoms object of the primitive cell
         calc (ASE Calculator): Calculator for the force calculations
         kpt_density (float): k-point density for the MP-Grid
@@ -109,7 +109,7 @@ def bootstrap_stat_sample(
 ):
     """
     Initializes the statistical sampling task
-    Args:
+    Parameters:
         atoms (ASE Atoms Object): Atoms object of the primitive cell
         calc (ASE Calculator): Calculator for the force calculations
         kpt_density (float): k-point density for the MP-Grid
@@ -152,7 +152,7 @@ def bootstrap_stat_sample(
 def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
     """
     Collects forces to a single trajectory file
-    Args:
+    Parameters:
         workdir (str): working directory for the task
         trajectory (str): file name for the trajectory file
         calculated_atoms (list of ASE Atoms): Results of the force calculations

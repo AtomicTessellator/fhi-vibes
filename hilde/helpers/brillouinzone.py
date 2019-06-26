@@ -8,7 +8,7 @@ from ase.dft import kpoints
 def get_paths(atoms):
     """ Get recommended path connencting high symmetry points in the BZ.
 
-    Args:
+    Parameters:
         atoms (Atoms): atoms object
 
     Returns:

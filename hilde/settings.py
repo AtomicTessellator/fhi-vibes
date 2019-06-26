@@ -201,7 +201,7 @@ class SettingsSection(AttributeDict):
     def __init__(self, name, settings=None, defaults=None, mandatory_keys=None):
         """Initialize Settings in a specific context
 
-        Args:
+        Parameters:
             name (str): name of the section
             settings (Settings): Settings object
             defaults (dict): dictionary with default key/value pairs
@@ -251,7 +251,7 @@ class WorkflowSettings(Settings):
     ):
         """Initialize Settings in a specific context
 
-        Args:
+        Parameters:
             name (str): name of the context or workflow
             settings_file (str/Path): location of settings file. Otherwise inferred
                 from name

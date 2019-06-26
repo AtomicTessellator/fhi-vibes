@@ -24,7 +24,7 @@ def check_relaxation_complete(
     A function that checks if a relaxation is converged (if outputs is True) and either
     stores the relaxed structure in the MongoDB or appends another Firework as its child
     to restart the relaxation
-    Args:
+    Parameters:
         atoms (ASE Atoms object): The original atoms at the start of this job
         calc (ASE Calculator object): The original calculator
         outputs (bool): The outputs from the function (Is the calc converged)
@@ -98,7 +98,7 @@ def check_aims_complete(
     A function that checks if a relaxation is converged (if outputs is True) and either
     stores the relaxed structure in the MongoDB or appends another Firework as its child
     to restart the relaxation
-    Args:
+    Parameters:
         atoms (ASE Atoms object): The original atoms at the start of this job
         calc (ASE Calculator object): The original calculator
         outputs (ASE Atoms Object): The geometry of the final relaxation step

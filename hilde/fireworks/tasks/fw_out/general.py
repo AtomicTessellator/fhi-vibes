@@ -8,7 +8,7 @@ def mod_spec_add(
 ):
     """
     A function that appends the current results to a specified spec in the MongoDB
-    Args:
+    Parameters:
         atoms (ASE Atoms object): The original atoms at the start of this job
         calc (ASE Calculator object): The original calculator
         outputs (ASE Atoms Object): The atoms with attached calculator to be added to the spec
@@ -30,7 +30,7 @@ def fireworks_no_mods(
 ):
     """
     A function that does not change the FireWorks Workflow upon completion
-    Args:
+    Parameters:
         atoms (ASE Atoms object): The original atoms at the start of this job
         calc (ASE Calculator object): The original calculator
         outputs (general): The outputs from the function (assumes to be a single bool output)
@@ -51,7 +51,7 @@ def fireworks_no_mods_gen_function(
 ):
     """
     A function that does not change the FireWorks Workflow upon completion
-    Args:
+    Parameters:
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         args (list): List of arguments to pass to func

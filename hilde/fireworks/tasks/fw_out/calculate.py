@@ -15,7 +15,7 @@ def mod_spec_add(
 ):
     """
     A function that appends the current results to a specified spec in the MongoDB
-    Args:
+    Parameters:
         atoms (ASE Atoms): The original atoms at the start of this job
         calc (ASE Calculator): The original calculator
         outputs (dict): The outputs from the function (assumes to be a single bool output)
@@ -56,7 +56,7 @@ def mod_spec_add(
 def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
     """
     A function that checks if a socket calculation is done, and if not restarts
-    Args:
+    Parameters:
         func (str): Path to function that performs the MD like operation
         func_fw_out (str): Path to this function
         args (list): Arguments passed to the socket calculator function

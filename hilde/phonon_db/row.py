@@ -20,7 +20,7 @@ from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
     """
     Converts a phonopy object to a dictionary
-    Args:
+    Parameters:
         phonon: the phonopy object to be converted
         to_mongo: True if it is being sent to a mongo database
     Returns:
@@ -78,7 +78,7 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
 def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
     """
     Converts a phonopy object to a dictionary
-    Args:
+    Parameters:
         phonon: the phonopy object to be converted
         to_mongo: True if it is being sent to a mongo database
     Returns:
@@ -144,7 +144,7 @@ class PhononRow(AtomsRow):
     def __init__(self, dct=None, phonon3=None, phonon=None, store_second_order=False):
         """
         Constructor for the PhononRow.
-        Args:
+        Parameters:
             dct: a phonopy object or a dict
                 representation of the phonopy object to be added to the database
         """
@@ -326,7 +326,7 @@ class PhononRow(AtomsRow):
     def thermal_heat_capacity_v(self, T):
         """
         Gets the Cv of the material at a given temperature
-        Args:
+        Parameters:
             T: float
                 The temperature
         Returns:
@@ -338,7 +338,7 @@ class PhononRow(AtomsRow):
     def thermal_entropy(self, T):
         """
         Gets the entropy of the material at a given temperature
-        Args:
+        Parameters:
             T: float
                 The temperature
         Returns:
@@ -350,7 +350,7 @@ class PhononRow(AtomsRow):
     def thermal_free_energy(self, T):
         """
         Gets the Hemholtz free energy of the material at a given temperature
-        Args:
+        Parameters:
             T: float
                 The temperature
         Returns:
@@ -362,7 +362,7 @@ class PhononRow(AtomsRow):
     def thermal_conductivity(self, T):
         """
         Gets the thermal conductivity of the material at a given temperature
-        Args:
+        Parameters:
             T: float
                 The temperature
         Returns:

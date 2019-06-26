@@ -18,7 +18,7 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
     def _write(self, row, key_value_pairs, data, id):
         """
         Writes a phonopy object to the database
-        Args:
+        Parameters:
             row: PhononRow object
                 PhononRow object to be added to the database
             key_values_pairs: dict
@@ -85,7 +85,7 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
     ):
         """
         Command to access a row in the database
-        Args:
+        Parameters:
             keys: list of strs
                 relevant keys to be included in the where part of the select commands
             cmps: list of tuples (key, op, val)

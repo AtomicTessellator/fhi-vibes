@@ -49,7 +49,7 @@ class ListOption(click.Option):
     def type_cast_value(self, ctx, value):
         """
         Casts a comma separated list string as a python list
-        Args:
+        Parameters:
             ctx (Context): context for the operation (necessary, but not used)
             value (str): value of the option
 
@@ -76,7 +76,7 @@ def fireworks():
 def add_wf(workflow, launchpad):
     """
     Adds a workflow to the launchpad
-    Args:
+    Parameters:
         workflow: Workflow file to be added to the launch pad
         launchpad: launchpad yaml definition file
     """

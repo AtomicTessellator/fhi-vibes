@@ -39,7 +39,7 @@ def get_fw_files(
 ):
     """
     Finds and returns the correct FireWorks config files
-    Args:
+    Parameters:
         config_dir (str): Directory where FireWorks configure files are stored
         launchpad_file (str): Passed LaunchPad yaml file
         fworker_file (str): Passed FWorker yaml file
@@ -78,7 +78,7 @@ def get_fw_files(
 def get_lpad_fworker_qadapter(ctx=None, offline=False):
     """
     Gets the LaunchPad, FWorker, and QueueAdapter from the passed files in ctx
-    Args:
+    Parameters:
         ctx (Context): Context for the commands (passed from click)
         offline (bool): If True run is being done in offline mode
 
@@ -110,7 +110,7 @@ def get_lpad_fworker_qadapter(ctx=None, offline=False):
 def do_qluanch(ctx, non_default):
     """
     Takes in a Context ctx and performs the qlaunch for that command
-    Args:
+    Parameters:
         ctx (Context): Context for the command
         non_default (dict): A dict of non-default parameters where the keys are the parameters and the values are the non-default values
     """
@@ -152,7 +152,7 @@ def do_qluanch(ctx, non_default):
 def do_launch(ctx):
     """
     Launches the calculations with parameters defined in ctx
-    Args:
+    Parameters:
         ctx (Context): The Context for the command
     """
     launchpad, fworker, queueadapter = get_lpad_fworker_qadapter(ctx)

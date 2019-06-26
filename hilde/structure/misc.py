@@ -25,7 +25,7 @@ def generate_lattice(a, b=None, c=None, alpha=90, beta=90, gamma=90, lattice_typ
     """ [pymatgen, adapted]
     Create a Lattice using unit cell lengths (Angstrom) and angles (in degrees).
 
-    Args:
+    Parameters:
         cellpars (list of floats):
             a (float): *a* lattice parameter.
             b (float): *b* lattice parameter.

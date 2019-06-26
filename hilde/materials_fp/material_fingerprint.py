@@ -12,7 +12,7 @@ fp_tup = namedtuple("fp_tup", "frequencies occupancies special_pts nbins")
 def get_ener(binning, frequencies, min_e, max_e, nbins):
     """
     Get the energy bins used for making a fingerprint
-    Args:
+    Parameters:
         useFrequencies: bool
             if True use the band/DOS frequencies given as the bin boundaries
         frequencies: list or np.ndarray of floats
@@ -42,7 +42,7 @@ def get_ener(binning, frequencies, min_e, max_e, nbins):
 def find_min_E(bands):
     """
     Calculates the minimum energy mode in a band structure
-    Args:
+    Parameters:
         bands: dict
             A dictionary describing the phonon/electronic modes at all high symmetry points
             Keys = Labels, Values = high symmetry points
@@ -55,7 +55,7 @@ def find_min_E(bands):
 def find_max_E(bands):
     """
     Calculates the maximum energy mode in a band structure
-    Args:
+    Parameters:
         bands: dict
             A dictionary describing the phonon/electronic modes at all high symmetry points
             Keys = Labels, Values = high symmetry points
@@ -69,7 +69,7 @@ def find_max_E(bands):
 def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
     """
     Creates a dictionary of the band structure fingerprint at all high symmetry points, where the high symmetry point is the key
-    Args:
+    Parameters:
         bands: dict
             A dictionary storing the phonon/electron mode energies at the high symmetry points, which are the keys for the dict
             Keys = Labels, Values = A list of energies at that point
@@ -97,7 +97,7 @@ def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
 def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
     """
     Creates a dictionary of the density of states fingerprint
-    Args:
+    Parameters:
         dos: np.ndarray of floats (shape=number of frequencies included, 2)
             The density of states at given energies
         min_e:
@@ -128,7 +128,7 @@ def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
 def get_elec_bands(spectra_files, k_points):
     """
     Generates a dict describing the electronic band structure at from a list of files
-    Args:
+    Parameters:
         spectra_files: list of str
             A list of filenames with the bands are defined
         k_points: dict
@@ -155,7 +155,7 @@ def get_elec_bands(spectra_files, k_points):
 def get_phonon_bands_phonopy(phonon, q_points):
     """
     Generates a dict describing the phonon band structure at from a phonopy object
-    Args:
+    Parameters:
         phonon: phonopy object
             The phonopy object from which the band structure calculated
         q_points: dict
@@ -174,7 +174,7 @@ def get_phonon_bands_phonopy(phonon, q_points):
 def get_phonon_bands_yaml(spectra_yaml, q_points):
     """
     Generates a dict describing the phonon band structure at from a yaml file
-    Args:
+    Parameters:
         spectra_yaml: str
             The phonopy generated yaml file describing the band structure
         q_points: a list of high symmetry points
@@ -203,7 +203,7 @@ def get_phonon_bs_fingerprint_phononpy(
 ):
     """
     Generates the phonon band structure fingerprint for a bands structure stored in a phonopy object
-    Args:
+    Parameters:
         phonon: phonopy Object
             The phonopy generated yaml file describing the band structure
         q_points: dict
@@ -235,7 +235,7 @@ def get_phonon_bs_fingerprint_yaml(
 ):
     """
     Generates the phonon band structure fingerprint for a bands structure stored in a yaml file from a phonopy object
-    Args:
+    Parameters:
         spectra_yaml: str
             The phonopy generated yaml file describing the band structure
         q_points: dict
@@ -262,7 +262,7 @@ def get_elec_bs_fingerprint(
 ):
     """
     Generates the electronic band structure fingerprint for a bands stored in text files
-    Args:
+    Parameters:
         spectra_files: list of str
             A list of filenames with the bands are defined
         q_points: dict
@@ -289,7 +289,7 @@ def get_elec_bs_fingerprint(
 def get_dos_fingerprint(dos_file, binning=True, min_e=None, max_e=None, nbins=256):
     """
     Generates the density of states fingerprint from a file describing the density of states
-    Args:
+    Parameters:
         dos_file: str
             The file where the density of states data is stored
         q_points: dict
@@ -316,7 +316,7 @@ def get_dos_fingerprint(dos_file, binning=True, min_e=None, max_e=None, nbins=25
 def get_phonon_dos_fingerprint_phononpy(phonon, binning=True, min_e=None, max_e=None, nbins=256):
     """
     Generates the density of states fingerprint for a bands structure stored in a phonopy object
-    Args:
+    Parameters:
         phonon: phonopy Object
             The phonopy generated yaml file describing the band structure
         min_e: float
@@ -341,7 +341,7 @@ def get_phonon_dos_fingerprint_phononpy(phonon, binning=True, min_e=None, max_e=
 def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
     """
     Calculates the dot product between two finger prints
-    Args:
+    Parameters:
         fp1: namedtuple(fp_tup)
             The first fingerprint
         fp2: namedtuple(fp_tup)
@@ -409,7 +409,7 @@ def to_dict(fp, to_mongo=False):
 def dict2namedtuple(fp):
     """
     Converts a dictionary representation of a fingerprint into a named tuple
-    Args:
+    Parameters:
         fp: dict
             The dictionary representation of the tuple
     Returns: namedtuple(fp_tup)
@@ -430,7 +430,7 @@ class MaterialsFingerprint(object):
     def __init__(self, is_elec, is_b, nbins=None, de=None, min_e=None, max_e=None, fp={}):
         """
         Initialize the fingerprint
-        Args:
+        Parameters:
             is_elec: bool
                 True if the fingerprint is of electronic modes
             is_b: bool
@@ -457,7 +457,7 @@ class MaterialsFingerprint(object):
     def __conform__(self, protocol):
         """
         A function to convert the fingerprint into a database readable format
-        Args:
+        Parameters:
             protocol: sqlite3 protocol
                 What protocol to be used to store the fingerprint
         """
@@ -473,7 +473,7 @@ class MaterialsFingerprint(object):
     def scalar_product(self, fp2, col=0, pt="All", normalize=True, tanimoto=False):
         """
         Calculates the dot product between the fingerprint and another fingerprint
-        Args:
+        Parameters:
             fp2: namedtuple(fp_tup)
                 The second fingerprint
             col: int
@@ -494,7 +494,7 @@ class DOSFingerprint(MaterialsFingerprint):
     ):
         """
         Initialize the DOS fingerprint
-        Args:
+        Parameters:
             is_elec: bool
                 True if the fingerprint is of electronic modes
             is_b: bool
@@ -552,7 +552,7 @@ class BandStructureFingerprint(MaterialsFingerprint):
     ):
         """
         Initialize the fingerprint
-        Args:
+        Parameters:
             is_elec: bool
                 True if the fingerprint is of electronic modes
             is_b: bool

@@ -28,7 +28,7 @@ def bootstrap_phonon(
 ):
     """
     Creates a Settings object and passes it to the bootstrap function
-    Args:
+    Parameters:
         atoms (ASE Atoms Object): Atoms object of the primitive cell
         calc (ASE Calculator): Calculator for the force calculations
         kpt_density (float): k-point density for the MP-Grid
@@ -106,7 +106,7 @@ def setup_harmonic_analysis(
 ):
     """
     Initializes harmonic analysis functions
-    Args:
+    Parameters:
         atoms (ASE Atoms Object): Atoms object of the primitive cell
         calc (ASE Calculator): Calculator for the force calculations
         phonon_dict (dict): Dictionary representation of the phonopy object
@@ -220,7 +220,7 @@ def setup_harmonic_analysis(
 def collect_to_trajectory(trajectory, calculated_atoms, metadata):
     """
     Collects forces to a single trajectory file
-    Args:
+    Parameters:
         trajectory (str): file name for the trajectory file
         calculated_atoms (list of ASE Atoms): Results of the force calculations
         metadata (dict): metadata for the phonon calculations

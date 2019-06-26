@@ -162,7 +162,7 @@ class RandomState:
     ):
         """ Initialize the QuasiRandomState for samples of specific dimension
 
-        Args:
+        Parameters:
             dimension (int): dimension of the samples
             nmax (int, optional): maximum number of samples (5000)
             low (int, optional): skip this many samples (100)
@@ -186,7 +186,7 @@ class RandomState:
     def rand(self, sample_dimension=1):
         """ return sample of specific dimension from the Sobol sequence
 
-        Args:
+        Parameters:
             samples_dimension (int, optional): Dimension of samples to return
 
         Returns:

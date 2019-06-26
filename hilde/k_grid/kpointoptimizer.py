@@ -20,7 +20,7 @@ class KPointOptimizer(Dynamics):
     ):
         """
         Initializes the KPointOptimizer
-        Args:
+        Parameters:
             atoms: (ASE Atoms object) geometry of the system you are converging the k-grid on with a calculator attached
             func: (function) Function used to get the property the routine is trying to converge relative to the k-grid density
             loss_func: (function) Function used to transform the property obtained in func into a score to compare agsint

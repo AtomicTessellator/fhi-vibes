@@ -43,7 +43,7 @@ def rapidfire(
     Keeps running Rockets in m_dir until we reach an error. Automatically creates subdirectories
     for each Rocket. Usually stops when we run out of FireWorks from the LaunchPad.
 
-    Args:
+    Parameters:
         launchpad (LaunchPad)
         fworker (FWorker object)
         m_dir (str): the directory in which to loop Rocket running

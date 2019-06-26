@@ -11,7 +11,7 @@ def get_r2(in_f_data, in_f_model):
 
     Reference: https://en.wikipedia.org/wiki/Coefficient_of_determination#Definitions
 
-    Args:
+    Parameters:
         in_f_data (array): input data
         in_f_model (array): input model data
 
@@ -35,7 +35,7 @@ def get_r2_per_atom(
 ):
     """Compute r^2 score per atom in primitive cell. Optionally use symmetry.
 
-    Args:
+    Parameters:
         forces_dft (list): forces from dft calculations
         forces_harmonic (list): forces from harmonic approximation
         ref_structure (ase.Atoms): reference structure for symmetry analysis
@@ -72,7 +72,7 @@ def get_r2_per_atom(
 def get_forces_from_trajectory(trajectory, ref_structure=None, force_constants=None):
     """get forces from trajectory
 
-    Args:
+    Parameters:
         trajectory (list): list of ase.Atoms objects with forces
         ref_structure (ase.Atoms): reference Atoms object
         force_constants (np.ndarray): force constants in [3N, 3N] shape

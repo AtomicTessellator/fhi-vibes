@@ -32,7 +32,7 @@ def post_init_mult_calcs(
 ):
     """
     postprocessing for initializing parallel force calculaitons
-    Args:
+    Parameters:
         atoms (ASE Atoms): atoms reference structure for the calculation
         calc (ASE calculator): The claculator of the claulation
         outputs (dict): The outputs after setting up claculations
@@ -102,7 +102,7 @@ def get_detours(
 ):
     """
     Add a set of detours for force calculations
-    Args:
+    Parameters:
         atoms_to_calculate (list of ASE Atoms objects): List of structures to calculate forces for
         calc_dict (dict): Dictionary representation of the ASE Calculator Object
         prefix (str): prefix to add to force calculations
@@ -154,7 +154,7 @@ def get_detours(
 def add_socket_calc_to_detours(detours, atoms, func_kwargs, fw_settings, prefix):
     """
     Generates a Firework to run a socket calculator and adds it to the detours
-    Args:
+    Parameters:
         detours (list of Fireworks): Current list of detours
         atoms (ASE Atoms Object): Initial ASE Atoms object representation of the structure
         func_kwargs (dict): kwargs needed to do the socket I/O calculation
@@ -194,7 +194,7 @@ def add_single_calc_to_detours(
 ):
     """
     Adds a group of Fireworks to run as single calculations
-    Args:
+    Parameters:
         detours (list of Fireworks): Current list of detours
         func_kwargs (dict): kwargs needed to do the socket I/O calculation
         atoms (dict): Dictionary representing the ASE Atoms object of theprimitive cell
@@ -238,7 +238,7 @@ def add_single_calc_to_detours(
 def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     """
     Add the phonon_dict to the spec
-    Args:
+    Parameters:
         func (str): Path to the phonon analysis function
         func_fw_out (str): Path to this function
         args (list): list arguments passed to the phonon analysis
@@ -272,7 +272,7 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
 def get_base_work_dir(wd):
     """
     Converts wd to be it's base (no task specific directories)
-    Args:
+    Parameters:
         wd (str): Current working directory
 
     Returns:
@@ -309,7 +309,7 @@ def get_base_work_dir(wd):
 def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     """
     Check phonon convergence and set up future calculations after a phonon calculation
-    Args:
+    Parameters:
         func (str): Path to the phonon analysis function
         func_fw_out (str): Path to this function
         args (list): list arguments passed to the phonon analysis
@@ -474,7 +474,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
     """
     Checks if the density of state finger prints are converged
-    Args:
+    Parameters:
         dos_fp (MaterialsFingerprint): Current fingerprint
         prev_dos_fp (MaterialsFingerprint): Fingerprint of the previous step
         conv_crit (float): convergence criteria

@@ -127,7 +127,7 @@ def hexify(array):
     """
     Converts a numpy array into a hex string representing the big endian
     byte encoding of the array
-    Args:
+    Parameters:
         array: np.ndarray
             The array to be converted
     Returns:
@@ -168,7 +168,7 @@ def hexify(array):
 def dehexify(hexstr, dtype=np.float64, shape=None):
     """
     Converts a hex string representation of an array into a numpy array
-    Args:
+    Parameters:
         hexstr: str
             the hex string to be converted
         dtype: numpy data type
@@ -243,7 +243,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     def _write(self, row, key_value_pairs, data, id):
         """
         Writes a phonopy object to the database. Modifications from ASE are related to phonopy
-        Args:
+        Parameters:
             row: PhononRow object
                 The PhononRow object to be added to the database
             key_values_pairs: dict
@@ -375,7 +375,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     def _convert_tuple_to_row(self, values):
         """
         Converts the database's data into a Phonon Row object
-        Args:
+        Parameters:
             values: Database encoded data list
                 data from the database
         Returns
@@ -483,7 +483,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     ):
         """
         Creates a string that represents a select command in SQLite 3
-        Args:
+        Parameters:
             keys: list of strs
                 relevant keys to be included in the where part of the select commands
             cmps: list of tuples (key, op, val)
@@ -673,7 +673,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     ):
         """
         Command to access a row in the database
-        Args:
+        Parameters:
             keys: list of strs
                 relevant keys to be included in the where part of the select commands
             cmps: list of tuples (key, op, val)
@@ -806,7 +806,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     def _initialize(self, con):
         """
         Initializes the database connection/the database
-        Args:
+        Parameters:
             con: Connection object to the database
         """
         if self.initialized:

@@ -31,7 +31,7 @@ def postprocess(
 ):
     """
     Phono3py postprocess
-    Args:
+    Parameters:
         phonon3 (Phono3py Object or dict): phono3py calculation to post process
         calculated_atoms (list [Atoms object]): A list of all supercells with displacements with the forces calculated
         trajectory (str): Trajectory file path

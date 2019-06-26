@@ -27,7 +27,7 @@ def create_samples(
 ):
     """create samples for Monte Carlo sampling
 
-    Args:
+    Parameters:
         geometry (str/Path): geometry input file
         temperature (float): temperature in Kelvin
         n_samples (int): number of samples to create

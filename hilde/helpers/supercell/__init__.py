@@ -24,7 +24,7 @@ def get_lattice_points(
 
         M = supercell_matrix
 
-    Args:
+    Parameters:
         cell (ndarray): lattice matrix of primitive cell
         supercell (ndarray): lattice matrix of supercell
         """
@@ -164,7 +164,7 @@ def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
         This means we have to call lattice_points.get_lattice_points with the inverse
         lattices.
 
-    Args:
+    Parameters:
         cell (ndarray): cell matrix of primitive cell
         supercell (ndarray): cell matrix of supercell
 
@@ -213,7 +213,7 @@ def find_cubic_cell(
 def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose=False):
     """ Create a supercell of target size that is as cubic as possible.
 
-    Args:
+    Parameters:
         atoms (Atoms): Input atoms object
         target_size (int): Number of atoms in supercell
         deviation (float): Allowed deviation from target supercell size
@@ -257,7 +257,7 @@ def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose
 
 def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
     """ Create the lattice points within supercell and attach atoms to each of them
-    Args:
+    Parameters:
         atoms (Atoms): primitive cell as atoms object
         supercell_matrix (ndarray): supercell matrix M with convention A = M . a
         info (dict): attach info dictionary to supercell atoms

@@ -155,7 +155,7 @@ def get_dos(
 def get_bandstructure(phonon, paths=None, force_sets=None):
     """
     Compute bandstructure for given path
-    Args:
+    Parameters:
         phonon: phonopy.api_phonopy.Phonopy
         paths: list of str
             e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']

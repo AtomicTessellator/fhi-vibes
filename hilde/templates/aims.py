@@ -14,7 +14,7 @@ from hilde.helpers.warnings import warn
 def create_species_dir(atoms, settings, tmp_folder="basissets"):
     """ create a custom bassiset folder for the computation
 
-    Args:
+    Parameters:
         atoms (Atoms): structure
         basissetloc (path): where to find basissets
         basissets (list): the individual basisset types
@@ -75,7 +75,7 @@ def setup_aims(
 ):
     """Set up an aims calculator.
 
-    Args:
+    Parameters:
         atoms (Atoms): Atoms object that will be used for computation.
         settings (Settings): the hilde settings
         custom_settings (dict): for working interactively

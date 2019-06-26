@@ -16,7 +16,7 @@ from .setup import setup_aims
 def run_aims(ctx):
     """ high level function to run aims calculation
 
-    Args:
+    Parameters:
        ctx (AimsContext): aims context
 
     """
@@ -34,7 +34,7 @@ def run_aims(ctx):
 def bootstrap(ctx):
     """ load settings, prepare atoms and aims calculator
 
-    Args:
+    Parameters:
         ctx (AimsContext): context object
 
     """

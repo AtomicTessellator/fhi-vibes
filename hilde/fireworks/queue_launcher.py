@@ -59,7 +59,7 @@ def launch_rocket_to_queue(
     """
     Submit a single job to the queue.
 
-    Args:
+    Parameters:
         launchpad (LaunchPad): LaunchPad for the launch
         fworker (FWorker): FireWorker for the launch
         qadapter (QueueAdapterBase): Queue Adapter for the resource
@@ -333,7 +333,7 @@ def rapidfire(
     """
     Submit many jobs to the queue.
 
-    Args:
+    Parameters:
         launchpad (LaunchPad): LaunchPad for the launch
         fworker (FWorker): FireWorker for the launch
         qadapter (QueueAdapterBase): Queue Adapter for the resource

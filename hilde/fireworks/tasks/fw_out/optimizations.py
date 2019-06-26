@@ -15,7 +15,7 @@ def check_kgrid_opt_completion(
     A function that checks if an MD like calculation is converged (if outputs is True)
     and either stores the relaxed structure in the MongoDB or appends another Firework
     as its child to restart the MD
-    Args:
+    Parameters:
         atoms (ASE Atoms object): The original atoms at the start of this job
         calc (ASE Calculator object): The original calculator
         outputs (list (bool, float, ASE Calculator): (Converged?, current k-point density,
