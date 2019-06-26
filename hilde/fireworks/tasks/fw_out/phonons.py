@@ -30,20 +30,31 @@ from hilde.trajectory import reader
 def post_init_mult_calcs(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
-    """
-    postprocessing for initializing parallel force calculaitons
-    Parameters:
-        atoms (ASE Atoms): atoms reference structure for the calculation
-        calc (ASE calculator): The claculator of the claulation
-        outputs (dict): The outputs after setting up claculations
-        func (str): Function path to the main function
-        func_fw_out (str): Function path to the fw_out function
-        func_kwargs (dict): The kwargs for the main function
-        func_fw_kwargs (dict): The kwargs for the fw_out function
-        fw_settings (dict): The FireWorks settings
+    """postprocessing for initializing parallel force calculaitons
 
-    Returns:
-        (FWAction): The action that will run all force calculations
+    Parameters
+    ----------
+    atoms: ASE Atoms
+        atoms reference structure for the calculation
+    calc: ASE calculator
+        The claculator of the claulation
+    outputs: dict
+        The outputs after setting up claculations
+    func: str
+        Function path to the main function
+    func_fw_out: str
+        Function path to the fw_out function
+    func_kwargs: dict
+        The kwargs for the main function
+    func_fw_kwargs: dict
+        The kwargs for the fw_out function
+    fw_settings: dict
+        The FireWorks settings
+
+    Returns
+    -------
+    FWAction
+        The action that will run all force calculations
     """
     if fw_settings is None:
         fw_settings = dict()
@@ -100,20 +111,31 @@ def get_detours(
     atoms=None,
     detours=None,
 ):
-    """
-    Add a set of detours for force calculations
-    Parameters:
-        atoms_to_calculate (list of ASE Atoms objects): List of structures to calculate forces for
-        calc_dict (dict): Dictionary representation of the ASE Calculator Object
-        prefix (str): prefix to add to force calculations
-        calc_kwargs (dict): A set of kwargs for the Force calculations
-        fw_settings (dict): A dictionary describing all FireWorks settings
-        update_spec (dict): Parmeters to be added to the FireWorks spec
-        atoms (ASE Atoms Object): Initial ASE Atoms object representation of the structure
-        detours (list of Fireworks): Current list of force calculations to perform
+    """Add a set of detours for force calculations
+
+    Parameters
+    ----------
+    atoms_to_calculate: list of ASE Atoms objects
+        List of structures to calculate forces for
+    calc_dict: dict
+        Dictionary representation of the ASE Calculator Object
+    prefix: str
+        prefix to add to force calculations
+    calc_kwargs: dict
+        A set of kwargs for the Force calculations
+    fw_settings: dict
+        A dictionary describing all FireWorks settings
+    update_spec: dict
+        Parmeters to be added to the FireWorks spec
+    atoms: ASE Atoms Object
+        Initial ASE Atoms object representation of the structure
+    detours: list of Fireworks
+        Current list of force calculations to perform
 
     Returns
-        (list of Fireworks): The updated detours object
+    -------
+    list of Fireworks
+        The updated detours object
     """
     if detours is None:
         detours = []
@@ -152,17 +174,25 @@ def get_detours(
 
 
 def add_socket_calc_to_detours(detours, atoms, func_kwargs, fw_settings, prefix):
-    """
-    Generates a Firework to run a socket calculator and adds it to the detours
-    Parameters:
-        detours (list of Fireworks): Current list of detours
-        atoms (ASE Atoms Object): Initial ASE Atoms object representation of the structure
-        func_kwargs (dict): kwargs needed to do the socket I/O calculation
-        fw_settings (dict): FireWorks settings
-        prefix (str): ph for phonopy and ph3 for phono3py calculations
+    """Generates a Firework to run a socket calculator and adds it to the detours
 
-    Returns:
-        (list of Fireworks): an updated detours list
+    Parameters
+    ----------
+    detours: list of Fireworks
+        Current list of detours
+    atoms: ASE Atoms Object
+        Initial ASE Atoms object representation of the structure
+    func_kwargs: dict
+        kwargs needed to do the socket I/O calculation
+    fw_settings: dict
+        FireWorks settings
+    prefix: str
+        ph for phonopy and ph3 for phono3py calculations
+
+    Returns
+    -------
+    list of Fireworks
+        an updated detours list
     """
     calc_kwargs = {}
     calc_keys = ["trajectory", "workdir", "backup_folder", "walltime"]
@@ -192,19 +222,29 @@ def add_socket_calc_to_detours(detours, atoms, func_kwargs, fw_settings, prefix)
 def add_single_calc_to_detours(
     detours, func_fw_kwargs, atoms, atoms_list, calc_dict, fw_settings, prefix
 ):
-    """
-    Adds a group of Fireworks to run as single calculations
-    Parameters:
-        detours (list of Fireworks): Current list of detours
-        func_kwargs (dict): kwargs needed to do the socket I/O calculation
-        atoms (dict): Dictionary representing the ASE Atoms object of theprimitive cell
-        atoms_list (list of Atoms): List of supercells to perform force calculations on
-        calc_dict (dict): Dictionary representing the ASE Calculator for the force calculations
-        fw_settings (dict): FireWorks settings
-        prefix (str): ph for phonopy and ph3 for phono3py calculations
+    """Adds a group of Fireworks to run as single calculations
 
-    Returns:
-        (list of Fireworks): an updated detours list
+    Parameters
+    ----------
+    detours: list of Fireworks
+        Current list of detours
+    func_kwargs: dict
+        kwargs needed to do the socket I/O calculation
+    atoms: dict
+        Dictionary representing the ASE Atoms object of theprimitive cell
+    atoms_list: list of Atoms
+        List of supercells to perform force calculations on
+    calc_dict: dict
+        Dictionary representing the ASE Calculator for the force calculations
+    fw_settings: dict
+        FireWorks settings
+    prefix: str
+        ph for phonopy and ph3 for phono3py calculations
+
+    Returns
+    -------
+    list of Fireworks
+        an updated detours list
     """
     for i, sc in enumerate(atoms_list):
         if not sc:
@@ -236,19 +276,27 @@ def add_single_calc_to_detours(
 
 
 def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
-    """
-    Add the phonon_dict to the spec
-    Parameters:
-        func (str): Path to the phonon analysis function
-        func_fw_out (str): Path to this function
-        args (list): list arguments passed to the phonon analysis
-        fw_settings (dict): Dictionary for the FireWorks specific systems
-        kwargs (dict): Dictionary of keyword arguments
-            Mandatory Keys:
-                outputs: The Phonopy object from post-processing
+    """Add the phonon_dict to the spec
 
-    Returns:
-        (FWAction): FWAction that adds the phonon_dict to the spec
+    Parameters
+    ----------
+    func: str
+        Path to the phonon analysis function
+    func_fw_out: str
+        Path to this function
+    args: list
+        list arguments passed to the phonon analysis
+    fw_settings: dict
+        Dictionary for the FireWorks specific systems
+    kwargs: dict
+        Dictionary of keyword arguments
+        Mandatory Keys:
+            outputs: The Phonopy object from post-processing
+
+    Returns
+    -------
+    FWAction
+        FWAction that adds the phonon_dict to the spec
     """
     traj = f"{kwargs['workdir']}/{kwargs['trajectory']}"
     _, metadata = reader(traj, True)
@@ -270,13 +318,17 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
 
 def get_base_work_dir(wd):
-    """
-    Converts wd to be it's base (no task specific directories)
-    Parameters:
-        wd (str): Current working directory
+    """Converts wd to be it's base (no task specific directories)
 
-    Returns:
-        (str): The base working directory for the workflow
+    Parameters
+    ----------
+    wd: str
+        Current working directory
+
+    Returns
+    -------
+    str
+        The base working directory for the workflow
     """
     wd_list = wd.split("/")
     # remove analysis directories from path
@@ -307,22 +359,34 @@ def get_base_work_dir(wd):
 
 
 def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
-    """
-    Check phonon convergence and set up future calculations after a phonon calculation
-    Parameters:
-        func (str): Path to the phonon analysis function
-        func_fw_out (str): Path to this function
-        args (list): list arguments passed to the phonon analysis
-        fw_settings (dict): Dictionary for the FireWorks specific systems
-        kwargs (dict): Dictionary of keyword arguments
-            Mandatory Keys:
-                outputs: The Phonopy object from post-processing
-                serial (bool): If True use a serial calculation
-                init_wd (str): Path to the base phonon force calculations
-                trajectory (str): trajectory file name
+    """Check phonon convergence and set up future calculations after a phonon calculation
 
-    Returns:
-        (FWAction): Increases the supercell size or adds the phonon_dict to the spec
+    Parameters
+    ----------
+    func: str
+        Path to the phonon analysis function
+    func_fw_out: str
+        Path to this function
+    args: list
+        list arguments passed to the phonon analysis
+    fw_settings: dict
+        Dictionary for the FireWorks specific systems
+    kwargs: dict
+        Dictionary of keyword arguments with the following keys
+
+            outputs: Phonopy
+                The Phonopy object from post-processing
+            serial: bool
+                If True use a serial calculation
+            init_wd: str
+                Path to the base phonon force calculations
+            trajectory: str
+                trajectory file name
+
+    Returns
+    -------
+    FWAction
+        Increases the supercell size or adds the phonon_dict to the spec
     """
     calc_time = np.sum(args[1])
     max_mem = np.max(args[2])
@@ -472,15 +536,21 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
 
 def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
-    """
-    Checks if the density of state finger prints are converged
-    Parameters:
-        dos_fp (MaterialsFingerprint): Current fingerprint
-        prev_dos_fp (MaterialsFingerprint): Fingerprint of the previous step
-        conv_crit (float): convergence criteria
+    """Checks if the density of state finger prints are converged
 
-    Returns:
-        (bool): True if conv_criteria is met
+    Parameters
+    ----------
+    dos_fp: MaterialsFingerprint
+        Current fingerprint
+    prev_dos_fp: MaterialsFingerprint
+        Fingerprint of the previous step
+    conv_crit: float
+        convergence criteria
+
+    Returns
+    -------
+    bool
+        True if conv_criteria is met
     """
     for ll in range(4):
         prev_dos_fp[ll] = np.array(prev_dos_fp[ll])

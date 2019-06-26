@@ -15,15 +15,21 @@ from hilde.phonopy import defaults as ph_defaults
 
 
 def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
-    """
-    Generates a workflow from given set of steps
-    Args
-        workflow_settings (Seetings): The settings object for the desired workflow
-        atoms (ASE atoms object): ASE Atoms object to preform the calculation on, with an attached calculator
-        launchpad_yaml (str): filename for the launchpad definition file
+    """Generates a workflow from given set of steps
 
-    Returns
-        (None): Adds the generated workflow to the launchpad defined in launchpad_yaml
+    Parameters
+    ----------
+    workflow_settings: Seetings
+        The settings object for the desired workflow
+    atoms: ASE atoms object
+        ASE Atoms object to preform the calculation on, with an attached calculator
+    launchpad_yaml: str
+        filename for the launchpad definition file
+
+    Raises
+    ------
+    IOError
+        If supercell_matrix is not provided for phonopy, phono3py, or statistical_sampling
     """
     fw_steps = []
     fw_dep = {}

@@ -3,15 +3,19 @@ from hilde.fireworks.tasks.task_spec import TaskSpec
 
 
 def gen_phonon_task_spec(func_kwargs, fw_settings=None):
-    """
-    Generate a parallel Phononpy or Phono3py calculation task
-    Parameters:
-        func_kwargs (dict): The defined kwargs for func
-        fw_settings (dict): Settings used by fireworks to place objects in the right part of
-                            the MongoDB
+    """Generate a parallel Phononpy or Phono3py calculation task
 
-    Returns:
-        (TaskSpec): The specification object of the task
+    Parameters
+    ----------
+    func_kwargs: dict
+        The defined kwargs for func
+    fw_settings: dict
+        Settings used by fireworks to place objects in the right part of the MongoDB
+
+    Returns
+    -------
+    TaskSpec
+        The specification object of the task
     """
     if fw_settings is not None:
         fw_settings = fw_settings.copy()
@@ -60,15 +64,20 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
 
 
 def gen_stat_samp_task_spec(func_kwargs, fw_settings=None):
-    """
-    Generate a Harmonic Analysis task
-    Parameters:
-        func_kwargs (dict): The defined kwargs for func
-        fw_settings (dict): Settings used by fireworks to place objects in the right part of
+    """Generate a Harmonic Analysis task
+
+    Parameters
+    ----------
+    func_kwargs: dict
+        The defined kwargs for func
+    fw_settings: dict
+        Settings used by fireworks to place objects in the right part of
                             the MongoDB
 
-    Returns:
-        (TaskSpec): The specification object of the task
+    Returns
+    -------
+    TaskSpec
+        The specification object of the task
     """
     preprocess_keys = [
         "supercell_matrix",
@@ -127,18 +136,27 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None):
 def gen_phonon_analysis_task_spec(
     func, func_kwargs, metakey, forcekey, timekey, make_abs_path=False
 ):
-    """
-    Generate a serial Phononpy or Phono3py calculation task
-    Parameters:
-        func (str): The function path to the serial calculator
-        func_kwargs (dict): The defined kwargs for func
-        metakey (str): Key to find the phonon calculation's metadata to recreate the trajectory
-        forcekey (str): Key to find the phonon calculation's force data to recreate the trajectory
-        timekey (str): Key to find the time needed for the phonon supercell calculations
-        make_abs_path (bool): If True make the paths of directories absolute
+    """Generate a serial Phononpy or Phono3py calculation task
 
-    Returns:
-        (TaskSpec): The specification object of the task
+    Parameters
+    ----------
+    func: str
+        The function path to the serial calculator
+    func_kwargs: dict
+        The defined kwargs for func
+    metakey: str
+        Key to find the phonon calculation's metadata to recreate the trajectory
+    forcekey: str
+        Key to find the phonon calculation's force data to recreate the trajectory
+    timekey: str
+        Key to find the time needed for the phonon supercell calculations
+    make_abs_path: bool
+        If True make the paths of directories absolute
+
+    Returns
+    -------
+    TaskSpec
+        The specification object of the task
     """
     if "workdir" in func_kwargs and "init_wd" not in func_kwargs:
         func_kwargs["init_wd"] = func_kwargs["workdir"]
@@ -183,16 +201,23 @@ def gen_phonon_analysis_task_spec(
 def gen_aims_task_spec(
     func_kwargs, func_fw_out_kwargs, make_abs_path=False, relax=True
 ):
-    """
-    Gets the task spec for an FHI-aims calculations
-    Parameters:
-        func_kwargs (dict): The defined kwargs for func
-        func_fw_outkwargs (dict): The defined kwargs for fw_out
-        make_abs_path (bool): If True make the paths of directories absolute
-        relax (bool): If True it is a relaxation
+    """Gets the task spec for an FHI-aims calculations
 
-    Returns:
-        (TaskSpec): The task_spec for the calculation
+    Parameters
+    ----------
+    func_kwargs: dict
+        The defined kwargs for func
+    func_fw_outkwargs: dict
+        The defined kwargs for fw_out
+    make_abs_path: bool
+        If True make the paths of directories absolute
+    relax: bool
+        If True it is a relaxation
+
+    Returns
+    -------
+    TaskSpec
+        The task_spec for the calculation
     """
     fw_out = "hilde.fireworks.tasks.fw_out.relax.check_aims_complete"
     if not relax:
@@ -208,14 +233,19 @@ def gen_aims_task_spec(
 
 
 def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
-    """
-    Gets the task spec for a k-grid optimization
-    Parameters:
-        func_kwargs (dict): The defined kwargs for func
-        make_abs_path (bool): If True make the paths of directories absolute
+    """Gets the task spec for a k-grid optimization
 
-    Returns:
-        (TaskSpec): The TaskSpec for the kgrid optimization
+    Parameters
+    ----------
+    func_kwargs: dict
+        The defined kwargs for func
+    make_abs_path: bool
+        If True make the paths of directories absolute
+
+    Returns
+    -------
+    TaskSpec
+        The TaskSpec for the kgrid optimization
     """
     return TaskSpec(
         "hilde.k_grid.converge_kgrid.converge_kgrid",

@@ -20,20 +20,31 @@ from hilde.helpers.k_grid import k2d
 def check_relaxation_complete(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
-    """
-    A function that checks if a relaxation is converged (if outputs is True) and either
-    stores the relaxed structure in the MongoDB or appends another Firework as its child
-    to restart the relaxation
-    Parameters:
-        atoms (ASE Atoms object): The original atoms at the start of this job
-        calc (ASE Calculator object): The original calculator
-        outputs (bool): The outputs from the function (Is the calc converged)
-        func (str): Path to function that performs the MD like operation
-        func_fw_out (str): Path to this function
-        func_kwargs (dict): keyword arguments for func
-        func_fw_kwargs (dict): Keyword arguments for fw_out function
-        fw_settings (dict): FireWorks specific settings
-    Returns (FWAction): The correct action (restart or updated spec) if convergence is reached
+    """A function that checks if a relaxation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the relaxation
+
+    Parameters
+    ----------
+    atoms: ASE Atoms object
+        The original atoms at the start of this job
+    calc: ASE Calculator object
+        The original calculator
+    outputs: bool
+        The outputs from the function (Is the calc converged)
+    func: str
+        Path to function that performs the MD like operation
+    func_fw_out: str
+        Path to this function
+    func_kwargs: dict
+        keyword arguments for func
+    func_fw_kwargs: dict
+        Keyword arguments for fw_out function
+    fw_settings: dict
+        FireWorks specific settings
+
+    Returns
+    -------
+    FWAction
+        The correct action (restart or updated spec) if convergence is reached
     """
     if "trajectory" in func_kwargs:
         last_step_dict = last_from_yaml(func_kwargs["trajectory"])
@@ -94,20 +105,36 @@ def check_relaxation_complete(
 def check_aims_complete(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
-    """
-    A function that checks if a relaxation is converged (if outputs is True) and either
-    stores the relaxed structure in the MongoDB or appends another Firework as its child
-    to restart the relaxation
-    Parameters:
-        atoms (ASE Atoms object): The original atoms at the start of this job
-        calc (ASE Calculator object): The original calculator
-        outputs (ASE Atoms Object): The geometry of the final relaxation step
-        func (str): Path to function that performs the MD like operation
-        func_fw_out (str): Path to this function
-        func_kwargs (dict): keyword arguments for func
-        func_fw_kwargs (dict): Keyword arguments for fw_out function
-        fw_settings (dict): FireWorks specific settings
-    Returns (FWAction): The correct action (restart or updated spec) if convergence is reached
+    """A function that checks if a relaxation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the relaxation
+
+    Parameters
+    ----------
+    atoms: ASE Atoms object
+        The original atoms at the start of this job
+    calc: ASE Calculator object
+        The original calculator
+    outputs: ASE Atoms Object
+        The geometry of the final relaxation step
+    func: str
+        Path to function that performs the MD like operation
+    func_fw_out: str
+        Path to this function
+    func_kwargs: dict
+        keyword arguments for func
+    func_fw_kwargs: dict
+        Keyword arguments for fw_out function
+    fw_settings: dict
+        FireWorks specific settings
+
+    Returns
+    -------
+    FWAction
+        The correct action (restart or updated spec) if convergence is reached
+
+    Raises
+    ------
+    RuntimeError
+        If the FHI-Aims calculation fails
     """
     func_fw_kwargs["relax_step"] += 1
     aims_out = np.array(open(func_kwargs["workdir"] + "/aims.out").readlines())
@@ -136,7 +163,7 @@ def check_aims_complete(
                 calc.parameters["walltime"] = 2.0 * walltime
                 fw_settings["spec"]["walltime"] = to_time_str(2 * walltime)
             else:
-                raise IOError(
+                raise RuntimeError(
                     "There was a problem with the FHI Aims calculation stopping program here"
                 )
         new_atoms = outputs

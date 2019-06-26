@@ -13,20 +13,31 @@ from hilde.trajectory import reader as traj_reader
 def mod_spec_add(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
-    """
-    A function that appends the current results to a specified spec in the MongoDB
-    Parameters:
-        atoms (ASE Atoms): The original atoms at the start of this job
-        calc (ASE Calculator): The original calculator
-        outputs (dict): The outputs from the function (assumes to be a single bool output)
-        func (str): Path to function that performs the MD like operation
-        func_fw_out (str): Path to this function
-        func_kwargs (dict): keyword arguments for func
-        func_fw_kwargs (dict): Keyword arguments for fw_out function
-        fw_settings (dict): FireWorks specific settings
+    """A function that appends the current results to a specified spec in the MongoDB
 
-    Returns:
-        (FWAction): Modifies the spec to add the current atoms list to it
+    Parameters
+    ----------
+    atoms: ASE Atoms
+        The original atoms at the start of this job
+    calc: ASE Calculator
+        The original calculator
+    outputs: dict
+        The outputs from the function (assumes to be a single bool output)
+    func: str
+        Path to function that performs the MD like operation
+    func_fw_out: str
+        Path to this function
+    func_kwargs: dict
+        keyword arguments for func
+    func_fw_kwargs: dict
+        Keyword arguments for fw_out function
+    fw_settings: dict
+        FireWorks specific settings
+
+    Returns
+    -------
+    FWAction
+        Modifies the spec to add the current atoms list to it
     """
     atoms_dict = atoms2dict(outputs)
     mod_spec = [{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}]
@@ -54,18 +65,25 @@ def mod_spec_add(
 
 
 def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
-    """
-    A function that checks if a socket calculation is done, and if not restarts
-    Parameters:
-        func (str): Path to function that performs the MD like operation
-        func_fw_out (str): Path to this function
-        args (list): Arguments passed to the socket calculator function
-        fw_settings (dict): FireWorks specific settings
-        kwargs (dict): Key word arguments passed to the socket calculator function
+    """A function that checks if a socket calculation is done, and if not restarts
 
-    Returns:
-        (FWAction): Either a new Firework to restart the calculation or an updated
-                        spec with the list of atoms
+    Parameters
+    ----------
+    func: str
+        Path to function that performs the MD like operation
+    func_fw_out: str
+        Path to this function
+    args: list
+        Arguments passed to the socket calculator function
+    fw_settings: dict
+        FireWorks specific settings
+    kwargs: dict
+        Key word arguments passed to the socket calculator function
+
+    Returns
+    -------
+    FWAction
+        Either a new Firework to restart the calculation or an updated spec with the list of atoms
     """
     if len(args) > 3 and isinstance(args[3], list):
         times = args[3].copy()

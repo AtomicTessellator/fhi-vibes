@@ -80,6 +80,7 @@ def setup_aims(ctx):
     ----------
     ctx: AimsContext
         The context for the calculation
+
     Returns
     -------
     calc: ASE calculator object

@@ -15,10 +15,11 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
         (tuple): PyTask function name, PyTask args, PyTask inputs, PyTask kwargs
     """
     pt_func = "hilde.fireworks.tasks.general_py_task.atoms_calculate_task"
-    pt_args = task_spec.get_pt_args()[:4]
-    args = task_spec.get_pt_args()[4:]
-    pt_inputs = task_spec.get_pt_inputs()
-    pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
+    pt_args = task_spec.pt_args[:4]
+    args = task_spec.pt_args[4:]
+    pt_inputs = task_spec.pt_inputs
+    task_spec.fw_settings = fw_settings
+    pt_kwargs = task_spec.pt_kwargs
     if isinstance(atoms, str):
         pt_inputs = [atoms, calc] + pt_inputs
     elif isinstance(calc, str):

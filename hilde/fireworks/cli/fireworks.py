@@ -47,13 +47,18 @@ class ListOption(click.Option):
     """A list option for click"""
 
     def type_cast_value(self, ctx, value):
-        """
-        Casts a comma separated list string as a python list
-        Parameters:
-            ctx (Context): context for the operation (necessary, but not used)
-            value (str): value of the option
+        """Casts a comma separated list string as a python list
 
-        Returns: value(list)
+        Parameters
+        ----------
+        ctx: Context
+            context for the operation (necessary, but not used)
+        value: str
+            value of the option
+
+        Returns
+        -------
+        value: list
             The comma seperated list as either a list of strs or a list of ints depending on the type of the option
         """
         if not value:
@@ -74,11 +79,19 @@ def fireworks():
 @click.option("-w", "--workflow", default="workflow.in")
 @click.option("-l", "--launchpad", default=LAUNCHPAD_LOC)
 def add_wf(workflow, launchpad):
-    """
-    Adds a workflow to the launchpad
-    Parameters:
-        workflow: Workflow file to be added to the launch pad
-        launchpad: launchpad yaml definition file
+    """Adds a workflow to the launchpad
+
+    Parameters
+    ----------
+    workflow: str
+        The workflow file to be added to the launch pad
+    launchpad: str
+        The launchpad yaml definition
+
+    Raises
+    ------
+    IOError
+        If no geometry file was specified
     """
     wflow = Settings(settings_file=workflow)
     if "basisset" not in wflow and "basisset" in wflow.general:
@@ -148,7 +161,11 @@ def add_wf(workflow, launchpad):
     help="Setup the remote config dir using files in the directory specified by -c.",
     is_flag=True,
 )
-@click.option("--gss_auth", help="use gss_api authorization", is_flag=True)
+@click.option(
+    "--gss_auth",
+    help="use gss_api authorization",
+    is_flag=True
+)
 @click.option(
     "-rro",
     "--remote_recover_offline",
@@ -163,17 +180,48 @@ def add_wf(workflow, launchpad):
     default=0,
 )
 @click.option(
-    "--launch_dir", help="directory to launch the job / rapid-fire", default="."
+    "--launch_dir",
+    help="directory to launch the job / rapid-fire",
+    default="."
 )
-@click.option("--logdir", help="path to a directory for logging", default=None)
 @click.option(
-    "--loglvl", help="level to print log messages", default="CRITICAL", type=str
+    "--logdir",
+    help="path to a directory for logging",
+    default=None
 )
-@click.option("-s", "--silencer", help="shortcut to mute log messages", is_flag=True)
-@click.option("-r", "--reserve", help="reserve a fw", is_flag=True)
-@click.option("-l", "--launchpad_file", help="path to launchpad file")
-@click.option("-w", "--fworker_file", help="path to fworker file")
-@click.option("-q", "--queueadapter_file", help="path to queueadapter file")
+@click.option(
+    "--loglvl",
+    help="level to print log messages",
+    default="CRITICAL",
+    type=str
+)
+@click.option(
+    "-s",
+    "--silencer",
+    help="shortcut to mute log messages",
+    is_flag=True
+)
+@click.option(
+    "-r",
+    "--reserve",
+    help="reserve a fw",
+    is_flag=True
+)
+@click.option(
+    "-l",
+    "--launchpad_file",
+    help="path to launchpad file"
+)
+@click.option(
+    "-w",
+    "--fworker_file",
+    help="path to fworker file"
+)
+@click.option(
+    "-q",
+    "--queueadapter_file",
+    help="path to queueadapter file"
+)
 @click.option(
     "-c",
     "--config_dir",
@@ -271,7 +319,72 @@ def claunch(
     sleep,
     tasks_to_queue,
 ):
-    """combined launcher script for argument descriptions see above help lines"""
+    """Launches Fireworks both locally and remotely based on what the tasks func is
+
+    Parameters
+    ----------
+    ctx: Context
+        The Context for the command
+    remote_host: list of str
+        Remote host to exec qlaunch. Right now, only supports running from a config dir.
+    remote_config_dir: list of str
+        Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple locations if you have multiple configurations on the same cluster e.g., multiple queues or FireWorkers.
+    remote_user: str
+        Username to login to remote host.
+    remote_password: str
+        Password for remote host (if necessary). For best operation, it is recommended that you do passwordless ssh.
+    remote_shell: str
+        Shell command to use on remote host for running submission.
+    remote_setup: bool
+        If True setup the remote config dir using files in the directory specified by -c.
+    gss_auth: bool
+        If True use gss_api authorization"
+    remote_recover_offline: bool
+        If True recover offline jobs from remote host
+    daemon: int
+        Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode.
+    launch_dir: str
+        directory to launch the job / rapid-fire
+    logdir: str
+        path to a directory for logging
+    loglvl: str
+        level to print log messages
+    silencer: bool
+        If True mute log messages
+    reserve: bool
+        If True reserve FireWorks
+    launchpad_file: str
+        path to launchpad file
+    fworker_file: str
+        path to fworker file
+    queueadapter_file: str
+        path to queueadapter file
+    config_dir: str
+        path to a directory containing the config file (used if -l, -w, -q unspecified)
+    fill_mode: bool
+        If True launch queue submissions even when there is nothing to run
+    firework_ids: list of itns
+        A list of specific ids to run
+    wflow: list of ints or Workflows
+        A list of the root fw ids of a workflow
+    maxjobs_queue: int
+        maximum jobs to keep in queue for this user
+    maxjobs_block: int
+        maximum jobs to put in a block
+    nlaunches: int
+        num_launches (int or "infinite"; default 0 is all jobs in DB)
+    timeout: float
+        timeout (secs) after which to quit (default None)
+    sleep: float
+        sleep time between loops
+    tasks_to_queue: list of strs
+        list of tasks to be sent to the queue
+
+    Raises
+    ------
+    ImportError
+        If the Fabric package v2+ is not installed
+    """
     if remote_host and not HAS_FABRIC:
         raise ImportError(
             "Remote options require the Fabric package v2+ to be installed!"
@@ -310,7 +423,8 @@ def claunch(
 
     launchpad, fworker, queueadapter = get_lpad_fworker_qadapter(ctx)
 
-    c_rapidfire(
+    c_rapidfire(:
+
         launchpad,
         fworker=fworker,
         qadapter=queueadapter,
@@ -323,7 +437,7 @@ def claunch(
         strm_lvl=loglvl,
         timeout=timeout,
         fill_mode=fill_mode,
-        fw_ids=firework_ids,
+        firework_ids=firework_ids,
         wflow=wflow,
         tasks2queue=tasks_to_queue,
         gss_auth=gss_auth,
@@ -377,7 +491,12 @@ def claunch(
     help="Setup the remote config dir using files in the directory specified by -c.",
     is_flag=True,
 )
-@click.option("-rgss", "--gss_auth", help="use gss_api authorization", is_flag=True)
+@click.option(
+    "-rgss",
+    "--gss_auth",
+    help="use gss_api authorization",
+    is_flag=True
+)
 @click.option(
     "-rro",
     "--remote_recover_offline",
@@ -392,17 +511,48 @@ def claunch(
     default=0,
 )
 @click.option(
-    "--launch_dir", help="directory to launch the job / rapid-fire", default="."
+    "--launch_dir",
+    help="directory to launch the job / rapid-fire",
+    default="."
 )
-@click.option("--logdir", help="path to a directory for logging", default=None)
 @click.option(
-    "--loglvl", help="level to print log messages", default="CRITICAL", type=str
+    "--logdir",
+    help="path to a directory for logging",
+    default=None
 )
-@click.option("-s", "--silencer", help="shortcut to mute log messages", is_flag=True)
-@click.option("-r", "--reserve", help="reserve a fw", is_flag=True)
-@click.option("-l", "--launchpad_file", help="path to launchpad file")
-@click.option("-w", "--fworker_file", help="path to fworker file")
-@click.option("-q", "--queueadapter_file", help="path to queueadapter file")
+@click.option(
+    "--loglvl",
+    help="level to print log messages",
+    default="CRITICAL",
+    type=str
+)
+@click.option(
+    "-s",
+    "--silencer",
+    help="shortcut to mute log messages",
+    is_flag=True
+)
+@click.option(
+    "-r",
+    "--reserve",
+    help="reserve a fw",
+    is_flag=True
+)
+@click.option(
+    "-l",
+    "--launchpad_file",
+    help="path to launchpad file",
+)
+@click.option(
+    "-w",
+    "--fworker_file",
+    help="path to fworker file",
+)
+@click.option(
+    "-q",
+    "--queueadapter_file",
+    help="path to queueadapter file",
+)
 @click.option(
     "-c",
     "--config_dir",
@@ -437,7 +587,56 @@ def qlaunch(
     config_dir,
     fill_mode,
 ):
-    """queue launching for fireworks, for argument description see above help lines"""
+    """Launch FireWorks to the queue
+
+    Parameters
+    ----------
+    ctx: Context
+        The Context for the command
+    remote_host: list of str
+        Remote host to exec qlaunch. Right now, only supports running from a config dir.
+    remote_config_dir: list of str
+        Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple locations if you have multiple configurations on the same cluster e.g., multiple queues or FireWorkers.
+    remote_user: str
+        Username to login to remote host.
+    remote_password: str
+        Password for remote host (if necessary). For best operation, it is recommended that you do passwordless ssh.
+    remote_shell: str
+        Shell command to use on remote host for running submission.
+    remote_setup: bool
+        If True Setup the remote config dir using files in the directory specified by -c.
+    gss_auth: bool
+        If True use gss_api authorization
+    remote_recover_offline: bool
+        If True recover offline jobs from remote host
+    daemon: int
+        Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode.
+    launch_dir: str
+        directory to launch the job / rapid-fire
+    logdir: str
+        path to a directory for logging
+    loglvl: str
+        level to print log messages
+    silencer: bool
+        If True mute log messages
+    reserve: bool
+        If True reserve FireWroks
+    launchpad_file: str
+        path to launchpad file
+    fworker_file: str
+        path to fworker file
+    queueadapter_file: str
+        path to queueadapter file
+    config_dir: str
+        path to a directory containing the config file (used if -l, -w, -q unspecified)
+    fill_mode: bool
+        If True launch queue submissions even when there is nothing to run
+
+    Raises
+    ------
+    ImportError
+        If the Fabric package v2+ is not installed
+    """
     launchpad_file, fworker_file, queueadapter_file = get_fw_files(
         config_dir, launchpad_file, fworker_file, queueadapter_file, remote_host
     )
@@ -564,7 +763,29 @@ def qlaunch_rapidfire(
     sleep,
     tasks_to_queue,
 ):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
+    """Preform a qlaunch rpaidfire
+
+    Parameters
+    ----------
+    ctx: Context
+        The Context for the command
+    firework_ids: list of ints
+        A list of specific ids to run
+    wflow: list of ints or Workflows
+        A list of the root fw ids of a workflow
+    maxjobs_queue: int
+        maximum jobs to keep in queue for this user
+    maxjobs_block: int
+        maximum jobs to put in a block
+    nlaunches: int
+        num_launches (int or "infinite"; default 0 is all jobs in DB)
+    timeout: float
+        timeout (secs) after which to quit (default None)
+    sleep: float
+        sleep time between loops
+    tasks_to_queue: list of str
+        list of tasks to be sent to the queue
+    """
     ctx.obj.firework_ids = firework_ids
     ctx.obj.wflow = wflow
     ctx.obj.maxjobs_queue = maxjobs_queue
@@ -597,19 +818,27 @@ def qlaunch_rapidfire(
 @click.pass_context
 @click.option(
     "-f",
-    "--fw_id",
-    help="specific fw_id to run in reservation mode",
+    "--firework_id",
+    help="specific firework_id to run in reservation mode",
     default=None,
     type=int,
 )
-def qlaunch_singleshot(ctx, fw_id):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
-    ctx.obj.fw_id = fw_id
+def qlaunch_singleshot(ctx, firework_id):
+    """preform a qlaunch singleshot
+
+    Parameters
+    ----------
+    ctx: Context
+        The Context for the command
+    firework_id: int
+        FireWork id to run
+    """
+    ctx.obj.firework_id = firework_id
     ctx.obj.command = "singleshot"
     non_default = []
-    val = getattr(ctx.obj, "fw_id", None)
+    val = getattr(ctx.obj, "firework_id", None)
     if val is not None:
-        non_default.append("--{} {}".format("fw_id", val))
+        non_default.append("--{} {}".format("firework_id", val))
     do_qluanch(ctx, non_default)
 
 
@@ -628,7 +857,23 @@ def qlaunch_singleshot(ctx, fw_id):
     default=CONFIG_FILE_DIR,
 )
 def rlaunch(ctx, loglvl, silencer, launchpad_file, fworker_file, config_dir):
-    """common launch operations, for argument description see above help lines"""
+    """Launch a rocket locally
+
+    Parameters
+    ----------
+    ctx: Context
+        The Context for the command
+    loglvl: str
+        level to print log messages (default: CRITICAL)
+    silencer: bool
+        shortcut to mute log messages
+    launchpad_file: str
+        path to launchpad file
+    fworker_file: str
+        path to fworker file
+    config_dir: str
+        path to a directory containing the config file (used if -l, -w, -q unspecified)
+    """
 
     launchpad_file, fworker_file, _ = get_fw_files(
         config_dir, launchpad_file, fworker_file, None, None
@@ -698,7 +943,30 @@ def rlaunch(ctx, loglvl, silencer, launchpad_file, fworker_file, config_dir):
 def rlaunch_rapidfire(
     ctx, firework_ids, wflow, nlaunches, timeout, sleep, max_loops, local_redirect
 ):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
+    """preform a rlaunch rpaidfire
+    Parameters
+    ----------
+    ctx: Context
+        The Context for the command
+    firework_ids: list of ints
+        A list of specific ids to run
+    wflow: list of ints or Workflows
+        A list of the root fw ids of a workflow
+    maxjobs_queue: int
+        maximum jobs to keep in queue for this user
+    maxjobs_block: int
+        maximum jobs to put in a block
+    nlaunches: int
+        num_launches (int or "infinite"; default 0 is all jobs in DB)
+    timeout: float
+        timeout (secs) after which to quit (default None)
+    sleep: float
+        sleep time between loops
+    max_loops: int
+        After this many sleep loops, quit even in infinite nlaunches mode (default -1 is infinite loops)
+    local_redirc: bool
+        Redirect stdout and stderr to the launch directory
+    """
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx)
     r_rapidfire(
         launchpad,
@@ -710,7 +978,7 @@ def rlaunch_rapidfire(
         strm_lvl=ctx.obj.loglvl,
         timeout=timeout,
         local_redirect=local_redirect,
-        fw_ids=firework_ids,
+        firework_ids=firework_ids,
         wflow_id=wflow,
     )
 
@@ -719,18 +987,31 @@ def rlaunch_rapidfire(
 @click.pass_context
 @click.option(
     "-f",
-    "--fw_id",
-    help="specific fw_id to run in reservation mode",
+    "--firework_id",
+    help="specific firework_id to run in reservation mode",
     default=None,
     type=int,
 )
 @click.option("--offline", help="run in offline mode (FW.json required)", is_flag=True)
 @click.option("--pdb", help="shortcut to invoke debugger on error", is_flag=True)
-def rlaunch_singleshot(ctx, fw_id, offline, pdb):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
+def rlaunch_singleshot(ctx, firework_id, offline, pdb):
+    """preform a rlaunch singleshot
+
+    Parameters
+    ----------
+    ctx: Context
+        The Context for the command
+    firework_id: int
+        FireWork id to run
+    offline: bool
+        If True run in offline mode (FW.json required)
+    pdb: bool
+        If True invoke debugger on error
+    """
+
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx, offline)
 
-    launch_rocket(launchpad, fworker, fw_id, ctx.obj.loglvl, pdb_on_exception=pdb)
+    launch_rocket(launchpad, fworker, firework_id, ctx.obj.loglvl, pdb_on_exception=pdb)
 
 
 @rlaunch.command("multi")
@@ -786,7 +1067,29 @@ def rlaunch_multi(
     exclude_current_node,
     local_redirect,
 ):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
+    """preform a rlaunch multi
+
+    Parameters
+    ----------
+    ctx: Context
+        The Context for the command
+    num_jobs: int
+        The number of jobs to run in parallel
+    nlaunches: int
+        num_launches (int or "infinite"; default 0 is all jobs in DB)
+    sleep: float
+        sleep time between loops
+    timeout: float
+        timeout (secs) after which to quit (default None)
+    nodefile: str
+        nodefile name or environment variable name containing the node file name (for populating FWData only)
+    ppn: int
+        Number of processors per node (for populating FWData only)
+    exclude_current_node: bool
+        Don't use the script launching node" "as compute node
+    local_redirc: bool
+        Redirect stdout and stderr to the launch directory
+    """
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx)
 
     total_node_list = None

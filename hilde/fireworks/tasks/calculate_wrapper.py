@@ -18,22 +18,36 @@ def wrap_calc_socket(
     walltime=1800,
     **kwargs,
 ):
-    """
-    Wrapper for the clalculate_socket function
-    Parameters:
-        atoms_dict_to_calculate (list of dicts): A list of dicts representing the cells
-                                                 to calculate the forces on
-        calc_dict (dict): A dictionary representation of the ASE Calculator used to calculate
-                          the Forces
-        metadata (dict): metadata for the force trajectory file
-        phonon_times (list): List of all the phonon calculation times
-        trajectory (str): file name for the trajectory file
-        workdir (str): work directory for the force calculations
-        backup_folder (str): Directory to store backups
-        walltime (int): number of seconds to run the calculation for
+    """Wrapper for the clalculate_socket function
+
+    Parameters
+    ----------
+    atoms_dict_to_calculate:list of dicts
+        A list of dicts representing the cellsto calculate the forces on
+    calc_dict:dict
+        A dictionary representation of the ASE Calculator used to calculatethe Forces
+    metadata:dict
+        metadata for the force trajectory file
+    phonon_times:list
+        List of all the phonon calculation times
+    trajectory:str
+        file name for the trajectory file
+    workdir:str
+        work directory for the force calculations
+    backup_folder:str
+        Directory to store backups
+    walltime:int
+        number of seconds to run the calculation for
 
     Returns
-        (bool): True if all the calculations completed
+    -------
+    bool
+        True if all the calculations completed
+
+    Raises
+    ------
+    RuntimeError
+        If the calculation fails
     """
     atoms_to_calculate = []
     if calc_dict["calculator"].lower() == "aims":
@@ -87,17 +101,29 @@ def wrap_calc_socket(
 
 
 def wrap_calculate(atoms, calc, workdir=".", walltime=1800):
-    """
-    Wrapper for the clalculate_socket function
-    Parameters:
-        atoms (Atoms): Structure.
-        calculator (calculator): Calculator.
-        workdir (folder): Folder to perform calculation in.
-        walltime (int): number of seconds to run the calculation for
+    """Wrapper for the clalculate_socket function
+
+    Parameters
+    ----------
+    atoms:Atoms
+        Structure.
+    calculator:calculator
+        Calculator.
+    workdir:folder
+        Folder to perform calculation in.
+    walltime:int
+        number of seconds to run the calculation for
 
     Returns
-        (bool): True if all the calculations completed
-    """
+    -------
+    bool
+        True if all the calculations completed
+
+    Raises
+    ------
+    RuntimeError
+        If the calculation fails
+"""
     calc.parameters["walltime"] = walltime
     try:
         return calculate(atoms, calc, workdir)

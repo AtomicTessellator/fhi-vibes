@@ -11,23 +11,31 @@ from hilde.helpers.fileformats import last_from_yaml
 def check_kgrid_opt_completion(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
-    """
-    A function that checks if an MD like calculation is converged (if outputs is True)
-    and either stores the relaxed structure in the MongoDB or appends another Firework
-    as its child to restart the MD
-    Parameters:
-        atoms (ASE Atoms object): The original atoms at the start of this job
-        calc (ASE Calculator object): The original calculator
-        outputs (list (bool, float, ASE Calculator): (Converged?, current k-point density,
-                                                      current ASE Calculator)
-        func (str): Path to function that performs the MD like operation
-        func_fw_out (str): Path to this function
-        func_kwargs (dict): keyword arguments for func
-        func_fw_kwargs (dict): Keyword arguments for fw_out function
-        fw_setstings (dict): FireWorks specific settings
+    """A function that checks if an MD like calculation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the MD
 
-    Returns :
-        (FWAction): Either another k-grid optimization step, or an updated spec
+    Parameters
+    ----------
+    atoms: ASE Atoms object
+        The original atoms at the start of this job
+    calc: ASE Calculator object
+        The original calculator
+    outputs: list (bool, float, ASE Calculator
+        (Converged?, current k-point density,current ASE Calculator)
+    func: str
+        Path to function that performs the MD like operation
+    func_fw_out: str
+        Path to this function
+    func_kwargs: dict
+        keyword arguments for func
+    func_fw_kwargs: dict
+        Keyword arguments for fw_out function
+    fw_setstings: dict
+        FireWorks specific settings
+
+    Returns
+    -------
+    FWAction
+        Either another k-grid optimization step, or an updated spec
     """
     trajectory = Path(func_kwargs["workdir"]) / func_kwargs["trajectory"]
     last_step_dict = last_from_yaml(trajectory)

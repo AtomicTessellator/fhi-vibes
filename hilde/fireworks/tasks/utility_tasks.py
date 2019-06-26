@@ -5,17 +5,27 @@ from hilde.helpers.k_grid import update_k_grid_calc_dict
 
 
 def mod_calc(param_key, calc_spec, calc, val, atoms=None, spec_key=None):
-    """
-    Function to modify a calculator within the MongoDB
-    Parameters:
-        param_key (str): key in the calculator dictionary to change
-        calc_spec (str): key for the calculator spec
-        calc (dict): a dict representing an ASE Calculator
-        val: the new value calc[param_key] should be updated to
-        atoms (dict): A dict representing an ASE Atoms object
-        spec_key (str): The key in the MongoDB to update the val
-                        (used to pass the param down the Workflow)
-    Returns (FWAction): An FWAction that modifies the calculator inside the spec
+    """Function to modify a calculator within the MongoDB
+
+    Parameters
+    ----------
+    param_key: str
+        key in the calculator dictionary to change
+    calc_spec: str
+        key for the calculator spec
+    calc: dict
+        a dict representing an ASE Calculator
+    val: the
+        w value calc[param_key] should be updated to
+    atoms: dict
+        A dict representing an ASE Atoms object
+    spec_key: str
+        The key in the MongoDB to update the val (used to pass the param down the Workflow)
+
+    Returns
+    -------
+    FWAction
+        An FWAction that modifies the calculator inside the spec
     """
     if param_key == "command":
         calc[param_key] = val
@@ -35,13 +45,21 @@ def mod_calc(param_key, calc_spec, calc, val, atoms=None, spec_key=None):
 
 
 def update_calc(calc_dict, key, val):
-    """
-    Update the calculator dictionary
-    Parameters:
-        calc_dict (dict): The dictionary representation of the ASE Calculator
-        key (str): The key string of the parameter to be changed
-        val: The updated value associated with the key string
-    Returns (dict): The updated clac_dict
+    """Update the calculator dictionary
+
+    Parameters
+    ----------
+    calc_dict: dict
+        The dictionary representation of the ASE Calculator
+    key: str
+        The key string of the parameter to be changed
+    val: The
+        dated value associated with the key string
+
+    Returns
+    -------
+    dict
+        The updated clac_dict
     """
     if key == "command":
         calc_dict[key] = val
@@ -60,13 +78,21 @@ def update_calc(calc_dict, key, val):
 
 
 def update_calc_in_db(calc_spec, update_calc_params, calc):
-    """
-    Updates a calculator in the MongoDB with a new set of parameters
-    Parameters:
-        calc_spec (str): spec to store the new calculator
-        update_calc_params (dict): A dictionary describing the new parameters to update the calc with
-        calc (dict): A dict representing an ASE Calculator
-    Returns (FWAction): An FWAction that updates the calculator in the spec
+    """Updates a calculator in the MongoDB with a new set of parameters
+
+    Parameters
+    ----------
+    calc_spec: str
+        spec to store the new calculator
+    update_calc_params: dict
+        A dictionary describing the new parameters to update the calc with
+    calc: dict
+        A dict representing an ASE Calculator
+
+    Returns
+    -------
+    FWAction
+        An FWAction that updates the calculator in the spec
     """
     del_key_list = ["relax_geometry", "relax_unit_cell", "use_sym"]
     for key in del_key_list:
