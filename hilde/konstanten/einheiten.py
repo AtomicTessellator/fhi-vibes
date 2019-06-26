@@ -23,25 +23,25 @@ THZ = 1 / PICO  # [1/s]
 
 # Atomic units
 ELECTRON_MASS = ase_units._me # = 5.48579909070e-4 * AMU  # [kg]
-HARTREE = ase_units.Hartree # = 27.21138602 * EV  # [J]
-BOHR = ase_units.Bohr # = 0.52917721092 * AA  # [m]
+HARTREE = ase_units.Hartree * EV # = 27.21138602 * EV  # [J]
+BOHR = ase_units.Bohr * AA # = 0.52917721092 * AA  # [m]
 HBAR = ase_units._hbar # = PLANCK_CONSTANT / 2 / PI  # [J s]
 
-# atomic_units = AttributeDict(
-#     {
-#         "bohr": BOHR,
-#         "AA": BOHR / AA,
-#         "hartree": HARTREE,
-#         "eV": HARTREE / EV,
-#         "c": 1 / ALPHA,
-#         "kg": ELECTRON_MASS,
-#         "u": ELECTRON_MASS / AMU,
-#         "s": HBAR / HARTREE,
-#         "fs": HBAR / HARTREE / FEMTO,
-#         "kB": BOLTZMANN / HARTREE,
-#         "K": HARTREE / BOLTZMANN,
-#     }
-# )
+atomic_units = AttributeDict(
+    {
+        "bohr": BOHR,
+        "AA": BOHR / AA,
+        "hartree": HARTREE,
+        "eV": HARTREE / EV,
+        "c": 1 / ALPHA,
+        "kg": ELECTRON_MASS,
+        "u": ELECTRON_MASS / AMU,
+        "s": HBAR / HARTREE,
+        "fs": HBAR / HARTREE / FEMTO,
+        "kB": BOLTZMANN / HARTREE,
+        "K": HARTREE / BOLTZMANN,
+    }
+)
 
 # force constants
 omega_to_THz = (EV / AA ** 2 / AMU) ** 0.5 / THZ / 2 / PI  # 15.633302 THz
