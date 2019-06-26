@@ -39,7 +39,29 @@ def run_md(ctx):
 
 
 def bootstrap(ctx):
-    """ load settings, prepare atoms, calculator and MD algorithm """
+    """Load settings, prepare atoms, calculator and MD algorithm
+
+    Parameters
+    ----------
+    ctx: MDContext
+        Context for the workflow
+
+    Returns
+    -------
+    dict
+        The relevant information to run the MD with the following items
+
+        atoms: ASE Atoms Object
+            The reference structure
+        calc: ASE Calculator
+            The Calculator for the MD
+        maxsteps: int
+            Maximum number of steps for the MD
+        compute_stresses: bool
+            If True compute the stresses
+        workdir: str
+            working directory for the run
+    """
 
     # read structure
     atoms = ctx.settings.get_atoms()
@@ -98,7 +120,35 @@ def run(
     backup_folder="backups",
     **kwargs,
 ):
-    """ run and MD for a specific time  """
+    """run and MD for a specific time
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        Initial step geometry
+    calc: ASE Calculator
+        The calculator for the MD run
+    md: ASE MD Object
+        The MD propagator
+    maxsteps: int
+        Maximum number of steps
+    compute_stresses: int or bool
+        if > 0 or True compute_stresses
+    trajectory: Path or str
+        trajectory file path
+    metadata_file: str or Path
+        File to store the metadata in
+    workdir: Path or str
+        Path to working directory
+    backup_folder: str or Path
+        Path to the back up folders
+
+    Returns
+    -------
+    bool
+        True if hit max steps or completed
+
+    """
 
     # create watchdog
     watchdog = Watchdog()
