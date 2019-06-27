@@ -24,7 +24,26 @@ class SettingsError(Exception):
 
 
 def verify_key(key, obj, hint=None, section=False, allowed_to_fail=False):
-    """verify that key is in object"""
+    """verify that key is in object
+
+    Parameters
+    ----------
+    key: str
+        Key to check if it is in obj
+    obj: dict like object
+        Dict to see if key is in it
+    hint: str
+        string representation of obj
+    section: bool
+        If True key is a section in obj
+    allowed_to_fail: bool
+        If True use wannings not errors
+
+    Raises
+    ------
+    SettingsError
+        If key is not in obj
+    """
     if not hint:
         hint = str(obj)
 
@@ -62,6 +81,13 @@ class ConfigDict(AttributeDict):
     """Dictionary that holds the configuration settings"""
 
     def __init__(self, *args, config_files=DEFAULT_CONFIG_FILE, **kwargs):
+        """Initializer
+
+        Parameters
+        ----------
+        config_files: lsit of str
+            A list of configure files to read in
+        """
 
         super().__init__(*args, **kwargs)
 
@@ -84,7 +110,15 @@ class ConfigDict(AttributeDict):
         print(self.get_string(only_settings=only_settings))
 
     def write(self, filename=DEFAULT_SETTINGS_FILE, pickle=False):
-        """write a settings object human readable and pickled"""
+        """write a settings object human readable and pickled
+
+        Parameters
+        ----------
+        filename: str
+            path use to write the file
+        pickle: bool
+            If True write settings to a pickle file
+        """
         with open(filename, "w") as f:
             timestr = time.strftime("%Y/%m/%d %H:%M:%S")
             f.write(f"# configfile written at {timestr}\n")
@@ -98,7 +132,20 @@ class ConfigDict(AttributeDict):
                 pickle.dump(self, f)
 
     def get_string(self, width=30, only_settings=False):
-        """ return string representation for writing etc. """
+        """ return string representation for writing etc.
+
+        Parameters
+        ----------
+        width: int
+            The width of the string column to print
+        only settings: bool
+            If True only print the settings
+
+        Returns
+        -------
+        string: str
+            The string representation of the ConfigDict
+        """
         if only_settings:
             ref_dict = Configuration()
         else:
@@ -129,6 +176,13 @@ class Configuration(ConfigDict):
     """ class to hold the configuration from hilde.cfg """
 
     def __init__(self, config_file=DEFAULT_CONFIG_FILE):
+        """Initializer
+
+        Parameters
+        ----------
+        config_file: str
+            Path to the configure file
+        """
         super().__init__(config_files=config_file)
 
         # include the hilde version tag
@@ -144,6 +198,17 @@ class Settings(ConfigDict):
         config_file=DEFAULT_CONFIG_FILE,
         fireworks_file=DEFAULT_FIREWORKS_FILE,
     ):
+        """Initializer
+
+        Parameters
+        ----------
+        settings_file: str
+            Path to the settings file
+        config_file: str
+            Path to the configuration file
+        fireworks_file: str
+            Path to the FireWorks Configuration file
+        """
         self._settings_file = settings_file
         self._config_file = config_file
         self._fireworks_file = fireworks_file
@@ -174,7 +239,13 @@ class Settings(ConfigDict):
         self._atoms = obj
 
     def get_atoms(self, format="aims"):
-        """parse the geometry described in settings.in and return as atoms"""
+        """parse the geometry described in settings.in and return as atoms
+
+        Parameters
+        ----------
+        format: str
+            format of self.geometry.file
+        """
 
         # use the file specified in geometry.file or the default (geometry.in)
         if "geometry" in self and "file" in self.geometry and self.geometry.file:
@@ -201,12 +272,16 @@ class SettingsSection(AttributeDict):
     def __init__(self, name, settings=None, defaults=None, mandatory_keys=None):
         """Initialize Settings in a specific context
 
-        Parameters:
-            name (str): name of the section
-            settings (Settings): Settings object
-            defaults (dict): dictionary with default key/value pairs
-            mandatory_keys (list): mandatory keys in the section
-
+        Parameters
+        ----------
+        name: str
+            name of the section
+        settings: Settings
+            Settings object
+        defaults: dict
+            dictionary with default key/value pairs
+        mandatory_keys: list
+            mandatory keys in the section
         """
 
         if defaults is None:
@@ -232,7 +307,18 @@ class SettingsSection(AttributeDict):
         return self._name
 
     def verify_key(self, key):
-        """verify that key is in self.obj"""
+        """verify that key is in self.obj
+
+        Parameters
+        ----------
+        key: str
+            key to verify is in self.obj
+
+        Raises
+        ------
+        SettingsError
+            If key is not in self.obj
+        """
         verify_key(key, self, hint=f"{self._settings_file}, section [{self.name}]")
 
 
@@ -251,17 +337,25 @@ class WorkflowSettings(Settings):
     ):
         """Initialize Settings in a specific context
 
-        Parameters:
-            name (str): name of the context or workflow
-            settings_file (str/Path): location of settings file. Otherwise inferred
-                from name
-            config_file (str/Path): location of configuration
-            defaults (dict): dictionary with default key/value pairs
-            mandatory_keys (list): mandatory keys in `settings`
-            mandatory_obj_keys (list): mandatory keys in `settings.name`
+        Parameters
+        ----------
+        name: str
+            name of the context or workflow
+        settings_file: str or Path
+            location of settings file. Otherwise inferred from name
+        config_file: str or Path
+            location of configuration
+        defaults: dict
+            dictionary with default key/value pairs
+        mandatory_keys: list
+            mandatory keys in `settings`
+        mandatory_obj_keys: list
+            mandatory keys in `settings.name`
 
-        Attributes:
-            _obj (dict): this holds the sub dict with name `name`
+        Attributes
+        ----------
+        _obj: dict
+            this holds the sub dict with name `name`
 
         """
         if defaults is None:
@@ -294,7 +388,18 @@ class WorkflowSettings(Settings):
         return self._name
 
     def verify_key(self, key):
-        """verify that key is in self"""
+        """verify that key is in self
+
+        Parameters
+        ----------
+        key: str
+            section key to check is in self
+
+        Raises
+        ------
+        SettingsError
+            If key is not in self.obj
+        """
         verify_key(
             key, self, hint=f"{self.settings_file}", section=True, allowed_to_fail=True
         )

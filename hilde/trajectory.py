@@ -22,7 +22,21 @@ from hilde.helpers import Timer, warn, progressbar, talk
 
 
 def step2file(atoms, calc=None, file="trajectory.son", append_cell=False, metadata={}):
-    """ Save the current step """
+    """Save the current step
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure at the current step
+    calc: ASE Calculator
+        The ASE Calculator for the current run
+    file: str or Path
+        Path to file to append the current step to
+    append_cell: True
+        If True add cell to the calculation
+    metadata: dict
+        the metadata for the calculation
+    """
 
     dct = results2dict(atoms, calc, append_cell)
 
@@ -33,7 +47,15 @@ def step2file(atoms, calc=None, file="trajectory.son", append_cell=False, metada
 
 
 def metadata2file(metadata, file="metadata.son"):
-    """ save metadata to file """
+    """save metadata to file
+
+    Parameters
+    ----------
+    metadata: dict
+        the metadata to save
+    file: str
+        filepath to the output file
+    """
 
     if metadata is None:
         metadata = {}
@@ -42,7 +64,20 @@ def metadata2file(metadata, file="metadata.son"):
 
 
 def get_hashes_from_trajectory(trajectory, verbose=False):
-    """ return all hashes from trajectory """
+    """return all hashes from trajectory
+
+    Parameters
+    ----------
+    trajectory: str
+        Trajectory file to pull the hashes from
+    verbose: bool
+        If True print more information to the screen
+
+    Returns
+    -------
+    hashes: list of str
+        All the hashes in the trajectory
+    """
 
     try:
         traj = reader(trajectory, verbose=verbose)
@@ -60,8 +95,24 @@ def get_hashes_from_trajectory(trajectory, verbose=False):
 
 
 def reader(file="trajectory.son", get_metadata=False, verbose=True):
-    """ convert information in trajectory and metadata files to atoms objects
-     and return them """
+    """Convert information in trajectory and metadata files to atoms objects and return them
+
+    Parameters
+    ----------
+    trajectory: str
+        Trajectory file to pull the structures from
+    get_metadata: bool
+        If True return the metadata
+    verbose: bool
+        If True print more information to the screen
+
+    Returns
+    -------
+    trajectory: Trajectory
+        The trajectory from the file
+    metadata: dict
+        The metadata for the trajectory
+    """
 
     timer = Timer(f"Parse trajectory in {file}")
 
@@ -127,6 +178,13 @@ class Trajectory(list):
            - convert to other formats like xyz or TDEP """
 
     def __init__(self, *args, metadata=None):
+        """Initializer
+
+        Parameters
+        ----------
+        metadata: dict
+            The metadata for a particular run
+        """
         super().__init__(*args)
 
         if metadata:
@@ -226,7 +284,13 @@ class Trajectory(list):
         timer("velocities and positions cleaned from drift")
 
     def write(self, file="trajectory.son"):
-        """ Write to son file """
+        """Write to son file
+
+        Parameters
+        ----------
+        file: str
+            path to trajecotry son file
+        """
 
         timer = Timer(f"Write trajectory to {file}")
 
@@ -249,14 +313,28 @@ class Trajectory(list):
         timer()
 
     def to_xyz(self, file="positions.xyz"):
-        """ Write positions to simple xyz file for e.g. viewing with VMD """
+        """Write positions to simple xyz file for e.g. viewing with VMD
+
+        Parameters
+        ----------
+        file: str
+            path to trajecotry xyz file
+        """
         from ase.io.xyz import simple_write_xyz
 
         with open(file, "w") as fo:
             simple_write_xyz(fo, self)
 
     def to_tdep(self, folder=".", skip=1):
-        """ Convert to TDEP infiles for direct processing """
+        """Convert to TDEP infiles for direct processing
+
+        Parameters
+        ----------
+        folder: str or Path
+            Directory to store tdep files
+        skip: int
+            Number of structures to skip
+        """
         from pathlib import Path
         from contextlib import ExitStack
 
@@ -334,7 +412,20 @@ class Trajectory(list):
         talkl(f".. {fdir} written.")
 
     def get_average_displacements(self, ref_atoms=None, window=-1):
-        """ Return averaged displacements """
+        """Return averaged displacements
+
+        Parameters
+        ----------
+        ref_atoms: ASE Atoms Object
+            reference structure for undisplaced system
+        window: int
+            This does nothing? I think it is supposed to define which steps to start/end the analysis on
+
+        Returns
+        -------
+        avg_displacement: np.ndarray
+            The average displacements of all the atoms in self
+        """
 
         from hilde.harmonic_analysis.displacements import get_dR
 
@@ -356,8 +447,21 @@ class Trajectory(list):
         return avg_displacement
 
     def get_average_positions(self, ref_atoms=None, window=-1, wrap=False):
-        """ Return averaged positions """
+        """ Return averaged positions
 
+        Parameters
+        ----------
+        ref_atoms: ASE Atoms Object
+            reference structure for undisplaced system
+        window: int
+            This does nothing? I think it is supposed to define which steps to start/end the analysis on
+        wrap: bool
+            If True wrap all the atoms to be within the unit cell
+        Returns
+        -------
+        np.ndarray
+            The average positions of all the atoms in self
+        """
         # reference atoms
         if not ref_atoms:
             if "supercell" in self.metadata:

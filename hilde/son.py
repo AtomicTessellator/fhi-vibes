@@ -14,7 +14,18 @@ def load(*args, **kwargs):
     return son.load(*args, **kwargs)
 
 def last_from(file):
-    """ return last entry from yaml file """
+    """ return last entry from yaml file
+
+    Parameters
+    ----------
+    file: str
+        Path to file to load
+
+    Returns
+    -------
+    data[-1]: dict
+        Last entry in the son file
+    """
 
     _, data = son.load(file)
 
