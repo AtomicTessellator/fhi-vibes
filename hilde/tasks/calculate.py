@@ -24,23 +24,45 @@ calc_dirname = "calculations"
 
 
 def cells_and_workdirs(cells, base_dir):
-    """ generate tuples of atoms object and workingdirectory path """
+    """generate tuples of atoms object and workingdirectory path
+
+    Parameters
+    ----------
+    cells: list of ASE Atoms Objects
+        The cells to assign workdirs to
+    base_dir: str
+        Path to the base working directory
+
+    Yields
+    ------
+    cell: ASE Atoms Object
+        The particular cell
+    workdir: Path
+        The working directory for cell
+    """
     for ii, cell in enumerate(cells):
         workdir = Path(base_dir) / f"{ii:05d}"
         yield cell, workdir
 
 
 def calculate(atoms, calculator, workdir="."):
-    """Short summary.
-    Perform a dft calculation with ASE
-    Parameters:
-        atoms (Atoms or pAtoms): Structure.
-        calculator (calculator): Calculator.
-        workdir (folder): Folder to perform calculation in.
+    """Perform a dft calculation with ASE
 
-    Returns:
-        int: 1 when error happened, otherwise None
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to calculate
+    calculator: ASE Calculator:
+        The calculator to used to get the properties
+    workdir: str or Path
+        Path to the working directory
+
+    Returns
+    -------
+    calc_atoms: ASE Atoms Object
+        atoms with all properties calculated
     """
+
     if atoms is None:
         return atoms
     calc_atoms = atoms.copy()
@@ -48,45 +70,6 @@ def calculate(atoms, calculator, workdir="."):
     with cwd(workdir, mkdir=True):
         calc_atoms.calc.calculate(calc_atoms)
     return calc_atoms
-
-
-def calculate_multiple(cells, calculator, workdir):
-    """Calculate several atoms object sharing the same calculator. """
-
-    cells_calculated = []
-    for cell, wdir in cells_and_workdirs(cells, workdir):
-        if cell is None:
-            cells_calculated.append(cell)
-            continue
-        if cell.calc is None:
-            cell = calculate(cell, calculator, wdir)
-        cells_calculated.append(cell)
-
-    return cells_calculated
-
-
-def setup_multiple(cells, calculator, workdir, mkdir):
-    """
-    Write input files for calculations on a list of atoms objects
-    Parameters:
-        cells (Atoms): List of atoms objects.
-        calculator (calculator): Calculator to run calculation.
-        workdir (str/Path): working directory
-        mkdir(bool): if true make new directories for each calculation
-    """
-    workdirs = []
-    for cell, wdir in cells_and_workdirs(cells, workdir):
-        workdirs.append(wdir)
-        if cell is None:
-            continue
-        cell.set_calculator(calculator)
-        if mkdir:
-            with cwd(wdir, mkdir=True):
-                try:
-                    calculator.write_input(cell)
-                except AttributeError:
-                    print("Calculator has no input just attaching to cell")
-    return cells, workdirs
 
 
 def calculate_socket(
@@ -101,21 +84,31 @@ def calculate_socket(
     check_settings_before_resume=True,
     **kwargs,
 ):
-    """ perform calculations for a set of atoms objects
+    """perform calculations for a set of atoms objects, while able to use the socket
 
-    Parameters:
-        atoms_to_calculate (list): list with atoms to calculate
-        calculator (ase.calculator): calculator to use
-        metadata (dict): metadata information to store to trajectory
-        settings (dict): the settings used to set up the calculation
-        trajectory (str/Path): path to write trajectory to
-        workdir (str/Path): working directory
-        backup_folder (str/Path): directory to back up calculations to
-        check_settings_before_resume (bool): only resume when settings didn't change
+    Parameters
+    ----------
+    atoms_to_calculate: list of ASE Atoms Objects
+        list with atoms to calculate
+    calculator: ASE calculator
+        calculator to use
+    metadata: dict
+        metadata information to store to trajectory
+    settings: dict
+        the settings used to set up the calculation
+    trajectory: str or Path
+        path to write trajectory to
+    workdir: str or Path
+        working directory
+    backup_folder: str or Path
+        directory to back up calculations to
+    check_settings_before_resume: bool
+        only resume when settings didn't change
 
-    Returns:
-        (bool): Wether all structures were computed or not
-
+    Returns
+    -------
+    bool
+        Wether all structures were computed or not
     """
 
     # create watchdog
@@ -220,11 +213,28 @@ def calculate_socket(
 
 
 def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
-    """check if metadata sets coincide"""
+    """check if metadata sets coincide
+
+    Parameters
+    ----------
+    new_metadata: dict
+        The metadata of the current calculation
+    old_metadata: dict
+        The metadata from the trajectory.son file
+    keys: list of str
+        Keys to check if the metadata agree with
+
+    Raises
+    ------
+    ValueError
+        If the keys do not coincide
+    """
     nm = new_metadata
     om = old_metadata
 
     for key in keys:
+        if key is walltime:
+            continue
         if isinstance(nm[key], dict):
             check_metadata(nm[key], om[key], keys=nm[key].keys())
         if nm[key] != om[key]:
