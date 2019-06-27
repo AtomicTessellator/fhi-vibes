@@ -29,6 +29,7 @@ paramiko = {version = "^2.4",optional = true}
 click = "^7.0"
 attrs = "^19.1"
 pandas = "^0.24.2"
+psycopg2 = "^2.8.3"
 
 [tool.poetry.extras]
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
