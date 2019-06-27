@@ -24,10 +24,34 @@ def get_lattice_points(
 
         M = supercell_matrix
 
-    Parameters:
-        cell (ndarray): lattice matrix of primitive cell
-        supercell (ndarray): lattice matrix of supercell
-        """
+    Parameters
+    ----------
+    cell: np.ndarray
+        lattice matrix of primitive cell
+    supercell: np.ndarray
+        lattice matrix of supercell
+    tolerance: float
+        tolearnce used to detect multiplicities
+    sort: bool
+        If True sort results
+    fortran: bool
+        If True use the Fortran routines
+    verbose: bool
+        If True print more information on the console
+
+    Returns
+    -------
+    lattice_points: np.ndarray
+        The list of lattice points in the supercell
+    lattice_points_ext_w_multiplicites
+        The list of lattice points in the supercell including multiplicities
+
+    Raises
+    ------
+    AssertionErorr
+        If Number of Unique lattice points does not equal the determinant of the supercell matrix
+
+    """
 
     timer = Timer()
     tol = tolerance
@@ -148,7 +172,20 @@ def get_lattice_points(
 
 
 def sort_lattice_points(lattice_points, tol=1e-5):
-    """ sort according to x, y, z coordinates and finally length """
+    """sort according to x, y, z coordinates and finally length
+
+    Parameters
+    ----------
+    lattice_points: np.ndarray
+        The list of lattice points in the supercell
+    tol: float
+        tolerance for small numbers
+
+    Returns
+    -------
+    np.ndarray
+        sorted lattice point list
+    """
 
     return sorted(lattice_points, key=lambda x: la.norm(x + [0, 2 * tol, 4 * tol]))
 
@@ -159,15 +196,24 @@ def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
         exp( 2*pi q . L_k ) = 1 for any k and L_k being the supercell lattice vectors
 
         in other workds, q is a linear combination of G_k, where G_k are the inverse
-        lattice vectors of the supercell lattice. Only thos are counted which fit into
+        lattice vectors of the supercell lattice. Only those are counted which fit into
         the inverse lattice of the primitive cell.
         This means we have to call lattice_points.get_lattice_points with the inverse
         lattices.
 
-    Parameters:
-        cell (ndarray): cell matrix of primitive cell
-        supercell (ndarray): cell matrix of supercell
+    Parameters
+    ----------
+    cell: np.ndarray
+        cell matrix of primitive cell
+    supercell: np.ndarray
+        cell matrix of supercell
+    tolerance: float
+        tolearnce used to detect multiplicities
 
+    Returns
+    -------
+    np.ndarray
+        List of commensurate q_points
     """
 
     # check if cell is array
@@ -195,8 +241,23 @@ def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
 def find_cubic_cell(
     cell, target_size=1, deviation=0.2, lower_limit=-2, upper_limit=2, verbose=False
 ):
-    """ Find a supercell matrix that produces a supercell of given size that is
-    as cubic as possible """
+    """Find a supercell matrix that produces a supercell of given size that is as cubic as possible
+
+    Parameters
+    ----------
+    cell: np.ndarray
+        lattice vectors of the primitive matrix
+    target_size: int
+        target number of atoms in the supercell
+    deviation: float
+        acceptable deviation from target size
+    lower_limit: int
+        lower limit for the elements in the supercell matrix
+    upper_limit:int
+        upper limit for the elements in the supercell matrix
+    verbose: bool
+        If True print more information to the console
+    """
 
     smatrix = sc.supercell.find_optimal_cell(
         cell,
@@ -211,17 +272,27 @@ def find_cubic_cell(
 
 
 def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose=False):
-    """ Create a supercell of target size that is as cubic as possible.
+    """Create a supercell of target size that is as cubic as possible.
 
-    Parameters:
-        atoms (Atoms): Input atoms object
-        target_size (int): Number of atoms in supercell
-        deviation (float): Allowed deviation from target supercell size
-        limit (int): limit for expansion about analytic search
-        verbose (boolean): be verbose (for debugging)
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        Input atoms object
+    target_size: int
+        Number of atoms in supercell
+    deviation: float
+        Allowed deviation from target supercell size
+    limit: int
+        limit for expansion about analytic search
+    verbose: boolean
+        be verbose (for debugging)
 
-    Returns:
-        (Atoms, np.ndarray): supercell, supercell_matrix
+    Returns
+    -------
+    Atoms
+        The supercell
+    np.ndarray
+        The supercell_matrix
 
     """
 
@@ -257,11 +328,23 @@ def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose
 
 def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
     """ Create the lattice points within supercell and attach atoms to each of them
-    Parameters:
-        atoms (Atoms): primitive cell as atoms object
-        supercell_matrix (ndarray): supercell matrix M with convention A = M . a
-        info (dict): attach info dictionary to supercell atoms
-        tol (float): numerical tolerance for finding lattice points """
+
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        primitive cell as atoms object
+    supercell_matrix: ndarray
+        supercell matrix M with convention A = M . a
+    info: dict
+        attach info dictionary to supercell atoms
+    tol: float
+        numerical tolerance for finding lattice points
+
+    Returns
+    -------
+    supercell: ase.atoms.Atoms
+        The supercell from atoms and supercell_matrix
+    """
 
     _, supercell, _ = preprocess(atoms, supercell_matrix)
     supercell.cell = clean_matrix(supercell.cell)
@@ -273,14 +356,36 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
 def map_indices(atoms1, atoms2, tol=1e-5):
     """ return indices of atoms in atoms1 in atoms2.
 
-    Example:
+    Example
+    -------
         atoms1 = [H, O1, O2]
         atoms2 = [O1, H, O2]
 
         -> map_indices(atoms1, atoms2) = [1, 0, 2]
 
-    For background, see
-    https://gitlab.com/flokno/hilde/blob/devel/examples/devel/sort_atoms/sort.ipynb"""
+    Background
+    ----------
+    https://gitlab.com/flokno/hilde/blob/devel/examples/devel/sort_atoms/sort.ipynb
+
+    Parameters
+    ----------
+    atoms1: ase.atoms.Atoms
+        Structure to get map from
+    atoms2: ase.atoms.Atoms
+        Structure to get map to
+    tol: float
+        Tolerance to tell if atoms are equivalent
+
+    Returns
+    -------
+    index_map: np.ndarray
+        Map from atoms1 to atoms2
+
+    Raises
+    ------
+    AssertionError:
+        If len of unique values in index_map does not equal the number of atoms in atoms1
+    """
 
     from hilde.helpers.lattice_points import map_I_to_iL
 

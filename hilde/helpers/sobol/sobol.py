@@ -52,7 +52,26 @@ highest_startingpoint = 500
 
 
 def sample(N, D):
-    """Generate (N x D) numpy array of Sobol sequence samples"""
+    """Generate (N x D) numpy array of Sobol sequence samples
+
+    Parameters
+    ----------
+    N: int
+        number of rows in the array
+    D: int
+        number of columns in the array
+
+    Returns
+    -------
+    result: np.ndarray
+        Sobol sequence sample array
+
+    Raises
+    -----
+    ValueError
+        If Not enough dimensions in directions OR
+        If there are not enough bits for the sequence
+    """
     scale = 31
     result = np.zeros([N, D])
 
@@ -97,6 +116,18 @@ def sample(N, D):
 
 
 def index_of_least_significant_zero_bit(value):
+    """Get the index of the least significant zero bit
+
+    Parameters
+    ----------
+    value:
+        value to check
+
+    Returns
+    -------
+    index: int
+        The index of the least significant zero bit
+    """
     index = 1
     while (value & 1) != 0:
         value >>= 1
@@ -115,18 +146,25 @@ def rand(
 ):
     """ Return quasi random number similar to np.random.rand
 
-    Arguments:
-        nsamples {int} -- number of samples
-        dimension {int} -- dimension of each sample
+    Parameters
+    ----------
+    nsamples: int
+        number of samples
+    dimension: int
+        dimension of each sample
+    low: int
+        discard this many values (default: {500})
+    high: int
+        maximum number to start Sobol series (default: {1000})
+    randomize: bool
+        further randomize the sample afterwards
+    seed: int
+        seed for initializing the starting point (default: {None})
 
-    Keyword Arguments:
-        low {int} -- discard this many values (default: {500})
-        high {int} -- maximum number to start Sobol series (default: {1000})
-        randomize {bool} -- further randomize the sample afterwards
-        seed {int} -- seed for initializing the starting point (default: {None})
-
-    Returns:
-        np.ndarray -- requested list of quasi random numbers
+    Returns
+    -------
+    np.ndarray
+        requested list of quasi random numbers
     """
 
     if seed:
@@ -162,13 +200,20 @@ class RandomState:
     ):
         """ Initialize the QuasiRandomState for samples of specific dimension
 
-        Parameters:
-            dimension (int): dimension of the samples
-            nmax (int, optional): maximum number of samples (5000)
-            low (int, optional): skip this many samples (100)
-            high (int, optional): skip this many samples (max)
-            randomize (bool, optional): further randomize the sample
-            seed (int, optional): seed for further randomization
+        Parameters
+        ----------
+        dimension: int
+            dimension of the samples
+        nmax: int
+            maximum number of samples (5000)
+        low: int
+            skip this many samples (100)
+        high: int
+            skip this many samples (max)
+        randomize: bool, optional
+            further randomize the sample
+        seed: int
+            seed for further randomization
         """
 
         self.nmax = nmax
@@ -186,11 +231,15 @@ class RandomState:
     def rand(self, sample_dimension=1):
         """ return sample of specific dimension from the Sobol sequence
 
-        Parameters:
-            samples_dimension (int, optional): Dimension of samples to return
+        Parameters
+        ----------
+        samples_dimension: int
+            Dimension of samples to return
 
-        Returns:
-            ndarray: samples from the Sobol sequence
+        Returns
+        ----------
+        ndarray
+            samples from the Sobol sequence
         """
 
         # Make sure the sample_dimension is  an ndarray and has .prod()
