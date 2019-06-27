@@ -352,6 +352,8 @@ def parse_phonopy_force_constants(
         finite zero
     tol: float
         tolerance to discern pairs
+    format: str
+        File format for the input geometries
 
     Returns
     -------
