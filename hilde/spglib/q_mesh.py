@@ -11,13 +11,26 @@ def get_ir_reciprocal_mesh(
     q_mesh, primitive, supercell=None, is_time_reversal=True, symprec=1e-5
 ):
     r""" reduce the given q_mesh by symmetry
-    Input:
-        q_mesh: list of q points in reduced coordinates
-        primitive: reference structure to determine symmetry from
-        supercell: reference supercell in case we need to wrap back into BZ
-    Output:
-        mapping: which q points maps to which irreducible
-        reduced_q_points: the reduced set of q-points
+
+    Parameters
+    ----------
+    q_mesh:
+        list of q points in reduced coordinates
+    primitive:
+        reference structure to determine symmetry from
+    supercell:
+        reference supercell in case we need to wrap back into BZ
+    is_time_reversal: bool
+        If True time reversal symmetry is preserved
+    symprec: float
+        Tolerance for determining the symmetry/space group for the primitive cell
+
+    Returns
+    -------
+    my_ir_mapping: np.ndarray
+        which q points maps to which irreducible
+    my_ir_grid: list
+        the reduced set of q-points
 
     Example:
         https://gitlab.com/flokno/hilde/blob/devel/examples/harmonic_analysis/irreducible_q_points/ir_qpoints.ipynb

@@ -9,7 +9,24 @@ from hilde.helpers.attribute_dict import AttributeDict
 
 
 def cell_to_Atoms(lattice, scaled_positions, numbers, info=None):
-    """ convert from spglib cell to Atoms """
+    """convert from spglib cell to Atoms
+
+    Parameters
+    ----------
+    lattice: np.ndarray
+        The lattice vectors of the structure
+    scaled_positions: np.ndarray
+        The scaled positions of the atoms
+    numbers: list
+        Atomic numbers of all the atoms in the cell
+    info: dict
+        additional information on the structure
+
+    Returns
+    -------
+    ASE Atoms Object:
+        The ASE Atoms object representation of the material
+    """
     atoms_dict = {
         "cell": lattice,
         "scaled_positions": scaled_positions,
@@ -22,7 +39,20 @@ def cell_to_Atoms(lattice, scaled_positions, numbers, info=None):
 
 
 def get_symmetry_dataset(atoms, symprec=default_symprec):
-    """ return the spglib symmetry dataset """
+    """return the spglib symmetry dataset
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to get the dataset of
+    symprec: float
+        The tolerance for determining symmetry and the space group
+
+    Returns
+    -------
+    AttributeDict
+        The symmetry_dataset for the structure
+    """
 
     dataset = spg.get_symmetry_dataset(to_spglib_cell(atoms), symprec=symprec)
 
@@ -36,7 +66,20 @@ def get_symmetry_dataset(atoms, symprec=default_symprec):
 
 
 def map_unique_to_atoms(atoms, symprec=default_symprec):
-    """ map each symmetry unique atom to other atoms as used by phonopy PDOS """
+    """map each symmetry unique atom to other atoms as used by phonopy PDOS
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to get the dataset of
+    symprec: float
+        The tolerance for determining symmetry and the space group
+
+    Returns
+    -------
+    mapping: np.ndarray
+        The mapping of symmetry unique atoms to other atoms
+    """
 
     ds = get_symmetry_dataset(atoms, symprec=symprec)
 
@@ -53,24 +96,67 @@ def map_unique_to_atoms(atoms, symprec=default_symprec):
 
 
 def get_spacegroup(atoms, symprec=default_symprec):
-    """ return spglib spacegroup """
+    """return spglib spacegroup
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to get the dataset of
+    symprec: float
+        The tolerance for determining symmetry and the space group
+
+    Returns
+    -------
+    str:
+        The spglib space group
+    """
 
     return spg.get_spacegroup(to_spglib_cell(atoms), symprec=symprec)
 
 
 def refine_cell(atoms, symprec=default_symprec):
-    """ refine the structure """
+    """refine the structure
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to get the dataset of
+    symprec: float
+        The tolerance for determining symmetry and the space group
+
+    Returns
+    -------
+    ASE Atoms Objects:
+        The refined structure of atoms
+    """
     lattice, scaled_positions, numbers = spg.refine_cell(to_spglib_cell(atoms), symprec)
 
     return cell_to_Atoms(lattice, scaled_positions, numbers)
 
 
 def standardize_cell(
-    atoms, to_primitve=False, no_idealize=False, symprec=default_symprec
+    atoms, to_primitive=False, no_idealize=False, symprec=default_symprec
 ):
-    """ wrap spglib.standardize_cell """
+    """wrap spglib.standardize_cell
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to get the dataset of
+    to_primitive: bool
+        If True go to the primitive cell
+    no_idealize: bool
+        If True do not idealize the cell
+    symprec: float
+        The tolerance for determining symmetry and the space group
+
+    Returns
+    -------
+    ASE Atoms Object
+        The standardized structure of atoms
+    """
 
     cell = to_spglib_cell(atoms)
-    args = spg.standardize_cell(cell, to_primitve, no_idealize, symprec)
+    args = spg.standardize_cell(cell, to_primitive, no_idealize, symprec)
 
     return cell_to_Atoms(*args)
