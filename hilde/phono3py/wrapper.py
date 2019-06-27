@@ -134,8 +134,12 @@ def preprocess(
 
     Returns
     -------
-    list of ASE Atoms Objects
-        The displaced supercells
+    phonon3: Phono3py Object
+        The Phono3py object with displacement_dataset, and displaced supercells
+    supercell: ASE Atoms Object
+        The undisplaced supercell
+    supercells_with_disps: list of ASE Atoms Objects
+        All of the supercells with displacements
     """
 
     phonon3 = prepare_phono3py(
