@@ -118,6 +118,7 @@ def hash_traj(ca, meta, hash_meta=False):
         if True hash the meta data
 
     Returns
+    -------
     atomshash: str
         hash of all of the ca objects
     metahash: str

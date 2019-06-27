@@ -102,8 +102,7 @@ def relaxation_info(filenames):
     Parameters
     ----------
     filenames: list of str
-        List of aims.out files to analyze
-
+        List of aims.out files to analyze\
     """
     get_relaxation_info(filenames)
 
@@ -199,12 +198,12 @@ def tool_remap_phonopy_force_constants(filename, uc_filename, sc_filename):
 
     Parameters
     ----------
-        uc_filename: str or Path
-            The input file for the primitive/unit cell
-        sc_filename: str or Path
-            The input file for the supercell
-        fc_filename: str or Path
-            The phonopy forceconstant file to parse
+    uc_filename: str or Path
+        The input file for the primitive/unit cell
+    sc_filename: str or Path
+        The input file for the supercell
+    fc_filename: str or Path
+        The phonopy forceconstant file to parse
     """
 
     remap_phonopy_force_constants(

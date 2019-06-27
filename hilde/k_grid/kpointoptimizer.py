@@ -91,7 +91,8 @@ class KPointOptimizer(Dynamics):
 
         Yields
         ------
-        The next step, if converged stop
+        bool
+            True system is converged, False otherwise (If False go to the next step)
         """
         self.ref = self.func(self.atoms)
 
@@ -107,6 +108,12 @@ class KPointOptimizer(Dynamics):
                 self.last = val
 
     def run(self, steps=100):
-        """Runs the optimizer"""
+        """Runs the optimizer
+
+        Parameters
+        ----------
+        steps: int
+            Maximum number of steps
+        """
         for _ in self.irun(steps=steps):
             pass

@@ -296,6 +296,16 @@ def prepare_from_trajectory(atoms, md, trajectory):
         The MD propagator
     trajectory: str or Path
         The trajectory file
+
+    Returns
+    -------
+    bool
+        True if the trajectory exists
+
+    Raises
+    ------
+        AssertionError
+            If info is not in last_atoms
     """
 
     trajectory = Path(trajectory)

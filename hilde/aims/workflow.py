@@ -45,7 +45,7 @@ def bootstrap(ctx):
     dict
         All of the necessary objects to run the Aims calculation with the following items
 
-        atoms_to_calculate: List of ase.atoms.Atoms
+        atoms_to_calculate: list of ase.atoms.Atoms
             The structures to be calculated
         calculator: ase.calculators.calulator.Calculator
             Calculator for all calculations

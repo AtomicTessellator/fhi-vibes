@@ -87,7 +87,8 @@ def md_info(filename, plot, avg, verbose):
 def phonopy_info(filename):
     """inform about a phonopy calculation before it is started
 
-    Parameters:
+    Parameters
+    ----------
     filename: str
         Filename for the phonopy settings file (default: phonopy.in)
     """

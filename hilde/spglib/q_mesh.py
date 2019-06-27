@@ -41,11 +41,11 @@ def get_ir_reciprocal_mesh(
 
     Example
     -------
-        https://gitlab.com/flokno/hilde/blob/devel/examples/harmonic_analysis/irreducible_q_points/ir_qpoints.ipynb
+    https://gitlab.com/flokno/hilde/blob/devel/examples/harmonic_analysis/irreducible_q_points/ir_qpoints.ipynb
 
     Remarks
     -------
-        Maybe it would be nice to return the respective rotations as well?
+    Maybe it would be nice to return the respective rotations as well?
 
     """
 

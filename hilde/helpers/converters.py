@@ -126,7 +126,7 @@ def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
     Returns
     -------
     input_dict: dict
-        The dictionary items
+        The dictionary representation of the inputs with the following items
 
         calculator: dict
             The calc_dict of the inputs

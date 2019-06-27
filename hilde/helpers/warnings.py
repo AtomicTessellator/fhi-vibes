@@ -14,7 +14,8 @@ def warn(message, level=0):
     level: int (0, 1, 2)
         How severe the warning is
 
-    Raises:
+    Raises
+    ------
     RuntimeError
         If warning level=2 (Error)
     """

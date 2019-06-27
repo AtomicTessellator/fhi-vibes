@@ -364,7 +364,6 @@ def parse_phonopy_force_constants(
     -------
     force_constant: (np.ndarray(dtype=float))
         Force constants in (3*N_sc, 3*N_sc) shape
-
     """
 
     if "poscar" in uc_filename.lower():

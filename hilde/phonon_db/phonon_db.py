@@ -356,7 +356,7 @@ class PhononDatabase(Database):
         -------
         int
             The row id
-        Phono3py
+        phono3py.phonon3.Phono3py
             the phono3py object of the row
         """
         row = self.get(selection, **kwarg)
@@ -597,7 +597,8 @@ class PhononDatabase(Database):
 
         Yields
         ------
-        The rows that match the query
+        row: PhononRow
+            The rows that match the query
         """
         if sort:
             if sort == "age":

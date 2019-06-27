@@ -14,16 +14,16 @@ def get_ener(binning, frequencies, min_e, max_e, nbins):
 
     Parameters
     ----------
-        useFrequencies: bool
-            if True use the band/DOS frequencies given as the bin boundaries
-        frequencies: list or np.ndarray of floats
-            The set of frequencies the band structure or DOS is calculated for
-        min_e: float
-            minimum energy mode to be included
-        max_e: float
-            maximum energy mode to be included
-        nbins: int
-            number of bins for the histogram
+    useFrequencies: bool
+        if True use the band/DOS frequencies given as the bin boundaries
+    frequencies: list or np.ndarray of floats
+        The set of frequencies the band structure or DOS is calculated for
+    min_e: float
+        minimum energy mode to be included
+    max_e: float
+        maximum energy mode to be included
+    nbins: int
+        number of bins for the histogram
 
     Returns
     -------
@@ -47,9 +47,9 @@ def find_min_E(bands):
 
     Parameters
     ----------
-        bands: dict
-            A dictionary describing the phonon/electronic modes at all high symmetry points
-            Keys = Labels, Values = high symmetry points
+    bands: dict
+        A dictionary describing the phonon/electronic modes at all high symmetry points
+        Keys = Labels, Values = high symmetry points
 
     Returns
     -------
@@ -64,9 +64,9 @@ def find_max_E(bands):
 
     Parameters
     ----------
-        bands: dict
-            A dictionary describing the phonon/electronic modes at all high symmetry points
-            Keys = Labels, Values = high symmetry points
+    bands: dict
+        A dictionary describing the phonon/electronic modes at all high symmetry points
+        Keys = Labels, Values = high symmetry points
 
     Returns
     -------
@@ -94,8 +94,8 @@ def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
 
     Returns
     -------
-        fingerprint: collection.namedtupele(fp_tup) (frequencies included in fingerprint, the number of states at that energy, names for the key points, number of bins)
-            The bandstructure finger print
+    fingerprint: collection.namedtupele(fp_tup) (frequencies included in fingerprint, the number of states at that energy, names for the key points, number of bins)
+        The bandstructure finger print
     """
     freq_list = []
     n_bands = []
@@ -124,8 +124,8 @@ def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
 
     Returns
     -------
-        fingerprint: collection.namedtupele(fp_tup)(frequencies included in fingerprint, the density of states at that energy, "DOS", number of bins)
-            The density of states fingerprint
+    fingerprint: collection.namedtupele(fp_tup)(frequencies included in fingerprint, the density of states at that energy, "DOS", number of bins)
+        The density of states fingerprint
     """
     if dos.shape[0] < nbins:
         return fp_tup(
@@ -439,6 +439,7 @@ def to_dict(fp, to_mongo=False):
         The fingerprint to be onverted into a dictionary
     to_mongo: bool
         True if the database that this will be stored in is a mongo db
+
     Returns
     -------
     dict

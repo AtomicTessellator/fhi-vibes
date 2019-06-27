@@ -374,14 +374,14 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     kwargs: dict
         Dictionary of keyword arguments with the following keys
 
-            outputs: phonopy.Phonopy
-                The Phonopy object from post-processing
-            serial: bool
-                If True use a serial calculation
-            init_wd: str
-                Path to the base phonon force calculations
-            trajectory: str
-                trajectory file name
+        outputs: phonopy.Phonopy
+            The Phonopy object from post-processing
+        serial: bool
+            If True use a serial calculation
+        init_wd: str
+            Path to the base phonon force calculations
+        trajectory: str
+            trajectory file name
 
     Returns
     -------

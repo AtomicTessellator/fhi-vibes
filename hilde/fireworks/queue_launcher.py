@@ -382,6 +382,11 @@ def rapidfire(
         a list fw_ids to launch (len(fw_ids) == nlaunches)
     wflow_id: list of ints
         a list fw_ids that are a root of the workflow
+
+    Raises
+    ------
+    ValueError
+        If the luanch directory does not exist
     """
     if fw_ids and len(fw_ids) != nlaunches:
         print("WARNING: Setting nlaunches to the length of fw_ids.")

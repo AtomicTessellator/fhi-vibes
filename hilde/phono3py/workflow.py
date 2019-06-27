@@ -21,7 +21,7 @@ def run_phono3py(postprocess_args=None, **kwargs):
         supercell_matrix: np.ndarray
             supercell matrix for the third order phonons
 
-        Items May include
+        items may include
 
         cutoff_pair_distance: float
             All pairs further apart than this cutoff are ignored

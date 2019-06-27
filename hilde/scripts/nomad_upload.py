@@ -38,7 +38,6 @@ def nomad_upload(folders, token=None, dry=False):
         The folders to upload
     token: str
         The NOMAD token
-
     """
     timer = Timer()
 

@@ -105,8 +105,6 @@ def preprocess(
 
     Returns
     -------
-     Returns
-    -------
     phonon: phonopy.Phonopy
         The phonopy object with displacement_dataset, and displaced supercells
     supercell: ase.atoms.Atoms

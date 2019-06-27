@@ -179,7 +179,6 @@ class HarmonicAnalysis:
             If True time reversal symmetry is included
         symprec: float
             Symmetry tolerance in distance
-
         """
         if self._irreducible_q_points is None:
             self.set_irreducible_q_points(
@@ -355,15 +354,17 @@ class HarmonicAnalysis:
         ----------
         trajectory: list of Atoms
             The trajectory to work over
-            displacements: bool
-                If True return mode projected displacements.
-            velocities: bool
-                If True return mode projected velocities.
+        displacements: bool
+            If True return mode projected displacements.
+        velocities: bool
+            If True return mode projected velocities.
 
         Returns
         -------
-            (U_qst, V_qst): tuple of np.ndarrays
-                The mode projected displacements and velocities
+        U_qst: np.ndarrays
+            Mode projected displacement
+        V_qst: np.ndarrays
+            Mode projected velocities
         """
 
         print(f"Project trajectory onto modes:")
@@ -391,8 +392,6 @@ class HarmonicAnalysis:
         ----------
         trajectory: list of Atoms
             The trajectory to work over
-
-
         """
 
         Uqst, Vqst = self.get_Uqst(trajectory)

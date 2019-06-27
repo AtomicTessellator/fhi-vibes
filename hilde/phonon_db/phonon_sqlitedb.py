@@ -753,7 +753,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
 
         Yields
         ------
-        PhononRow
+        row: PhononRow
             a row from the database that matches the query
         """
         con = self._connect()

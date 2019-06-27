@@ -4,6 +4,7 @@ from fireworks import PyTask
 
 def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     """Setups an ASE Atoms task
+
     Parameters
     ----------
     task_spec: TaskSpec
@@ -44,6 +45,7 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
 
 def setup_general_task(task_spec, fw_settings):
     """Setups a general task
+
     Parameters
     ----------
     task_spec: TaskSpec
@@ -71,6 +73,7 @@ def setup_general_task(task_spec, fw_settings):
 
 def generate_task(task_spec, fw_settings, atoms, calc):
     """Generates a PyTask for a Firework
+
     Parameters
     ----------
     task_spec: TaskSpec
@@ -104,6 +107,7 @@ def generate_task(task_spec, fw_settings, atoms, calc):
 
 def generate_update_calc_task(calc_spec, updated_settings):
     """Generate a calculator update task
+
     Parameters
     ----------
     calc_spec: str
@@ -127,6 +131,7 @@ def generate_update_calc_task(calc_spec, updated_settings):
 
 def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     """Generate a calculator modifier task
+
     Parameters
     ----------
     at: dict or str

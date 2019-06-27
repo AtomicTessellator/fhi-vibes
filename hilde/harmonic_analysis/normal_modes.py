@@ -27,14 +27,14 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
     np.array
         u in the lattice points representation
 
-    REM shapes
-    ----------
-    eigenvectors.shape = [n_q, n_s, n_s]
-
     Raises
     ------
     AssertionError
         If u_temp has an imaginary component
+
+    REM shapes
+    ----------
+    eigenvectors.shape = [n_q, n_s, n_s]
     """
 
     n_atoms = len(indeces)
@@ -150,8 +150,7 @@ def get_A_qst2(in_U_qst, in_V_qst, in_omegas2):
     in_V_qst: list [N_t, N_atoms, 3]
         mass scaled velocities for each time step
     in_omegas2: list [N_q, N_s]
-        eigenvalues (= squared frequencies) of dynamical matrices at commensurate
-        q-points
+        eigenvalues (= squared frequencies) of dynamical matrices at commensurate q-points
 
     Returns
     -------
@@ -220,11 +219,11 @@ def get_E_qst(in_U_t, in_V_t, in_omegas2):
     Parameters
     ----------
     in_U_t: np.ndarray
-
+        Input mode projected displacements
     in_V_t: np.ndarray
-
+        Input mode projected velocities
     in_omegas2: np.ndarray
-
+        Input eigenvalues
 
     Returns
     -------
@@ -248,7 +247,7 @@ def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
     Parameters
     ----------
     u_I: np.ndarray(float)
-        u
+        u in the primitive cell
     q_points: np.ndarray
         (commensurate) q points
     lattice_points: np.ndarray

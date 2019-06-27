@@ -13,6 +13,7 @@ def restart(settings=None, verbose=True):
         Settings for the task
     verbose: bool
         If True print more logging information
+
     Returns
     -------
     bool

@@ -9,12 +9,12 @@ def d2k(atoms, kptdensity=3.5, even=True):
 
     Parameters
     ----------
-        atoms: Atoms object
-            Contains unit cell and information about boundary conditions.
-        kptdensity: float or list of floats
-            Required k-point density.  Default value is 3.5 point per Ang^-1.
-        even: bool
-            Round up to even numbers.
+    atoms: Atoms object
+        Contains unit cell and information about boundary conditions.
+    kptdensity: float or list of floats
+        Required k-point density.  Default value is 3.5 point per Ang^-1.
+    even: bool
+        Round up to even numbers.
 
     Returns
     -------
@@ -30,14 +30,14 @@ def d2k_cellinfo(recipcell, pbc, kptdensity=3.5, even=True):
 
     Parameters
     ----------
-        recipcell: ASE Cell object
-            The reciprocal cell
-        pbc: list of Bools
-            If element of pbc is True then system is periodic in that direction
-        kptdensity: float or list of floats
-            Required k-point density.  Default value is 3.5 point per Ang^-1.
-        even: bool
-            Round up to even numbers.
+    recipcell: ASE Cell object
+        The reciprocal cell
+    pbc: list of Bools
+        If element of pbc is True then system is periodic in that direction
+    kptdensity: float or list of floats
+        Required k-point density.  Default value is 3.5 point per Ang^-1.
+    even: bool
+        Round up to even numbers.
 
     Returns
     -------
@@ -64,10 +64,10 @@ def k2d(atoms, k_grid=[2, 2, 2]):
 
     Parameters
     ----------
-        atoms: Atoms
-            Atoms object of interest.
-        k_grid: list
-            k_grid that was used.
+    atoms: Atoms
+        Atoms object of interest.
+    k_grid: list
+        k_grid that was used.
 
     Returns
     -------

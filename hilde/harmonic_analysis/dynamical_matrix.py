@@ -16,7 +16,8 @@ def _prefactor(q, r):
     r: np.ndarray
         The lattice point
 
-    Returns:
+    Returns
+    -------
     float
         The prefactor
     """
@@ -33,7 +34,8 @@ def get_frequencies(dyn_matrix, omega_to_THz=omega_to_THz):
     omega_to_THz: float
         Unit conversion to THz
 
-    Returns:
+    Returns
+    -------
     np.ndarray:
         The eigenvalues of the dynamical matrix
     """

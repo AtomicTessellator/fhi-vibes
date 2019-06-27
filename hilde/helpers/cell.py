@@ -117,9 +117,9 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     -------
     cell: np.ndarray
         The 3x3 cell corresponding to the parameters
+
     Example
     -------
-
     >>> cell = cellpar_to_cell([1, 2, 4, 10, 20, 30], (0, 1, 1), (1, 2, 3))
     >>> np.round(cell, 3)
     array([[ 0.816, -0.408,  0.408],

@@ -468,6 +468,7 @@ class Trajectory(list):
             This does nothing? I think it is supposed to define which steps to start/end the analysis on
         wrap: bool
             If True wrap all the atoms to be within the unit cell
+
         Returns
         -------
         np.ndarray

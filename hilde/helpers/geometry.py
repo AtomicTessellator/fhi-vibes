@@ -44,8 +44,9 @@ def get_cubicness(cell):
 
     Parameters
     ----------
-        cell: np.ndarray
-            Lattice of the cell
+    cell: np.ndarray
+        Lattice of the cell
+
     Returns
     -------
     float

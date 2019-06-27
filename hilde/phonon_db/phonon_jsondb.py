@@ -84,7 +84,7 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         PhononRow
             The row with the ID id
 
-         Raises
+        Raises
         ------
         AssertionError
             If number of ids passed is not 1
@@ -136,13 +136,14 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
 
         Yields
         ------
+        row: PhononRow
             a row from the database that matches the query
 
         Raises
         ------
-            AssertionError:
-                If querying for a temperature with something other than "="  OR
-                If querying about periodicity with anything but "=" or "!="
+        AssertionError:
+            If querying for a temperature with something other than "="  OR
+            If querying about periodicity with anything but "=" or "!="
         """
         if explain:
             yield {"explain": (0, 0, 0, "scan table")}
