@@ -18,7 +18,7 @@ def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
     ----------
     settings: Settings
         The settings object for the calculation
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         Calculator used for the calculation
     use_pimd_wrapper: dict
         Dictionary to wrapper ipi parameters for calc
@@ -62,7 +62,7 @@ def setup_phonon_outs(ph_settings, settings, prefix, atoms, calc):
         key prefix for the task
     atoms: ase.atoms.Atoms
         ASE Atoms object for the material
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         Calculator used for the calculation
 
     Returns
@@ -97,7 +97,7 @@ def bootstrap_phonon(
     ----------
     atoms: ase.atoms.Atoms
         Atoms object of the primitive cell
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         Calculator for the force calculations
     kpt_density: float
         k-point density for the MP-Grid
@@ -138,7 +138,7 @@ def bootstrap_stat_sample(
     ----------
     atoms: ase.atoms.Atoms
         Atoms object of the primitive cell
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         Calculator for the force calculations
     kpt_density: float
         k-point density for the MP-Grid

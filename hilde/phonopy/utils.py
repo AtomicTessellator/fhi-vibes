@@ -123,7 +123,7 @@ def metadata2dict(phonon, calculator):
     ----------
     phonon: Phonopy Object
         Phonopy Object to get metadata for
-    calculator: ASE Calculator Object
+    calculator: ase.calculators.calulator.Calculator
         The calculator for the force calculation
 
     Returns

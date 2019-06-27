@@ -10,7 +10,7 @@ def get_port(calculator):
 
     Parameters
     ----------
-    calculator: ASE Calculator
+    calculator: ase.calculators.calulator.Calculator
         calculator to get the port of
 
     Returns
@@ -59,7 +59,7 @@ def socket_stress_off(calc):
 
     Parameters
     ----------
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         calculator to turn off stress computation for
     """
     if "socketio" in calc.name.lower():
@@ -73,7 +73,7 @@ def socket_stress_on(calc):
 
     Parameters
     ----------
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         calculator to turn on stress computation for
     """
     if "socketio" in calc.name.lower():

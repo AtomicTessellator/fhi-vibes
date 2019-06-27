@@ -26,7 +26,7 @@ def check_relaxation_complete(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ASE Calculator object
+    calc: ase.calculators.calulator.Calculator
         The original calculator
     outputs: bool
         The outputs from the function (Is the calc converged)
@@ -111,7 +111,7 @@ def check_aims_complete(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ASE Calculator object
+    calc: ase.calculators.calulator.Calculator
         The original calculator
     outputs: ase.atoms.Atoms
         The geometry of the final relaxation step

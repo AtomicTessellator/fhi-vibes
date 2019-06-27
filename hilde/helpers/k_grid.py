@@ -87,7 +87,7 @@ def update_k_grid(atoms, calc, kptdensity, even=True):
     ----------
     atoms: ase.atoms.Atoms
         structure that the calculator is attached to
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         The calculator
     kptdensity: list of floats
         desired k-point density in all directions
@@ -96,7 +96,7 @@ def update_k_grid(atoms, calc, kptdensity, even=True):
 
     Returns
     -------
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         The calculator with updated kgrid
     """
 

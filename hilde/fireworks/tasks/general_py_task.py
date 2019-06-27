@@ -49,7 +49,7 @@ def atoms_calculate_task(
     atoms_dict: dict
         A dictionary describing the ASE Atoms object
     calc_dict: dict
-        A dictionary describing the ASE Calculator object
+        A dictionary describing the ASE Calculator
     args: list
         a list of function arguments passed to func
     fw_settings: dict

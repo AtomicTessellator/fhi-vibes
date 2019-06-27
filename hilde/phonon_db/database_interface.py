@@ -97,7 +97,7 @@ def to_database(
         Path to the database
     phonon: ase.atoms.Atoms, phonopy.Phonopy, or phono3py.phonon3.Phono3py
         Object to be added to the database
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         Calculator parameters to add to the Database
     key_val_pairs: dict
         Additional key_val_pairs to add to the database

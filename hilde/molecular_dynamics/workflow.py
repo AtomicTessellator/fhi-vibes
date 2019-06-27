@@ -53,7 +53,7 @@ def bootstrap(ctx):
 
         atoms: ase.atoms.Atoms
             The reference structure
-        calc: ASE Calculator
+        calc: ase.calculators.calulator.Calculator
             The Calculator for the MD
         maxsteps: int
             Maximum number of steps for the MD
@@ -126,7 +126,7 @@ def run(
     ----------
     atoms: ase.atoms.Atoms
         Initial step geometry
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         The calculator for the MD run
     md: ASE MD Object
         The MD propagator

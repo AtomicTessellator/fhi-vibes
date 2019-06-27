@@ -28,7 +28,7 @@ def step2file(atoms, calc=None, file="trajectory.son", append_cell=False, metada
     ----------
     atoms: ase.atoms.Atoms
         The structure at the current step
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         The ASE Calculator for the current run
     file: str or Path
         Path to file to append the current step to

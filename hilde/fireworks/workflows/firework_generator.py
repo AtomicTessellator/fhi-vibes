@@ -121,8 +121,8 @@ def generate_firework(
         list of task specifications to perform
     atoms: ase.atoms.Atoms, dictionary or str
         If not atoms_calc_from_spec then this must be an ASE Atoms object or a dictionary describing it If atoms_calc_from_spec then this must be a key str to retrieve the Atoms Object from the MongoDB launchpad
-    calc: ASE Calculator object, dictionary or str
-        If not atoms_calc_from_spec then this must be an ASE Calculator object or a dictionary describing it If atoms_calc_from_spec then this must be a key str to retrieve the Calculator from the MongoDB launchpad
+    calc: ase.calculators.calulator.Calculator, dictionary or str
+        If not atoms_calc_from_spec then this must be an ase.calculators.calulator.Calculator or a dictionary describing it If atoms_calc_from_spec then this must be a key str to retrieve the Calculator from the MongoDB launchpad
     fw_settings: dict
         Settings used by fireworks to place objects in the right part of the MongoDB
     atoms_calc_from_spec: bool

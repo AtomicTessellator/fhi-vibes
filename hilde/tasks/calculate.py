@@ -52,7 +52,7 @@ def calculate(atoms, calculator, workdir="."):
     ----------
     atoms: ase.atoms.Atoms
         The structure to calculate
-    calculator: ASE Calculator:
+    calculator: ase.calculators.calulator.Calculator:
         The calculator to used to get the properties
     workdir: str or Path
         Path to the working directory
@@ -90,7 +90,7 @@ def calculate_socket(
     ----------
     atoms_to_calculate: list of ase.atoms.Atoms
         list with atoms to calculate
-    calculator: ASE calculator
+    calculator: ase.calculators.calulator.Calculator
         calculator to use
     metadata: dict
         metadata information to store to trajectory

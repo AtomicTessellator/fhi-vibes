@@ -81,7 +81,7 @@ def calc2dict(calc):
 
     Parameters
     ----------
-    calc: ASE Calculator Object
+    calc: ase.calculators.calulator.Calculator
         The calculator to be converted to a dict
 
     Returns
@@ -114,7 +114,7 @@ def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
     ----------
     atoms: ase.atoms.Atoms
         The structure to be converted to a dict
-    calc: ASE Calculator Object
+    calc: ase.calculators.calulator.Calculator
         The calculator to be converted to a dict
     primitive: ase.atoms.Atoms
         The primitive cell structure
@@ -173,7 +173,7 @@ def results2dict(atoms, calc=None, append_cell=False):
     ----------
     atoms: ase.atoms.Atoms
         The structure to be converted to a dict
-    calc: ASE Calculator Object
+    calc: ase.calculators.calulator.Calculator
         The calculator to be converted to a dict
     append_cell: bool
         If True append the cell in atoms_dict

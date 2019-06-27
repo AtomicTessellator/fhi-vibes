@@ -54,7 +54,7 @@ def bootstrap(ctx=None, name=None, settings=None, workdir=None, **kwargs):
 
         atoms_to_calculate: list of ase.atoms.Atoms
             The list of the displaced supercells
-        calculator: ASE Calculator Object
+        calculator: ase.calculators.calulator.Calculator
             The calculator used to calculate for forces in each supercell
         metadata: dict
             The metadata for the phonon calculation

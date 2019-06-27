@@ -83,7 +83,7 @@ def setup_aims(ctx):
 
     Returns
     -------
-    calc: ASE calculator object
+    calc: ase.calculators.calulator.Calculator
         Calculator object for the calculation
     """
 

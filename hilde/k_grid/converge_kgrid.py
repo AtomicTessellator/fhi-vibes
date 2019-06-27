@@ -31,7 +31,7 @@ def converge_kgrid(
     ----------
     atoms: ase.atoms.Atoms
         geometry of the system you are converging the k-grid on
-    calc: ASE Calculator object
+    calc: ase.calculators.calulator.Calculator
         calculator for the k-grid convergence
     func: function
         Function used to get the property the routine is trying to converge relative to the k-grid density

@@ -36,7 +36,7 @@ def post_init_mult_calcs(
     ----------
     atoms: ase.atoms.Atoms
         atoms reference structure for the calculation
-    calc: ASE calculator
+    calc: ase.calculators.calulator.Calculator
         The claculator of the claulation
     outputs: dict
         The outputs after setting up claculations
@@ -118,7 +118,7 @@ def get_detours(
     atoms_to_calculate: list of ase.atoms.Atoms
         List of structures to calculate forces for
     calc_dict: dict
-        Dictionary representation of the ASE Calculator Object
+        Dictionary representation of the ase.calculators.calulator.Calculator
     prefix: str
         prefix to add to force calculations
     calc_kwargs: dict

@@ -12,7 +12,7 @@ def mod_spec_add(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ASE Calculator object
+    calc: ase.calculators.calulator.Calculator
         The original calculator
     outputs: ase.atoms.Atoms
         The atoms with attached calculator to be added to the spec
@@ -45,7 +45,7 @@ def fireworks_no_mods(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ASE Calculator object
+    calc: ase.calculators.calulator.Calculator
         The original calculator
     outputs: any
         The outputs from the function (assumes to be a single bool output)

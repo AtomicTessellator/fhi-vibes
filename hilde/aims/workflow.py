@@ -47,7 +47,7 @@ def bootstrap(ctx):
 
         atoms_to_calculate: List of ase.atoms.Atoms
             The structures to be calculated
-        calculator: ASE Calculator Object
+        calculator: ase.calculators.calulator.Calculator
             Calculator for all calculations
         metadata: dict
             The Metadata for the calculation

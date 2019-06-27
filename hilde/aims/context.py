@@ -142,7 +142,7 @@ class AimsContext:
         self._ref_atoms = atoms
 
     def get_calculator(self):
-        """Get the ASE Calculator Object based on the context"""
+        """Get the ASE Calculator based on the context"""
         return setup_aims(self)
 
     @property

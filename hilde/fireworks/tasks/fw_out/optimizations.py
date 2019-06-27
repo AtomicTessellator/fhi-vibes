@@ -17,9 +17,9 @@ def check_kgrid_opt_completion(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ASE Calculator object
+    calc: ase.calculators.calulator.Calculator
         The original calculator
-    outputs: list (bool, float, ASE Calculator
+    outputs: list (bool, float, ase.calculators.calulator.Calculator)
         (Converged?, current k-point density,current ASE Calculator)
     func: str
         Path to function that performs the MD like operation

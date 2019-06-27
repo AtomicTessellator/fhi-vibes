@@ -19,7 +19,7 @@ def mod_spec_add(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         The original calculator
     outputs: dict
         The outputs from the function (assumes to be a single bool output)

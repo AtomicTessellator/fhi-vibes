@@ -76,11 +76,11 @@ def dict2atoms(atoms_dict):
     return atoms
 
 def calc2dict(calc):
-    """Converts an ASE calculator into a dict
+    """Converts an ASE Calculator into a dict
 
     Parameters
     ----------
-    calc: ASE Calculator
+    calc: ase.calculators.calulator.Calculator
         The calculator to convert to a dictionary
 
     Returns
