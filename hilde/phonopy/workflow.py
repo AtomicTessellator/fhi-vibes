@@ -62,6 +62,7 @@ def bootstrap(ctx=None, name=None, settings=None, workdir=None, **kwargs):
             The working directory for the calculation
         settings: Settings
             The settings for the workflow
+
         Additional key/value pairs in settings.obj
     """
     if ctx is None:

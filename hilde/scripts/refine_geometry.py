@@ -11,6 +11,7 @@ def refine_geometry(
     filename, primitive, conventional, center, origin, cartesian, format, symprec
 ):
     """refine geometry with spglib and write to file
+
     Parameters
     ----------
     filename: str

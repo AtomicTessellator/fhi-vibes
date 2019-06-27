@@ -69,6 +69,7 @@ def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
 
 def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=1e-12):
     """build the dynamical matrix for each q_point
+
     Parameters
     ----------
     q_points: list ofnp.ndarray

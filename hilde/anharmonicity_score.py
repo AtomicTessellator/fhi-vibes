@@ -9,8 +9,7 @@ from hilde.spglib.wrapper import get_symmetry_dataset
 def get_r2(in_f_data, in_f_model):
     r"""Calculate coefficient of determination between f_data and f_model
 
-    Reference
-    ---------
+    Refrence Website
     https://en.wikipedia.org/wiki/Coefficient_of_determination#Definitions
 
     Parameters

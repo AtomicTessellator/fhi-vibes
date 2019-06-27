@@ -36,8 +36,6 @@ def inscribed_sphere_in_box(cell):
 def get_cubicness(cell):
     """Quantify the cubicness of a cell
 
-    Purpose
-    -------
     Quantify 'how cubic' a given lattice or cell is by comparing the largest
     sphere that fits into the cell to a sphere that fits into a cubic cell
     of similar size

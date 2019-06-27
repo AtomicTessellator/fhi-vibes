@@ -284,14 +284,13 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
         Path to the phonon analysis function
     func_fw_out: str
         Path to this function
-    args: list
-        list arguments passed to the phonon analysis
     fw_settings: dict
         Dictionary for the FireWorks specific systems
     kwargs: dict
-        Dictionary of keyword arguments
-        Mandatory Keys:
-            outputs: The Phonopy object from post-processing
+        Dictionary of keyword arguments that must have the following objects
+
+        ouputs: phonopy.Phonopy
+            The Phonopy object from post-processing
 
     Returns
     -------

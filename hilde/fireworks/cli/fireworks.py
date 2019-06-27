@@ -423,8 +423,7 @@ def claunch(
 
     launchpad, fworker, queueadapter = get_lpad_fworker_qadapter(ctx)
 
-    c_rapidfire(:
-
+    c_rapidfire(
         launchpad,
         fworker=fworker,
         qadapter=queueadapter,

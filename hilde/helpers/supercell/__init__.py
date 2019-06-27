@@ -356,16 +356,15 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
 def map_indices(atoms1, atoms2, tol=1e-5):
     """ return indices of atoms in atoms1 in atoms2.
 
+    Background Information at
+    https://gitlab.com/flokno/hilde/blob/devel/examples/devel/sort_atoms/sort.ipynb
+
     Example
     -------
         atoms1 = [H, O1, O2]
         atoms2 = [O1, H, O2]
 
         -> map_indices(atoms1, atoms2) = [1, 0, 2]
-
-    Background
-    ----------
-    https://gitlab.com/flokno/hilde/blob/devel/examples/devel/sort_atoms/sort.ipynb
 
     Parameters
     ----------

@@ -7,7 +7,7 @@ from hilde.fireworks.workflows.firework_generator import (
     generate_relax_fw,
     generate_phonon_fw,
     generate_phonon_postprocess_fw,
-    generate_stat_samp_fw,
+    # generate_stat_samp_fw,
     generate_aims_fw,
 )
 from hilde.helpers.hash import hash_atoms_and_calc

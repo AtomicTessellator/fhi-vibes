@@ -617,63 +617,64 @@ def generate_phonon_postprocess_fw_in_wf(
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 
-def generate_stat_samp_fw(workflow, atoms, fw_settings):
-    """Generates a Firework for the phonon initialization
+# def generate_stat_samp_fw(workflow, atoms, fw_settings):
+#     """Generates a Firework for the phonon initialization
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms, dict
-        ASE Atoms object to preform the calculation on
-    wd: str
-        Workdirectory
-    fw_settings: dict
-        Firework settings for the step
-    qadapter: dict
-        The queueadapter for the step
-    stat_samp_settings: dict
-        kwargs for the harmonic analysis
+#     Parameters
+#     ----------
+#     atoms: ase.atoms.Atoms, dict
+#         ASE Atoms object to preform the calculation on
+#     wd: str
+#         Workdirectory
+#     fw_settings: dict
+#         Firework settings for the step
+#     qadapter: dict
+#         The queueadapter for the step
+#     stat_samp_settings: dict
+#         kwargs for the harmonic analysis
 
-    Returns
-    -------
-    Firework
-        Firework for the harmonic analysis initialization
-    """
-    if "statistical_sampling_qadapter" in workflow:
-        qadapter = workflow["statistical_sampling_qadapter"]
-    elif "phonopy_qadapter" in workflow:
-        qadapter = workflow["phonopy_qadapter"]
-    else:
-        qadapter = None
+#     Returns
+#     -------
+#     Firework
+#         Firework for the harmonic analysis initialization
+#     """
+#     if "statistical_sampling_qadapter" in workflow:
+#         qadapter = workflow["statistical_sampling_qadapter"]
+#     elif "phonopy_qadapter" in workflow:
+#         qadapter = workflow["phonopy_qadapter"]
+#     else:
+#         qadapter = None
 
-    if qadapter and "walltime" in qadapter:
-        workflow.statistical_sampling["walltime"] = get_time(qadapter["walltime"])
-    else:
-        workflow.statistical_sampling["walltime"] = 1800
+#     if qadapter and "walltime" in qadapter:
+#         workflow.statistical_sampling["walltime"] = get_time(qadapter["walltime"])
+#     else:
+#         workflow.statistical_sampling["walltime"] = 1800
 
-    workflow.statistical_sampling[
-        "workdir"
-    ] = f"{workflow.general.workdir_cluster}/statistical_sampling/"
-    if workflow.phonopy.get("converge_phonons", False):
-        workflow.statistical_sampling[
-            "phonon_file"
-        ] = f"{workflow.general.workdir_local}/converged/trajectory.son"
-    else:
-        workflow.statistical_sampling[
-            "phonon_file"
-        ] = f"{workflow.general.workdir_local}/phonopy_analysis/trajectory.son"
+#     workflow.statistical_sampling[
+#         "workdir"
+#     ] = f"{workflow.general.workdir_cluster}/statistical_sampling/"
+#     if workflow.phonopy.get("converge_phonons", False):
+#         workflow.statistical_sampling[
+#             "phonon_file"
+#         ] = f"{workflow.general.workdir_local}/converged/trajectory.son"
+#     else:
+#         workflow.statistical_sampling[
+#             "phonon_file"
+#         ] = f"{workflow.general.workdir_local}/phonopy_analysis/trajectory.son"
 
-    fw_settings["fw_name"] = "statistical_sampling"
-    fw_settings["time_spec_add"] = "stat_samp_times"
+#     fw_settings["fw_name"] = "statistical_sampling"
+#     fw_settings["time_spec_add"] = "stat_samp_times"
 
-    task_spec = gen_stat_samp_task_spec(workflow.statistical_sampling, fw_settings)
+#     task_spec = gen_stat_samp_task_spec(workflow.statistical_sampling, fw_settings)
 
-    return generate_fw(atoms, task_spec, fw_settings, qadapter, None, False)
+#     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, False)
 
 
 def generate_aims_fw(workflow, atoms, fw_settings):
-    """
-    Generates a Firework for the relaxation step
-    Parameters:
+    """Generates a Firework for the relaxation step
+
+    Parameters
+    ----------
     workflow: Settings
         workflow settings where the task is defined
     atoms: ase.atoms.Atoms, dict

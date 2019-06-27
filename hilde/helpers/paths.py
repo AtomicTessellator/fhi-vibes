@@ -11,11 +11,11 @@ from warnings import warn
 def cwd(path, mkdir=False, debug=False):
     """Change cwd intermediately
 
-    Usage
-    -----
-    with cwd(some_path):
-        do so some stuff in some_path
-    do so some other stuff in old cwd
+    Example
+    -------
+    >>> with cwd(some_path):
+    >>>     do so some stuff in some_path
+    >>> do so some other stuff in old cwd
 
     Parameters
     ----------
@@ -25,7 +25,6 @@ def cwd(path, mkdir=False, debug=False):
         If True make path if it does not exist
     debug: bool
         If True enter debug mode
-
     """
     CWD = os.getcwd()
 

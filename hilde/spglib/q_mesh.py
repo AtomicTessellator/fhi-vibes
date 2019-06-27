@@ -12,6 +12,9 @@ def get_ir_reciprocal_mesh(
 ):
     r""" reduce the given q_mesh by symmetry
 
+    Remarks
+    Maybe it would be nice to return the respective rotations as well?
+
     Parameters
     ----------
     q_mesh:
@@ -43,9 +46,6 @@ def get_ir_reciprocal_mesh(
     -------
     https://gitlab.com/flokno/hilde/blob/devel/examples/harmonic_analysis/irreducible_q_points/ir_qpoints.ipynb
 
-    Remarks
-    -------
-    Maybe it would be nice to return the respective rotations as well?
 
     """
 

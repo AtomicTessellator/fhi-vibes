@@ -1,5 +1,4 @@
-""" Module to compute Sobol sequences as adapted from SALib:
-    >> github.com/SALib/SALib
+""" Module to compute Sobol sequences as adapted from `SALib <github.com/SALib/SALib>`_
 #==============================================================================
 # The following code is based on the Sobol sequence generator by Frances
 # Y. Kuo and Stephen Joe. The license terms are provided below.

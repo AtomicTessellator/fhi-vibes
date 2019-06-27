@@ -22,8 +22,8 @@ def setup_md(
 ):
     """Create and ase.md object with respective settings
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     atoms: ase.atoms.Atoms
         Reference structure for molecular dynamics
     driver: str
