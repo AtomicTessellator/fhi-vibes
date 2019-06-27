@@ -22,7 +22,7 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The Phonopy object to be converted
     to_mongo: bool
         If True then it is being sent to a mongo database
@@ -86,7 +86,7 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
 
     Parameters
     ----------
-    phonon3: Phono3py Object
+    phonon3: phono3py.phonon3.Phono3py
         The Phono3py object to be converted
     store_second_order: bool
         If True store the second order properties of the phonopy object
@@ -160,9 +160,9 @@ class PhononRow(AtomsRow):
         ----------
             dct: dict
                 A dictionary representation of the PhononRow
-            phonon3: Phono3py Object
+            phonon3: phono3py.phonon3.Phono3py
                 The Phono3py object to be converted
-            phonon: Phonopy Object
+            phonon: phonopy.Phonopy
                 The Phonopy object to be converted
             store_second_order: bool
                 If True store the second order properties of the phonopy object
@@ -297,7 +297,7 @@ class PhononRow(AtomsRow):
 
         Returns
         -------
-        phonon: Phonopy Object
+        phonon: phonopy.Phonopy
             The phonopy object the PhononRow represents
         """
         from phonopy import Phonopy

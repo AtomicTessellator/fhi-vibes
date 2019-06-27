@@ -232,7 +232,7 @@ def obj2dict(obj):
 
     Parameters
     ----------
-    obj: Phonopy, Phono3py, or ase.atoms.Atoms
+    obj: phonopy.Phonopy, phono3py.phonon3.Phono3py, or ase.atoms.Atoms
         object to be converted to a dict
 
     Returns
@@ -243,8 +243,8 @@ def obj2dict(obj):
     Raises
     ------
     IOError
-        If obj is not a dict, Phonopy, Atoms, or Phono3py object OR
-        If obj is not a dict, Phonopy, or Atoms and Phono3py is not installed
+        If obj is not a dict, phonopy.Phonopy, ase.atoms.Atoms, or phono3py.phonon3.Phono3py object OR
+        If obj is not a dict, phonopy.Phonopy, or ase.atoms.Atoms and Phono3py is not installed
     """
     if isinstance(obj, dict):
         return obj.copy()

@@ -58,7 +58,7 @@ def prepare_phono3py(
 
     Returns
     -------
-    phonon3: Phono3py Object
+    phonon3: phono3py.phonon3.Phono3py
         The Phono3py object for the calculation
     """
 
@@ -134,7 +134,7 @@ def preprocess(
 
     Returns
     -------
-    phonon3: Phono3py Object
+    phonon3: phono3py.phonon3.Phono3py
         The Phono3py object with displacement_dataset, and displaced supercells
     supercell: ase.atoms.Atoms
         The undisplaced supercell

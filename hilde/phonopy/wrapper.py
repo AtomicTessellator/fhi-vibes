@@ -49,7 +49,7 @@ def prepare_phonopy(
 
     Returns
     -------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The phonopy object corresponding to the parameters
     """
 
@@ -107,7 +107,7 @@ def preprocess(
     -------
      Returns
     -------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The phonopy object with displacement_dataset, and displaced supercells
     supercell: ase.atoms.Atoms
         The undisplaced supercell
@@ -163,7 +163,7 @@ def get_dos(
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The phonopy object with calculated force constants if force_sets is None
     total: bool
         If True calculate the total density of states
@@ -239,7 +239,7 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         Phonopy object with calculated force constants if force_Sets is None
     paths: list of str
         List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
@@ -267,7 +267,7 @@ def plot_bandstructure(phonon, filename="bandstructure.pdf", paths=None, force_s
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The phonopy object with calculated force constants if force_sets is None
     filename: str
         file name to store the pdf of the band structure
@@ -294,7 +294,7 @@ def plot_bandstructure_and_dos(
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The phonopy object with calculated force constants
     q_mesh: np.ndarray
         size of the interpolated q-point mesh
@@ -328,7 +328,7 @@ def summarize_bandstructure(phonon, fp_file=None):
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The phonopy object with calculated force constants if force_sets is None
     fp_file: str
         Path to save the fingerprint to
@@ -379,7 +379,7 @@ def get_animation(phonon, q_point, filename):
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The phonopy object with calculated force constants if force_sets is None
     q_point: np.ndarray
         q-point to write the animation file on

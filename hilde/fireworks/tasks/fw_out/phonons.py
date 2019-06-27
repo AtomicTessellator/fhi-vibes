@@ -374,7 +374,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     kwargs: dict
         Dictionary of keyword arguments with the following keys
 
-            outputs: Phonopy
+            outputs: phonopy.Phonopy
                 The Phonopy object from post-processing
             serial: bool
                 If True use a serial calculation

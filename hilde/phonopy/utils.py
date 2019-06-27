@@ -86,12 +86,12 @@ def get_supercells_with_displacements(phonon):
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The phonopy object with displacement_dataset
 
     Returns
     -------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The phonopy object with displacement_dataset, and displaced supercells
     supercell: ase.atoms.Atoms
         The undisplaced supercell
@@ -121,7 +121,7 @@ def metadata2dict(phonon, calculator):
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         Phonopy Object to get metadata for
     calculator: ase.calculators.calulator.Calculator
         The calculator for the force calculation

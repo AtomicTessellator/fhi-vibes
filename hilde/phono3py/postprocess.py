@@ -39,7 +39,7 @@ def postprocess(
 
     Returns
     -------
-    Phono3py Object
+    phono3py.phonon3.Phono3py
         The Phono3py Object of the calculation
     """
 

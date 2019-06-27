@@ -21,7 +21,7 @@ def convert_phonopy_to_tdep(
 
     Parameters
     ----------
-        phonon: Phonopy Object
+        phonon: phonopy.Phonopy
             The Phonopy Object with force constants calculated
         workdir: str or Path
             working directory for the tdep binary
@@ -57,7 +57,7 @@ def canonical_configuration(
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The Phonopy Object with force constants calculated
     workdir: str or Path
         working directory for the tdep binary

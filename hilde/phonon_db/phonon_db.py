@@ -325,7 +325,7 @@ class PhononDatabase(Database):
         -------
         int
             The row id
-        Phonopy
+        phonopy.Phonopy
             the phonopy object of the row
         """
         row = self.get(selection, **kwarg)
@@ -383,9 +383,9 @@ class PhononDatabase(Database):
             ID of row to update.
         dct: dict
             Optionally update the row with a dict.
-        phonon3: Phono3py object
+        phonon3: phono3py.phonon3.Phono3py
             Optionally update the Phononpy data (positions, cell, ...).
-        phonon: Phonopy object
+        phonon: phonopy.Phonopy
             Optionally update the Phononpy data (positions, cell, ...).
         store_second_order: bool
             If True store the second order data from a Phono3py object
@@ -491,9 +491,9 @@ class PhononDatabase(Database):
         ----------
         dct: dict
             Dictionary representation of the row to add to the database
-        phonon3: Phono3py Object
+        phonon3: phono3py.phonon3.Phono3py
             Phono3py Object to be added to the database
-        phonon: Phonopy Object
+        phonon: phonopy.Phonopy
             Phonopy object to be added to the database
         key_value_pairs: dict
             Dictionary of key-value pairs.  Values must be strings or numbers.

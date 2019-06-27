@@ -47,7 +47,7 @@ def postprocess(
 
     Returns
     -------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The Phonopy object with the force constants calculated
     """
 
@@ -124,7 +124,7 @@ def extract_results(
 
     Parameters
     ----------
-    phonon: Phonopy Object
+    phonon: phonopy.Phonopy
         The Phonopy Object with calculated force constants
     write_geometries: bool
         If True write the geometry files for the primitive and supercells
