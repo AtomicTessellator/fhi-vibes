@@ -2,41 +2,61 @@ import numpy as np
 from numpy import cos, sin
 
 def get_sysname(atoms, spacegroup=None):
-        """ Get name of the system:
-        Either the chemical formula, or the chemical formula enriched by spacegroup information"""
+    """ Get name of the system: Either the chemical formula, or the chemical formula enriched by spacegroup information
 
-        chemical_formula      = atoms.get_chemical_formula()
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The structure to the name of
+    spacegroup: int
+        The space group of atoms
 
-        if spacegroup is None and hasattr(atoms, 'spacegroup'):
-            spacegroup = atoms.spacegroup
+    Returns
+    -------
+    sysname: str
+        The name of atoms
+    """
 
-        if spacegroup is None:
-            return chemical_formula
+    chemical_formula      = atoms.get_chemical_formula()
 
-        sg_number             = spacegroup.number
-        wyckoff_pos           = spacegroup.wyckoffs
-        sysname               = f'{chemical_formula}_{sg_number}'
-        wyck_uniq, wyck_mult  = np.unique(wyckoff_pos, return_counts=1)
-        for mult, wyck in zip(wyck_mult, wyck_uniq):
-            sysname += f'_{mult}{wyck}'
-        return sysname
+    if spacegroup is None and hasattr(atoms, 'spacegroup'):
+        spacegroup = atoms.spacegroup
+
+    if spacegroup is None:
+        return chemical_formula
+
+    sg_number             = spacegroup.number
+    wyckoff_pos           = spacegroup.wyckoffs
+    sysname               = f'{chemical_formula}_{sg_number}'
+    wyck_uniq, wyck_mult  = np.unique(wyckoff_pos, return_counts=1)
+    for mult, wyck in zip(wyck_mult, wyck_uniq):
+        sysname += f'_{mult}{wyck}'
+    return sysname
 
 def generate_lattice(a, b=None, c=None, alpha=90, beta=90, gamma=90, lattice_type=None):
-    """ [pymatgen, adapted]
-    Create a Lattice using unit cell lengths (Angstrom) and angles (in degrees).
+    """Create a Lattice using unit cell lengths (Angstrom) and angles (in degrees).
 
-    Parameters:
-        cellpars (list of floats):
-            a (float): *a* lattice parameter.
-            b (float): *b* lattice parameter.
-            c (float): *c* lattice parameter.
-            alpha (float): *alpha* angle in degrees.
-            beta (float): *beta* angle in degrees.
-            gamma (float): *gamma* angle in degrees.
-        lattice_type (str):
+    Parameters
+    ----------
+    a: float
+        *a* lattice parameter.
+    b: float
+        *b* lattice parameter.
+    c: float
+        *c* lattice parameter.
+    alpha: float
+        *alpha* angle in degrees.
+    beta: float
+        *beta* angle in degrees.
+    gamma: float
+        *gamma* angle in degrees.
+    lattice_type (str):
+        The lattice type
 
-    Returns:
-        Lattice cell matrix with the specified lattice parameters.
+    Returns
+    -------
+    np.ndarray
+        Lattice vectors of from the cellpars
     """
     if lattice_type == 'cubic':
         return np.array( [[a, 0.0, 0.0],
