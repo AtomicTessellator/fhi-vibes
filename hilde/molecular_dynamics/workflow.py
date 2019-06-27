@@ -128,12 +128,13 @@ def run(
         Initial step geometry
     calc: ase.calculators.calulator.Calculator
         The calculator for the MD run
-    md: ASE MD Object
+    md: ase.md.MolecularDynamics
         The MD propagator
     maxsteps: int
         Maximum number of steps
     compute_stresses: int or bool
-        if > 0 or True compute_stresses
+        Number of steps in between each stress computation
+            if False 0, if True 1, else int(compute_stresses)
     trajectory: Path or str
         trajectory file path
     metadata_file: str or Path
@@ -249,17 +250,53 @@ def run(
 
 
 def compute_stresses_now(compute_stresses, nsteps):
-    """ return if stress should be computed in this step """
+    """Return if stress should be computed in this step
+
+    Parameters
+    ----------
+    compute_stresses: int
+        Number of steps between each stress calculation
+    nsteps: int
+        Current step number
+
+    Returns
+    -------
+    bool
+        True if the stress should be computed at this step
+    """
     return compute_stresses and (nsteps % compute_stresses == 0)
 
 
 def compute_stresses_next(compute_stresses, nsteps):
-    """ return if stress should be computed in the NEXT step """
+    """Return if stress should be computed in the NEXT step
+
+    Parameters
+    ----------
+    compute_stresses: int
+        Number of steps between each stress calculation
+    nsteps: int
+        Current step number
+
+    Returns
+    -------
+    bool
+        True if the stress should be computed at the next step
+    """
     return compute_stresses_now(compute_stresses, nsteps + 1)
 
 
 def prepare_from_trajectory(atoms, md, trajectory):
-    """ Take the last step from trajectory and initialize atoms + md accordingly """
+    """Take the last step from trajectory and initialize atoms + md accordingly
+
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        The initial geometry
+    md: ase.md.MolecularDynamics
+        The MD propagator
+    trajectory: str or Path
+        The trajectory file
+    """
 
     trajectory = Path(trajectory)
     if trajectory.exists():
@@ -277,7 +314,20 @@ def prepare_from_trajectory(atoms, md, trajectory):
 
 
 def check_metadata(new_metadata, old_metadata):
-    """sanity check if metadata sets coincide"""
+    """Sanity check if metadata sets coincide
+
+    Parameters
+    ----------
+    new_metadata: dict
+        The metadata for this run
+    old_metadata: dict
+        The metadata for the run stored in the trajectory file
+
+    Raises
+    ------
+    AssertionError
+        If the metadata do not agree
+    """
     om, nm = old_metadata["MD"], new_metadata["MD"]
 
     # check if keys coincide:

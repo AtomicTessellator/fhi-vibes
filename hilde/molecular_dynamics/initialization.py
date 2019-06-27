@@ -45,7 +45,7 @@ def setup_md(
     -------
     atoms: ase.atoms.Atoms
         The refrence structure
-    md: ASE MD object
+    md: ase.md
         The MD propagator
     prepared: bool
         True if prepared from trajectory

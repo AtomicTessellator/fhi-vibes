@@ -13,7 +13,7 @@ def metadata2dict(atoms, calc, md):
         Reference structure for MD calculations
     calc: ase.calculators.calulator.Calculator
         Calculator for the MD Run
-    md: ASE Molecular Dynamics Obect
+    md: ase.md.MolecularDynamics
         MD propagator
     """
 
