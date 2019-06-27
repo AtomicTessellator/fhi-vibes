@@ -86,7 +86,7 @@ def setup_aims(
 
     Parameters
     -------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Atoms object that will be used for computation.
     settings: Settings
         the hilde settings

@@ -43,7 +43,7 @@ def to_phonopy_atoms(atoms):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Atoms to convert
 
     Returns
@@ -93,9 +93,9 @@ def get_supercells_with_displacements(phonon):
     -------
     phonon: Phonopy Object
         The phonopy object with displacement_dataset, and displaced supercells
-    supercell: ASE Atoms Object
+    supercell: ase.atoms.Atoms
         The undisplaced supercell
-    supercells_with_disps: list of ASE Atoms Objects
+    supercells_with_disps: list of ase.atoms.Atoms
         All of the supercells with displacements
     """
 

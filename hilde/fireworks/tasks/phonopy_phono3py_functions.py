@@ -60,7 +60,7 @@ def setup_phonon_outs(ph_settings, settings, prefix, atoms, calc):
         General settings for the step
     prefix: str
         key prefix for the task
-    atoms: ASE Atoms
+    atoms: ase.atoms.Atoms
         ASE Atoms object for the material
     calc: ASE Calculator
         Calculator used for the calculation
@@ -95,7 +95,7 @@ def bootstrap_phonon(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Atoms object of the primitive cell
     calc: ASE Calculator
         Calculator for the force calculations
@@ -136,7 +136,7 @@ def bootstrap_stat_sample(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Atoms object of the primitive cell
     calc: ASE Calculator
         Calculator for the force calculations
@@ -196,7 +196,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
             working directory for the task
         trajectory: str
             file name for the trajectory file
-        calculated_atoms: list of ASE Atoms
+        calculated_atoms: list of ase.atoms.Atoms
             Results of the force calculations
         metadata: dict
             metadata for the phonon calculations

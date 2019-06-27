@@ -9,7 +9,7 @@ def atoms2dict(atoms):
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The Atoms object to be converted into a dictionary
 
     Returns
@@ -47,7 +47,7 @@ def dict2atoms(atoms_dict):
 
     Returns
     -------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The corresponding Atoms object
     """
     try:

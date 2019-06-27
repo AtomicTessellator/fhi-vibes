@@ -10,11 +10,11 @@ def mod_spec_add(
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The original atoms at the start of this job
     calc: ASE Calculator object
         The original calculator
-    outputs: ASE Atoms Object
+    outputs: ase.atoms.Atoms
         The atoms with attached calculator to be added to the spec
     func: str
         Path to function that performs the MD like operation
@@ -43,7 +43,7 @@ def fireworks_no_mods(
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The original atoms at the start of this job
     calc: ASE Calculator object
         The original calculator

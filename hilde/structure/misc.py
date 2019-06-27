@@ -6,7 +6,7 @@ def get_sysname(atoms, spacegroup=None):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to the name of
     spacegroup: int
         The space group of atoms

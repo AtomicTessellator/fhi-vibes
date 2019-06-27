@@ -10,9 +10,9 @@ def get_dR(atoms, atoms0, wrap_tol=1e-5):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The distorted structure
-    atoms0: ASE Atoms Object
+    atoms0: ase.atoms.Atoms
         The reference structure
     wrap_tol: float
         The tolerance for wrapping atoms at the cell edges
@@ -43,9 +43,9 @@ def get_U(atoms, atoms0, masses=None, wrap_tol=1e-5):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The distorted structure
-    atoms0: ASE Atoms Object
+    atoms0: ase.atoms.Atoms
         The reference structure
     masses: np.ndarray
         The mass of the atoms object
@@ -74,7 +74,7 @@ def get_dUdt(atoms, masses=None, wrap_tol=1e-5):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The distorted structure
     masses: np.ndarray
         The mass of the atoms object

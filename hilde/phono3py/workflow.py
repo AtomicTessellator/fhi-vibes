@@ -16,7 +16,7 @@ def run_phono3py(postprocess_args=None, **kwargs):
     kwargs: dict
         Preprocessing arguments, items must include
 
-        atoms: ASE Atoms Object
+        atoms: ase.atoms.Atoms
             primitive cell for the calculation
         supercell_matrix: np.ndarray
             supercell matrix for the third order phonons

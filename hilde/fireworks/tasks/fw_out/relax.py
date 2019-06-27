@@ -24,7 +24,7 @@ def check_relaxation_complete(
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The original atoms at the start of this job
     calc: ASE Calculator object
         The original calculator
@@ -109,11 +109,11 @@ def check_aims_complete(
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The original atoms at the start of this job
     calc: ASE Calculator object
         The original calculator
-    outputs: ASE Atoms Object
+    outputs: ase.atoms.Atoms
         The geometry of the final relaxation step
     func: str
         Path to function that performs the MD like operation

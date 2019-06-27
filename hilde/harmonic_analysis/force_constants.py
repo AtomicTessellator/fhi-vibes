@@ -13,9 +13,9 @@ def reshape_force_constants(
 
     Parameters
     ----------
-    primitive: ASE Atoms Object
+    primitive: ase.atoms.Atoms
         The primitive cell structure
-    supercell: ASE Atoms Object
+    supercell: ase.atoms.Atoms
         The super cell structure
     force_constants: np.ndarray(shape=(N_prim x N_super x 3 x 3))
         The input force constant matrix

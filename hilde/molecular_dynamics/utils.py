@@ -35,7 +35,7 @@ class FCCalculator(Calculator):
 
         Parameters
         ----------
-        ref_atoms: ASE Atoms Object
+        ref_atoms: ase.atoms.Atoms
             Reference structure (where harmonic forces are zero)
         force_constant: np.ndarray
             The force constant matrix
@@ -51,7 +51,7 @@ class FCCalculator(Calculator):
 
         Parameters
         ----------
-        atoms: ASE Atoms Object
+        atoms: ase.atoms.Atoms
             displaced structure (only positions can be different w/rt ref_atoms)
 
         Returns
@@ -71,7 +71,7 @@ class MDLogger:
 
         Parameters
         ----------
-        atoms: ASE Atoms Object
+        atoms: ase.atoms.Atoms
             Atoms of the reference structure
         trajectory: str or Path
             path to the trajectory file
@@ -93,7 +93,7 @@ class MDLogger:
 
         Parameters
         ----------
-        atoms: ASE Atoms Object
+        atoms: ase.atoms.Atoms
             Atoms of the current step
         info: dict
             additional information to add to the update

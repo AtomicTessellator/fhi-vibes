@@ -28,14 +28,14 @@ def cells_and_workdirs(cells, base_dir):
 
     Parameters
     ----------
-    cells: list of ASE Atoms Objects
+    cells: list of ase.atoms.Atoms
         The cells to assign workdirs to
     base_dir: str
         Path to the base working directory
 
     Yields
     ------
-    cell: ASE Atoms Object
+    cell: ase.atoms.Atoms
         The particular cell
     workdir: Path
         The working directory for cell
@@ -50,7 +50,7 @@ def calculate(atoms, calculator, workdir="."):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to calculate
     calculator: ASE Calculator:
         The calculator to used to get the properties
@@ -59,7 +59,7 @@ def calculate(atoms, calculator, workdir="."):
 
     Returns
     -------
-    calc_atoms: ASE Atoms Object
+    calc_atoms: ase.atoms.Atoms
         atoms with all properties calculated
     """
 
@@ -88,7 +88,7 @@ def calculate_socket(
 
     Parameters
     ----------
-    atoms_to_calculate: list of ASE Atoms Objects
+    atoms_to_calculate: list of ase.atoms.Atoms
         list with atoms to calculate
     calculator: ASE calculator
         calculator to use

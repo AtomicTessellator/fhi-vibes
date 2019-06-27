@@ -15,7 +15,7 @@ def check_kgrid_opt_completion(
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The original atoms at the start of this job
     calc: ASE Calculator object
         The original calculator

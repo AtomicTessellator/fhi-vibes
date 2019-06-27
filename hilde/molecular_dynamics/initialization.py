@@ -24,7 +24,7 @@ def setup_md(
 
     Parameter
     ---------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Reference structure for molecular dynamics
     driver: str
         Algorithm used to propagate the MD
@@ -43,7 +43,7 @@ def setup_md(
 
     Returns
     -------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The refrence structure
     md: ASE MD object
         The MD propagator
@@ -105,7 +105,7 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.son", **kwargs):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Reference structure for molecular dynamics
     md: ASE MD object
         The MD propagator
@@ -146,7 +146,7 @@ def initialize_md(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Reference structure for molecular dynamics
     temperature: float
         The temperature in Kelvin
@@ -161,7 +161,7 @@ def initialize_md(
 
     Returns
     -------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Updated atoms with positions and velocities set by the initialization scheme
     """
 

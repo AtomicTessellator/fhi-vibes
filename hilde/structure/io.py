@@ -15,7 +15,7 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
 
     Parameters
     ----------
-    cell: ASE Atoms Object
+    cell: ase.atoms.Atoms
         The cell to convert to geometry.in
     decorated: bool
         If True add header to the geoemtry.in string
@@ -139,7 +139,7 @@ def inform(cell, fname=None, verbosity=1, symprec=symprec):
 
     Parameters
     ----------
-    cell: ASE Atoms Object
+    cell: ase.atoms.Atoms
         The cell to convert to geometry.in
     fname: str
         Path to the geometry.in file

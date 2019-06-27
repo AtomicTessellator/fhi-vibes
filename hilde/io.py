@@ -8,7 +8,7 @@ def get_info_str(atoms, spacegroup=False):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The Atoms object to get the info string for
     spacegroup: bool
         If True add space group information
@@ -43,7 +43,7 @@ def read(fname, format="aims"):
 
     Returns
     -------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The ASE representation of the structure in fname
     """
 
@@ -57,7 +57,7 @@ def write(atoms, fname, format="aims", spacegroup=False, **kwargs):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to write to the file
     fname: str
         The input geometry file

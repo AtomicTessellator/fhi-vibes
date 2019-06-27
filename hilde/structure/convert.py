@@ -6,7 +6,7 @@ def to_phonopy_atoms(structure, wrap=False):
 
     Parameters
     ----------
-    structure: ASE Atoms Object
+    structure: ase.atoms.Atoms
         Atoms to convert
     wrap: bool
         If True wrap the scaled positions
@@ -31,7 +31,7 @@ def to_spglib_cell(structure):
 
     Parameters
     ----------
-    structure: ASE Atoms Object
+    structure: ase.atoms.Atoms
         Atoms to convert
 
     Returns
@@ -62,7 +62,7 @@ def to_Atoms_db(structure, info=None, pbc=True):
 
     Returns
     -------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The ASE representation of the material
     """
 
@@ -98,7 +98,7 @@ def to_Atoms(structure, info=None, pbc=True):
 
     Returns
     -------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The ASE representation of the material
     """
 

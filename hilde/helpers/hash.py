@@ -36,7 +36,7 @@ def hash_atoms(atoms):
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         Atoms to has
 
     Returns
@@ -65,7 +65,7 @@ def hash_atoms_and_calc(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to be converted to a json with attached calculator
     ignore_results: bool
         If True ignore the results in atoms.calc
@@ -110,7 +110,7 @@ def hash_traj(ca, meta, hash_meta=False):
 
     Parameters
     ----------
-    ca: list of ASE atoms objects
+    ca: list of ase.atoms.Atoms
         Atoms objects inside a trajectory file
     meta: dict
         Metadata for the trajectory

@@ -32,7 +32,7 @@ def prepare_phonopy(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The primitive cell for the calculation
     supercell_matrix: np.ndarray
         The supercell matrix for generating the supercell
@@ -92,7 +92,7 @@ def preprocess(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The primitive cell for the calculation
     supercell_matrix: np.ndarray
         The supercell matrix for generating the supercell
@@ -109,9 +109,9 @@ def preprocess(
     -------
     phonon: Phonopy Object
         The phonopy object with displacement_dataset, and displaced supercells
-    supercell: ASE Atoms Object
+    supercell: ase.atoms.Atoms
         The undisplaced supercell
-    supercells_with_disps: list of ASE Atoms Objects
+    supercells_with_disps: list of ase.atoms.Atoms
         All of the supercells with displacements
     """
     phonon = prepare_phonopy(

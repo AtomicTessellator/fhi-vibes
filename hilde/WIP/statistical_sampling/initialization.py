@@ -27,12 +27,12 @@ def prepare_phonon_harmonic_sampling(
     '''
     Generates a list of displaced supercells based on a thermal excitation of phonons
     Parameters:
-        atoms (ASE Atoms Object): Non-displaced supercell
+        atoms (ase.atoms.Atoms): Non-displaced supercell
         force_constants(np.ndarray(shape=(3*len(atoms), 3*len(atoms)))): Force constant matrix for atoms
         temperature (float): Temperature to populate the phonons modes at
         n_samples(int): number of samples to generate
         deterministic(bool): If True then displace atoms with +/- the amplitude according to PRB 94, 075125
-    Returns (list of ASE Atoms Object): The thermally displaced supercells
+    Returns (list of ase.atoms.Atoms): The thermally displaced supercells
     '''
     thermally_disp_cells = []
     for ii in range(n_samples):
@@ -62,7 +62,7 @@ def preprocess(
     '''
     Sets ups the statistical sampling
     Parameters:
-        atoms (ASE Atoms Object): structure to perform statistical sampling on
+        atoms (ase.atoms.Atoms): structure to perform statistical sampling on
         phonon_file (str): String to the phonopy trajectory
         temperatures (list (floats)): List of temperatures to excite the phonons to
         debye_temp_fact (list(floats)): List of factors to multiply the debye temperature by to populate temperatures

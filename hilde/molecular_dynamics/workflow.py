@@ -51,7 +51,7 @@ def bootstrap(ctx):
     dict
         The relevant information to run the MD with the following items
 
-        atoms: ASE Atoms Object
+        atoms: ase.atoms.Atoms
             The reference structure
         calc: ASE Calculator
             The Calculator for the MD
@@ -124,7 +124,7 @@ def run(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Initial step geometry
     calc: ASE Calculator
         The calculator for the MD run

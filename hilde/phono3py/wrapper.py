@@ -29,7 +29,7 @@ def prepare_phono3py(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         primitive cell for the calculation
     supercell_matrix: np.ndarray
         supercell matrix for the third order phonons
@@ -115,7 +115,7 @@ def preprocess(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         primitive cell for the calculation
     supercell_matrix: np.ndarray
         supercell matrix for the third order phonons
@@ -136,9 +136,9 @@ def preprocess(
     -------
     phonon3: Phono3py Object
         The Phono3py object with displacement_dataset, and displaced supercells
-    supercell: ASE Atoms Object
+    supercell: ase.atoms.Atoms
         The undisplaced supercell
-    supercells_with_disps: list of ASE Atoms Objects
+    supercells_with_disps: list of ase.atoms.Atoms
         All of the supercells with displacements
     """
 

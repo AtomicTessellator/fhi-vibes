@@ -47,7 +47,7 @@ def atoms2dict(atoms):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to be converted to a dict
 
     Returns
@@ -112,13 +112,13 @@ def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to be converted to a dict
     calc: ASE Calculator Object
         The calculator to be converted to a dict
-    primitive: ASE Atoms Object
+    primitive: ase.atoms.Atoms
         The primitive cell structure
-    supercell: ASE Atoms Object
+    supercell: ase.atoms.Atoms
         The supercell cell structure
     settings: Settings
         The settings used to generate the inputs
@@ -171,7 +171,7 @@ def results2dict(atoms, calc=None, append_cell=False):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to be converted to a dict
     calc: ASE Calculator Object
         The calculator to be converted to a dict
@@ -240,7 +240,7 @@ def dict2atoms(atoms_dict, calc_dict=None):
 
     Returns
     -------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The atoms represented by atoms_dict with the calculator represented by calc_dict attached
     """
 
@@ -382,7 +382,7 @@ def atoms2json(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to be converted to a json with attached calculator
     ignore_results: bool
         If True ignore the results in atoms.calc

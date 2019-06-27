@@ -39,7 +39,7 @@ def get_stresses(atoms):
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         atoms of the calculation to get teh stress of
 
     Returns

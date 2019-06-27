@@ -119,7 +119,7 @@ def generate_firework(
     ----------
     task_spec_list: list of TaskSpecs
         list of task specifications to perform
-    atoms: ASE Atoms object, dictionary or str
+    atoms: ase.atoms.Atoms, dictionary or str
         If not atoms_calc_from_spec then this must be an ASE Atoms object or a dictionary describing it If atoms_calc_from_spec then this must be a key str to retrieve the Atoms Object from the MongoDB launchpad
     calc: ASE Calculator object, dictionary or str
         If not atoms_calc_from_spec then this must be an ASE Calculator object or a dictionary describing it If atoms_calc_from_spec then this must be a key str to retrieve the Calculator from the MongoDB launchpad
@@ -256,7 +256,7 @@ def generate_fw(
 
     Parameters
     ----------
-    atoms: ASE atoms object, dict
+    atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     task_list: list of TaskSpecs
         Definitions for the tasks to be run
@@ -306,7 +306,7 @@ def generate_kgrid_fw(workflow, atoms, fw_settings):
     ----------
     workflow: Settings
         workflow settings where the task is defined
-    atoms: ASE atoms object, dict
+    atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     fw_settings: dict
         Firework settings for the step
@@ -353,7 +353,7 @@ def generate_relax_fw(workflow, atoms, fw_settings, basisset_type):
     ----------
     workflow: Settings
         workflow settings where the task is defined
-    atoms: ASE atoms object, dict
+    atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     fw_settings: dict
         Firework settings for the step
@@ -403,7 +403,7 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
     ----------
     aworkflow: Settings
         workflow settings where the task is defined
-    atoms: ASE atoms object, dict
+    atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     fw_settings: dict
         Firework settings for the step
@@ -460,7 +460,7 @@ def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
 
     Parameters
     ----------
-    atoms: ASE atoms object, dict
+    atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     wd: str
         Workdirectory
@@ -514,7 +514,7 @@ def generate_phonon_fw_in_wf(
 
     Parameters
     ----------
-    atoms: ASE atoms object, dict
+    atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     wd: str
         Workdirectory
@@ -574,7 +574,7 @@ def generate_phonon_postprocess_fw_in_wf(
 
     Parameters
     ----------
-    atoms: ASE atoms object, dict
+    atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     wd: str
         Workdirectory
@@ -622,7 +622,7 @@ def generate_stat_samp_fw(workflow, atoms, fw_settings):
 
     Parameters
     ----------
-    atoms: ASE atoms object, dict
+    atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     wd: str
         Workdirectory
@@ -676,7 +676,7 @@ def generate_aims_fw(workflow, atoms, fw_settings):
     Parameters:
     workflow: Settings
         workflow settings where the task is defined
-    atoms: ASE atoms object, dict
+    atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     fw_settings: dict
         Firework settings for the step

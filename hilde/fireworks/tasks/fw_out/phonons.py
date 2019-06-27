@@ -34,7 +34,7 @@ def post_init_mult_calcs(
 
     Parameters
     ----------
-    atoms: ASE Atoms
+    atoms: ase.atoms.Atoms
         atoms reference structure for the calculation
     calc: ASE calculator
         The claculator of the claulation
@@ -115,7 +115,7 @@ def get_detours(
 
     Parameters
     ----------
-    atoms_to_calculate: list of ASE Atoms objects
+    atoms_to_calculate: list of ase.atoms.Atoms
         List of structures to calculate forces for
     calc_dict: dict
         Dictionary representation of the ASE Calculator Object
@@ -127,7 +127,7 @@ def get_detours(
         A dictionary describing all FireWorks settings
     update_spec: dict
         Parmeters to be added to the FireWorks spec
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Initial ASE Atoms object representation of the structure
     detours: list of Fireworks
         Current list of force calculations to perform
@@ -180,7 +180,7 @@ def add_socket_calc_to_detours(detours, atoms, func_kwargs, fw_settings, prefix)
     ----------
     detours: list of Fireworks
         Current list of detours
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Initial ASE Atoms object representation of the structure
     func_kwargs: dict
         kwargs needed to do the socket I/O calculation

@@ -44,9 +44,9 @@ def map_I_to_iL(
 
     Parameters
     ----------
-    in_atoms: ASE Atoms Object
+    in_atoms: ase.atoms.Atoms
         The input primitive cell
-    in_supercell: ASE Atoms Object
+    in_supercell: ase.atoms.Atoms
         The input supercell
     lattice_points: np.ndarray
         List of lattice points in the supercell

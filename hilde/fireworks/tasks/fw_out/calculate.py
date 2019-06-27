@@ -17,7 +17,7 @@ def mod_spec_add(
 
     Parameters
     ----------
-    atoms: ASE Atoms
+    atoms: ase.atoms.Atoms
         The original atoms at the start of this job
     calc: ASE Calculator
         The original calculator

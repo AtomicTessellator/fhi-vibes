@@ -24,7 +24,7 @@ def cell_to_Atoms(lattice, scaled_positions, numbers, info=None):
 
     Returns
     -------
-    ASE Atoms Object:
+    ase.atoms.Atoms:
         The ASE Atoms object representation of the material
     """
     atoms_dict = {
@@ -43,7 +43,7 @@ def get_symmetry_dataset(atoms, symprec=default_symprec):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to get the dataset of
     symprec: float
         The tolerance for determining symmetry and the space group
@@ -70,7 +70,7 @@ def map_unique_to_atoms(atoms, symprec=default_symprec):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to get the dataset of
     symprec: float
         The tolerance for determining symmetry and the space group
@@ -100,7 +100,7 @@ def get_spacegroup(atoms, symprec=default_symprec):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to get the dataset of
     symprec: float
         The tolerance for determining symmetry and the space group
@@ -119,14 +119,14 @@ def refine_cell(atoms, symprec=default_symprec):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to get the dataset of
     symprec: float
         The tolerance for determining symmetry and the space group
 
     Returns
     -------
-    ASE Atoms Objects:
+    ase.atoms.Atoms:
         The refined structure of atoms
     """
     lattice, scaled_positions, numbers = spg.refine_cell(to_spglib_cell(atoms), symprec)
@@ -141,7 +141,7 @@ def standardize_cell(
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure to get the dataset of
     to_primitive: bool
         If True go to the primitive cell
@@ -152,7 +152,7 @@ def standardize_cell(
 
     Returns
     -------
-    ASE Atoms Object
+    ase.atoms.Atoms
         The standardized structure of atoms
     """
 

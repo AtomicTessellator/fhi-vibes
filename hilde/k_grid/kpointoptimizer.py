@@ -22,7 +22,7 @@ class KPointOptimizer(Dynamics):
 
         Parameters
         ----------
-        atoms: ASE Atoms object
+        atoms: ase.atoms.Atoms
             geometry of the system you are converging the k-grid on with a calculator attached
         func: function
             Function used to get the property the routine is trying to converge relative to the k-grid density

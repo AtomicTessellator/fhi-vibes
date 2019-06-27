@@ -9,7 +9,7 @@ def metadata2dict(atoms, calc, md):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         Reference structure for MD calculations
     calc: ASE Calculator
         Calculator for the MD Run

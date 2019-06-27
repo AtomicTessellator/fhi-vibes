@@ -52,7 +52,7 @@ def bootstrap(ctx=None, name=None, settings=None, workdir=None, **kwargs):
     dict
         The necessary information to run the workflow with the following items
 
-        atoms_to_calculate: list of ASE Atoms Objects
+        atoms_to_calculate: list of ase.atoms.Atoms
             The list of the displaced supercells
         calculator: ASE Calculator Object
             The calculator used to calculate for forces in each supercell

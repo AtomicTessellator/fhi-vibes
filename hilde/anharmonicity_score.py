@@ -47,7 +47,7 @@ def get_r2_per_atom(
         forces from dft calculations
     forces_harmonic: list
         forces from harmonic approximation
-    ref_structure: ASE Atoms Object
+    ref_structure: ase.atoms.Atoms
         reference structure for symmetry analysis
     reduce_by_symmetry: bool
         project on symmetry equivalent instead of primitive
@@ -89,7 +89,7 @@ def get_forces_from_trajectory(trajectory, ref_structure=None, force_constants=N
     ----------
     trajectory: list
         list of Atoms objects with forces
-    ref_structure: ASE Atoms Object
+    ref_structure: ase.atoms.Atoms
         reference Atoms object
     force_constants: np.ndarray
         force constants in [3N, 3N] shape
@@ -115,9 +115,9 @@ def get_harmonic_forces(sc, ref_structure, force_constants):
 
     Parameters
     ----------
-    sc: ASE Atoms Object
+    sc: ase.atoms.Atoms
         The distorted supercell
-    ref_structure: ASE Atoms Object
+    ref_structure: ase.atoms.Atoms
         The undistorted structure
     force_constants: np.ndarray
         The force constant matrix

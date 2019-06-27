@@ -13,9 +13,9 @@ def compute_sed(traj, ideal, prim, k_points):
     ----------
     traj : list of Atoms
         trajectory with atoms objects with velocities
-    ideal : ASE atoms object
+    ideal : ase.atoms.Atoms
         ideal atoms object
-    prim : ASE atoms object
+    prim : ase.atoms.Atoms
         compatible primitive cell. Must be aligned correctly
     k_points : list
         list of k points in cart coord (2pi must be included)
@@ -61,9 +61,9 @@ def _index_offset(atoms, prim, atol=1e-3, rtol=0.0):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The atoms object
-    prim: ASE Atoms Object
+    prim: ase.atoms.Atoms
         The primitive cell
     atol: float
         The absolute tolerance

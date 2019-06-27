@@ -29,7 +29,7 @@ def converge_kgrid(
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         geometry of the system you are converging the k-grid on
     calc: ASE Calculator object
         calculator for the k-grid convergence

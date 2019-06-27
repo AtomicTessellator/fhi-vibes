@@ -10,7 +10,7 @@ def clean_atoms(input_atoms, align=False, tolerance=1e-9):
 
     Parameters
     ----------
-    input_atoms: ASE Atoms Object
+    input_atoms: ase.atoms.Atoms
         input atoms to be cleaned
     align: bool
         If True align the cell based off of ase.geometry.cellpar_to_cell base alignment
@@ -18,7 +18,7 @@ def clean_atoms(input_atoms, align=False, tolerance=1e-9):
         tolerance for the allowed change in volume
 
     Returns
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The cleaned atoms object
     """
 

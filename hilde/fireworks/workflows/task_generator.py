@@ -7,7 +7,7 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     Setups an ASE Atoms task
     Parameters:
         task_spec (TaskSpec): Specification of the Firetask
-        atoms (dict): Dictionary representation of the ASE Atoms Object
+        atoms (dict): Dictionary representation of the ase.atoms.Atoms
         calc (dict): Dictionary representation of the ASE Calculator Object
         fw_settings (dict): FireWorks specific parameters
 
@@ -53,7 +53,7 @@ def generate_task(task_spec, fw_settings, atoms, calc):
     Parameters:
         task_spec (TaskSpec): Specification of the Firetask
         fw_settings (dict): FireWorks specific parameters
-        atoms (dict): Dictionary representation of the ASE Atoms Object
+        atoms (dict): Dictionary representation of the ase.atoms.Atoms
         calc (dict): Dictionary representation of the ASE Calculator Object
 
     Returns:

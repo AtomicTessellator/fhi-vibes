@@ -10,7 +10,7 @@ def get_paths(atoms):
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The structure to get the recommended high-symmetry point path
 
     Returns
@@ -29,7 +29,7 @@ def get_special_points(atoms):
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The structure to get the recommended high-symmetry points
 
     Returns
@@ -45,7 +45,7 @@ def get_bands(atoms, paths=None, npoints=50):
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The structure to get the recommended high-symmetry point path
     paths: list of np.ndarray
         Paths connecting high-symmetry points
@@ -106,7 +106,7 @@ def get_bands_and_labels(atoms, paths=None, npoints=50, latex=True):
 
     Parameters
     ----------
-    atoms: ASE Atoms object
+    atoms: ase.atoms.Atoms
         The structure to get the recommended high-symmetry point path
     paths: list of np.ndarray
         Paths connecting high-symmetry points

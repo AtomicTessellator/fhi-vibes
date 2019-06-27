@@ -72,7 +72,7 @@ def canonical_configuration(
 
     Returns
     -------
-    list of ASE Atoms Objects
+    list of ase.atoms.Atoms
         thermally displaced structures
     """
     if phonon:

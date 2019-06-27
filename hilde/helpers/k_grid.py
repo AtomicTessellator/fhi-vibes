@@ -85,7 +85,7 @@ def update_k_grid(atoms, calc, kptdensity, even=True):
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         structure that the calculator is attached to
     calc: ASE Calculator
         The calculator

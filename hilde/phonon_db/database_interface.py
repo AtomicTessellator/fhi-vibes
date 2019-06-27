@@ -95,7 +95,7 @@ def to_database(
     ----------
     db_path: str
         Path to the database
-    phonon: ASE Atoms, Phonopy, or Phono3py Object
+    phonon: ase.atoms.Atoms, phonopy.Phonopy, or phono3py.phonon3.Phono3py
         Object to be added to the database
     calc: ASE Calculator
         Calculator parameters to add to the Database
@@ -228,11 +228,11 @@ def to_database(
 
 
 def obj2dict(obj):
-    """Converts a Phonopy, Phono3py, or ASE Atoms Object to a dict
+    """Converts a Phonopy, Phono3py, or ase.atoms.Atoms to a dict
 
     Parameters
     ----------
-    obj: Phonopy, Phono3py, or ASE Atoms Object
+    obj: Phonopy, Phono3py, or ase.atoms.Atoms
         object to be converted to a dict
 
     Returns

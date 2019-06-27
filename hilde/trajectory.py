@@ -26,7 +26,7 @@ def step2file(atoms, calc=None, file="trajectory.son", append_cell=False, metada
 
     Parameters
     ----------
-    atoms: ASE Atoms Object
+    atoms: ase.atoms.Atoms
         The structure at the current step
     calc: ASE Calculator
         The ASE Calculator for the current run
@@ -416,7 +416,7 @@ class Trajectory(list):
 
         Parameters
         ----------
-        ref_atoms: ASE Atoms Object
+        ref_atoms: ase.atoms.Atoms
             reference structure for undisplaced system
         window: int
             This does nothing? I think it is supposed to define which steps to start/end the analysis on
@@ -451,7 +451,7 @@ class Trajectory(list):
 
         Parameters
         ----------
-        ref_atoms: ASE Atoms Object
+        ref_atoms: ase.atoms.Atoms
             reference structure for undisplaced system
         window: int
             This does nothing? I think it is supposed to define which steps to start/end the analysis on
