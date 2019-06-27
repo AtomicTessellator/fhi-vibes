@@ -5,12 +5,16 @@ from ase.db.row import atoms2dict as ase_atoms2dict
 from ase.db.row import AtomsRow
 
 def atoms2dict(atoms):
-    """
-    Converts a pAtoms object into a dict
-    Parameters:
-        atoms: pAtoms or Atoms object
-            The pAtoms or Atoms object to be converted into a dictionary
-    Returns: atoms_dict (dict)
+    """Converts a Atoms object into a dict
+
+    Parameters
+    ----------
+    atoms: ASE Atoms object
+        The Atoms object to be converted into a dictionary
+
+    Returns
+    -------
+    atoms_dict: dict
         The dictionary of atoms
     """
     if atoms is None:
@@ -34,13 +38,17 @@ def atoms2dict(atoms):
     return atoms_dict
 
 def dict2atoms(atoms_dict):
-    """
-    Converts a dict into a pAtoms object
-    Parameters:
-        atoms_dict: dict
-            A dictionary representing the pAtoms object
-    Returns: pAtoms
-        The corresponding pAtoms object
+    """Converts a dict into an Atoms object
+
+    Parameters
+    ----------
+    atoms_dict: dict
+        A dictionary representing the pAtoms object
+
+    Returns
+    -------
+    atoms: ASE Atoms Object
+        The corresponding Atoms object
     """
     try:
         atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=True)
@@ -68,7 +76,18 @@ def dict2atoms(atoms_dict):
     return atoms
 
 def calc2dict(calc):
-    """ Converts an ase calculator calc into a dict"""
+    """Converts an ASE calculator into a dict
+
+    Parameters
+    ----------
+    calc: ASE Calculator
+        The calculator to convert to a dictionary
+
+    Returns
+    -------
+    calc_dict: dict
+        The corresponding dictionary
+    """
     if calc is None:
         return {}
     elif isinstance(calc, dict):

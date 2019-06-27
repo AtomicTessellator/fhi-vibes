@@ -31,13 +31,48 @@ class PhononPostgreSQLDatabase(PhononSQLite3Database):
     default = "DEFAULT"
 
     def encode(self, obj):
+        """Encode an object into JSONAble format
+
+        Parameters
+        ----------
+        obj: Object
+            Object to encode
+
+        Returns
+        -------
+        JSONAble Object
+            JSON Encoded string
+        """
         return ase.io.jsonio.encode(remove_nan_and_inf(obj))
 
     def decode(self, obj):
+        """Decode an object from JSONAble format
+
+        Parameters
+        ----------
+        obj: JSONAble Object
+            Object to decode
+
+        Returns
+        -------
+        Object
+            Decoded JSONAble Object
+        """
         return insert_nan_and_inf(ase.io.jsonio.numpyfy(obj))
 
     def blob(self, array):
-        """Convert array to blob/buffer object."""
+        """Convert array to blob/buffer object.
+
+        Parameters
+        ----------
+        array: np.ndarray
+            Array to make blob/buffer
+
+        Returns
+        -------
+        list
+            A list that can be converted into a blob/buffer
+        """
 
         if array is None:
             return None
@@ -50,15 +85,36 @@ class PhononPostgreSQLDatabase(PhononSQLite3Database):
     def deblob(self, buf, dtype=float, shape=None):
         """Convert blob/buffer object to ndarray of correct dtype and shape.
 
-        (without creating an extra view)."""
+        Parameters
+        ----------
+        buf: Buffer
+            Buffer to convert to an array
+        dtype: Type
+            data type of the objects in the array
+        shape: tuple
+            shape of the array
+
+        Returns
+        -------
+        np.ndarray
+            The array form of the buffer
+        """
         if buf is None:
             return None
         return np.array(buf, dtype=dtype)
 
     def _connect(self):
+        """Create a connection to the database"""
         return Connection(connect(self.filename))
 
     def _initialize(self, con):
+        """Initialize the database
+
+        Parameters
+        ----------
+        con: Connection
+            The connection to the database
+        """
         if self.initialized:
             return
 
@@ -104,12 +160,32 @@ class PhononPostgreSQLDatabase(PhononSQLite3Database):
         self.initialized = True
 
     def get_last_id(self, cur):
+        """Get the ID of the last row in the database
+
+        Parameters
+        ----------
+        cur: Cursor
+            Cursor for the database
+        """
         cur.execute("SELECT last_value FROM systems_id_seq")
         id = cur.fetchone()[0]
         return int(id)
 
 
 def schema_update(sql):
+    """Update the schema
+
+    Parameters
+    ----------
+    sql: SQL schemea
+        The schema for the database
+
+    Returns
+    ----------
+    sql: SQL schemea
+        The updated schema for the database
+
+    """
     for a, b in [
         ("REAL", "DOUBLE PRECISION"),
         ("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY"),

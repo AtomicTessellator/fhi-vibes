@@ -124,8 +124,18 @@ numeric_keys = set(["id", "energy", "magmom", "charge", "natoms", "natoms_in_Sc"
 
 
 def check(key_value_pairs):
-    """
-    Checks the key value pairs to makes sure they are of the right format
+    """Checks the key value pairs to makes sure they are of the right format
+
+    Parameters
+    ----------
+    key_value_pairs: dict
+        A dictionary of all key/value pairs in a database query
+
+    Raises
+    ------
+    ValueError
+        If value is not of the right type for the key OR
+        If the value is of a type that can be represented as a different one in the database
     """
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
@@ -169,7 +179,11 @@ def connect(
     serial=False,
 ):
     """Create connection to database.
+
     Modified to link to PhononDatabase types
+
+    Parameters
+    ----------
     name: str
         Filename or address of database.
     db_type: str
@@ -181,6 +195,19 @@ def connect(
         You can turn this off if you know what you are doing ...
     append: bool
         Use append=False to start a new database.
+    serial: bool
+        If True Let someone else handle parallelization.  Default behavior is to interact with the database on the master only and then distribute results to all slaves.
+
+    Returns
+    -------
+    PhononJSONDatabase, PhononSQLite3Database, PhononPostgreSQLDatabase
+        The database connection that is requested
+
+    Raises
+    ------
+    ValueError
+        If database type can't be extracted from the name OR
+        If database type is unknown
     """
 
     name = str(name)
@@ -228,15 +255,19 @@ class PhononDatabase(Database):
         self, filename=None, create_indices=True, use_lock_file=False, serial=False
     ):
         """Database object.
-        Parameters:
-            filename: str
-                Filename of the database
-            create_indices: bool
 
-            serial: bool
-                Let someone else handle parallelization.  Default behavior is
-                to interact with the database on the master only and then
-                distribute results to all slaves.
+        Parameters
+        ----------
+        filename: str
+            Filename of the database
+        create_indices: bool
+            If True create indices
+        use_lock_file: bool
+            You can turn this off if you know what you are doing ...
+        serial: bool
+            Let someone else handle parallelization.  Default behavior is
+            to interact with the database on the master only and then
+            distribute results to all slaves.
         """
         if isinstance(filename, basestring):
             filename = os.path.expanduser(filename)
@@ -250,16 +281,51 @@ class PhononDatabase(Database):
         self._metadata = None  # decription of columns and other stuff
 
     def _write(self, row, key_value_pairs, data, id=None):
+        """Wrapper to function that will write to the database
+
+        Parameters
+        ----------
+        row: PhononRow
+            The row to add to the database
+        key_value_pairs: dict
+            Additional key value pairs to add to the database
+        data: dict
+            Extra information not included in the querying
+        id: int
+            Overwrite existing row
+
+        Returns
+        -------
+        int
+            ID of the new row (for default set it to 1)
+        """
         check(key_value_pairs)
         return 1
 
     def get_phonon(self, selection=None, get_id=False, **kwarg):
-        """
-        Gets a phonopy object from a database row
-        Parameters:
-            selection: selection criteria for the database query
-            kwargs   : additional selection criteria not stored in selection
-        Returns:
+        """Gets a phonopy object from a database row
+
+        Parameters
+        ----------
+        selection: int, str or list
+            Can be:
+
+            - an integer id
+            - a string like 'key=value', where '=' can also be one of
+              '<=', '<', '>', '>=' or '!='.
+            - a string like 'key'
+            - comma separated strings like 'key1<value1,key2=value2,key'
+            - list of strings or tuples: [('charge', '=', 1)].
+        get_id: bool
+            If True return the row's id
+        kwargs: dict
+            Additional selection criteria not stored in selection
+
+        Returns
+        -------
+        int
+            The row id
+        Phonopy
             the phonopy object of the row
         """
         row = self.get(selection, **kwarg)
@@ -268,13 +334,30 @@ class PhononDatabase(Database):
         return row.to_phonon()
 
     def get_phonon3(self, selection=None, get_id=False, **kwarg):
-        """
-        Gets a phonopy object from a database row
-        Parameters:
-            selection: selection criteria for the database query
-            kwargs   : additional selection criteria not stored in selection
-        Returns:
-            the phonopy object of the row
+        """Gets a phonopy object from a database row
+
+        Parameters
+        ----------
+        selection: int, str or list
+            Can be:
+
+            - an integer id
+            - a string like 'key=value', where '=' can also be one of
+              '<=', '<', '>', '>=' or '!='.
+            - a string like 'key'
+            - comma separated strings like 'key1<value1,key2=value2,key'
+            - list of strings or tuples: [('charge', '=', 1)].
+        get_id: bool
+            If True return the row's id
+        kwargs: dict
+            Additional selection criteria not stored in selection
+
+        Returns
+        -------
+        int
+            The row id
+        Phono3py
+            the phono3py object of the row
         """
         row = self.get(selection, **kwarg)
         if get_id:
@@ -304,14 +387,21 @@ class PhononDatabase(Database):
             Optionally update the Phononpy data (positions, cell, ...).
         phonon: Phonopy object
             Optionally update the Phononpy data (positions, cell, ...).
-        data: dict
-            Data dict to be added to the existing data.
+        store_second_order: bool
+            If True store the second order data from a Phono3py object
         delete_keys: list of str
             Keys to remove.
+        data: dict
+            Data dict to be added to the existing data.
+        add_key_value_pairs: dict
+            Additional key value pairs to add to the row
 
-        Use keyword arguments to add new key-value pairs.
-
-        Returns number of key-value pairs added and removed.
+        Returns
+        -------
+        m: int
+            number of key-value pairs added to the database
+        n: int
+            number of key-value pairs deleted from the database
         """
         if delete_keys is None:
             delete_keys = []
@@ -397,22 +487,27 @@ class PhononDatabase(Database):
     ):
         """Write atoms to database with key-value pairs.
 
-        atoms: Atoms object
-            Write atomic numbers, positions, unit cell and boundary
-            conditions.  If a calculator is attached, write also already
-            calculated properties such as the energy and forces.
+        Parameters
+        ----------
+        dct: dict
+            Dictionary representation of the row to add to the database
+        phonon3: Phono3py Object
+            Phono3py Object to be added to the database
+        phonon: Phonopy Object
+            Phonopy object to be added to the database
         key_value_pairs: dict
             Dictionary of key-value pairs.  Values must be strings or numbers.
         data: dict
             Extra stuff (not for searching).
         id: int
             Overwrite existing row.
+        kwargs: dict
+            Additional key-value pairs to be added to the database
 
-        Key-value pairs can also be set using keyword arguments::
-
-            connection.write(atoms, name='ABC', frequency=42.0)
-
-        Returns integer id of the new row.
+        Returns
+        -------
+        int
+            integer id of the new row.
         """
         if data is None:
             data = {}
@@ -463,15 +558,17 @@ class PhononDatabase(Database):
             formula, age, user, calculator, natoms, energy, magmom
             and/or charge.
 
+        Parameters
+        ----------
         selection: int, str or list
             Can be:
 
-            * an integer id
-            * a string like 'key=value', where '=' can also be one of
+            - an integer id
+            - a string like 'key=value', where '=' can also be one of
               '<=', '<', '>', '>=' or '!='.
-            * a string like 'key'
-            * comma separated strings like 'key1<value1,key2=value2,key'
-            * list of strings or tuples: [('charge', '=', 1)].
+            - a string like 'key'
+            - comma separated strings like 'key1<value1,key2=value2,key'
+            - list of strings or tuples: [('charge', '=', 1)].
         filter: function
             A function that takes as input a row and returns True or False.
         explain: bool
@@ -490,6 +587,10 @@ class PhononDatabase(Database):
             Specify which columns from the SQL table to include.
             For example, if only the row id and the energy is needed,
             queries can be speeded up by setting columns=['id', 'energy'].
+
+        Yields
+        ------
+        The rows that match the query
         """
         if sort:
             if sort == "age":

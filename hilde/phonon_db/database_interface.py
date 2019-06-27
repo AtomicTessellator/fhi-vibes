@@ -39,13 +39,28 @@ results_keys = [
 
 
 def traj_to_database(db_path, traj, ret_all_hashes=False):
-    """
-    Processes a trajectory file and adds it to the database
-    Parameters:
-        db_path (str): path to the database
-        traj (str): The trajectory's path
-        ret_all_hashes (bool): If True return all hashes
-    Returns (str or dict): Hashes for the database
+    """Processes a trajectory file and adds it to the database
+
+    Parameters
+    ----------
+    db_path: str
+        path to the database
+    traj: str
+        The trajectory's path
+    ret_all_hashes: bool
+        If True return all hashes
+
+    Returns
+    -------
+    str
+        The hash of the dictionary representation of phonon
+    dict
+        The dictionary of all the hashes
+
+    Raises
+    ------
+    IOError
+        If trajectory does not have Phonopy or Phono3py metadata
     """
     calc_atoms, metadata = traj_reader(traj, True)
     if "Phonopy" in metadata:
@@ -74,15 +89,33 @@ def traj_to_database(db_path, traj, ret_all_hashes=False):
 def to_database(
     db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=False, traj_hash=None
 ):
-    """
-    Adds a Phonopy, Phono3py or ASE Atoms object to the database
-    Parameters:
-        db_path (str): Path to the database
-        phonon (ASE Atoms, Phonopy, or Phono3py Object): Object to be added to the database
-        calc (ASE Calculator): Calculator parameters to add to the Database
-        key_val_pairs (dict): Additional key_val_pairs to add to the database
-        ret_all_hashes (bool): if True return a dict of all hashes
-    Returns (str or dict): the specified hashes
+    """Adds a Phonopy, Phono3py or ASE Atoms object to the database
+
+    Parameters
+    ----------
+    db_path: str
+        Path to the database
+    phonon: ASE Atoms, Phonopy, or Phono3py Object
+        Object to be added to the database
+    calc: ASE Calculator
+        Calculator parameters to add to the Database
+    key_val_pairs: dict
+        Additional key_val_pairs to add to the database
+    ret_all_hashes: bool
+        if True return a dict of all hashes
+
+    Returns
+    -------
+    str
+        The hash of the dictionary representation of phonon
+    hashes: dict
+        The dictionary of all the hashes
+
+    Raises
+    ------
+    IOError
+        If Phono3py is not installed OR
+        If phonon is not a dict, Atoms, Phonopy, or Phono3py object
     """
     selection_no_sc = []
     selection = []
@@ -195,11 +228,23 @@ def to_database(
 
 
 def obj2dict(obj):
-    """
-    Converts a Phonopy, Phono3py, or ASE Atoms Object to a dict
-    Parameters:
-        obj (Phonopy, Phono3py, or ASE Atoms Object): object to be converted to a dict
-    Returns (dict): The dictionary representation of the obj
+    """Converts a Phonopy, Phono3py, or ASE Atoms Object to a dict
+
+    Parameters
+    ----------
+    obj: Phonopy, Phono3py, or ASE Atoms Object
+        object to be converted to a dict
+
+    Returns
+    -------
+    dict
+        The dictionary representation of the obj
+
+    Raises
+    ------
+    IOError
+        If obj is not a dict, Phonopy, Atoms, or Phono3py object OR
+        If obj is not a dict, Phonopy, or Atoms and Phono3py is not installed
     """
     if isinstance(obj, dict):
         return obj.copy()
@@ -213,7 +258,7 @@ def obj2dict(obj):
 
             if isinstance(obj, Phono3py):
                 return phonon3_to_dict(obj)
-        except:
+        except ImportError:
             raise IOError("Phono3py is not installed, obj has to be a dict, Phonopy, or Atoms object")
         raise IOError("obj has to be a dict, Phonopy, Phono3py, or Atoms object")
 
@@ -227,19 +272,29 @@ def from_database(
     get_phonon3=False,
     **kwargs,
 ):
-    """
-    Pulls an object from the database
-    Parameters:
-        db_path (str): Path to the database
-        selection (list): a list of tuples used as selection parameters
-        get_id (bool): if True return row id
-        get_atoms(bool): if True return the ASE Atoms object
-        get_phonon (bool): if True return the Phonopy Object
-        get_phonon3 (bool): if True return the Phono3py Object
-        kwargs (dict): Optinal kwargs to add to selection, if "phonopy_hash"
-                       or "phono3py_hash" in kwargs, then get_phonon or get_phonon3
-                       is automatically set to True. with the rest set to False
-    Returns (tuple): All the desired outputs
+    """Pulls an object from the database
+
+    Parameters
+    ----------
+    db_path: str
+        Path to the database
+    selection: list
+        A list of tuples used as selection parameters
+    get_id: bool
+        If True return row id
+    get_atoms:(ool
+        If True return the ASE Atoms object
+    get_phonon: bool
+        If True return the Phonopy Object
+    get_phonon3: bool
+        If True return the Phono3py Object
+    kwargs: dict
+        Optional kwargs to add to selection, if "phonopy_hash" or "phono3py_hash" in kwargs, then get_phonon or get_phonon3 is automatically set to True. with the rest set to False
+
+    Returns
+    -------
+    to_ret: tuple
+        All the desired outputs
     """
     db = connect(db_path)
     if selection is None:

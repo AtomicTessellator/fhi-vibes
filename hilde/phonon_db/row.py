@@ -18,13 +18,19 @@ from hilde.structure.convert import to_Atoms, to_phonopy_atoms
 
 
 def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
-    """
-    Converts a phonopy object to a dictionary
-    Parameters:
-        phonon: the phonopy object to be converted
-        to_mongo: True if it is being sent to a mongo database
-    Returns:
-        dct: the dictionary representation of phonon
+    """Converts a phonopy object to a dictionary
+
+    Parameters
+    ----------
+    phonon: Phonopy Object
+        The Phonopy object to be converted
+    to_mongo: bool
+        If True then it is being sent to a mongo database
+
+    Returns
+    -------
+    dct: dict
+        the dictionary representation of phonon
     """
     dct = atoms2dict(to_Atoms(phonon.get_primitive()))
     dct["symprec"] = phonon._symprec
@@ -76,13 +82,21 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
     return dct
 
 def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
-    """
-    Converts a phonopy object to a dictionary
-    Parameters:
-        phonon: the phonopy object to be converted
-        to_mongo: True if it is being sent to a mongo database
-    Returns:
-        dct: the dictionary representation of phonon
+    """Converts a phonopy object to a dictionary
+
+    Parameters
+    ----------
+    phonon3: Phono3py Object
+        The Phono3py object to be converted
+    store_second_order: bool
+        If True store the second order properties of the phonopy object
+    to_mongo: bool
+        If True then it is being sent to a mongo database
+
+    Returns
+    -------
+    dct: dict
+        the dictionary representation of phonon3
     """
     dct = atoms2dict(to_Atoms(phonon3.get_primitive()))
     dct["symprec"] = phonon3._symprec
@@ -137,16 +151,21 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
     return dct
 
 class PhononRow(AtomsRow):
-    """
-    Class that is largely based off of the ASE AtomsRow object but expanded for phonopy
-    """
+    """Class that is largely based off of the ASE AtomsRow object but expanded for phonopy"""
 
     def __init__(self, dct=None, phonon3=None, phonon=None, store_second_order=False):
-        """
-        Constructor for the PhononRow.
-        Parameters:
-            dct: a phonopy object or a dict
-                representation of the phonopy object to be added to the database
+        """Constructor for the PhononRow.
+
+        Parameters
+        ----------
+            dct: dict
+                A dictionary representation of the PhononRow
+            phonon3: Phono3py Object
+                The Phono3py object to be converted
+            phonon: Phonopy Object
+                The Phonopy object to be converted
+            store_second_order: bool
+                If True store the second order properties of the phonopy object
         """
         if dct:
             dct = dct.copy()
@@ -193,6 +212,10 @@ class PhononRow(AtomsRow):
         self.clean_displacement_dataset()
 
     def clean_displacement_dataset(self):
+        """Cleans the displacement dataset
+
+        Storing in the database can convert some numbers to strings, fix this problem
+        """
         if "displacement_dataset_2" in self and self.displacement_dataset_2 is not None:
             for disp1 in self.displacement_dataset_2["first_atoms"]:
                 disp1["number"] = int(disp1["number"])
@@ -204,6 +227,7 @@ class PhononRow(AtomsRow):
 
     @property
     def fc_2(self):
+        """The second order force constants"""
         if "_fc_2" in self:
             return self._fc_2
         else:
@@ -211,6 +235,13 @@ class PhononRow(AtomsRow):
             return self._fc_2
 
     def get_fc_2(self):
+        """Calculate the second order force constants from data stored in the row
+
+        Returns
+        -------
+        np.ndarray
+            Second order force constants
+        """
         from phonopy import Phonopy
         phonon = Phonopy(
             to_phonopy_atoms(self.toatoms()),
@@ -227,6 +258,7 @@ class PhononRow(AtomsRow):
 
     @property
     def fc_3(self):
+        """The second order force constants"""
         if "_fc_3" in self:
             return self._fc_3
         else:
@@ -234,6 +266,13 @@ class PhononRow(AtomsRow):
             return self._fc_3
 
     def get_fc_3(self):
+        """Calculate the third order force constants from data stored in the row
+
+        Returns
+        -------
+        np.ndarray
+            Third order force constants
+        """
         from phono3py.phonon3 import Phono3py
 
         phonon3 = Phono3py(
@@ -254,10 +293,12 @@ class PhononRow(AtomsRow):
         return phonon3.get_fc3()
 
     def to_phonon(self):
-        """
-        Converts the row back into a phonopy object
-        Returns:
-            phonon: The phonopy object the PhononRow represents
+        """Converts the row back into a phonopy object
+
+        Returns
+        -------
+        phonon: Phonopy Object
+            The phonopy object the PhononRow represents
         """
         from phonopy import Phonopy
 
@@ -281,10 +322,12 @@ class PhononRow(AtomsRow):
         return phonon
 
     def to_phonon3(self, mesh=None):
-        """
-        Converts the row back into a phono3py object
-        Returns:
-            phonon3: The phono3py object the PhononRow represents
+        """Converts the row back into a phono3py object
+
+        Returns
+        -------
+        phonon3: Phonoepy Object
+            The phono3py object the PhononRow represents
         """
         from phono3py.phonon3 import Phono3py
         phonon3 = Phono3py(
@@ -324,49 +367,61 @@ class PhononRow(AtomsRow):
         return phonon3
 
     def thermal_heat_capacity_v(self, T):
-        """
-        Gets the Cv of the material at a given temperature
-        Parameters:
-            T: float
-                The temperature
-        Returns:
-            Cv : float
-                the heat_capacity_v at temperature T
+        """Gets the Cv of the material at a given temperature
+
+        Parameters
+        ----------
+        T: float
+            The temperature
+
+        Returns
+        -------
+        Cv : float
+            the heat_capacity_v at temperature T
         """
         return self.tp_Cv[np.where(self.tp_T == T)[0]][0]
 
     def thermal_entropy(self, T):
-        """
-        Gets the entropy of the material at a given temperature
-        Parameters:
-            T: float
-                The temperature
-        Returns:
-            S: float
-                The entropy at temperature T
+        """Gets the entropy of the material at a given temperature
+
+        Parameters
+        ----------
+        T: float
+            The temperature
+
+        Returns
+        -------
+        S: float
+            The entropy at temperature T
         """
         return self.tp_S[np.where(self.tp_T == T)[0]][0]
 
     def thermal_free_energy(self, T):
-        """
-        Gets the Hemholtz free energy of the material at a given temperature
-        Parameters:
-            T: float
-                The temperature
-        Returns:
-            A: float
-                The Hemholtz free energy at temperature T
+        """Gets the Hemholtz free energy of the material at a given temperature
+
+        Parameters
+        ----------
+        T: float
+            The temperature
+
+        Returns
+        -------
+        A: float
+            The Hemholtz free energy at temperature T
         """
         return self.tp_A[np.where(self.tp_T == T)[0]][0]
 
     def thermal_conductivity(self, T):
-        """
-        Gets the thermal conductivity of the material at a given temperature
-        Parameters:
-            T: float
-                The temperature
-        Returns:
-            A: float
-                The Hemholtz free energy at temperature T
+        """Gets the thermal conductivity of the material at a given temperature
+
+        Parameters
+        ----------
+        T: float
+            The temperature
+
+        Returns
+        -------
+        A: float
+            The Hemholtz free energy at temperature T
         """
         return self.tp_kappa[np.where(self.tp_T == T)[0]][0]

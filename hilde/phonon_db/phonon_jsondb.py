@@ -16,19 +16,23 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
     """
 
     def _write(self, row, key_value_pairs, data, id):
-        """
-        Writes a phonopy object to the database
-        Parameters:
-            row: PhononRow object
-                PhononRow object to be added to the database
-            key_values_pairs: dict
-                additional keys to be added to the database
-            data: str
-                Additional data to be included
-            id: int
-                ID for the phonopy object in the database
-        Returns:
-            id: the id of the row
+        """Writes a phonopy object to the database
+
+        Parameters
+        ----------
+        row: PhononRow object
+            PhononRow object to be added to the database
+        key_values_pairs: dict
+            additional keys to be added to the database
+        data: str
+            Additional data to be included
+        id: int
+            ID for the PhononRow in the database
+
+        Returns
+        -------
+        id: int
+            the id of the row
         """
         PhononDatabase._write(self, row, key_value_pairs, data)
         bigdct = {}
@@ -63,6 +67,18 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         return id
 
     def _get_row(self, id):
+        """Get the row with specified id
+
+        Parameters
+        ----------
+        id: int
+            The id of the row
+
+        Returns
+        -------
+        PhononRow
+            The row with the ID id
+        """
         bigdct, ids, nextid = self._read_json()
         if id is None:
             assert len(ids) == 1
@@ -83,32 +99,35 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         include_data=True,
         columns="all",
     ):
+        """Command to access a row in the database
+
+        Parameters
+        ----------
+        keys: list of strs
+            relevant keys to be included in the where part of the select commands
+        cmps: list of tuples (key, op, val)
+            a list of tuples representing what the where conditions for the query are
+        explain: bool
+            Explain query plan.
+        verbosity: int
+            Possible values: 0, 1 or 2.
+        limit: int or None
+            Limit selection.
+        offset: int
+            Offset into selected rows.
+        sort: str
+            Sort rows after key.  Prepend with minus sign for a decending sort.
+        include_data: bool
+            Use include_data=False to skip reading data from rows.
+        columns: 'all' or list of str
+            Specify which columns from the SQL table to include.
+            For example, if only the row id and the energy is needed,
+            queries can be speeded up by setting columns=['id', 'energy'].
+
+        Yields
+        ------
+            a row from the database that matches the query
         """
-        Command to access a row in the database
-        Parameters:
-            keys: list of strs
-                relevant keys to be included in the where part of the select commands
-            cmps: list of tuples (key, op, val)
-                a list of tuples representing what the where conditions for the query are
-            explain: bool
-                Explain query plan.
-            verbosity: int
-                Possible values: 0, 1 or 2.
-            limit: int or None
-                Limit selection.
-            offset: int
-                Offset into selected rows.
-            sort: str
-                Sort rows after key.  Prepend with minus sign for a decending sort.
-            include_data: bool
-                Use include_data=False to skip reading data from rows.
-            columns: 'all' or list of str
-                Specify which columns from the SQL table to include.
-                For example, if only the row id and the energy is needed,
-                queries can be speeded up by setting columns=['id', 'energy'].
-            Yields:
-                a row from the database that matches the query
-            """
         if explain:
             yield {"explain": (0, 0, 0, "scan table")}
             return
