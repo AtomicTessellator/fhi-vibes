@@ -22,7 +22,26 @@ def postprocess(
     verbose=True,
     **kwargs,
 ):
-    """ Phono3py postprocess """
+    """Phono3py postprocess
+
+    Parameters
+    ----------
+    trajectory: str
+        Trajectory file for third order phonon force calculations
+    trajectoryfc2: str
+        Trajectory file for second order phonon force calculations
+    pickle_file: str
+        Pickle archive file for the Phono3py object
+    write_files: bool
+        If True write output files
+    verbose: bool
+        If True print more logging information
+
+    Returns
+    -------
+    Phono3py Object
+        The Phono3py Object of the calculation
+    """
 
     trajectory3 = Path(trajectory)
 

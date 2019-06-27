@@ -25,7 +25,42 @@ def prepare_phono3py(
     log_level=defaults.log_level,
     **kwargs,
 ):
-    """ Prepare a Phono3py object """
+    """Prepare a Phono3py object
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        primitive cell for the calculation
+    supercell_matrix: np.ndarray
+        supercell matrix for the third order phonons
+    fc3: np.ndarray
+        Third order force constant matrix
+    phonon_supercell_matrix: np.ndarray
+        supercell matrix for the second order phonons
+    fc2: np.ndarray
+        second order force constant matrix
+    cutoff_pair_distance: float
+        All pairs further apart than this cutoff are ignored
+    displacement_dataset: dict
+        The displacement_dataset for the third order phonons
+    is_diagonal: bool
+        Whether allow diagonal displacements of Atom 2 or not
+    q_mesh: np.ndarray
+        q-point interpolation mesh postprocessing
+    displacement: float
+        magnitude of the displacement
+    symmetrize_fc3q: bool
+        If True symmetrize the third order interactions
+    symprec: float
+        distance tolerance for determining the sapce group/symmetry
+    log_level: int
+        How much information should be streamed to the console
+
+    Returns
+    -------
+    phonon3: Phono3py Object
+        The Phono3py object for the calculation
+    """
 
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
@@ -76,8 +111,31 @@ def preprocess(
     log_level=defaults.log_level,
     **kwargs,
 ):
-    """
-    Set up a Phono3py object and generate all the supercells necessary for the 3rd order
+    """Set up a Phono3py object and generate all the supercells necessary for the 3rd order
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        primitive cell for the calculation
+    supercell_matrix: np.ndarray
+        supercell matrix for the third order phonons
+    cutoff_pair_distance: float
+        All pairs further apart than this cutoff are ignored
+    is_diagonal: bool
+        Whether allow diagonal displacements of Atom 2 or not
+    q_mesh: np.ndarray
+        q-point interpolation mesh postprocessing
+    displacement: float
+        magnitude of the displacement
+    symprec: float
+        distance tolerance for determining the sapce group/symmetry
+    log_level: int
+        How much information should be streamed to the console
+
+    Returns
+    -------
+    list of ASE Atoms Objects
+        The displaced supercells
     """
 
     phonon3 = prepare_phono3py(
