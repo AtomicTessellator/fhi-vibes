@@ -28,7 +28,30 @@ def prepare_phonopy(
     trigonal=defaults.trigonal,
     is_diagonal=defaults.is_diagonal,
 ):
-    """ Create a Phonopy object """
+    """Create a Phonopy object
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The primitive cell for the calculation
+    supercell_matrix: np.ndarray
+        The supercell matrix for generating the supercell
+    fc2: np.ndarray
+        The second order force constants
+    displacement: float
+        The magnitude of the phonon displacement
+    symprec: float
+        tolerance for determining the symmetry/spacegroup of the primitive cell
+    trigonal: bool
+        If True use trigonal displacements
+    is_diagonal: bool
+        If True use diagonal displacements
+
+    Returns
+    -------
+    phonon: Phonopy Object
+        The phonopy object corresponding to the parameters
+    """
 
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
@@ -65,7 +88,32 @@ def preprocess(
     trigonal=defaults.trigonal,
     **kwargs,
 ):
-    """ generate phonopy objects and return displacements as Atoms objects """
+    """Generate phonopy objects and return displacements as Atoms objects
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        The primitive cell for the calculation
+    supercell_matrix: np.ndarray
+        The supercell matrix for generating the supercell
+    displacement: float
+        The magnitude of the phonon displacement
+    symprec: float
+        tolerance for determining the symmetry/spacegroup of the primitive cell
+    trigonal: bool
+        If True use trigonal displacements
+
+    Returns
+    -------
+     Returns
+    -------
+    phonon: Phonopy Object
+        The phonopy object with displacement_dataset, and displaced supercells
+    supercell: ASE Atoms Object
+        The undisplaced supercell
+    supercells_with_disps: list of ASE Atoms Objects
+        All of the supercells with displacements
+    """
     phonon = prepare_phonopy(
         atoms,
         supercell_matrix,
@@ -76,24 +124,25 @@ def preprocess(
 
     return get_supercells_with_displacements(phonon)
 
+# TARP: This is depcricated and should not be used
+# def get_force_constants(phonon, force_sets=None):
+#     """ Take a Phonopy object, produce force constants from the given forces and return in usable shape (3N, 3N) insated of (N, N, 3, 3)
 
-def get_force_constants(phonon, force_sets=None):
-    """ Take a Phonopy object, produce force constants from the given forces and
-    return in usable shape (3N, 3N) insated of (N, N, 3, 3) """
-    n_atoms = phonon.get_supercell().get_number_of_atoms()
+#     """
+#     n_atoms = phonon.get_supercell().get_number_of_atoms()
 
-    phonon.produce_force_constants(force_sets)
+#     phonon.produce_force_constants(force_sets)
 
-    force_constants = phonon.get_force_constants()
+#     force_constants = phonon.get_force_constants()
 
-    if force_constants is not None:
-        # convert forces from (N, N, 3, 3) to (3*N, 3*N)
-        force_constants = (
-            phonon.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
-        )
-        return force_constants
-    # else
-    raise ValueError("Force constants not yet created, specify force_sets.")
+#     if force_constants is not None:
+#         # convert forces from (N, N, 3, 3) to (3*N, 3*N)
+#         force_constants = (
+#             phonon.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
+#         )
+#         return force_constants
+#     # else
+#     raise ValueError("Force constants not yet created, specify force_sets.")
 
 
 def get_dos(
@@ -110,7 +159,40 @@ def get_dos(
     direction=None,
     xyz_projection=False,
 ):
-    """ Compute the DOS (and save to file) """
+    """Compute the DOS (and save to file)
+
+    Parameters
+    ----------
+    phonon: Phonopy Object
+        The phonopy object with calculated force constants if force_sets is None
+    total: bool
+        If True calculate the total density of states
+    q_mesh: np.ndarray
+        size of the interpolated q-point mesh
+    freq_min: float
+        minimum frequency to calculate the density of states on
+    freq_max: float
+        maximum frequency to calculate the density of states on
+    freq_pitch: float
+        spacing between frequency points
+    tetrahedron_method: bool
+        If True use the tetrahedron method to calculate the DOS
+    write: bool
+        If True save the DOS to a file
+    filename: str
+        Path to write to write the dos to
+    force_sets: np.ndarray
+        Force sets to calculate the force constants with
+    direction: np.ndarray
+        Specific projection direction. This is specified three values along basis vectors or the primitive cell. Default is None, i.e., no projection.
+    xyz_projection: bool
+        If True project along Cartesian directions
+
+    Returns
+    ------
+    np.ndarray
+        The total or projected phonon density of states
+    """
 
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
@@ -153,16 +235,23 @@ def get_dos(
 
 
 def get_bandstructure(phonon, paths=None, force_sets=None):
-    """
-    Compute bandstructure for given path
-    Parameters:
-        phonon: phonopy.api_phonopy.Phonopy
-        paths: list of str
-            e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
-    Returns:
-        tuple (band_structure_dict, labels)
-            band_structure_dict: dict
-            labels: list of str
+    """Compute bandstructure for given path
+
+    Parameters
+    ----------
+    phonon: Phonopy Object
+        Phonopy object with calculated force constants if force_Sets is None
+    paths: list of str
+        List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
+    force_sets: np.ndarray
+        set of forces to calculate force constants with
+
+    Returns
+    -------
+    band_structure_dict: dict
+        dictionary of the band structure
+    labels: list of str
+        labels for the start and end of those force constants
     """
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
@@ -173,9 +262,20 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
     return (phonon.get_band_structure_dict(), labels)
 
+def plot_bandstructure(phonon, filename="bandstructure.pdf", paths=None, force_sets=None):
+    """Plot bandstructure for given path and save to file
 
-def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
-    """ Plot bandstructure for given path and save to file """
+    Parameters
+    ----------
+    phonon: Phonopy Object
+        The phonopy object with calculated force constants if force_sets is None
+    filename: str
+        file name to store the pdf of the band structure
+    paths: list of str
+        List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
+    force_sets: np.ndarray
+        Force sets to calculate the force constants with
+    """
 
     _, labels = get_bandstructure(phonon, paths, force_sets)
 
@@ -190,7 +290,19 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
 def plot_bandstructure_and_dos(
     phonon, q_mesh=defaults.q_mesh, partial=False, file="bands_and_dos.pdf"
 ):
-    """ Plot bandstructure and PDOS """
+    """Plot bandstructure and PDOS
+
+    Parameters
+    ----------
+    phonon: Phonopy Object
+        The phonopy object with calculated force constants
+    q_mesh: np.ndarray
+        size of the interpolated q-point mesh
+    partial: bool
+        If True use projected density of states
+    file: str
+        Path to save the the plot to
+    """
 
     _, labels = get_bandstructure(phonon)
 
@@ -212,7 +324,22 @@ def plot_bandstructure_and_dos(
 
 
 def summarize_bandstructure(phonon, fp_file=None):
-    """ print a concise symmary of the bandstructure fingerprint """
+    """Print a concise symmary of the bandstructure fingerprint
+
+    Parameters
+    ----------
+    phonon: Phonopy Object
+        The phonopy object with calculated force constants if force_sets is None
+    fp_file: str
+        Path to save the fingerprint to
+
+    Returns
+    ------
+    gamma_freq: np.ndarray
+        The frequencies at the gamma point
+    max_freq: float
+        The maximum frequency at the gamma point
+    """
     from hilde.konstanten.einheiten import THz_to_cm
 
     get_bandstructure(phonon)
@@ -248,5 +375,16 @@ def summarize_bandstructure(phonon, fp_file=None):
     return gamma_freq, max_freq
 
 def get_animation(phonon, q_point, filename):
+    """Gets the animation file at a q_point
+
+    Parameters
+    ----------
+    phonon: Phonopy Object
+        The phonopy object with calculated force constants if force_sets is None
+    q_point: np.ndarray
+        q-point to write the animation file on
+    filename: str
+        Path to animation file output
+    """
     return phonon.write_animation(q_point=q_point, filename=filename)
 

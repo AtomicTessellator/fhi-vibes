@@ -15,7 +15,18 @@ from hilde.structure.convert import to_Atoms
 
 
 def last_calculation_id(trajectory):
-    """ return the id of the last computed supercell """
+    """Return the id of the last computed supercell
+
+    Parameters
+    ----------
+    trajectory: str or Path
+        Path to the trajectory file with calculated supercells
+
+    Returns
+    -------
+    disp_id: int
+        The id of the last computed supercell
+    """
     disp_id = -1
 
     try:
@@ -28,7 +39,18 @@ def last_calculation_id(trajectory):
 
 
 def to_phonopy_atoms(atoms):
-    """ convert ase.Atoms to PhonopyAtoms """
+    """Convert ase.Atoms to PhonopyAtoms
+
+    Parameters
+    ----------
+    atoms: ASE Atoms Object
+        Atoms to convert
+
+    Returns
+    -------
+    phonopy_atoms: PhonopyAtoms
+        The PhonopyAtoms for the same structure as atoms
+    """
     phonopy_atoms = PhonopyAtoms(
         symbols=atoms.get_chemical_symbols(),
         cell=atoms.get_cell(),
@@ -39,15 +61,19 @@ def to_phonopy_atoms(atoms):
 
 
 def enumerate_displacements(cells, info_str=displacement_id_str):
-    """ Assign a displacemt id to every atoms obect in cells.
+    """Assign a displacemt id to every atoms obect in cells.
 
-    Parameters:
-        cells (list): atoms objects created by, e.g., phonopy
-        info_str (str): how to name the child
+    Parameters
+    ----------
+    cells: list
+        Atoms objects created by, e.g., phonopy
+    info_str: str
+        How to name the cell
 
-    Returns:
-        list: cells with id attached to atoms.info (inplace)
-
+    Returns
+    -------
+    list
+        cells with id attached to atoms.info (inplace)
     """
     for nn, scell in enumerate(cells):
         if scell is None:
@@ -56,7 +82,22 @@ def enumerate_displacements(cells, info_str=displacement_id_str):
 
 
 def get_supercells_with_displacements(phonon):
-    """ Create a phonopy object and supercells etc. """
+    """ Create a phonopy object and supercells etc.
+
+    Parameters
+    ----------
+    phonon: Phonopy Object
+        The phonopy object with displacement_dataset
+
+    Returns
+    -------
+    phonon: Phonopy Object
+        The phonopy object with displacement_dataset, and displaced supercells
+    supercell: ASE Atoms Object
+        The undisplaced supercell
+    supercells_with_disps: list of ASE Atoms Objects
+        All of the supercells with displacements
+    """
 
     supercell = to_Atoms(
         phonon.get_supercell(),
@@ -76,7 +117,38 @@ def get_supercells_with_displacements(phonon):
 
 
 def metadata2dict(phonon, calculator):
-    """ convert metadata information to plain dict """
+    """Convert metadata information to plain dict
+
+    Parameters
+    ----------
+    phonon: Phonopy Object
+        Phonopy Object to get metadata for
+    calculator: ASE Calculator Object
+        The calculator for the force calculation
+
+    Returns
+    -------
+    dict
+        Metadata as a plain dict with the following items
+
+        atoms: dict
+            Dictionary representation of the supercell
+        calculator: dict
+            Dictionary representation of calculator
+        Phonopy/Phono3py: dict
+            Phonopy/Phono3py metadata with the following items
+
+            version: str
+                Version string for the object
+            primitive: dict
+                dictionary representation of the primitive cell
+            supercell_matrix: list
+                supercell matrix as a list
+            symprec: float
+                Tolerance for determining the symmetry/space group of the primitive cell
+            displacement_dataset: dict
+                The displacement dataset for the phonon calculation
+    """
 
     atoms = to_Atoms(phonon.get_primitive())
 
@@ -105,15 +177,23 @@ def metadata2dict(phonon, calculator):
 def get_force_constants_from_trajectory(
     trajectory, supercell=None, reduce_fc=False, two_dim=False
 ):
-    """
-    Remaps the phonopy force constants into an fc matrix for a new structure
-    Parameters:
-        trajectory (hilde.Trajectory): phonopy trajectory
-        supercell (ase.Atoms): Atoms Object to map force constants onto
-        reduce_fc (bool): return in [N_prim, N_sc, 3, 3]  shape
-        two_dim (bool): return in [3*N_sc, 3*N_sc] shape
-    Returns:
-        (np.ndarray): new force constant matrix
+    """Remaps the phonopy force constants into an fc matrix for a new structure
+
+    Parameters
+    ----------
+    trajectory: hilde.Trajectory
+        phonopy trajectory
+    supercell: ase.Atoms
+        Atoms Object to map force constants onto
+    reduce_fc: bool
+        return in [N_prim, N_sc, 3, 3]  shape
+    two_dim: bool
+        return in [3*N_sc, 3*N_sc] shape
+
+    Returns
+    -------
+    np.ndarray
+         new force constant matrix
     """
     from hilde.phonopy.postprocess import postprocess
 
@@ -149,18 +229,29 @@ def remap_force_constants(
 ):
     """remap force constants [N_prim, N_sc, 3, 3] to [N_sc, N_sc, 3, 3]
 
-    Parameters:
-        force_constants (np.ndarray): force constants in [N_prim, N_sc, 3, 3] shape
-        primitive (ase.Atoms): primitive cell for reference
-        supercell (ase.Atoms): supercell for reference
-        new_supercell (ase.Atoms, optional): supercell to map to (default)
-        reduce_fc (bool): return in [N_prim, N_sc, 3, 3]  shape
-        two_dim (bool): return in [3*N_sc, 3*N_sc] shape
-        tol (float): tolerance to discern pairs
-        eps (float): finite zero
+    Parameters
+    ----------
+    force_constants: np.ndarray
+        force constants in [N_prim, N_sc, 3, 3] shape
+    primitive: ase.Atoms
+        primitive cell for reference
+    supercell: ase.Atoms
+        supercell for reference
+    new_supercell: ase.Atoms, optional
+        supercell to map to (default)
+    reduce_fc: bool
+        return in [N_prim, N_sc, 3, 3]  shape
+    two_dim: bool
+        return in [3*N_sc, 3*N_sc] shape
+    tol: float
+        tolerance to discern pairs
+    eps: float
+        finite zero
 
-    Returns:
-        newforce_constants (np.ndarray)
+    Returns
+    -------
+    newforce_constants: np.ndarray
+        The remapped force constants
 
     """
     from hilde.spglib.wrapper import get_symmetry_dataset  # , standardize_cell
@@ -172,20 +263,6 @@ def remap_force_constants(
 
     primitive.wrap(eps=tol)
     supercell.wrap(eps=tol)
-
-    # prim = standardize_cell(supercell, to_primitve=True, no_idealize=True)
-    # prim.set_scaled_positions(prim.get_scaled_positions(wrap=True))
-    # primitive.set_scaled_positions(primitive.get_scaled_positions(wrap=True))
-    # supercell.set_scaled_positions(supercell.get_scaled_positions(wrap=True))
-
-    # pos_diff = np.abs(primitive.get_scaled_positions() - prim.get_scaled_positions())
-    # pos_diff = pos_diff.flatten()
-    # pos_diff -= np.floor(pos_diff + eps)
-    # fail_cell = np.max(np.abs(primitive.cell - prim.cell).flatten()) > 1000 * eps
-    # fail_pos = np.max(pos_diff) > 1000 * eps
-    # if fail_cell or fail_pos:
-    #     msg = "primitive cell of the supercell and given primitive cell NOT equal"
-    #     raise IOError(msg)
 
     n_sc = len(supercell)
     n_sc_new = len(new_supercell)
@@ -228,7 +305,20 @@ def remap_force_constants(
 
 
 def reduce_force_constants(fc_full, map2prim):
-    """reduce force constants from [N_sc, N_sc, 3, 3] to [N_prim, N_sc, 3, 3]"""
+    """reduce force constants from [N_sc, N_sc, 3, 3] to [N_prim, N_sc, 3, 3]
+
+    Parameters
+    ----------
+    fc_full: np.ndarray
+        The non-reduced force constant matrix
+    map2prim: np.ndarray
+        An array with N_sc elements that maps the index of the supercell to an index in the unitcell
+
+    Returns
+    -------
+    fc_out: np.ndarray
+        The reduced force constants
+    """
     uc_index = np.unique(map2prim)
     fc_out = np.zeros((len(uc_index), fc_full.shape[1], 3, 3))
     for ii, _ in enumerate(uc_index):
@@ -248,17 +338,25 @@ def parse_phonopy_force_constants(
 ):
     """parse phonopy FORCE_CONSTANTS file and return as 2D array
 
-    Parameters:
-        uc_filename (str/Path): primitive unit cell
-        sc_filename (str/Path): supercell
-        fc_filename (str/Path): phonopy forceconstant file to parse
-        two_dim (bool): return in [3*N_sc, 3*N_sc] shape
-        eps (float): finite zero
-        tol (float): tolerance to discern pairs
+    Parameters
+    ----------
+    uc_filename: str or Path
+        primitive unit cell
+    sc_filename: str or Path
+        supercell
+    fc_filename: str or Path
+        phonopy forceconstant file to parse
+    two_dim: bool
+        return in [3*N_sc, 3*N_sc] shape
+    eps: float
+        finite zero
+    tol: float
+        tolerance to discern pairs
 
-    Returns:
-            force_constant (np.ndarray(dtype=float)):
-                Force constants in (3*N_sc, 3*N_sc) shape
+    Returns
+    -------
+    force_constant: (np.ndarray(dtype=float))
+        Force constants in (3*N_sc, 3*N_sc) shape
 
     """
 

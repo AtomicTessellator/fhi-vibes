@@ -34,7 +34,36 @@ def run_phonopy(**kwargs):
 
 
 def bootstrap(ctx=None, name=None, settings=None, workdir=None, **kwargs):
-    """ load settings, prepare atoms, calculator, and phonopy """
+    """load settings, prepare atoms, calculator, and phonopy
+
+    Parameters
+    ----------
+    ctx: PhonopyContext
+        The context for the calculation
+    name: str
+        Name of the type of calculation
+    settings: Settings
+        settings for the workflow
+    workdir: str or Path
+        The working directory for the calculation
+
+    Returns
+    -------
+    dict
+        The necessary information to run the workflow with the following items
+
+        atoms_to_calculate: list of ASE Atoms Objects
+            The list of the displaced supercells
+        calculator: ASE Calculator Object
+            The calculator used to calculate for forces in each supercell
+        metadata: dict
+            The metadata for the phonon calculation
+        workdir: str or Path
+            The working directory for the calculation
+        settings: Settings
+            The settings for the workflow
+        Additional key/value pairs in settings.obj
+    """
     if ctx is None:
         ctx = PhonopyContext(settings=settings)
     if workdir:
