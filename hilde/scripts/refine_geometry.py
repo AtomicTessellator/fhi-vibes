@@ -10,7 +10,26 @@ from hilde.spglib.wrapper import refine_cell, standardize_cell
 def refine_geometry(
     filename, primitive, conventional, center, origin, cartesian, format, symprec
 ):
-    """refine geometry with spglib and write to file"""
+    """refine geometry with spglib and write to file
+    Parameters
+    ----------
+    filename: str
+        Input geometry file (default: gemoetry.in)
+    primitive: bool
+        If True output the primitive cell structure to filename.primitive
+    conventional: bool
+        If True ouput the conventional structure to filename.conventional
+    center: bool
+        If True center the cell to the center of mass and output to filename.(primitive, conventional, or refined).center
+    origin: bool
+        If True center the cell to the origin and output to filename.(primitive, conventional, or refined).origin
+    cartesian: bool
+        If True use Cartesian coordinates
+    format: str
+        Format of the input geometry file (default: aims)
+    symprec: float
+        Precision for space group/symmetry operation determination
+    """
     ### Greet
     atoms = read(filename, format=format)
 

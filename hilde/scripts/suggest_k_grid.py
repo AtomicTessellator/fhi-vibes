@@ -10,12 +10,16 @@ from hilde.helpers.k_grid import d2k, k2d
 def suggest_k_grid(filename, density, uneven, format):
     """suggest a k_grid for geometry in FILENAME based on density
 
-    Parameters:
-        filename (str/Path): geometry input file
-        density (float): kpoint density
-        uneven (bool): allow uneven values of k
-        format (str): file format of geometry file
-
+    Parameters
+    ----------
+    filename: str or Path
+        The input geometry file
+    density: float
+        The kpoint density
+    uneven: bool
+        If True allow uneven values of k
+    format: str
+        The ASE file format for geometry files
     """
 
     cell = read(filename, format=format)
