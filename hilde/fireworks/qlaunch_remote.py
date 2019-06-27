@@ -114,6 +114,13 @@ def qlaunch_remote(
         Shell command to use on remote host for running submission.
     daemon: int
         Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode.
+
+    Raises
+    ------
+    ImportError
+        If Fabric v2+ is not installed
+    AssertionError
+        If remote_host is localhost
     """
     assert remote_host != "localhost"
 

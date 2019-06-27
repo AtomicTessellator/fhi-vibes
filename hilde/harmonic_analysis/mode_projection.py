@@ -51,6 +51,11 @@ class HarmonicAnalysis:
             The list of q_points
         verbose: bool
             If True be verbose
+
+        Raises
+        ------
+        AssertionError
+            If force constants shape is not (number of lattice points, number of atoms in primitive cell, 3, number of atoms in primitive cell, 3 )
         """
 
         timer = Timer(f"Set up harmonic analysis for {get_sysname(primitive)}:")
@@ -234,6 +239,11 @@ class HarmonicAnalysis:
         -------
         Dq: np.ndarray
             The dynamical matrix at q
+
+        Raises
+        ------
+        AssertionError
+            If Dq is Not Hermitian
         """
         if fractional:
             phases = np.exp(2j * np.pi * self.lattice_points_frac @ q)

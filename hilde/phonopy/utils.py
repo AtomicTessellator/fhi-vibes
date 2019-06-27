@@ -194,6 +194,11 @@ def get_force_constants_from_trajectory(
     -------
     np.ndarray
          new force constant matrix
+
+    Raises
+    ------
+    IOError
+        If both reduce_fc and two_dim are True
     """
     from hilde.phonopy.postprocess import postprocess
 

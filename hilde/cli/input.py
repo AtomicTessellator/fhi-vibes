@@ -111,6 +111,11 @@ def write_input(obj, name, filename, allow_overwrite):
         Filename to store the input file
     allow_overwrite: bool
         If True allow the input files to be overwritten
+
+    Raises
+    ------
+    click.ClickException
+        If allow_overwrite is False and outfile exists
     """
 
     if obj.full_input:

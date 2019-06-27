@@ -57,6 +57,11 @@ def bootstrap(ctx):
             The settings used to generate this task
         backup_after_calculation: bool
             If True back up the calculation folder once completed
+
+    Raises
+    ------
+    RuntimeError
+        If there are no structures to compute
     """
 
     # find geometries

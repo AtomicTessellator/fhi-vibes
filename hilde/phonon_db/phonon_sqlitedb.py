@@ -280,10 +280,16 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             Additional data to be included
         id: int
             ID for the phonopy object in the database
+
         Returns
         -------
         id: int
             the id of the row
+
+        Raises
+        ------
+        AssertionError
+            If a value in key_value_pairs is not a basestring, int or bool
         """
         PhononDatabase._write(self, row, key_value_pairs, data)
         encode = self.encode
@@ -538,6 +544,16 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             A lsit of SQL commands
         args: list
             arguments for the SQL commands
+
+        Raises
+        ------
+        ValueError
+            If a temperature search does not have an = sign search OR
+            If querying for a Thermal property without a temperature OR
+        AssertionError
+            If version < 6 when queurying for magmom OR
+            If querying for periodicity with anything but "=" and "!=" OR
+            If the hashes key does not have a list as its value
         """
         tables = ["systems"]
         where = []
@@ -852,6 +868,13 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         Parameters
         ----------
             con: Connection object to the database
+
+        Raises
+        ------
+        IOError
+            If version of the database is newer than version of ASE package OR
+            If version is less than 5 and reading older formats is not allowed
+
         """
         if self.initialized:
             return

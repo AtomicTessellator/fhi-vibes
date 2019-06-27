@@ -18,8 +18,14 @@ def clean_atoms(input_atoms, align=False, tolerance=1e-9):
         tolerance for the allowed change in volume
 
     Returns
+    -------
     atoms: ase.atoms.Atoms
         The cleaned atoms object
+
+    Raises
+    ------
+    AssertionError
+        If volume difference is greater than tolerance
     """
 
     atoms = input_atoms.copy()

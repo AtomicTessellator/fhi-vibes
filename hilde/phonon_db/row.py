@@ -158,14 +158,22 @@ class PhononRow(AtomsRow):
 
         Parameters
         ----------
-            dct: dict
-                A dictionary representation of the PhononRow
-            phonon3: phono3py.phonon3.Phono3py
-                The Phono3py object to be converted
-            phonon: phonopy.Phonopy
-                The Phonopy object to be converted
-            store_second_order: bool
-                If True store the second order properties of the phonopy object
+        dct: dict
+            A dictionary representation of the PhononRow
+        phonon3: phono3py.phonon3.Phono3py
+            The Phono3py object to be converted
+        phonon: phonopy.Phonopy
+            The Phonopy object to be converted
+        store_second_order: bool
+            If True store the second order properties of the phonopy object
+
+        Raises
+        ------
+        AttributeError
+            If dct, phonon3, and phonon are all None
+        AssertionError
+            If dct does not have numbers OR
+            If dct does not have cell
         """
         if dct:
             dct = dct.copy()

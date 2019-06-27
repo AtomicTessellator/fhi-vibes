@@ -114,6 +114,11 @@ class PhononPostgreSQLDatabase(PhononSQLite3Database):
         ----------
         con: Connection
             The connection to the database
+
+        Raises
+        ------
+        AssertionError
+            If version is not between 5 and the current interface version
         """
         if self.initialized:
             return

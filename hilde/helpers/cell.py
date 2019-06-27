@@ -230,6 +230,11 @@ def crystal_structure_from_cell(cell, eps=2e-4, niggli_reduce=True):
     -------
     crystal structure : str
         'cubic', 'fcc', 'bcc', 'tetragonal', 'orthorhombic', 'hexagonal' or 'monoclinic'
+
+    Raises
+    ------
+    ValueError
+        If the crystal structure can not be found
     """
     cellpar = cell_to_cellpar(cell)
     abc = cellpar[:3]
@@ -278,8 +283,12 @@ def complete_cell(cell):
     Returns
     -------
     cell: np.ndarray
-
         The new, and complete 3x3 ndarray.
+
+    Raises
+    ------
+    AssertionError
+        if 2 vectors are missing and the magnitude of the two missing vectors is not 0
     """
 
     cell = np.array(cell, dtype=float)

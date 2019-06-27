@@ -33,6 +33,11 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         -------
         id: int
             the id of the row
+
+        Raises
+        ------
+        AssertionError
+            If id is not in bigdct
         """
         PhononDatabase._write(self, row, key_value_pairs, data)
         bigdct = {}
@@ -78,6 +83,11 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         -------
         PhononRow
             The row with the ID id
+
+         Raises
+        ------
+        AssertionError
+            If number of ids passed is not 1
         """
         bigdct, ids, nextid = self._read_json()
         if id is None:
@@ -127,6 +137,12 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
         Yields
         ------
             a row from the database that matches the query
+
+        Raises
+        ------
+            AssertionError:
+                If querying for a temperature with something other than "="  OR
+                If querying about periodicity with anything but "=" or "!="
         """
         if explain:
             yield {"explain": (0, 0, 0, "scan table")}

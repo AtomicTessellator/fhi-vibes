@@ -63,6 +63,12 @@ def map_I_to_iL(
         map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point i: corresponding atom in primitive cell L: lattice point index
     inv_indiceis: np.ndarray
         Inverse of the map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point i: corresponding atom in primitive cell L: lattice point index
+
+    Raises
+    ------
+    AssertionError
+        If number of unique indices is not equal to the length of the supercell OR
+        If any of the number in indices is -1
     """
 
     timer = Timer()
@@ -153,6 +159,11 @@ def _map_iL_to_I(I_to_iL_map):
     -------
     np.ndarray
         Map back from primitive cell index/lattice point to supercell index
+
+    Raises
+    ------
+    AssertionError
+        If iL2I[I2iL[II][0], I2iL[II][1]] does not equal II
     """
 
     I2iL = np.array(I_to_iL_map)

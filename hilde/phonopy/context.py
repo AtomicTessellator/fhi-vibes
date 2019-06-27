@@ -75,7 +75,18 @@ class PhonopyContext:
 
     @ref_atoms.setter
     def ref_atoms(self, atoms):
-        """The setter for ref_atoms"""
+        """The setter for ref_atoms
+
+        Parameters
+        ----------
+        atoms: ase.atoms.Atoms
+            The atoms to become ref_atoms
+
+        Raises
+        ------
+        AssertionError
+            if atoms is not of type ase.atoms.Atoms
+        """
         assert isinstance(atoms, Atoms)
         self._ref_atoms = atoms
 

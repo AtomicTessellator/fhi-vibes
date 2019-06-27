@@ -234,7 +234,18 @@ class Settings(ConfigDict):
 
     @atoms.setter
     def atoms(self, obj):
-        """ Set the settings.atoms object """
+        """Set the settings.atoms
+
+        Parameters
+        ----------
+        obj: ase.atoms.Atoms
+            The structure that is to become atoms
+
+        Raises
+        ------
+        AssertionError
+            If obj is not of type ase.atoms.Atoms
+        """
         assert isinstance(obj, Atoms), type(obj)
         self._atoms = obj
 

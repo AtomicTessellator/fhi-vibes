@@ -402,6 +402,13 @@ class PhononDatabase(Database):
             number of key-value pairs added to the database
         n: int
             number of key-value pairs deleted from the database
+
+        Raises
+        ------
+        ValueError
+            If id is a list
+        TypeError
+            If id is not an int
         """
         if delete_keys is None:
             delete_keys = []

@@ -77,7 +77,15 @@ class AimsContext:
 
     @property
     def geometry_files(self):
-        """The geometry input files"""
+        """The geometry input files
+
+        Raises
+        ------
+        click.FileError
+            If geometry file does not exist
+        AssertionError
+            If file in self.settings.geometry.files does not exist
+        """
         # find geometries
         filenames = []
         s = self.settings
@@ -138,6 +146,18 @@ class AimsContext:
 
     @ref_atoms.setter
     def ref_atoms(self, atoms):
+        """ref_atoms setter
+
+        Parameters
+        ----------
+        atoms: ase.atoms.Atoms
+            atoms to set ref_atoms
+
+        Raises
+        ------
+        AssertionError
+            atoms is not of type ase.atoms.Atoms
+        """
         assert isinstance(atoms, Atoms)
         self._ref_atoms = atoms
 

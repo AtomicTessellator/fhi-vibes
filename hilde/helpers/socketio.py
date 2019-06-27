@@ -45,6 +45,11 @@ def get_stresses(atoms):
     Returns
     -------
     The atomic stress
+
+    Raises
+    ------
+    AssertionError
+        If STRESSREADY is not sent in response to GETSTRESSES message
     """
     atoms.calc.server.protocol.sendmsg("GETSTRESSES")
     msg = atoms.calc.server.protocol.recvmsg()

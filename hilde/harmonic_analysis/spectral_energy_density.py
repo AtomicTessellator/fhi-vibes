@@ -76,6 +76,13 @@ def _index_offset(atoms, prim, atol=1e-3, rtol=0.0):
         The index array
     offset: np.ndarray(int)
         The offset
+
+    Raises
+    ------
+    ValueError
+        If prim is not compatible with atoms
+    AssertionError
+        the type of offset is not int
     """
     index, offset = [], []
     for pos in atoms.positions:

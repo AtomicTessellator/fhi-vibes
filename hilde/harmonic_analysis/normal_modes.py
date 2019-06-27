@@ -30,6 +30,11 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
     REM shapes
     ----------
     eigenvectors.shape = [n_q, n_s, n_s]
+
+    Raises
+    ------
+    AssertionError
+        If u_temp has an imaginary component
     """
 
     n_atoms = len(indeces)

@@ -205,7 +205,18 @@ class Trajectory(list):
 
     @metadata.setter
     def metadata(self, metadata):
-        """ Set the metadata """
+        """Set the metadata
+
+        Parameters
+        ----------
+        metadata: dict
+            object to become self._metadata
+
+        Raises
+        ------
+        AssertionError
+            If metadata is not a dict
+        """
         assert isinstance(metadata, dict)
         self._metadata = metadata
 

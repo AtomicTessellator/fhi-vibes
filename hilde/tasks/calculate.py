@@ -109,6 +109,11 @@ def calculate_socket(
     -------
     bool
         Wether all structures were computed or not
+
+    Raises
+    ------
+    RuntimeError
+        If the lattice changes significantly
     """
 
     # create watchdog

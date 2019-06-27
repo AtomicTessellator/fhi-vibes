@@ -31,6 +31,11 @@ def aims_run(obj, workdir, settings):
         Path to the working directory (default: aims)
     settings: str
         Filename of the settings file (default: aims.in)
+
+    Raises
+    ------
+    click.FileError
+        if settings file does not exist
     """
     from hilde.aims.workflow import run_aims
 
@@ -57,6 +62,11 @@ def phonopy_run(obj, workdir, settings):
         Path to the working directory (default: phonopy)
     settings: str
         Filename of the settings file (default: phonopy.in)
+
+    Raises
+    ------
+    click.FileError
+        if settings file does not exist
     """
     from hilde.phonopy.workflow import run_phonopy
 
@@ -83,6 +93,11 @@ def md_run(obj, workdir, settings):
         Path to the working directory (default: md)
     settings: str
         Filename of the settings file (default: md.in)
+
+    Raises
+    ------
+    click.FileError
+        if settings file does not exist
     """
     from hilde.molecular_dynamics.workflow import run_md
 

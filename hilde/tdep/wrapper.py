@@ -217,6 +217,11 @@ def parse_tdep_forceconstant(
     -------
     force_constants: np.ndarray(dtype=float)
         Force constants in the desire shape. Default: (N_uc, N_sc, 3, 3)
+
+    Raises
+    ------
+    AssertionError
+        If the number of atoms in the force constant file does equal the number of atoms in the unitcell
     """
 
     try:
@@ -330,7 +335,11 @@ def phonon_dispersion_relations(workdir="tdep", gnuplot=True, logfile="dispersio
         If True use gnuplot to plot the phonon dispersion into a pdf file
     logfile: str or Path
         log file to put tdep std out
-    create
+
+    Raises
+    ------
+    FileNotFoundError
+        If infile is missing
     """
 
     timer = Timer(f"Run TDEP phonon_dispersion_relations in {workdir}")
