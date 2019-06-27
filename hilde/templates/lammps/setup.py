@@ -7,7 +7,18 @@ from ase.calculators.lammpsrun import LAMMPS
 lmp_path = Path(os.getenv("LAMMPS_PATH"))
 
 def setup_lammps_si(workdir):
-    """Set up an ASE lammps calculator for silicon with Tersoff potential """
+    """Set up an ASE lammps calculator for silicon with Tersoff potential
+
+    Parameters
+    ----------
+    workdir: str or Path
+        working directory to setup the lammps Tersoff potential
+
+    Returns
+    -------
+    lamps: ase.calculatros.lammpsrun.LAMMPS
+        The lammps calculator for Si
+    """
     # LAMMPS context information
     if isinstance(workdir, str):
         workdir = Path(workdir)
@@ -25,6 +36,18 @@ def setup_lammps_si(workdir):
     return lammps
 
 def setup_lammps_gan(workdir):
+    """Set up an ASE lammps calculator for gallium nitride with Tersoff potential
+
+    Parameters
+    ----------
+    workdir: str or Path
+        working directory to setup the lammps Tersoff potential
+
+    Returns
+    -------
+    lamps: ase.calculatros.lammpsrun.LAMMPS
+        The lammps calculator for GaN
+    """
     if isinstance(workdir, str):
         workdir = Path(workdir)
     potential = str(lmp_path / "potentials" / "GaN.tersoff")

@@ -14,10 +14,19 @@ from hilde.helpers.warnings import warn
 def create_species_dir(atoms, settings, tmp_folder="basissets"):
     """ create a custom bassiset folder for the computation
 
-    Parameters:
-        atoms (Atoms): structure
-        basissetloc (path): where to find basissets
-        basissets (list): the individual basisset types
+    Parameters
+    ----------
+    atoms: Atoms
+        structure
+    settings: Settings
+        The workflow settings object
+    tmp_folder: str or Path
+        The temporary storage folder for the basissets
+
+    Returns
+    -------
+    str
+        Path to the species directory
     """
 
     loc = Path(settings.machine.basissetloc)
@@ -75,16 +84,25 @@ def setup_aims(
 ):
     """Set up an aims calculator.
 
-    Parameters:
-        atoms (Atoms): Atoms object that will be used for computation.
-        settings (Settings): the hilde settings
-        custom_settings (dict): for working interactively
-        workdir (str): directory to work in
-        config_file (str): path to config file
-        output_level (str): the default output level if not specified explicitly
+    Parameters
+    -------
+    atoms: ASE Atoms Object
+        Atoms object that will be used for computation.
+    settings: Settings
+        the hilde settings
+    custom_settings: dict
+        for working interactively
+    workdir: str
+        directory to work in
+    config_file: str
+        path to config file
+    output_level: str
+        the default output level if not specified explicitly
 
-    Returns:
-        Aims: ASE calculator object
+    Returns
+    -------
+    calc: ase.calculators.aims.Aims:
+        The aims calculator based on the inputs
     """
 
     if settings is None:
