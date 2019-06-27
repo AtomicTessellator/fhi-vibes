@@ -45,7 +45,7 @@ def setup_md(
     -------
     atoms: ase.atoms.Atoms
         The refrence structure
-    md: ase.md
+    md: ase.md.MolecularDynamics
         The MD propagator
     prepared: bool
         True if prepared from trajectory
@@ -107,7 +107,7 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.son", **kwargs):
     ----------
     atoms: ase.atoms.Atoms
         Reference structure for molecular dynamics
-    md: ASE MD object
+    md: ase.md.MolecularDynamics
         The MD propagator
     trajectory: str or Path
         The output trajectory file
