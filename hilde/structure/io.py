@@ -206,4 +206,3 @@ def inform(cell, fname=None, verbosity=1, symprec=symprec):
         if cell.get_velocities() is not None:
             v = cell.get_momenta().sum(axis=0) / v_unit / cell.get_masses().sum()
             print(f"\n Net velocity: {v} \u212B/ps")
-

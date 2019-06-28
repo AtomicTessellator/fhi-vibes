@@ -1,6 +1,7 @@
 from ase.atoms import Atoms
 import numpy as np
 
+
 def to_phonopy_atoms(structure, wrap=False):
     """Convert ase.Atoms to PhonopyAtoms
 
@@ -17,6 +18,7 @@ def to_phonopy_atoms(structure, wrap=False):
         The PhonopyAtoms for the same structure as atoms
     """
     from phonopy.structure.atoms import PhonopyAtoms
+
     phonopy_atoms = PhonopyAtoms(
         symbols=structure.get_chemical_symbols(),
         cell=structure.get_cell(),
@@ -47,6 +49,7 @@ def to_spglib_cell(structure):
     positions = structure.get_scaled_positions()
     number = structure.get_atomic_numbers()
     return (lattice, positions, number)
+
 
 def to_Atoms_db(structure, info=None, pbc=True):
     """Convert structure to ase.Atoms without masses, and more accurate positions/lattice vectors
@@ -83,6 +86,7 @@ def to_Atoms_db(structure, info=None, pbc=True):
     atoms = Atoms(**atoms_dict)
 
     return atoms
+
 
 def to_Atoms(structure, info=None, pbc=True):
     """Convert structure to ase.Atoms

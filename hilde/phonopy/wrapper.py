@@ -122,6 +122,7 @@ def preprocess(
 
     return get_supercells_with_displacements(phonon)
 
+
 # TARP: This is depcricated and should not be used
 # def get_force_constants(phonon, force_sets=None):
 #     """ Take a Phonopy object, produce force constants from the given forces and return in usable shape (3N, 3N) insated of (N, N, 3, 3)
@@ -260,7 +261,10 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
     return (phonon.get_band_structure_dict(), labels)
 
-def plot_bandstructure(phonon, filename="bandstructure.pdf", paths=None, force_sets=None):
+
+def plot_bandstructure(
+    phonon, filename="bandstructure.pdf", paths=None, force_sets=None
+):
     """Plot bandstructure for given path and save to file
 
     Parameters
@@ -305,15 +309,11 @@ def plot_bandstructure_and_dos(
     _, labels = get_bandstructure(phonon)
 
     if partial:
-        phonon.run_mesh(
-            q_mesh,
-            with_eigenvectors=True,
-            is_mesh_symmetry=False,
-        )
+        phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
         phonon.run_projected_dos(use_tetrahedron_method=True)
         pdos_indices = map_unique_to_atoms(phonon.get_primitive())
     else:
-        phonon.run_mesh(q_mesh) #, with_eigenvectors=True,)
+        phonon.run_mesh(q_mesh)  # , with_eigenvectors=True,)
         phonon.run_total_dos(use_tetrahedron_method=True)
         pdos_indices = None
 
@@ -372,6 +372,7 @@ def summarize_bandstructure(phonon, fp_file=None):
         p(len(gamma_freq) - 3 + ii, freq)
     return gamma_freq, max_freq
 
+
 def get_animation(phonon, q_point, filename):
     """Gets the animation file at a q_point
 
@@ -385,4 +386,3 @@ def get_animation(phonon, q_point, filename):
         Path to animation file output
     """
     return phonon.write_animation(q_point=q_point, filename=filename)
-

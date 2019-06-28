@@ -161,11 +161,7 @@ def add_wf(workflow, launchpad):
     help="Setup the remote config dir using files in the directory specified by -c.",
     is_flag=True,
 )
-@click.option(
-    "--gss_auth",
-    help="use gss_api authorization",
-    is_flag=True
-)
+@click.option("--gss_auth", help="use gss_api authorization", is_flag=True)
 @click.option(
     "-rro",
     "--remote_recover_offline",
@@ -180,48 +176,17 @@ def add_wf(workflow, launchpad):
     default=0,
 )
 @click.option(
-    "--launch_dir",
-    help="directory to launch the job / rapid-fire",
-    default="."
+    "--launch_dir", help="directory to launch the job / rapid-fire", default="."
 )
+@click.option("--logdir", help="path to a directory for logging", default=None)
 @click.option(
-    "--logdir",
-    help="path to a directory for logging",
-    default=None
+    "--loglvl", help="level to print log messages", default="CRITICAL", type=str
 )
-@click.option(
-    "--loglvl",
-    help="level to print log messages",
-    default="CRITICAL",
-    type=str
-)
-@click.option(
-    "-s",
-    "--silencer",
-    help="shortcut to mute log messages",
-    is_flag=True
-)
-@click.option(
-    "-r",
-    "--reserve",
-    help="reserve a fw",
-    is_flag=True
-)
-@click.option(
-    "-l",
-    "--launchpad_file",
-    help="path to launchpad file"
-)
-@click.option(
-    "-w",
-    "--fworker_file",
-    help="path to fworker file"
-)
-@click.option(
-    "-q",
-    "--queueadapter_file",
-    help="path to queueadapter file"
-)
+@click.option("-s", "--silencer", help="shortcut to mute log messages", is_flag=True)
+@click.option("-r", "--reserve", help="reserve a fw", is_flag=True)
+@click.option("-l", "--launchpad_file", help="path to launchpad file")
+@click.option("-w", "--fworker_file", help="path to fworker file")
+@click.option("-q", "--queueadapter_file", help="path to queueadapter file")
 @click.option(
     "-c",
     "--config_dir",
@@ -490,12 +455,7 @@ def claunch(
     help="Setup the remote config dir using files in the directory specified by -c.",
     is_flag=True,
 )
-@click.option(
-    "-rgss",
-    "--gss_auth",
-    help="use gss_api authorization",
-    is_flag=True
-)
+@click.option("-rgss", "--gss_auth", help="use gss_api authorization", is_flag=True)
 @click.option(
     "-rro",
     "--remote_recover_offline",
@@ -510,48 +470,17 @@ def claunch(
     default=0,
 )
 @click.option(
-    "--launch_dir",
-    help="directory to launch the job / rapid-fire",
-    default="."
+    "--launch_dir", help="directory to launch the job / rapid-fire", default="."
 )
+@click.option("--logdir", help="path to a directory for logging", default=None)
 @click.option(
-    "--logdir",
-    help="path to a directory for logging",
-    default=None
+    "--loglvl", help="level to print log messages", default="CRITICAL", type=str
 )
-@click.option(
-    "--loglvl",
-    help="level to print log messages",
-    default="CRITICAL",
-    type=str
-)
-@click.option(
-    "-s",
-    "--silencer",
-    help="shortcut to mute log messages",
-    is_flag=True
-)
-@click.option(
-    "-r",
-    "--reserve",
-    help="reserve a fw",
-    is_flag=True
-)
-@click.option(
-    "-l",
-    "--launchpad_file",
-    help="path to launchpad file",
-)
-@click.option(
-    "-w",
-    "--fworker_file",
-    help="path to fworker file",
-)
-@click.option(
-    "-q",
-    "--queueadapter_file",
-    help="path to queueadapter file",
-)
+@click.option("-s", "--silencer", help="shortcut to mute log messages", is_flag=True)
+@click.option("-r", "--reserve", help="reserve a fw", is_flag=True)
+@click.option("-l", "--launchpad_file", help="path to launchpad file")
+@click.option("-w", "--fworker_file", help="path to fworker file")
+@click.option("-q", "--queueadapter_file", help="path to queueadapter file")
 @click.option(
     "-c",
     "--config_dir",

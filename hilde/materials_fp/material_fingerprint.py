@@ -105,7 +105,9 @@ def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
         ener, enerBounds = get_ener(binning, bands[pt], min_e, max_e, nbins)
         freq_list.append(ener)
         n_bands.append(np.histogram(bands[pt], enerBounds)[0])
-    return fp_tup(np.array(freq_list), np.array(n_bands), special_pts, len(freq_list[0]))
+    return fp_tup(
+        np.array(freq_list), np.array(n_bands), special_pts, len(freq_list[0])
+    )
 
 
 def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
@@ -137,7 +139,9 @@ def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
     ener, enerBounds = get_ener(binning, dos[:, 0], min_e, max_e, nbins)
     dos_rebin = np.zeros(ener.shape)
     for ii, e1, e2 in zip(range(len(ener)), enerBounds[0:-1], enerBounds[1:]):
-        dos_rebin[ii] = np.sum(dos[np.where((dos[:,0] >= e1) & (dos[:,0] < e2))[0], 1])
+        dos_rebin[ii] = np.sum(
+            dos[np.where((dos[:, 0] >= e1) & (dos[:, 0] < e2))[0], 1]
+        )
     return fp_tup(np.array([ener]), dos_rebin, ["DOS"], nbins)
 
 
@@ -161,9 +165,13 @@ def get_elec_bands(spectra_files, k_points):
     bands = {}
     for pt in k_points:
         for sFile in spectra_files:
-            firstLine = list(filter(lambda x: x != "", open(sFile).readline().rstrip().split(" ")))
+            firstLine = list(
+                filter(lambda x: x != "", open(sFile).readline().rstrip().split(" "))
+            )
             lastLine = list(
-                filter(lambda x: x != "", open(sFile).readlines()[-1].rstrip().split(" "))
+                filter(
+                    lambda x: x != "", open(sFile).readlines()[-1].rstrip().split(" ")
+                )
             )
             if np.all(np.array(firstLine[1:4], dtype="float_") == k_points[pt]):
                 bands[pt] = np.array(firstLine[5::2], dtype="float_")
@@ -355,7 +363,9 @@ def get_dos_fingerprint(dos_file, binning=True, min_e=None, max_e=None, nbins=25
     )
 
 
-def get_phonon_dos_fingerprint_phononpy(phonon, binning=True, min_e=None, max_e=None, nbins=256):
+def get_phonon_dos_fingerprint_phononpy(
+    phonon, binning=True, min_e=None, max_e=None, nbins=256
+):
     """Generates the density of states fingerprint for a bands structure stored in a phonopy object
 
     Parameters
@@ -414,7 +424,7 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
     else:
         fp2_dict = fp2
 
-    if pt == 'All':
+    if pt == "All":
         vec1 = np.array([pt[col] for pt in fp1_dict.values()]).flatten()
         vec2 = np.array([pt[col] for pt in fp2_dict.values()]).flatten()
     else:
@@ -423,7 +433,9 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
 
     rescale = 1.0
     if tanimoto:
-        rescale = np.linalg.norm(vec1)**2 + np.linalg.norm(vec2)**2 - np.dot(vec1, vec2)
+        rescale = (
+            np.linalg.norm(vec1) ** 2 + np.linalg.norm(vec2) ** 2 - np.dot(vec1, vec2)
+        )
     elif normalize:
         rescale = np.linalg.norm(vec1) * np.linalg.norm(vec2)
 
@@ -455,7 +467,9 @@ def to_dict(fp, to_mongo=False):
     else:
         if len(fp[2]) > 1:
             for aa in range(len(fp[2])):
-                fp_dict[re.sub("[.]", "_", str(fp[2][aa]))] = np.array([fp[0][aa], fp[1][aa]]).T
+                fp_dict[re.sub("[.]", "_", str(fp[2][aa]))] = np.array(
+                    [fp[0][aa], fp[1][aa]]
+                ).T
         else:
             fp_dict[re.sub("[.]", "_", str(fp[2][0]))] = np.array([fp[0], fp[1]]).T
     return fp_dict
@@ -484,7 +498,9 @@ def dict2namedtuple(fp):
 class MaterialsFingerprint(object):
     """Base class describing material fingerprints"""
 
-    def __init__(self, is_elec, is_b, nbins=None, de=None, min_e=None, max_e=None, fp={}):
+    def __init__(
+        self, is_elec, is_b, nbins=None, de=None, min_e=None, max_e=None, fp={}
+    ):
         """Initialize the fingerprint
 
         Parameters
@@ -548,12 +564,22 @@ class MaterialsFingerprint(object):
         float
             The dot product
         """
-        return scalar_product(self.fingerprint, fp2.fingerprint, col, pt, normalize, tanimoto)
+        return scalar_product(
+            self.fingerprint, fp2.fingerprint, col, pt, normalize, tanimoto
+        )
 
 
 class DOSFingerprint(MaterialsFingerprint):
     def __init__(
-        self, is_elec, is_b, nbins=None, de=None, min_e=None, max_e=None, fp={}, spectra_files=[]
+        self,
+        is_elec,
+        is_b,
+        nbins=None,
+        de=None,
+        min_e=None,
+        max_e=None,
+        fp={},
+        spectra_files=[],
     ):
         """Initialize the DOS fingerprint
 
@@ -595,7 +621,9 @@ class DOSFingerprint(MaterialsFingerprint):
             )
         # make the fingerprint
         if fp == {}:
-            fp = to_dict(get_fingerprint_dos(dos, binning, self.min_e, self.max_e, self.nbins))
+            fp = to_dict(
+                get_fingerprint_dos(dos, binning, self.min_e, self.max_e, self.nbins)
+            )
         self.fingerprint = fp
 
 
@@ -670,5 +698,7 @@ class BandStructureFingerprint(MaterialsFingerprint):
 
         # Make the fingerprint
         if fp == {}:
-            fp = to_dict(get_fingerprint_bs(bands, binning, self.min_e, self.max_e, self.nbins))
+            fp = to_dict(
+                get_fingerprint_bs(bands, binning, self.min_e, self.max_e, self.nbins)
+            )
         self.fingerprint = fp

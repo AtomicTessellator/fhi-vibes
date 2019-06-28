@@ -51,7 +51,7 @@ def compute_sed(traj, ideal, prim, k_points):
                 # sum similar atoms with the same phase
                 tmp += np.outer(exppos[:, i], velocities[i, alpha])
 
-            density += masses[b] * np.abs(tmp)**2
+            density += masses[b] * np.abs(tmp) ** 2
 
     return density
 
@@ -98,7 +98,7 @@ def _index_offset(atoms, prim, atol=1e-3, rtol=0.0):
             offset.append(off)
             break
         else:
-            raise ValueError('prim not compatible with atoms')
+            raise ValueError("prim not compatible with atoms")
 
     index, offset = np.array(index), np.array(offset)
     return index, offset

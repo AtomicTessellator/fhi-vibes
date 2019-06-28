@@ -11,6 +11,7 @@ from hilde.helpers import talk
 from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.warnings import warn
 
+
 def create_species_dir(atoms, settings, tmp_folder="basissets"):
     """ create a custom bassiset folder for the computation
 

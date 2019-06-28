@@ -81,6 +81,7 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
         ] = phonon.get_thermal_properties()
     return dct
 
+
 def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
     """Converts a phonopy object to a dictionary
 
@@ -149,6 +150,7 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
         dct["qmesh"] = phonon3.get_thermal_conductivity().get_mesh_numbers()
 
     return dct
+
 
 class PhononRow(AtomsRow):
     """Class that is largely based off of the ASE AtomsRow object but expanded for phonopy"""
@@ -251,6 +253,7 @@ class PhononRow(AtomsRow):
             Second order force constants
         """
         from phonopy import Phonopy
+
         phonon = Phonopy(
             to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
@@ -338,6 +341,7 @@ class PhononRow(AtomsRow):
             The phono3py object the PhononRow represents
         """
         from phono3py.phonon3 import Phono3py
+
         phonon3 = Phono3py(
             to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3).transpose(),

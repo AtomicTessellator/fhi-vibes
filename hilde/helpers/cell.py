@@ -6,6 +6,7 @@ from .numerics import clean_matrix
 from numpy import pi, sin, cos, arccos, sqrt, dot
 from numpy.linalg import norm
 
+
 def reciprocal_lattice(cell):
     """Get the reciprocal lattice for a given cell
 
@@ -23,6 +24,7 @@ def reciprocal_lattice(cell):
     reciprocal_cell = v * 2 * np.pi
     return reciprocal_cell
 
+
 def unit_vector(x):
     """Return a unit vector in the same direction as x.
 
@@ -36,7 +38,7 @@ def unit_vector(x):
     np.ndarray
         The unit vector of x
     """
-    y = np.array(x, dtype='float')
+    y = np.array(x, dtype="float")
     return y / norm(y)
 
 
@@ -55,7 +57,7 @@ def angle(x, y):
     float
         The angle between x and y
     """
-    return arccos(dot(x, y) / (norm(x) * norm(y))) * 180. / pi
+    return arccos(dot(x, y) / (norm(x) * norm(y))) * 180.0 / pi
 
 
 def cell_to_cellpar(cell, radians=False):
@@ -141,7 +143,7 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     Y = np.cross(Z, X)
 
     # Express va, vb and vc in the X,Y,Z-system
-    alpha, beta, gamma = 90., 90., 90.
+    alpha, beta, gamma = 90.0, 90.0, 90.0
     if isinstance(cellpar, (int, float)):
         a = b = c = cellpar
     elif len(cellpar) == 1:
@@ -179,7 +181,7 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     vb = b * np.array([cos_gamma, sin_gamma, 0])
     cx = cos_beta
     cy = (cos_alpha - cos_beta * cos_gamma) / sin_gamma
-    cz = sqrt(1. - cx * cx - cy * cy)
+    cz = sqrt(1.0 - cx * cx - cy * cy)
     vc = c * np.array([cx, cy, cz])
 
     # Convert to the Cartesian x,y,z-system
@@ -243,33 +245,34 @@ def crystal_structure_from_cell(cell, eps=2e-4, niggli_reduce=True):
     alpha, beta, gamma = angles
 
     if abc.ptp() < eps and abs(angles - pi / 2).max() < eps:
-        return 'cubic'
+        return "cubic"
     elif abc.ptp() < eps and abs(angles - pi / 3).max() < eps:
-        return 'fcc'
+        return "fcc"
     elif abc.ptp() < eps and abs(angles - np.arccos(-1 / 3)).max() < eps:
-        return 'bcc'
+        return "bcc"
     elif abs(a - b) < eps and abs(angles - pi / 2).max() < eps:
-        return 'tetragonal'
+        return "tetragonal"
     elif abs(angles - pi / 2).max() < eps:
-        return 'orthorhombic'
-    elif (abs(a - b) < eps and
-          (abs(gamma - pi / 3 * 2) < eps or abs(gamma - pi / 3) < eps) and
-          abs(angles[:2] - pi / 2).max() < eps):
-        return 'hexagonal'
+        return "orthorhombic"
+    elif (
+        abs(a - b) < eps
+        and (abs(gamma - pi / 3 * 2) < eps or abs(gamma - pi / 3) < eps)
+        and abs(angles[:2] - pi / 2).max() < eps
+    ):
+        return "hexagonal"
     elif (abs(angles - pi / 2) > eps).sum() == 1:
-        return 'monoclinic'
-    elif (abc.ptp() < eps and angles.ptp() < eps and
-          np.abs(angles).max() < pi / 2):
-        return 'rhombohedral type 1'
-    elif (abc.ptp() < eps and angles.ptp() < eps and
-          np.abs(angles).max() > pi / 2):
-        return 'rhombohedral type 2'
+        return "monoclinic"
+    elif abc.ptp() < eps and angles.ptp() < eps and np.abs(angles).max() < pi / 2:
+        return "rhombohedral type 1"
+    elif abc.ptp() < eps and angles.ptp() < eps and np.abs(angles).max() > pi / 2:
+        return "rhombohedral type 2"
     else:
         if niggli_reduce:
             from ase.build.tools import niggli_reduce_cell
+
             cell, _ = niggli_reduce_cell(cell)
             return crystal_structure_from_cell(cell, niggli_reduce=False)
-        raise ValueError('Cannot find crystal structure')
+        raise ValueError("Cannot find crystal structure")
 
 
 def complete_cell(cell):
@@ -344,5 +347,5 @@ def orthorhombic(cell):
         If cell is not orthorhombic
     """
     if not is_orthorhombic(cell):
-        raise ValueError('Not orthorhombic')
+        raise ValueError("Not orthorhombic")
     return cell.diagonal().copy()

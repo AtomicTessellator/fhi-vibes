@@ -52,4 +52,3 @@ def check_path(filename):
     if not Path(filename).exists():
         msg = f"\n  Current workdir is {Path().cwd()}"
         raise click.FileError(str(filename), hint=msg)
-

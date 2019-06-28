@@ -1,8 +1,9 @@
-'''Functions to convert ASE Objects to dicts and getting them from dicts'''
+"""Functions to convert ASE Objects to dicts and getting them from dicts"""
 import numpy as np
 
 from ase.db.row import atoms2dict as ase_atoms2dict
 from ase.db.row import AtomsRow
+
 
 def atoms2dict(atoms):
     """Converts a Atoms object into a dict
@@ -36,6 +37,7 @@ def atoms2dict(atoms):
         atoms_dict[key] = val
 
     return atoms_dict
+
 
 def dict2atoms(atoms_dict):
     """Converts a dict into an Atoms object
@@ -74,6 +76,7 @@ def dict2atoms(atoms_dict):
             atoms.calc.parameters["use_pimd_wrapper"] = ("localhost", pimd)
 
     return atoms
+
 
 def calc2dict(calc):
     """Converts an ASE Calculator into a dict

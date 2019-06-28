@@ -12,4 +12,3 @@ tableau_colors_int = [
 ]
 
 tableau_colors = [tuple(c / 255 for c in color) for color in tableau_colors_int]
-

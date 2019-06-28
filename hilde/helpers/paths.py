@@ -63,7 +63,6 @@ def move(file, dest, exist_ok=False):
         warn(f"** move: {file} does not exist.")
 
 
-
 def move_to_dir(file, folder, exist_ok=False):
     """Move file to new directory
 

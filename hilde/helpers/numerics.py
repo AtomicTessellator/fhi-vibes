@@ -59,4 +59,3 @@ def get_3x3_matrix(matrix, dtype=int):
         )
 
     return supercell_matrix.astype(dtype)
-

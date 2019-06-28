@@ -647,11 +647,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                         args.append(0)
                 else:
                     for hh in value:
-                        where.append(
-                            "INSTR(systems.key_value_pairs,'{}')>?".format(
-                                hh
-                            )
-                        )
+                        where.append("INSTR(systems.key_value_pairs,'{}')>?".format(hh))
                         args.append(0)
             elif isinstance(key, int):
                 if self.type == "postgresql":

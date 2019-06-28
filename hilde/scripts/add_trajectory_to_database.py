@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 from hilde.settings import Settings
 from hilde.phonon_db.database_interface import traj_to_database
 
+
 def main():
     parser = ArgumentParser(description="add trajectory to a database")
     parser.add_argument("trajectory", type=str, help="the trajectory file")

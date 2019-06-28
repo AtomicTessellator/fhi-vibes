@@ -39,4 +39,3 @@ def list2str(lis):
         The json string version of the list
     """
     return "[{}]".format(", ".join([str(el) for el in lis]))
-

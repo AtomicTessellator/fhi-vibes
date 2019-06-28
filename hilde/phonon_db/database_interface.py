@@ -162,7 +162,9 @@ def to_database(
                     "cutoff_distance"
                 ]
         except:
-            raise IOError("phonon3py is not installed, either phonon is of a type that is not defined or phono3py object")
+            raise IOError(
+                "phonon3py is not installed, either phonon is of a type that is not defined or phono3py object"
+            )
     atoms.set_calculator(calc)
     if "calc_hash" in key_val_pairs or "atoms_hash" in key_val_pairs:
         warn("Replacing the atoms and calc hashes")
@@ -259,7 +261,9 @@ def obj2dict(obj):
             if isinstance(obj, Phono3py):
                 return phonon3_to_dict(obj)
         except ImportError:
-            raise IOError("Phono3py is not installed, obj has to be a dict, Phonopy, or Atoms object")
+            raise IOError(
+                "Phono3py is not installed, obj has to be a dict, Phonopy, or Atoms object"
+            )
         raise IOError("obj has to be a dict, Phonopy, Phono3py, or Atoms object")
 
 

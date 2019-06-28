@@ -80,11 +80,7 @@ class TaskSpec:
                 *self.args,
             ]
         else:
-            self._pt_args = [
-                self.func,
-                self.func_fw_out,
-                *self.args,
-            ]
+            self._pt_args = [self.func, self.func_fw_out, *self.args]
 
     @property
     def pt_args(self):
