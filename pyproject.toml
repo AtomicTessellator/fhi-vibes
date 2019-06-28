@@ -29,12 +29,12 @@ paramiko = {version = "^2.4",optional = true}
 click = "^7.0"
 attrs = "^19.1"
 pandas = "^0.24.2"
-psycopg2 = "^2.8.0"
+psycopg2 = {version="^2.8.0", optional=true}
 
 [tool.poetry.extras]
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
 phono3py = ["phono3py"]
-
+postgresql = ["psycopg2"]
 [tool.poetry.dev-dependencies]
 black = "^18.9b0"
 pytest = "^4.6"
