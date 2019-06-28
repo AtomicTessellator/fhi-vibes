@@ -5,6 +5,7 @@ from hilde.konstanten import v_unit
 from hilde.konstanten.io import n_geom_digits
 from hilde.konstanten.symmetry import symprec
 from hilde.helpers.numerics import clean_matrix
+from hilde.helpers.brillouinzone import get_special_points
 from hilde.structure.misc import get_sysname
 from hilde.spglib.wrapper import get_symmetry_dataset
 
@@ -151,6 +152,11 @@ def inform(cell, dft=False, fname=None, verbosity=1, symprec=symprec):
             print(f"  Standard lattice:  ")
             for vec in sds.std_lattice:
                 print(f"    {vec}")
+
+        if verbosity > 0:
+            print(f"  Special k points:")
+            for key, val in get_special_points(cell).items():
+                print(f"    {key}: {val}")
 
     # Info
     for ii, (key, val) in enumerate(cell.info.items()):
