@@ -401,23 +401,23 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     _, metadata = reader(traj, True)
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
-    ph = kwargs["outputs"]
+    phonon = kwargs["outputs"]
     prev_dos_fp = None
 
-    if isinstance(ph, Phonopy):
+    if isinstance(phonon, Phonopy):
         # Calculate the phonon DOS
-        ph.set_mesh([51, 51, 51])
+        phonon.set_mesh([51, 51, 51])
         if "prev_dos_fp" in kwargs:
             prev_dos_fp = kwargs["prev_dos_fp"].copy()
             de = prev_dos_fp[0][0][1] - prev_dos_fp[0][0][0]
             min_f = prev_dos_fp[0][0][0] - 0.5 * de
             max_f = prev_dos_fp[0][0][-1] + 0.5 * de
-            ph.set_total_DOS(freq_min=min_f, freq_max=max_f, tetrahedron_method=True)
+            phonon.set_total_DOS(freq_min=min_f, freq_max=max_f, tetrahedron_method=True)
         else:
-            ph.set_total_DOS(tetrahedron_method=True)
+            phonon.set_total_DOS(tetrahedron_method=True)
 
         # Get a phonon DOS Finger print to compare against the previous one
-        dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
+        dos_fp = get_phonon_dos_fingerprint_phononpy(phonon, nbins=201)
 
         conv_crit = 0.95 if "conv_crit" not in kwargs else kwargs["conv_crit"]
 
@@ -432,30 +432,30 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
             update_spec = {
                 "ph_dict": phonon_to_dict(ph),
                 "ph_calculator": calc_dict,
-                "ph_supercell": atoms2dict(to_Atoms(ph.get_primitive())),
+                "ph_supercell": atoms2dict(to_Atoms(phonon.get_primitive())),
             }
             analysis_wd += "/converged/"
             Path(analysis_wd).mkdir(exist_ok=True, parents=True)
             copyfile(traj, f"{analysis_wd}/trajectory.son")
             return FWAction(update_spec=update_spec)
         # Reset dos_fp to include full Energy Range for the material
-        ph.set_total_DOS(tetrahedron_method=True)
-        dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
+        phonon.set_total_DOS(tetrahedron_method=True)
+        dos_fp = get_phonon_dos_fingerprint_phononpy(phonon, nbins=201)
 
         # If Not Converged update phonons
-        pc = to_Atoms(ph.get_primitive())
+        pc = to_Atoms(phonon.get_primitive())
         # _, sc_mat = make_cubic_supercell(
         #     pc,
-        #     len(pc.numbers) * np.linalg.det(ph.get_supercell_matrix()) + 50,
+        #     len(pc.numbers) * np.linalg.det(phonon.get_supercell_matrix()) + 50,
         #     deviation=0.4,
         # )
 
         if "sc_matrix_original" not in kwargs:
-            kwargs["sc_matrix_original"] = ph.get_supercell_matrix()
+            kwargs["sc_matrix_original"] = phonon.get_supercell_matrix()
         ind = np.where(np.array(kwargs["sc_matrix_original"]).flatten() != 0)[0][0]
         n_cur = int(
             round(
-                ph.get_supercell_matrix().flatten()[ind]
+                phonon.get_supercell_matrix().flatten()[ind]
                 / np.array(kwargs["sc_matrix_original"]).flatten()[ind]
             )
         )
@@ -472,7 +472,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
             fw_settings["spec"].update(update_spec)
         else:
             fw_settings["spec"] = update_spec.copy()
-        displacement = ph._displacement_dataset["first_atoms"][0]["displacement"]
+        displacement = phonon._displacement_dataset["first_atoms"][0]["displacement"]
         disp_mag = np.linalg.norm(displacement)
         func_kwargs = {
             "type": "phonopy",
@@ -491,7 +491,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
             time_scaling = (
                 3.0
-                * (np.linalg.det(sc_mat) / np.linalg.det(ph.get_supercell_matrix()))
+                * (np.linalg.det(sc_mat) / np.linalg.det(phonon.get_supercell_matrix()))
                 ** 3.0
             )
             fw_settings["spec"]["_queueadapter"]["walltime"] = to_time_str(
@@ -501,7 +501,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
                 del func_kwargs["walltime"]
             mem_scaling = (
                 3.0
-                * (np.linalg.det(sc_mat) / np.linalg.det(ph.get_supercell_matrix()))
+                * (np.linalg.det(sc_mat) / np.linalg.det(phonon.get_supercell_matrix()))
                 ** 2.0
             )
             fw_settings["spec"]["_queueadapter"]["expected_mem"] = mem_scaling * max_mem
