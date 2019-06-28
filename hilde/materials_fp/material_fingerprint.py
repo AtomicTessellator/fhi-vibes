@@ -14,7 +14,7 @@ def get_ener(binning, frequencies, min_e, max_e, nbins):
 
     Parameters
     ----------
-    useFrequencies: bool
+    binning: bool
         if True use the band/DOS frequencies given as the bin boundaries
     frequencies: list or np.ndarray of floats
         The set of frequencies the band structure or DOS is calculated for

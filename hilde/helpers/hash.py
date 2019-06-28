@@ -105,30 +105,30 @@ def hash_atoms_and_calc(
     return atomshash, calchash
 
 
-def hash_traj(ca, meta, hash_meta=False):
+def hash_traj(calculated_atoms, metadata, hash_meta=False):
     """hash of a trajectory file
 
     Parameters
     ----------
-    ca: list of ase.atoms.Atoms
+    calculated_atoms: list of ase.atoms.Atoms
         Atoms objects inside a trajectory file
-    meta: dict
+    metadata: dict
         Metadata for the trajectory
     hash_meta: bool
-        if True hash the meta data
+        if True hash the metadata
 
     Returns
     -------
     atomshash: str
-        hash of all of the ca objects
+        hash of all of the elements calculated_atoms
     metahash: str
         hash of the metadata
     """
 
-    ca_dct = [atoms2json(at) for at in ca]
-    dct = dict(meta, calculated_atoms=ca_dct)
+    calculated_atoms_dct = [atoms2json(at) for at in calculated_atoms]
+    dct = dict(metadata, calculated_atoms=calculated_atoms_dct)
     if hash_meta:
-        return hashfunc(dumps(dct)), hashfunc(dumps(meta))
+        return hashfunc(dumps(dct)), hashfunc(dumps(metadata))
     return hashfunc(dumps(dct))
 
 

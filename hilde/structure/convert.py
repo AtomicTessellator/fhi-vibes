@@ -3,7 +3,7 @@ import numpy as np
 
 
 def to_phonopy_atoms(structure, wrap=False):
-    """Convert ase.Atoms to PhonopyAtoms
+    """Convert ase.atoms.Atoms to PhonopyAtoms
 
     Parameters
     ----------
@@ -29,7 +29,7 @@ def to_phonopy_atoms(structure, wrap=False):
 
 
 def to_spglib_cell(structure):
-    """Convert ase.Atoms to spglib cell
+    """Convert ase.atoms.Atoms to spglib cell
 
     Parameters
     ----------
@@ -52,7 +52,7 @@ def to_spglib_cell(structure):
 
 
 def to_Atoms_db(structure, info=None, pbc=True):
-    """Convert structure to ase.Atoms without masses, and more accurate positions/lattice vectors
+    """Convert structure to ase.atoms.Atoms without masses, and more accurate positions/lattice vectors
 
     Parameters
     ----------
@@ -89,7 +89,7 @@ def to_Atoms_db(structure, info=None, pbc=True):
 
 
 def to_Atoms(structure, info=None, pbc=True):
-    """Convert structure to ase.Atoms
+    """Convert structure to ase.atoms.Atoms
 
     Parameters
     ----------

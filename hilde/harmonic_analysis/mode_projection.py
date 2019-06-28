@@ -352,7 +352,7 @@ class HarmonicAnalysis:
 
         Parameters
         ----------
-        trajectory: list of Atoms
+        trajectory: list of ase.atoms.Atoms
             The trajectory to work over
         displacements: bool
             If True return mode projected displacements.

@@ -17,7 +17,7 @@ def setup_lammps_si(workdir):
 
     Returns
     -------
-    lamps: ase.calculatros.lammpsrun.LAMMPS
+    lammps: ase.calculatros.lammpsrun.LAMMPS
         The lammps calculator for Si
     """
     # LAMMPS context information
@@ -47,7 +47,7 @@ def setup_lammps_gan(workdir):
 
     Returns
     -------
-    lamps: ase.calculatros.lammpsrun.LAMMPS
+    lammps: ase.calculatros.lammpsrun.LAMMPS
         The lammps calculator for GaN
     """
     if isinstance(workdir, str):

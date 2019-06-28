@@ -72,7 +72,7 @@ def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=
 
     Parameters
     ----------
-    q_points: list ofnp.ndarray
+    q_points: list of np.ndarray
         The list of q-points to build they dynamical matrix at
     primitive: ase.atoms.Atoms
         The primitive cell structure

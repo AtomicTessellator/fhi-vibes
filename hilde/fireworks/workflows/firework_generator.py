@@ -403,7 +403,7 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
     ----------
     aworkflow: Settings
         workflow settings where the task is defined
-    atoms: ase.atoms.Atoms, dict
+    atoms: ase.atoms.Atoms or dict
         ASE Atoms object to preform the calculation on
     fw_settings: dict
         Firework settings for the step
@@ -574,7 +574,7 @@ def generate_phonon_postprocess_fw_in_wf(
 
     Parameters
     ----------
-    atoms: ase.atoms.Atoms, dict
+    atoms: ase.atoms.Atoms or dict
         ASE Atoms object to preform the calculation on
     wd: str
         Workdirectory
@@ -677,7 +677,7 @@ def generate_aims_fw(workflow, atoms, fw_settings):
     ----------
     workflow: Settings
         workflow settings where the task is defined
-    atoms: ase.atoms.Atoms, dict
+    atoms: ase.atoms.Atoms or dict
         ASE Atoms object to preform the calculation on
     fw_settings: dict
         Firework settings for the step

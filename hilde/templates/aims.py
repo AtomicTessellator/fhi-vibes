@@ -17,7 +17,7 @@ def create_species_dir(atoms, settings, tmp_folder="basissets"):
 
     Parameters
     ----------
-    atoms: Atoms
+    atoms: ase.atoms.Atoms
         structure
     settings: Settings
         The workflow settings object

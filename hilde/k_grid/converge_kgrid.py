@@ -55,7 +55,8 @@ def converge_kgrid(
         length of the wall time for the job in seconds
     workdir: str
         working directory for the calculation
-    kpts_density_init: (float) initial k-point density
+    kpts_density_init: float
+        initial k-point density
 
     Returns
     -------

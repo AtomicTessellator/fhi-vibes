@@ -289,7 +289,7 @@ def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose
 
     Returns
     -------
-    Atoms
+    ase.atoms.Atoms
         The supercell
     np.ndarray
         The supercell_matrix
@@ -333,7 +333,7 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
     ----------
     atoms: ase.atoms.Atoms
         primitive cell as atoms object
-    supercell_matrix: ndarray
+    supercell_matrix: np.ndarray
         supercell matrix M with convention A = M . a
     info: dict
         attach info dictionary to supercell atoms
@@ -382,7 +382,7 @@ def map_indices(atoms1, atoms2, tol=1e-5):
 
     Raises
     ------
-    AssertionError:
+    AssertionError
         If len of unique values in index_map does not equal the number of atoms in atoms1
     """
 

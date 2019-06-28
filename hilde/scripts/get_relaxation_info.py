@@ -11,7 +11,7 @@ def get_optimizer(f):
 
     Parameters
     ----------
-    f: File
+    f: str
         file to search through
 
     Returns
@@ -37,7 +37,7 @@ def get_energy(f):
 
     Parameters
     ----------
-    f: File
+    f: str
         file to search through
 
     Returns
@@ -60,7 +60,7 @@ def get_forces(f):
 
     Parameters
     ----------
-    f: File
+    f: str
         file to search through
 
     Returns
@@ -78,7 +78,7 @@ def get_volume(f):
 
     Parameters
     ----------
-    f: File
+    f: str
         file to search through
 
     Returns
@@ -102,7 +102,7 @@ def parser(f, n_init=0, optimizer=2):
 
     Parameters
     ----------
-    f: File
+    f: str
         file to search through
     n_init: int
         The initial step

@@ -379,6 +379,8 @@ class PhononDatabase(Database):
     ):
         """Update and/or delete key-value pairs of row(s).
 
+        Parameters
+        ----------
         id: int
             ID of row to update.
         dct: dict

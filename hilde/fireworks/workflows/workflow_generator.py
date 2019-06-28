@@ -19,7 +19,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
 
     Parameters
     ----------
-    workflow_settings: Seetings
+    workflow_settings: Settings
         The settings object for the desired workflow
     atoms: ase.atoms.Atoms
         ASE Atoms object to preform the calculation on, with an attached calculator

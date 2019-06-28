@@ -39,7 +39,7 @@ def last_calculation_id(trajectory):
 
 
 def to_phonopy_atoms(atoms):
-    """Convert ase.Atoms to PhonopyAtoms
+    """Convert ase.atoms.Atoms to PhonopyAtoms
 
     Parameters
     ----------
@@ -183,7 +183,7 @@ def get_force_constants_from_trajectory(
     ----------
     trajectory: hilde.Trajectory
         phonopy trajectory
-    supercell: ase.Atoms
+    supercell: ase.atoms.Atoms
         Atoms Object to map force constants onto
     reduce_fc: bool
         return in [N_prim, N_sc, 3, 3]  shape
@@ -238,11 +238,11 @@ def remap_force_constants(
     ----------
     force_constants: np.ndarray
         force constants in [N_prim, N_sc, 3, 3] shape
-    primitive: ase.Atoms
+    primitive: ase.atoms.Atoms
         primitive cell for reference
-    supercell: ase.Atoms
+    supercell: ase.atoms.Atoms
         supercell for reference
-    new_supercell: ase.Atoms, optional
+    new_supercell: ase.atoms.Atoms, optional
         supercell to map to (default)
     reduce_fc: bool
         return in [N_prim, N_sc, 3, 3]  shape

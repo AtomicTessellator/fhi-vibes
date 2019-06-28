@@ -9,6 +9,8 @@ from hilde.helpers import warn
 def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
     r""" u_iL = 1/sqrt(N) \sum_(q,s) \exp(i q.R_L) e_is(q) u_s(q)
 
+    REM shapes are eigenvectors.shape = [n_q, n_s, n_s]
+
     Parameters
     ----------
     u_q: np.ndarray(float)
@@ -32,9 +34,6 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
     AssertionError
         If u_temp has an imaginary component
 
-    REM shapes
-    ----------
-    eigenvectors.shape = [n_q, n_s, n_s]
     """
 
     n_atoms = len(indeces)

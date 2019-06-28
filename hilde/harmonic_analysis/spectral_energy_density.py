@@ -11,7 +11,7 @@ def compute_sed(traj, ideal, prim, k_points):
 
     Parameters
     ----------
-    traj : list of Atoms
+    traj : list of ase.atoms.Atoms
         trajectory with atoms objects with velocities
     ideal : ase.atoms.Atoms
         ideal atoms object

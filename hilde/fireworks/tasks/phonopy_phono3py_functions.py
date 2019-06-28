@@ -48,7 +48,7 @@ def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
     return settings, kwargs_boot
 
 
-def setup_phonon_outs(ph_settings, settings, prefix, atoms, calc):
+def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
     """Sets up the phonon outputs
 
     Parameters
@@ -66,7 +66,7 @@ def setup_phonon_outs(ph_settings, settings, prefix, atoms, calc):
 
     Returns
     -------
-    out: dict
+    outputs: dict
         All the necessary output/metadata for the task
     """
     settings, kwargs_boot = setup_calc(
@@ -78,13 +78,13 @@ def setup_phonon_outs(ph_settings, settings, prefix, atoms, calc):
     settings[f"{prefix}onopy"] = ph_settings.copy()
     if "serial" in settings[f"{prefix}onopy"]:
         del settings[f"{prefix}onopy"]["serial"]
-    out = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
+    outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
 
-    out["metadata"]["supercell"] = {"atoms": out["metadata"]["atoms"], "calculator": {}}
-    out["metadata"]["primitive"] = input2dict(atoms)
-    out["prefix"] = prefix
-    out["settings"] = ph_settings.copy()
-    return out
+    outputs["metadata"]["supercell"] = {"atoms": out["metadata"]["atoms"], "calculator": {}}
+    outputs["metadata"]["primitive"] = input2dict(atoms)
+    outputs["prefix"] = prefix
+    outputs["settings"] = ph_settings.copy()
+    return outputs
 
 
 def bootstrap_phonon(
@@ -121,10 +121,10 @@ def bootstrap_phonon(
     at = atoms.copy()
     at.set_calculator(None)
     if ph_settings:
-        outputs.append(setup_phonon_outs(ph_settings, settings, "ph", at, calc))
+        outputs.append(setup_phonon_outputs(ph_settings, settings, "ph", at, calc))
 
     if ph3_settings:
-        outputs.append(setup_phonon_outs(ph3_settings, settings, "ph3", at, calc))
+        outputs.append(setup_phonon_outputs(ph3_settings, settings, "ph3", at, calc))
     return outputs
 
 
