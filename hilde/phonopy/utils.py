@@ -192,7 +192,6 @@ def remap_force_constants(
 
     sds = get_symmetry_dataset(new_supercell)
     map2prim = sds.mapping_to_primitive
-    uc_index = np.unique(map2prim)
 
     sc_r = np.zeros((force_constants.shape[0], force_constants.shape[1], 3))
     for aa, a1 in enumerate(primitive):
@@ -222,7 +221,12 @@ def remap_force_constants(
         return fc_out.swapaxes(1, 2).reshape(2 * (3 * fc_out.shape[1],))
 
     if reduce_fc:
-        return reduce_force_constants(fc_out, map2prim)
+        p2s_map = np.zeros(len(primitive), dtype=int)
+        new_supercell.wrap(eps=tol)
+        for aa, a1 in enumerate(primitive):
+            diff = new_supercell.positions - a1.position
+            p2s_map[aa] = np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0]
+        return reduce_force_constants(fc_out, p2s_map)
 
     return fc_out
 
