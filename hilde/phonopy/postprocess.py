@@ -6,13 +6,7 @@ from phonopy.file_IO import write_FORCE_CONSTANTS
 from hilde.helpers.brillouinzone import get_special_points
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers.paths import cwd
-from hilde.phonopy.wrapper import (
-    prepare_phonopy,
-    plot_bandstructure as plot_bs,
-    get_bandstructure,
-    plot_bandstructure_and_dos,
-    get_animation,
-)
+from hilde.phonopy import wrapper
 from hilde.phonopy import defaults
 from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader
@@ -74,7 +68,7 @@ def postprocess(
     supercell.info = {"supercell_matrix": str(supercell_matrix)}
     symprec = metadata["Phonopy"]["symprec"]
 
-    phonon = prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
+    phonon = wrapper.prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
     phonon._displacement_dataset = metadata["Phonopy"]["displacement_dataset"].copy()
 
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
@@ -190,10 +184,10 @@ def extract_results(
 
         if plot_bandstructure:
             talk(f".. plot band structure")
-            plot_bs(phonon, file="bandstructure.pdf")
+            wrapper.plot_bandstructure(phonon, file="bandstructure.pdf")
         if write_bandstructure:
             talk(f".. write band structure yaml file")
-            get_bandstructure(phonon)
+            wrapper.set_bandstructure(phonon)
             phonon.write_yaml_band_structure()
 
         if write_dos:
@@ -203,7 +197,7 @@ def extract_results(
             phonon.write_total_dos()
         if plot_dos:
             talk(f".. plot DOS")
-            plot_bandstructure_and_dos(phonon, file="bands_and_dos.pdf")
+            wrapper.plot_bandstructure_and_dos(phonon, file="bands_and_dos.pdf")
 
         if write_pdos:
             talk(f".. write projected DOS")
@@ -213,7 +207,9 @@ def extract_results(
 
         if plot_pdos:
             talk(f".. plot projected DOS")
-            plot_bandstructure_and_dos(phonon, partial=True, file="bands_and_pdos.pdf")
+            wrapper.plot_bandstructure_and_dos(
+                phonon, partial=True, file="bands_and_pdos.pdf"
+            )
 
         animate_q_points = {}
         if animate:
@@ -228,7 +224,7 @@ def extract_results(
             path = Path("animation")
             path.mkdir(exist_ok=True)
             outfile = path / f"animation_{key}.ascii"
-            get_animation(phonon, val, outfile)
+            wrapper.get_animation(phonon, val, outfile)
             talk(f".. {outfile} written")
 
     if tdep:
