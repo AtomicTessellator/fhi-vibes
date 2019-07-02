@@ -1,6 +1,0 @@
-[submodule "doc/heat_flux"]
-	path = doc_backup/heat_flux
-	url = https://git.overleaf.com/5c6d256d5771e269e831a9ca
-[submodule "doc/interpolation"]
-	path = doc_backup/interpolation
-	url = https://git.overleaf.com/5cc0529452e3c9258397a731
