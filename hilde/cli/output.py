@@ -40,33 +40,7 @@ def phonopy_output(
     full,
     tdep,
 ):
-    """perform phonopy postprocess for TRAJECTORY
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    trajectory: str
-        Path to the phonopy trajectory file
-    q_mesh: list of ints
-        Size of the q-point interpolation mesh
-    output_directory: str
-        The output directory (default: output/)
-    bandstructure: bool
-        If True write and plot the bandstructure
-    density_of_states: bool
-        If True write and plot the total and projected density of states
-    thermal_properties:
-        If True write the thermal properties
-    animate: bool
-        If True write phonon mode animation files for all special q-points
-    animate_q: list of tuples (float, float, float)
-        A list of q-points to write an animation file for
-    full: bool
-        If True perform all output
-    tdep: bool
-        If True setup tdep results
-    """
+    """perform phonopy postprocess for TRAJECTORY"""
     from hilde.phonopy.postprocess import postprocess, extract_results
 
     if not q_mesh:

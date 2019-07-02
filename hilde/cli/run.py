@@ -21,22 +21,7 @@ def run():
 @click.option("--settings", default="aims.in", show_default=True)
 @click.pass_obj
 def aims_run(obj, workdir, settings):
-    """run and aims calculation
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    workdir: str
-        Path to the working directory (default: aims)
-    settings: str
-        Filename of the settings file (default: aims.in)
-
-    Raises
-    ------
-    click.FileError
-        if settings file does not exist
-    """
+    """run and aims calculation"""
     from hilde.aims.workflow import run_aims
 
     if not Path(settings).exists():
@@ -52,22 +37,7 @@ def aims_run(obj, workdir, settings):
 @click.option("--settings", default="phonopy.in", show_default=True)
 @click.pass_obj
 def phonopy_run(obj, workdir, settings):
-    """run and aims calculation
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    workdir: str
-        Path to the working directory (default: phonopy)
-    settings: str
-        Filename of the settings file (default: phonopy.in)
-
-    Raises
-    ------
-    click.FileError
-        if settings file does not exist
-    """
+    """run and aims calculation"""
     from hilde.phonopy.workflow import run_phonopy
 
     if not Path(settings).exists():
@@ -83,22 +53,7 @@ def phonopy_run(obj, workdir, settings):
 @click.option("--settings", default="md.in", show_default=True)
 @click.pass_obj
 def md_run(obj, workdir, settings):
-    """run and aims calculation
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    workdir: str
-        Path to the working directory (default: md)
-    settings: str
-        Filename of the settings file (default: md.in)
-
-    Raises
-    ------
-    click.FileError
-        if settings file does not exist
-    """
+    """run and aims calculation"""
     from hilde.molecular_dynamics.workflow import run_md
 
     if not Path(settings).exists():

@@ -12,15 +12,7 @@ class AliasedGroup(click.Group):
     """
 
     def get_command(self, ctx, cmd_name):
-        """geturn command based on prefix
-
-        Parameters
-        ----------
-        ctx: Context
-            Context for the command
-        cmd_name: str
-            Name of the command
-        """
+        """geturn command based on prefix"""
 
         rv = click.Group.get_command(self, ctx, cmd_name)
         if rv is not None:
@@ -37,18 +29,7 @@ class AliasedGroup(click.Group):
 
 
 def check_path(filename):
-    """check if path exists
-
-    Parameters
-    ----------
-    filename: str
-        path to the file to check if it exists
-
-    Raises
-    ------
-        click.FileError
-            If path does not exist
-    """
+    """check if path exists"""
     if not Path(filename).exists():
         msg = f"\n  Current workdir is {Path().cwd()}"
         raise click.FileError(str(filename), hint=msg)

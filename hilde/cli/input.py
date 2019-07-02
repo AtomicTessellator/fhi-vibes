@@ -14,17 +14,7 @@ from .misc import AliasedGroup
 @click.option("--allow_overwrite", is_flag=True, show_default=True)
 @click.pass_obj
 def input(obj, full, allow_overwrite):
-    """provide template input files for tasks and workflows
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    full: bool
-        If True list all possible options
-    allow_overwrite: bool
-        If True allow the input files to be overwritten
-    """
+    """provide template input files for tasks and workflows"""
     obj.full_input = full
     obj.allow_overwrite = allow_overwrite
 
@@ -33,15 +23,7 @@ def input(obj, full, allow_overwrite):
 @click.argument("filename", default="settings.in")
 @click.pass_obj
 def modify_input(obj, filename):
-    """modify an input file
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    filename: str
-        Filename to store the input file (default: settings.in)
-    """
+    """modify an input file"""
 
     click.echo("please come back later")
 
@@ -50,15 +32,7 @@ def modify_input(obj, filename):
 @click.argument("filename", default="aims.in")
 @click.pass_obj
 def aims_input(obj, filename):
-    """provide template settings.in for aims calculation
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    filename: str
-        Filename to store the input file (default: aims.in)
-    """
+    """provide template settings.in for aims calculation"""
 
     write_input("aims", filename, obj.allow_overwrite)
 
@@ -67,15 +41,7 @@ def aims_input(obj, filename):
 @click.argument("filename", default="phonopy.in")
 @click.pass_obj
 def phonopy_input(obj, filename):
-    """provide template phonopy.in for phonopy workflow.
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    filename: str
-        Filename to store the input file (default: phonopy.in)
-    """
+    """provide template phonopy.in for phonopy workflow."""
 
     write_input("phonopy", filename, obj.allow_overwrite)
 
@@ -84,39 +50,14 @@ def phonopy_input(obj, filename):
 @click.argument("filename", default="md.in")
 @click.pass_obj
 def md_input(obj, filename):
-    """provide template md.in for molecular dynamics workflow.
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    filename: str
-        Filename to store the input file (default: md.in)
-    """
+    """provide template md.in for molecular dynamics workflow."""
 
     write_input("md", filename, obj.allow_overwrite)
 
 
 @click.pass_obj
 def write_input(obj, name, filename, allow_overwrite):
-    """write the input function
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    name: str
-        Name of the task
-    filename: str
-        Filename to store the input file
-    allow_overwrite: bool
-        If True allow the input files to be overwritten
-
-    Raises
-    ------
-    click.ClickException
-        If allow_overwrite is False and outfile exists
-    """
+    """write the input function"""
 
     if obj.full_input:
         name += "_full"

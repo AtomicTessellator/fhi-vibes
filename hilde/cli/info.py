@@ -22,19 +22,7 @@ def info():
 @click.option("-t", "--symprec", default=1e-5, show_default=True)
 @click.pass_obj
 def geometry_info(obj, filename, format, symprec):
-    """inform about a structure in a geometry input file
-
-    Parameters
-    ----------
-    obj: CliTracker
-        The click context passed as an object
-    filename: str
-        Filename for the geometry file (default: geometry.in)
-    format: str
-        The format of the geometry file (default: aims)
-    symprec: float
-        symmetry precision for space group/symmetry recognition
-    """
+    """inform about a structure in a geometry input file"""
 
     obj.geometry_file = filename
 
@@ -47,13 +35,7 @@ def geometry_info(obj, filename, format, symprec):
 @click.argument("filename", default="settings.in")
 @click.pass_obj
 def settings_info(obj, filename):
-    """inform about content of a settings.in file
-
-    Parameters
-    ----------
-    filename: str
-        The file name for the settings file (default: settings.in)
-    """
+    """inform about content of a settings.in file"""
 
     obj.settings_file = filename
     click.echo(obj.settings_file.read_text())
@@ -65,19 +47,7 @@ def settings_info(obj, filename):
 @click.option("--avg", default=100, help="window size for running avg")
 @click.option("-v", "--verbose", is_flag=True, help="be verbose")
 def md_info(filename, plot, avg, verbose):
-    """inform about content of a settings.in file
-
-    Parameters
-    ----------
-    filename: str
-        Filename of the molecular dynamics trajectory (default: trajectory.son)
-    plot: bool
-        If True plot a summary
-    avg: int
-        Window size for the rolling average
-    verbose: bool
-        If True be verbose
-    """
+    """inform about content of a settings.in file"""
 
     md_sum(filename, plot, avg, verbose)
 
@@ -85,12 +55,6 @@ def md_info(filename, plot, avg, verbose):
 @info.command("phonopy")
 @click.argument("filename", default="phonopy.in")
 def phonopy_info(filename):
-    """inform about a phonopy calculation before it is started
-
-    Parameters
-    ----------
-    filename: str
-        Filename for the phonopy settings file (default: phonopy.in)
-    """
+    """inform about a phonopy calculation before it is started"""
 
     preprocess(filename=None, settings_file=filename, dimension=None, format=None)
