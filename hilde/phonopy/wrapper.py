@@ -263,7 +263,7 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
 
 def plot_bandstructure(
-    phonon, filename="bandstructure.pdf", paths=None, force_sets=None
+    phonon, file="bandstructure.pdf", paths=None, force_sets=None
 ):
     """Plot bandstructure for given path and save to file
 
