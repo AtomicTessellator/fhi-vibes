@@ -8,7 +8,18 @@ from hilde.helpers import warn, talk
 
 
 def str2time(string):
-    """convert string of the shape D-HH:MM:SS to seconds"""
+    """Convert string of the shape D-HH:MM:SS to seconds
+
+    Parameters
+    ----------
+    string: str
+        string representing time
+
+    Returns
+    -------
+    float
+        time in seconds
+    """
 
     d, h, m, s = 0, 0, 0, 0
     # split days
@@ -36,7 +47,18 @@ def str2time(string):
 
 
 def get_time(jobid):
-    """get current job time"""
+    """get current job time
+
+    Parameters
+    ----------
+    jobid: int
+        Job ID for the job watchdog is acting on
+
+    Returns
+    -------
+    float
+        the remaining time
+    """
     squeue = check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
     line = squeue.split("\n")[2]
     time = line.split()[5]
@@ -44,7 +66,18 @@ def get_time(jobid):
 
 
 def get_timelimit(jobid):
-    """get job time limit"""
+    """get job time limit
+
+    Parameters
+    ----------
+    jobid: int
+        Job ID for the job watchdog is acting on
+
+    Returns
+    -------
+    float
+        the time limit in seconds
+    """
     squeue = check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
     line = squeue.split("\n")[2]
     timelimit = line.split()[6]
@@ -65,12 +98,18 @@ class WallTimeWatchdog:
     ):
         """ Watchdog that controls the walltime everytime it is called
 
-        Args:
-            walltime (int): Walltime in seconds
-            history (int, optional):
-                Defaults to 5. How many steps should be used to project the runtime
-            buffer (int, optional):
-                Defaults to 2. How many steps of buffer before watchdog should alert.
+        Parameters
+        ----------
+        walltime: int
+            Walltime in seconds
+        history: int
+            Defaults to 5. How many steps should be used to project the runtime
+        buffer: int
+            Defaults to 2. How many steps of buffer before watchdog should alert.
+        log: str
+            Path to log file
+        verbose:
+            If True print more logging information
         """
 
         if walltime is None:
@@ -94,8 +133,10 @@ class WallTimeWatchdog:
     def __call__(self):
         """ Call the watchdog
 
-        Returns:
-            bool: Are we approaching the walltime or is a 'stop' flag present?
+        Returns
+        -------
+        bool
+            Are we approaching the walltime or is a 'stop' flag present?
         """
 
         if self.walltime is None:
@@ -157,7 +198,13 @@ class WallTimeWatchdog:
         return time() - self.start_time
 
     def log(self, mode="a"):
-        """ Log some timings """
+        """Log some timings
+
+        Parameters
+        ----------
+        mode: str
+            "a" appends to log, "w" overwrites
+        """
 
         if self.logfile is None:
             return
@@ -195,7 +242,21 @@ class SlurmWatchdog(WallTimeWatchdog):
     """Watch the slurm walltime"""
 
     def __init__(self, buffer=2, history=10, log="watchdog.log", verbose=True):
+        """ Watchdog that controls the walltime everytime it is called
 
+        Parameters
+        ----------
+        walltime: int
+            Walltime in seconds
+        buffer: int
+            Defaults to 2. How many steps of buffer before watchdog should alert.
+        history: int
+            Defaults to 5. How many steps should be used to project the runtime
+        log: str
+            Path to log file
+        verbose:
+            If True print more logging information
+        """
         # check jobid
         try:
             jobid = os.environ["SLURM_JOB_ID"]

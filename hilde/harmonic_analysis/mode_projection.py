@@ -35,17 +35,28 @@ class HarmonicAnalysis:
     ):
         """Initialize unit cell, supercell, force_constants and lattice points.
 
-        Args:
-            primitive (Atoms): unit cell
-            supercell (Atoms): supercell
-            force_constants (np.array): force constants as obtained from TDEP
-                {inf,out}file.forceconstant
-            lattice_points_frac (np.array): lattice points in fractional coordinates as
-                obtained from TDEP {inf,out}file.forceconstant
-            force_constants_supercell (np.array): force constants in the shape of the
-                supercell (3N, 3N), e.g. obtained from infile.forceconstant_remapped
+        Parameters
+        ----------
+        primitive: Atoms
+            The unit cell structure
+        supercell: Atoms
+            The supercell structure
+        force_constants: np.array
+            The force constants as obtained from TDEP {inf,out}file.forceconstant
+        lattice_points_frac: np.array
+            The lattice points in fractional coordinates as obtained from TDEP {inf,out}file.forceconstant
+        force_constants_supercell: np.array
+            The force constants in the shape of the supercell (3N, 3N), e.g. obtained from infile.forceconstant_remapped
+        q_points: np.ndarray
+            The list of q_points
+        verbose: bool
+            If True be verbose
 
-            """
+        Raises
+        ------
+        AssertionError
+            If force constants shape is not (number of lattice points, number of atoms in primitive cell, 3, number of atoms in primitive cell, 3 )
+        """
 
         timer = Timer(f"Set up harmonic analysis for {get_sysname(primitive)}:")
 
@@ -118,7 +129,15 @@ class HarmonicAnalysis:
         return clean_matrix(self.q_points @ self.primitive.cell.T)
 
     def set_irreducible_q_points(self, is_time_reversal=True, symprec=1e-5):
-        """ determine the irreducible q grid in fractionals + mapping """
+        """ determine the irreducible q grid in fractionals + mapping
+
+        Parameters
+        ----------
+        is_time_reversal: bool
+            If True time reversal symmetry is included
+        symprec: float
+            Symmetry tolerance in distance
+        """
 
         fq_supercell = np.round(self.q_points @ self.supercell.cell.T).astype(int)
 
@@ -134,7 +153,15 @@ class HarmonicAnalysis:
         self._irreducible_q_points = ir_grid
 
     def get_irreducible_q_points_frac(self, is_time_reversal=True, symprec=1e-5):
-        """ return the irreducible q grid in fractionals + mapping """
+        """ return the irreducible q grid in fractionals + mapping
+
+        Parameters
+        ----------
+        is_time_reversal: bool
+            If True time reversal symmetry is included
+        symprec: float
+            Symmetry tolerance in distance
+        """
 
         if self._irreducible_q_points is None:
             self.set_irreducible_q_points(
@@ -144,7 +171,15 @@ class HarmonicAnalysis:
         return self._irreducible_q_points
 
     def get_irreducible_q_points_mapping(self, is_time_reversal=True, symprec=1e-5):
-        """ return the map from q points to irreducibe qpoints """
+        """ return the map from q points to irreducibe qpoints
+
+        Parameters
+        ----------
+        is_time_reversal: bool
+            If True time reversal symmetry is included
+        symprec: float
+            Symmetry tolerance in distance
+        """
         if self._irreducible_q_points is None:
             self.set_irreducible_q_points(
                 is_time_reversal=is_time_reversal, symprec=symprec
@@ -190,7 +225,25 @@ class HarmonicAnalysis:
         return fc / np.sqrt(m[:, None] * m[None, :])
 
     def get_Dq(self, q=np.array([0.0, 0.0, 0.0]), fractional=True):
-        """ return dynamical matrix at q. """
+        """ return dynamical matrix at q.
+
+        Parameters
+        ----------
+        q: np.ndarray
+            The q_point to get the dynamical matrix from
+        fractional: bool
+            If True use fractional coordinates
+
+        Returns
+        -------
+        Dq: np.ndarray
+            The dynamical matrix at q
+
+        Raises
+        ------
+        AssertionError
+            If Dq is Not Hermitian
+        """
         if fractional:
             phases = np.exp(2j * np.pi * self.lattice_points_frac @ q)
         else:
@@ -208,7 +261,22 @@ class HarmonicAnalysis:
         return Dq
 
     def solve_Dq(self, q=np.array([0.0, 0.0, 0.0]), fractional=True):
-        """ solve eigenvalue problem for dynamical matrix at q """
+        """Solve eigenvalue problem for dynamical matrix at q
+
+        Parameters
+        ----------
+        q: np.ndarray
+            The q_point to get the dynamical matrix from
+        fractional: bool
+            If True use fractional coordinates
+
+        Returns
+        -------
+        w_2: np.ndarray
+            The square of frequencies
+        ev: np.ndarray
+            The corresponding eigenvectors
+        """
 
         Dq = self.get_Dq(q, fractional=fractional)
 
@@ -217,7 +285,22 @@ class HarmonicAnalysis:
         return w_2, ev
 
     def diagonalize_dynamical_matrices(self, q_points=None):
-        """ solve eigenvalue problem for dyn. matrices at (commensurate) q-points """
+        """Solve eigenvalue problem for dyn. matrices at (commensurate) q-points
+
+        Parameters
+        ----------
+        q: np.ndarray
+            The q_point to get the dynamical matrix from
+        fractional: bool
+            If True use fractional coordinates
+
+        Returns
+        -------
+        omegas2: np.ndarray
+            The square of frequencies
+        eigenvectors: np.ndarray
+            The corresponding eigenvectors
+        """
 
         if q_points is None:
             q_points = self.q_points_frac
@@ -266,11 +349,23 @@ class HarmonicAnalysis:
 
     def get_Uqst(self, trajectory, displacements=True, velocities=True):
         """ Get the mode projected positions, weighted by mass.
-            With `displacements=True`, return mode projected displacements.
-            With `velocities=True`, return mode projected velocities.
-        Returns:
-            (U_qst, V_qst): tuple of np.ndarrays for mode projected displacements and
-                velocities """
+
+        Parameters
+        ----------
+        trajectory: list of ase.atoms.Atoms
+            The trajectory to work over
+        displacements: bool
+            If True return mode projected displacements.
+        velocities: bool
+            If True return mode projected velocities.
+
+        Returns
+        -------
+        U_qst: np.ndarrays
+            Mode projected displacement
+        V_qst: np.ndarrays
+            Mode projected velocities
+        """
 
         print(f"Project trajectory onto modes:")
         shape = [len(trajectory), len(self.q_points), 3 * len(self.primitive)]
@@ -291,7 +386,13 @@ class HarmonicAnalysis:
         return Uqst, Vqst
 
     def get_Zqst(self, trajectory):
-        """ Return the imaginary mode amplitude for [t, q, s] """
+        """ Return the imaginary mode amplitude for [t, q, s]
+
+        Parameters
+        ----------
+        trajectory: list of Atoms
+            The trajectory to work over
+        """
 
         Uqst, Vqst = self.get_Uqst(trajectory)
 
@@ -302,8 +403,21 @@ class HarmonicAnalysis:
     def project(self, trajectory, times=None):
         """ perform mode projection for atoms objects in trajectory
 
-        Return:
-        Amplitdues, Angles, Energies in shape [q, s, t]
+        Parameters
+        ----------
+        trajectory: list of Atoms
+            The trajectory to work over
+        times: list of float
+            The times at each point in the trajectory
+
+        Returns
+        -------
+        A_qst2: np.ndarray(shape [q, s, t])
+            Amplitdues
+        phi_qst: np.ndarray(shape[q, s, t])
+            Angles
+        E_qst: np.ndarray(shape[q, s, t])
+            Energies
         """
 
         timer = Timer("Perform mode analysis for trajectory")

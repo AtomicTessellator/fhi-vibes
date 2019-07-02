@@ -24,9 +24,15 @@ class AimsSettings(WorkflowSettings):
     def __init__(self, settings=None):
         """Settings in the context of a phonopy workflow
 
-        Args:
-            settings (Settings): Settings object
+        Parameters
+        ----------
+        settings: Settings
+            Workflow settings for the task
 
+        Raises
+        ------
+        SettingsError
+            If the basis set type is not defined
         """
 
         super().__init__(
@@ -48,6 +54,15 @@ class AimsContext:
     """context for aims calculation"""
 
     def __init__(self, settings, workdir=None):
+        """Constructor
+
+        Parameters
+        ----------
+        settings: Settings
+            Settings Object for the Workflow
+        workdir: str
+            Directory to run the calculation in
+        """
         self.settings = AimsSettings(settings)
 
         if workdir:
@@ -62,7 +77,15 @@ class AimsContext:
 
     @property
     def geometry_files(self):
-        """return the geometry input"""
+        """The geometry input files
+
+        Raises
+        ------
+        click.FileError
+            If geometry file does not exist
+        AssertionError
+            If file in self.settings.geometry.files does not exist
+        """
         # find geometries
         filenames = []
         s = self.settings
@@ -85,7 +108,7 @@ class AimsContext:
 
     @property
     def atoms_to_calculate(self):
-        """return atoms that are supposed to be computed"""
+        """The atoms that are supposed to be computed"""
         if not self._atoms_to_calculate:
             filenames = self.geometry_files
             atoms_list = [read(file, format="aims") for file in filenames]
@@ -94,7 +117,7 @@ class AimsContext:
 
     @property
     def primitive(self):
-        """return primitive structure"""
+        """The primitive cell structure"""
         g = self.settings.geometry
         if not self._primitive and "primitive" in g:
             self._primitive = read(g["primitive"], format="aims")
@@ -102,7 +125,7 @@ class AimsContext:
 
     @property
     def supercell(self):
-        """return supercell"""
+        """The supercell structure"""
         g = self.settings.geometry
         if not self._supercell and "supercell" in g:
             self._supercell = read(g["supercell"], format="aims")
@@ -110,24 +133,39 @@ class AimsContext:
 
     @property
     def basisset_location(self):
+        """Location of the basis set files"""
         loc = self.settings.machine.basissetloc
         return Path(loc)
 
     @property
     def ref_atoms(self):
+        """The reference structure for the calculation"""
         if not self._ref_atoms:
             self._ref_atoms = read(self.geometry_files[0], format="aims")
         return self._ref_atoms
 
     @ref_atoms.setter
     def ref_atoms(self, atoms):
+        """ref_atoms setter
+
+        Parameters
+        ----------
+        atoms: ase.atoms.Atoms
+            atoms to set ref_atoms
+
+        Raises
+        ------
+        AssertionError
+            atoms is not of type ase.atoms.Atoms
+        """
         assert isinstance(atoms, Atoms)
         self._ref_atoms = atoms
 
     def get_calculator(self):
-        """return and ase aims calculator object based on the context"""
+        """Get the ASE Calculator based on the context"""
         return setup_aims(self)
 
     @property
     def name(self):
+        """The name of the calculation"""
         return self.settings.name

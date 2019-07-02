@@ -30,7 +30,26 @@ def postprocess(
     verbose=True,
     **kwargs,
 ):
-    """ Phonopy postprocess """
+    """Phonopy postprocess
+
+    Parameters
+    ----------
+    trajectory: str or Path
+        The trajectory file to process
+    workdir: str or Path
+        The working directory where trajectory is stored
+    calculate_full_force_constants: bool
+        If True calculate the full force constant matrix
+    born_charges_file: str or Path
+        Path to the born charges file
+    verbose: bool
+        If True be verbose
+
+    Returns
+    -------
+    phonon: phonopy.Phonopy
+        The Phonopy object with the force constants calculated
+    """
 
     timer = Timer()
 
@@ -78,11 +97,6 @@ def postprocess(
     if calculate_full_force_constants:
         phonon.produce_force_constants(force_sets, calculate_full_force_constants=True)
 
-        # force_constants = get_force_constants(phonon)
-        # fname = "force_constants.dat"
-        # np.savetxt(fname, force_constants)
-        # talk(f".. Force constants saved to {fname}.")
-
     if verbose:
         timer("done")
     return phonon
@@ -107,9 +121,42 @@ def extract_results(
     tdep_reduce_fc=True,
 ):
     """ Extract results from phonopy object and present them.
-        With `tdep=True`, the necessary input files for TDEP's
-          `convert_phonopy_to_forceconstant`
-        are written. """
+
+    Parameters
+    ----------
+    phonon: phonopy.Phonopy
+        The Phonopy Object with calculated force constants
+    write_geometries: bool
+        If True write the geometry files for the primitive and supercells
+    write_force_constants: bool
+        If True write the FORCE_CONSTANTS file
+    write_thermal_properties: bool
+        If True write a thermal properties yaml file
+    write_bandstructure: bool
+        If True write the band.yaml file
+    write_dos: bool
+        If True write the total DOS output file
+    write_pdos: bool
+        If True the projected DOS output file
+    plot_bandstructure: bool
+        If True plot the band structure save it to a pdf
+    plot_dos: bool
+        If True plot the total density of states and save it to a pdf
+    plot_pdos: bool
+        If True plot the projected density of states and save it to a pdf
+    animate: bool
+        If True write anaimation files for all high-symmetry poitns
+    animate_q: list of tuples
+        A list of q_points to write animation files for
+    q_mesh: np.ndarray
+        The size of the interpolated q-grid
+    output_dir: str or Path
+        Directory to store output files
+    tdep: bool
+        If True the necessary input files for TDEP's `convert_phonopy_to_forceconstant` are written.
+    tdep_reduce_fc: bool
+        If True reduce force_constants to match tdep's format
+    """
 
     timer = Timer("\nExtract phonopy results:")
     if q_mesh is None:

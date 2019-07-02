@@ -6,25 +6,75 @@ from .numerics import clean_matrix
 from numpy import pi, sin, cos, arccos, sqrt, dot
 from numpy.linalg import norm
 
+
 def reciprocal_lattice(cell):
+    """Get the reciprocal lattice for a given cell
+
+    Parameters
+    ----------
+    cell: np.ndarray
+        The lattice vectors that you want to convert
+
+    Returns
+    -------
+    reciprocal_cell: np.ndarray
+        The reciprocal cell
+    """
     v = np.linalg.inv(cell).T
     reciprocal_cell = v * 2 * np.pi
     return reciprocal_cell
 
+
 def unit_vector(x):
-    """Return a unit vector in the same direction as x."""
-    y = np.array(x, dtype='float')
+    """Return a unit vector in the same direction as x.
+
+    Parameters
+    ----------
+    x: np.ndarray
+        The vector to get the unit vector of
+
+    Returns
+    -------
+    np.ndarray
+        The unit vector of x
+    """
+    y = np.array(x, dtype="float")
     return y / norm(y)
 
 
 def angle(x, y):
-    """Return the angle between vectors a and b in degrees."""
-    return arccos(dot(x, y) / (norm(x) * norm(y))) * 180. / pi
+    """Return the angle between vectors a and b in degrees.
+
+    Parameters
+    ----------
+    x: np.ndarray
+        One of the vector to get the angle between
+    y: np.ndarray
+        The other vector to get the angle between
+
+    Returns
+    -------
+    float
+        The angle between x and y
+    """
+    return arccos(dot(x, y) / (norm(x) * norm(y))) * 180.0 / pi
 
 
 def cell_to_cellpar(cell, radians=False):
-    """ [ASE] Returns the cell parameters [a, b, c, alpha, beta, gamma] as a
-    numpy array. Helpful because it does not require Atoms object/atomic positions."""
+    """ [ASE] Returns the cell parameters [a, b, c, alpha, beta, gamma] as a numpy array. Helpful because it does not require Atoms object/atomic positions.
+
+    Parameters
+    ----------
+    cell: np.ndarray
+        The lattice vectors whose parameters to return
+    radians: bool
+        If True return angles in radians
+
+    Returns
+    -------
+    np.ndarray
+        The cell parameters
+    """
     va, vb, vc = cell
     a = np.linalg.norm(va)
     b = np.linalg.norm(vb)
@@ -56,8 +106,22 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     and va will be along the projection of `a_direction` onto the a-b
     plane.
 
-    Example:
+    Parameters
+    ----------
+    cellpar: np.ndarray
+        The cell parameters
+    ab_normal: np.ndarray
+        Direction to orient the normal of the plane defined by a and b
+    a_direction: np.ndarray
+        Direction to orient a
 
+    Returns
+    -------
+    cell: np.ndarray
+        The 3x3 cell corresponding to the parameters
+
+    Example
+    -------
     >>> cell = cellpar_to_cell([1, 2, 4, 10, 20, 30], (0, 1, 1), (1, 2, 3))
     >>> np.round(cell, 3)
     array([[ 0.816, -0.408,  0.408],
@@ -79,7 +143,7 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     Y = np.cross(Z, X)
 
     # Express va, vb and vc in the X,Y,Z-system
-    alpha, beta, gamma = 90., 90., 90.
+    alpha, beta, gamma = 90.0, 90.0, 90.0
     if isinstance(cellpar, (int, float)):
         a = b = c = cellpar
     elif len(cellpar) == 1:
@@ -117,7 +181,7 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     vb = b * np.array([cos_gamma, sin_gamma, 0])
     cx = cos_beta
     cy = (cos_alpha - cos_beta * cos_gamma) / sin_gamma
-    cz = sqrt(1. - cx * cx - cy * cy)
+    cz = sqrt(1.0 - cx * cx - cy * cy)
     vc = c * np.array([cx, cy, cz])
 
     # Convert to the Cartesian x,y,z-system
@@ -132,8 +196,18 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
 
 
 def metric_from_cell(cell):
-    """Calculates the metric matrix from cell, which is given in the
-    Cartesian system."""
+    """Calculates the metric matrix from cell, which is given in the Cartesian system.
+
+    Parameters
+    ----------
+    cell: np.ndarray
+        The cell to get the metric of
+
+    Returns
+    -------
+    np.ndarray
+        The cell metric
+    """
     cell = np.asarray(cell, dtype=float)
     return np.dot(cell, cell.T)
 
@@ -145,16 +219,24 @@ def crystal_structure_from_cell(cell, eps=2e-4, niggli_reduce=True):
     the crystal structure returned. Works exactly the opposite
     way as ase.dft.kpoints.get_special_points().
 
-    Parameters:
-
+    Parameters
+    ----------
     cell : numpy.array or list
         An array like atoms.get_cell()
+    eps: float
+        tolerance for checks
+    niggli_reduce: bool
+        If True return the Niggli reduced version of the crystal structure
 
-    Returns:
-
+    Returns
+    -------
     crystal structure : str
-        'cubic', 'fcc', 'bcc', 'tetragonal', 'orthorhombic',
-        'hexagonal' or 'monoclinic'
+        'cubic', 'fcc', 'bcc', 'tetragonal', 'orthorhombic', 'hexagonal' or 'monoclinic'
+
+    Raises
+    ------
+    ValueError
+        If the crystal structure can not be found
     """
     cellpar = cell_to_cellpar(cell)
     abc = cellpar[:3]
@@ -163,39 +245,53 @@ def crystal_structure_from_cell(cell, eps=2e-4, niggli_reduce=True):
     alpha, beta, gamma = angles
 
     if abc.ptp() < eps and abs(angles - pi / 2).max() < eps:
-        return 'cubic'
+        return "cubic"
     elif abc.ptp() < eps and abs(angles - pi / 3).max() < eps:
-        return 'fcc'
+        return "fcc"
     elif abc.ptp() < eps and abs(angles - np.arccos(-1 / 3)).max() < eps:
-        return 'bcc'
+        return "bcc"
     elif abs(a - b) < eps and abs(angles - pi / 2).max() < eps:
-        return 'tetragonal'
+        return "tetragonal"
     elif abs(angles - pi / 2).max() < eps:
-        return 'orthorhombic'
-    elif (abs(a - b) < eps and
-          (abs(gamma - pi / 3 * 2) < eps or abs(gamma - pi / 3) < eps) and
-          abs(angles[:2] - pi / 2).max() < eps):
-        return 'hexagonal'
+        return "orthorhombic"
+    elif (
+        abs(a - b) < eps
+        and (abs(gamma - pi / 3 * 2) < eps or abs(gamma - pi / 3) < eps)
+        and abs(angles[:2] - pi / 2).max() < eps
+    ):
+        return "hexagonal"
     elif (abs(angles - pi / 2) > eps).sum() == 1:
-        return 'monoclinic'
-    elif (abc.ptp() < eps and angles.ptp() < eps and
-          np.abs(angles).max() < pi / 2):
-        return 'rhombohedral type 1'
-    elif (abc.ptp() < eps and angles.ptp() < eps and
-          np.abs(angles).max() > pi / 2):
-        return 'rhombohedral type 2'
+        return "monoclinic"
+    elif abc.ptp() < eps and angles.ptp() < eps and np.abs(angles).max() < pi / 2:
+        return "rhombohedral type 1"
+    elif abc.ptp() < eps and angles.ptp() < eps and np.abs(angles).max() > pi / 2:
+        return "rhombohedral type 2"
     else:
         if niggli_reduce:
             from ase.build.tools import niggli_reduce_cell
+
             cell, _ = niggli_reduce_cell(cell)
             return crystal_structure_from_cell(cell, niggli_reduce=False)
-        raise ValueError('Cannot find crystal structure')
+        raise ValueError("Cannot find crystal structure")
 
 
 def complete_cell(cell):
     """Calculate complete cell with missing lattice vectors.
 
-    Returns a new 3x3 ndarray.
+    Parameters
+    ----------
+    cell: np.ndarray
+        Cell with missing lattice vectors
+
+    Returns
+    -------
+    cell: np.ndarray
+        The new, and complete 3x3 ndarray.
+
+    Raises
+    ------
+    AssertionError
+        if 2 vectors are missing and the magnitude of the two missing vectors is not 0
     """
 
     cell = np.array(cell, dtype=float)
@@ -217,12 +313,39 @@ def complete_cell(cell):
 
 
 def is_orthorhombic(cell):
-    """Check that cell only has stuff in the diagonal."""
+    """Check that cell only has stuff in the diagonal.
+
+    Parameters
+    ----------
+    cell: np.ndarray
+        Lattice vectors of system
+
+    Returns
+    -------
+    bool
+        True if cell is diagonal
+    """
     return not (np.flatnonzero(cell) % 4).any()
 
 
 def orthorhombic(cell):
-    """Return cell as three box dimensions or raise ValueError."""
+    """Return cell as three box dimensions or raise ValueError.
+
+    Parameters
+    ----------
+    cell: np.ndarray
+        Lattice vectors of system
+
+    Returns
+    -------
+    np.ndarray
+        The three box dimensions
+
+    Raises
+    ------
+    ValueError
+        If cell is not orthorhombic
+    """
     if not is_orthorhombic(cell):
-        raise ValueError('Not orthorhombic')
+        raise ValueError("Not orthorhombic")
     return cell.diagonal().copy()

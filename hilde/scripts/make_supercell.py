@@ -25,7 +25,25 @@ def print_matrix(matrix, indent=2):
 
 
 def make_supercell(filename, dimension, n_target, deviation, dry, format, scaled):
-    """create or find a supercell"""
+    """create or find a supercell
+
+    Parameters
+    ----------
+    filename: str
+        Input primitive (for the super cell) cell geometry file (default: geometry.in)
+    dimension: list of ints
+        the supercell matrix in any format (defined by 1, 3, or 9 ints)
+    n_target: int
+        Target number of atoms in the supercell
+    deviation: float
+        Allowed deviation from n_target (default: 0.2)
+    dry: bool
+        If True Do not include symmetry information
+    format: str
+        Format of the input geometry file (default: aims)
+    scaled: bool
+        If True use fractional coordinates
+    """
 
     timer = Timer()
     print(f"Find supercell for")

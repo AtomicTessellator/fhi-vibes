@@ -22,10 +22,10 @@ def output():
 @click.option("-bs", "--bandstructure", is_flag=True)
 @click.option("-dos", "--density_of_states", is_flag=True)
 @click.option("-tp", "--thermal_properties", is_flag=True)
-@click.option("--full", is_flag=True)
-@click.option("--tdep", is_flag=True, hidden=True)
 @click.option("--animate", is_flag=True, help="print animation files for special kpts")
 @click.option("--animate_q", nargs=3, multiple=True, type=float, help="animation at q")
+@click.option("--full", is_flag=True)
+@click.option("--tdep", is_flag=True, hidden=True)
 @click.pass_obj
 def phonopy_output(
     obj,
@@ -35,10 +35,10 @@ def phonopy_output(
     bandstructure,
     density_of_states,
     thermal_properties,
-    full,
-    tdep,
     animate,
     animate_q,
+    full,
+    tdep,
 ):
     """perform phonopy postprocess for TRAJECTORY"""
     from hilde.phonopy.postprocess import postprocess, extract_results
@@ -63,7 +63,7 @@ def phonopy_output(
         "q_mesh": q_mesh,
         "output_dir": output_directory,
         "tdep": tdep,
-        "animate": animate,
+        "animate": animate or full,
         "animate_q": animate_q,
     }
 

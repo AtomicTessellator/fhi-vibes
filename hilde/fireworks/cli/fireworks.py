@@ -47,13 +47,18 @@ class ListOption(click.Option):
     """A list option for click"""
 
     def type_cast_value(self, ctx, value):
-        """
-        Casts a comma separated list string as a python list
-        Args:
-            ctx (Context): context for the operation (necessary, but not used)
-            value (str): value of the option
+        """Casts a comma separated list string as a python list
 
-        Returns: value(list)
+        Parameters
+        ----------
+        ctx: Context
+            context for the operation (necessary, but not used)
+        value: str
+            value of the option
+
+        Returns
+        -------
+        value: list
             The comma seperated list as either a list of strs or a list of ints depending on the type of the option
         """
         if not value:
@@ -74,12 +79,7 @@ def fireworks():
 @click.option("-w", "--workflow", default="workflow.in")
 @click.option("-l", "--launchpad", default=LAUNCHPAD_LOC)
 def add_wf(workflow, launchpad):
-    """
-    Adds a workflow to the launchpad
-    Args:
-        workflow: Workflow file to be added to the launch pad
-        launchpad: launchpad yaml definition file
-    """
+    """Adds a workflow to the launchpad"""
     wflow = Settings(settings_file=workflow)
     if "basisset" not in wflow and "basisset" in wflow.general:
         wflow["basisset"] = AttributeDict({"type": wflow.general.basisset})
@@ -271,7 +271,7 @@ def claunch(
     sleep,
     tasks_to_queue,
 ):
-    """combined launcher script for argument descriptions see above help lines"""
+    """Launches Fireworks both locally and remotely based on what the tasks func is"""
     if remote_host and not HAS_FABRIC:
         raise ImportError(
             "Remote options require the Fabric package v2+ to be installed!"
@@ -323,7 +323,7 @@ def claunch(
         strm_lvl=loglvl,
         timeout=timeout,
         fill_mode=fill_mode,
-        fw_ids=firework_ids,
+        firework_ids=firework_ids,
         wflow=wflow,
         tasks2queue=tasks_to_queue,
         gss_auth=gss_auth,
@@ -437,7 +437,7 @@ def qlaunch(
     config_dir,
     fill_mode,
 ):
-    """queue launching for fireworks, for argument description see above help lines"""
+    """Launch FireWorks to the queue"""
     launchpad_file, fworker_file, queueadapter_file = get_fw_files(
         config_dir, launchpad_file, fworker_file, queueadapter_file, remote_host
     )
@@ -564,7 +564,7 @@ def qlaunch_rapidfire(
     sleep,
     tasks_to_queue,
 ):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
+    """Preform a qlaunch rpaidfire"""
     ctx.obj.firework_ids = firework_ids
     ctx.obj.wflow = wflow
     ctx.obj.maxjobs_queue = maxjobs_queue
@@ -597,19 +597,19 @@ def qlaunch_rapidfire(
 @click.pass_context
 @click.option(
     "-f",
-    "--fw_id",
-    help="specific fw_id to run in reservation mode",
+    "--firework_id",
+    help="specific firework_id to run in reservation mode",
     default=None,
     type=int,
 )
-def qlaunch_singleshot(ctx, fw_id):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
-    ctx.obj.fw_id = fw_id
+def qlaunch_singleshot(ctx, firework_id):
+    """preform a qlaunch singleshot"""
+    ctx.obj.firework_id = firework_id
     ctx.obj.command = "singleshot"
     non_default = []
-    val = getattr(ctx.obj, "fw_id", None)
+    val = getattr(ctx.obj, "firework_id", None)
     if val is not None:
-        non_default.append("--{} {}".format("fw_id", val))
+        non_default.append("--{} {}".format("firework_id", val))
     do_qluanch(ctx, non_default)
 
 
@@ -628,7 +628,7 @@ def qlaunch_singleshot(ctx, fw_id):
     default=CONFIG_FILE_DIR,
 )
 def rlaunch(ctx, loglvl, silencer, launchpad_file, fworker_file, config_dir):
-    """common launch operations, for argument description see above help lines"""
+    """Launch a rocket locally"""
 
     launchpad_file, fworker_file, _ = get_fw_files(
         config_dir, launchpad_file, fworker_file, None, None
@@ -698,7 +698,7 @@ def rlaunch(ctx, loglvl, silencer, launchpad_file, fworker_file, config_dir):
 def rlaunch_rapidfire(
     ctx, firework_ids, wflow, nlaunches, timeout, sleep, max_loops, local_redirect
 ):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
+    """preform a rlaunch rpaidfire"""
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx)
     r_rapidfire(
         launchpad,
@@ -710,7 +710,7 @@ def rlaunch_rapidfire(
         strm_lvl=ctx.obj.loglvl,
         timeout=timeout,
         local_redirect=local_redirect,
-        fw_ids=firework_ids,
+        firework_ids=firework_ids,
         wflow_id=wflow,
     )
 
@@ -719,18 +719,19 @@ def rlaunch_rapidfire(
 @click.pass_context
 @click.option(
     "-f",
-    "--fw_id",
-    help="specific fw_id to run in reservation mode",
+    "--firework_id",
+    help="specific firework_id to run in reservation mode",
     default=None,
     type=int,
 )
 @click.option("--offline", help="run in offline mode (FW.json required)", is_flag=True)
 @click.option("--pdb", help="shortcut to invoke debugger on error", is_flag=True)
-def rlaunch_singleshot(ctx, fw_id, offline, pdb):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
+def rlaunch_singleshot(ctx, firework_id, offline, pdb):
+    """preform a rlaunch singleshot"""
+
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx, offline)
 
-    launch_rocket(launchpad, fworker, fw_id, ctx.obj.loglvl, pdb_on_exception=pdb)
+    launch_rocket(launchpad, fworker, firework_id, ctx.obj.loglvl, pdb_on_exception=pdb)
 
 
 @rlaunch.command("multi")
@@ -786,7 +787,7 @@ def rlaunch_multi(
     exclude_current_node,
     local_redirect,
 ):
-    """preform a qlaunch rpaidfire, for argument description see above help lines"""
+    """preform a rlaunch multi"""
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx)
 
     total_node_list = None

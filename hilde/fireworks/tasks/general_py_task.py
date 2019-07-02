@@ -8,7 +8,13 @@ from hilde.settings import Settings
 
 
 def get_func(func_path):
-    """A function that takes in a path to a python function and returns that function"""
+    """A function that takes in a path to a python function and returns that function
+
+    Parameters
+    ----------
+    func_path: str
+        The path to the python function
+    """
     toks = func_path.rsplit(".", 1)
     if len(toks) == 2:
         modname, funcname = toks
@@ -28,24 +34,36 @@ def atoms_calculate_task(
     *args,
     fw_settings=None,
 ):
-    """
-    A wrapper function that converts a general function that performs some operation on
-    ASE Atoms/Calculators into a FireWorks style operation
-    Args:
-        func_path (str): Path to the function describing the desired set operations to
-                         be performed on the Atoms/Calculator objects
-        func_fw_out_path (str): Path to the function that describes how the func inputs/outputs
-                                should alter the FireWorks Workflow
-        func_kwargs (dict): A dictionary describing the key word arguments to func
-        func_fw_out_kwargs (dict): Keyword arguments for fw_out function
-        atoms_dict (dict): A dictionary describing the ASE Atoms object
-        calc_dict (dict): A dictionary describing the ASE Calculator object
-        args (list): a list of function arguments passed to func
-        fw_settings (dict): A dictionary describing the FireWorks specific settings
-                            used in func_fw_out
+    """A wrapper function that converts a general function that performs some operation on ASE Atoms/Calculators into a FireWorks style operation
 
-    Returns:
-        (FWAction): The FWAction func_fw_out outputs
+    Parameters
+    ----------
+    func_path: str
+        Path to the function describing the desired set operations to be performed on the Atoms/Calculator objects
+    func_fw_out_path: str
+        Path to the function that describes how the func inputs/outputs should alter the FireWorks Workflow
+    func_kwargs: dict
+        A dictionary describing the key word arguments to func
+    func_fw_out_kwargs: dict
+        Keyword arguments for fw_out function
+    atoms_dict: dict
+        A dictionary describing the ASE Atoms object
+    calc_dict: dict
+        A dictionary describing the ASE Calculator
+    args: list
+        a list of function arguments passed to func
+    fw_settings: dict
+        A dictionary describing the FireWorks specific settings used in func_fw_out
+
+    Returns
+    -------
+    FWAction:
+        The FWAction func_fw_out outputs
+
+    Raises
+    ------
+    RuntimeError
+        If the Task fails
     """
     start_dir = os.getcwd()
     if fw_settings is None:
@@ -97,19 +115,25 @@ def atoms_calculate_task(
 def general_function_task(
     func_path, func_fw_out_path, *args, fw_settings=None, **kwargs
 ):
-    """
-    A wrapper function that converts a general python function into a FireWorks style operation
-    Args:
-        func_path (str): Path to the function describing the desired set operations to be
-                         performed on the Atoms/Calculator objects
-        func_fw_out_path (str): Path to the function that describes how the func inputs/outputs
-                                should alter the FireWorks Workflow
-        args (list): A list of arguments to pass to func and func_fw_out
-        fw_settings (dict): A dictionary describing the FireWorks specific settings
-                            used in func_fw_out
-        kwargs (dict): A dict of key word arguments to pass to the func and func_fw_out
-    Returns:
-        (FWAction): The FWAction func_fw_out outputs
+    """A wrapper function that converts a general python function into a FireWorks style operation
+
+    Parameters
+    ----------
+    func_path: str
+        Path to the function describing the desired set operations to be performed on the Atoms/Calculator objects
+    func_fw_out_path: str
+        Path to the function that describes how the func inputs/outputs should alter the FireWorks Workflow
+    args: list
+        A list of arguments to pass to func and func_fw_out
+    fw_settings: dict
+        A dictionary describing the FireWorks specific settings used in func_fw_out
+    kwargs: dict
+        A dict of key word arguments to pass to the func and func_fw_out
+
+    Returns
+    -------
+    FWAction
+        The FWAction func_fw_out outputs
     """
     if fw_settings is None:
         fw_settings = dict()

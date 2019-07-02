@@ -27,15 +27,21 @@ __date__ = "Jan 14, 2013, Adaptation: October 31, 2018"
 
 
 def convert_input_to_param(param_name, param, param_list):
-    """
-    Converts a function input into a qlaunch parameter
-    Args:
-        param_name (str): name of the parameter for qlaunch
-        param (str): value of the parameter
-        param_list   (list of str): List of all parameters
+    """ Converts a function input into a qlaunch parameter
 
-    Returns:
-        (str): command argument str for qlaunch
+    Parameters
+    ----------
+    param_name: str
+        name of the parameter for qlaunch
+    param: str
+        value of the parameter
+    param_list: list of str
+        List of all parameters
+
+    Returns
+    -------
+    str
+        command argument str for qlaunch
     """
     if param is not None:
         param_list.append(f"--{param_name} {param}")
@@ -64,37 +70,57 @@ def qlaunch_remote(
     remote_shell="/bin/bash -l -c",
     daemon=0,
 ):
-    """
-    This function adapts the python definition of qlaunch in fireworks to a python function
-    Args:
-        command (str): Whether to do a singleshot or rapidfire command
-        maxjobs_queue (int): maximum jobs to keep in queue for this user
-        maxjobs_block (int): maximum jobs to put in a block
-        nlaunches (int): maximum number of launches to perform (int or "infinite";
-                         default 0 is all jobs in DB)
-        sleep (int): sleep time between loops
-        fw_ids (list of int): specific fw_ids to run in reservation mode
-        fw_id (int): ID of a specific FireWork to run in reservation mode
-        wflow (list of int or Workflow): specific Workflow to run in reservation mode
-        silencer (bool): shortcut to mute log messages
-        reserve (bool): reserve a fw
-        launcher_dir (str): Directory to launch rocket from
-        loglvl (str): How much logging should occur
-        gss_auth (bool): Allow GSS-API authorization with Kerberos
-        controlpath (str): Path to a control path for ssh multiplexing
-                           (Only if a modified paramiko that allows ssh multiplexing is used)
-        remote_host (str): Remote host to exec qlaunch.
-                           Right now, only supports running from a config dir.
-        remote_config_dir (list of str): Remote config dir location(s). Defaults to ~/.fireworks.
-                                         You can specify multiple locations if you have multiple
-                                         configurations on the same cluster e.g.,
-                                         multiple queues or FireWorkers.
-        remote_user (str): Username to login to remote host.
-        remote_password (str): Password for remote host (if necessary). For best operation,
-                               it is recommended that you do passwordless ssh.
-        remote_shell (str): Shell command to use on remote host for running submission.
-        daemon (int): Daemon mode. Command is repeated every x seconds. Defaults to 0,
-                      which means non-daemon mode.
+    """ This function adapts the python definition of qlaunch in fireworks to a python function
+
+    Parameters
+    ----------
+    command: str
+        Whether to do a singleshot or rapidfire command
+    maxjobs_queue: int
+        maximum jobs to keep in queue for this user
+    maxjobs_block: int
+        maximum jobs to put in a block
+    nlaunches: int
+        maximum number of launches to perform (int or "infinite"; default 0 is all jobs in DB)
+    sleep: int
+        sleep time between loops
+    fw_ids: list of int
+        specific fw_ids to run in reservation mode
+    fw_id: int
+        ID of a specific FireWork to run in reservation mode
+    wflow: list of int or Workflow
+        specific Workflow to run in reservation mode
+    silencer: bool
+        shortcut to mute log messages
+    reserve: bool
+        reserve a fw
+    launcher_dir: str
+        Directory to launch rocket from
+    loglvl: str
+        How much logging should occur
+    gss_auth: bool
+        Allow GSS-API authorization with Kerberos
+    controlpath: str
+        Path to a control path for ssh multiplexing (Only if a modified paramiko that allows ssh multiplexing is used)
+    remote_host: str
+        Remote host to exec qlaunch. Right now, only supports running from a config dir.
+    remote_config_dir: list
+        str): Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple locations if you have multiple configurations on the same cluster e.g., multiple queues or FireWorkers.
+    remote_user: str
+        Username to login to remote host.
+    remote_password: str
+        Password for remote host (if necessary). For best operation, it is recommended that you do passwordless ssh.
+    remote_shell: str
+        Shell command to use on remote host for running submission.
+    daemon: int
+        Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode.
+
+    Raises
+    ------
+    ImportError
+        If Fabric v2+ is not installed
+    AssertionError
+        If remote_host is localhost
     """
     assert remote_host != "localhost"
 

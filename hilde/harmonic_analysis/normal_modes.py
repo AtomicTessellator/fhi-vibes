@@ -9,8 +9,32 @@ from hilde.helpers import warn
 def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
     r""" u_iL = 1/sqrt(N) \sum_(q,s) \exp(i q.R_L) e_is(q) u_s(q)
 
-    REM shapes:
-        eigenvectors.shape = [n_q, n_s, n_s] """
+    REM shapes are eigenvectors.shape = [n_q, n_s, n_s]
+
+    Parameters
+    ----------
+    u_q: np.ndarray(float)
+        u in the q-point representation
+    q_points: np.ndarray(float)
+        List of q-opints for u_q
+    lattice_points: np.ndarray
+        List of lattice points
+    eigenvectors: np.ndarray
+        phonon eigenvectors
+    indeces: np.ndarray
+        list of indeces for the atoms
+
+    Returns
+    -------
+    np.array
+        u in the lattice points representation
+
+    Raises
+    ------
+    AssertionError
+        If u_temp has an imaginary component
+
+    """
 
     n_atoms = len(indeces)
     L_maps = map_L_to_i(indeces)
@@ -35,15 +59,26 @@ def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):
 
 
 def projector(q_points, lattice_points, eigenvectors, indeces, flat=True):
-    """ obtain the projector onto normal modes for vector product with displacements
+    """Obtain the projector onto normal modes for vector product with displacements
 
-    Args:
-        q_points: (commensurate) q points
-        lattice_points: lattice points within supercell
-        eigenvectors: set of eigenvectors of dynamical matrix for each q points
-        indeces: index map from supercell index I to image index and lattice point index
-            (i, L)
-        flat: return representation for scalar product with flattened positions """
+    Parameters
+    ----------
+    q_points: np.ndarray
+        (commensurate) q points
+    lattice_points: np.ndarray
+        lattice points within supercell
+    eigenvectors: np.ndarray
+        set of eigenvectors of dynamical matrix for each q points
+    indeces: np.ndarray
+        index map from supercell index I to image index and lattice point index(i, L)
+    flat: bool
+        If True return representation for scalar product with flattened positions
+
+    Returns
+    -------
+    ev: np.ndarray
+        The projector onto the normal modes
+    """
 
     na = len(indeces)
     nq, ns = eigenvectors.shape[:2]
@@ -76,15 +111,20 @@ def get_Zqst(in_Uqst, in_Vqst, in_omegas):
 
         -> E_s(q, t) = |Z_s(q, t)|^2
 
-        Parameters:
+    Parameters
+    ----------
+    in_Uqst: list [N_t, N_atoms, 3]
+        mass scaled displacements for each time step
+    in_Vqst: list [N_t, N_atoms, 3]
+        mass scaled velocities for each time step
+    in_omegas: list [N_q, N_s]
+        eigenfrequencies of dynamical matrices at commensurate q-points
 
-        in_Uqst: list [N_t, N_atoms, 3]
-            mass scaled displacements for each time step
-        in_Vqst: list [N_t, N_atoms, 3]
-            mass scaled velocities for each time step
-        in_omegas: list [N_q, N_s]
-            eigenfrequencies of dynamical matrices at commensurate q-points
-        """
+    Returns
+    -------
+    Z_qst: np.ndarray
+        The squared amplitude from mass scaled positions and velocities
+    """
 
     Uqst = np.array(in_Uqst)
     Vqst = np.array(in_Vqst)
@@ -102,16 +142,20 @@ def get_A_qst2(in_U_qst, in_V_qst, in_omegas2):
 
         A^2_s(q, t) = u^2_s(q, t) + \omega_s(q)**-2 * \dot{u}^2_s(q, t)
 
-        Parameters:
+    Parameters
+    ----------
+    in_U_qst: list [N_t, N_atoms, 3]
+        mass scaled displacements for each time step
+    in_V_qst: list [N_t, N_atoms, 3]
+        mass scaled velocities for each time step
+    in_omegas2: list [N_q, N_s]
+        eigenvalues (= squared frequencies) of dynamical matrices at commensurate q-points
 
-        in_U_qst: list [N_t, N_atoms, 3]
-            mass scaled displacements for each time step
-        in_V_qst: list [N_t, N_atoms, 3]
-            mass scaled velocities for each time step
-        in_omegas2: list [N_q, N_s]
-            eigenvalues (= squared frequencies) of dynamical matrices at commensurate
-            q-points
-        """
+    Returns
+    -------
+    A_qst2: np.ndarray
+        The squared amplitude from mass scaled positions and velocities
+    """
 
     U_qst = np.array(in_U_qst)
     V_qst = np.array(in_V_qst)
@@ -131,8 +175,8 @@ def get_phi_qst(in_U_t, in_V_t, in_omegas, in_times=None):
 
     phi_s(q, t) = atan2( -\dot{u}_s(q, t) / \omega_s(q, t) / u_s(q, t))
 
-    Parameters:
-
+    Parameters
+    ----------
     in_U_t: list [N_t, N_atoms, 3]
         mass scaled displacements for each time step
     in_V_t: list [N_t, N_atoms, 3]
@@ -140,6 +184,10 @@ def get_phi_qst(in_U_t, in_V_t, in_omegas, in_times=None):
     in_omegas: list [N_q, N_s]
         frequencies from dynamical matrices at commensurate q-points
 
+    Returns
+    -------
+    phi_qst: np.ndarray
+        The phases from mass scaled positions and velocities
     """
 
     U_t = np.array(in_U_t).real
@@ -165,7 +213,22 @@ def get_phi_qst(in_U_t, in_V_t, in_omegas, in_times=None):
 
 
 def get_E_qst(in_U_t, in_V_t, in_omegas2):
-    """ compute mode resolved energies from mass scaled positions and velocities """
+    """Compute mode resolved energies from mass scaled positions and velocities
+
+    Parameters
+    ----------
+    in_U_t: np.ndarray
+        Input mode projected displacements
+    in_V_t: np.ndarray
+        Input mode projected velocities
+    in_omegas2: np.ndarray
+        Input eigenvalues
+
+    Returns
+    -------
+    E_qst: np.ndarray
+        The mode resolved energies from mass scaled positions and velocities
+    """
 
     omegas2 = np.array(in_omegas2)
 
@@ -178,7 +241,26 @@ def get_E_qst(in_U_t, in_V_t, in_omegas2):
 
 # old stuff, deprecated, but used for testing. why?
 def u_I_to_u_s(u_I, q_points, lattice_points, eigenvectors, indeces):
-    r""" u_s(q) = 1/sqrt(N) e_is(q) . \sum_iL \exp(-i q.R_L) u_iL """
+    r""" u_s(q) = 1/sqrt(N) e_is(q) . \sum_iL \exp(-i q.R_L) u_iL
+
+    Parameters
+    ----------
+    u_I: np.ndarray(float)
+        u in the primitive cell
+    q_points: np.ndarray
+        (commensurate) q points
+    lattice_points: np.ndarray
+        lattice points within supercell
+    eigenvectors: np.ndarray
+        set of eigenvectors of dynamical matrix for each q points
+    indeces: np.ndarray
+        index map from supercell index I to image index and lattice point index(i, L)
+
+    Returns
+    -------
+    u_s: np.ndarray
+        1/sqrt(N) e_is(q) . \sum_iL \exp(-i q.R_L) u_iL
+    """
 
     n_q, n_s = eigenvectors.shape[0:2]
     L_maps = map_L_to_i(indeces)

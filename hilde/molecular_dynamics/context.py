@@ -12,9 +12,10 @@ class MDSettings(WorkflowSettings):
     def __init__(self, settings):
         """Settings in the context of an md workflow
 
-        Args:
-            settings_file (str/Path, optional): name of the settings file (phonopy.in)
-
+        Parameters
+        -----------
+        settings: Settings
+            name of the settings file (phonopy.in)
         """
 
         super().__init__(
@@ -30,6 +31,17 @@ class MDContext:
     """context for phonopy calculation"""
 
     def __init__(self, settings, workdir=None, trajectory=None):
+        """Initialization
+
+        Parameters
+        ----------
+        settings: Settings
+            settings for the MD Workflow
+        workdir: str or Path
+            Working directory for the MD workflow
+        trajectory: str or Path
+            Path to output trajectory
+        """
         self.settings = MDSettings(settings)
 
         if workdir:

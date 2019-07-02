@@ -1,4 +1,4 @@
-""" helpers to deal with structures (as represented by ase.Atoms) """
+""" helpers to deal with structures (as represented by ase.atoms.Atoms) """
 
 import numpy as np
 from ase.geometry import cell_to_cellpar, cellpar_to_cell
@@ -6,9 +6,26 @@ from hilde.helpers.numerics import clean_matrix
 
 # no ase
 def clean_atoms(input_atoms, align=False, tolerance=1e-9):
-    """Objective: Put position of atom 0 to origin,
-    align 1. lattice vector with x axis, 2. to xy plane
-    rotation: change lattice via rotations, else: change via cellpars
+    """Put position of atom 0 to origin, align 1. lattice vector with x axis, 2. to xy plane rotation: change lattice via rotations, else: change via cellpars
+
+    Parameters
+    ----------
+    input_atoms: ase.atoms.Atoms
+        input atoms to be cleaned
+    align: bool
+        If True align the cell based off of ase.geometry.cellpar_to_cell base alignment
+    tolerance: float
+        tolerance for the allowed change in volume
+
+    Returns
+    -------
+    atoms: ase.atoms.Atoms
+        The cleaned atoms object
+
+    Raises
+    ------
+    AssertionError
+        If volume difference is greater than tolerance
     """
 
     atoms = input_atoms.copy()

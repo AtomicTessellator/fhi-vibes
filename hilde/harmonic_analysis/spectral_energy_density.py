@@ -11,14 +11,19 @@ def compute_sed(traj, ideal, prim, k_points):
 
     Parameters
     ----------
-    traj : list
+    traj : list of ase.atoms.Atoms
         trajectory with atoms objects with velocities
-    ideal : ASE atoms object
+    ideal : ase.atoms.Atoms
         ideal atoms object
-    prim : ASE atoms object
+    prim : ase.atoms.Atoms
         compatible primitive cell. Must be aligned correctly
     k_points : list
         list of k points in cart coord (2pi must be included)
+
+    Returns
+    -------
+    density: np.ndarray(dtype=float, shape=(len(k_points), velocities.shape[2]))
+        The spectral density of the trajectory
     """
 
     velocities = []
@@ -46,12 +51,39 @@ def compute_sed(traj, ideal, prim, k_points):
                 # sum similar atoms with the same phase
                 tmp += np.outer(exppos[:, i], velocities[i, alpha])
 
-            density += masses[b] * np.abs(tmp)**2
+            density += masses[b] * np.abs(tmp) ** 2
 
     return density
 
 
 def _index_offset(atoms, prim, atol=1e-3, rtol=0.0):
+    """Computes the index_offset
+
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        The atoms object
+    prim: ase.atoms.Atoms
+        The primitive cell
+    atol: float
+        The absolute tolerance
+    rtol: float
+        The relative tolerance
+
+    Returns
+    -------
+    index: np.ndarray(int)
+        The index array
+    offset: np.ndarray(int)
+        The offset
+
+    Raises
+    ------
+    ValueError
+        If prim is not compatible with atoms
+    AssertionError
+        the type of offset is not int
+    """
     index, offset = [], []
     for pos in atoms.positions:
         spos = np.linalg.solve(prim.cell.T, pos)
@@ -66,7 +98,7 @@ def _index_offset(atoms, prim, atol=1e-3, rtol=0.0):
             offset.append(off)
             break
         else:
-            raise ValueError('prim not compatible with atoms')
+            raise ValueError("prim not compatible with atoms")
 
     index, offset = np.array(index), np.array(offset)
     return index, offset

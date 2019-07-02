@@ -27,6 +27,7 @@ from hilde.fireworks.qlaunch_remote import qlaunch_remote
 from hilde.fireworks._defaults import FW_DEFAULTS
 from hilde.settings import Settings
 
+# See if Fabric2 is installed
 try:
     import fabric
 
@@ -44,13 +45,17 @@ else:
 
 
 def get_ordred_fw_ids(wflow):
-    """
-    Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow
-    Args:
-        wflow (WorkFlow): WorkFlow to run
+    """Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow
 
-    Returns:
-        fw_ids_ordered(list of ints): An ordered list for the desired workflow to run
+    Parameters
+    ----------
+    wflow: WorkFlow
+        WorkFlow to run
+
+    Returns
+    -------
+    fw_ids_ordered: list of ints
+        An ordered list for the desired workflow to run
     """
     fw_ids_ordered = wflow.leaf_fw_ids
     parent_links = wflow.links.parent_links
@@ -63,14 +68,19 @@ def get_ordred_fw_ids(wflow):
 
 
 def use_queue_launch(fire_work, tasks2queue):
-    """
-    Determines if a particular FireWork should be ran on a cluster
-    Args:
-        fire_work (FireWork): FireWork to be run locally or remotely
-        tasks2queue (list of str): Paths of functions to run on the queue
+    """Determines if a particular FireWork should be ran on a cluster
 
-    Returns:
-        (bool): True if the task should be run on a cluster
+    Parameters
+    ----------
+    fire_work: FireWork
+        FireWork to be run locally or remotely
+    tasks2queue: list of str
+        Paths of functions to run on the queue
+
+    Returns
+    -------
+    bool
+        True if the task should be run on a cluster
     """
     for task in fire_work.spec["_tasks"]:
         if task["args"][0] in tasks2queue:
@@ -104,37 +114,65 @@ def rapidfire(
     remote_recover_offline=False,
     daemon=0,
 ):
-    """
-    Submit many jobs to the queue.
-    Args:
-        launchpad (LaunchPad)
-        fworker (FWorker)
-        qadapter (QueueAdapterBase)
-        launch_dir (str): directory where we want to write the blocks
-        nlaunches (int): total number of launches desired; "infinite" for loop, 0 for one round
-        njobs_queue (int): stops submitting jobs when njobs_queue jobs are in the queue, 0 for
-                           no limit
-        njobs_block (int): automatically write a new block when njobs_block jobs are in a
-                           single block
-        sleep_time (int): secs to sleep between rapidfire loop iterations
-        reserve (bool): Whether to queue in reservation mode
-        strm_lvl (str): level at which to stream log messages
-        timeout (int): # of seconds after which to stop the rapidfire process
-        fill_mode (bool): whether to submit jobs even when there is nothing to run (only in
-                          non-reservation mode)
-        fw_ids(list of ints): a list fw_ids to launch (len(fw_ids) == nlaunches)
-        wflow (WorkFlow): the workflow this qlauncher is supposed to run
-        tasks2queue (List of str): List of functions to run on a remote queue
-        gss_auth (bool): True if GSS_API should be used to connect to the remote machine
-        controlpath (str): path the the socket file for MUX connections
-        remote_host(list of str): list of hosts to attempt to connect to
-        remote_config_dir (list of str): list of directories on the remote machines to find
-                                         FireWorks configuration files
-        remote_user (str): username for the remote account
-        remote_password (str or None): Password for access to the remote account
-        remote_shell (str): Type of shell on the remote machine
-        daemon (int): Daemon mode. Command is repeated every x seconds.
-                      Defaults to 0, which means non-daemon mode
+    """Submit many jobs to the queue.
+
+    Parameters
+    ----------
+    launchpad: LaunchPad
+        The LaunchPad where the launches are defined
+    fworker: FWorker
+        The FireWorker used to run the launches
+    qadapter: QueueAdapterBase
+        The QueueAdapter for the launches
+    launch_dir: str
+        directory where we want to write the blocks
+    nlaunches: int
+        total number of launches desired; "infinite" for loop, 0 for one round
+    njobs_queue: int
+        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit
+    njobs_block: int
+        automatically write a new block when njobs_block jobs are in a single block
+    sleep_time: int
+        secs to sleep between rapidfire loop iterations
+    reserve: bool
+        Whether to queue in reservation mode
+    strm_lvl: str
+        level at which to stream log messages
+    timeout: int
+        # of seconds after which to stop the rapidfire process
+    fill_mode: bool
+        whether to submit jobs even when there is nothing to run (only in non-reservation mode)
+    fw_ids: list of ints
+        a list fw_ids to launch (len(fw_ids) == nlaunches)
+    wflow: WorkFlow
+        the workflow this qlauncher is supposed to run
+    tasks2queue: List of str
+        List of functions to run on a remote queue
+    gss_auth: bool
+        True if GSS_API should be used to connect to the remote machine
+    controlpath: str
+        path the the socket file for MUX connections
+    remote_host: list of str
+        list of hosts to attempt to connect to
+    remote_config_dir: list of str
+        list of directories on the remote machines to findFireWorks configuration files
+    remote_user: str
+        username for the remote account
+    remote_password: str or None
+        Password for access to the remote account
+    remote_shell: str
+        Type of shell on the remote machine
+    daemon: int
+        Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode
+
+    Raises
+    ------
+    RuntimeError
+        If launch is not successful
+    AttributeError
+        If no FireWorker or Queue Adapter is specified
+    ValueError
+        If the launch directory does not exist
     """
     if tasks2queue is None:
         tasks2queue = [""]

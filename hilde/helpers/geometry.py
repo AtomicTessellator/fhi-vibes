@@ -4,6 +4,18 @@ from hilde.helpers.numerics import clean_matrix
 
 
 def inscribed_sphere_in_box(cell):
+    """Find the radius of an inscribed sphere in a unit cell
+
+    Parameters
+    ----------
+    cell: np.ndarray
+        Cell where the sphere should be inscribed
+
+    Returns
+    -------
+    rr: float
+        The radius of the inscribed sphere
+    """
 
     # the normals of the faces of the box
     na = np.cross(cell[1, :], cell[2, :])
@@ -22,17 +34,24 @@ def inscribed_sphere_in_box(cell):
 
 
 def get_cubicness(cell):
-    """
-    Purpose:
+    """Quantify the cubicness of a cell
+
     Quantify 'how cubic' a given lattice or cell is by comparing the largest
     sphere that fits into the cell to a sphere that fits into a cubic cell
     of similar size
-    Args:
-        cell: Lattice of the cell
-    Returns:
+
+    Parameters
+    ----------
+    cell: np.ndarray
+        Lattice of the cell
+
+    Returns
+    -------
+    float
         ratio of radii of the two spheres:
-          * 1 means perfectly cubic,
-          * ratio**3 compared volumes of the two spheres
+
+          - 1 means perfectly cubic,
+          - ratio**3 compared volumes of the two spheres
     """
 
     # perfect radius: 1/2 * width of the cube
@@ -47,6 +66,22 @@ def get_cubicness(cell):
 
 
 def get_rotation_matrix(phi, axis, radians=False):
+    """Get the rotation matrix for a given rotation
+
+    Parameters
+    ----------
+    phi: float
+        The angle to rotate by
+    axis: int
+        0-2 axis to rotate ove
+    radians: bool
+        If True phi is in radians
+
+    Returns
+    -------
+    Rm: np.ndarray
+        The rotation matrix
+    """
     if not radians:
         phi = phi / 180 * np.pi
 

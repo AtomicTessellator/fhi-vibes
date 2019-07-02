@@ -37,19 +37,29 @@ def get_fw_files(
     queueadapter_file=None,
     remote_host=None,
 ):
-    """
-    Finds and returns the correct FireWorks config files
-    Args:
-        config_dir (str): Directory where FireWorks configure files are stored
-        launchpad_file (str): Passed LaunchPad yaml file
-        fworker_file (str): Passed FWorker yaml file
-        queueadapter_file (str): Passed QueueAdapter yaml file
-        remote_host (str): The remote host used for the calculation
+    """Finds and returns the correct FireWorks config files
 
-    Returns:
-        launchpad_file (str): updated LaunchPad yaml file. If None was passed try the default one in config_dir
-        fworker_file (str): updated FWorker yaml file. If None was passed try the default one in config_dir
-        queueadapter_file (str): updated QueueAdapter yaml file. If None was passed try the default one in config_dir
+    Parameters
+    ----------
+    config_dir: str
+        Directory where FireWorks configure files are stored
+    launchpad_file: str
+        LaunchPad yaml file
+    fworker_file: str
+        The FWorker yaml file
+    queueadapter_file: str
+        The QueueAdapter yaml file
+    remote_host: str
+        The remote host used for the calculation
+
+    Returns
+    -------
+    launchpad_file: str
+        The updated LaunchPad yaml file. If None was passed try the default one in config_dir
+    fworker_file: str
+        The updated FWorker yaml file. If None was passed try the default one in config_dir
+    queueadapter_file: str
+        The updated QueueAdapter yaml file. If None was passed try the default one in config_dir
     """
     if not launchpad_file and os.path.exists(
         os.path.join(config_dir, "my_launchpad.yaml")
@@ -76,16 +86,23 @@ def get_fw_files(
 
 
 def get_lpad_fworker_qadapter(ctx=None, offline=False):
-    """
-    Gets the LaunchPad, FWorker, and QueueAdapter from the passed files in ctx
-    Args:
-        ctx (Context): Context for the commands (passed from click)
-        offline (bool): If True run is being done in offline mode
+    """Gets the LaunchPad, FWorker, and QueueAdapter from the passed files in ctx
 
-    Returns:
-        launchpad (LaunchPad): The LaunchPad object defined by the respective file in ctx
-        fworker (FWorker): The FWorker object defined by the respective file in ctx
-        queueadapter (QueueAdapter): The QueueAdapter object defined by the respective file in ctx
+    Parameters
+    ----------
+    ctx: Context
+        Context for the commands (passed from click)
+    offline: bool
+        If True run is being done in offline mode
+
+    Returns
+    -------
+    launchpad: LaunchPad
+        The LaunchPad object defined by the respective file in ctx
+    fworker: FWorker
+        The FWorker object defined by the respective file in ctx
+    queueadapter: QueueAdapter
+        The QueueAdapter object defined by the respective file in ctx
     """
     if ctx.obj.fworker_file:
         fworker = FWorker.from_file(ctx.obj.fworker_file)
@@ -108,11 +125,14 @@ def get_lpad_fworker_qadapter(ctx=None, offline=False):
 
 
 def do_qluanch(ctx, non_default):
-    """
-    Takes in a Context ctx and performs the qlaunch for that command
-    Args:
-        ctx (Context): Context for the command
-        non_default (dict): A dict of non-default parameters where the keys are the parameters and the values are the non-default values
+    """Takes in a Context ctx and performs the qlaunch for that command
+
+    Parameters
+    ----------
+    ctx: Context
+        Context for the command
+    non_default: dict
+        A dict of non-default parameters where the keys are the parameters and the values are the non-default values
     """
     interval = ctx.obj.daemon
     while True:
@@ -150,10 +170,12 @@ def do_qluanch(ctx, non_default):
 
 
 def do_launch(ctx):
-    """
-    Launches the calculations with parameters defined in ctx
-    Args:
-        ctx (Context): The Context for the command
+    """Launches the calculations with parameters defined in ctx
+
+    Parameters
+    ----------
+    ctx: Context
+        The Context for the command
     """
     launchpad, fworker, queueadapter = get_lpad_fworker_qadapter(ctx)
     ctx.obj.loglvl = "CRITICAL" if ctx.obj.silencer else ctx.obj.loglvl

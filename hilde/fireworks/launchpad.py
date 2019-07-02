@@ -12,15 +12,19 @@ class LaunchPad(launchpad.LaunchPad):
         super(LaunchPad, self).__init__(*args, **kwargs)
 
     def run_exists(self, fworker=None, ids=None):
-        """
-        Checks to see if the database contains any FireWorks of a given id set that are
-        ready to run.
-        Args:
-            fworker(FWorker): FireWorker for the queuery
-            ids(list of ints): List of FireWork ids to query over
+        """Checks to see if the database contains any FireWorks of a given id set that are ready to run.
 
-        Returns:
-            bool: True if the database contains any FireWorks that are ready to run in a given set.
+        Parameters
+        ----------
+        fworker: FWorker
+            FireWorker for the query
+        ids: list of ints
+            List of FireWork ids to query over
+
+        Returns
+        -------
+        bool
+            True if the database contains any FireWorks that are ready to run in a given set.
         """
         query = fworker.query if fworker else {}
         if ids:
@@ -28,13 +32,19 @@ class LaunchPad(launchpad.LaunchPad):
         return bool(self._get_a_fw_to_run(query=query, checkout=False))
 
     def future_run_exists(self, fworker=None, ids=None):
-        """Check if database has any current OR future Fireworks available
-        Args:
-            fworker(FWorker): FireWorker for the queuery
-            ids(list of ints): List of FireWork ids to query over
+        """heck if database has any current OR future Fireworks available
 
-        Returns:
-            bool: True if database has any ready or waiting Fireworks.
+        Parameters
+        ----------
+        fworker: FWorker
+            FireWorker for the query
+        ids: list of ints
+            List of FireWork ids to query over
+
+        Returns
+        -------
+        bool
+            True if database has any ready or waiting Fireworks.
         """
         if self.run_exists(fworker, ids):
             # check first to see if any are READY
@@ -54,14 +64,19 @@ class LaunchPad(launchpad.LaunchPad):
 
     @classmethod
     def from_dict(cls, d):
-        """
-        Constructs a LaunchPad from a dict
-        Args:
-            cls: Class of the LaunchPad
-            d: dict describing it
+        """Constructs a LaunchPad from a dict
 
-        Returns:
-            (LaunchPad): The LaunchPad defined by the dict
+        Parameters
+        ----------
+        cls: Class
+            The class of the LaunchPad
+        d: dict
+            Dictionary used to define the LaunchPad
+
+        Returns
+        -------
+        LaunchPad
+            The LaunchPad defined by the dict
         """
         logdir = d.get("logdir", None)
         strm_lvl = d.get("strm_lvl", None)
@@ -92,12 +107,16 @@ class LaunchPad(launchpad.LaunchPad):
 
     @classmethod
     def auto_load(cls):
-        """
-        auto_load from default file
-        Args:
-            cls (Class Type): LaunchPad
+        """auto_load from default file
 
-        Returns:
+        Parameters
+        ----------
+        cls: Class
+            The class of the LaunchPad
+
+        Returns
+        -------
+        LaunchPad:
             The LaunchPad defined in LAUNCHPAD_LOC or the default LaunchPad
         """
         if LAUNCHPAD_LOC:

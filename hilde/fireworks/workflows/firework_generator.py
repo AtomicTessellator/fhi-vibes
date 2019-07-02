@@ -24,13 +24,17 @@ from hilde.phonopy.wrapper import preprocess
 
 
 def get_time(time_str):
-    """
-    Converts a time step to the number of seconds that time stamp represents
-    Args:
-        time_str (str): A string representing a specified time
+    """Converts a time step to the number of seconds that time stamp represents
 
-    Returns:
-        n_secs (int): A time presented as a number of seconds
+    Parameters
+    ----------
+    time_str: str
+        A string representing a specified time
+
+    Returns
+    -------
+    n_secs: int
+        A time presented as a number of seconds
     """
     time_set = time_str.split(":")
     n_secs = 0
@@ -40,13 +44,17 @@ def get_time(time_str):
 
 
 def to_time_str(n_sec):
-    """
-    Converts a number of seconds into a time string
-    Args:
-        n_secs (int): A time presented as a number of seconds
+    """Converts a number of seconds into a time string
 
-    Returns:
-        time_str (str): A string representing a specified time
+    Parameters
+    ----------
+    n_secs: int
+        A time presented as a number of seconds
+
+    Returns
+    -------
+    time_str: str
+        A string representing a specified time
     """
     secs = int(n_sec % 60)
     mins = int(n_sec / 60) % 60
@@ -55,16 +63,23 @@ def to_time_str(n_sec):
 
 
 def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=True):
-    """
-    update the fw_settings for the next step
-    Args:
-        fw_settings(dict): Current fw_settings
-        fw_name(str): name of the current step
-        queueadapter(dict): dict describing the queueadapter changes for this firework
-        update_in_spec(bool): If true move current out_spec to be in_spec
+    """update the fw_settings for the next step
 
-    Returns:
-        (dict): The updated fw_settings
+    Parameters
+    ----------
+    fw_settings:(ict
+        Current fw_settings
+    fw_name:(tr
+        name of the current step
+    queueadapter:(ict
+        dict describing the queueadapter changes for this firework
+    update_in_spec:(ool
+        If true move current out_spec to be in_spec
+
+    Returns
+    -------
+    dict
+        The updated fw_settings
     """
     if "out_spec_atoms" in fw_settings and update_in_spec:
         fw_settings["in_spec_atoms"] = fw_settings["out_spec_atoms"]
@@ -98,35 +113,44 @@ def generate_firework(
     args=None,
     inputs=None,
 ):
-    """
-    A function that takes in a set of inputs and returns a Firework to perform that operation
-    Args:
-        task_spec_list (list of TaskSpecs): list of task specifications to perform
-        atoms (ASE Atoms object, dictionary or str):
-            If not atoms_calc_from_spec then this must be an ASE Atoms object or a
-            dictionary describing it
-            If atoms_calc_from_spec then this must be a key str to retrieve the Atoms
-            Object from the MongoDB launchpad
-        calc (ASE Calculator object, dictionary or str):
-            If not atoms_calc_from_spec then this must be an ASE Calculator object or a
-            dictionary describing it
-            If atoms_calc_from_spec then this must be a key str to retrieve the
-            Calculator from the MongoDB launchpad
-        fw_settings (dict): Settings used by fireworks to place objects in the right part of
-                            the MongoDB
-        atoms_calc_from_spec (bool): If True retrieve the atoms/Calculator objects from the
-                                     MongoDB launchpad
-        update_calc_settings (dict): Used to update the Calculator parameters
-        func (str): Function path for the firework
-        func_fw_out (str): Function path for the fireworks FWAction generator
-        func_kwargs (dict): Keyword arguments for the main function
-        func_fw_out_kwargs (dict): Keyword arguments for the fw_out function
-        args (list): List of arguments to pass to func
-        inputs(list): List of spec to pull in as args from the FireWorks Database
+    """A function that takes in a set of inputs and returns a Firework to perform that operation
+
+    Parameters
+    ----------
+    task_spec_list: list of TaskSpecs
+        list of task specifications to perform
+    atoms: ase.atoms.Atoms, dictionary or str
+        If not atoms_calc_from_spec then this must be an ASE Atoms object or a dictionary describing it If atoms_calc_from_spec then this must be a key str to retrieve the Atoms Object from the MongoDB launchpad
+    calc: ase.calculators.calulator.Calculator, dictionary or str
+        If not atoms_calc_from_spec then this must be an ase.calculators.calulator.Calculator or a dictionary describing it If atoms_calc_from_spec then this must be a key str to retrieve the Calculator from the MongoDB launchpad
+    fw_settings: dict
+        Settings used by fireworks to place objects in the right part of the MongoDB
+    atoms_calc_from_spec: bool
+        If True retrieve the atoms/Calculator objects from the MongoDB launchpad
+    update_calc_settings: dict
+        Used to update the Calculator parameters
+    func: str
+        Function path for the firework
+    func_fw_out: str
+        Function path for the fireworks FWAction generator
+    func_kwargs: dict
+        Keyword arguments for the main function
+    func_fw_out_kwargs: dict
+        Keyword arguments for the fw_out function
+    args: list
+        List of arguments to pass to func
+    inputs:(ist
+        List of spec to pull in as args from the FireWorks Database
 
     Returns
-        (Firework): A Firework that will perform the desired operation on a set of atoms,
-        and process the outputs for Fireworks
+    -------
+    Firework
+        A Firework that will perform the desired operation on a set of atoms, and process the outputs for Fireworks
+
+    Raises
+    ------
+    IOError
+        If conflicting task_spec definitions provided, or none are provided
     """
     fw_settings = fw_settings.copy()
     if "spec" not in fw_settings:
@@ -136,7 +160,7 @@ def generate_firework(
 
     if func:
         if task_spec_list:
-            raise AttributeError(
+            raise IOError(
                 "You have defined a task_spec_list and arguments to generate one, please only specify one of these"
             )
         task_with_atoms_obj = atoms is not None
@@ -152,7 +176,7 @@ def generate_firework(
             )
         ]
     elif not task_spec_list:
-        raise AttributeError(
+        raise IOError(
             "You have not defined a task_spec_list or arguments to generate one, please specify one of these"
         )
     if isinstance(task_spec_list, TaskSpec):
@@ -228,18 +252,27 @@ def generate_firework(
 def generate_fw(
     atoms, task_list, fw_settings, qadapter, update_settings=None, update_in_spec=True
 ):
-    """
-    Generates a FireWork
-    Args:
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        task_list (list of TaskSpecs): Definitions for the tasks to be run
-        fw_settings (dict): FireWork settings for the step
-        qadapter (dict): The queueadapter for the step
-        update_settings (dict): update calculator settings
-        update_in_spec (bool): If True move the current out_spec to be in_spec
+    """Generates a FireWork
 
-    Returns:
-        (Firework): A firework for the task
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms, dict
+        ASE Atoms object to preform the calculation on
+    task_list: list of TaskSpecs
+        Definitions for the tasks to be run
+    fw_settings: dict
+        FireWork settings for the step
+    qadapter: dict
+        The queueadapter for the step
+    update_settings: dict
+        update calculator settings
+    update_in_spec: bool
+        If True move the current out_spec to be in_spec
+
+    Returns
+    -------
+    Firework
+        A firework for the task
     """
     fw_settings = update_fw_settings(
         fw_settings, fw_settings["fw_name"], qadapter, update_in_spec=update_in_spec
@@ -267,15 +300,21 @@ def generate_fw(
 
 
 def generate_kgrid_fw(workflow, atoms, fw_settings):
-    """
-    Generate a k-grid optimization Firework
-    Args:
-        workflow (Settings): workflow settings where the task is defined
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        fw_settings (dict): Firework settings for the step
+    """Generate a k-grid optimization Firework
 
-    Returns:
-        (Firework): Firework for the k-grid optimization
+    Parameters
+    ----------
+    workflow: Settings
+        workflow settings where the task is defined
+    atoms: ase.atoms.Atoms, dict
+        ASE Atoms object to preform the calculation on
+    fw_settings: dict
+        Firework settings for the step
+
+    Returns
+    -------
+    Firework
+        Firework for the k-grid optimization
     """
     # Get queue adapter settings
     fw_settings["fw_name"] = "kgrid_opt"
@@ -308,16 +347,23 @@ def generate_kgrid_fw(workflow, atoms, fw_settings):
 
 
 def generate_relax_fw(workflow, atoms, fw_settings, basisset_type):
-    """
-    Generates a Firework for the relaxation step
-    Args:
-        workflow (Settings): workflow settings where the task is defined
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        fw_settings (dict): Firework settings for the step
-        basisset_type (str): Basis Set parameters to use for the calculation
+    """Generates a Firework for the relaxation step
 
-    Returns:
-        (Firework): Firework for the relaxation step
+    Parameters
+    ----------
+    workflow: Settings
+        workflow settings where the task is defined
+    atoms: ase.atoms.Atoms, dict
+        ASE Atoms object to preform the calculation on
+    fw_settings: dict
+        Firework settings for the step
+    basisset_type: str
+        Basis Set parameters to use for the calculation
+
+    Returns
+    -------
+    Firework
+        Firework for the relaxation step
     """
     if f"{basisset_type}_rel_qadapter" in workflow:
         qadapter = workflow["light_rel_qadapter"]
@@ -351,16 +397,23 @@ def generate_relax_fw(workflow, atoms, fw_settings, basisset_type):
 
 
 def generate_phonon_fw(workflow, atoms, fw_settings, typ):
-    """
-    Generates a Firework for the phonon initialization
-    Args:
-        aworkflow (Settings): workflow settings where the task is defined
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        fw_settings (dict): Firework settings for the step
-        typ (str): either phonopy or phono3py
+    """Generates a Firework for the phonon initialization
 
-    Returns:
-        (Firework): Firework for the relaxation step
+    Parameters
+    ----------
+    aworkflow: Settings
+        workflow settings where the task is defined
+    atoms: ase.atoms.Atoms or dict
+        ASE Atoms object to preform the calculation on
+    fw_settings: dict
+        Firework settings for the step
+    typ: str
+        either phonopy or phono3py
+
+    Returns
+    -------
+    Firework
+        Firework for the relaxation step
     """
 
     if f"{typ}_qadapter" in workflow:
@@ -403,17 +456,25 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
 
 
 def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
-    """
-    Generates a Firework for the phonon analysis
-    Args:
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        wd (str): Workdirectory
-        fw_settings (dict): Firework settings for the step
-        ph_settings (dict): kwargs for the phonon analysis
-        wd_init (str): workdir for the initial phonon force calculations
+    """Generates a Firework for the phonon analysis
 
-    Returns:
-        (Firework): Firework for the phonon analysis
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms, dict
+        ASE Atoms object to preform the calculation on
+    wd: str
+        Workdirectory
+    fw_settings: dict
+        Firework settings for the step
+    ph_settings: dict
+        kwargs for the phonon analysis
+    wd_init: str
+        workdir for the initial phonon force calculations
+
+    Returns
+    -------
+    Firework
+        Firework for the phonon analysis
     """
     if typ == "phonopy":
         fw_settings["mod_spec_add"] = "ph"
@@ -449,18 +510,27 @@ def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
 def generate_phonon_fw_in_wf(
     atoms, wd, fw_settings, qadapter, ph_settings, update_in_spec=True
 ):
-    """
-    Generates a Firework for the phonon initialization
-    Args:
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        wd (str): Workdirectory
-        fw_settings (dict): Firework settings for the step
-        qadapter (dict): The queueadapter for the step
-        ph_settings (dict): kwargs for the phonons
-        update_settings (dict): calculator update settings
+    """Generates a Firework for the phonon initialization
 
-    Returns:
-        (Firework): Firework for the phonon initialization
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms, dict
+        ASE Atoms object to preform the calculation on
+    wd: str
+        Workdirectory
+    fw_settings: dict
+        Firework settings for the step
+    qadapter: dict
+        The queueadapter for the step
+    ph_settings: dict
+        kwargs for the phonons
+    update_settings: dict
+        calculator update settings
+
+    Returns
+    -------
+    Firework
+        Firework for the phonon initialization
     """
     if (
         "serial" in ph_settings
@@ -500,17 +570,25 @@ def generate_phonon_fw_in_wf(
 def generate_phonon_postprocess_fw_in_wf(
     atoms, wd, fw_settings, ph_settings, wd_init=None
 ):
-    """
-    Generates a Firework for the phonon analysis
-    Args:
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        wd (str): Workdirectory
-        fw_settings (dict): Firework settings for the step
-        ph_settings (dict): kwargs for the phonon analysis
-        wd_init (str): workdir for the initial phonon force calculations
+    """Generates a Firework for the phonon analysis
 
-    Returns:
-        (Firework): Firework for the phonon analysis
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms or dict
+        ASE Atoms object to preform the calculation on
+    wd: str
+        Workdirectory
+    fw_settings: dict
+        Firework settings for the step
+    ph_settings: dict
+        kwargs for the phonon analysis
+    wd_init: str
+        workdir for the initial phonon force calculations
+
+    Returns
+    -------
+    Firework
+        Firework for the phonon analysis
     """
     if ph_settings.pop("type") == "phonopy":
         fw_settings["mod_spec_add"] = "ph"
@@ -539,61 +617,75 @@ def generate_phonon_postprocess_fw_in_wf(
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 
-def generate_stat_samp_fw(workflow, atoms, fw_settings):
-    """
-    Generates a Firework for the phonon initialization
-    Args:
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        wd (str): Workdirectory
-        fw_settings (dict): Firework settings for the step
-        qadapter (dict): The queueadapter for the step
-        stat_samp_settings (dict): kwargs for the harmonic analysis
+# def generate_stat_samp_fw(workflow, atoms, fw_settings):
+#     """Generates a Firework for the phonon initialization
 
-    Returns:
-        (Firework): Firework for the harmonic analysis initialization
-    """
-    if "statistical_sampling_qadapter" in workflow:
-        qadapter = workflow["statistical_sampling_qadapter"]
-    elif "phonopy_qadapter" in workflow:
-        qadapter = workflow["phonopy_qadapter"]
-    else:
-        qadapter = None
+#     Parameters
+#     ----------
+#     atoms: ase.atoms.Atoms, dict
+#         ASE Atoms object to preform the calculation on
+#     wd: str
+#         Workdirectory
+#     fw_settings: dict
+#         Firework settings for the step
+#     qadapter: dict
+#         The queueadapter for the step
+#     stat_samp_settings: dict
+#         kwargs for the harmonic analysis
 
-    if qadapter and "walltime" in qadapter:
-        workflow.statistical_sampling["walltime"] = get_time(qadapter["walltime"])
-    else:
-        workflow.statistical_sampling["walltime"] = 1800
+#     Returns
+#     -------
+#     Firework
+#         Firework for the harmonic analysis initialization
+#     """
+#     if "statistical_sampling_qadapter" in workflow:
+#         qadapter = workflow["statistical_sampling_qadapter"]
+#     elif "phonopy_qadapter" in workflow:
+#         qadapter = workflow["phonopy_qadapter"]
+#     else:
+#         qadapter = None
 
-    workflow.statistical_sampling[
-        "workdir"
-    ] = f"{workflow.general.workdir_cluster}/statistical_sampling/"
-    if workflow.phonopy.get("converge_phonons", False):
-        workflow.statistical_sampling[
-            "phonon_file"
-        ] = f"{workflow.general.workdir_local}/converged/trajectory.son"
-    else:
-        workflow.statistical_sampling[
-            "phonon_file"
-        ] = f"{workflow.general.workdir_local}/phonopy_analysis/trajectory.son"
+#     if qadapter and "walltime" in qadapter:
+#         workflow.statistical_sampling["walltime"] = get_time(qadapter["walltime"])
+#     else:
+#         workflow.statistical_sampling["walltime"] = 1800
 
-    fw_settings["fw_name"] = "statistical_sampling"
-    fw_settings["time_spec_add"] = "stat_samp_times"
+#     workflow.statistical_sampling[
+#         "workdir"
+#     ] = f"{workflow.general.workdir_cluster}/statistical_sampling/"
+#     if workflow.phonopy.get("converge_phonons", False):
+#         workflow.statistical_sampling[
+#             "phonon_file"
+#         ] = f"{workflow.general.workdir_local}/converged/trajectory.son"
+#     else:
+#         workflow.statistical_sampling[
+#             "phonon_file"
+#         ] = f"{workflow.general.workdir_local}/phonopy_analysis/trajectory.son"
 
-    task_spec = gen_stat_samp_task_spec(workflow.statistical_sampling, fw_settings)
+#     fw_settings["fw_name"] = "statistical_sampling"
+#     fw_settings["time_spec_add"] = "stat_samp_times"
 
-    return generate_fw(atoms, task_spec, fw_settings, qadapter, None, False)
+#     task_spec = gen_stat_samp_task_spec(workflow.statistical_sampling, fw_settings)
+
+#     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, False)
 
 
 def generate_aims_fw(workflow, atoms, fw_settings):
-    """
-    Generates a Firework for the relaxation step
-    Args:
-        workflow (Settings): workflow settings where the task is defined
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        fw_settings (dict): Firework settings for the step
+    """Generates a Firework for the relaxation step
 
-    Returns:
-        (Firework): Firework for the relaxation step
+    Parameters
+    ----------
+    workflow: Settings
+        workflow settings where the task is defined
+    atoms: ase.atoms.Atoms or dict
+        ASE Atoms object to preform the calculation on
+    fw_settings: dict
+        Firework settings for the step
+
+    Returns
+    -------
+    Firework
+        Firework for the relaxation step
     """
     if f"aims_qadapter" in workflow:
         qadapter = workflow["aims_qadapter"]

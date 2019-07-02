@@ -7,22 +7,87 @@ from .force_constants import reshape_force_constants
 
 
 def _prefactor(q, r):
+    """Get the prefactor for the mode
+
+    Parameters
+    ----------
+    q: np.ndarray
+        The qpoint
+    r: np.ndarray
+        The lattice point
+
+    Returns
+    -------
+    float
+        The prefactor
+    """
     return np.exp(-2j * np.pi * q @ r)
 
 
 def get_frequencies(dyn_matrix, omega_to_THz=omega_to_THz):
-    """ Diagonalize dynamical_matrix and convert to THz """
+    """ Diagonalize dynamical_matrix and convert to THz
+
+    Parameters
+    ----------
+    dyn_matrix: np.ndarray
+        The dynamical matrix
+    omega_to_THz: float
+        Unit conversion to THz
+
+    Returns
+    -------
+    np.ndarray:
+        The eigenvalues of the dynamical matrix
+    """
     evals = np.linalg.eigh(dyn_matrix)[0]
     return np.sign(evals) * np.sqrt(abs(evals)) * omega_to_THz
 
 
 def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
-    """ build the dynamical matrix for one q_point """
+    """build the dynamical matrix for one q_point
+
+    Parameters
+    ----------
+    q: np.ndarray
+        The q-point to build they dynamical matrix at
+    primitive: ase.atoms.Atoms
+        The primitive cell structure
+    supercell: ase.atoms.Atoms
+        The supecell structure
+    force_constants: np.ndarray
+        The force constant matrix
+    eps: float
+        computer tolerance
+
+    Returns
+    -------
+    np.ndarray
+        They dynamical matrix
+    """
     return get_dynamical_matrices([q], primitive, supercell, force_constants, eps)[0]
 
 
 def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=1e-12):
-    """ build the dynamical matrix for each q_point """
+    """build the dynamical matrix for each q_point
+
+    Parameters
+    ----------
+    q_points: list of np.ndarray
+        The list of q-points to build they dynamical matrix at
+    primitive: ase.atoms.Atoms
+        The primitive cell structure
+    supercell: ase.atoms.Atoms
+        The supecell structure
+    force_constants: np.ndarray
+        The force constant matrix
+    eps: float
+        computer tolerance
+
+    Returns
+    -------
+    list of np.ndarray
+        They dynamical matrix at each point in q_points
+    """
 
     lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)
 

@@ -11,7 +11,26 @@ from hilde.spglib.wrapper import get_symmetry_dataset
 
 
 def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=True):
-    """ print the string that is geometry.in """
+    """print the string that is geometry.in
+
+    Parameters
+    ----------
+    cell: ase.atoms.Atoms
+        The cell to convert to geometry.in
+    decorated: bool
+        If True add header to the geoemtry.in string
+    scaled: bool
+        If True use scaled positions
+    velocities: bool
+        If True include velocities
+    wrap: bool
+        If True wrap the scaled positions
+
+    Returns
+    -------
+    string: str
+        string representation of geometry.in
+    """
     if scaled is None:
         if "supercell" in cell.tags:
             scaled = False
@@ -115,8 +134,20 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
     return string
 
 
-def inform(cell, dft=False, fname=None, verbosity=1, symprec=symprec):
-    """ geometry information """
+def inform(cell, fname=None, verbosity=1, symprec=symprec):
+    """geometry information
+
+    Parameters
+    ----------
+    cell: ase.atoms.Atoms
+        The cell to convert to geometry.in
+    fname: str
+        Path to the geometry.in file
+    verbosity: int
+        How much information to print to the screen
+    symprec: float
+        Tolerance for determining the symmetry and space group of a material
+    """
     unique_symbols, multiplicity = np.unique(cell.symbols, return_counts=True)
     # Structure info:
     print(f"\nGeometry info for:")
@@ -175,4 +206,3 @@ def inform(cell, dft=False, fname=None, verbosity=1, symprec=symprec):
         if cell.get_velocities() is not None:
             v = cell.get_momenta().sum(axis=0) / v_unit / cell.get_masses().sum()
             print(f"\n Net velocity: {v} \u212B/ps")
-

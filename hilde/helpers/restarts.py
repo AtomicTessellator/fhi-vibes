@@ -5,16 +5,29 @@ from hilde.helpers import talk
 
 
 def restart(settings=None, verbose=True):
-    """ restart a job according to the restart instructions in the settings """
+    """ restart a job according to the restart instructions in the settings
+
+    Parameters
+    ----------
+    settings: Settings
+        Settings for the task
+    verbose: bool
+        If True print more logging information
+
+    Returns
+    -------
+    bool
+        True if restart is allowed
+    """
 
     if settings is None:
         settings = Settings()
 
     if "restart" in settings:
-       if verbose:
+        if verbose:
             talk(f"Restart task with {settings.restart.command}")
-       sp.run(settings.restart.command.split(), stderr=sp.STDOUT)
-       return True
+        sp.run(settings.restart.command.split(), stderr=sp.STDOUT)
+        return True
     else:
         if verbose:
             talk("Task not completed, please inspect and rerun.")

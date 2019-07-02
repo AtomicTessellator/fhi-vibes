@@ -16,9 +16,10 @@ from .setup import setup_aims
 def run_aims(ctx):
     """ high level function to run aims calculation
 
-    Args:
-       ctx (AimsContext): aims context
-
+    Parameters
+    ----------
+    ctx: AimsContext
+        The context for the calculation
     """
 
     args = bootstrap(ctx)
@@ -34,9 +35,33 @@ def run_aims(ctx):
 def bootstrap(ctx):
     """ load settings, prepare atoms and aims calculator
 
-    Args:
-        ctx (AimsContext): context object
+    Parameters
+    ----------
+    ctx: AimsContext
+        The context for the calculation
 
+    Returns
+    -------
+    dict
+        All of the necessary objects to run the Aims calculation with the following items
+
+        atoms_to_calculate: list of ase.atoms.Atoms
+            The structures to be calculated
+        calculator: ase.calculators.calulator.Calculator
+            Calculator for all calculations
+        metadata: dict
+            The Metadata for the calculation
+        workdir: str
+            Path to the working direcotry
+        settings: AimsSettings
+            The settings used to generate this task
+        backup_after_calculation: bool
+            If True back up the calculation folder once completed
+
+    Raises
+    ------
+    RuntimeError
+        If there are no structures to compute
     """
 
     # find geometries
