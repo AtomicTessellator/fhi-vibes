@@ -13,6 +13,7 @@ basic_tests:
   script:
     - python $CI_PROJECT_DIR/tests/hashes/hashes.py
     - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; python test_lattice_points.py
+    - cd ../cli; bash test_cli.sh
     - cd ../anharmonicity_score; python test_r2.py
     - cd ../phonopy; python run_phonopy.py
     - cd ../md; python run_md.py

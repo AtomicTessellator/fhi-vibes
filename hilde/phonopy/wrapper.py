@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 from phonopy import Phonopy
 from hilde import konstanten as const
-from hilde.helpers import brillouinzone as bz, talk
+from hilde.helpers import brillouinzone as bz, talk, warn
 from hilde.materials_fp.material_fingerprint import (
     get_phonon_bs_fingerprint_phononpy,
     to_dict,
@@ -183,7 +183,8 @@ def get_dos(
     force_sets: np.ndarray
         Force sets to calculate the force constants with
     direction: np.ndarray
-        Specific projection direction. This is specified three values along basis vectors or the primitive cell. Default is None, i.e., no projection.
+        Specific projection direction. This is specified three values along basis
+        vectors or the primitive cell. Default is None, i.e., no projection.
     xyz_projection: bool
         If True project along Cartesian directions
 
@@ -213,24 +214,41 @@ def get_dos(
             Path("total_dos.dat").rename(filename)
 
         return phonon.get_total_dos_dict()
-    else:
-        phonon.run_mesh(q_mesh, is_mesh_symmetry=False, with_eigenvectors=True)
 
-        if freq_max == "auto":
-            freq_max = phonon.get_mesh()[2].max() * 1.05
+    phonon.run_mesh(q_mesh, is_mesh_symmetry=False, with_eigenvectors=True)
 
-        phonon.run_projected_dos(
-            freq_min=freq_min,
-            freq_max=freq_max,
-            freq_pitch=freq_pitch,
-            use_tetrahedron_method=tetrahedron_method,
-            direction=direction,
-            xyz_projection=xyz_projection,
-        )
-        if write:
-            phonon.write_projected_dos()
-            Path("projected_dos.dat").rename(filename)
-        return phonon.get_projected_dos_dict()
+    if freq_max == "auto":
+        freq_max = phonon.get_mesh()[2].max() * 1.05
+
+    phonon.run_projected_dos(
+        freq_min=freq_min,
+        freq_max=freq_max,
+        freq_pitch=freq_pitch,
+        use_tetrahedron_method=tetrahedron_method,
+        direction=direction,
+        xyz_projection=xyz_projection,
+    )
+    if write:
+        phonon.write_projected_dos()
+        Path("projected_dos.dat").rename(filename)
+    return phonon.get_projected_dos_dict()
+
+
+def set_bandstructure(phonon, paths=None, force_sets=None):
+    """Compute bandstructure for given path and attach to phonopy object
+
+    Parameters
+    ----------
+    phonon: phonopy.Phonopy
+        Phonopy object with calculated force constants if force_Sets is None
+    paths: list of str
+        List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
+    force_sets: np.ndarray
+        set of forces to calculate force constants with
+    """
+    bands, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
+
+    phonon.run_band_structure(bands, labels=labels)
 
 
 def get_bandstructure(phonon, paths=None, force_sets=None):
@@ -255,16 +273,13 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
 
-    bands, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
-
-    phonon.run_band_structure(bands, labels=labels)
+    _, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
+    set_bandstructure(phonon, paths, force_sets)
 
     return (phonon.get_band_structure_dict(), labels)
 
 
-def plot_bandstructure(
-    phonon, file="bandstructure.pdf", paths=None, force_sets=None
-):
+def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
     """Plot bandstructure for given path and save to file
 
     Parameters
@@ -279,14 +294,14 @@ def plot_bandstructure(
         Force sets to calculate the force constants with
     """
 
-    _, labels = get_bandstructure(phonon, paths, force_sets)
+    set_bandstructure(phonon, paths, force_sets)
 
     plt = phonon.plot_band_structure()
 
     try:
         plt.savefig(file)
-    except FileNotFoundError:
-        talk("saving the phonon dispersion not possible, latex probably missing")
+    except (RuntimeError, FileNotFoundError):
+        warn("saving the phonon dispersion not possible, latex probably missing?")
 
 
 def plot_bandstructure_and_dos(
@@ -306,7 +321,7 @@ def plot_bandstructure_and_dos(
         Path to save the the plot to
     """
 
-    _, labels = get_bandstructure(phonon)
+    set_bandstructure(phonon)
 
     if partial:
         phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
@@ -318,7 +333,13 @@ def plot_bandstructure_and_dos(
         pdos_indices = None
 
     plt = phonon.plot_band_structure_and_dos(pdos_indices=pdos_indices)
-    plt.savefig(file)
+
+    try:
+        plt.savefig(file)
+    except (RuntimeError, FileNotFoundError):
+        warn("saving the phonon DOS not possible, latex probably missing?")
+
+
 
 
 def summarize_bandstructure(phonon, fp_file=None):
@@ -340,7 +361,7 @@ def summarize_bandstructure(phonon, fp_file=None):
     """
     from hilde.konstanten.einheiten import THz_to_cm
 
-    get_bandstructure(phonon)
+    set_bandstructure(phonon)
 
     qpts = np.array(phonon.band_structure.qpoints).reshape(-1, 3)
 
