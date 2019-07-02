@@ -14,12 +14,16 @@ from hilde.helpers import warn
 def map_L_to_i(indeces):
     """ Map to atoms belonging to specific lattice point
 
-        indeces:
-            map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point
-            i: corresponding atom in primitive cell L: lattice point index
-        returns:
-            list of masks that single out the atoms in the supercell that belong to
-            specific lattice point """
+    Parameters
+    ----------
+    indeces: np.ndarray
+        map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point i: corresponding atom in primitive cell L: lattice point index
+
+    Returns
+    -------
+    np.ndarray
+        list of masks that single out the atoms in the supercell that belong to specific lattice point
+    """
 
     n_lattice_points = max([i[1] for i in indeces]) + 1
     mappings = []
@@ -36,8 +40,36 @@ def map_I_to_iL(
     return_inverse=False,
     tolerance=1e-5,
 ):
-    """ write positions in the supercell as (i, L), where i is the respective index
-        in the primitive cell and L is the lattice point """
+    """Write positions in the supercell as (i, L), where i is the respective index in the primitive cell and L is the lattice point
+
+    Parameters
+    ----------
+    in_atoms: ase.atoms.Atoms
+        The input primitive cell
+    in_supercell: ase.atoms.Atoms
+        The input supercell
+    lattice_points: np.ndarray
+        List of lattice points in the supercell
+    extended: bool
+        If True include lattice point multiplicities
+    return_inverse:bool
+        If true return the inverse map
+    tolerance: float
+        tolerance for position checks
+
+    Returns
+    -------
+    indices: np.ndarray
+        map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point i: corresponding atom in primitive cell L: lattice point index
+    inv_indiceis: np.ndarray
+        Inverse of the map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point i: corresponding atom in primitive cell L: lattice point index
+
+    Raises
+    ------
+    AssertionError
+        If number of unique indices is not equal to the length of the supercell OR
+        If any of the number in indices is -1
+    """
 
     timer = Timer()
 
@@ -116,7 +148,23 @@ def map_I_to_iL(
 
 
 def _map_iL_to_I(I_to_iL_map):
-    """ map (i, L) back to supercell index I """
+    """ map (i, L) back to supercell index I
+
+    Parameters
+    ----------
+    I_to_iL_map: np.ndarray
+        Map from I to iL
+
+    Returns
+    -------
+    np.ndarray
+        Map back from primitive cell index/lattice point to supercell index
+
+    Raises
+    ------
+    AssertionError
+        If iL2I[I2iL[II][0], I2iL[II][1]] does not equal II
+    """
 
     I2iL = np.array(I_to_iL_map)
 

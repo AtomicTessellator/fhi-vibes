@@ -27,17 +27,26 @@ def create_samples(
 ):
     """create samples for Monte Carlo sampling
 
-    Args:
-        geometry (str/Path): geometry input file
-        temperature (float): temperature in Kelvin
-        n_samples (int): number of samples to create
-        force_constants (str/Path): file holding force constants for phonon rattle
-        mc_ratte (bool): use hiphive mc rattle
-        quantum (bool): use Bose-Einstein distribution instead of Maxwell-Boltzmann
-        deterministic (bool): create sample deterministically
-        random_seed (int): seed the random number generator
-        format (str): ase file format for geometry files
-
+    Parameters
+    ----------
+    geometry: str
+        The input geometry file
+    temperature: float
+        The temperature in Kelvin
+    n_samples: int
+        The number of samples to create (default: 1)
+    force_constants: str
+        The filename of the file holding force constants for phonon rattle
+    mc_rattle: bool
+        If True use hiphive mc rattle
+    quantum: bool
+        If True use Bose-Einstein distribution instead of Maxwell-Boltzmann
+    deterministic: bool
+        If True create sample deterministically
+    random_seed: int
+        The seed the random number generator
+    format: str
+        The ASE file format for geometry files
     """
 
     atoms = read(geometry, format=format)

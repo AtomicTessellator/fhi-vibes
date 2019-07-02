@@ -13,10 +13,17 @@ from hilde.helpers.warnings import warn
 def create_species_dir(ctx, folder="basissets"):
     """ create a custom bassiset folder for the computation
 
-    Args:
-        ctx (AimsContext): aims context
-        older (str/Path): folder to store the basisset
+    Parameters
+    ----------
+    ctx: AimsContext
+        The context for the calculation
+    folder: str or Path
+        Folder to store the basisset
 
+    Returns
+    -------
+    str
+        The absolute file path to the species directory
     """
 
     loc = ctx.basisset_location
@@ -69,11 +76,15 @@ def create_species_dir(ctx, folder="basissets"):
 def setup_aims(ctx):
     """Set up an aims calculator.
 
-    Args:
-        ctx (AimsContext): aims context
+    Parameters
+    ----------
+    ctx: AimsContext
+        The context for the calculation
 
-    Returns:
-        Aims: ASE calculator object
+    Returns
+    -------
+    calc: ase.calculators.calulator.Calculator
+        Calculator object for the calculation
     """
 
     settings = ctx.settings

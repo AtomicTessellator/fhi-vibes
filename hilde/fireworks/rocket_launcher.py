@@ -39,24 +39,34 @@ def rapidfire(
     fw_ids=None,
     wflow_id=None,
 ):
-    """
-    Keeps running Rockets in m_dir until we reach an error. Automatically creates subdirectories
-    for each Rocket. Usually stops when we run out of FireWorks from the LaunchPad.
+    """Keeps running Rockets in m_dir until we reach an error. Automatically creates subdirectories for each Rocket. Usually stops when we run out of FireWorks from the LaunchPad.
 
-    Args:
-        launchpad (LaunchPad)
-        fworker (FWorker object)
-        m_dir (str): the directory in which to loop Rocket running
-        nlaunches (int): 0 means 'until completion', -1 or "infinite" means to loop until max_loops
-        max_loops (int): maximum number of loops (default -1 is infinite)
-        sleep_time (int): secs to sleep between rapidfire loop iterations
-        strm_lvl (str): level at which to output logs to stdout
-        timeout (int): of seconds after which to stop the rapidfire process
-        local_redirect (bool): redirect standard input and output to local file
-        pdb_on_exception (bool): if set to True,
-                                 python will start the debugger on a firework exception
-        fw_ids (list of ints): list of FireWorks to run
-        wflow_id (list of ints): list of ids of the root nodes of a workflow
+    Parameters
+    ----------
+    launchpad: LaunchPad
+        LaunchPad for the launch
+    fworker: FWorker
+        FireWorker for the launch
+    m_dir: str
+        the directory in which to loop Rocket running
+    nlaunches: int
+        0 means 'until completion', -1 or "infinite" means to loop until max_loops
+    max_loops: int
+        maximum number of loops (default -1 is infinite)
+    sleep_time: int
+        secs to sleep between rapidfire loop iterations
+    strm_lvl: str
+        level at which to output logs to stdout
+    timeout: int
+        of seconds after which to stop the rapidfire process
+    local_redirect: bool
+        redirect standard input and output to local file
+    pdb_on_exception: bool
+        if set to True, python will start the debugger on a firework exception
+    fw_ids: list of ints
+        list of FireWorks to run
+    wflow_id: list of ints
+        list of ids of the root nodes of a workflow
     """
     if fw_ids and len(fw_ids) != nlaunches:
         print("WARNING: Setting nlaunches to the length of fw_ids.")

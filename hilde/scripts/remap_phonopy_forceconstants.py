@@ -14,7 +14,23 @@ def remap_phonopy_force_constants(
     tol=1e-5,
     format="aims",
 ):
-    """take phonopy FORCE_CONSTANTS and remap to given supercell"""
+    """take phonopy FORCE_CONSTANTS and remap to given supercell
+
+    Parameters
+    ----------
+    uc_filename: str or Path
+        The input file for the primitive/unit cell
+    sc_filename: str or Path
+        The input file for the supercell
+    fc_filename: str or Path
+        The phonopy forceconstant file to parse
+    eps: float
+        finite zero
+    tol: float
+        tolerance to discern pairs
+    format: str
+        File format for the input geometries
+    """
 
     fc = parse_phonopy_force_constants(
         uc_filename=uc_filename,

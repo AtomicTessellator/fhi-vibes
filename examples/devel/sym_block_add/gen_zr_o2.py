@@ -19,7 +19,7 @@ args = parser.parse_args()
 def get_zr_o2_type(coords, sym_param):
     '''
     Determines the type number for ZrO2
-    Args:
+    Parameters:
         coords: np.ndarray(dtype=float, shape=3)
             Coordinates of the atom
         sym_param: np.ndarray(dtype=float, shape=3)

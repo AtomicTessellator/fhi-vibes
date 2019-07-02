@@ -124,15 +124,17 @@ check_keys = [
 
 
 def hexify(array):
-    """
-    Converts a numpy array into a hex string representing the big endian
-    byte encoding of the array
-    Args:
-        array: np.ndarray
-            The array to be converted
-    Returns:
-        hexstr: str
-            The hex string representing the bytestring of the array
+    """Converts a numpy array into a hex string representing the big endian byte encoding of the array
+
+    Parameters
+    ----------
+    array: np.ndarray
+        The array to be converted
+
+    Returns
+    -------
+    hexstr: str
+        The hex string representing the bytestring of the array
     """
     if array is None:
         return None
@@ -166,17 +168,21 @@ def hexify(array):
 
 
 def dehexify(hexstr, dtype=np.float64, shape=None):
-    """
-    Converts a hex string representation of an array into a numpy array
-    Args:
-        hexstr: str
-            the hex string to be converted
-        dtype: numpy data type
-            the data type of the array
-        shape: tuple or ints
-            The shape of an array
-    Returns:
-        array:  The array the hex string represents
+    """Converts a hex string representation of an array into a numpy array
+
+    Parameters
+    ----------
+    hexstr: str
+        the hex string to be converted
+    dtype: numpy data type
+        the data type of the array
+    shape: tuple or ints
+        The shape of an array
+
+    Returns
+    -------
+    np.ndarray
+        The array the hex string represents
     """
     if hexstr is None:
         return None
@@ -196,10 +202,7 @@ def dehexify(hexstr, dtype=np.float64, shape=None):
 
 
 class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
-    """
-    Modification of the SQLite3 database from ASE to include phonopy objects
-    See ase.db.sqlite3 for missing function definitions
-    """
+    """Modification of the SQLite3 database from ASE to include phonopy objects See ase.db.sqlite3 for missing function definitions"""
 
     type = "db"
     initialized = False
@@ -212,7 +215,18 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     ]
 
     def blob(self, array):
-        """Convert array to blob/buffer object."""
+        """Convert array to blob/buffer object.
+
+        Parameters
+        ----------
+        array: np.ndarray
+            Array to make blob/buffer
+
+        Returns
+        -------
+        list
+            A list that can be converted into a blob/buffer
+        """
         if array is None:
             return None
         array = np.array(array)
@@ -227,7 +241,20 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     def deblob(self, buf, dtype=float, shape=None):
         """Convert blob/buffer object to ndarray of correct dtype and shape.
 
-        (without creating an extra view)."""
+        Parameters
+        ----------
+        buf: Buffer
+            Buffer to convert to an array
+        dtype: Type
+            data type of the objects in the array
+        shape: tuple
+            shape of the array
+
+        Returns
+        -------
+        np.ndarray
+            The array form of the buffer
+        """
         if buf is None:
             return None
         if len(buf) == 0:
@@ -241,19 +268,28 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         return array
 
     def _write(self, row, key_value_pairs, data, id):
-        """
-        Writes a phonopy object to the database. Modifications from ASE are related to phonopy
-        Args:
-            row: PhononRow object
-                The PhononRow object to be added to the database
-            key_values_pairs: dict
-                additional keys to be added to the database
-            data: str
-                Additional data to be included
-            id: int
-                ID for the phonopy object in the database
-        Returns:
-            id: the id of the row
+        """Writes a phonopy object to the database. Modifications from ASE are related to phonopy
+
+        Parameters
+        ----------
+        row: PhononRow object
+            The PhononRow object to be added to the database
+        key_values_pairs: dict
+            additional keys to be added to the database
+        data: str
+            Additional data to be included
+        id: int
+            ID for the phonopy object in the database
+
+        Returns
+        -------
+        id: int
+            the id of the row
+
+        Raises
+        ------
+        AssertionError
+            If a value in key_value_pairs is not a basestring, int or bool
         """
         PhononDatabase._write(self, row, key_value_pairs, data)
         encode = self.encode
@@ -373,13 +409,17 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         return id
 
     def _convert_tuple_to_row(self, values):
-        """
-        Converts the database's data into a Phonon Row object
-        Args:
-            values: Database encoded data list
-                data from the database
+        """Converts the database's data into a Phonon Row object
+
+        Parameters
+        ----------
+        values: Database encoded data list
+            data from the database
+
         Returns
-            PhononRow of the database data for object
+        -------
+        PhononRow
+            The row of the database data for the object
         """
         deblob = self.deblob
         decode = self.decode
@@ -481,24 +521,39 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
     def create_select_statement(
         self, keys, cmps, sort=None, order=None, sort_table=None, what="systems.*"
     ):
-        """
-        Creates a string that represents a select command in SQLite 3
-        Args:
-            keys: list of strs
-                relevant keys to be included in the where part of the select commands
-            cmps: list of tuples (key, op, val)
-                a list of tuples representing what the where conditions for the query are
-            sort: str
-                Sort rows after key.  Prepend with minus sign for a decending sort.
-            order:
-                the order for the sort table
-            sort_table:
-                sort table for the query
-            what: str
-                The table to be accessed
-        Returns:
-            sql: A lsit of SQL commands
-            args: arguments for the SQL commands
+        """Creates a string that represents a select command in SQLite 3
+
+        Parameters
+        ----------
+        keys: list of strs
+            relevant keys to be included in the where part of the select commands
+        cmps: list of tuples (key, op, val)
+            a list of tuples representing what the where conditions for the query are
+        sort: str
+            Sort rows after key.  Prepend with minus sign for a decending sort.
+        order:
+            the order for the sort table
+        sort_table:
+            sort table for the query
+        what: str
+            The table to be accessed
+
+        Returns
+        -------
+        sql: list
+            A lsit of SQL commands
+        args: list
+            arguments for the SQL commands
+
+        Raises
+        ------
+        ValueError
+            If a temperature search does not have an = sign search OR
+            If querying for a Thermal property without a temperature OR
+        AssertionError
+            If version < 6 when queurying for magmom OR
+            If querying for periodicity with anything but "=" and "!=" OR
+            If the hashes key does not have a list as its value
         """
         tables = ["systems"]
         where = []
@@ -592,11 +647,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                         args.append(0)
                 else:
                     for hh in value:
-                        where.append(
-                            "INSTR(systems.key_value_pairs,'{}')>?".format(
-                                hh
-                            )
-                        )
+                        where.append("INSTR(systems.key_value_pairs,'{}')>?".format(hh))
                         args.append(0)
             elif isinstance(key, int):
                 if self.type == "postgresql":
@@ -671,32 +722,36 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         include_data=True,
         columns="all",
     ):
+        """Command to access a row in the database
+
+        Parameters
+        ----------
+        keys: list of strs
+            relevant keys to be included in the where part of the select commands
+        cmps: list of tuples (key, op, val)
+            a list of tuples representing what the where conditions for the query are
+        explain: bool
+            Explain query plan.
+        verbosity: int
+            Possible values: 0, 1 or 2.
+        limit: int or None
+            Limit selection.
+        offset: int
+            Offset into selected rows.
+        sort: str
+            Sort rows after key.  Prepend with minus sign for a decending sort.
+        include_data: bool
+            Use include_data=False to skip reading data from rows.
+        columns: 'all' or list of str
+            Specify which columns from the SQL table to include.
+            For example, if only the row id and the energy is needed,
+            queries can be speeded up by setting columns=['id', 'energy'].
+
+        Yields
+        ------
+        row: PhononRow
+            a row from the database that matches the query
         """
-        Command to access a row in the database
-        Args:
-            keys: list of strs
-                relevant keys to be included in the where part of the select commands
-            cmps: list of tuples (key, op, val)
-                a list of tuples representing what the where conditions for the query are
-            explain: bool
-                Explain query plan.
-            verbosity: int
-                Possible values: 0, 1 or 2.
-            limit: int or None
-                Limit selection.
-            offset: int
-                Offset into selected rows.
-            sort: str
-                Sort rows after key.  Prepend with minus sign for a decending sort.
-            include_data: bool
-                Use include_data=False to skip reading data from rows.
-            columns: 'all' or list of str
-                Specify which columns from the SQL table to include.
-                For example, if only the row id and the energy is needed,
-                queries can be speeded up by setting columns=['id', 'energy'].
-            Yields:
-                a row from the database that matches the query
-            """
         con = self._connect()
         self._initialize(con)
         values = np.array([None for i in range(len(self.columnnames) - 6)])
@@ -804,10 +859,18 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                     yield row
 
     def _initialize(self, con):
-        """
-        Initializes the database connection/the database
-        Args:
+        """Initializes the database connection/the database
+
+        Parameters
+        ----------
             con: Connection object to the database
+
+        Raises
+        ------
+        IOError
+            If version of the database is newer than version of ASE package OR
+            If version is less than 5 and reading older formats is not allowed
+
         """
         if self.initialized:
             return

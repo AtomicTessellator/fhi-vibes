@@ -14,8 +14,10 @@ class PhonopySettings(WorkflowSettings):
     def __init__(self, settings):
         """Settings in the context of a phonopy workflow
 
-        Args:
-            settings (Settings): Settings object with settings for phonopy
+        Parameters
+        ----------
+        settings: Settings
+            Settings object with settings for phonopy
         """
         super().__init__(
             name,
@@ -38,6 +40,15 @@ class PhonopyContext:
     """context for phonopy calculation"""
 
     def __init__(self, settings, workdir=None):
+        """Intializer
+
+        Parameters
+        ----------
+        settings: Settings
+            Settings for the Workflow
+        workdir: str or Path
+            The working directory for the workflow
+        """
         self.settings = PhonopySettings(settings)
         if workdir:
             self.workdir = Path(workdir)
@@ -64,6 +75,18 @@ class PhonopyContext:
 
     @ref_atoms.setter
     def ref_atoms(self, atoms):
+        """The setter for ref_atoms
+
+        Parameters
+        ----------
+        atoms: ase.atoms.Atoms
+            The atoms to become ref_atoms
+
+        Raises
+        ------
+        AssertionError
+            if atoms is not of type ase.atoms.Atoms
+        """
         assert isinstance(atoms, Atoms)
         self._ref_atoms = atoms
 

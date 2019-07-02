@@ -3,9 +3,22 @@
 # Revision 2018/08: FK
 # 23/4/2019: give max. force in meV/AA instead of eV/AA
 # 12/6/2019: refactor for hilde cli
+# 27/6/2019: Add docstrings
 
 # Find the optimizer type
 def get_optimizer(f):
+    """Find the optimzer type
+
+    Parameters
+    ----------
+    f: str
+        file to search through
+
+    Returns
+    -------
+    int
+        Optimizer type, 1 for Textbook BFGS, 2 for TRM, -1 for undefined
+    """
     try:
         line = next(l for l in f if "Geometry relaxation:" in l)
     except StopIteration:
@@ -20,6 +33,20 @@ def get_optimizer(f):
 
 # find energy
 def get_energy(f):
+    """Find the total energy for the calculation
+
+    Parameters
+    ----------
+    f: str
+        file to search through
+
+    Returns
+    -------
+    total_energy: float
+        the total energy corrected of the structure
+    free_energy: float
+        the electronic free energy of the structure
+    """
     line = next(l for l in f if "Total energy corrected" in l)
     total_energy = float(line.split()[5])
     line = next(l for l in f if "Electronic free energy" in l)
@@ -29,12 +56,36 @@ def get_energy(f):
 
 # get max_force
 def get_forces(f):
+    """Find the maximum force component
+
+    Parameters
+    ----------
+    f: str
+        file to search through
+
+    Returns
+    -------
+    float
+        The maximum force component of the structure
+    """
     line = next(l for l in f if "Maximum force component" in l)
     return float(line.split()[4])
 
 
 # get current volume
 def get_volume(f):
+    """Find the volume of the structure
+
+    Parameters
+    ----------
+    f: str
+        file to search through
+
+    Returns
+    -------
+    float
+        The structures volume
+    """
     for line in f:
         if "| Unit cell volume " in line:
             return float(line.split()[5])
@@ -47,6 +98,36 @@ def get_volume(f):
 
 # parse info of one step
 def parser(f, n_init=0, optimizer=2):
+    """Parse info of one step
+
+    Parameters
+    ----------
+    f: str
+        file to search through
+    n_init: int
+        The initial step
+    optimizer: int
+        Optimizer type, 1 for Textbook BFGS, 2 for TRM, -1 for undefined
+
+    Yields
+    ------
+    n_rel: int
+        Current relaxation step
+    energy: float
+        The total energy corrected of the step
+    free_energy: float
+        The electronic free energy of the step
+    max_force: float
+        The maximum force component of the step
+    volume: float
+        The volume of the step
+    status: int
+        The status of the step, 0 is normal, 1 is unproductive step, 2 is optimizer is stuck
+    converged: bool
+        If True the relaxation is converged
+    abort: int
+        If 1 the relaxation is aborting
+    """
     n_rel = n_init
     converged = 0
     abort = 0
@@ -84,7 +165,27 @@ def parser(f, n_init=0, optimizer=2):
 
 
 def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_string):
-    """ Print the status line, skip volume if not found """
+    """Print the status line, skip volume if not found
+
+    Parameters
+    ----------
+    n_rel: int
+        Current relaxation step
+    energy: float
+        The total energy corrected of the step
+    de: float
+        Change in total energy
+    free_energy: float
+        The electronic free energy of the step
+    df: float
+        Change in electronic free energy
+    max_force: float
+        The maximum force component of the step
+    volume: float
+        The volume of the step
+    status_string: str
+        The status of the relaxation
+    """
 
     if volume and volume > 0:
         vol_str = f"{volume:15.4f}"
@@ -99,7 +200,13 @@ def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_s
 
 
 def get_relaxation_info(filenames):
-    """print information about relaxation performed with FHIaims"""
+    """print information about relaxation performed with FHIaims
+
+    Parameters
+    ----------
+    filenames: list of str
+        The file paths of the aims.out files to analyze
+    """
     init, n_rel, converged, abort = 4 * (None,)
     status_string = [
         "",

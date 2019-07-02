@@ -14,6 +14,7 @@ from . import info, input, run, tools, output
 from .cli_tracker import CliTracker
 from .misc import AliasedGroup, check_path
 
+
 @click.command(cls=AliasedGroup)
 @click.version_option(hilde_version, "-V", "--version")
 @click.option("--verbose", is_flag=True, hidden=True)
@@ -43,9 +44,11 @@ cli.add_command(output.output)
 
 try:
     from hilde.fireworks.cli import fireworks
+
     cli.add_command(fireworks.fireworks)
 except ImportError:
     pass
+
 
 @cli.command("status", hidden=True)
 @click.option("--verbose", is_flag=True)

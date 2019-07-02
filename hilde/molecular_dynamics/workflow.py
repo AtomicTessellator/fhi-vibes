@@ -39,7 +39,29 @@ def run_md(ctx):
 
 
 def bootstrap(ctx):
-    """ load settings, prepare atoms, calculator and MD algorithm """
+    """Load settings, prepare atoms, calculator and MD algorithm
+
+    Parameters
+    ----------
+    ctx: MDContext
+        Context for the workflow
+
+    Returns
+    -------
+    dict
+        The relevant information to run the MD with the following items
+
+        atoms: ase.atoms.Atoms
+            The reference structure
+        calc: ase.calculators.calulator.Calculator
+            The Calculator for the MD
+        maxsteps: int
+            Maximum number of steps for the MD
+        compute_stresses: bool
+            If True compute the stresses
+        workdir: str
+            working directory for the run
+    """
 
     # read structure
     atoms = ctx.settings.get_atoms()
@@ -98,7 +120,36 @@ def run(
     backup_folder="backups",
     **kwargs,
 ):
-    """ run and MD for a specific time  """
+    """run and MD for a specific time
+
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        Initial step geometry
+    calc: ase.calculators.calulator.Calculator
+        The calculator for the MD run
+    md: ase.md.MolecularDynamics
+        The MD propagator
+    maxsteps: int
+        Maximum number of steps
+    compute_stresses: int or bool
+        Number of steps in between each stress computation
+            if False 0, if True 1, else int(compute_stresses)
+    trajectory: Path or str
+        trajectory file path
+    metadata_file: str or Path
+        File to store the metadata in
+    workdir: Path or str
+        Path to working directory
+    backup_folder: str or Path
+        Path to the back up folders
+
+    Returns
+    -------
+    bool
+        True if hit max steps or completed
+
+    """
 
     # create watchdog
     watchdog = Watchdog()
@@ -199,17 +250,63 @@ def run(
 
 
 def compute_stresses_now(compute_stresses, nsteps):
-    """ return if stress should be computed in this step """
+    """Return if stress should be computed in this step
+
+    Parameters
+    ----------
+    compute_stresses: int
+        Number of steps between each stress calculation
+    nsteps: int
+        Current step number
+
+    Returns
+    -------
+    bool
+        True if the stress should be computed at this step
+    """
     return compute_stresses and (nsteps % compute_stresses == 0)
 
 
 def compute_stresses_next(compute_stresses, nsteps):
-    """ return if stress should be computed in the NEXT step """
+    """Return if stress should be computed in the NEXT step
+
+    Parameters
+    ----------
+    compute_stresses: int
+        Number of steps between each stress calculation
+    nsteps: int
+        Current step number
+
+    Returns
+    -------
+    bool
+        True if the stress should be computed at the next step
+    """
     return compute_stresses_now(compute_stresses, nsteps + 1)
 
 
 def prepare_from_trajectory(atoms, md, trajectory):
-    """ Take the last step from trajectory and initialize atoms + md accordingly """
+    """Take the last step from trajectory and initialize atoms + md accordingly
+
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        The initial geometry
+    md: ase.md.MolecularDynamics
+        The MD propagator
+    trajectory: str or Path
+        The trajectory file
+
+    Returns
+    -------
+    bool
+        True if the trajectory exists
+
+    Raises
+    ------
+        AssertionError
+            If info is not in last_atoms
+    """
 
     trajectory = Path(trajectory)
     if trajectory.exists():
@@ -227,7 +324,20 @@ def prepare_from_trajectory(atoms, md, trajectory):
 
 
 def check_metadata(new_metadata, old_metadata):
-    """sanity check if metadata sets coincide"""
+    """Sanity check if metadata sets coincide
+
+    Parameters
+    ----------
+    new_metadata: dict
+        The metadata for this run
+    old_metadata: dict
+        The metadata for the run stored in the trajectory file
+
+    Raises
+    ------
+    AssertionError
+        If the metadata do not agree
+    """
     om, nm = old_metadata["MD"], new_metadata["MD"]
 
     # check if keys coincide:

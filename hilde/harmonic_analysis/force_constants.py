@@ -9,7 +9,26 @@ from hilde.phonopy.utils import remap_force_constants
 def reshape_force_constants(
     primitive, supercell, force_constants, scale_mass=False, lattice_points=None
 ):
-    """ reshape from (N_prim x N_super x 3 x 3) into 3x3 blocks labelled by (i,L) """
+    """ reshape from (N_prim x N_super x 3 x 3) into 3x3 blocks labelled by (i,L)
+
+    Parameters
+    ----------
+    primitive: ase.atoms.Atoms
+        The primitive cell structure
+    supercell: ase.atoms.Atoms
+        The super cell structure
+    force_constants: np.ndarray(shape=(N_prim x N_super x 3 x 3))
+        The input force constant matrix
+    scale_mass: bool
+        If True scale phi by the product of the masses
+    lattice_points: np.ndarray
+        the lattice points to include
+
+    Returns
+    -------
+    new_force_constants: np.ndarray(shape=(i,L))
+        The remapped force constants
+    """
     if len(force_constants.shape) > 2:
         if force_constants.shape[0] != force_constants.shape[1]:
             force_constants = remap_force_constants(

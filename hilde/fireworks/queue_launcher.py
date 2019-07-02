@@ -56,20 +56,40 @@ def launch_rocket_to_queue(
     fill_mode=False,
     fw_id=None,
 ):
-    """
-    Submit a single job to the queue.
+    """ Submit a single job to the queue.
 
-    Args:
-        launchpad (LaunchPad): LaunchPad for the launch
-        fworker (FWorker): FireWorker for the launch
-        qadapter (QueueAdapterBase): Queue Adapter for the resource
-        launcher_dir (str): The directory where to submit the job
-        reserve (bool): Whether to queue in reservation mode
-        strm_lvl (str): level at which to stream log messages
-        create_launcher_dir (bool): Whether to create a subfolder launcher+timestamp, if needed
-        fill_mode (bool): whether to submit jobs even when there is nothing to run
-            (only in non-reservation mode)
-        fw_id (int): specific fw_id to reserve (reservation mode only)
+    Parameters
+    ----------
+    launchpad: LaunchPad
+        LaunchPad for the launch
+    fworker: FWorker
+        FireWorker for the launch
+    qadapter: QueueAdapterBase
+        Queue Adapter for the resource
+    launcher_dir: str
+        The directory where to submit the job
+    reserve: bool
+        Whether to queue in reservation mode
+    strm_lvl: str
+        level at which to stream log messages
+    create_launcher_dir: bool
+        Whether to create a subfolder launcher+timestamp, if needed
+    fill_mode: bool
+        whether to submit jobs even when there is nothing to run (only in non-reservation mode)
+    fw_id: int
+        specific fw_id to reserve (reservation mode only)
+
+    Raises
+    ------
+    RuntimeError
+        If launch is not successful OR
+        If queue script could not be submitted
+    ValueError
+        If the launch directory does not exist OR
+        If in offline mode and not reservation mode OR
+        If in Reservation Mode and not using a singleshot RocketLauncher OR
+        If in Reservation Mode and Fill Mode is also requested OR
+        If asking to launch a particular FireWork and not in Reservation Mode
     """
     fworker = fworker if fworker else FWorker()
     launcher_dir = os.path.abspath(launcher_dir)
@@ -330,27 +350,43 @@ def rapidfire(
     fw_ids=None,
     wflow_id=None,
 ):
-    """
-    Submit many jobs to the queue.
+    """ Submit many jobs to the queue.
 
-    Args:
-        launchpad (LaunchPad): LaunchPad for the launch
-        fworker (FWorker): FireWorker for the launch
-        qadapter (QueueAdapterBase): Queue Adapter for the resource
-        launch_dir (str): directory where we want to write the blocks
-        nlaunches (int): total number of launches desired; "infinite" for loop, 0 for one round
-        njobs_queue (int): stops submitting jobs when njobs_queue jobs are in the queue,
-                           0 for no limit
-        njobs_block (int): automatically write a new block when njobs_block jobs are in a
-                           single block
-        sleep_time (int): secs to sleep between rapidfire loop iterations
-        reserve (bool): Whether to queue in reservation mode
-        strm_lvl (str): level at which to stream log messages
-        timeout (int): # of seconds after which to stop the rapidfire process
-        fill_mode (bool): whether to submit jobs even when there is nothing to run
-                          (only in non-reservation mode)
-        fw_ids(list of ints): a list fw_ids to launch (len(fw_ids) == nlaunches)
-        wflow_id(list of ints): a list fw_ids that are a root of the workflow
+    Parameters
+    ----------
+    launchpad: LaunchPad
+        LaunchPad for the launch
+    fworker: FWorker
+        FireWorker for the launch
+    qadapter: QueueAdapterBase
+        Queue Adapter for the resource
+    launch_dir: str
+        directory where we want to write the blocks
+    nlaunches: int
+        total number of launches desired; "infinite" for loop, 0 for one round
+    njobs_queue: int
+        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit
+    njobs_block: int
+        automatically write a new block when njobs_block jobs are in a single block
+    sleep_time: int
+        secs to sleep between rapidfire loop iterations
+    reserve: bool
+        Whether to queue in reservation mode
+    strm_lvl: str
+        level at which to stream log messages
+    timeout: int
+        # of seconds after which to stop the rapidfire process
+    fill_mode: bool
+        whether to submit jobs even when there is nothing to run (only in non-reservation mode)
+    fw_ids: list of ints
+        a list fw_ids to launch (len(fw_ids) == nlaunches)
+    wflow_id: list of ints
+        a list fw_ids that are a root of the workflow
+
+    Raises
+    ------
+    ValueError
+        If the luanch directory does not exist
     """
     if fw_ids and len(fw_ids) != nlaunches:
         print("WARNING: Setting nlaunches to the length of fw_ids.")

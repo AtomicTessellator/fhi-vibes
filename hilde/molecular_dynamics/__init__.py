@@ -5,7 +5,17 @@ from hilde.helpers.converters import input2dict, results2dict
 
 
 def metadata2dict(atoms, calc, md):
-    """ convert metadata information to plain dict """
+    """Convert metadata information to plain dict
+
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        Reference structure for MD calculations
+    calc: ase.calculators.calulator.Calculator
+        Calculator for the MD Run
+    md: ase.md.MolecularDynamics
+        MD propagator
+    """
 
     md_dict = md.todict()
     # save time and mass unit

@@ -7,6 +7,20 @@ from hilde.helpers import Timer
 
 
 def upload_command(folder, token):
+    """Generate the NOMAD upload command
+
+    Parameters
+    ----------
+    folder: str
+        The folder to upload
+    token: str
+        The NOMAD token
+
+    Returns
+    -------
+    cmd: str
+        The upload command
+    """
     cmd = (
         f"tar cf - {folder} | curl -XPUT -# -HX-Token:{token} "
         "-N -F file=@- http://nomad-repository.eu:8000 | "
@@ -16,7 +30,15 @@ def upload_command(folder, token):
 
 
 def nomad_upload(folders, token=None, dry=False):
-    """upload folders with calculations to NOMAD"""
+    """upload folders with calculations to NOMAD
+
+    Parameters
+    ----------
+    folders: list str
+        The folders to upload
+    token: str
+        The NOMAD token
+    """
     timer = Timer()
 
     settings = Settings()

@@ -3,9 +3,7 @@ from pathlib import Path
 
 
 class TaskSpec:
-    """
-    @brief      Class used to define a task spec in a standardized way
-    """
+    """Class used to define a task specification in a standardized way"""
 
     def __init__(
         self,
@@ -18,18 +16,26 @@ class TaskSpec:
         inputs=None,
         make_abs_path=False,
     ):
-        """
-        TaskSpec Constructor
-        Args:
-            func (str or Function): Function to be wrapped into a PyTask
-            func_fw_out (str or Function): Function that converts the outputs of func into FWActions
-            task_with_atoms_obj (bool): True if calculating using an ASE Atoms object
-            func_kwargs (dict): kwargs for func
-            func_fw_out_kwargs: kwargs for func_fw_out
-            args (list): args for func
-            inputs (list): args for func stored in the FireWorks database
-                           (spec keys that are append to args)
-            make_abs_path (bool): If True make all paths absolute
+        """TaskSpec Constructor
+
+        Parameters
+        ----------
+        func: str or Function
+            Function to be wrapped into a PyTask
+        func_fw_out: str or Function
+            Function that converts the outputs of func into FWActions
+        task_with_atoms_obj: bool
+            True if calculating using an ASE Atoms object
+        func_kwargs: dict
+            kwargs for func
+        func_fw_out_kwargs: dict
+           kwargs for func_fw_out
+        args: list
+            args for func
+        inputs: list
+            args for func stored in the FireWorks database(spec keys that are append to args)
+        make_abs_path: bool
+            If True make all paths absolute
         """
         if not isinstance(func, str):
             func = f"{func.__module__}.{func.__name__}"
@@ -61,35 +67,51 @@ class TaskSpec:
             self.args = list()
 
         if inputs:
-            self.inputs = inputs
+            self._inputs = inputs
         else:
-            self.inputs = list()
+            self._inputs = list()
 
-    def get_pt_args(self):
-        """ get the PyTask args for the task """
-        if self.task_with_atoms_obj:
-            return [
+        if task_with_atoms_obj:
+            self._pt_args = [
                 self.func,
                 self.func_fw_out,
                 self.func_kwargs,
                 self.func_fw_out_kwargs,
                 *self.args,
             ]
-        return [self.func, self.func_fw_out, *self.args]
+        else:
+            self._pt_args = [self.func, self.func_fw_out, *self.args]
 
-    def get_pt_kwargs(self, fw_settings):
-        """ get the PyTask kwargs for the task """
-        if not fw_settings:
-            fw_settings = {}
+    @property
+    def pt_args(self):
+        """get the PyTask args for the task """
+        return _pt_args
+
+    @property
+    def fw_settings(self):
+        """get the fw_settings for the PyTask"""
+        return self._fw_settings
+
+    @fw_settings.setter
+    def fw_settings(self, fw_set):
+        """set the task_specs fw_settings"""
+        self._fw_settings = fw_set
+
+    @property
+    def pt_kwargs(self):
+        """get the PyTask kwargs for the task """
+        if not self._fw_settings:
+            self._fw_settings = {}
 
         if self.task_with_atoms_obj:
-            return {"fw_settings": fw_settings}
+            return {"fw_settings": self._fw_settings}
 
         to_ret = dict(self.func_kwargs, **self.func_fw_out_kwargs)
-        to_ret["fw_settings"] = fw_settings
+        to_ret["fw_settings"] = self._fw_settings
 
         return to_ret
 
-    def get_pt_inputs(self):
-        """ get the PyTask inputs for the task """
-        return self.inputs
+    @property
+    def pt_inputs(self):
+        """get the PyTask inputs for the task """
+        return self._inputs

@@ -20,7 +20,41 @@ def setup_md(
     trajectory=None,
     **kwargs,
 ):
-    """ create and ase.md object with respective settings """
+    """Create and ase.md object with respective settings
+
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        Reference structure for molecular dynamics
+    driver: str
+        Algorithm used to propagate the MD
+    temperature: float
+        Temperature used for Langevin propagator
+    timestep: float
+        MD timestep
+    friction: float
+        friction used for Langevin propagator
+    logfile: str
+        file to log in
+    workdir: str or Path
+        The working directory
+    trajectory: str or Path
+        The output trajectory file
+
+    Returns
+    -------
+    atoms: ase.atoms.Atoms
+        The refrence structure
+    md: ase.md.MolecularDynamics
+        The MD propagator
+    prepared: bool
+        True if prepared from trajectory
+
+    Raises
+    ------
+    RuntimeError
+        If driver is not supported
+    """
 
     if trajectory is None:
         trajectory = (Path(workdir) / "trajectory.son").absolute()
@@ -67,7 +101,22 @@ def setup_md(
 
 
 def prepare_from_trajectory(atoms, md, trajectory="trajectory.son", **kwargs):
-    """ Take the last step from trajectory and initialize atoms + md accordingly """
+    """ Take the last step from trajectory and initialize atoms + md accordingly
+
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        Reference structure for molecular dynamics
+    md: ase.md.MolecularDynamics
+        The MD propagator
+    trajectory: str or Path
+        The output trajectory file
+
+    Returns
+    -------
+    bool
+        True if prepared from the last step in a trajectory
+    """
 
     trajectory = Path(trajectory).absolute()
     if trajectory.exists():
@@ -93,7 +142,28 @@ def initialize_md(
     deterministic=True,
     **kwargs,
 ):
-    """ Either use Maxwell Boltzmann or PhononHarmonics to prepare the MD run """
+    """Either use Maxwell Boltzmann or PhononHarmonics to prepare the MD run
+
+    Parameters
+    ----------
+    atoms: ase.atoms.Atoms
+        Reference structure for molecular dynamics
+    temperature: float
+        The temperature in Kelvin
+    force_constants: str
+        The filename of the file holding force constants for phonon rattle
+    quantum: bool
+        If True use Bose-Einstein distribution instead of Maxwell-Boltzmann
+    force_temp: bool
+        If True strictly enforce the initialization temperature
+    deterministic: bool
+        If True create sample deterministically
+
+    Returns
+    -------
+    atoms: ase.atoms.Atoms
+        Updated atoms with positions and velocities set by the initialization scheme
+    """
 
     if temperature is None:
         return atoms

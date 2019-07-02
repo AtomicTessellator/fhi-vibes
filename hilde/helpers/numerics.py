@@ -3,7 +3,20 @@ from hilde.konstanten.numerics import medium_tol
 
 
 def clean_matrix(matrix, eps=medium_tol):
-    """ clean from small values"""
+    """clean from small values
+
+    Parameters
+    ----------
+    matrix: np.ndarray
+        Input matrix
+    eps: float
+        Threshold below which elements of matrix are set to zero
+
+    Returns
+    -------
+    matrix: np.ndarray
+        Matrix cleaned of all values below eps
+    """
     matrix = np.array(matrix)
     for ij in np.ndindex(matrix.shape):
         if abs(matrix[ij]) < eps:
@@ -12,7 +25,26 @@ def clean_matrix(matrix, eps=medium_tol):
 
 
 def get_3x3_matrix(matrix, dtype=int):
-    """ get a 3x3 matrix """
+    """get a 3x3 matrix
+
+    Parameters
+    ----------
+    matrix: np.ndarray
+        matrix to convert to a 3x3 matrix
+    dtype: type
+        Desired data type
+
+    Returns
+    -------
+    supercell_matrix: np.ndarray
+        3x3 matrix representation of matrix
+
+    Raises
+    ------
+    Exception
+        If matrix can not be converted to a 3x3 matrix
+    """
+
     if np.size(matrix) == 1:
         supercell_matrix = matrix * np.eye(3)
     elif np.size(matrix) == 3:
@@ -27,4 +59,3 @@ def get_3x3_matrix(matrix, dtype=int):
         )
 
     return supercell_matrix.astype(dtype)
-

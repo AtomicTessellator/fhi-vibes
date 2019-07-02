@@ -59,7 +59,7 @@ def tool_make_supercell(filename, dimension, n_target, deviation, dry, format, s
 @tools.command("get_relaxation_info")
 @click.argument("filenames", nargs=-1)
 def relaxation_info(filenames):
-    """analyize aims relaxation"""
+    """analyze aims relaxation"""
     get_relaxation_info(filenames)
 
 
@@ -85,7 +85,6 @@ def tool_create_samples(
     format,
 ):
     """create samples from geometry in FILENAME"""
-
     click.echo("hilde CLI: create_samples")
     create_samples(
         filename,
@@ -127,7 +126,7 @@ def tool_remap_phonopy_force_constants(filename, uc_filename, sc_filename):
 @tools.command("nomad_upload")
 @click.argument("folders", nargs=-1)
 @click.option("--token", help="nomad token, otherwise read from .hilderc")
-@click.option("--dry", help="only show the commands")
+@click.option("--dry", is_flag=True, help="only show the commands")
 def tool_nomad_upload(folders, token, dry):
     """upload the calculations in FOLDERS to NOMAD"""
 
