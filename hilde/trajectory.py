@@ -35,13 +35,17 @@ def step2file(atoms, calc=None, file="trajectory.son", append_cell=False, metada
     append_cell: True
         If True add cell to the calculation
     metadata: dict
-        the metadata for the calculation
+        the metadata for the calculation, store to atoms.info if possible
     """
 
-    dct = results2dict(atoms, calc, append_cell)
-
+    dct = {}
     if metadata:
-        dct.update({"metadata": metadata})
+        if all(key not in atoms.info for key in metadata.keys()):
+            atoms.info.update(metadata)
+        else:
+            atoms.info.update({"metadata": metadata})
+
+    dct.update(results2dict(atoms, calc, append_cell))
 
     son.dump(dct, file, dumper=dumper)
 
@@ -162,6 +166,10 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
         # compatibility with older trajectories
         if "MD" in obj:
             atoms.info.update(obj["MD"])
+
+        # preserve metadata
+        if "metadata" in obj:
+            atoms.info.update({"metadata": obj["metadata"]})
 
         trajectory.append(atoms)
 
@@ -420,7 +428,7 @@ class Trajectory(list):
 
         talk(f".. {sdir} written.")
         talk(f".. {pdir} written.")
-        talkl(f".. {fdir} written.")
+        talk(f".. {fdir} written.")
 
     def get_average_displacements(self, ref_atoms=None, window=-1):
         """Return averaged displacements
