@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hilde"
-version = "0.2.1.dev2"
+version = "0.2.1.dev3"
 description = "Haber Institute Lattice Dynamics Environment"
 authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>"]
 license = "ISC"
@@ -20,23 +20,22 @@ son = "^0.2.1"
 spglib = "^1.12"
 phonopy = "^2.1"
 ase = {git = "https://gitlab.com/ase/ase.git"}
+click = "^7.0"
+attrs = "^19.1"
+pandas = "^0.24.2"
+seekpath = "^1.8.4"
 fireworks = {version = "^1.9",optional = true}
 phono3py = {version = "^1.17",optional = true}
 python-gssapi = {version = "^0.6.4",optional = true}
 pymongo = {version = "^3.8",optional = true}
 fabric = {version = "^2.4",optional = true}
 paramiko = {version = "^2.4",optional = true}
-click = "^7.0"
-attrs = "^19.1"
-pandas = "^0.24.2"
 psycopg2 = {version="^2.8.0", optional=true}
-seekpath = {version="^1.8.4", optional=true}
 
 [tool.poetry.extras]
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
 phono3py = ["phono3py"]
 postgresql = ["psycopg2"]
-phonopy_extras = ["seekpath"]
 
 [tool.poetry.dev-dependencies]
 black = "^18.9b0"
