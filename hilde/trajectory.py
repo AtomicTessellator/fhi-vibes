@@ -21,7 +21,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers import Timer, warn, progressbar, talk
 
 
-def step2file(atoms, calc=None, file="trajectory.son", append_cell=False, metadata={}):
+def step2file(atoms, calc=None, file="trajectory.son", append_cell=True, metadata={}):
     """Save the current step
 
     Parameters

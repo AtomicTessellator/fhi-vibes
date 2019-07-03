@@ -211,7 +211,7 @@ def run(
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
             _ = atoms.get_forces()
             meta = get_aims_uuid_dict()
-            step2file(atoms, atoms.calc, trajectory, metadata=meta)
+            step2file(atoms, file=trajectory, metadata=meta, append_cell=False)
 
         # store MD metadata locally
         metadata2file(metadata, file=metadata_file)
