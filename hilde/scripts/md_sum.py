@@ -4,6 +4,7 @@ from pathlib import Path
 from argparse import ArgumentParser
 import numpy as np
 
+from ase import units
 from hilde.trajectory import reader
 
 
@@ -30,8 +31,10 @@ def parse_log(filename):
 
 
 def md_sum(file, plot, avg, verbose):
+    """summarize the MD trajectory in FILE"""
     infile = Path(file)
 
+    natoms = -1
     if "yaml" in infile.suffix or "son" in infile.suffix:
         trajectory = reader(infile)[1:]
         e_kin = [atoms.get_kinetic_energy() for atoms in trajectory]
@@ -39,6 +42,7 @@ def md_sum(file, plot, avg, verbose):
         temp = [atoms.get_temperature() for atoms in trajectory]
         # sum up time steps, necessary if dt changes during md
         time = np.cumsum([atoms.info["dt_fs"] * 0.001 for atoms in trajectory])
+        natoms = len(trajectory[0])
     elif "log" in infile.suffix:
         e_kin, e_pot, temp, time = parse_log(infile)
 
@@ -67,71 +71,12 @@ def md_sum(file, plot, avg, verbose):
     print(f"Potential energy:        {np.mean(e_pot):.2f} +/- {np.std(e_pot):.2f}eV")
 
     if plot:
-        import matplotlib
-
-        matplotlib.use("pdf")
-
-        from matplotlib import pyplot as plt
+        # create pandas DataFrame and plot things from it
         import pandas as pd
 
-        from hilde.helpers.plotting import tableau_colors as tc
-
-        # plot temperatures
-        data = pd.Series(temp, time)
-
-        fig, (ax, ax2) = plt.subplots(ncols=2)
-
-        # settings for the immediate plot
-        plot_settings = {"alpha": 0.4, "linewidth": 1.0, "label": ""}
-        avg_settings = {"linewidth": 1.5}
-
-        data.plot(color=tc[0], title="Nuclear Temperature", ax=ax, **plot_settings)
-
-        roll = data.rolling(window=avg, min_periods=0).mean()
-        roll.plot(color=tc[0], label=f"T_nucl", ax=ax, **avg_settings)
-
-        # exp = data.iloc[min(len(data) // 2, args.avg) :].expanding().mean()
-        # exp.plot( color=tc[5], label=f"Expanding mean ({args.avg}", ax=ax)
-
-        ax.set_xlabel("Time [ps]")
-        ax.set_ylabel("Nucl. Temperature [K]")
-        ax.legend()
-
-        # fig.savefig("temp.pdf")
-
-        # plot energies in one plot
-        # fig, ax = plt.subplots()
-
-        e_kin = pd.Series(e_kin, time)
-        # e_kin -= e_kin.min()
-
-        e_pot = pd.Series(e_pot, time)
-        e_pot -= e_pot.min()
-
-        e_tot = e_pot + e_kin
-        e_dif = e_pot - e_kin
-
-        e_tot.plot(color=tc[0], title="Total Energy", ax=ax2, **plot_settings)
-        roll = e_tot.rolling(window=avg, min_periods=0).mean()
-        roll.plot(color=tc[0], ax=ax2, label="E_tot", **avg_settings)
-
-        e_pot.plot(color=tc[3], ax=ax2, **plot_settings)
-        roll = e_pot.rolling(window=avg, min_periods=0).mean()
-        roll.plot(color=tc[3], ax=ax2, label="E_pot", **avg_settings)
-
-        ax2.axhline(0, linewidth=1, color="k")
-        e_dif.plot(color=tc[1], ax=ax2, **plot_settings)
-        exp = e_dif.rolling(min_periods=0, window=avg).mean()
-        exp.plot(color=tc[1], ax=ax2, label="E_pot - E_kin", **avg_settings)
-
-        ax2.legend()
-        ax2.set_xlabel("Time [ps]")
-        ax2.set_ylabel("Energy [eV]")
-
-        # fig.tight_layout()
-        fname = "md_summary.pdf"
-        fig.savefig(fname)
-        print(f".. summary plotted to {fname}")
+        data = {"temp": temp, "e_kin": e_kin, "e_pot": e_pot}
+        df = pd.DataFrame(data, index=time)
+        plot_summary(df, avg, natoms)
 
 
 def main():
@@ -148,3 +93,81 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def plot_summary(dataframe, avg, natoms=None):
+    """plot a summary of the data in DATAFRAGE
+
+    Args:
+        dataframe (pandas.Dataframe): MD data
+        avg (int): window size for averaging
+        natoms (int): number of atoms
+    """
+    import matplotlib
+
+    matplotlib.use("pdf")
+
+    from matplotlib import pyplot as plt
+
+    from hilde.helpers.plotting import tableau_colors as tc
+
+    # plot temperatures
+    temp = dataframe.temp
+    e_kin = dataframe.e_kin
+    e_pot = dataframe.e_pot
+    e_pot -= e_pot.min()
+
+    fig, (ax, ax2) = plt.subplots(ncols=2)
+
+    # settings for the immediate plot
+    plot_settings = {"alpha": 0.4, "linewidth": 1.0, "label": ""}
+    avg_settings = {"linewidth": 1.5}
+
+    temp.plot(color=tc[0], title="Nuclear Temperature", ax=ax, **plot_settings)
+
+    if natoms:
+        e_temp = (e_kin + e_pot) / natoms / 3 / units.kB
+        e_temp.plot(color=tc[1], ax=ax, **plot_settings)
+        e_temp.rolling(window=avg, min_periods=0).mean().plot(
+            color=tc[1], label=f"E_tot", ax=ax, **avg_settings
+        )
+
+    roll = temp.rolling(window=avg, min_periods=0).mean()
+    roll.plot(color=tc[0], label=f"T_nucl", ax=ax, **avg_settings)
+
+    # exp = data.iloc[min(len(data) // 2, args.avg) :].expanding().mean()
+    # exp.plot( color=tc[5], label=f"Expanding mean ({args.avg}", ax=ax)
+
+    ax.set_xlabel("Time [ps]")
+    ax.set_ylabel("Nucl. Temperature [K]")
+    ax.legend()
+
+    # fig.savefig("temp.pdf")
+
+    # plot energies in one plot
+    # fig, ax = plt.subplots()
+
+    e_tot = e_pot + e_kin
+    e_dif = e_pot - e_kin
+
+    e_tot.plot(color=tc[0], title="Total Energy", ax=ax2, **plot_settings)
+    roll = e_tot.rolling(window=avg, min_periods=0).mean()
+    roll.plot(color=tc[0], ax=ax2, label="E_tot", **avg_settings)
+
+    e_pot.plot(color=tc[3], ax=ax2, **plot_settings)
+    roll = e_pot.rolling(window=avg, min_periods=0).mean()
+    roll.plot(color=tc[3], ax=ax2, label="E_pot", **avg_settings)
+
+    ax2.axhline(0, linewidth=1, color="k")
+    e_dif.plot(color=tc[1], ax=ax2, **plot_settings)
+    exp = e_dif.rolling(min_periods=0, window=avg).mean()
+    exp.plot(color=tc[1], ax=ax2, label="E_pot - E_kin", **avg_settings)
+
+    ax2.legend()
+    ax2.set_xlabel("Time [ps]")
+    ax2.set_ylabel("Energy [eV]")
+
+    # fig.tight_layout()
+    fname = "md_summary.pdf"
+    fig.savefig(fname)
+    print(f".. summary plotted to {fname}")
