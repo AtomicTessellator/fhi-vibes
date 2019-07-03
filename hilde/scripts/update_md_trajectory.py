@@ -5,6 +5,29 @@ import shutil
 
 from hilde.io import read
 from hilde.trajectory import reader
+from hilde.helpers import talk
+
+
+def update_trajectory(trajectory, uc=None, sc=None, format="aims"):
+    """update TRAJECTORY by adding unit cell and supercell"""
+    traj = reader(trajectory)
+    new_trajectory = "temp.son"
+
+    if uc:
+        atoms = read(uc, format=format)
+        traj.primitive = atoms
+
+    if sc:
+        atoms = read(sc, format=format)
+        traj.supercell = atoms
+
+    traj.write(file=new_trajectory)
+
+    fname = f"{trajectory}.bak"
+    talk(f".. back up old trajectory to {fname}")
+    shutil.copy(trajectory, fname)
+    talk(f".. write new trajectory to {trajectory}")
+    shutil.move(new_trajectory, trajectory)
 
 
 def main():
@@ -16,21 +39,7 @@ def main():
     parser.add_argument("--format", default="aims")
     args = parser.parse_args()
 
-    trajectory = reader(args.trajectory)
-    new_trajectory = "temp.yaml"
-
-    if args.uc:
-        atoms = read(args.uc, format=args.format)
-        trajectory.primitive = atoms
-
-    if args.sc:
-        atoms = read(args.sc, format=args.format)
-        trajectory.supercell = atoms
-
-    trajectory.write(file=new_trajectory)
-
-    shutil.copy(args.trajectory, f"{args.trajectory}.bak")
-    shutil.move(new_trajectory, args.trajectory)
+    update_trajectory(args.trajectory, args.uc, args.sc, args.format)
 
 
 if __name__ == "__main__":
