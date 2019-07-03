@@ -238,7 +238,7 @@ def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
     om = old_metadata
 
     for key in keys:
-        if key is walltime:
+        if key is "walltime":
             continue
         if isinstance(nm[key], dict):
             check_metadata(nm[key], om[key], keys=nm[key].keys())
