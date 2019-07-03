@@ -9,6 +9,9 @@ from hilde.scripts.create_samples import create_samples
 from hilde.scripts.suggest_k_grid import suggest_k_grid
 from hilde.scripts.remap_phonopy_forceconstants import remap_phonopy_force_constants
 from hilde.scripts.nomad_upload import nomad_upload
+from hilde.scripts.update_md_trajectory import update_trajectory
+
+# from hilde.scripts.rewrite_geometry import rewrite_geometry
 
 from .misc import AliasedGroup
 
@@ -131,3 +134,41 @@ def tool_nomad_upload(folders, token, dry):
     """upload the calculations in FOLDERS to NOMAD"""
 
     nomad_upload(folders, token, dry)
+
+
+@tools.command(cls=AliasedGroup, hidden=True)
+def trajectory():
+    """trajectory tools"""
+
+
+@trajectory.command("2tdep")
+@click.argument("filename")
+@click.option("-s", "--skip", default=1, help="skip this many steps from trajectory")
+@click.option("--folder", default="tdep", help="folder to store input")
+def t2tdep(filename, skip, folder):
+    """extract trajectory in FILENAME and store tdep input files to FOLDER"""
+    from hilde.trajectory import reader
+
+    traj = reader(filename)
+    traj.to_tdep(folder=folder, skip=skip)
+
+
+@trajectory.command("2xyz")
+@click.argument("filename")
+@click.option("--file", default="trajectory.xyz")
+def t2xyz(filename, file):
+    """extract trajectory in FILENAME and store as xyz file"""
+    from hilde.trajectory import reader
+
+    traj = reader(filename)
+    traj.to_xyz(file=file)
+
+
+@trajectory.command("update")
+@click.argument("filename")
+@click.option("-uc", help="Add a (primitive) unit cell")
+@click.option("-sc", help="Add the respective supercell")
+@click.option("--format", default="aims")
+def trajectory_update(filename, uc, sc, format):
+    """add unit cell from UC and supercell from SC to trajectory in FILENAME"""
+    update_trajectory(filename, uc, sc, format)

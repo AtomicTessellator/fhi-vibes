@@ -1,8 +1,24 @@
-import os
+"""clean and rewrite a geometry"""
+
 from argparse import ArgumentParser as argpars
+
 from hilde.io import read, write
+from hilde.helpers import talk
 from hilde.helpers.structure import clean_atoms
 from hilde.structure.io import inform
+
+
+def rewrite_geometry(filename, align, frac, format):
+    """clean and rewrite geometry in FILENAME"""
+    atoms = read(filename, format=format)
+    inform(atoms, verbosity=0)
+
+    atoms = clean_atoms(atoms, align=align)
+
+    outfile = f"{filename}.cleaned"
+    write(atoms, outfile, format=format, scaled=frac)
+
+    talk(f"\nCleaned geometry written to {outfile}")
 
 
 def main():
@@ -14,15 +30,7 @@ def main():
     parser.add_argument("--frac", action="store_true")
     args = parser.parse_args()
 
-    atoms = read(args.geom, format=args.format)
-    inform(atoms)
-
-    atoms = clean_atoms(atoms, align=args.align)
-
-    outfile = f"{args.geom}.cleaned"
-    write(atoms, outfile, format=args.format, scaled=args.frac)
-
-    print(f"\nCleaned geometry written to {outfile}")
+    rewrite_geometry(args.geom, args.align, args.frac, args.format)
 
 
 if __name__ == "__main__":
