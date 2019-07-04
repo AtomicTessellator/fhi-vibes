@@ -1,7 +1,5 @@
 """`hilde info` backend"""
 
-from pathlib import Path
-
 import click
 
 from ase.io import read
@@ -10,12 +8,6 @@ from hilde.scripts.md_sum import md_sum
 from hilde.scripts.hilde_phonopy import preprocess
 
 from .misc import AliasedGroup
-
-
-def check_file(filename):
-    """check if file exists"""
-    if not Path(filename).exists():
-        raise click.FileError(filename, hint="not found")
 
 
 @click.command(cls=AliasedGroup)
@@ -32,11 +24,21 @@ def info():
 def geometry_info(obj, filename, format, symprec):
     """inform about a structure in a geometry input file"""
 
-    check_file(filename)
+    obj.geometry_file = filename
 
-    atoms = read(filename, format=format)
+    atoms = read(obj.geometry_file, format=format)
 
     inform(atoms, symprec=symprec)
+
+
+@info.command("settings")
+@click.argument("filename", default="settings.in")
+@click.pass_obj
+def settings_info(obj, filename):
+    """inform about content of a settings.in file"""
+
+    obj.settings_file = filename
+    click.echo(obj.settings_file.read_text())
 
 
 @info.command("md")
@@ -47,8 +49,6 @@ def geometry_info(obj, filename, format, symprec):
 def md_info(filename, plot, avg, verbose):
     """inform about content of a settings.in file"""
 
-    check_file(filename)
-
     md_sum(filename, plot, avg, verbose)
 
 
@@ -57,5 +57,4 @@ def md_info(filename, plot, avg, verbose):
 def phonopy_info(filename):
     """inform about a phonopy calculation before it is started"""
 
-    check_file(filename)
     preprocess(filename=None, settings_file=filename, dimension=None, format=None)
