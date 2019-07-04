@@ -5,6 +5,7 @@ from pathlib import Path
 import importlib.resources as pkg_resources
 
 import click
+import click_completion
 
 from hilde import __version__ as hilde_version
 from hilde.settings import Configuration
@@ -13,6 +14,9 @@ from hilde._defaults import DEFAULT_CONFIG_FILE
 from . import info, input, run, tools, output
 from .cli_tracker import CliTracker
 from .misc import AliasedGroup, check_path
+
+
+click_completion.init()
 
 
 @click.command(cls=AliasedGroup)
