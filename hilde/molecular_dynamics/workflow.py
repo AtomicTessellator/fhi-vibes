@@ -114,6 +114,7 @@ def run(
     md,
     maxsteps,
     compute_stresses=0,
+    buffer=3,
     trajectory="trajectory.son",
     metadata_file="md_metadata.yaml",
     workdir=".",
@@ -151,15 +152,6 @@ def run(
 
     """
 
-    # create watchdog
-    watchdog = Watchdog()
-
-    # create working directories
-    workdir = Path(workdir)
-    trajectory = (workdir / trajectory).absolute()
-    calc_dir = workdir / _calc_dirname
-    backup_folder = workdir / backup_folder
-
     # make sure compute_stresses describes a step length
     if compute_stresses is True:
         compute_stresses = 1
@@ -167,6 +159,17 @@ def run(
         compute_stresses = 0
     else:
         compute_stresses = int(compute_stresses)
+
+    # create watchdog
+    if compute_stresses > 0:
+        buffer = 5
+    watchdog = Watchdog(buffer=buffer)
+
+    # create working directories
+    workdir = Path(workdir)
+    trajectory = (workdir / trajectory).absolute()
+    calc_dir = workdir / _calc_dirname
+    backup_folder = workdir / backup_folder
 
     # atomic stresses
     if calc.name == "aims":
