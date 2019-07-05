@@ -5,14 +5,17 @@ from pathlib import Path
 import importlib.resources as pkg_resources
 
 import click
+import click_completion
 
 from hilde import __version__ as hilde_version
 from hilde.settings import Configuration
 from hilde.helpers.utils import bold
 from hilde._defaults import DEFAULT_CONFIG_FILE
-from . import info, input, run, tools, output
 from .cli_tracker import CliTracker
+from . import info, template, run, utils, output
 from .misc import AliasedGroup, check_path
+
+click_completion.init()
 
 
 @click.command(cls=AliasedGroup)
@@ -37,9 +40,9 @@ def cli(ctx, verbose, silent):
 
 
 cli.add_command(info.info)
-cli.add_command(input.input)
+cli.add_command(template.template)
 cli.add_command(run.run)
-cli.add_command(tools.tools)
+cli.add_command(utils.utils)
 cli.add_command(output.output)
 
 try:

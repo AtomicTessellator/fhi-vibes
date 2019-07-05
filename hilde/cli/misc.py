@@ -1,7 +1,11 @@
 """helpers for click"""
 
 from pathlib import Path
+from glob import glob
 import click
+
+paths = glob("*") + glob("*/*") + glob("*/*/*") + glob("*/*/*/*")
+complete_filenames = click.Choice(paths)
 
 
 class AliasedGroup(click.Group):

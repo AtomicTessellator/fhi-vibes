@@ -8,7 +8,7 @@ from hilde.phonopy.context import PhonopyContext
 from hilde.molecular_dynamics.context import MDContext
 from hilde.settings import Settings
 
-from .misc import AliasedGroup
+from .misc import AliasedGroup, click, complete_filenames
 
 
 @click.command(cls=AliasedGroup)
@@ -21,7 +21,7 @@ def run():
 @click.option("--settings", default="aims.in", show_default=True)
 @click.pass_obj
 def aims_run(obj, workdir, settings):
-    """run and aims calculation"""
+    """run one or several aims calculations"""
     from hilde.aims.workflow import run_aims
 
     if not Path(settings).exists():
@@ -37,7 +37,7 @@ def aims_run(obj, workdir, settings):
 @click.option("--settings", default="phonopy.in", show_default=True)
 @click.pass_obj
 def phonopy_run(obj, workdir, settings):
-    """run and aims calculation"""
+    """run a phonopy calculation"""
     from hilde.phonopy.workflow import run_phonopy
 
     if not Path(settings).exists():
@@ -53,7 +53,7 @@ def phonopy_run(obj, workdir, settings):
 @click.option("--settings", default="md.in", show_default=True)
 @click.pass_obj
 def md_run(obj, workdir, settings):
-    """run and aims calculation"""
+    """run an MD simulation"""
     from hilde.molecular_dynamics.workflow import run_md
 
     if not Path(settings).exists():
