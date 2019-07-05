@@ -105,6 +105,7 @@ def extract_results(
     write_dos=False,
     write_pdos=False,
     plot_bandstructure=True,
+    plot_thermal_properties=False,
     plot_dos=False,
     plot_pdos=False,
     animate=None,
@@ -135,6 +136,8 @@ def extract_results(
         If True the projected DOS output file
     plot_bandstructure: bool
         If True plot the band structure save it to a pdf
+    plot_thermal_properties: bool
+        If True plot the thermal properties and save them to a pdf
     plot_dos: bool
         If True plot the total density of states and save it to a pdf
     plot_pdos: bool
@@ -182,6 +185,9 @@ def extract_results(
             phonon.run_mesh(q_mesh)
             phonon.run_thermal_properties()
             phonon.write_yaml_thermal_properties()
+        if plot_thermal_properties:
+            talk(f".. plot thermal properties")
+            wrapper.plot_thermal_properties(phonon)
 
         if plot_bandstructure:
             talk(f".. plot band structure")
@@ -255,4 +261,3 @@ def extract_results(
             print("# Mode   Frequency")
             for ii, fi in enumerate(f):
                 print(f"  {ii+1:3d} {fi:12.7f} THz")
-

@@ -125,7 +125,8 @@ def preprocess(
 
 # TARP: This is depcricated and should not be used
 # def get_force_constants(phonon, force_sets=None):
-#     """ Take a Phonopy object, produce force constants from the given forces and return in usable shape (3N, 3N) insated of (N, N, 3, 3)
+#     """ Take a Phonopy object, produce force constants from the given forces and
+#         return in usable shape (3N, 3N) insated of (N, N, 3, 3)
 
 #     """
 #     n_atoms = phonon.get_supercell().get_number_of_atoms()
@@ -279,6 +280,20 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
     return (phonon.get_band_structure_dict(), labels)
 
 
+def plot_thermal_properties(
+    phonon, file="thermal_properties.pdf", t_step=20, t_max=1000, t_min=0
+):
+    """plot thermal properties to pdf file"""
+
+    phonon.set_thermal_properties(t_step=t_step, t_max=t_max, t_min=t_min)
+    plt = phonon.plot_thermal_properties()
+
+    try:
+        plt.savefig(file)
+    except (RuntimeError, FileNotFoundError):
+        warn("saving the thermal properties not possible, latex probably missing?")
+
+
 def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
     """Plot bandstructure for given path and save to file
 
@@ -338,8 +353,6 @@ def plot_bandstructure_and_dos(
         plt.savefig(file)
     except (RuntimeError, FileNotFoundError):
         warn("saving the phonon DOS not possible, latex probably missing?")
-
-
 
 
 def summarize_bandstructure(phonon, fp_file=None):
