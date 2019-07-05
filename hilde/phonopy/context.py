@@ -59,7 +59,7 @@ class PhonopyContext:
         if workdir:
             self.workdir = workdir
         if not self.workdir:
-            self.workdir = "auto"
+            self.workdir = "phonopy"
 
     @property
     def workdir(self):
@@ -67,9 +67,9 @@ class PhonopyContext:
         return self._workdir
 
     @workdir.setter
-    def workdir(self, dir):
+    def workdir(self, folder):
         """set the working directory. Use a standard name if dir='auto'"""
-        if "auto" in str(dir).lower():
+        if "auto" in str(folder).lower():
             smatrix = self.settings.obj.supercell_matrix.flatten()
             vol = self.ref_atoms.get_volume()
             sysname = get_sysname(self.ref_atoms)
@@ -78,7 +78,7 @@ class PhonopyContext:
             )
             self._workdir = Path(dirname)
         else:
-            self._workdir = Path(dir)
+            self._workdir = Path(folder)
 
     @property
     def q_mesh(self):

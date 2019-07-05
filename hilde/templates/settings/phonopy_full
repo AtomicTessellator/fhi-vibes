@@ -14,7 +14,7 @@ type:                          light
 port:                          12345
 
 [phonopy]
-workdir:                       phonopy
+workdir:                       auto
 supercell_matrix:              [[-2, 2, 2], [2, -2, 2], [2, 2, -2]]
 displacement:                  0.01
 is_diagonal:                   False

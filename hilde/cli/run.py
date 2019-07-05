@@ -1,6 +1,5 @@
 """`hilde run` part of the CLI"""
 
-from pathlib import Path
 import click
 
 from hilde.aims.context import AimsContext
@@ -10,6 +9,9 @@ from hilde.settings import Settings
 
 from .misc import AliasedGroup, click, complete_filenames
 
+# paths = click.Path(exists=True)
+paths = complete_filenames
+
 
 @click.command(cls=AliasedGroup)
 def run():
@@ -18,14 +20,11 @@ def run():
 
 @run.command("aims")
 @click.option("--workdir", default="aims", help="working directory")
-@click.option("--settings", default="aims.in", show_default=True)
+@click.option("--settings", default="aims.in", show_default=True, type=paths)
 @click.pass_obj
 def aims_run(obj, workdir, settings):
     """run one or several aims calculations"""
     from hilde.aims.workflow import run_aims
-
-    if not Path(settings).exists():
-        raise click.FileError(settings, hint=f"does it exists in {Path().cwd()}?")
 
     ctx = AimsContext(Settings(settings_file=settings), workdir=workdir)
 
@@ -34,14 +33,11 @@ def aims_run(obj, workdir, settings):
 
 @run.command("phonopy")
 @click.option("--workdir", help="work directory")
-@click.option("--settings", default="phonopy.in", show_default=True)
+@click.option("--settings", default="phonopy.in", show_default=True, type=paths)
 @click.pass_obj
 def phonopy_run(obj, workdir, settings):
     """run a phonopy calculation"""
     from hilde.phonopy.workflow import run_phonopy
-
-    if not Path(settings).exists():
-        raise click.FileError(settings, hint=f"does it exists in {Path().cwd()}?")
 
     ctx = PhonopyContext(Settings(settings_file=settings), workdir=workdir)
 
@@ -50,14 +46,11 @@ def phonopy_run(obj, workdir, settings):
 
 @run.command("md")
 @click.option("--workdir", default="md", help="working directory")
-@click.option("--settings", default="md.in", show_default=True)
+@click.option("--settings", default="md.in", show_default=True, type=paths)
 @click.pass_obj
 def md_run(obj, workdir, settings):
     """run an MD simulation"""
     from hilde.molecular_dynamics.workflow import run_md
-
-    if not Path(settings).exists():
-        raise click.FileError(settings, hint=f"does it exists in {Path().cwd()}?")
 
     ctx = MDContext(Settings(settings_file=settings), workdir=workdir)
 
