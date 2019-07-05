@@ -1,6 +1,5 @@
 """hilde CLI utils"""
 
-from hilde.scripts.get_relaxation_info import get_relaxation_info
 from hilde.scripts.refine_geometry import refine_geometry
 from hilde.scripts.make_supercell import make_supercell
 from hilde.scripts.create_samples import create_samples
