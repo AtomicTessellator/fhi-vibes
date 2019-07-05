@@ -218,7 +218,7 @@ def calculate_socket(
 
 
 def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
-    """check if metadata sets coincide
+    """check if metadata sets coincide and sanity check geometry
 
     Parameters
     ----------
@@ -236,6 +236,13 @@ def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
     """
     nm = new_metadata
     om = old_metadata
+
+    if "atoms" in new_metadata:
+        new_atoms = new_metadata["atoms"]
+        old_atoms = old_metadata["atoms"]
+        if new_atoms["symbols"] != old_atoms["symbols"]:
+            msg = f"Compare Structures:\n{new_atoms}\n{old_atoms}"
+            raise RuntimeError(msg)
 
     for key in keys:
         if key is "walltime":
