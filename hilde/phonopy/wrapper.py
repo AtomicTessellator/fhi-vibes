@@ -112,6 +112,8 @@ def preprocess(
     supercells_with_disps: list of ase.atoms.Atoms
         All of the supercells with displacements
     """
+    supercell_matrix = get_3x3_matrix(supercell_matrix)
+
     phonon = prepare_phonopy(
         atoms,
         supercell_matrix,
@@ -384,7 +386,7 @@ def summarize_bandstructure(phonon, fp_file=None):
     max_freq = np.max(freq.flatten())
 
     if fp_file:
-        print(f"Saving the fingerprint to {fp_file}")
+        talk(f"Saving the fingerprint to {fp_file}")
         fp = get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
         fp_dict = to_dict(fp)
         for key, val in fp_dict.items():
@@ -394,9 +396,9 @@ def summarize_bandstructure(phonon, fp_file=None):
 
     mf = max_freq
     mf_cm = mf * THz_to_cm
-    print(f"The maximum frequency is: {mf:.3f} THz ({mf_cm:.3f} cm^-1)")
-    print(f"The frequencies at the gamma point are:")
-    print(f"              THz |        cm^-1")
+    talk(f"The maximum frequency is: {mf:.3f} THz ({mf_cm:.3f} cm^-1)")
+    talk(f"The frequencies at the gamma point are:")
+    talk(f"              THz |        cm^-1")
     p = lambda ii, freq: print(f"{ii+1:3d}: {freq:-12.5f} | {freq*THz_to_cm:-12.5f}")
     for ii, freq in enumerate(gamma_freq[:6]):
         p(ii, freq)

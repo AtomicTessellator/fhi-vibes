@@ -7,6 +7,7 @@ from hilde.scripts.suggest_k_grid import suggest_k_grid
 from hilde.scripts.remap_phonopy_forceconstants import remap_phonopy_force_constants
 from hilde.scripts.nomad_upload import nomad_upload
 from hilde.scripts.update_md_trajectory import update_trajectory
+from hilde.scripts.get_relaxation_info import get_relaxation_info
 
 from .misc import click, AliasedGroup, complete_filenames
 
@@ -38,7 +39,7 @@ def geometry_refine(*args, **kwargs):
 
 @utils.command("make_supercell")
 @click.argument("filename", default="geometry.in", type=complete_filenames)
-@click.option("-d", "--dimension", type=float)
+@click.option("-d", "--dimension", type=float, nargs=9)
 @click.option("-n", "--n_target", type=int)
 @click.option("--deviation", default=0.2)
 @click.option("--dry", is_flag=True)

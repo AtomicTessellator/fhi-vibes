@@ -31,8 +31,10 @@ def preprocess(filename, settings_file, dimension, format):
         settings.print(only_settings=True)
 
     sc_str = np.array2string(phonon.get_supercell_matrix().flatten(), separator=", ")
+    bash_str = " ".join(str(l) for l in phonon.get_supercell_matrix().flatten())
     print("Phonopy Information")
     print(f"  Supercell matrix:        {sc_str}")
+    print(f"  .. for make_supercell:   -d {bash_str}")
     print(f"  Superlattice:")
     for latvec in sc.cell:
         lv_str = "{:-6.2f} {:-6.2f} {:-6.2f}".format(*latvec)
@@ -63,13 +65,13 @@ def main():
         preprocess(args.infile, args.config_file, args.dim, args.format)
         return
 
-    elif suffix == ".yaml":
+    if suffix == ".yaml":
         phonon = postprocess(
             args.infile,
             born_charges_file=args.born,
             calculate_full_force_constants=args.full_fc,
         )
-    elif suffix == ".pick" or suffix == ".gz":
+    elif suffix in (".pick", ".gz"):
         phonon = pread(args.infile)
     else:
         print("*** Nothing happened.")
