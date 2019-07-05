@@ -17,13 +17,18 @@ def info():
 @click.argument("filename", default="geometry.in", type=complete_filenames)
 @click.option("--format", default="aims", show_default=True)
 @click.option("-t", "--symprec", default=1e-5, show_default=True)
+@click.option("-v", "--verbose", is_flag=True)
 @click.pass_obj
-def geometry_info(obj, filename, format, symprec):
+def geometry_info(obj, filename, format, symprec, verbose):
     """inform about a structure in a geometry input file"""
 
     atoms = read(filename, format=format)
 
-    inform(atoms, symprec=symprec)
+    verbosity = 1
+    if verbose:
+        verbosity = 2
+
+    inform(atoms, symprec=symprec, verbosity=verbosity)
 
 
 @info.command("settings")

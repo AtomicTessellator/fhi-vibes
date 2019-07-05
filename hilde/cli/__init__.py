@@ -20,7 +20,7 @@ click_completion.init()
 
 @click.command(cls=AliasedGroup)
 @click.version_option(hilde_version, "-V", "--version")
-@click.option("--verbose", is_flag=True, hidden=True)
+@click.option("-v", "--verbose", is_flag=True, hidden=True)
 @click.option("--silent", is_flag=True, help="set verbosity level to 0")
 @click.pass_context
 def cli(ctx, verbose, silent):
