@@ -25,6 +25,7 @@ def output():
 @click.option("--animate_q", nargs=3, multiple=True, type=float, help="animation at q")
 @click.option("--full", is_flag=True)
 @click.option("--tdep", is_flag=True, hidden=True)
+@click.option("-v", "--verbose", is_flag=True, help="print frequencies at gamma point")
 @click.pass_obj
 def phonopy_output(
     obj,
@@ -38,6 +39,7 @@ def phonopy_output(
     animate_q,
     full,
     tdep,
+    verbose,
 ):
     """perform phonopy postprocess for TRAJECTORY"""
     from hilde.phonopy.postprocess import postprocess, extract_results
@@ -64,6 +66,7 @@ def phonopy_output(
         "tdep": tdep,
         "animate": animate or full,
         "animate_q": animate_q,
+        "verbose": verbose,
     }
 
     extract_results(phonon, **kwargs)

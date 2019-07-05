@@ -113,6 +113,7 @@ def extract_results(
     output_dir="phonopy_output",
     tdep=False,
     tdep_reduce_fc=True,
+    verbose=False,
 ):
     """ Extract results from phonopy object and present them.
 
@@ -244,3 +245,14 @@ def extract_results(
             talk(f"Supercell cell written to {fname}")
 
     timer(f"all files written to {output_dir}")
+
+    if verbose:
+        talk("\nFrequencies at Gamma point:")
+        phonon.run_mesh([1, 1, 1])
+        qpoints, weights, frequencies, _ = phonon.get_mesh()
+        for q, w, f in zip(qpoints, weights, frequencies):
+            print(f"q = {q} (weight= {w})")
+            print("# Mode   Frequency")
+            for ii, fi in enumerate(f):
+                print(f"  {ii+1:3d} {fi:12.7f} THz")
+
