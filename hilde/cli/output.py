@@ -5,17 +5,16 @@ import click
 
 from hilde.phonopy._defaults import defaults
 
-from .misc import AliasedGroup
+from .misc import AliasedGroup, complete_filenames
 
 
 @click.command(cls=AliasedGroup)
 def output():
     """produce output of hilde workfow"""
-    pass
 
 
 @output.command("phonopy")
-@click.argument("trajectory")
+@click.argument("trajectory", type=complete_filenames)
 # necessary?
 @click.option("--q_mesh", nargs=3, default=None)
 @click.option("-od", "--output_directory")

@@ -13,13 +13,13 @@ from .misc import AliasedGroup
 @click.option("--full", is_flag=True, help="list more options", show_default=True)
 @click.option("--allow_overwrite", is_flag=True, show_default=True)
 @click.pass_obj
-def input(obj, full, allow_overwrite):
+def template(obj, full, allow_overwrite):
     """provide template input files for tasks and workflows"""
     obj.full_input = full
     obj.allow_overwrite = allow_overwrite
 
 
-@input.command("modify")
+@template.command("modify")
 @click.argument("filename", default="settings.in")
 @click.pass_obj
 def modify_input(obj, filename):
@@ -28,48 +28,47 @@ def modify_input(obj, filename):
     click.echo("please come back later")
 
 
-@input.command("aims")
+@template.command("aims")
 @click.argument("filename", default="aims.in")
 @click.pass_obj
 def aims_input(obj, filename):
     """provide template settings.in for aims calculation"""
 
-    write_input("aims", filename, obj.allow_overwrite)
+    write_input(obj, "aims", filename)
 
 
-@input.command("phonopy")
+@template.command("phonopy")
 @click.argument("filename", default="phonopy.in")
 @click.pass_obj
 def phonopy_input(obj, filename):
     """provide template phonopy.in for phonopy workflow."""
 
-    write_input("phonopy", filename, obj.allow_overwrite)
+    write_input(obj, "phonopy", filename)
 
 
-@input.command("md")
+@template.command("md")
 @click.argument("filename", default="md.in")
 @click.pass_obj
 def md_input(obj, filename):
     """provide template md.in for molecular dynamics workflow."""
 
-    write_input("md", filename, obj.allow_overwrite)
+    write_input(obj, "md", filename)
 
 
-@click.pass_obj
-def write_input(obj, name, filename, allow_overwrite):
+def write_input(obj, name, filename):
     """write the input function"""
 
     if obj.full_input:
         name += "_full"
 
-    template = pkg_resources.read_text(settings, name)
+    input_file = pkg_resources.read_text(settings, name)
 
     outfile = Path(filename)
 
-    if not allow_overwrite and outfile.exists():
+    if not obj.allow_overwrite and outfile.exists():
         msg = f"{outfile} exists."
         raise click.ClickException(msg)
 
-    outfile.write_text(template)
+    outfile.write_text(input_file)
 
     click.echo(f"Default {name} settings file written to {filename}.")

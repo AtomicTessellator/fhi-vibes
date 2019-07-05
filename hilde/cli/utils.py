@@ -1,6 +1,4 @@
-"""hilde CLI tools"""
-
-import click
+"""hilde CLI utils"""
 
 from hilde.scripts.get_relaxation_info import get_relaxation_info
 from hilde.scripts.refine_geometry import refine_geometry
@@ -11,24 +9,22 @@ from hilde.scripts.remap_phonopy_forceconstants import remap_phonopy_force_const
 from hilde.scripts.nomad_upload import nomad_upload
 from hilde.scripts.update_md_trajectory import update_trajectory
 
-# from hilde.scripts.rewrite_geometry import rewrite_geometry
-
-from .misc import AliasedGroup
+from .misc import click, AliasedGroup, complete_filenames
 
 
 @click.command(cls=AliasedGroup)
-def tools():
-    """tools"""
+def utils():
+    """tools and utils"""
 
 
-@tools.command(cls=AliasedGroup)
+@utils.command(cls=AliasedGroup)
 def geometry():
-    """tools for working with structures"""
+    """utils for working with structures"""
     ...
 
 
 @geometry.command("refine")
-@click.argument("filename", default="geometry.in")
+@click.argument("filename", type=complete_filenames)
 @click.option("-prim", "--primitive", is_flag=True)
 @click.option("-conv", "--conventional", is_flag=True)
 @click.option("--center", is_flag=True)
@@ -41,8 +37,8 @@ def geometry_refine(*args, **kwargs):
     refine_geometry(*args, **kwargs)
 
 
-@tools.command("make_supercell")
-@click.argument("filename", default="geometry.in")
+@utils.command("make_supercell")
+@click.argument("filename", default="geometry.in", type=complete_filenames)
 @click.option("-d", "--dimension", type=float)
 @click.option("-n", "--n_target", type=int)
 @click.option("--deviation", default=0.2)
@@ -59,15 +55,15 @@ def tool_make_supercell(filename, dimension, n_target, deviation, dry, format, s
 #     """utilities, for example `aims get_relaxation_info`"""
 
 
-@tools.command("get_relaxation_info")
-@click.argument("filenames", nargs=-1)
+@utils.command("get_relaxation_info")
+@click.argument("filenames", nargs=-1, type=complete_filenames)
 def relaxation_info(filenames):
     """analyze aims relaxation"""
     get_relaxation_info(filenames)
 
 
-@tools.command("create_samples")
-@click.argument("filename")
+@utils.command("create_samples")
+@click.argument("filename", type=complete_filenames)
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
 @click.option("-fc", "--force_constants", type=str, help="file with force constants")
@@ -102,8 +98,8 @@ def tool_create_samples(
     )
 
 
-@tools.command("suggest_k_grid")
-@click.argument("filename")
+@utils.command("suggest_k_grid")
+@click.argument("filename", type=complete_filenames)
 @click.option("-d", "--density", default=3.5)
 @click.option("--uneven", is_flag=True)
 @click.option("--format", default="aims")
@@ -114,8 +110,8 @@ def tool_suggest_k_grid(filename, density, uneven, format):
     suggest_k_grid(filename, density, uneven, format)
 
 
-@tools.command("remap_phonopy_force_constants")
-@click.argument("filename")
+@utils.command("remap_phonopy_force_constants")
+@click.argument("filename", type=complete_filenames)
 @click.option("-uc", "--uc_filename", default="geometry.in.primitive")
 @click.option("-sc", "--sc_filename", default="geometry.in.supercell")
 def tool_remap_phonopy_force_constants(filename, uc_filename, sc_filename):
@@ -126,8 +122,8 @@ def tool_remap_phonopy_force_constants(filename, uc_filename, sc_filename):
     )
 
 
-@tools.command("nomad_upload")
-@click.argument("folders", nargs=-1)
+@utils.command("nomad_upload")
+@click.argument("folders", nargs=-1, type=complete_filenames)
 @click.option("--token", help="nomad token, otherwise read from .hilderc")
 @click.option("--dry", is_flag=True, help="only show the commands")
 def tool_nomad_upload(folders, token, dry):
@@ -136,13 +132,13 @@ def tool_nomad_upload(folders, token, dry):
     nomad_upload(folders, token, dry)
 
 
-@tools.command(cls=AliasedGroup, hidden=True)
+@utils.command(cls=AliasedGroup, hidden=True)
 def trajectory():
-    """trajectory tools"""
+    """trajectory utils"""
 
 
 @trajectory.command("2tdep")
-@click.argument("filename")
+@click.argument("filename", type=complete_filenames)
 @click.option("-s", "--skip", default=1, help="skip this many steps from trajectory")
 @click.option("--folder", default="tdep", help="folder to store input")
 def t2tdep(filename, skip, folder):
@@ -154,7 +150,7 @@ def t2tdep(filename, skip, folder):
 
 
 @trajectory.command("2xyz")
-@click.argument("filename")
+@click.argument("filename", type=complete_filenames)
 @click.option("--file", default="trajectory.xyz")
 def t2xyz(filename, file):
     """extract trajectory in FILENAME and store as xyz file"""
@@ -165,7 +161,7 @@ def t2xyz(filename, file):
 
 
 @trajectory.command("update")
-@click.argument("filename")
+@click.argument("filename", type=complete_filenames)
 @click.option("-uc", help="Add a (primitive) unit cell")
 @click.option("-sc", help="Add the respective supercell")
 @click.option("--format", default="aims")
