@@ -79,6 +79,7 @@ def calculate_socket(
     settings=None,
     trajectory="trajectory.son",
     workdir="calculations",
+    save_input=False,
     backup_folder="backups",
     backup_after_calculation=True,
     check_settings_before_resume=True,
@@ -120,8 +121,8 @@ def calculate_socket(
     watchdog = Watchdog(buffer=1)
 
     # create working directories
-    workdir = Path(workdir)
-    trajectory = (workdir / trajectory).absolute()
+    workdir = Path(workdir).absolute()
+    trajectory = workdir / trajectory
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
 
@@ -141,6 +142,14 @@ def calculate_socket(
     # append settings to metadata
     if settings:
         metadata["settings"] = settings.to_dict()
+        if save_input:
+            with cwd(workdir, mkdir=True):
+                geometry_file = Path(settings.geometry.file)
+                print(geometry_file)
+                if not geometry_file.exists():
+                    settings.atoms.write(str(geometry_file), format="aims")
+                settings.obj["workdir"] = workdir
+                settings.write()
 
     # fetch list of hashes from trajectory
     precomputed_hashes = get_hashes_from_trajectory(trajectory)

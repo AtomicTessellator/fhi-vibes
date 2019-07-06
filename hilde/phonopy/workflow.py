@@ -109,6 +109,7 @@ def bootstrap(ctx=None, name=None, settings=None, workdir=None, **kwargs):
         "metadata": metadata,
         "workdir": ctx.workdir,
         "settings": settings,
+        "save_input": True,
         "backup_after_calculation": False,
         **settings.obj,
     }
