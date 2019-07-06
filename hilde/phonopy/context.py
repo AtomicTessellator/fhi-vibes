@@ -51,20 +51,17 @@ class PhonopyContext:
             The working directory for the workflow
         """
         self.settings = PhonopySettings(settings)
-        self._workdir = None
         self._ref_atoms = None
 
-        if "workdir" in self.settings.obj:
-            self.workdir = self.settings.obj.pop("workdir")
         if workdir:
             self.workdir = workdir
         if not self.workdir:
-            self.workdir = "phonopy"
+            self.workdir = name
 
     @property
     def workdir(self):
         """return the working directory"""
-        return self._workdir
+        return self.settings.workdir
 
     @workdir.setter
     def workdir(self, folder):
@@ -76,9 +73,9 @@ class PhonopyContext:
             dirname = name + "_{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}".format(
                 sysname, *smatrix, vol
             )
-            self._workdir = Path(dirname)
+            self.settings.workdir = Path(dirname)
         else:
-            self._workdir = Path(folder)
+            self.settings.workdir = Path(folder)
 
     @property
     def q_mesh(self):

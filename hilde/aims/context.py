@@ -64,10 +64,11 @@ class AimsContext:
             Directory to run the calculation in
         """
         self.settings = AimsSettings(settings)
+        self.workdir = self.settings.workdir
 
         if workdir:
             self.workdir = Path(workdir)
-        else:
+        if not self.workdir:
             self.workdir = Path(name)
 
         self._ref_atoms = None

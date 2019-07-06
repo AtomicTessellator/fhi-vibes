@@ -214,11 +214,15 @@ class Settings(ConfigDict):
         self._config_file = config_file
         self._fireworks_file = fireworks_file
         self._atoms = None
+        self._workdir = None
         self._obj = {}
 
         config_files = [config_file, settings_file, fireworks_file]
 
         super().__init__(config_files=[file for file in config_files if file])
+
+        # make sure atoms are read once
+        _ = self.atoms
 
     @property
     def settings_file(self):
@@ -285,6 +289,16 @@ class Settings(ConfigDict):
 
         if not path.exists(filename):
             super().write(filename=filename)
+
+    @property
+    def workdir(self):
+        """wrapper for the working directory"""
+        return self._workdir
+
+    @workdir.setter
+    def workdir(self, workdir):
+        """wrapper for the working directory"""
+        self._workdir = workdir
 
 
 class SettingsSection(AttributeDict):
@@ -402,6 +416,10 @@ class WorkflowSettings(Settings):
 
         self[obj_key] = SettingsSection(obj_key, settings, defaults, mandatory_obj_keys)
         self._obj = self[obj_key]
+
+        # workdir
+        if "workdir" in self.obj:
+            self.workdir = self.obj.pop("workdir")
 
     @property
     def name(self):
