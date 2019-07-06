@@ -25,7 +25,7 @@ def prepare_phonopy(
     fc2=None,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
-    trigonal=defaults.trigonal,
+    trigonal=defaults.is_trigonal,
     is_diagonal=defaults.is_diagonal,
 ):
     """Create a Phonopy object
@@ -85,7 +85,7 @@ def preprocess(
     supercell_matrix,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
-    trigonal=defaults.trigonal,
+    trigonal=defaults.is_trigonal,
     **kwargs,
 ):
     """Generate phonopy objects and return displacements as Atoms objects
