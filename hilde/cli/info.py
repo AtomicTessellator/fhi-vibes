@@ -54,7 +54,15 @@ def md_info(filename, plot, avg, verbose):
 
 @info.command("phonopy")
 @click.argument("filename", default="phonopy.in", type=complete_filenames)
-def phonopy_info(filename):
+@click.option("--write_supercell", is_flag=True, help="write the supercell to file")
+@click.option("--format", default="aims", show_default=True)
+def phonopy_info(filename, write_supercell, format):
     """inform about a phonopy calculation before it is started"""
 
-    preprocess(filename=None, settings_file=filename, dimension=None, format=None)
+    preprocess(
+        filename=None,
+        settings_file=filename,
+        dimension=None,
+        format=format,
+        write_supercell=write_supercell,
+    )

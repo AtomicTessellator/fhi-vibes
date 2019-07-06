@@ -8,7 +8,7 @@ from hilde.phonopy.postprocess import extract_results, postprocess
 from hilde.phonopy.wrapper import summarize_bandstructure
 
 
-def preprocess(filename, settings_file, dimension, format):
+def preprocess(filename, settings_file, dimension, format, write_supercell=False):
     """inform about a phonopy calculation a priori"""
     from ase.io import read
     from hilde.settings import Settings
@@ -41,6 +41,9 @@ def preprocess(filename, settings_file, dimension, format):
         print(f"                         {lv_str}")
     print(f"  Number of atoms in SC:   {len(sc)}")
     print(f"  Number of displacements: {len(scs)} ({len(scs_ref)})")
+
+    if write_supercell:
+        sc.write("geometry.in.supercell", format=format)
 
 
 def main():
