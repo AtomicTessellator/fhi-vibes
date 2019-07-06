@@ -1,6 +1,7 @@
 """`hilde info` backend"""
 
 from ase.io import read
+from hilde import Settings
 from hilde.structure.io import inform
 from hilde.scripts.md_sum import md_sum
 from hilde.scripts.hilde_phonopy import preprocess
@@ -37,8 +38,8 @@ def geometry_info(obj, filename, format, symprec, verbose):
 def settings_info(obj, filename):
     """inform about content of a settings.in file"""
 
-    obj.settings_file = filename
-    click.echo(obj.settings_file.read_text())
+    settings = Settings(filename)
+    settings.print()
 
 
 @info.command("md")
