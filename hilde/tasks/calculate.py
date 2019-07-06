@@ -138,6 +138,10 @@ def calculate_socket(
     else:
         socket_calc = calculator
 
+    # append settings to metadata
+    if settings:
+        metadata["settings"] = settings.to_dict()
+
     # fetch list of hashes from trajectory
     precomputed_hashes = get_hashes_from_trajectory(trajectory)
 

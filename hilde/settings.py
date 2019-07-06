@@ -276,6 +276,15 @@ class Settings(ConfigDict):
         """the object holding the specific settings for the task"""
         return self._obj
 
+    def write(self, filename=None):
+        """write settings to file"""
+
+        if not filename:
+            filename = self.settings_file
+
+        if not path.exists(filename):
+            super().write(filename=filename)
+
 
 class SettingsSection(AttributeDict):
     """Wrapper for a section of settings.in"""
