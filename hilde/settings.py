@@ -4,6 +4,7 @@ import configparser
 import json
 from os import path
 
+import numpy as np
 from ase.io import read
 from ase.atoms import Atoms
 
@@ -161,7 +162,7 @@ class ConfigDict(AttributeDict):
             for key in self[sec]:
                 elem = self[sec][key]
                 if "numpy.ndarray" in str(type(elem)):
-                    elem = elem.flatten()
+                    elem = np.array2string(elem.flatten(), separator=",")
                 #
                 if elem is None:
                     elem = "null"
