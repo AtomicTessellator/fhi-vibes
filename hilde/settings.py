@@ -16,7 +16,7 @@ from hilde._defaults import (
     DEFAULT_GEOMETRY_FILE,
 )
 from hilde import __version__ as version
-from hilde.helpers.attribute_dict import AttributeDict
+from hilde.helpers.attribute_dict import AttributeDict, MultiOrderedDict
 from hilde.helpers.warnings import warn
 
 
@@ -64,7 +64,10 @@ class Config(configparser.ConfigParser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            *args, **kwargs, interpolation=configparser.ExtendedInterpolation()
+            *args,
+            **kwargs,
+            interpolation=configparser.ExtendedInterpolation(),
+            strict=False,
         )
 
     def getval(self, *args, **kwargs):
@@ -101,6 +104,15 @@ class ConfigDict(AttributeDict):
             for key in config[sec]:
                 val = config.getval(sec, key)
                 self[sec][key] = val
+
+        # check for `output` to resolve multiple options
+        if "control" in config.sections():
+            if "output" in config["control"].keys():
+                output_cfg = configparser.ConfigParser(
+                    dict_type=MultiOrderedDict, strict=False
+                )
+                output_cfg.read(config_files)
+                self["control"]["output"] = output_cfg["control"]["output"].split("\n")
 
     def __str__(self):
         """ for printing the object """
@@ -169,7 +181,12 @@ class ConfigDict(AttributeDict):
                 #
                 if key == "verbose":
                     continue
-                string += "{:{}s} {}\n".format(f"{key}:", width, elem)
+                # write out `output` keys one by one for readability
+                if key == "output":
+                    for elem in self[sec][key]:
+                        string += "{:{}s} {}\n".format(f"{key}:", width, elem)
+                else:
+                    string += "{:{}s} {}\n".format(f"{key}:", width, elem)
         return string
 
 
