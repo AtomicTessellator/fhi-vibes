@@ -66,7 +66,7 @@ def relaxation_info(filenames):
 @click.argument("filename", type=complete_filenames)
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
-@click.option("-fc", "--force_constants", type=str, help="file with force constants")
+@click.option("-fc", "--force_constants", type=complete_filenames)
 @click.option("--mc_rattle", is_flag=True, help="use `mc_rattle` from hiphive")
 @click.option("--quantum", is_flag=True, help="use quantum distribution function")
 @click.option("--deterministic", is_flag=True, help="create a deterministic sample")
@@ -112,13 +112,13 @@ def tool_suggest_k_grid(filename, density, uneven, format):
 
 @utils.command("remap_phonopy_force_constants")
 @click.argument("filename", type=complete_filenames)
-@click.option("-uc", "--uc_filename", default="geometry.in.primitive")
-@click.option("-sc", "--sc_filename", default="geometry.in.supercell")
-def tool_remap_phonopy_force_constants(filename, uc_filename, sc_filename):
+@click.option("-pc", "--primitive", default="geometry.in.primitive", show_default=True)
+@click.option("-sc", "--supercell", default="geometry.in.supercell", show_default=True)
+def tool_remap_phonopy_force_constants(filename, primitive, supercell):
     """remap phonopy force constants in FILENAME to [3N, 3N] shape"""
 
     remap_phonopy_force_constants(
-        uc_filename=uc_filename, sc_filename=sc_filename, fc_filename=filename
+        uc_filename=primitive, sc_filename=supercell, fc_filename=filename
     )
 
 
