@@ -47,6 +47,9 @@ def hash_atoms(atoms):
     a = atoms.copy()
     a.info = {}
 
+    if "momenta" in a.arrays:
+        del a.arrays["momenta"]
+
     rep = dict2json(atoms2dict(a))
 
     atoms_hash = hashfunc(rep)
