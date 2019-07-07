@@ -80,6 +80,7 @@ def backup_folder(
     aims_uuid = peek_aims_uuid(Path(source_dir) / "aims.out")
     if aims_uuid:
         info_str = f"aims_uuid was:      {aims_uuid}"
+        output_filename = f"{output_filename}.{aims_uuid[:8]}"
 
     if zip:
         make_tarfile(output_filename, source_dir, additional_files=additional_files)
