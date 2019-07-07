@@ -3,8 +3,6 @@
     Input: geometry.in and settings.in
     Output: geometry.in.supercell and trajectory.son """
 
-from ase.io import read
-
 from hilde.tasks import calculate_socket
 from hilde.helpers import talk
 from hilde.helpers.converters import input2dict, atoms2dict
@@ -67,7 +65,7 @@ def bootstrap(ctx):
     # find geometries
     atoms_to_calculate = ctx.atoms_to_calculate
 
-    if len(atoms_to_calculate) < 1:
+    if not atoms_to_calculate:
         raise RuntimeError("no structures to compute.")
 
     calc = setup_aims(ctx)
@@ -95,5 +93,6 @@ def bootstrap(ctx):
         "metadata": metadata,
         "workdir": ctx.workdir,
         "settings": ctx.settings,
+        "save_input": True,
         "backup_after_calculation": False,
     }
