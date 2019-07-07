@@ -126,9 +126,6 @@ def calculate_socket(
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
 
-    # perform backup if calculation folder exists
-    backup(calc_dir, target_folder=f"{backup_folder}")
-
     # save fist atoms object for computation
     atoms = atoms_to_calculate[0].copy()
 
@@ -138,16 +135,18 @@ def calculate_socket(
         socket_calc = None
     else:
         socket_calc = calculator
+        # perform backup if calculation folder exists
+        backup(calc_dir, target_folder=f"{backup_folder}")
 
     # append settings to metadata
     if settings:
         metadata["settings"] = settings.to_dict()
         if save_input:
             with cwd(workdir, mkdir=True):
-                geometry_file = Path(settings.geometry.file)
-                print(geometry_file)
-                if not geometry_file.exists():
-                    settings.atoms.write(str(geometry_file), format="aims")
+                if "file" in settings.geometry:
+                    geometry_file = Path(settings.geometry.file)
+                    if not geometry_file.exists():
+                        settings.atoms.write(str(geometry_file), format="aims")
                 settings.obj["workdir"] = workdir
                 settings.write()
 
@@ -174,18 +173,13 @@ def calculate_socket(
                 calc = calculator
 
                 # fix for EMT calculator
-                try:
-                    calc.initialize(atoms)
-                    talk("calculator initialized.")
-                except AttributeError:
-                    pass
+                fix_emt(atoms, calc)
 
             for n_cell, cell in enumerate(atoms_to_calculate):
                 # skip if cell is None or already computed
                 if cell is None:
                     continue
-                if hash_atoms(cell) in precomputed_hashes:
-                    talk(f"Structure {n_cell + 1} already computed, skip.")
+                if check_precomputed_hashes(cell, precomputed_hashes, n_cell):
                     continue
 
                 # perform backup of settings
@@ -201,20 +195,24 @@ def calculate_socket(
                 atoms.positions = cell.positions
 
                 # check the cell
-                try:
-                    diff = np.linalg.norm(atoms.cell.array - cell.cell.array)
-                except AttributeError:
-                    diff = np.linalg.norm(atoms.cell - cell.cell)
-                if diff > 1e-10:
-                    msg = "lattice has changed by {diff}, FIXME!"
-                    raise RuntimeError(msg)
+                check_cell(atoms, cell)
 
+                # when socketio is used: calculate here, backup was already performed
+                # else: calculate in subfolder and backup if necessary
+                if socketio_port is None and len(atoms_to_calculate) > 1:
+                    wd = f"{n_cell:05d}"
+                    # perform backup if calculation folder exists
+                    backup(wd, target_folder=f"{backup_folder}")
+                else:
+                    wd = "."
+
+                # compute and save the aims UUID
                 talk(f"Compute structure {n_cell + 1} of {len(atoms_to_calculate)}")
-                atoms.calc.calculate(atoms, system_changes=["positions"])
+                with cwd(wd, mkdir=True):
+                    atoms.calc.calculate(atoms, system_changes=["positions"])
+                    meta = get_aims_uuid_dict()
 
-                # peek into aims file and grep for uuid
-                meta = get_aims_uuid_dict()
-
+                # log the step
                 step2file(atoms, atoms.calc, trajectory, metadata=meta)
 
                 if watchdog():
@@ -258,10 +256,42 @@ def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
             raise RuntimeError(msg)
 
     for key in keys:
-        if key is "walltime":
+        if key == "walltime":
             continue
         if isinstance(nm[key], dict):
             check_metadata(nm[key], om[key], keys=nm[key].keys())
         if nm[key] != om[key]:
             msg = f"{key} changed: from {nm[key]} to {om[key]}"
             raise ValueError(msg)
+
+
+def fix_emt(atoms, calc):
+    """necessary to use EMT with socket"""
+    try:
+        calc.initialize(atoms)
+        talk("calculator initialized.")
+    except AttributeError:
+        pass
+
+
+def check_precomputed_hashes(atoms, precomputed_hashes, index):
+    """check if atoms was computed before"""
+    try:
+        if hash_atoms(atoms) == precomputed_hashes[index]:
+            talk(f"Structure {index + 1} already computed, skip.")
+            return True
+    except IndexError:
+        pass
+
+    return False
+
+
+def check_cell(atoms, new_atoms):
+    """check if the lattice has changed"""
+    try:
+        diff = np.linalg.norm(atoms.cell.array - new_atoms.cell.array)
+    except AttributeError:
+        diff = np.linalg.norm(atoms.cell - new_atoms.cell)
+    if diff > 1e-10:
+        msg = "lattice has changed by {diff}, FIXME!"
+        raise RuntimeError(msg)
