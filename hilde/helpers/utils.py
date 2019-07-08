@@ -1,14 +1,22 @@
 """A simple timer"""
 
-import sys
 from time import time, strftime
 import inspect
 import click
 
 try:
-    from tqdm import tqdm
+    from progress.bar import Bar
 except ModuleNotFoundError:
-    tqdm = lambda x, *args, **kwargs: x
+
+    class Bar:
+        """progress.bar.Bar stub"""
+
+        def __init__(self, msg, **kwargs):
+            print(msg, flush=True)
+
+        def iter(self, args):
+            """progress.bar.Bar.iter stub"""
+            return iter(args)
 
 
 def progressbar(func):
@@ -19,7 +27,7 @@ def progressbar(func):
     func: function
         Function to print progressbar for
     """
-    return tqdm(func, file=sys.stdout)
+    return Bar("progress").iter(func)
 
 
 # print in bold
