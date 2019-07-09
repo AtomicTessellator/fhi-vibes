@@ -34,10 +34,10 @@ from fireworks.utilities.fw_serializers import load_object_from_file
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks.combined_launcher import rapidfire
 from hilde.fireworks.launchpad import LaunchPad as LaunchPad
-from hilde.settings import Settings
+from hilde.settings import TaskSettings, Settings
 from hilde.fireworks import tasks as fw
 
-settings = Settings()
+settings = TaskSettings(name=None, settings=Settings())
 remote_setup = settings.remote_setup if "remote_setup" in settings else {}
 remote_host_auth = settings.remote_host_auth if "remote_host_auth" in settings else {}
 remote_queue_param = (
@@ -256,7 +256,6 @@ def claunch():
         pass
 
     args = parser.parse_args()
-    print(args)
     if not args.launchpad_file and os.path.exists(
         os.path.join(args.config_dir, "my_launchpad.yaml")
     ):

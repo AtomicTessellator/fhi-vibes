@@ -2,7 +2,7 @@
 import numpy as np
 
 from hilde.phonon_db.ase_converters import dict2atoms
-from hilde.settings import Settings
+from hilde.settings import TaskSettings, Settings
 from hilde.tasks.calculate import calculate_socket, calculate
 
 
@@ -51,7 +51,7 @@ def wrap_calc_socket(
     """
     atoms_to_calculate = []
     if calc_dict["calculator"].lower() == "aims":
-        settings = Settings(settings_file=None)
+        settings = TaskSettings(name=None, settings=Settings(settings_file=None))
         if "species_dir" in calc_dict["calculator_parameters"]:
             from os import path
 

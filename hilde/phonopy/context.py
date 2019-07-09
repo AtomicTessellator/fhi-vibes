@@ -3,13 +3,13 @@
 from pathlib import Path
 
 from ase import Atoms
-from hilde.settings import WorkflowSettings
+from hilde.settings import TaskSettings
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.structure.misc import get_sysname
 from ._defaults import defaults, name, mandatory_base, mandatory_task
 
 
-class PhonopySettings(WorkflowSettings):
+class PhonopySettings(TaskSettings):
     """Phonopy settings. Ensures that settings.phonopy is set up sensibly"""
 
     def __init__(self, settings):
@@ -87,24 +87,13 @@ class PhonopyContext:
     def ref_atoms(self):
         """return the reference Atoms object for the given context"""
         if not self._ref_atoms:
-            self._ref_atoms = self.settings.atoms
+            self._ref_atoms = self.settings.atoms.copy()
 
         return self._ref_atoms
 
     @ref_atoms.setter
     def ref_atoms(self, atoms):
-        """The setter for ref_atoms
-
-        Parameters
-        ----------
-        atoms: ase.atoms.Atoms
-            The atoms to become ref_atoms
-
-        Raises
-        ------
-        AssertionError
-            if atoms is not of type ase.atoms.Atoms
-        """
+        """The setter for ref_atoms, makes sure it's an atoms object indeed"""
         assert isinstance(atoms, Atoms)
         self._ref_atoms = atoms
 

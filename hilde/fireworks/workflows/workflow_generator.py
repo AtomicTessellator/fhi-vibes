@@ -144,23 +144,23 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
         fw_dep[phonon3_fws[0]] = phonon3_fws[1]
 
     # Harmonic Analysis
-    if "statistical_sampling" in workflow_settings:
-        if "phonopy" in workflow_settings:
-            if workflow_settings.phonopy.get("converge_phonons", False):
-                workflow_settings.statistical_sampling[
-                    "phonon_file"
-                ] = f"{workflow_settings.general.workdir_local}/converged/trajectory.son"
-            else:
-                workflow_settings.statistical_sampling[
-                    "phonon_file"
-                ] = f"{workflow_settings.general.workdir_local}//phonopy_analysis/trajectory.son"
-        stat_samp_fws.append(
-            generate_stat_samp_fw(workflow_settings, atoms, fw_settings)
-        )
-        if "phonopy" in workflow_settings:
-            fw_dep[phonon_fws[-1]] = stat_samp_fws[0]
-        elif final_initialize_fw:
-            fw_dep[final_initialize_fw].append(stat_samp_fws[0])
+    # if "statistical_sampling" in workflow_settings:
+    #     if "phonopy" in workflow_settings:
+    #         if workflow_settings.phonopy.get("converge_phonons", False):
+    #             workflow_settings.statistical_sampling[
+    #                 "phonon_file"
+    #             ] = f"{workflow_settings.general.workdir_local}/converged/trajectory.son"
+    #         else:
+    #             workflow_settings.statistical_sampling[
+    #                 "phonon_file"
+    #             ] = f"{workflow_settings.general.workdir_local}//phonopy_analysis/trajectory.son"
+    #     stat_samp_fws.append(
+    #         generate_stat_samp_fw(workflow_settings, atoms, fw_settings)
+    #     )
+    #     if "phonopy" in workflow_settings:
+    #         fw_dep[phonon_fws[-1]] = stat_samp_fws[0]
+    #     elif final_initialize_fw:
+    #         fw_dep[final_initialize_fw].append(stat_samp_fws[0])
 
     # Aims Calculations if no other term is present
     if not fw_steps and not phonon_fws and not phonon3_fws and not stat_samp_fws:

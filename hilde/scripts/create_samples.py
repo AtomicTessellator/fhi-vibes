@@ -62,7 +62,7 @@ def create_samples(
         except (ModuleNotFoundError, ImportError):
             exit("** hiphive needs to be installed to use mc_rattle.")
     else:
-        if not temp:
+        if temp is None:
             exit("** temperature needs to be given")
 
     if seed:

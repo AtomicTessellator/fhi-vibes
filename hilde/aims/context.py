@@ -6,7 +6,7 @@ import click
 from ase import Atoms
 from ase.io import read
 
-from hilde.settings import WorkflowSettings, SettingsError
+from hilde.settings import TaskSettings, SettingsError
 from .setup import setup_aims
 from ._defaults import (
     name,
@@ -18,7 +18,7 @@ from ._defaults import (
 )
 
 
-class AimsSettings(WorkflowSettings):
+class AimsSettings(TaskSettings):
     """Aims settings. Ensures that settings are set up sensibly"""
 
     def __init__(self, settings=None):

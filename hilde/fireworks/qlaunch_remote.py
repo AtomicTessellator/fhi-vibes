@@ -1,6 +1,5 @@
 """Python API for qlaunch to connect to remote hosts"""
 import os
-import sys
 import time
 
 try:

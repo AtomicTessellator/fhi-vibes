@@ -2,11 +2,11 @@
 
 from pathlib import Path
 
-from hilde.settings import WorkflowSettings
+from hilde.settings import TaskSettings
 from ._defaults import defaults, name, mandatory_base, mandatory_task
 
 
-class MDSettings(WorkflowSettings):
+class MDSettings(TaskSettings):
     """MD settings. Ensures that settings.md is set up sensibly"""
 
     def __init__(self, settings):

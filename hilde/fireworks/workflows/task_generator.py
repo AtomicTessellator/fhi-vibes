@@ -64,10 +64,11 @@ def setup_general_task(task_spec, fw_settings):
     pt_kwargs: dict
         PyTask kwargs
     """
-    pt_args = task_spec.get_pt_args()
+    pt_args = task_spec.pt_args
     pt_func = "hilde.fireworks.tasks.general_py_task.general_function_task"
-    pt_inputs = task_spec.get_pt_inputs()
-    pt_kwargs = task_spec.get_pt_kwargs(fw_settings)
+    pt_inputs = task_spec.pt_inputs
+    task_spec.fw_settings = fw_settings
+    pt_kwargs = task_spec.pt_kwargs
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
 
 

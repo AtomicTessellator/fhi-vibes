@@ -15,6 +15,7 @@ class TaskSpec:
         args=None,
         inputs=None,
         make_abs_path=False,
+        fw_settings=None,
     ):
         """TaskSpec Constructor
 
@@ -36,6 +37,8 @@ class TaskSpec:
             args for func stored in the FireWorks database(spec keys that are append to args)
         make_abs_path: bool
             If True make all paths absolute
+        fw_settings: dict
+            The FireWorks specific settings
         """
         if not isinstance(func, str):
             func = f"{func.__module__}.{func.__name__}"
@@ -45,6 +48,7 @@ class TaskSpec:
         self.func_fw_out = func_fw_out
         self.task_with_atoms_obj = task_with_atoms_obj
 
+        self.fw_settings = fw_settings
         if func_kwargs:
             if "workdir" in func_kwargs and make_abs_path:
                 func_kwargs["workdir"] = str(Path(func_kwargs["workdir"]).absolute())
@@ -85,7 +89,7 @@ class TaskSpec:
     @property
     def pt_args(self):
         """get the PyTask args for the task """
-        return _pt_args
+        return self._pt_args
 
     @property
     def fw_settings(self):
