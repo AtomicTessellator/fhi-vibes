@@ -4,6 +4,7 @@ from pathlib import Path
 from argparse import ArgumentParser
 import numpy as np
 from hilde.helpers.pickle import pread
+from hilde.phonopy.context import PhonopyContext
 from hilde.phonopy.postprocess import extract_results, postprocess
 from hilde.phonopy.wrapper import summarize_bandstructure
 
@@ -14,7 +15,8 @@ def preprocess(filename, settings_file, dimension, format, write_supercell=False
     from hilde.settings import Settings
     import hilde.phonopy.wrapper as ph
 
-    settings = Settings(settings_file)
+    ctx = PhonopyContext(Settings(settings_file))
+    settings = ctx.settings
 
     if filename:
         atoms = read(filename, format=format)

@@ -84,15 +84,12 @@ class Config(configparser.ConfigParser):
 class ConfigDict(AttributeDict):
     """Dictionary that holds the configuration settings"""
 
-    def __init__(self, *args, config_files=DEFAULT_CONFIG_FILE, **kwargs):
-        """Initializer
+    def __init__(self, config_files, *args, **kwargs):
+        """Initialize ConfigDict
 
-        Parameters
-        ----------
-        config_files: lsit of str
-            A list of configure files to read in
+        Args:
+            config_files (list of str): A list of configure files to read in
         """
-
         super().__init__(*args, **kwargs)
 
         config = Config()
@@ -111,7 +108,9 @@ class ConfigDict(AttributeDict):
                 output_cfg = configparser.ConfigParser(
                     dict_type=MultiOrderedDict, strict=False
                 )
-                output_cfg.read(config_files)
+                # discard config files to avoid double sections
+                files = [file for file in config_files if str(file).endswith(".in")]
+                output_cfg.read(files)
                 self["control"]["output"] = output_cfg["control"]["output"].split("\n")
 
     def __str__(self):
@@ -122,27 +121,18 @@ class ConfigDict(AttributeDict):
         """ literally print(self) """
         print(self.get_string(only_settings=only_settings))
 
-    def write(self, filename=DEFAULT_SETTINGS_FILE, pickle=False):
-        """write a settings object human readable and pickled
+    def write(self, filename=DEFAULT_SETTINGS_FILE):
+        """write a settings object human readable
 
         Parameters
         ----------
         filename: str
             path use to write the file
-        pickle: bool
-            If True write settings to a pickle file
         """
         with open(filename, "w") as f:
             timestr = time.strftime("%Y/%m/%d %H:%M:%S")
             f.write(f"# configfile written at {timestr}\n")
             f.write(self.get_string())
-        #
-        if pickle:
-            import pickle
-
-            # write pickled
-            with open(filename + ".pick", "wb") as f:
-                pickle.dump(self, f)
 
     def get_string(self, width=30, only_settings=False):
         """ return string representation for writing etc.
@@ -191,7 +181,7 @@ class ConfigDict(AttributeDict):
 
 
 class Configuration(ConfigDict):
-    """ class to hold the configuration from hilde.cfg """
+    """class to hold the configuration from .hilderc"""
 
     def __init__(self, config_file=DEFAULT_CONFIG_FILE):
         """Initializer
@@ -208,95 +198,36 @@ class Configuration(ConfigDict):
 
 
 class Settings(ConfigDict):
-    """ Class to hold the settings parsed from settings.in (+ the configuration) """
+    """Class to hold the settings parsed from settings.in (+ the configuration)"""
 
     def __init__(
         self,
         settings_file=DEFAULT_SETTINGS_FILE,
+        read_config=True,
         config_file=DEFAULT_CONFIG_FILE,
         fireworks_file=DEFAULT_FIREWORKS_FILE,
     ):
         """Initializer
 
-        Parameters
-        ----------
-        settings_file: str
-            Path to the settings file
-        config_file: str
-            Path to the configuration file
-        fireworks_file: str
-            Path to the FireWorks Configuration file
+        Args:
+            settings_file (str): Path to the settings file
+            read_config (boolean): read the configuration files
+            config_file (str): Path to the configuration file
+            fireworks_file (str): Path to the FireWorks Configuration file
         """
         self._settings_file = settings_file
-        self._config_file = config_file
-        self._fireworks_file = fireworks_file
-        self._atoms = None
-        self._workdir = None
-        self._obj = {}
 
-        config_files = [config_file, settings_file, fireworks_file]
+        if read_config:
+            config_files = [config_file, settings_file, fireworks_file]
+        else:
+            config_files = settings_file
 
         super().__init__(config_files=[file for file in config_files if file])
-
-        # make sure atoms are read once
-        _ = self.atoms
 
     @property
     def settings_file(self):
         """return path to the settings file"""
         return self._settings_file
-
-    @property
-    def atoms(self):
-        """ Return the settings.atoms object """
-        if not self._atoms:
-            self._atoms = self.get_atoms()
-
-        return self._atoms
-
-    @atoms.setter
-    def atoms(self, obj):
-        """Set the settings.atoms
-
-        Parameters
-        ----------
-        obj: ase.atoms.Atoms
-            The structure that is to become atoms
-
-        Raises
-        ------
-        AssertionError
-            If obj is not of type ase.atoms.Atoms
-        """
-        assert isinstance(obj, Atoms), type(obj)
-        self._atoms = obj
-
-    def get_atoms(self, format="aims"):
-        """parse the geometry described in settings.in and return as atoms
-
-        Parameters
-        ----------
-        format: str
-            format of self.geometry.file
-        """
-
-        # use the file specified in geometry.file or the default (geometry.in)
-        if "geometry" in self and "file" in self.geometry and self.geometry.file:
-            file = self.geometry.file
-        else:
-            file = DEFAULT_GEOMETRY_FILE
-
-        if path.exists(file):
-            return read(file, format=format)
-
-        warn(f"Geometry file {file} not found.", level=1)
-
-        return None
-
-    @property
-    def obj(self):
-        """the object holding the specific settings for the task"""
-        return self._obj
 
     def write(self, filename=None):
         """write settings to file"""
@@ -306,16 +237,8 @@ class Settings(ConfigDict):
 
         if not path.exists(filename):
             super().write(filename=filename)
-
-    @property
-    def workdir(self):
-        """wrapper for the working directory"""
-        return self._workdir
-
-    @workdir.setter
-    def workdir(self, workdir):
-        """wrapper for the working directory"""
-        self._workdir = workdir
+        else:
+            warn(f"{filename} exists, do not overwrite settings.", level=1)
 
 
 class SettingsSection(AttributeDict):
@@ -374,18 +297,19 @@ class SettingsSection(AttributeDict):
         verify_key(key, self, hint=f"{self._settings_file}, section [{self.name}]")
 
 
-class WorkflowSettings(Settings):
+class TaskSettings(Settings):
     """Wrapper for Settings in the context of a workflow"""
 
     def __init__(
         self,
-        name,
+        name=None,
         settings=None,
-        config_file=DEFAULT_CONFIG_FILE,
+        read_config=True,
         defaults=None,
         mandatory_keys=None,
         obj_key=None,
         mandatory_obj_keys=None,
+        debug=False,
     ):
         """Initialize Settings in a specific context
 
@@ -395,8 +319,8 @@ class WorkflowSettings(Settings):
             name of the context or workflow
         settings_file: str or Path
             location of settings file. Otherwise inferred from name
-        config_file: str or Path
-            location of configuration
+        read_config: boolean
+            read the configuration file, otherwise just use settings
         defaults: dict
             dictionary with default key/value pairs
         mandatory_keys: list
@@ -417,7 +341,13 @@ class WorkflowSettings(Settings):
         if mandatory_obj_keys is None:
             mandatory_obj_keys = []
 
-        super().__init__(settings_file=settings.settings_file, config_file=config_file)
+        # read the bare settings
+        super().__init__(settings_file=settings.settings_file, read_config=read_config)
+
+        self._atoms = None
+        self._workdir = None
+        self._debug = debug
+        self._obj = {}
 
         for key, val in settings.items():
             self[key] = val
@@ -431,12 +361,16 @@ class WorkflowSettings(Settings):
         for key in mandatory_keys:
             self.verify_key(key)
 
-        self[obj_key] = SettingsSection(obj_key, settings, defaults, mandatory_obj_keys)
-        self._obj = self[obj_key]
+        if obj_key:
+            self[obj_key] = SettingsSection(obj_key, settings, defaults, mandatory_obj_keys)
+            self._obj = self[obj_key]
 
         # workdir
         if "workdir" in self.obj:
             self.workdir = self.obj.pop("workdir")
+
+        # make sure atoms are read once
+        _ = self.atoms
 
     @property
     def name(self):
@@ -459,3 +393,55 @@ class WorkflowSettings(Settings):
         verify_key(
             key, self, hint=f"{self.settings_file}", section=True, allowed_to_fail=True
         )
+
+    @property
+    def atoms(self):
+        """ Return the settings.atoms object """
+        if not self._atoms:
+            self._atoms = self.get_atoms()
+
+        return self._atoms
+
+    @atoms.setter
+    def atoms(self, obj):
+        """Set the settings._atoms with an  ase.atoms.Atoms object"""
+        assert isinstance(obj, Atoms), type(obj)
+        self._atoms = obj
+
+    def get_atoms(self, format="aims"):
+        """parse the geometry described in settings.in and return as atoms
+
+        Parameters
+        ----------
+        format: str
+            format of self.geometry.file
+        """
+
+        # use the file specified in geometry.file or the default (geometry.in)
+        if "geometry" in self and "file" in self.geometry and self.geometry.file:
+            file = self.geometry.file
+        else:
+            file = DEFAULT_GEOMETRY_FILE
+
+        if path.exists(file):
+            return read(file, format=format)
+
+        if self._debug:
+            warn(f"Geometry file {file} not found.", level=1)
+
+        return None
+
+    @property
+    def obj(self):
+        """the object holding the specific settings for the task"""
+        return self._obj
+
+    @property
+    def workdir(self):
+        """wrapper for the working directory"""
+        return self._workdir
+
+    @workdir.setter
+    def workdir(self, workdir):
+        """wrapper for the working directory"""
+        self._workdir = workdir

@@ -10,8 +10,8 @@ use_third = False
 basisset = light
 use_tight_relax = False
 kgrid_dfunc_min = 1e4
-opt_kgrid = True
-relax_structure = True
+opt_kgrid = False
+relax_structure = False
 
 [control]
 xc =                 pw-lda
@@ -24,8 +24,9 @@ relativistic =       "atomic_zora scalar"
 density = 1
 
 [phonopy]
-supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-conv_crit = 0.95
+#supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+supercell_matrix = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+conv_crit = 0.05
 walltime = 3500
 serial = True
 displacement = 0.01

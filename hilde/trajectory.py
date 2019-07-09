@@ -142,6 +142,13 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
     if "MD" in metadata:
         md_metadata = metadata["MD"]
 
+    if not pre_trajectory:
+        if get_metadata:
+            talk(".. trajectory empty, return ([], metadata)")
+            return [], metadata
+        talk(".. trajectory empty, return []")
+        return []
+
     trajectory = Trajectory(metadata=metadata)
     bar = Bar(".. process file:  ")
     for obj in bar.iter(pre_trajectory):
