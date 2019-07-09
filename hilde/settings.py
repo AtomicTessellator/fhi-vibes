@@ -84,7 +84,7 @@ class Config(configparser.ConfigParser):
 class ConfigDict(AttributeDict):
     """Dictionary that holds the configuration settings"""
 
-    def __init__(self, *args, config_files=DEFAULT_CONFIG_FILE, **kwargs):
+    def __init__(self, config_files, *args, **kwargs):
         """Initializer
 
         Parameters
