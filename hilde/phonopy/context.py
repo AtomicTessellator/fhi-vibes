@@ -57,6 +57,8 @@ class PhonopyContext:
             self.workdir = workdir
         if not self.workdir:
             self.workdir = name
+        else:
+            self.workdir = self.workdir
 
     @property
     def workdir(self):
@@ -70,9 +72,8 @@ class PhonopyContext:
             smatrix = self.settings.obj.supercell_matrix.flatten()
             vol = self.ref_atoms.get_volume()
             sysname = get_sysname(self.ref_atoms)
-            dirname = name + "_{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}".format(
-                sysname, *smatrix, vol
-            )
+            rep = "_{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}".format(sysname, *smatrix, vol)
+            dirname = name + rep
             self.settings.workdir = Path(dirname)
         else:
             self.settings.workdir = Path(folder)
