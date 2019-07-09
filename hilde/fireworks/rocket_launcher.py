@@ -36,7 +36,7 @@ def rapidfire(
     timeout=None,
     local_redirect=False,
     pdb_on_exception=False,
-    fw_ids=None,
+    firework_ids=None,
     wflow_id=None,
 ):
     """Keeps running Rockets in m_dir until we reach an error. Automatically creates subdirectories for each Rocket. Usually stops when we run out of FireWorks from the LaunchPad.
@@ -63,14 +63,14 @@ def rapidfire(
         redirect standard input and output to local file
     pdb_on_exception: bool
         if set to True, python will start the debugger on a firework exception
-    fw_ids: list of ints
+    firework_ids: list of ints
         list of FireWorks to run
     wflow_id: list of ints
         list of ids of the root nodes of a workflow
     """
-    if fw_ids and len(fw_ids) != nlaunches:
-        print("WARNING: Setting nlaunches to the length of fw_ids.")
-        nlaunches = len(fw_ids)
+    if firework_ids and len(firework_ids) != nlaunches:
+        print("WARNING: Setting nlaunches to the length of firework_ids.")
+        nlaunches = len(firework_ids)
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     curdir = m_dir if m_dir else os.getcwd()
     l_logger = get_fw_logger(
@@ -94,20 +94,20 @@ def rapidfire(
         if wflow_id:
             wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
             nlaunches = len(wflow.fws)
-            fw_ids = get_ordred_fw_ids(wflow)
-        while (skip_check or launchpad.run_exists(fworker, ids=fw_ids)) and time_ok():
+            firework_ids = get_ordred_fw_ids(wflow)
+        while (skip_check or launchpad.run_exists(fworker, ids=firework_ids)) and time_ok():
             os.chdir(curdir)
             launcher_dir = create_datestamp_dir(curdir, l_logger, prefix="launcher_")
             os.chdir(launcher_dir)
             if local_redirect:
                 with redirect_local():
-                    if fw_ids or wflow_id:
+                    if firework_ids or wflow_id:
                         rocket_ran = launch_rocket(
                             launchpad,
                             fworker,
                             strm_lvl=strm_lvl,
                             pdb_on_exception=pdb_on_exception,
-                            fw_id=fw_ids[num_launched],
+                            fw_id=firework_ids[num_launched],
                         )
                     else:
                         rocket_ran = launch_rocket(
@@ -117,13 +117,13 @@ def rapidfire(
                             pdb_on_exception=pdb_on_exception,
                         )
             else:
-                if fw_ids or wflow_id:
+                if firework_ids or wflow_id:
                     rocket_ran = launch_rocket(
                         launchpad,
                         fworker,
                         strm_lvl=strm_lvl,
                         pdb_on_exception=pdb_on_exception,
-                        fw_id=fw_ids[num_launched],
+                        fw_id=firework_ids[num_launched],
                     )
                 else:
                     rocket_ran = launch_rocket(
@@ -135,7 +135,7 @@ def rapidfire(
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
-                fw_ids = get_ordred_fw_ids(wflow)
+                firework_ids = get_ordred_fw_ids(wflow)
             if rocket_ran:
                 num_launched += 1
             elif not os.listdir(launcher_dir):
@@ -144,7 +144,7 @@ def rapidfire(
                 os.rmdir(launcher_dir)
             if nlaunches > 0 and num_launched == nlaunches:
                 break
-            if launchpad.run_exists(fworker, ids=fw_ids):
+            if launchpad.run_exists(fworker, ids=firework_ids):
                 skip_check = True  # don't wait, pull the next FW right away
             else:
                 # add a small amount of buffer breathing time for DB to refresh in case we have a
@@ -152,7 +152,7 @@ def rapidfire(
                 time.sleep(0.15)
                 skip_check = False
         if nlaunches == 0:
-            if not launchpad.future_run_exists(fworker, ids=fw_ids):
+            if not launchpad.future_run_exists(fworker, ids=firework_ids):
                 break
         elif num_launched == nlaunches:
             break

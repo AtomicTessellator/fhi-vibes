@@ -4,7 +4,7 @@ import os
 from hilde import DEFAULT_CONFIG_FILE
 from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.helpers import Timer
-from hilde.settings import Settings
+from hilde.settings import TaskSettings, Settings
 
 
 def get_func(func_path):
@@ -72,7 +72,7 @@ def atoms_calculate_task(
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 
-    default_settings = Settings(DEFAULT_CONFIG_FILE)
+    default_settings = TaskSettings(name=None, settings=Settings(DEFAULT_CONFIG_FILE))
     calc_dict["command"] = default_settings.machine.aims_command
     if "species_dir" in calc_dict["calculator_parameters"]:
         calc_dict["calculator_parameters"]["species_dir"] = (

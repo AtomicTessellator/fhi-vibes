@@ -22,7 +22,7 @@ class AttributeDict(OrderedDict):
         if attr in self:
             return self[attr]
         # warn(f"Attribute {attr} not in dictionary, return None.", level=1)
-        raise RuntimeError
+        raise AttributeError(f"Attribute {attr} not in dictionary, return None.")
 
     def __dict__(self):
         return self.to_dict()

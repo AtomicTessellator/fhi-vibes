@@ -25,7 +25,6 @@ from fireworks.utilities.fw_utilities import (
 
 from hilde.fireworks.qlaunch_remote import qlaunch_remote
 from hilde.fireworks._defaults import FW_DEFAULTS
-from hilde.settings import Settings
 
 # See if Fabric2 is installed
 try:
