@@ -45,9 +45,9 @@ from .directions import directions
 if sys.version_info[0] > 2:
     long = int
 
-n_samples = 5000
+n_samples = 500
 lowest_startingpoint = 100
-highest_startingpoint = 500
+highest_startingpoint = 1000
 
 
 def sample(N, D):
@@ -227,6 +227,9 @@ class RandomState:
             rand(nmax, self.dimension.prod(), low, high, randomize, seed)
         )
 
+        # print copyright
+        self.copyright_notice()
+
     def rand(self, sample_dimension=1):
         """ return sample of specific dimension from the Sobol sequence
 
@@ -255,7 +258,19 @@ class RandomState:
                 + " Do not expect to receive quasi random numbers."
             )
 
-        sample = [next(self.sequence) for _ in range(n_samples_to_draw)]
-        sample = np.array(sample)
+        sample = np.array([next(self.sequence) for _ in range(n_samples_to_draw)])
 
         return np.squeeze(sample.flatten()[:n_samples].reshape(sample_dimension))
+
+    @staticmethod
+    def copyright_notice():
+        """print the copyright statement for SALib"""
+        msg = (
+            "# The following code is based on the Sobol sequence generator by Frances",
+            "# Y. Kuo and Stephen Joe. ",
+            "# Copyright (c) 2008, Frances Y. Kuo and Stephen Joe",
+            "# All rights reserved.",
+            "# More info: https://web.maths.unsw.edu.au/~fkuo/sobol/",
+        )
+
+        print("\n".join(msg), flush=True)
