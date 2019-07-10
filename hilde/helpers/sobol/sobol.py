@@ -37,7 +37,6 @@
 """
 
 import sys
-from warnings import warn
 
 import numpy as np
 from .directions import directions
@@ -190,77 +189,41 @@ class RandomState:
 
     def __init__(
         self,
-        dimension,
-        nmax=n_samples,
         low=lowest_startingpoint,
         high=highest_startingpoint,
-        randomize=False,
+        randomize=True,
         seed=None,
     ):
-        """ Initialize the QuasiRandomState for samples of specific dimension
+        """ Initialize the QuasiRandomState for samples of specific dimension"""
 
-        Parameters
-        ----------
-        dimension: int
-            dimension of the samples
-        nmax: int
-            maximum number of samples (5000)
-        low: int
-            skip this many samples (100)
-        high: int
-            skip this many samples (max)
-        randomize: bool, optional
-            further randomize the sample
-        seed: int
-            seed for further randomization
-        """
-
-        self.nmax = nmax
         self.low = low
         self.high = high
         self.randomize = randomize
         self.seed = seed
-        self.dimension = np.asarray(dimension)
 
-        # generate the sequence
-        self.sequence = iter(
-            rand(nmax, self.dimension.prod(), low, high, randomize, seed)
-        )
+        # Choose the starting point of the Sobol sequence. Similar to a seed.
+        if seed:
+            rng = np.random.RandomState(seed)
+        else:
+            rng = np.random
+
+        if randomize:
+            self.startpoint = rng.randint(low=low, high=high + low)
+        else:
+            self.startpoint = low
 
         # print copyright
         self.copyright_notice()
 
-    def rand(self, sample_dimension=1):
-        """ return sample of specific dimension from the Sobol sequence
+    def rand(self, nsamples, dimension=1):
+        """create sobol numbers"""
+        if dimension > 21200:
+            raise ValueError(f"dimension must not excee 21200 (is {dimension}).")
 
-        Parameters
-        ----------
-        samples_dimension: int
-            Dimension of samples to return
+        sequence = sample(self.startpoint + nsamples, dimension)[self.startpoint :, :]
+        self.startpoint += nsamples
 
-        Returns
-        ----------
-        ndarray
-            samples from the Sobol sequence
-        """
-
-        # Make sure the sample_dimension is  an ndarray and has .prod()
-        sample_dimension = np.asarray(sample_dimension)
-        n_samples = sample_dimension.prod()
-        n_samples_to_draw = n_samples // self.dimension.prod() + 1
-
-        # Warn User if the initialization is not commensurate with the sample asked for
-        if n_samples % self.dimension.prod() != 0:
-            print(f"Number for samples:     {n_samples}")
-            print(f"Initializing dimension: {self.dimension.prod()}")
-            warn(
-                "Number of samples not commensurate with the initializing dimension."
-                + " Do not expect to receive quasi random numbers."
-            )
-
-        sample = np.array([next(self.sequence) for _ in range(n_samples_to_draw)])
-
-        return np.squeeze(sample.flatten()[:n_samples].reshape(sample_dimension))
+        return sequence
 
     @staticmethod
     def copyright_notice():
