@@ -189,17 +189,21 @@ class RandomState:
 
     def __init__(
         self,
+        dimension=None,
         low=lowest_startingpoint,
         high=highest_startingpoint,
         randomize=True,
         seed=None,
+        failsafe=True,
     ):
         """ Initialize the QuasiRandomState for samples of specific dimension"""
 
+        self.dimension = dimension
         self.low = low
         self.high = high
         self.randomize = randomize
         self.seed = seed
+        self.failsafe = failsafe
 
         # Choose the starting point of the Sobol sequence. Similar to a seed.
         if seed:
@@ -218,11 +222,25 @@ class RandomState:
     def rand(self, nsamples, dimension=1):
         """create sobol numbers"""
         if dimension > 21200:
-            raise ValueError(f"dimension must not excee 21200 (is {dimension}).")
+            raise ValueError(f"dimension must not exceed 21200 (is {dimension}).")
 
-        sequence = sample(self.startpoint + nsamples, dimension)[self.startpoint :, :]
+        startpoint = int(self.startpoint)
         self.startpoint += nsamples
 
+        if self.dimension:
+            if self.failsafe and dimension != self.dimension:
+                msg = (
+                    f"\nRandom numbers initialized with dimension: {self.dimension},"
+                    + f" given: {dimension}."
+                    + f"\nIf you know what you are doing, run with `failsafe=False`"
+                )
+                raise ValueError(msg)
+            sequence = sample(startpoint + nsamples, self.dimension)
+            # flatten, truncate and reshape
+            sequence = sequence[startpoint:, :].flatten()[: nsamples * dimension]
+            return sequence.reshape((nsamples, dimension))
+        # else
+        sequence = sample(startpoint + nsamples, dimension)[startpoint:, :]
         return sequence
 
     @staticmethod
