@@ -22,6 +22,7 @@ def create_samples(
     mc_rattle,
     quantum,
     deterministic,
+    sobol,
     random_seed,
     format,
 ):
@@ -43,6 +44,8 @@ def create_samples(
         If True use Bose-Einstein distribution instead of Maxwell-Boltzmann
     deterministic: bool
         If True create sample deterministically
+    sobol: bool
+        Use sobol numbers for the sampling
     random_seed: int
         The seed the random number generator
     format: str
@@ -72,6 +75,14 @@ def create_samples(
     else:
         rng = np.random
 
+    if sobol:
+        from hilde.helpers.sobol import RandomState
+
+        # create sobol generator with dimension 3N - 3
+        # check that `nw` coincides with `nw` in `velocitydistribution.phonon_harmonics`
+        nw = 3 * len(atoms) - 3
+        rng = RandomState(dimension=nw, seed=seed, failsafe=False)
+
     if force_constants is not None:
         # if 3Nx3N shaped txt file:
         try:
@@ -92,7 +103,7 @@ def create_samples(
             "rng": rng,
         }
         info_str += ["created from force constants", f"T = {temp} K"]
-        talk(f"Use force constants from {force_constants} to prepare samples")
+        talk(f"\nUse force constants from {force_constants} to prepare samples")
 
     else:
         mb_args = {"temp": temp * u.kB, "rng": rng}
@@ -137,6 +148,7 @@ def main():
     parser.add_argument("--mc_rattle", nargs="?", type=float, const=0.01, default=None)
     parser.add_argument("-n", "--n_samples", type=int, default=1, help="no. of samples")
     parser.add_argument("--quantum", action="store_true")
+    parser.add_argument("--sobol", action="store_true")
     parser.add_argument("--deterministic", action="store_true")
     parser.add_argument("--ignore_negative", action="store_false")
     parser.add_argument("--format", default="aims")
@@ -153,6 +165,7 @@ def main():
         args.mc_rattle,
         args.quantum,
         args.deterministic,
+        args.sobol,
         args.random_seed,
         args.format,
     )

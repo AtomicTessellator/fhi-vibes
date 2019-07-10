@@ -70,6 +70,7 @@ def relaxation_info(filenames):
 @click.option("--mc_rattle", is_flag=True, help="`hiphive.mc_rattle`", hidden=True)
 @click.option("--quantum", is_flag=True, help="use quantum distribution function")
 @click.option("--deterministic", is_flag=True, help="create a deterministic sample")
+@click.option("--sobol", is_flag=True, help="use Sobol numbers to create samples")
 @click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
 @click.option("--format", default="aims")
 def tool_create_samples(
@@ -80,6 +81,7 @@ def tool_create_samples(
     mc_rattle,
     quantum,
     deterministic,
+    sobol,
     random_seed,
     format,
 ):
@@ -93,6 +95,7 @@ def tool_create_samples(
         mc_rattle,
         quantum,
         deterministic,
+        sobol,
         random_seed,
         format,
     )
