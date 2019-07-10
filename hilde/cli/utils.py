@@ -67,7 +67,7 @@ def relaxation_info(filenames):
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
 @click.option("-fc", "--force_constants", type=complete_filenames)
-@click.option("--mc_rattle", is_flag=True, help="use `mc_rattle` from hiphive")
+@click.option("--mc_rattle", is_flag=True, help="`hiphive.mc_rattle`", hidden=True)
 @click.option("--quantum", is_flag=True, help="use quantum distribution function")
 @click.option("--deterministic", is_flag=True, help="create a deterministic sample")
 @click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
