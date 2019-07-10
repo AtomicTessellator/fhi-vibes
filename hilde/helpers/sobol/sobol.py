@@ -238,20 +238,22 @@ class RandomState:
             sequence = sample(startpoint + nsamples, self.dimension)
             # flatten, truncate and reshape
             sequence = sequence[startpoint:, :].flatten()[: nsamples * dimension]
-            return sequence.reshape((nsamples, dimension))
+            return sequence.reshape((nsamples, dimension)).squeeze()
         # else
-        sequence = sample(startpoint + nsamples, dimension)[startpoint:, :]
+        sequence = sample(startpoint + nsamples, dimension)[startpoint:, :].squeeze()
         return sequence
 
     @staticmethod
     def copyright_notice():
         """print the copyright statement for SALib"""
         msg = (
-            "# The following code is based on the Sobol sequence generator by Frances",
-            "# Y. Kuo and Stephen Joe. ",
+            "\n",
+            "# The Sobol numbers are created by a code that is based ",
+            "# on the Sobol sequence generator by Frances Y. Kuo and Stephen Joe. ",
             "# Copyright (c) 2008, Frances Y. Kuo and Stephen Joe",
             "# All rights reserved.",
             "# More info: https://web.maths.unsw.edu.au/~fkuo/sobol/",
+            "\n",
         )
 
         print("\n".join(msg), flush=True)
