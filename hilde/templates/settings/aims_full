@@ -1,4 +1,5 @@
 [geometry]
+file:                          geometry.in
 files:                         geometry.in.???
 primitive:                     geometry.in.primitive
 supercell:                     geometry.in.supercell
