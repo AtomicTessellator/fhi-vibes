@@ -98,6 +98,7 @@ class AimsContext:
                 msg = f"Please inspect [geometry] in {self.settings.settings_file}"
                 raise click.FileError(s.geometry["file"], msg)
             filenames.append(path)
+            self.settings.geometry["file"] = str(path)
 
         if "files" in s.geometry:
             paths = sorted(Path().glob(s.geometry.files))
