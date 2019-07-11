@@ -4,13 +4,19 @@ from pathlib import Path
 
 # from ase.calculators.aims import Aims
 from ase.calculators.aims import Aims
-from hilde import DEFAULT_CONFIG_FILE
 from hilde.helpers import talk
-from hilde.helpers.k_grid import update_k_grid
+from hilde.helpers.k_grid import d2k
 from hilde.helpers.warnings import warn
 
 
-def create_species_dir(ctx, folder="basissets"):
+choices = ("light", "intermediate", "tight")
+
+
+class BasissetError(RuntimeError):
+    """Raise when the basisset was set up incorrectly"""
+
+
+def create_species_dir(ctx, folder="basissets", fallback="light"):
     """ create a custom bassiset folder for the computation
 
     Parameters
@@ -33,10 +39,15 @@ def create_species_dir(ctx, folder="basissets"):
     if "basisset" in settings and "type" in settings.basisset:
         default = settings.basisset.type
         return str(loc / default)
-    elif "basissets" in settings and "default" in settings.basissets:
+    if "basissets" in settings and "default" in settings.basissets:
         default = settings.basissets.default
+        if "fallback" in settings.basissets and settings.basissets.fallback in choices:
+            fallback = settings.basissets.fallback
     else:
         warn("basissets not specified in settings.file.", level=2)
+
+    if default not in choices:
+        raise BasissetError(f"Species default '{default}' unknown.")
 
     # return default if no atom is given for reference
     ref_atoms = ctx.ref_atoms
@@ -56,21 +67,32 @@ def create_species_dir(ctx, folder="basissets"):
     key_vals = (
         (key.capitalize(), val)
         for (key, val) in settings.basissets.items()
-        if "default" not in key
+        if key not in ("default", "fallback")
     )
 
     if len(settings.basissets) > 1:
         for (key, val) in key_vals:
             # copy the respective basisset
-            shutil.copy(loc / val / f"{dct[key]:02d}_{key}_default", folder)
+            add_basisset(loc, val, key, dct[key], folder, fallback=fallback)
             del dct[key]
 
     # add remaining ones
     for key in dct.keys():
         # copy the respective basisset
-        shutil.copy(loc / default / f"{dct[key]:02d}_{key}_default", folder)
+        add_basisset(loc, default, key, dct[key], folder, fallback=fallback)
 
     return str(folder.absolute())
+
+
+def add_basisset(loc, typ, elem, num, folder, fallback="light"):
+    """copy basisset from location LOC of type TYP for ELEMENT w/ no. NUM to FOLDER"""
+    rep = f"{num:02d}_{elem}_default"
+
+    try:
+        shutil.copy(loc / typ / rep, folder)
+    except FileNotFoundError:
+        warn(f"{typ} basisset for {elem} not found, use '{fallback}' as fallback")
+        shutil.copy(loc / fallback / rep, folder)
 
 
 def setup_aims(ctx):
@@ -89,6 +111,17 @@ def setup_aims(ctx):
 
     settings = ctx.settings
 
+    # update k_grid
+    if ctx.ref_atoms and "control_kpt" in settings:
+        if not "density" in settings.control_kpt:
+            warn("'control_kpt' given, but not kpt density. Check!", level=1)
+        else:
+            kptdensity = settings.control_kpt.density
+            k_grid = d2k(ctx.ref_atoms, kptdensity, True)
+            talk(f"Update aims k_grid with kpt density of {kptdensity} to {k_grid}")
+            ctx.settings.obj["k_grid"] = k_grid
+            del ctx.settings["control_kpt"]
+
     aims_settings = settings.obj
 
     ase_settings = {"aims_command": settings.machine.aims_command}
@@ -104,13 +137,9 @@ def setup_aims(ctx):
 
     aims_settings = {**aims_settings, **ase_settings}
 
-    calc = Aims(**aims_settings)
-
-    # update k_grid
-    if ctx.ref_atoms and "control_kpt" in settings:
-        update_k_grid(ctx.ref_atoms, calc, settings.control_kpt.density)
-
-    if "k_grid" not in calc.parameters:
+    if "k_grid" not in aims_settings:
         talk("No k_grid in aims calculator. Check!")
+
+    calc = Aims(**aims_settings)
 
     return calc
