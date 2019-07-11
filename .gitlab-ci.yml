@@ -7,11 +7,13 @@ before_script:
   - source venv/bin/activate
   - pip install -U pip
   - pip install -U poetry
-  - poetry install --no-dev
+  - poetry install
 
 basic_tests:
   script:
-    - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; python test_lattice_points.py
+    - cd $CI_PROJECT_DIR/tests
+    - pytest test_sobol.py
+    - cd commensurate_qpoints; python test_lattice_points.py
     - cd ../hashes; python hashes.py
     - cd ../cli; bash test_cli.sh
     - cd ../anharmonicity_score; python test_r2.py
