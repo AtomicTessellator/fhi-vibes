@@ -2,7 +2,7 @@
 import time
 import configparser
 import json
-from os import path
+from pathlib import Path
 
 import numpy as np
 from ase.io import read
@@ -84,34 +84,51 @@ class Config(configparser.ConfigParser):
 class ConfigDict(AttributeDict):
     """Dictionary that holds the configuration settings"""
 
-    def __init__(self, config_files, *args, **kwargs):
+    def __init__(self, config_files=None, dct=None, *args, **kwargs):
         """Initialize ConfigDict
 
         Args:
             config_files (list of str): A list of configure files to read in
+            dct (dict): a dictionary
         """
         super().__init__(*args, **kwargs)
 
-        config = Config()
-        config.read(config_files)
+        # initialize from config files
+        if config_files:
+            config = Config(default_section=None)
+            config.read(config_files)
 
-        # Recursion depth: 1
-        for sec in config.sections():
-            self[sec] = AttributeDict()
-            for key in config[sec]:
-                val = config.getval(sec, key)
-                self[sec][key] = val
+            # Recursion depth: 1
+            for sec in config:
+                self[sec] = AttributeDict()
+                for key in config[sec]:
+                    val = config.getval(sec, key)
+                    self[sec][key] = val
 
-        # check for `output` to resolve multiple options
-        if "control" in config.sections():
-            if "output" in config["control"].keys():
-                output_cfg = configparser.ConfigParser(
-                    dict_type=MultiOrderedDict, strict=False
-                )
-                # discard config files to avoid double sections
-                files = [file for file in config_files if str(file).endswith(".in")]
-                output_cfg.read(files)
-                self["control"]["output"] = output_cfg["control"]["output"].split("\n")
+            # check for `output` to resolve multiple options
+            if "control" in config.sections():
+                if "output" in config["control"].keys():
+                    output_cfg = configparser.ConfigParser(
+                        dict_type=MultiOrderedDict, strict=False
+                    )
+                    # discard config files to avoid double sections
+                    files = [file for file in config_files if str(file).endswith(".in")]
+                    output_cfg.read(files)
+                    value = output_cfg["control"]["output"].split("\n")
+                    self["control"]["output"] = value
+
+        # initialize from dictionary
+        elif dct:
+            config = dct
+            # Recursion depth: 1
+            for sec in config:
+                self[sec] = AttributeDict()
+                for key in config[sec]:
+                    val = config[sec][key]
+                    self[sec][key] = val
+
+        else:
+            raise ValueError("Either provide `config_files` or a dict in `dct`")
 
     def __str__(self):
         """ for printing the object """
@@ -206,14 +223,16 @@ class Settings(ConfigDict):
         read_config=True,
         config_file=DEFAULT_CONFIG_FILE,
         fireworks_file=DEFAULT_FIREWORKS_FILE,
+        dct=None,
     ):
-        """Initializer
+        """Initialize Settings
 
         Args:
             settings_file (str): Path to the settings file
             read_config (boolean): read the configuration files
             config_file (str): Path to the configuration file
             fireworks_file (str): Path to the FireWorks Configuration file
+            dct (dict): a dictionary
         """
         self._settings_file = settings_file
 
@@ -222,7 +241,15 @@ class Settings(ConfigDict):
         else:
             config_files = settings_file
 
-        super().__init__(config_files=[file for file in config_files if file])
+        if dct:
+            super().__init__(dct=dct)
+        else:
+            super().__init__(config_files=[file for file in config_files if file])
+
+    @classmethod
+    def from_dict(cls, dct):
+        """initialize from dictionary"""
+        return cls(dct=dct)
 
     @property
     def settings_file(self):
@@ -235,7 +262,7 @@ class Settings(ConfigDict):
         if not filename:
             filename = self.settings_file
 
-        if not path.exists(filename):
+        if not Path(filename).exists():
             super().write(filename=filename)
         else:
             warn(f"{filename} exists, do not overwrite settings.", level=1)
@@ -362,7 +389,9 @@ class TaskSettings(Settings):
             self.verify_key(key)
 
         if obj_key:
-            self[obj_key] = SettingsSection(obj_key, settings, defaults, mandatory_obj_keys)
+            self[obj_key] = SettingsSection(
+                obj_key, settings, defaults, mandatory_obj_keys
+            )
             self._obj = self[obj_key]
 
         # workdir
@@ -419,11 +448,11 @@ class TaskSettings(Settings):
 
         # use the file specified in geometry.file or the default (geometry.in)
         if "geometry" in self and "file" in self.geometry and self.geometry.file:
-            file = self.geometry.file
+            file = next(Path().glob(self.geometry.file))
         else:
             file = DEFAULT_GEOMETRY_FILE
 
-        if path.exists(file):
+        if Path(file).exists():
             return read(file, format=format)
 
         if self._debug:
