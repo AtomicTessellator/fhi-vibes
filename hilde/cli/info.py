@@ -1,7 +1,7 @@
 """`hilde info` backend"""
 
 from ase.io import read
-from hilde import Settings
+from hilde import Settings, son
 from hilde.structure.io import inform
 from hilde.scripts.md_sum import md_sum
 from hilde.scripts.hilde_phonopy import preprocess
@@ -67,3 +67,19 @@ def phonopy_info(filename, write_supercell, format):
         format=format,
         write_supercell=write_supercell,
     )
+
+
+@info.command("trajectory")
+@click.argument("filename", default="trajectory.son", type=complete_filenames)
+def trajectory_info(filename):
+    """inform about content of trajectory file"""
+
+    metadata, _ = son.load(filename)
+
+    click.echo(f"Summary of metadata in {filename}:\n")
+    click.echo("Keys:")
+    click.echo(f"  {list(metadata.keys())}\n")
+    if "settings" in metadata:
+        settings = Settings.from_dict(metadata["settings"])
+        click.echo("Settings:")
+        settings.print()
