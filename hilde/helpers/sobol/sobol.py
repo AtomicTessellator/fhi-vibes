@@ -40,6 +40,7 @@ import sys
 
 import numpy as np
 from .directions import directions
+from hilde.helpers.utils import talk
 
 if sys.version_info[0] > 2:
     long = int
@@ -142,31 +143,40 @@ class RandomState:
         dimension=None,
         low=lowest_startingpoint,
         high=highest_startingpoint,
+        startpoint=False,
         randomize=True,
         seed=None,
         failsafe=True,
     ):
         """ Initialize the QuasiRandomState for samples of specific dimension"""
 
+        # print copyright
+        self.copyright_notice()
+
         self.dimension = dimension
         self.low = low
         self.high = high
+        self.startpoint = startpoint
         self.randomize = randomize
         self.seed = seed
         self.failsafe = failsafe
 
         # Choose the starting point of the Sobol sequence. Similar to a seed.
-        if seed:
-            np.random.seed(seed)
+        if not self.seed:
+            self.seed = np.random.randint(2 ** 32 - 1)
+
+        talk(f"[sobol]: use random seed of {self.seed}")
+
+        np.random.seed(seed)
         rng = np.random
 
-        if randomize:
-            self.startpoint = rng.randint(low=low, high=high + low)
-        else:
-            self.startpoint = low
+        if not self.startpoint:
+            if randomize:
+                self.startpoint = rng.randint(low=low, high=high + low)
+            else:
+                self.startpoint = low
 
-        # print copyright
-        self.copyright_notice()
+        talk(f"[sobol]: use startpoint of {self.startpoint}")
 
     def rand(self, nsamples, dimension=1):
         """create sobol numbers"""
