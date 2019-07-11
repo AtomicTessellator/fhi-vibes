@@ -134,56 +134,6 @@ def index_of_least_significant_zero_bit(value):
     return index
 
 
-def rand(
-    nsamples,
-    dimension,
-    low=lowest_startingpoint,
-    high=highest_startingpoint,
-    randomize=False,
-    seed=None,
-):
-    """ Return quasi random number similar to np.random.rand
-
-    Parameters
-    ----------
-    nsamples: int
-        number of samples
-    dimension: int
-        dimension of each sample
-    low: int
-        discard this many values (default: {500})
-    high: int
-        maximum number to start Sobol series (default: {1000})
-    randomize: bool
-        further randomize the sample afterwards
-    seed: int
-        seed for initializing the starting point (default: {None})
-
-    Returns
-    -------
-    np.ndarray
-        requested list of quasi random numbers
-    """
-
-    if seed:
-        rng = np.random.RandomState(seed)
-    else:
-        rng = np.random
-
-    # Choose the starting point of the Sobol sequence. Similar to a seed.
-    if randomize:
-        startpoint = rng.randint(low=low, high=high + low)
-    else:
-        startpoint = low
-    sobol_sequence = sample(nsamples + startpoint, dimension)[startpoint:, :]
-
-    if randomize:
-        # Randomize by adding random number mod 1
-        sobol_sequence = (sobol_sequence + np.random.rand()) % 1
-
-    return sobol_sequence
-
-
 class RandomState:
     """ Similar to np.random.RandomState, but for Sobol sequences """
 
@@ -207,9 +157,8 @@ class RandomState:
 
         # Choose the starting point of the Sobol sequence. Similar to a seed.
         if seed:
-            rng = np.random.RandomState(seed)
-        else:
-            rng = np.random
+            np.random.seed(seed)
+        rng = np.random
 
         if randomize:
             self.startpoint = rng.randint(low=low, high=high + low)
@@ -238,10 +187,15 @@ class RandomState:
             sequence = sample(startpoint + nsamples, self.dimension)
             # flatten, truncate and reshape
             sequence = sequence[startpoint:, :].flatten()[: nsamples * dimension]
-            return sequence.reshape((nsamples, dimension)).squeeze()
-        # else
-        sequence = sample(startpoint + nsamples, dimension)[startpoint:, :].squeeze()
-        return sequence
+            sequence.resize((nsamples, dimension))
+        else:
+            sequence = sample(startpoint + nsamples, dimension)[startpoint:, :]
+
+        if self.randomize:
+            # further randomize by adding 1 and taking modulo
+            sequence = (sequence + np.random.rand()) % 1
+
+        return sequence.squeeze()
 
     @staticmethod
     def copyright_notice():
