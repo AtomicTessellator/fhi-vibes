@@ -47,11 +47,21 @@ def get_energy(f):
     free_energy: float
         the electronic free energy of the structure
     """
-    line = next(l for l in f if "Total energy corrected" in l)
-    total_energy = float(line.split()[5])
-    line = next(l for l in f if "Electronic free energy" in l)
-    free_energy = float(line.split()[5])
-    return total_energy, free_energy
+    spacegroup = None
+    total_energy = None
+    for line in f:
+        if "Space group" in line:
+            spacegroup = int(line.split()[4])
+        if "| Total energy corrected        :" in line:
+            total_energy = float(line.split()[5])
+            break
+        if "| Electronic free energy        :" in line:
+            free_energy = float(line.split()[5])
+
+    if not total_energy:
+        raise StopIteration
+
+    return total_energy, free_energy, spacegroup
 
 
 # get max_force
@@ -136,7 +146,7 @@ def parser(f, n_init=0, optimizer=2):
         n_rel += 1
         status = 0
         try:
-            energy, free_energy = get_energy(f)
+            energy, free_energy, spacegroup = get_energy(f)
             max_force = get_forces(f)
         except StopIteration:
             break
@@ -161,10 +171,22 @@ def parser(f, n_init=0, optimizer=2):
             elif "Updated atomic structure" in line:
                 volume = get_volume(f)
                 break
-        yield n_rel, energy, free_energy, max_force, volume, status, converged, abort
+        yield (
+            n_rel,
+            energy,
+            free_energy,
+            max_force,
+            volume,
+            spacegroup,
+            status,
+            converged,
+            abort,
+        )
 
 
-def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_string):
+def print_status(
+    n_rel, energy, de, free_energy, df, max_force, volume, spacegroup, status_string
+):
     """Print the status line, skip volume if not found
 
     Parameters
@@ -192,9 +214,21 @@ def print_status(n_rel, energy, de, free_energy, df, max_force, volume, status_s
     else:
         vol_str = ""
 
+    if spacegroup:
+        sg_str = f"{spacegroup:5d}"
+    else:
+        sg_str = ""
+
     print(
-        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {} {}".format(
-            n_rel, energy, free_energy, df, max_force * 1000, vol_str, status_string
+        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {} {} {}".format(
+            n_rel,
+            energy,
+            free_energy,
+            df,
+            max_force * 1000,
+            vol_str,
+            status_string,
+            sg_str,
         )
     )
 
@@ -218,7 +252,7 @@ def get_relaxation_info(filenames):
     # Run
     print(
         "\n# Step Total energy [eV]   Free energy [eV]   F-F(1)"
-        + " [meV]   max. force [meV/AA]  Volume [AA^3]\n"
+        + " [meV]   max. force [meV/AA]  Volume [AA^3]  Spacegroup\n"
     )
 
     for infile in filenames:
@@ -226,7 +260,7 @@ def get_relaxation_info(filenames):
             # Check optimizer
             optimizer = get_optimizer(f)
             ps = parser(f, n_init=n_rel or 0, optimizer=optimizer)
-            for (n_rel, ener, free_ener, fmax, vol, status, converged, abort) in ps:
+            for (n_rel, ener, free_ener, fmax, vol, sg, status, converged, abort) in ps:
                 if not init:
                     first_energy, first_free_energy = ener, free_ener
                     init = 1
@@ -238,6 +272,7 @@ def get_relaxation_info(filenames):
                     1000 * (free_ener - first_free_energy),
                     fmax,
                     vol,
+                    sg,
                     status_string[status],
                 )
 
