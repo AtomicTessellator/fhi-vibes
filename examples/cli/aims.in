@@ -1,7 +1,7 @@
 [geometry]
 file:                          geometry.??
 files:                         geometry.in.???
-primitive:                     geometry.in.primitive.center
+primitive:                     geometry.in
 
 [control]
 xc:                            pw-lda
