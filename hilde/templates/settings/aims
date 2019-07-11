@@ -9,4 +9,4 @@ k_grid:                        [2, 2, 2]
 type:                          light
 
 [socketio]
-port:                          12345
+port:                          null
