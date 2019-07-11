@@ -25,7 +25,7 @@ class SettingsError(Exception):
 
 
 def verify_key(key, obj, hint=None, section=False, allowed_to_fail=False):
-    """verify that key is in object
+    """verify that key is in object, otherwise raise SettingsError
 
     Parameters
     ----------
@@ -39,11 +39,6 @@ def verify_key(key, obj, hint=None, section=False, allowed_to_fail=False):
         If True key is a section in obj
     allowed_to_fail: bool
         If True use wannings not errors
-
-    Raises
-    ------
-    SettingsError
-        If key is not in obj
     """
     if not hint:
         hint = str(obj)
@@ -53,6 +48,7 @@ def verify_key(key, obj, hint=None, section=False, allowed_to_fail=False):
             msg = f"\n  section [{key}] is missing in {hint}"
         else:
             msg = f"\n  key '{key}' is missing in {hint}"
+
         if allowed_to_fail:
             warn(msg, level=1)
         else:
@@ -60,7 +56,7 @@ def verify_key(key, obj, hint=None, section=False, allowed_to_fail=False):
 
 
 class Config(configparser.ConfigParser):
-    """ConfigParser that has a slightly more clever get function."""
+    """ConfigParser that uses JSON to parse the values instead returning stings"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(
@@ -84,48 +80,43 @@ class Config(configparser.ConfigParser):
 class ConfigDict(AttributeDict):
     """Dictionary that holds the configuration settings"""
 
-    def __init__(self, config_files=None, dct=None, *args, **kwargs):
+    def __init__(self, config_files=None, dct=None, **kwargs):
         """Initialize ConfigDict
 
         Args:
             config_files (list of str): A list of configure files to read in
             dct (dict): a dictionary
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
         # initialize from config files
         if config_files:
-            config = Config(default_section=None)
+            config = Config()
             config.read(config_files)
 
             # Recursion depth: 1
-            for sec in config:
+            for sec in config.sections():
                 self[sec] = AttributeDict()
                 for key in config[sec]:
-                    val = config.getval(sec, key)
-                    self[sec][key] = val
+                    self[sec][key] = config.getval(sec, key)
 
             # check for `output` to resolve multiple options
-            if "control" in config.sections():
-                if "output" in config["control"].keys():
-                    output_cfg = configparser.ConfigParser(
-                        dict_type=MultiOrderedDict, strict=False
-                    )
-                    # discard config files to avoid double sections
-                    files = [file for file in config_files if str(file).endswith(".in")]
-                    output_cfg.read(files)
-                    value = output_cfg["control"]["output"].split("\n")
-                    self["control"]["output"] = value
+            if "control" in config and "output" in config["control"].keys():
+                kw = {"dict_type": MultiOrderedDict, "strict": False}
+                output_cfg = configparser.ConfigParser(**kw)
+                # discard config files to avoid double sections
+                files = [file for file in config_files if str(file).endswith(".in")]
+                output_cfg.read(files)
+                values = output_cfg["control"]["output"].split("\n")
+                self["control"]["output"] = values
 
         # initialize from dictionary
         elif dct:
-            config = dct
             # Recursion depth: 1
-            for sec in config:
+            for sec in dct:
                 self[sec] = AttributeDict()
-                for key in config[sec]:
-                    val = config[sec][key]
-                    self[sec][key] = val
+                for key in dct[sec]:
+                    self[sec][key] = dct[sec][key]
 
         else:
             raise ValueError("Either provide `config_files` or a dict in `dct`")
@@ -136,7 +127,7 @@ class ConfigDict(AttributeDict):
 
     def print(self, only_settings=False):
         """ literally print(self) """
-        print(self.get_string(only_settings=only_settings))
+        print(self.get_string(only_settings=only_settings), flush=True)
 
     def write(self, filename=DEFAULT_SETTINGS_FILE):
         """write a settings object human readable
@@ -232,7 +223,7 @@ class Settings(ConfigDict):
             read_config (boolean): read the configuration files
             config_file (str): Path to the configuration file
             fireworks_file (str): Path to the FireWorks Configuration file
-            dct (dict): a dictionary
+            dct (dict): create Settings from this dictionary
         """
         self._settings_file = settings_file
 
@@ -389,9 +380,8 @@ class TaskSettings(Settings):
             self.verify_key(key)
 
         if obj_key:
-            self[obj_key] = SettingsSection(
-                obj_key, settings, defaults, mandatory_obj_keys
-            )
+            s = SettingsSection(obj_key, settings, defaults, mandatory_obj_keys)
+            self[obj_key] = s
             self._obj = self[obj_key]
 
         # workdir
