@@ -1,7 +1,7 @@
 """ A watchdog keeping an eye on the time """
 
 import os
-from subprocess import check_output
+import subprocess as sp
 from time import time, strftime
 from pathlib import Path
 from hilde.helpers import warn, talk
@@ -59,10 +59,14 @@ def get_time(jobid):
     float
         the remaining time
     """
-    squeue = check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
-    line = squeue.split("\n")[2]
-    time = line.split()[5]
-    return str2time(time)
+    try:
+        squeue = sp.check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
+        line = squeue.split("\n")[2]
+        str_time = line.split()[5]
+        return str2time(str_time)
+    except sp.CalledProcessError:
+        warn("subprocess.CalledProcessError was raised, return 0 time left.", level=1)
+        return 0
 
 
 def get_timelimit(jobid):
@@ -78,7 +82,7 @@ def get_timelimit(jobid):
     float
         the time limit in seconds
     """
-    squeue = check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
+    squeue = sp.check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
     line = squeue.split("\n")[2]
     timelimit = line.split()[6]
     return str2time(timelimit)
