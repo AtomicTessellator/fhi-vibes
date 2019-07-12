@@ -1,4 +1,5 @@
 [geometry]
+file:                          geometry.in
 files:                         geometry.in.???
 primitive:                     geometry.in.primitive
 supercell:                     geometry.in.supercell
@@ -10,12 +11,14 @@ charge_mix_param:              0.3
 sc_accuracy_rho:               1e-6
 relax_geometry:                trm 1e-3
 relax_unit_cell:               false
+# relax_unit_cell:               full
 use_symmetric_forces:          false
 
 [basissets]
 default:                       light
 # Si:                            intermediate
 # O:                             tight
+# fallback:                      light
 
 [socketio]
-port:                          12345
+port:                          null

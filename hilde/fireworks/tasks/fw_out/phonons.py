@@ -388,7 +388,6 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         Increases the supercell size or adds the phonon_dict to the spec
     """
     calc_time = np.sum(args[1])
-    max_mem = np.max(args[2])
 
     if fw_settings:
         fw_settings["from_db"] = False
@@ -430,7 +429,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
             dos_fp, prev_dos_fp, conv_crit
         ):
             update_spec = {
-                "ph_dict": phonon_to_dict(ph),
+                "ph_dict": phonon_to_dict(phonon),
                 "ph_calculator": calc_dict,
                 "ph_supercell": atoms2dict(to_Atoms(phonon.get_primitive())),
             }
@@ -499,12 +498,6 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
             )
             if "walltime" in func_kwargs:
                 del func_kwargs["walltime"]
-            mem_scaling = (
-                3.0
-                * (np.linalg.det(sc_mat) / np.linalg.det(phonon.get_supercell_matrix()))
-                ** 2.0
-            )
-            fw_settings["spec"]["_queueadapter"]["expected_mem"] = mem_scaling * max_mem
             qadapter = fw_settings["spec"]["_queueadapter"]
         else:
             qadapter = None

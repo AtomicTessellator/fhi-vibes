@@ -3,7 +3,7 @@
 from hilde.helpers.converters import calc2dict
 from hilde.helpers.warnings import warn
 from hilde.helpers.restarts import restart
-from hilde.settings import Settings
+from hilde.settings import TaskSettings, Settings
 from hilde.statistical_sampling.initialization import preprocess
 from hilde.tasks.calculate import calculate_socket
 from hilde.templates.aims import setup_aims
@@ -32,7 +32,7 @@ def bootstrap(name="statistical_sampling", settings=None, **kwargs):
     """ load settings, prepare atoms, calculator, and phonopy """
 
     if settings is None:
-        settings = Settings()
+        settings = TaskSettings(name=None, settings=Settings())
 
     if "atoms" not in kwargs:
         atoms = settings.get_atoms()

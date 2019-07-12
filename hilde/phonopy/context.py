@@ -3,12 +3,13 @@
 from pathlib import Path
 
 from ase import Atoms
-from hilde.settings import WorkflowSettings
+from hilde.settings import TaskSettings
 from hilde.helpers.numerics import get_3x3_matrix
+from hilde.structure.misc import get_sysname
 from ._defaults import defaults, name, mandatory_base, mandatory_task
 
 
-class PhonopySettings(WorkflowSettings):
+class PhonopySettings(TaskSettings):
     """Phonopy settings. Ensures that settings.phonopy is set up sensibly"""
 
     def __init__(self, settings):
@@ -50,15 +51,32 @@ class PhonopyContext:
             The working directory for the workflow
         """
         self.settings = PhonopySettings(settings)
-        if workdir:
-            self.workdir = Path(workdir)
-        else:
-            if "workdir" in self.settings.obj:
-                self.workdir = Path(self.settings.obj.pop("workdir"))
-            else:
-                self.workdir = Path(name)
-
         self._ref_atoms = None
+
+        if workdir:
+            self.workdir = workdir
+        if not self.workdir:
+            self.workdir = name
+        else:
+            self.workdir = self.workdir
+
+    @property
+    def workdir(self):
+        """return the working directory"""
+        return self.settings.workdir
+
+    @workdir.setter
+    def workdir(self, folder):
+        """set the working directory. Use a standard name if dir='auto'"""
+        if "auto" in str(folder).lower():
+            smatrix = self.settings.obj.supercell_matrix.flatten()
+            vol = self.ref_atoms.get_volume()
+            sysname = get_sysname(self.ref_atoms)
+            rep = "_{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}".format(sysname, *smatrix, vol)
+            dirname = name + rep
+            self.settings.workdir = Path(dirname)
+        else:
+            self.settings.workdir = Path(folder)
 
     @property
     def q_mesh(self):
@@ -69,24 +87,13 @@ class PhonopyContext:
     def ref_atoms(self):
         """return the reference Atoms object for the given context"""
         if not self._ref_atoms:
-            self._ref_atoms = self.settings.atoms
+            self._ref_atoms = self.settings.atoms.copy()
 
         return self._ref_atoms
 
     @ref_atoms.setter
     def ref_atoms(self, atoms):
-        """The setter for ref_atoms
-
-        Parameters
-        ----------
-        atoms: ase.atoms.Atoms
-            The atoms to become ref_atoms
-
-        Raises
-        ------
-        AssertionError
-            if atoms is not of type ase.atoms.Atoms
-        """
+        """The setter for ref_atoms, makes sure it's an atoms object indeed"""
         assert isinstance(atoms, Atoms)
         self._ref_atoms = atoms
 

@@ -18,7 +18,8 @@ from hilde import son
 from hilde.helpers.converters import results2dict, dict2atoms, input2dict
 from hilde.helpers.converters import dict2json as dumper
 from hilde.helpers.hash import hash_atoms
-from hilde.helpers import Timer, warn, progressbar, talk
+from hilde.helpers import Timer, warn, talk
+from hilde.helpers.utils import Bar
 
 
 def step2file(atoms, calc=None, file="trajectory.son", append_cell=True, metadata={}):
@@ -118,15 +119,12 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
         The metadata for the trajectory
     """
 
-    timer = Timer(f"Parse trajectory in {file}")
-
-    if verbose:
-        talk(".. read file:")
+    timer = Timer(f"Parse trajectory")
 
     try:
-        metadata, pre_trajectory = son.load(file)
+        metadata, pre_trajectory = son.load(file, verbose=verbose)
     except json.decoder.JSONDecodeError:
-        metadata, pre_trajectory = son.load(file)
+        metadata, pre_trajectory = son.load(file, verbose=verbose)
 
     # legacy of trajectory.yaml
     if metadata is None:
@@ -144,9 +142,16 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
     if "MD" in metadata:
         md_metadata = metadata["MD"]
 
+    if not pre_trajectory:
+        if get_metadata:
+            talk(".. trajectory empty, return ([], metadata)")
+            return [], metadata
+        talk(".. trajectory empty, return []")
+        return []
+
     trajectory = Trajectory(metadata=metadata)
-    talk(".. process file:")
-    for obj in progressbar(pre_trajectory):
+    bar = Bar(".. process file:  ")
+    for obj in bar.iter(pre_trajectory):
 
         atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
 
@@ -323,8 +328,8 @@ class Trajectory(list):
 
         metadata2file(self.metadata, temp_file)
 
-        talk(f"Write to {temp_file}:")
-        for elem in progressbar(self):
+        bar = Bar(f"Write to {temp_file}:")
+        for elem in bar.iter(self):
             son.dump(results2dict(elem), temp_file)
 
         shutil.move(temp_file, file)

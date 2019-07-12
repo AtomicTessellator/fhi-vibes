@@ -4,17 +4,19 @@ from pathlib import Path
 from argparse import ArgumentParser
 import numpy as np
 from hilde.helpers.pickle import pread
+from hilde.phonopy.context import PhonopyContext
 from hilde.phonopy.postprocess import extract_results, postprocess
 from hilde.phonopy.wrapper import summarize_bandstructure
 
 
-def preprocess(filename, settings_file, dimension, format):
+def preprocess(filename, settings_file, dimension, format, write_supercell=False):
     """inform about a phonopy calculation a priori"""
     from ase.io import read
     from hilde.settings import Settings
     import hilde.phonopy.wrapper as ph
 
-    settings = Settings(settings_file)
+    ctx = PhonopyContext(Settings(settings_file))
+    settings = ctx.settings
 
     if filename:
         atoms = read(filename, format=format)
@@ -31,14 +33,19 @@ def preprocess(filename, settings_file, dimension, format):
         settings.print(only_settings=True)
 
     sc_str = np.array2string(phonon.get_supercell_matrix().flatten(), separator=", ")
+    bash_str = " ".join(str(l) for l in phonon.get_supercell_matrix().flatten())
     print("Phonopy Information")
     print(f"  Supercell matrix:        {sc_str}")
+    print(f"  .. for make_supercell:   -d {bash_str}")
     print(f"  Superlattice:")
     for latvec in sc.cell:
         lv_str = "{:-6.2f} {:-6.2f} {:-6.2f}".format(*latvec)
         print(f"                         {lv_str}")
     print(f"  Number of atoms in SC:   {len(sc)}")
     print(f"  Number of displacements: {len(scs)} ({len(scs_ref)})")
+
+    if write_supercell:
+        sc.write("geometry.in.supercell", format=format)
 
 
 def main():
@@ -63,13 +70,13 @@ def main():
         preprocess(args.infile, args.config_file, args.dim, args.format)
         return
 
-    elif suffix == ".yaml":
+    if suffix == ".yaml":
         phonon = postprocess(
             args.infile,
             born_charges_file=args.born,
             calculate_full_force_constants=args.full_fc,
         )
-    elif suffix == ".pick" or suffix == ".gz":
+    elif suffix in (".pick", ".gz"):
         phonon = pread(args.infile)
     else:
         print("*** Nothing happened.")

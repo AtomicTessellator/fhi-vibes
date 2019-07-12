@@ -94,7 +94,7 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
     else:
         bakup_dir = Path("./backups/")
     calc_dirs = sorted(
-        bakup_dir.glob("backup.?????"), key=lambda s: int(str(s).split(".")[-1])
+        bakup_dir.glob("backup.?????.*"), key=lambda s: int(str(s).split(".")[1])
     )
     calc_times = []
     max_mem = []

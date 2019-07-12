@@ -20,11 +20,13 @@ def output():
 @click.option("-od", "--output_directory")
 @click.option("-bs", "--bandstructure", is_flag=True)
 @click.option("-dos", "--density_of_states", is_flag=True)
+@click.option("-pdos", "--projected_density_of_states", is_flag=True)
 @click.option("-tp", "--thermal_properties", is_flag=True)
 @click.option("--animate", is_flag=True, help="print animation files for special kpts")
 @click.option("--animate_q", nargs=3, multiple=True, type=float, help="animation at q")
 @click.option("--full", is_flag=True)
 @click.option("--tdep", is_flag=True, hidden=True)
+@click.option("-v", "--verbose", is_flag=True, help="print frequencies at gamma point")
 @click.pass_obj
 def phonopy_output(
     obj,
@@ -33,11 +35,13 @@ def phonopy_output(
     output_directory,
     bandstructure,
     density_of_states,
+    projected_density_of_states,
     thermal_properties,
     animate,
     animate_q,
     full,
     tdep,
+    verbose,
 ):
     """perform phonopy postprocess for TRAJECTORY"""
     from hilde.phonopy.postprocess import postprocess, extract_results
@@ -55,15 +59,17 @@ def phonopy_output(
         "write_thermal_properties": thermal_properties or full,
         "write_bandstructure": bandstructure or full,
         "write_dos": density_of_states or full,
-        "write_pdos": density_of_states or full,
+        "write_pdos": projected_density_of_states or full,
         "plot_bandstructure": bandstructure or full,
+        "plot_thermal_properties": thermal_properties or full,
         "plot_dos": density_of_states or full,
-        "plot_pdos": density_of_states or full,
+        "plot_pdos": projected_density_of_states or full,
         "q_mesh": q_mesh,
         "output_dir": output_directory,
         "tdep": tdep,
         "animate": animate or full,
         "animate_q": animate_q,
+        "verbose": verbose,
     }
 
     extract_results(phonon, **kwargs)

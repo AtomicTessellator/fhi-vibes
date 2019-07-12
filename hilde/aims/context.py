@@ -6,7 +6,7 @@ import click
 from ase import Atoms
 from ase.io import read
 
-from hilde.settings import WorkflowSettings, SettingsError
+from hilde.settings import TaskSettings, SettingsError
 from .setup import setup_aims
 from ._defaults import (
     name,
@@ -18,7 +18,7 @@ from ._defaults import (
 )
 
 
-class AimsSettings(WorkflowSettings):
+class AimsSettings(TaskSettings):
     """Aims settings. Ensures that settings are set up sensibly"""
 
     def __init__(self, settings=None):
@@ -64,10 +64,11 @@ class AimsContext:
             Directory to run the calculation in
         """
         self.settings = AimsSettings(settings)
+        self.workdir = self.settings.workdir
 
         if workdir:
             self.workdir = Path(workdir)
-        else:
+        if not self.workdir:
             self.workdir = Path(name)
 
         self._ref_atoms = None
@@ -97,6 +98,7 @@ class AimsContext:
                 msg = f"Please inspect [geometry] in {self.settings.settings_file}"
                 raise click.FileError(s.geometry["file"], msg)
             filenames.append(path)
+            self.settings.geometry["file"] = str(path)
 
         if "files" in s.geometry:
             paths = sorted(Path().glob(s.geometry.files))

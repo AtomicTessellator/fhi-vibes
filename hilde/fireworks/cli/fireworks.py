@@ -24,7 +24,7 @@ from hilde.fireworks._defaults import FW_DEFAULTS
 from hilde.fireworks.rocket_launcher import rapidfire as r_rapidfire
 from hilde.fireworks.workflows.workflow_generator import generate_workflow
 
-from hilde.settings import Settings, AttributeDict
+from hilde.settings import TaskSettings, AttributeDict, Settings
 from hilde.templates.aims import setup_aims
 
 # Check if fabric 2.0 is installed
@@ -80,7 +80,7 @@ def fireworks():
 @click.option("-l", "--launchpad", default=LAUNCHPAD_LOC)
 def add_wf(workflow, launchpad):
     """Adds a workflow to the launchpad"""
-    wflow = Settings(settings_file=workflow)
+    wflow = TaskSettings(name=None, settings=Settings(settings_file=workflow))
     if "basisset" not in wflow and "basisset" in wflow.general:
         wflow["basisset"] = AttributeDict({"type": wflow.general.basisset})
     elif "basisset" not in wflow:
@@ -100,7 +100,7 @@ def add_wf(workflow, launchpad):
     calc = setup_aims(settings=wflow)
     for atoms in structures:
         atoms.set_calculator(calc)
-        wflow = Settings(settings_file=workflow)
+        wflow = TaskSettings(name=None, settings=Settings(settings_file=workflow))
         if "basisset" not in wflow and "basisset" in wflow.general:
             wflow["basisset"] = AttributeDict({"type": wflow.general.basisset})
         elif "basisset" not in wflow:

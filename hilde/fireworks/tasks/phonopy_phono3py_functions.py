@@ -4,8 +4,9 @@ from pathlib import Path
 from hilde.helpers.converters import input2dict
 from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.phonopy import displacement_id_str
+from hilde.phonopy.context import PhonopyContext
 from hilde.phonopy.workflow import bootstrap
-from hilde.settings import Settings, AttributeDict
+from hilde.settings import AttributeDict, Settings, TaskSettings
 from hilde.fireworks.tasks.general_py_task import get_func
 from hilde.trajectory import step2file, metadata2file
 
@@ -78,9 +79,16 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
     settings[f"{prefix}onopy"] = ph_settings.copy()
     if "serial" in settings[f"{prefix}onopy"]:
         del settings[f"{prefix}onopy"]["serial"]
-    outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
 
-    outputs["metadata"]["supercell"] = {"atoms": out["metadata"]["atoms"], "calculator": {}}
+    ctx = PhonopyContext(settings=settings)
+    ctx.settings.atoms = atoms.copy()
+    ctx.settings.atoms.set_calculator(calc)
+    if "control_kpt" in ctx.settings:
+        del(ctx.settings["control_kpt"])
+    # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
+    outputs = bootstrap(ctx)
+
+    outputs["metadata"]["supercell"] = {"atoms": outputs["metadata"]["atoms"], "calculator": {}}
     outputs["metadata"]["primitive"] = input2dict(atoms)
     outputs["prefix"] = prefix
     outputs["settings"] = ph_settings.copy()
@@ -112,7 +120,7 @@ def bootstrap_phonon(
     outputs: dict
         The output of hilde.phonopy.workflow.bootstrap for phonopy and phono3py
     """
-    settings = Settings(settings_file=None)
+    settings = TaskSettings(name=None, settings=Settings(settings_file=None))
     settings.atoms = atoms
     if kpt_density:
         settings["control_kpt"] = AttributeDict({"density": kpt_density})
@@ -156,7 +164,7 @@ def bootstrap_phonon(
 #     IOError
 #         If no settings were provided
 #     """
-#     settings = Settings(settings_file=None)
+#     settings = TaskSettings(name=None, settings=Settings(settings_file=None))
 #     settings.atoms = atoms
 #     if kpt_density:
 #         settings["control_kpt"] = AttributeDict({"density": kpt_density})

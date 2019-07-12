@@ -14,6 +14,7 @@ defaults = adict(
         "displacement": 0.01,
         "symprec": 1e-5,
         "is_diagonal": False,
-        "q_mesh": [26, 26, 26],
+        "is_trigonal": False,
+        "q_mesh": [45, 45, 45],
     }
 )

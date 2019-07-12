@@ -10,14 +10,13 @@ compute_forces:                true
 [basisset]
 type:                          light
 
-[socketio]
-port:                          12345
-
 [phonopy]
-workdir:                       phonopy
+workdir:                       auto
 supercell_matrix:              [[-2, 2, 2], [2, -2, 2], [2, 2, -2]]
 displacement:                  0.01
 is_diagonal:                   False
 q_mesh:                        [26, 26, 26]
 symprec:                       1e-5
 
+[socketio]
+port:                          12345

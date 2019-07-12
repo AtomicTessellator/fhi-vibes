@@ -25,7 +25,7 @@ def prepare_phonopy(
     fc2=None,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
-    trigonal=defaults.trigonal,
+    trigonal=defaults.is_trigonal,
     is_diagonal=defaults.is_diagonal,
 ):
     """Create a Phonopy object
@@ -85,7 +85,7 @@ def preprocess(
     supercell_matrix,
     displacement=defaults.displacement,
     symprec=defaults.symprec,
-    trigonal=defaults.trigonal,
+    trigonal=defaults.is_trigonal,
     **kwargs,
 ):
     """Generate phonopy objects and return displacements as Atoms objects
@@ -112,6 +112,8 @@ def preprocess(
     supercells_with_disps: list of ase.atoms.Atoms
         All of the supercells with displacements
     """
+    supercell_matrix = get_3x3_matrix(supercell_matrix)
+
     phonon = prepare_phonopy(
         atoms,
         supercell_matrix,
@@ -125,7 +127,8 @@ def preprocess(
 
 # TARP: This is depcricated and should not be used
 # def get_force_constants(phonon, force_sets=None):
-#     """ Take a Phonopy object, produce force constants from the given forces and return in usable shape (3N, 3N) insated of (N, N, 3, 3)
+#     """ Take a Phonopy object, produce force constants from the given forces and
+#         return in usable shape (3N, 3N) insated of (N, N, 3, 3)
 
 #     """
 #     n_atoms = phonon.get_supercell().get_number_of_atoms()
@@ -279,6 +282,20 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
     return (phonon.get_band_structure_dict(), labels)
 
 
+def plot_thermal_properties(
+    phonon, file="thermal_properties.pdf", t_step=20, t_max=1000, t_min=0
+):
+    """plot thermal properties to pdf file"""
+
+    phonon.set_thermal_properties(t_step=t_step, t_max=t_max, t_min=t_min)
+    plt = phonon.plot_thermal_properties()
+
+    try:
+        plt.savefig(file)
+    except (RuntimeError, FileNotFoundError):
+        warn("saving the thermal properties not possible, latex probably missing?")
+
+
 def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
     """Plot bandstructure for given path and save to file
 
@@ -340,8 +357,6 @@ def plot_bandstructure_and_dos(
         warn("saving the phonon DOS not possible, latex probably missing?")
 
 
-
-
 def summarize_bandstructure(phonon, fp_file=None):
     """Print a concise symmary of the bandstructure fingerprint
 
@@ -371,7 +386,7 @@ def summarize_bandstructure(phonon, fp_file=None):
     max_freq = np.max(freq.flatten())
 
     if fp_file:
-        print(f"Saving the fingerprint to {fp_file}")
+        talk(f"Saving the fingerprint to {fp_file}")
         fp = get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
         fp_dict = to_dict(fp)
         for key, val in fp_dict.items():
@@ -381,9 +396,9 @@ def summarize_bandstructure(phonon, fp_file=None):
 
     mf = max_freq
     mf_cm = mf * THz_to_cm
-    print(f"The maximum frequency is: {mf:.3f} THz ({mf_cm:.3f} cm^-1)")
-    print(f"The frequencies at the gamma point are:")
-    print(f"              THz |        cm^-1")
+    talk(f"The maximum frequency is: {mf:.3f} THz ({mf_cm:.3f} cm^-1)")
+    talk(f"The frequencies at the gamma point are:")
+    talk(f"              THz |        cm^-1")
     p = lambda ii, freq: print(f"{ii+1:3d}: {freq:-12.5f} | {freq*THz_to_cm:-12.5f}")
     for ii, freq in enumerate(gamma_freq[:6]):
         p(ii, freq)

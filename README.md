@@ -24,15 +24,20 @@ Install `hilde` with `poetry`
 poetry install
 ```
 
-Configure Hilde by creating a `~/.hilderc` configuration file in the home directory:
+Configure Hilde by creating a `~/.hilderc` configuration file in the home directory. To this end, first
 
 ```
-cp hilde/location/hilderc.template ~/.hilderc
+hilde template configuration
 ```
 
 and edit according to system. The `aims_command` is a command or script that takes care
 of running aims. This can be either just `mpirun aims.x`, or a script loading necessary
 modules etc. and finally calling `srun aims.x` on a cluster.
+
+Then copy to your home folder with 
+```
+cp hilderc ~/.hilderc
+```
 
 **You're now good to go!** Just make sure your hilde virtual environment is activated.
 

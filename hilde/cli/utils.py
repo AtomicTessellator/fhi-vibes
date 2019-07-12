@@ -1,6 +1,5 @@
 """hilde CLI utils"""
 
-from hilde.scripts.get_relaxation_info import get_relaxation_info
 from hilde.scripts.refine_geometry import refine_geometry
 from hilde.scripts.make_supercell import make_supercell
 from hilde.scripts.create_samples import create_samples
@@ -8,6 +7,7 @@ from hilde.scripts.suggest_k_grid import suggest_k_grid
 from hilde.scripts.remap_phonopy_forceconstants import remap_phonopy_force_constants
 from hilde.scripts.nomad_upload import nomad_upload
 from hilde.scripts.update_md_trajectory import update_trajectory
+from hilde.scripts.get_relaxation_info import get_relaxation_info
 
 from .misc import click, AliasedGroup, complete_filenames
 
@@ -39,7 +39,7 @@ def geometry_refine(*args, **kwargs):
 
 @utils.command("make_supercell")
 @click.argument("filename", default="geometry.in", type=complete_filenames)
-@click.option("-d", "--dimension", type=float)
+@click.option("-d", "--dimension", type=float, nargs=9)
 @click.option("-n", "--n_target", type=int)
 @click.option("--deviation", default=0.2)
 @click.option("--dry", is_flag=True)
@@ -66,10 +66,11 @@ def relaxation_info(filenames):
 @click.argument("filename", type=complete_filenames)
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
-@click.option("-fc", "--force_constants", type=str, help="file with force constants")
-@click.option("--mc_rattle", is_flag=True, help="use `mc_rattle` from hiphive")
+@click.option("-fc", "--force_constants", type=complete_filenames)
+@click.option("--mc_rattle", is_flag=True, help="`hiphive.mc_rattle`", hidden=True)
 @click.option("--quantum", is_flag=True, help="use quantum distribution function")
 @click.option("--deterministic", is_flag=True, help="create a deterministic sample")
+@click.option("--sobol", is_flag=True, help="use Sobol numbers to create samples")
 @click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
 @click.option("--format", default="aims")
 def tool_create_samples(
@@ -80,6 +81,7 @@ def tool_create_samples(
     mc_rattle,
     quantum,
     deterministic,
+    sobol,
     random_seed,
     format,
 ):
@@ -93,6 +95,7 @@ def tool_create_samples(
         mc_rattle,
         quantum,
         deterministic,
+        sobol,
         random_seed,
         format,
     )
@@ -112,13 +115,13 @@ def tool_suggest_k_grid(filename, density, uneven, format):
 
 @utils.command("remap_phonopy_force_constants")
 @click.argument("filename", type=complete_filenames)
-@click.option("-uc", "--uc_filename", default="geometry.in.primitive")
-@click.option("-sc", "--sc_filename", default="geometry.in.supercell")
-def tool_remap_phonopy_force_constants(filename, uc_filename, sc_filename):
+@click.option("-pc", "--primitive", default="geometry.in.primitive", show_default=True)
+@click.option("-sc", "--supercell", default="geometry.in.supercell", show_default=True)
+def tool_remap_phonopy_force_constants(filename, primitive, supercell):
     """remap phonopy force constants in FILENAME to [3N, 3N] shape"""
 
     remap_phonopy_force_constants(
-        uc_filename=uc_filename, sc_filename=sc_filename, fc_filename=filename
+        uc_filename=primitive, sc_filename=supercell, fc_filename=filename
     )
 
 

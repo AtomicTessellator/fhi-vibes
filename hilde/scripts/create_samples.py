@@ -22,6 +22,7 @@ def create_samples(
     mc_rattle,
     quantum,
     deterministic,
+    sobol,
     random_seed,
     format,
 ):
@@ -43,6 +44,8 @@ def create_samples(
         If True use Bose-Einstein distribution instead of Maxwell-Boltzmann
     deterministic: bool
         If True create sample deterministically
+    sobol: bool
+        Use sobol numbers for the sampling
     random_seed: int
         The seed the random number generator
     format: str
@@ -62,15 +65,21 @@ def create_samples(
         except (ModuleNotFoundError, ImportError):
             exit("** hiphive needs to be installed to use mc_rattle.")
     else:
-        if not temp:
+        if temp is None:
             exit("** temperature needs to be given")
 
-    if seed:
-        talk(f"Random seed is {seed}")
-        rng = np.random.RandomState(seed)
-        info_str += [f"Random seed: {seed}"]
+    if not seed:
+        seed = np.random.randint(2 ** 32 - 1)
+
+    if sobol:
+        from hilde.helpers.sobol import RandomState
+
+        # create sobol generator with dimension 3N - 3
+        # check that `nw` coincides with `nw` in `velocitydistribution.phonon_harmonics`
+        nw = 3 * len(atoms) - 3
+        rng = RandomState(dimension=nw, seed=seed, failsafe=False)
     else:
-        rng = np.random
+        rng = np.random.RandomState(seed)
 
     if force_constants is not None:
         # if 3Nx3N shaped txt file:
@@ -92,15 +101,22 @@ def create_samples(
             "rng": rng,
         }
         info_str += ["created from force constants", f"T = {temp} K"]
-        talk(f"Use force constants from {force_constants} to prepare samples")
+        talk(f"\nUse force constants from {force_constants} to prepare samples")
+        talk(f"Random seed: {seed}")
 
     else:
         mb_args = {"temp": temp * u.kB, "rng": rng}
         info_str += ["created from MB distrubtion", f"T = {temperature} K"]
         talk(f"Use Maxwell Boltzamnn to set up samples")
 
+    info_str += [f"quantum:           {quantum}"]
+    info_str += [f"deterministic:     {deterministic}"]
+    info_str += [f"Sobol numbers:     {sobol}"]
+    info_str += [f"Random seed:       {seed}"]
+
     for ii in range(n_samples):
         talk(f"Sample {ii:3d}:")
+        sample_info_str = info_str + [f"Sample number:     {ii + 1}"]
         sample = atoms.copy()
 
         if force_constants is not None:
@@ -120,9 +136,9 @@ def create_samples(
 
         filename = f"{geometry}.{int(temp)}K"
         if n_samples > 1:
-            filename += f".{ii+1:03d}"
+            filename += f".{ii:03d}"
 
-        sample.write(filename, info_str=info_str, velocities=True, format=format)
+        sample.write(filename, info_str=sample_info_str, velocities=True, format=format)
 
         talk(f".. temperature in sample {ii}:     {sample.get_temperature():.3f}K")
         talk(f".. written to {filename}")
@@ -137,6 +153,7 @@ def main():
     parser.add_argument("--mc_rattle", nargs="?", type=float, const=0.01, default=None)
     parser.add_argument("-n", "--n_samples", type=int, default=1, help="no. of samples")
     parser.add_argument("--quantum", action="store_true")
+    parser.add_argument("--sobol", action="store_true")
     parser.add_argument("--deterministic", action="store_true")
     parser.add_argument("--ignore_negative", action="store_false")
     parser.add_argument("--format", default="aims")
@@ -153,6 +170,7 @@ def main():
         args.mc_rattle,
         args.quantum,
         args.deterministic,
+        args.sobol,
         args.random_seed,
         args.format,
     )
