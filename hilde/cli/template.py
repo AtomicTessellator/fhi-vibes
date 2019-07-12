@@ -4,7 +4,7 @@ from pathlib import Path
 import importlib.resources as pkg_resources
 
 import click
-from hilde.templates import settings
+from hilde.templates import settings, config_files
 
 from .misc import AliasedGroup
 
@@ -55,13 +55,22 @@ def md_input(obj, filename):
     write_input(obj, "md", filename)
 
 
-def write_input(obj, name, filename):
+@template.command("configuration")
+@click.argument("filename", default="hilderc")
+@click.pass_obj
+def configuration_input(obj, filename):
+    """provide template hilderc.template for the configuration"""
+
+    write_input(obj, "hilderc.template", filename, from_folder=config_files)
+
+
+def write_input(obj, name, filename, from_folder=settings):
     """write the input function"""
 
     if obj.full_input:
         name += "_full"
 
-    input_file = pkg_resources.read_text(settings, name)
+    input_file = pkg_resources.read_text(from_folder, name)
 
     outfile = Path(filename)
 

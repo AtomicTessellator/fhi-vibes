@@ -1,0 +1,24 @@
+# System informations to get hilde running, please adjust.
+# When adjusted, please copy to ~/.hilderc
+
+# not really necessary, but in principle `hilde` can send mails.
+[common]
+ email =             you@something.com
+
+# basissetloc: location of the FHIaims basissets
+# aims_command: prefereably a script that runs aims, or the command to run it,
+#                 e.g. `mpirun aims.x` or similar
+[machine]
+ basissetloc =       /some/path/to/FHIaims/aimsfiles/species_defaults
+ aims_command =      run_aims
+
+# your NOMAD token for `hilde utils nomad_upload`
+[nomad]
+ token =             null
+
+
+# [database]
+#  location =         ~/hilde/examples/phonon_db
+#  name =             test.db
+#  db_path =          ${location}/${name}
+
