@@ -40,7 +40,7 @@ jupyter = {version = "^1.0",optional = true}
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
 phono3py = ["phono3py"]
 postgresql = ["psycopg2"]
-handson = ["seaborn", "jupyter"]
+tutorial = ["seaborn", "jupyter"]
 
 [tool.poetry.dev-dependencies]
 black = "^18.9b0"
