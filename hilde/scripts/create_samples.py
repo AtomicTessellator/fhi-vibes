@@ -68,12 +68,8 @@ def create_samples(
         if temp is None:
             exit("** temperature needs to be given")
 
-    if seed:
-        talk(f"Random seed is {seed}")
-        rng = np.random.RandomState(seed)
-        info_str += [f"Random seed: {seed}"]
-    else:
-        rng = np.random
+    if not seed:
+        seed = np.random.randint(2 ** 32 - 1)
 
     if sobol:
         from hilde.helpers.sobol import RandomState
@@ -82,6 +78,8 @@ def create_samples(
         # check that `nw` coincides with `nw` in `velocitydistribution.phonon_harmonics`
         nw = 3 * len(atoms) - 3
         rng = RandomState(dimension=nw, seed=seed, failsafe=False)
+    else:
+        rng = np.random.RandomState(seed)
 
     if force_constants is not None:
         # if 3Nx3N shaped txt file:
@@ -104,14 +102,21 @@ def create_samples(
         }
         info_str += ["created from force constants", f"T = {temp} K"]
         talk(f"\nUse force constants from {force_constants} to prepare samples")
+        talk(f"Random seed: {seed}")
 
     else:
         mb_args = {"temp": temp * u.kB, "rng": rng}
         info_str += ["created from MB distrubtion", f"T = {temperature} K"]
         talk(f"Use Maxwell Boltzamnn to set up samples")
 
+    info_str += [f"quantum:           {quantum}"]
+    info_str += [f"deterministic:     {deterministic}"]
+    info_str += [f"Sobol numbers:     {sobol}"]
+    info_str += [f"Random seed:       {seed}"]
+
     for ii in range(n_samples):
         talk(f"Sample {ii:3d}:")
+        sample_info_str = info_str + [f"Sample number:     {ii + 1}"]
         sample = atoms.copy()
 
         if force_constants is not None:
@@ -131,9 +136,9 @@ def create_samples(
 
         filename = f"{geometry}.{int(temp)}K"
         if n_samples > 1:
-            filename += f".{ii+1:03d}"
+            filename += f".{ii:03d}"
 
-        sample.write(filename, info_str=info_str, velocities=True, format=format)
+        sample.write(filename, info_str=sample_info_str, velocities=True, format=format)
 
         talk(f".. temperature in sample {ii}:     {sample.get_temperature():.3f}K")
         talk(f".. written to {filename}")
