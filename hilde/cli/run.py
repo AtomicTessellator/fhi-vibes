@@ -53,7 +53,7 @@ def phonopy_run(obj, workdir, settings, dry):
 
 
 @run.command("md")
-@click.option("--workdir", default="md", help="working directory")
+@click.option("--workdir", help="working directory")
 @click.option("--settings", default="md.in", show_default=True, type=paths)
 @click.pass_obj
 def md_run(obj, workdir, settings):

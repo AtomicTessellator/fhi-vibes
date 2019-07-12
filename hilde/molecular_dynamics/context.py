@@ -44,13 +44,12 @@ class MDContext:
         """
         self.settings = MDSettings(settings)
 
+        self.workdir = self.settings.workdir
+
         if workdir:
             self.workdir = Path(workdir)
-        else:
-            if "workdir" in self.settings.obj:
-                self.workdir = Path(self.settings.obj.pop("workdir"))
-            else:
-                self.workdir = Path(name)
+        if not self.workdir:
+            self.workdir = name
 
         if trajectory:
             self.trajectory = Path(trajectory)
