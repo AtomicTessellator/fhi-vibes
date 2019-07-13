@@ -19,6 +19,7 @@ basic_tests:
     - cd ../anharmonicity_score; python test_r2.py
     - cd ../phonopy; python run_phonopy.py
     - cd ../md; python run_md.py
+    - cd ../harmonic_analysis; python mode_projection.py
     - cd ../trajectory; python test_son.py
     - cd $CI_PROJECT_DIR/examples/devel
       #    - python material_fingerprints/material_fingerprints.py

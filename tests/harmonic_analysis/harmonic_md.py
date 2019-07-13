@@ -7,7 +7,7 @@ from ase.calculators.lammpsrun import LAMMPS
 from ase.md.verlet import VelocityVerlet
 
 from hilde.io import read
-from hilde.tdep.wrapper import parse_tdep_remapped_forceconstant
+from hilde.tdep.wrapper import parse_tdep_forceconstant
 from hilde.helpers import progressbar
 
 from hilde.molecular_dynamics.utils import FCCalculator, MDLogger
@@ -34,17 +34,22 @@ def run(
     maxsteps=1001,
     dt=1,
     harmonic=True,
-    fc_file="infile.forceconstant_remapped",
+    sample="geometry.in.supercell.300K",
+    primitive="geometry.in.primitive",
+    supercell="geometry.in.supercell",
+    fc_file="infile.forceconstant",
     trajectory="trajectory.son",
 ):
     """ run Verlet MD, harmonic or force field """
     trajectory = trajectory
-    atoms = read("geometry.in")
-    supercell = read("geometry.in.supercell")
+    atoms = read(sample)
 
-    force_constants = parse_tdep_remapped_forceconstant(fc_file, force_remap=True)
-    force_constants.resize(2 * (3 * len(supercell),))
+    force_constants = parse_tdep_forceconstant(
+        uc_filename=primitive, sc_filename=supercell, fc_filename=fc_file, two_dim=True
+    )
+    # force_constants.resize(2 * (3 * len(supercell),))
 
+    supercell = read(supercell)
     if harmonic is True:
         calc = FCCalculator(supercell, force_constants)
     else:
@@ -60,7 +65,7 @@ def run(
 
     atoms.calc = calc
     for _ in progressbar(range(maxsteps)):
-        logger(atoms, info={"MD": {"nsteps": md.nsteps, "dt": md.dt}})
+        logger(atoms, info={"nsteps": md.nsteps, "dt": md.dt})
         md.run(1)
 
 

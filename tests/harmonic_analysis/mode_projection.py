@@ -16,7 +16,10 @@ from hilde.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
 from hilde.harmonic_analysis.displacements import get_U, get_dUdt
 from hilde.harmonic_analysis.normal_modes import projector, u_s_to_u_I, get_A_qst2
 from hilde.trajectory import reader
-from hilde.tdep.wrapper import parse_tdep_remapped_forceconstant
+from hilde.tdep.wrapper import (
+    parse_tdep_remapped_forceconstant,
+    parse_tdep_forceconstant,
+)
 
 from hilde.konstanten import kB
 from hilde.helpers import Timer
@@ -29,7 +32,12 @@ def main():
 
     primitive = read("geometry.in.primitive")
     supercell = read("geometry.in.supercell")
-    force_constants = parse_tdep_remapped_forceconstant("infile.forceconstant_remapped")
+    force_constants = parse_tdep_forceconstant(
+        uc_filename="geometry.in.primitive",
+        sc_filename="geometry.in.supercell",
+        fc_filename="infile.forceconstant",
+        two_dim=True,
+    )
 
     masses = supercell.get_masses()
 
@@ -71,7 +79,6 @@ def main():
         assert la.norm(diff) < 1e-14, (q, evs)
 
     # check if transformation is unitary by probing each mode
-
     u_qs = np.zeros((4, 6))
 
     for (i, j) in np.ndindex(u_qs.shape):
@@ -110,7 +117,7 @@ def main():
     # write prepared cell as input for MD and run
     prepared_cell.write("geometry.in", format="aims", velocities=True)
 
-    run(harmonic=True, maxsteps=501, dt=2)
+    run(harmonic=True, maxsteps=501, dt=2, sample="geometry.in")
 
     # read the obtained trajectory and check the average temperature
     traj = reader("trajectory.son")

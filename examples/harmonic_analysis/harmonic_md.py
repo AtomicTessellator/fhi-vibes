@@ -43,13 +43,13 @@ def run(
     """ run Verlet MD, harmonic or force field """
     trajectory = trajectory
     atoms = read(sample)
-    supercell = read(supercell)
 
     force_constants = parse_tdep_forceconstant(
         uc_filename=primitive, sc_filename=supercell, fc_filename=fc_file, two_dim=True
     )
     # force_constants.resize(2 * (3 * len(supercell),))
 
+    supercell = read(supercell)
     if harmonic is True:
         calc = FCCalculator(supercell, force_constants)
     else:
