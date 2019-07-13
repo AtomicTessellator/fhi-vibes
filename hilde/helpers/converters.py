@@ -300,6 +300,10 @@ def dict2json(dct, indent=0, outer=True):
     ind = indent * " "
 
     for key, val in dct.items():
+        # convert np.ndarrays etc to lists
+        if hasattr(val, "tolist") and callable(val.tolist):
+            val = val.tolist()
+
         if isinstance(val, str):
             rep = f'"{val}"'
         elif isinstance(val, (float, np.float)):

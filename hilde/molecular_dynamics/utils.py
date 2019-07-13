@@ -106,7 +106,7 @@ class MDLogger:
         dct = {
             "atoms": {
                 "info": info,
-                "cell": atoms.cell,
+                "cell": atoms.cell.array,
                 "positions": atoms.positions,
                 "velocities": atoms.get_velocities(),
             },
