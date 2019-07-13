@@ -110,7 +110,7 @@ def run(
     metadata_file="md_metadata.yaml",
     workdir=".",
     backup_folder="backups",
-    socket_timeout=60,
+    socket_timeout=None,
     **kwargs,
 ):
     """run and MD for a specific time
