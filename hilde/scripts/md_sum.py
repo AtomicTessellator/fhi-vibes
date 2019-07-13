@@ -35,7 +35,7 @@ def md_sum(file, plot, avg, verbose):
     infile = Path(file)
 
     natoms = -1
-    if "yaml" in infile.suffix or "son" in infile.suffix:
+    if infile.suffix in (".yaml", ".son", ".bz2", ".gz"):
         trajectory = reader(infile)[1:]
         e_kin = [atoms.get_kinetic_energy() for atoms in trajectory]
         e_pot = [atoms.get_potential_energy() for atoms in trajectory]

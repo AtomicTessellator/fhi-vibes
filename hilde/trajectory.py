@@ -150,7 +150,7 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
         return []
 
     trajectory = Trajectory(metadata=metadata)
-    prefix = ".. process file:  "
+    prefix = ".. create atoms: "
     for obj in progressbar(pre_trajectory, prefix=prefix):
 
         atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
@@ -178,7 +178,7 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
 
         trajectory.append(atoms)
 
-    timer()
+    timer("done")
 
     if get_metadata:
         return trajectory, metadata
