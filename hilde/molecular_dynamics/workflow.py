@@ -18,7 +18,7 @@ from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.socketio import socket_stress_on, socket_stress_off
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.restarts import restart
-from hilde.helpers import talk
+from hilde.helpers import talk, Timer
 from . import metadata2dict
 
 
@@ -110,6 +110,7 @@ def run(
     metadata_file="md_metadata.yaml",
     workdir=".",
     backup_folder="backups",
+    socket_timeout=60,
     **kwargs,
 ):
     """run and MD for a specific time
@@ -124,6 +125,7 @@ def run(
         metadata_file (str or Path): File to store the metadata in
         workdir (Path or str): Path to working directory
         backup_folder (str or Path): Path to the back up folders
+        socket_timeout (int): timeout for the socket communication
     Returns:
     bool: True if hit max steps or completed
     """
@@ -175,11 +177,13 @@ def run(
     # backup previously computed data
     backup(calc_dir, target_folder=backup_folder)
 
-    talk("Start MD.")
+    socket_timer = Timer(f"Enter socket with timeout: {socket_timeout}s")
 
-    with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
-        calc_dir, mkdir=True
-    ):
+    with SocketIOCalculator(
+        socket_calc, port=socketio_port, timeout=socket_timeout
+    ) as iocalc, cwd(calc_dir, mkdir=True):
+
+        socket_timer("Socket entered")
 
         if socketio_port is not None:
             atoms.calc = iocalc
