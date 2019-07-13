@@ -281,7 +281,7 @@ class Trajectory(list):
             warn("time unit not found in trajectory metadata, use ase.units.fs")
             fs = units.fs
 
-        times = np.cumsum([a.info["dt"] * fs for a in self])
+        times = np.cumsum([a.info["dt"] / fs / 1000 for a in self])
         return times
 
     @property
