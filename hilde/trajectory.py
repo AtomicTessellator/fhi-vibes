@@ -19,7 +19,7 @@ from hilde.helpers.converters import results2dict, dict2atoms, input2dict
 from hilde.helpers.converters import dict2json as dumper
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import Timer, warn, talk
-from hilde.helpers.utils import Bar
+from hilde.helpers.utils import progressbar
 
 
 def step2file(atoms, calc=None, file="trajectory.son", append_cell=True, metadata={}):
@@ -150,8 +150,8 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
         return []
 
     trajectory = Trajectory(metadata=metadata)
-    bar = Bar(".. process file:  ")
-    for obj in bar.iter(pre_trajectory):
+    prefix = ".. process file:  "
+    for obj in progressbar(pre_trajectory, prefix=prefix):
 
         atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
 
@@ -328,8 +328,8 @@ class Trajectory(list):
 
         metadata2file(self.metadata, temp_file)
 
-        bar = Bar(f"Write to {temp_file}:")
-        for elem in bar.iter(self):
+        prefix = f"Write to {temp_file}:"
+        for elem in progressbar(self, prefix=prefix):
             son.dump(results2dict(elem), temp_file)
 
         shutil.move(temp_file, file)

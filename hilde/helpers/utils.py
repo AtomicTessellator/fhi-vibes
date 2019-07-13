@@ -3,31 +3,7 @@
 from time import time, strftime
 import inspect
 import click
-
-try:
-    from progress.bar import Bar
-except ModuleNotFoundError:
-
-    class Bar:
-        """progress.bar.Bar stub"""
-
-        def __init__(self, msg, **kwargs):
-            print(msg, flush=True)
-
-        def iter(self, args):
-            """progress.bar.Bar.iter stub"""
-            return iter(args)
-
-
-def progressbar(func):
-    """show progressbar when looping
-
-    Parameters
-    ----------
-    func: function
-        Function to print progressbar for
-    """
-    return Bar("progress").iter(func)
+from son.progressbar import progressbar
 
 
 # print in bold

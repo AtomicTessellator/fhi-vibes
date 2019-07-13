@@ -284,7 +284,7 @@ def remap_force_constants(
     ref_struct_pos = new_supercell.get_scaled_positions(wrap=True)
 
     fc_out = np.zeros((n_sc_new, n_sc_new, 3, 3))
-    for a1, r0 in progressbar(enumerate(new_supercell.positions)):
+    for a1, r0 in enumerate(progressbar(new_supercell.positions)):
         uc_index = map2prim[a1]
         for sc_a2, sc_r2 in enumerate(sc_r[uc_index]):
             r_pair = r0 + sc_r2
