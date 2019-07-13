@@ -41,6 +41,18 @@ cp hilderc ~/.hilderc
 
 **You're now good to go!** Just make sure your hilde virtual environment is activated.
 
+### Autocompletion
+To activate autocompletion of `hilde` subcommands, add this to your `.bashrc`:
+```bash
+eval "$(_HILDE_COMPLETE=source hilde)"
+```
+and source it.
+
+If you use the `fishshell`, add a file `~/.config/fish/completions/hilde.fish` containing
+```bash
+eval (env _HILDE_COMPLETE=source-fish hilde)
+```
+
 ### Remarks for Cluster
 On clusters with `conda` environment, it is typically best to have a minimal base
 environment that holds nothing but `python`, `numpy`, and `scipy` to benefit from `mkl`

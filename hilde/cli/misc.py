@@ -1,11 +1,9 @@
 """helpers for click"""
 
 from pathlib import Path
-from glob import glob
 import click
 
-paths = glob("*") + glob("*/*") + glob("*/*/*") + glob("*/*/*/*")
-complete_filenames = click.Choice(paths)
+complete_filenames = click.Path(exists=True)
 
 
 class AliasedGroup(click.Group):
@@ -26,7 +24,7 @@ class AliasedGroup(click.Group):
 
         if not matches:
             return None
-        elif len(matches) == 1:
+        if len(matches) == 1:
             return click.Group.get_command(self, ctx, matches[0])
 
         ctx.fail("Too many matches: %s" % ", ".join(sorted(matches)))
