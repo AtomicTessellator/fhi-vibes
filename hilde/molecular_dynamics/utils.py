@@ -66,7 +66,7 @@ class FCCalculator(Calculator):
 class MDLogger:
     """ MD logger class to write hilde trajectory files """
 
-    def __init__(self, atoms, trajectory, metadata={}, overwrite=False):
+    def __init__(self, atoms, trajectory, metadata=None, overwrite=False):
         """initialize
 
         Parameters
@@ -80,6 +80,9 @@ class MDLogger:
         overwrite: bool
             If true overwrite the trajectory file
         """
+
+        if not metadata:
+            metadata = {}
 
         self.trajectory = trajectory
         if Path(trajectory).exists() and overwrite:
@@ -102,12 +105,15 @@ class MDLogger:
             info = {}
         dct = {
             "atoms": {
+                "info": info,
                 "cell": atoms.cell,
                 "positions": atoms.positions,
                 "velocities": atoms.get_velocities(),
             },
-            "calculator": {"forces": atoms.get_forces()},
+            "calculator": {
+                "forces": atoms.get_forces(),
+                "energy": atoms.get_kinetic_energy(),
+            },
         }
-        dct.update(info)
 
         son.dump(dct, self.trajectory)
