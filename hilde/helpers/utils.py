@@ -1,9 +1,11 @@
 """A simple timer"""
 
+import signal
 from time import time, strftime
 import inspect
 import click
 from son.progressbar import progressbar
+from hilde.helpers.warnings import warn
 
 
 # print in bold
@@ -64,46 +66,58 @@ def print_msg(message, indent=0):
 
 
 class Timer:
-    """simple timer"""
+    """simple timer with Timeout function"""
 
-    def __init__(self, message=None, use_talk=True):
+    def __init__(self, message=None, use_talk=True, timeout=None, verbose=True):
         """Initialize
 
-        Parameters
-        ----------
-        message: str
-            Message to print at initialization
-        use_talk: bool
-            If true use talk and not print
+        Args:
+            message: Message to print at initialization
+            use_talk: If true use talk and not print
+            timeout: set a timeout after which a TimeoutError is raised
+            verboes: be verbose
+
+        Timeout inspired by
+            https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/
         """
         self.time = time()
+        self.verbose = verbose
 
-        if use_talk:
+        if use_talk and talk:
             self.print = talk
         else:
             self.print = lambda msg: print(msg, flush=True)
 
-        if message:
+        self.message = message
+        if message and verbose:
             self.print(message)
 
+        self.timeout = timeout
+        if timeout:
+            signal.signal(signal.SIGALRM, self.raise_timeout)
+            signal.alarm(timeout)
+
     def __call__(self, info_str=""):
-        """print how much time elapsed
-
-        Parameters
-        ----------
-        info_str: str
-            String to print with timer
-
-        Returns
-        -------
-        float
-            number of seconds it took to complete the task
-        """
-
+        """print how much time elapsed, optionally print `info_str`"""
         time_str = f"{time() - self.time:.3f}s"
 
-        if info_str.strip():
+        if info_str.strip() and self.verbose:
             self.print(f".. {info_str} in {time_str}")
-        else:
+        elif self.verbose:
             self.print(f".. time elapsed: {time_str}")
+
+        # stop signal alarm if it was initialized
+        if self.timeout:
+            signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
         return float(time_str[:-1])
+
+    def raise_timeout(self, signum, frame):
+        """raise TimeoutError"""
+        warn(f"Timeout of {self.timeout}s is approaching, raise TimeoutError", level=1)
+        raise TimeoutError
+
+
+def raise_timeout(signum, frame):
+    """raise TimeoutError"""
+    raise TimeoutError
