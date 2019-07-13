@@ -120,7 +120,7 @@ def main():
     run(harmonic=True, maxsteps=501, dt=2, sample="geometry.in")
 
     # read the obtained trajectory and check the average temperature
-    traj = reader("trajectory.son")
+    traj = reader("trajectory.son", verbose=False)
 
     temperatures = np.array([a.get_temperature() for a in traj])
 

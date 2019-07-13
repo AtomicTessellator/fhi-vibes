@@ -22,7 +22,7 @@ basic_tests:
     - cd ../harmonic_analysis; python mode_projection.py
     - cd ../trajectory; python test_son.py
     - cd $CI_PROJECT_DIR/examples/devel
-      #    - python material_fingerprints/material_fingerprints.py
+    - python material_fingerprints/material_fingerprints.py
 
 
 
