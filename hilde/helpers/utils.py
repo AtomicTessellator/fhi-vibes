@@ -14,15 +14,14 @@ def bold(text):
     return "\033[1m" + text + "\033[0m"
 
 
-def talk(message):
+def talk(message, verbosity=1):
     """hilde message output. Use instead of print. Sensitive to CLI context
 
     https://stackoverflow.com/a/2654130/5172579
 
-    Parameters
-    ----------
-    message: str
-        message to print
+    Args:
+        message (str): message to print
+        verbosity (int): verbosity level (0, 1, 2)
     """
     # see if we are in a CLI context
     verbose = 1
