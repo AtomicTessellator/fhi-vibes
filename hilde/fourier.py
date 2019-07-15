@@ -9,7 +9,7 @@ def get_timestep(times):
     d_times = (times - np.roll(times, 1))[1:]
     timestep = np.mean(d_times)
 
-    if any(d_times - timestep > 1e-12):
+    if any(d_times - timestep > 1e-9):
         msg = f"timesteps uneven? Inspect times!"
         raise ValueError(msg)
 
