@@ -274,14 +274,14 @@ class Trajectory(list):
 
     @property
     def times(self):
-        """ return the times as numpy array """
+        """ return the times as numpy array in fs"""
         try:
             fs = self.metadata["MD"]["fs"]
         except KeyError:
             warn("time unit not found in trajectory metadata, use ase.units.fs")
             fs = units.fs
 
-        times = np.cumsum([a.info["dt"] / fs / 1000 for a in self])
+        times = np.cumsum([a.info["dt"] / fs for a in self])
         return times
 
     @property
