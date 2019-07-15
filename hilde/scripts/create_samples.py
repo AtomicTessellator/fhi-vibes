@@ -12,6 +12,7 @@ import ase.md.velocitydistribution as vd
 from hilde.structure.io import inform
 from hilde.konstanten.einheiten import omega_to_THz
 from hilde.helpers import talk
+from hilde.harmonic_analysis.dynamical_matrix import get_frequencies
 
 
 def create_samples(
@@ -180,22 +181,9 @@ if __name__ == "__main__":
     main()
 
 
-def get_frequencies(atoms, force_constants):
-    """ create dynamical matrix, return frequencies for sanity checks """
-    masses = atoms.get_masses()
-    # Build dynamical matrix
-    rminv = (masses ** -0.5).repeat(3)
-    dynamical_matrix = force_constants * rminv[:, None] * rminv[None, :]
-
-    # Solve eigenvalue problem to compute phonon spectrum and eigenvectors
-    w2_s, _ = np.linalg.eigh(dynamical_matrix)
-
-    return w2_s * (omega_to_THz) ** 2
-
-
 def check_frequencies(atoms, force_constants):
     """print lowest and highest frequencies obtained from force constants"""
-    w2 = get_frequencies(atoms, force_constants)
+    w2 = get_frequencies(force_constants, masses=atoms.get_masses())
     print("The first 6 frequencies:")
     for ii, freq in enumerate(w2[:6]):
         print(f" {ii + 1:4d}: {np.sign(freq) * np.sqrt(abs(freq))}")
