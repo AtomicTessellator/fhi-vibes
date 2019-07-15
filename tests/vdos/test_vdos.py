@@ -1,5 +1,6 @@
 """test VDOS functionality"""
 
+from pathlib import Path
 import numpy as np
 import scipy.signal as sl
 
@@ -9,13 +10,15 @@ from hilde.green_kubo.velocities import get_vdos
 from hilde.tdep.wrapper import parse_tdep_forceconstant
 from hilde.harmonic_analysis import dynamical_matrix as dm
 
+parent = Path(__file__).parent
+
 
 def test_parse_force_constants():
     # frequencies from force constants
     fc = parse_tdep_forceconstant(
-        "geometry.in.primitive",
-        "geometry.in.supercell",
-        "infile.forceconstant",
+        parent / "geometry.in.primitive",
+        parent / "geometry.in.supercell",
+        parent / "infile.forceconstant",
         two_dim=True,
     )
 
@@ -24,7 +27,7 @@ def test_parse_force_constants():
 
 def test_frequencies_from_force_constants():
     fc = test_parse_force_constants()
-    sc = read("geometry.in.supercell", format="aims")
+    sc = read(parent / "geometry.in.supercell", format="aims")
 
     freqs = dm.get_frequencies(fc, masses=sc.get_masses())
 
@@ -32,7 +35,7 @@ def test_frequencies_from_force_constants():
 
 
 def test_vdos():
-    traj = reader("trajectory.son.bz2")
+    traj = reader(parent / "trajectory.son.bz2")
 
     df_vdos = get_vdos(traj)
 
