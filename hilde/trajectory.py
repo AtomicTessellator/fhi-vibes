@@ -289,6 +289,14 @@ class Trajectory(list):
         """ return the temperatues as 1d array """
         return np.array([a.get_temperature() for a in self])
 
+    @property
+    def with_stresses(self):
+        """return new trajectory with atoms that have stresses computed"""
+        atoms_w_stress = [a for a in self if "stresses" in a.calc.results]
+        new_traj = Trajectory(atoms_w_stress, metadata=self.metadata)
+
+        return new_traj
+
     def clean_drift(self):
         """ Clean constant drift CAUTION: respect ASE time unit correctly! """
 

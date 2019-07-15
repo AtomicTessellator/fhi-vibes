@@ -1,12 +1,10 @@
 from pathlib import Path
 from hilde.io import read
 
-from hilde.helpers.lattice_points import (
-    get_lattice_points,
-    get_commensurate_q_points,
-)
+from hilde.helpers.lattice_points import get_lattice_points, get_commensurate_q_points
 
 tolerance = 1e-5
+parent = Path(__file__).parent
 materials = ["si", "gan", "gao"]
 
 
@@ -20,12 +18,16 @@ for material in materials:
 
     print(f"Test {material}")
 
-    primitive = read(Path(material) / "geometry.in")
-    supercell = read(Path(material) / "geometry.in.supercell")
+    primitive = read(parent / material / "geometry.in")
+    supercell = read(parent / material / "geometry.in.supercell")
 
     print("\nReal space lattice points")
-    lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell, fortran=False, verbose=1)
-    lattice_points_fortran, _= get_lattice_points(primitive.cell, supercell.cell, verbose=1)
+    lattice_points, _ = get_lattice_points(
+        primitive.cell, supercell.cell, fortran=False, verbose=1
+    )
+    lattice_points_fortran, _ = get_lattice_points(
+        primitive.cell, supercell.cell, verbose=1
+    )
 
     print("\nMomentum space lattice points")
     inv_lattice_points = get_commensurate_q_points(
@@ -42,7 +44,7 @@ for material in materials:
 
     dev_real = abs(lattice_points - lattice_points_fortran).sum()
     dev_recip = abs(inv_lattice_points - inv_lattice_points_fortran).sum()
-    fortran_check_real =  dev_real < tolerance
+    fortran_check_real = dev_real < tolerance
     fortran_check_recip = dev_recip < tolerance
 
     # for (p, fp) in zip(lattice_points, lattice_points_fortran):
