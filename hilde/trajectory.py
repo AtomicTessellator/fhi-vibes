@@ -12,7 +12,7 @@ import shutil
 
 import numpy as np
 
-from ase import units
+from ase import units, Atoms
 from hilde import __version__ as version
 from hilde import son
 from hilde.helpers.converters import results2dict, dict2atoms, input2dict
@@ -41,10 +41,12 @@ def step2file(atoms, calc=None, file="trajectory.son", append_cell=True, metadat
 
     dct = {}
     if metadata:
-        if all(key not in atoms.info for key in metadata.keys()):
-            atoms.info.update(metadata)
-        else:
-            atoms.info.update({"metadata": metadata})
+        for key, val in metadata.items():
+            if key in atoms.info and atoms.info[key] == val:
+                continue
+            else:
+                atoms.info.update({"metadata": metadata})
+                break
 
     dct.update(results2dict(atoms, calc, append_cell))
 
@@ -281,7 +283,7 @@ class Trajectory(list):
             warn("time unit not found in trajectory metadata, use ase.units.fs")
             fs = units.fs
 
-        times = np.cumsum([a.info["dt"] / fs for a in self])
+        times = np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
         return times
 
     @property
