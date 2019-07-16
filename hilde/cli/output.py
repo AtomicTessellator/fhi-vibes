@@ -24,6 +24,7 @@ def output():
 @click.option("-tp", "--thermal_properties", is_flag=True)
 @click.option("--animate", is_flag=True, help="print animation files for special kpts")
 @click.option("--animate_q", nargs=3, multiple=True, type=float, help="animation at q")
+@click.option("--born", type=complete_filenames)
 @click.option("--full", is_flag=True)
 @click.option("--tdep", is_flag=True, hidden=True)
 @click.option("-v", "--verbose", is_flag=True, help="print frequencies at gamma point")
@@ -39,6 +40,7 @@ def phonopy_output(
     thermal_properties,
     animate,
     animate_q,
+    born,
     full,
     tdep,
     verbose,
@@ -50,7 +52,7 @@ def phonopy_output(
         q_mesh = defaults.q_mesh.copy()
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
-    phonon = postprocess(trajectory=trajectory)
+    phonon = postprocess(trajectory=trajectory, born_charges_file=born)
 
     if not output_directory:
         output_directory = Path(trajectory).parent / "output"
@@ -59,11 +61,11 @@ def phonopy_output(
         "write_thermal_properties": thermal_properties or full,
         "write_bandstructure": bandstructure or full,
         "write_dos": density_of_states or full,
-        "write_pdos": projected_density_of_states or full,
+        "write_pdos": projected_density_of_states,
         "plot_bandstructure": bandstructure or full,
         "plot_thermal_properties": thermal_properties or full,
         "plot_dos": density_of_states or full,
-        "plot_pdos": projected_density_of_states or full,
+        "plot_pdos": projected_density_of_states,
         "q_mesh": q_mesh,
         "output_dir": output_directory,
         "tdep": tdep,

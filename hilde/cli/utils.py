@@ -114,7 +114,7 @@ def tool_suggest_k_grid(filename, density, uneven, format):
 
 
 @utils.command("remap_phonopy_force_constants")
-@click.argument("filename", type=complete_filenames)
+@click.argument("filename", default="FORCE_CONSTANTS", type=complete_filenames)
 @click.option("-pc", "--primitive", default="geometry.in.primitive", show_default=True)
 @click.option("-sc", "--supercell", default="geometry.in.supercell", show_default=True)
 def tool_remap_phonopy_force_constants(filename, primitive, supercell):
