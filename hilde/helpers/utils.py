@@ -28,7 +28,7 @@ def talk(message, verbosity=1):
     try:
         ctx = click.get_current_context()
         verbose = ctx.obj.verbose
-    except RuntimeError:
+    except (RuntimeError, AttributeError):
         pass
 
     if verbose == 1:

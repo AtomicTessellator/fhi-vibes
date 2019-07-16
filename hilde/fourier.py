@@ -10,7 +10,8 @@ def get_timestep(times):
     timestep = np.mean(d_times)
 
     if any(d_times - timestep > 1e-9):
-        msg = f"timesteps uneven? Inspect times!"
+        msg = f"delta times - timestep: {d_times - timestep}\n"
+        msg += f"timesteps uneven? Inspect times!"
         raise ValueError(msg)
 
     return timestep
