@@ -37,7 +37,7 @@ def test_frequencies_from_force_constants():
 def test_vdos():
     traj = reader(parent / "trajectory.son.bz2")
 
-    df_vdos = get_vdos(traj)
+    df_vdos = get_vdos(trajectory=traj)
 
     # get analytical frequencies
     freqs = test_frequencies_from_force_constants()
