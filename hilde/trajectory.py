@@ -15,6 +15,7 @@ import numpy as np
 from ase import units, Atoms
 from hilde import __version__ as version
 from hilde import son
+from hilde.fourier import get_timestep
 from hilde.helpers.converters import results2dict, dict2atoms, input2dict
 from hilde.helpers.converters import dict2json as dumper
 from hilde.helpers.hash import hash_atoms
@@ -207,6 +208,9 @@ class Trajectory(list):
         else:
             self._metadata = {}
 
+        # a bit of lazy eval
+        self._times = None
+
     @classmethod
     def from_file(cls, file):
         """ Read trajectory from file """
@@ -277,14 +281,22 @@ class Trajectory(list):
     @property
     def times(self):
         """ return the times as numpy array in fs"""
-        try:
-            fs = self.metadata["MD"]["fs"]
-        except KeyError:
-            warn("time unit not found in trajectory metadata, use ase.units.fs")
-            fs = units.fs
+        if self._times is None:
+            try:
+                fs = self.metadata["MD"]["fs"]
+            except KeyError:
+                warn("time unit not found in trajectory metadata, use ase.units.fs")
+                fs = units.fs
 
-        times = np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
-        return times
+            times = np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
+            self._times = times
+
+        return self._times
+
+    @property
+    def timestep(self):
+        """ return the timestep in fs"""
+        return get_timestep(self.times)
 
     @property
     def temperatures(self):
