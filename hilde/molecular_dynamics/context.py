@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from ase.io import read
 from hilde.settings import TaskSettings
 from ._defaults import defaults, name, mandatory_base, mandatory_task
 
@@ -56,7 +57,26 @@ class MDContext:
         else:
             self.trajectory = Path(self.workdir) / "trajectory.son"
 
+        self._primitive = None
+        self._supercell = None
+
     @property
     def maxsteps(self):
         """return the maxsteps from settings"""
         return self.settings.obj["maxsteps"]
+
+    @property
+    def primitive(self):
+        """The primitive cell structure"""
+        g = self.settings.geometry
+        if not self._primitive and "primitive" in g:
+            self._primitive = read(g["primitive"], format="aims")
+        return self._primitive
+
+    @property
+    def supercell(self):
+        """The supercell structure"""
+        g = self.settings.geometry
+        if not self._supercell and "supercell" in g:
+            self._supercell = read(g["supercell"], format="aims")
+        return self._supercell

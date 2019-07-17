@@ -18,7 +18,7 @@ from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.socketio import socket_stress_on, socket_stress_off
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.restarts import restart
-from hilde.helpers import talk, Timer
+from hilde.helpers import talk, Timer, warn
 from . import metadata2dict
 
 
@@ -96,6 +96,7 @@ def bootstrap(ctx):
         "maxsteps": ctx.maxsteps,
         "compute_stresses": compute_stresses,
         "workdir": ctx.workdir,
+        "settings": ctx.settings,
     }
 
 
@@ -111,6 +112,7 @@ def run(
     workdir=".",
     backup_folder="backups",
     socket_timeout=60,
+    settings=None,
     **kwargs,
 ):
     """run and MD for a specific time
@@ -126,8 +128,9 @@ def run(
         workdir (Path or str): Path to working directory
         backup_folder (str or Path): Path to the back up folders
         socket_timeout (int): timeout for the socket communication
+        settings (TaskSettings): settings for saving them to the working directory
     Returns:
-    bool: True if hit max steps or completed
+        bool: True if hit max steps or completed
     """
 
     # make sure compute_stresses describes a step length
@@ -176,6 +179,12 @@ def run(
 
     # backup previously computed data
     backup(calc_dir, target_folder=backup_folder)
+
+    # back up settings
+    if settings:
+        with cwd(workdir, mkdir=True):
+            settings.obj["workdir"] = "."
+            settings.write()
 
     msg = f"Enter socket with timeout: {socket_timeout}"
     socket_timer = Timer(msg, timeout=socket_timeout)
@@ -248,7 +257,10 @@ def prepare_from_trajectory(atoms, md, trajectory):
 
     trajectory = Path(trajectory)
     if trajectory.exists():
-        last_atoms = son.last_from(trajectory)
+        try:
+            last_atoms = son.last_from(trajectory)
+        except IndexError:
+            warn(f"** trajectory lacking the first step, please CHECK!", level=2)
         assert "info" in last_atoms["atoms"]
         md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
 
