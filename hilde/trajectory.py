@@ -12,7 +12,7 @@ import shutil
 
 import numpy as np
 
-from ase import units, Atoms
+from ase import units
 from hilde import __version__ as version
 from hilde import son
 from hilde.fourier import get_timestep
@@ -302,6 +302,28 @@ class Trajectory(list):
     def temperatures(self):
         """ return the temperatues as 1d array """
         return np.array([a.get_temperature() for a in self])
+
+    @property
+    def velocities(self):
+        """return the velocities as [N_t, N_a, 3] array"""
+        return np.array([a.get_velocities() for a in self])
+
+    @property
+    def stress(self):
+        """retunr the stress as [N_t, N_a, 3, 3] array"""
+        zeros = np.zeros([3, 3])
+        stresses = []
+        for a in self:
+            if "stress" in a.calc.results:
+                stresses.append(a.get_stress(voigt=False))
+            else:
+                stresses.append(zeros)
+        return np.array(stresses)
+
+    @property
+    def pressure(self):
+        """return the pressure as [N_t] array"""
+        return np.array([-1 / 3 * np.trace(stress) for stress in self.stress])
 
     @property
     def with_stresses(self):
