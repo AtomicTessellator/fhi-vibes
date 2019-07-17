@@ -35,6 +35,7 @@ click_completion = {git = "https://github.com/flokno/click-completion.git", bran
 seaborn = {version = "^0.9.0",optional = true}
 jupyter = {version = "^1.0",optional = true}
 xarray = "^0.12.3"
+netCDF4 = "^1.5"
 
 [tool.poetry.extras]
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
