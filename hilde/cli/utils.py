@@ -141,7 +141,7 @@ def trajectory():
 
 
 @trajectory.command("2tdep")
-@click.argument("filename", type=complete_filenames)
+@click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-s", "--skip", default=1, help="skip this many steps from trajectory")
 @click.option("--folder", default="tdep", help="folder to store input")
 def t2tdep(filename, skip, folder):
@@ -153,7 +153,7 @@ def t2tdep(filename, skip, folder):
 
 
 @trajectory.command("2xyz")
-@click.argument("filename", type=complete_filenames)
+@click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("--file", default="trajectory.xyz")
 def t2xyz(filename, file):
     """extract trajectory in FILENAME and store as xyz file"""
@@ -164,10 +164,23 @@ def t2xyz(filename, file):
 
 
 @trajectory.command("update")
-@click.argument("filename", type=complete_filenames)
+@click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-uc", help="Add a (primitive) unit cell")
 @click.option("-sc", help="Add the respective supercell")
 @click.option("--format", default="aims")
 def trajectory_update(filename, uc, sc, format):
     """add unit cell from UC and supercell from SC to trajectory in FILENAME"""
     update_trajectory(filename, uc, sc, format)
+
+
+@trajectory.command("extract_velocities")
+@click.argument("filename", default="trajectory.son", type=complete_filenames)
+@click.option("-o", "--output_filename", default="velocities.nc")
+def extract_velocities(filename, output_filename):
+    """extract velocities from FILENAME and write as xarray.DataArray to netCDF file"""
+    from hilde.green_kubo.velocities import get_velocities
+
+    velocities = get_velocities(trajectory=filename)
+
+    velocities.to_netcdf(output_filename)
+    click.echo(f".. velocities written to {output_filename}")
