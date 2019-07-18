@@ -72,20 +72,7 @@ def metadata2file(metadata, file="metadata.son"):
 
 
 def get_hashes_from_trajectory(trajectory, verbose=False):
-    """return all hashes from trajectory
-
-    Parameters
-    ----------
-    trajectory: str
-        Trajectory file to pull the hashes from
-    verbose: bool
-        If True print more information to the screen
-
-    Returns
-    -------
-    hashes: list of str
-        All the hashes in the trajectory
-    """
+    """return all hashes from trajectory"""
 
     try:
         traj = reader(trajectory, verbose=verbose)
@@ -224,18 +211,7 @@ class Trajectory(list):
 
     @metadata.setter
     def metadata(self, metadata):
-        """Set the metadata
-
-        Parameters
-        ----------
-        metadata: dict
-            object to become self._metadata
-
-        Raises
-        ------
-        AssertionError
-            If metadata is not a dict
-        """
+        """Set the metadata"""
         assert isinstance(metadata, dict)
         self._metadata = metadata
 
@@ -320,18 +296,28 @@ class Trajectory(list):
                 stresses.append(zeros)
         return np.array(stresses)
 
+    def get_pressure(self, GPa=False):
+        """return the pressure as [N_t] array"""
+        pressure = np.array([-1 / 3 * np.trace(stress) for stress in self.stress])
+        if GPa:
+            pressure /= units.GPa
+        return pressure
+
     @property
     def pressure(self):
         """return the pressure as [N_t] array"""
-        return np.array([-1 / 3 * np.trace(stress) for stress in self.stress])
+        return self.get_pressure()
+
+    def with_result(self, result="stresses"):
+        """return new trajectory with atoms object that have specific result computed"""
+        atoms_w_result = [a for a in self if result in a.calc.results]
+        new_traj = Trajectory(atoms_w_result, metadata=self.metadata)
+        return new_traj
 
     @property
     def with_stresses(self):
         """return new trajectory with atoms that have stresses computed"""
-        atoms_w_stress = [a for a in self if "stresses" in a.calc.results]
-        new_traj = Trajectory(atoms_w_stress, metadata=self.metadata)
-
-        return new_traj
+        return self.with_result("stresses")
 
     def clean_drift(self):
         """ Clean constant drift CAUTION: respect ASE time unit correctly! """
@@ -549,3 +535,15 @@ class Trajectory(list):
             avg_atoms.wrap()
 
         return avg_atoms.get_positions()
+
+    def get_hashes(self, verbose=False):
+        """return all hashes from trajectory"""
+
+        hashes = []
+        for atoms in self:
+            try:
+                hashes.append(atoms.info["hash"])
+            except (KeyError, AttributeError):
+                hashes.append(hash_atoms(atoms))
+
+        return hashes
