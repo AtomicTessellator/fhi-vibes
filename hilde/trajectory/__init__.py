@@ -20,6 +20,9 @@ from hilde.helpers.converters import dict2json as dumper
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import Timer, warn, talk
 from hilde.helpers.utils import progressbar
+from hilde.trajectory import io
+
+reader = io.reader
 
 
 def step2file(atoms, calc=None, file="trajectory.son", append_cell=True, metadata={}):
@@ -74,7 +77,7 @@ def get_hashes_from_trajectory(trajectory, verbose=False):
     """return all hashes from trajectory"""
 
     try:
-        traj = reader(trajectory, verbose=verbose)
+        traj = io.reader(trajectory, verbose=verbose)
     except (FileNotFoundError, KeyError):
         return []
 
@@ -86,7 +89,6 @@ def get_hashes_from_trajectory(trajectory, verbose=False):
             hashes.append(hash_atoms(atoms))
 
     return hashes
-
 
 
 class Trajectory(list):
@@ -115,7 +117,7 @@ class Trajectory(list):
     @classmethod
     def from_file(cls, file):
         """ Read trajectory from file """
-        trajectory = reader(file)
+        trajectory = io.reader(file)
         return trajectory
 
     @property
@@ -283,10 +285,8 @@ class Trajectory(list):
     def to_xyz(self, file="positions.xyz"):
         """Write positions to simple xyz file for e.g. viewing with VMD
 
-        Parameters
-        ----------
-        file: str
-            path to trajecotry xyz file
+        Args:
+            file: path to trajecotry xyz file
         """
         from ase.io.xyz import simple_write_xyz
 
@@ -296,103 +296,20 @@ class Trajectory(list):
     def to_tdep(self, folder=".", skip=1):
         """Convert to TDEP infiles for direct processing
 
-        Parameters
-        ----------
-        folder: str or Path
-            Directory to store tdep files
-        skip: int
-            Number of structures to skip
+        Args:
+            folder: Directory to store tdep files
+            skip: Number of structures to skip
         """
-        from pathlib import Path
-        from contextlib import ExitStack
-
-        folder = Path(folder)
-        folder.mkdir(exist_ok=True)
-
-        talk(f"Write tdep input files to {folder}:")
-
-        # meta
-        n_atoms = len(self[0])
-        n_steps = len(self) - skip
-        try:
-            dt = self.metadata["MD"]["timestep"] / self.metadata["MD"]["fs"]
-            T0 = self.metadata["MD"]["temperature"] / units.kB
-        except KeyError:
-            dt = 1.0
-            T0 = 0
-
-        lines = [f"{n_atoms}", f"{n_steps}", f"{dt}", f"{T0}"]
-
-        fname = folder / "infile.meta"
-
-        with fname.open("w") as fo:
-            fo.write("\n".join(lines))
-            talk(f".. {fname} written.")
-
-        # supercell and fake unit cell
-        write_settings = {"format": "vasp", "direct": True, "vasp5": True}
-        if self.primitive:
-            fname = folder / "infile.ucposcar"
-            self.primitive.write(str(fname), **write_settings)
-            talk(f".. {fname} written.")
-        if self.supercell:
-            fname = folder / "infile.ssposcar"
-            self.supercell.write(str(fname), **write_settings)
-            talk(f".. {fname} written.")
-
-        with ExitStack() as stack:
-            pdir = folder / "infile.positions"
-            fdir = folder / "infile.forces"
-            sdir = folder / "infile.stat"
-            fp = stack.enter_context(pdir.open("w"))
-            ff = stack.enter_context(fdir.open("w"))
-            fs = stack.enter_context(sdir.open("w"))
-
-            for ii, atoms in enumerate(self[skip:]):
-                # stress and pressure in GPa
-                try:
-                    stress = atoms.get_stress(voigt=True) / units.GPa
-                    pressure = -1 / 3 * sum(stress[:3])
-                except:
-                    stress = np.zeros(6)
-                    pressure = 0.0
-                e_tot = atoms.get_total_energy()
-                e_kin = atoms.get_kinetic_energy()
-                e_pot = e_tot - e_kin
-                temp = atoms.get_temperature()
-
-                for spos in atoms.get_scaled_positions():
-                    fp.write("{} {} {}\n".format(*spos))
-
-                for force in atoms.get_forces():
-                    ff.write("{} {} {}\n".format(*force))
-
-                stat = (
-                    f"{ii:5d} {ii*dt:10.2f} {e_tot:20.8f} {e_pot:20.8f} "
-                    f"{e_kin:20.15f} {temp:20.15f} {pressure:20.15f} "
-                )
-                stat += " ".join([str(s) for s in stress])
-
-                fs.write(f"{stat}\n")
-
-        talk(f".. {sdir} written.")
-        talk(f".. {pdir} written.")
-        talk(f".. {fdir} written.")
+        io.to_tdep(self, folder, skip)
 
     def get_average_displacements(self, ref_atoms=None, window=-1):
         """Return averaged displacements
 
-        Parameters
-        ----------
-        ref_atoms: ase.atoms.Atoms
-            reference structure for undisplaced system
-        window: int
-            This does nothing? I think it is supposed to define which steps to start/end the analysis on
-
-        Returns
-        -------
-        avg_displacement: np.ndarray
-            The average displacements of all the atoms in self
+        Args:
+            ref_atoms: reference structure for undisplaced system
+            window: This does nothing
+        Returns:
+        avg_displacement: The average displacements of all the atoms in self
         """
 
         from hilde.harmonic_analysis.displacements import get_dR

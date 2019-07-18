@@ -1,10 +1,12 @@
 """Trajectory File I/O"""
 
 import json
+import numpy as np
+from ase import units
 from hilde import son
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers import Timer, warn, talk
-from hilde.trajectory import Trajectory
+# from hilde.trajectory import Trajectory
 from hilde.helpers.utils import progressbar
 
 
@@ -27,6 +29,7 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
     metadata: dict
         The metadata for the trajectory
     """
+    from hilde.trajectory import Trajectory
 
     timer = Timer(f"Parse trajectory")
 
@@ -92,3 +95,90 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
     if get_metadata:
         return trajectory, metadata
     return trajectory
+
+
+def to_tdep(trajectory, folder=".", skip=1):
+    """Convert to TDEP infiles for direct processing
+
+    Parameters
+    ----------
+    folder: str or Path
+        Directory to store tdep files
+    skip: int
+        Number of structures to skip
+    """
+    from pathlib import Path
+    from contextlib import ExitStack
+
+    folder = Path(folder)
+    folder.mkdir(exist_ok=True)
+
+    talk(f"Write tdep input files to {folder}:")
+
+    # meta
+    n_atoms = len(trajectory[0])
+    n_steps = len(trajectory) - skip
+    try:
+        dt = trajectory.metadata["MD"]["timestep"] / trajectory.metadata["MD"]["fs"]
+        T0 = trajectory.metadata["MD"]["temperature"] / units.kB
+    except KeyError:
+        dt = 1.0
+        T0 = 0
+
+    lines = [f"{n_atoms}", f"{n_steps}", f"{dt}", f"{T0}"]
+
+    fname = folder / "infile.meta"
+
+    with fname.open("w") as fo:
+        fo.write("\n".join(lines))
+        talk(f".. {fname} written.")
+
+    # supercell and fake unit cell
+    write_settings = {"format": "vasp", "direct": True, "vasp5": True}
+    if trajectory.primitive:
+        fname = folder / "infile.ucposcar"
+        trajectory.primitive.write(str(fname), **write_settings)
+        talk(f".. {fname} written.")
+    if trajectory.supercell:
+        fname = folder / "infile.ssposcar"
+        trajectory.supercell.write(str(fname), **write_settings)
+        talk(f".. {fname} written.")
+
+    with ExitStack() as stack:
+        pdir = folder / "infile.positions"
+        fdir = folder / "infile.forces"
+        sdir = folder / "infile.stat"
+        fp = stack.enter_context(pdir.open("w"))
+        ff = stack.enter_context(fdir.open("w"))
+        fs = stack.enter_context(sdir.open("w"))
+
+        for ii, atoms in enumerate(trajectory[skip:]):
+            # stress and pressure in GPa
+            try:
+                stress = atoms.get_stress(voigt=True) / units.GPa
+                pressure = -1 / 3 * sum(stress[:3])
+            except:
+                stress = np.zeros(6)
+                pressure = 0.0
+            e_tot = atoms.get_total_energy()
+            e_kin = atoms.get_kinetic_energy()
+            e_pot = e_tot - e_kin
+            temp = atoms.get_temperature()
+
+            for spos in atoms.get_scaled_positions():
+                fp.write("{} {} {}\n".format(*spos))
+
+            for force in atoms.get_forces():
+                ff.write("{} {} {}\n".format(*force))
+
+            stat = (
+                f"{ii:5d} {ii*dt:10.2f} {e_tot:20.8f} {e_pot:20.8f} "
+                f"{e_kin:20.15f} {temp:20.15f} {pressure:20.15f} "
+            )
+            stat += " ".join([str(s) for s in stress])
+
+            fs.write(f"{stat}\n")
+
+    talk(f".. {sdir} written.")
+    talk(f".. {pdir} written.")
+    talk(f".. {fdir} written.")
