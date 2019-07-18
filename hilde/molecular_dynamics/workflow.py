@@ -1,15 +1,10 @@
 """ run molecular dynamics simulations using the ASE classes """
 
-from pathlib import Path
-
 import numpy as np
 
 from ase.calculators.socketio import SocketIOCalculator
-from ase import md as ase_md
-from ase import units as u
 
 from hilde import son
-from hilde.aims.context import AimsContext
 from hilde.trajectory import step2file, metadata2file
 from hilde.helpers.aims import get_aims_uuid_dict
 from hilde.helpers.watchdogs import SlurmWatchdog as Watchdog
@@ -25,12 +20,10 @@ from . import metadata2dict
 _calc_dirname = "calculations"
 
 
-def run_md(ctx):
+def run_md(ctx, timeout=None):
     """ high level function to run MD """
 
-    args = bootstrap(ctx)
-
-    converged = run(**args)
+    converged = run(ctx)
 
     if not converged:
         restart(ctx.settings)
@@ -38,122 +31,36 @@ def run_md(ctx):
         talk("done.")
 
 
-def bootstrap(ctx):
-    """Load settings, prepare atoms, calculator and MD algorithm
-
-    Args:
-        ctx (MDContext): Context for the workflow
-
-    Returns:
-        dict:
-            atoms (ase.atoms.Atoms): The reference structure
-            calc (ase.calculators.calulator.Calculator): The Calculator for the MD
-            maxsteps (int): Maximum number of steps for the MD
-            compute_stresses (bool): If True compute the stresses
-            workdir (str): working directory for the run
-    """
-
-    # read structure
-    atoms = ctx.settings.get_atoms()
-
-    # workdir has to exist
-    Path(ctx.workdir).mkdir(exist_ok=True)
-
-    # create aims from context
-    aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.settings.workdir)
-
-    # make sure `compute_forces .true.` is set and create aims
-    aims_ctx.settings.obj["compute_forces"] = True
-
-    calc = aims_ctx.get_calculator()
-
-    # create md from context
-    obj = ctx.settings.obj
-    md_settings = {
-        "atoms": atoms,
-        "timestep": obj.timestep * u.fs,
-        "logfile": Path(ctx.workdir) / obj.logfile,
-    }
-
-    if "verlet" in obj.driver.lower():
-        md = ase_md.VelocityVerlet(**md_settings)
-    if "langevin" in obj.driver.lower():
-        md = ase_md.Langevin(
-            temperature=obj.temperature * u.kB, friction=obj.friction, **md_settings
-        )
-
-    compute_stresses = 0
-    if "compute_stresses" in obj:
-        compute_stresses = obj.compute_stresses
-
-    # resume?
-    prepare_from_trajectory(atoms, md, ctx.trajectory)
-
-    return {
-        "atoms": atoms,
-        "calc": calc,
-        "md": md,
-        "maxsteps": ctx.maxsteps,
-        "compute_stresses": compute_stresses,
-        "workdir": ctx.workdir,
-    }
-
-
-def run(
-    atoms,
-    calc,
-    md,
-    maxsteps,
-    compute_stresses=0,
-    buffer=3,
-    trajectory="trajectory.son",
-    metadata_file="md_metadata.yaml",
-    workdir=".",
-    backup_folder="backups",
-    socket_timeout=60,
-    **kwargs,
-):
+def run(ctx, backup_folder="backups", socket_timeout=60):
     """run and MD for a specific time
 
     Args:
-        atoms (ase.atoms.Atoms): Initial step geometry
-        calc (ase.calculators.calulator.Calculator): The calculator for the MD run
-        md (ase.md.MolecularDynamics):  The MD propagator
-        maxsteps (int): Maximum number of steps
-        compute_stresses (int or bool): Number of steps in between stress computations
-        trajectory (Path or str): trajectory file path
-        metadata_file (str or Path): File to store the metadata in
-        workdir (Path or str): Path to working directory
+        ctx (MDContext): context of the MD
         backup_folder (str or Path): Path to the back up folders
         socket_timeout (int): timeout for the socket communication
     Returns:
-    bool: True if hit max steps or completed
+        bool: True if hit max steps or completed
     """
 
-    # make sure compute_stresses describes a step length
-    if compute_stresses is True:
-        compute_stresses = 1
-    elif compute_stresses is False:
-        compute_stresses = 0
-    else:
-        compute_stresses = int(compute_stresses)
+    # extract things from context
+    atoms = ctx.atoms
+    calc = ctx.calc
+    md = ctx.md
+    maxsteps = ctx.maxsteps
+    compute_stresses = ctx.compute_stresses
+    settings = ctx.settings
 
     # create watchdog
+    buffer = 3
     if compute_stresses > 0:
         buffer = 5
     watchdog = Watchdog(buffer=buffer)
 
     # create working directories
-    workdir = Path(workdir)
-    trajectory = (workdir / trajectory).absolute()
+    workdir = ctx.workdir
+    trajectory = ctx.trajectory
     calc_dir = workdir / _calc_dirname
     backup_folder = workdir / backup_folder
-
-    # atomic stresses
-    if calc.name == "aims":
-        if compute_stresses:
-            talk(f"Compute atomic stresses every {compute_stresses} steps")
-            calc.parameters["compute_heat_flux"] = True
 
     # prepare the socketio stuff
     socketio_port = get_port(calc)
@@ -165,7 +72,7 @@ def run(
 
     # does it make sense to start everything?
     if md.nsteps >= maxsteps:
-        talk(f"MD run already finished, please inspect {workdir.absolute()}")
+        talk(f"[md] run already finished, please inspect {workdir.absolute()}")
         return True
 
     # is the calculation similar enough?
@@ -176,6 +83,12 @@ def run(
 
     # backup previously computed data
     backup(calc_dir, target_folder=backup_folder)
+
+    # back up settings
+    if settings:
+        with cwd(workdir, mkdir=True):
+            settings.obj["workdir"] = "."
+            settings.write()
 
     msg = f"Enter socket with timeout: {socket_timeout}"
     socket_timer = Timer(msg, timeout=socket_timeout)
@@ -196,9 +109,6 @@ def run(
             _ = atoms.get_forces()
             meta = get_aims_uuid_dict()
             step2file(atoms, file=trajectory, metadata=meta, append_cell=False)
-
-        # store MD metadata locally
-        metadata2file(metadata, file=metadata_file)
 
         while not watchdog() and md.nsteps < maxsteps:
 
@@ -243,24 +153,6 @@ def compute_stresses_next(compute_stresses, nsteps):
     return compute_stresses_now(compute_stresses, nsteps + 1)
 
 
-def prepare_from_trajectory(atoms, md, trajectory):
-    """Take the last step from trajectory and initialize atoms + md accordingly"""
-
-    trajectory = Path(trajectory)
-    if trajectory.exists():
-        last_atoms = son.last_from(trajectory)
-        assert "info" in last_atoms["atoms"]
-        md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
-
-        atoms.set_positions(last_atoms["atoms"]["positions"])
-        atoms.set_velocities(last_atoms["atoms"]["velocities"])
-        talk(f"Resume MD from step {md.nsteps} in\n  {trajectory}\n")
-        return True
-
-    talk(f"** {trajectory} does not exist, nothing to prepare")
-    return False
-
-
 def check_metadata(new_metadata, old_metadata):
     """Sanity check if metadata sets coincide"""
     om, nm = old_metadata["MD"], new_metadata["MD"]
@@ -282,6 +174,8 @@ def check_metadata(new_metadata, old_metadata):
 
     # sanity check values:
     for key in ("xc", "k_grid", "relativistic"):
+        if key not in om and key not in nm:
+            continue
         ov, nv = om[key], nm[key]
         if isinstance(ov, float):
             assert np.allclose(ov, nv, rtol=1e-10), f"{key} changed from {ov} to {nv}"

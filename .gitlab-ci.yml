@@ -15,7 +15,6 @@ basic_tests:
     - pytest --ignore fireworks
     - cd cli; bash test_cli.sh
     - cd ../phonopy; python run_phonopy.py
-    - cd ../md; python run_md.py
     - cd ../harmonic_analysis; python mode_projection.py
     - cd $CI_PROJECT_DIR/examples/devel
     - python material_fingerprints/material_fingerprints.py
@@ -28,15 +27,11 @@ all_tests:
     - pip install fireworks
       #    - pip install phono3py
     - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; python test_lattice_points.py
-    - cd ../hashes; python hashes.py
-    - cd ../anharmonicity_score; python test_r2.py
     - cd ../phonopy; python run_phonopy.py
       #    - python run_phono3py.py
-    - cd ../md; python run_md.py
     - cd ../harmonic_analysis; python mode_projection.py
       #    - cd ../statistical_sampling; python run_stat_sampling.py
     - cd ../phonon_db; python phonon_db.py; python phonon_db.py;
-    - cd ../trajectory; python test_son.py
     - cd $CI_PROJECT_DIR/tests/fireworks; python fireworks_test.py
     - cd $CI_PROJECT_DIR/examples/devel
     - python material_fingerprints/material_fingerprints.py

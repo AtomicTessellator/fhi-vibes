@@ -8,7 +8,7 @@ from hilde.molecular_dynamics.context import MDContext
 from hilde.settings import Settings
 from hilde.helpers import cwd
 
-from .misc import AliasedGroup, click, complete_filenames
+from .misc import AliasedGroup, complete_filenames
 
 # paths = click.Path(exists=True)
 paths = complete_filenames
@@ -55,13 +55,13 @@ def phonopy_run(obj, workdir, settings, dry):
 @run.command("md")
 @click.option("--workdir", help="working directory")
 @click.option("--settings", default="md.in", show_default=True, type=paths)
+@click.option("--timeout", default=None, type=int, hidden=True)
 @click.pass_obj
-def md_run(obj, workdir, settings):
+def md_run(obj, workdir, settings, timeout):
     """run an MD simulation"""
-    from hilde.molecular_dynamics.workflow import run_md
-
     ctx = MDContext(Settings(settings_file=settings), workdir=workdir)
 
     if obj.verbose > 0:
         click.echo(f"run MD workflow with settings from {settings}\n")
-    run_md(ctx=ctx)
+
+    ctx.run(timeout=timeout)
