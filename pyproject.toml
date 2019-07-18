@@ -47,6 +47,7 @@ tutorial = ["seaborn", "jupyter"]
 black = "^18.9b0"
 pytest = "^4.6"
 flake8 = "^3.7"
+rope = "^0.14.0"
 
 [tool.poetry.scripts]
 hilde = 'hilde.cli:cli'
