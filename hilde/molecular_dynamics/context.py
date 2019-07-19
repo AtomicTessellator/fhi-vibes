@@ -75,7 +75,8 @@ class MDContext:
     @property
     def workdir(self):
         """return the working directory"""
-        return Path(self.settings.workdir).absolute()
+        if self.settings.workdir:
+            return Path(self.settings.workdir).absolute()
 
     @workdir.setter
     def workdir(self, folder):
