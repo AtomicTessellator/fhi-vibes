@@ -1,15 +1,17 @@
 """ handling restarts of tasks and workflows """
+from os import path
 import subprocess as sp
 from hilde.settings import Settings
-from hilde.helpers import talk
+from hilde.helpers import talk, warn
 
 
-def restart(settings=None, verbose=True):
+def restart(settings=None, trajectory=None, verbose=True):
     """ restart a job according to the restart instructions in the settings
 
     Args:
         settings (Settings): Settings for the task
-    verbose (bool): If True print more logging information
+        trajectory (Path): if given, check if the trajectory exists
+        verbose (bool): If True print more logging information
 
     Returns:
         bool: True if restart was performed
@@ -20,6 +22,10 @@ def restart(settings=None, verbose=True):
         settings = Settings()
 
     if "restart" in settings:
+        # check if trajectory exists
+        if trajectory and not path.exists(trajectory):
+            msg = "Computation restart request, but no trajectory found. CHECK!"
+            warn(msg, level=2)
         if verbose:
             talk(f"Restart task with {settings.restart.command}", prefix=_prefix)
         sp.run(settings.restart.command.split(), stderr=sp.STDOUT)
