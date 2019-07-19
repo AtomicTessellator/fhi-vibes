@@ -14,13 +14,14 @@ def bold(text):
     return "\033[1m" + text + "\033[0m"
 
 
-def talk(message, verbosity=1):
+def talk(message, prefix=None, verbosity=1):
     """hilde message output. Use instead of print. Sensitive to CLI context
 
     https://stackoverflow.com/a/2654130/5172579
 
     Args:
         message (str): message to print
+        prefix (str): prefix for the message
         verbosity (int): verbosity level (0, 1, 2)
     """
     # see if we are in a CLI context
@@ -32,7 +33,7 @@ def talk(message, verbosity=1):
         pass
 
     if verbose == 1:
-        print_msg(message)
+        print_msg(message, prefix=prefix)
     elif verbose > 1:
         curframe = inspect.currentframe()
         frame = inspect.getouterframes(curframe, 2)[1]
@@ -42,26 +43,28 @@ def talk(message, verbosity=1):
         timestr = strftime("%H:%M:%S %Y/%m/%d")
 
         print(f"[{timestr} from {file}, l. {frame[2]} in {frame[3]}()]", flush=True)
-        print_msg(message, indent=2)
+        print_msg(message, prefix=prefix, indent=2)
         print()
 
 
-def print_msg(message, indent=0):
+def print_msg(message, prefix=None, indent=0):
     """print for talk
 
-    Parameters
-    ----------
-    message: str
-        message to print
-    indent: int
-        number of spaces to indent by
+    Args:
+        message (str): message to print
+        prefix (str): prefix for message
+        indent (int): number of spaces to indent by
     """
     indent = indent * " "
+    if not prefix:
+        pref = "[hilde]"
+    else:
+        pref = f"[{prefix}] "
     if isinstance(message, list):
         for msg in message:
-            print(f"{indent}{msg}", flush=True)
+            print(f"{indent}{pref:12}{msg}", flush=True)
     else:
-        print(f"{indent}{message}", flush=True)
+        print(f"{indent}{pref:12}{message}", flush=True)
 
 
 class Timer:

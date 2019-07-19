@@ -6,12 +6,13 @@ from hilde.aims.context import AimsContext
 from hilde.phonopy.context import PhonopyContext
 from hilde.molecular_dynamics.context import MDContext
 from hilde.settings import Settings
-from hilde.helpers import cwd
+from hilde.helpers import cwd, talk
 
 from .misc import AliasedGroup, complete_filenames
 
 # paths = click.Path(exists=True)
 paths = complete_filenames
+_prefix = "hilde.run"
 
 
 @click.command(cls=AliasedGroup)
@@ -62,6 +63,6 @@ def md_run(obj, workdir, settings, timeout):
     ctx = MDContext(Settings(settings_file=settings), workdir=workdir)
 
     if obj.verbose > 0:
-        click.echo(f"run MD workflow with settings from {settings}\n")
+        talk(f"run MD workflow with settings from {settings}\n", prefix=_prefix)
 
     ctx.run(timeout=timeout)

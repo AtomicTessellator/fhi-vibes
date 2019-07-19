@@ -6,6 +6,8 @@ from time import time, strftime
 from pathlib import Path
 from hilde.helpers import warn, talk
 
+_prefix = "watchdog"
+
 
 def str2time(string):
     """Convert string of the shape D-HH:MM:SS to seconds
@@ -118,7 +120,7 @@ class WallTimeWatchdog:
 
         if walltime is None:
             if verbose:
-                talk("walltime not set, disable watchdog")
+                talk("walltime not set, disable watchdog", prefix=_prefix)
             self.walltime = None
         else:
             self.walltime = walltime + time()
@@ -269,7 +271,8 @@ class SlurmWatchdog(WallTimeWatchdog):
             super().__init__(walltime, history, buffer, log, verbose)
         except KeyError:
             if verbose:
-                talk("seems we are not on a cluster, nothing to do for watchdog")
+                msg = "seems we are not on a cluster, nothing to do for watchdog"
+                talk(msg, prefix=_prefix)
             super().__init__(None, history, buffer, log, verbose=False)
 
     @property

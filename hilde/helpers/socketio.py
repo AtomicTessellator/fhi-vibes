@@ -5,31 +5,27 @@ from hilde.helpers import talk
 from hilde.helpers.warnings import warn
 
 
-def get_port(calculator):
+def get_port(calculator, prefix="socketio"):
     """return port of the calculator
 
-    Parameters
-    ----------
-    calculator: ase.calculators.calulator.Calculator
-        calculator to get the port of
-
-    Returns
-    -------
-    port: int
-        the port for socketio
+    Args:
+        calculator: calculator to get the port of
+        prefix: prefix for messages from this function
+    Returns:
+        port: the port for socketio
     """
 
     port = None
 
     if not hasattr(calculator, "parameters"):
-        warn(f"No parameters found in calculator {calculator.name}.", level=1)
+        warn(f"{prefix} No parameters found in calculator {calculator.name}.", level=1)
         return port
 
     if "use_pimd_wrapper" in calculator.parameters:
         port = calculator.parameters["use_pimd_wrapper"][1]
-        talk(f"Use SocketIO with port {port}")
+        talk(f"Use SocketIO with port {port}", prefix=prefix)
     else:
-        talk(f"Socketio not used with calculator {calculator.name}")
+        talk(f"Socketio not used with calculator {calculator.name}", prefix=prefix)
 
     return port
 

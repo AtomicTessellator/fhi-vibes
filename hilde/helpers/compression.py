@@ -65,12 +65,12 @@ def backup_folder(
     output_filename = backup_filename(target_folder, zip=zip)
 
     if not Path(source_dir).exists():
-        talk(f"{source_dir} does not exists, nothing to back up.")
+        talk(f"{source_dir} does not exists, nothing to back up.", prefix="backup")
         return False
 
     try:
         Path(source_dir).rmdir()
-        talk(f"{source_dir} is empty, do not backup and remove.")
+        talk(f"{source_dir} is empty, do not backup and remove.", prefix="backup")
         return False
     except OSError:
         pass
@@ -93,7 +93,7 @@ def backup_folder(
     message += [info_str]
 
     if verbose:
-        talk(message)
+        talk(message, prefix="backup")
 
     return True
 

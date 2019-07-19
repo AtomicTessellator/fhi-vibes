@@ -47,6 +47,8 @@ def step2file(atoms, calc=None, file="trajectory.son", append_cell=True, metadat
         for key, val in metadata.items():
             if key in atoms.info and atoms.info[key] == val:
                 continue
+            if key not in atoms.info:
+                atoms.info[key] = val
             else:
                 atoms.info.update({"metadata": metadata})
                 break

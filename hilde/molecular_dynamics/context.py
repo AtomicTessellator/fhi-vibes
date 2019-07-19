@@ -12,7 +12,7 @@ from hilde.aims.context import AimsContext
 from hilde.settings import TaskSettings
 from hilde.helpers import warn, talk
 from ._defaults import defaults, name, mandatory_base, mandatory_task
-from .workflow import run_md
+from .workflow import run_md, _prefix
 
 
 class MDSettings(TaskSettings):
@@ -115,7 +115,8 @@ class MDContext:
 
             # atomic stresses
             if self.compute_stresses:
-                talk(f"[md] Compute atomic stress every {self.compute_stresses} steps")
+                msg = f"Compute atomic stress every {self.compute_stresses} steps"
+                talk(msg, prefix=_prefix)
                 aims_ctx.settings.obj["compute_heat_flux"] = True
 
             self._calc = aims_ctx.get_calculator()
@@ -150,8 +151,9 @@ class MDContext:
             else:
                 warn(f"MD driver {obj.driver} not supported.", level=2)
 
-            talk(f"[md] driver: {obj.driver}")
-            talk(f"[md] settings: {md.todict()}")
+            talk(f"driver: {obj.driver}", prefix=_prefix)
+            msg = ["settings:", *[f"  {k}: {v}" for k, v in md.todict().items()]]
+            talk(msg, prefix=_prefix)
 
             self._md = md
 
@@ -220,8 +222,8 @@ def prepare_from_trajectory(atoms, md, trajectory):
 
         atoms.set_positions(last_atoms["atoms"]["positions"])
         atoms.set_velocities(last_atoms["atoms"]["velocities"])
-        talk(f"Resume MD from step {md.nsteps} in\n  {trajectory}\n")
+        talk(f"Resume from step {md.nsteps} in {trajectory}", prefix=_prefix)
         return True
 
-    talk(f"** {trajectory} does not exist, nothing to prepare")
+    talk(f"** {trajectory} does not exist, nothing to prepare", prefix=_prefix)
     return False
