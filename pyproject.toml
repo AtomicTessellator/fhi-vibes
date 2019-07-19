@@ -55,3 +55,8 @@ hilde = 'hilde.cli:cli'
 [build-system]
 requires = ["poetry>=0.12", "numpy"]
 build-backend = "poetry.masonry.api"
+
+[tool.black]
+target-version = ['py37']
+
+

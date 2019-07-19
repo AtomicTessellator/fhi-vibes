@@ -1,9 +1,7 @@
 """ run molecular dynamics simulations using the ASE classes """
 
 import numpy as np
-
 from ase.calculators.socketio import SocketIOCalculator
-
 from hilde import son
 from hilde.trajectory import step2file, metadata2file
 from hilde.helpers.aims import get_aims_uuid_dict
@@ -13,11 +11,14 @@ from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.socketio import socket_stress_on, socket_stress_off
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.restarts import restart
-from hilde.helpers import talk, Timer
+from hilde.helpers import talk, warn
 from . import metadata2dict
 
 
 _calc_dirname = "calculations"
+# _socket_timeout = 60
+# _calculation_timeout = 30
+_prefix = "md"
 
 
 def run_md(ctx, timeout=None):
@@ -26,18 +27,18 @@ def run_md(ctx, timeout=None):
     converged = run(ctx)
 
     if not converged:
-        restart(ctx.settings)
+        talk("restart", prefix=_prefix)
+        restart(ctx.settings, trajectory=ctx.trajectory)
     else:
-        talk("done.")
+        talk("done.", prefix=_prefix)
 
 
-def run(ctx, backup_folder="backups", socket_timeout=60):
+def run(ctx, backup_folder="backups"):
     """run and MD for a specific time
 
     Args:
         ctx (MDContext): context of the MD
         backup_folder (str or Path): Path to the back up folders
-        socket_timeout (int): timeout for the socket communication
     Returns:
         bool: True if hit max steps or completed
     """
@@ -72,7 +73,8 @@ def run(ctx, backup_folder="backups", socket_timeout=60):
 
     # does it make sense to start everything?
     if md.nsteps >= maxsteps:
-        talk(f"[md] run already finished, please inspect {workdir.absolute()}")
+        msg = f"run already finished, please inspect {workdir.absolute()}"
+        talk(msg, prefix=_prefix)
         return True
 
     # is the calculation similar enough?
@@ -90,31 +92,36 @@ def run(ctx, backup_folder="backups", socket_timeout=60):
             settings.obj["workdir"] = "."
             settings.write()
 
-    msg = f"Enter socket with timeout: {socket_timeout}"
-    socket_timer = Timer(msg, timeout=socket_timeout)
-
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
         calc_dir, mkdir=True
     ):
 
-        socket_timer("Socket entered")
-
-        if socketio_port is not None:
+        # make sure the socket is entered
+        if socket_calc is not None:
             atoms.calc = iocalc
 
         # log very initial step and metadata
         if md.nsteps == 0:
+            # carefully compute forces
+            if not get_forces(atoms):
+                return False
+            # log metadata
             metadata2file(metadata, file=trajectory)
+            # log initial structure computation
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
-            _ = atoms.get_forces()
             meta = get_aims_uuid_dict()
+            if compute_stresses:
+                stresses = get_stresses(atoms)
+                atoms.calc.results["stresses"] = stresses
+
             step2file(atoms, file=trajectory, metadata=meta, append_cell=False)
 
         while not watchdog() and md.nsteps < maxsteps:
 
-            md.run(1)
+            if not md_step(md):
+                break
 
-            talk(f"Step {md.nsteps} finished, log.")
+            talk(f"Step {md.nsteps} finished, log.", prefix=_prefix)
 
             if compute_stresses_now(compute_stresses, md.nsteps):
                 stresses = get_stresses(atoms)
@@ -123,19 +130,19 @@ def run(ctx, backup_folder="backups", socket_timeout=60):
             # peek into aims file and grep for uuid
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
             meta = get_aims_uuid_dict()
-            step2file(atoms, atoms.calc, trajectory, metadata=meta)
+            step2file(atoms, atoms.calc, trajectory, metadata=meta, append_cell=False)
 
             if compute_stresses:
                 if compute_stresses_next(compute_stresses, md.nsteps):
-                    talk("switch stresses computation on")
+                    talk("switch stresses computation on", prefix=_prefix)
                     socket_stress_on(iocalc)
                 else:
-                    talk("switch stresses computation off")
+                    talk("switch stresses computation off", prefix=_prefix)
                     socket_stress_off(iocalc)
 
                 continue
 
-        talk("Stop MD.\n")
+        talk("Stop.\n", prefix=_prefix)
 
     # restart
     if md.nsteps < maxsteps:
@@ -181,3 +188,75 @@ def check_metadata(new_metadata, old_metadata):
             assert np.allclose(ov, nv, rtol=1e-10), f"{key} changed from {ov} to {nv}"
         else:
             assert ov == nv, f"{key} changed from {ov} to {nv}"
+
+
+def get_forces(atoms):
+    try:
+        _ = atoms.get_forces()
+        return True
+    except OSError as error:
+        warn(f"Error during force computation:")
+        print(error, flush=True)
+        return False
+
+
+def md_step(md):
+    try:
+        md.run(1)
+        return True
+    except OSError as error:
+        warn(f"Error during MD step:")
+        print(error, flush=True)
+        return False
+
+
+# devel stuff from trying out pebble
+# def launch_server(atoms, timeout=_socket_timeout):
+#     """wraps `iocalc.launch_server` with pebble to kill the job if it takes too long
+#
+#     Args:
+#         atoms: Atoms object with `iocalc` attached
+#         timeout: the timeout in seconds
+#     """
+#     talk(f"Enter socket with timeout: {timeout}", prefix=_prefix)
+#     iocalc = atoms.calc
+#
+#     @concurrent.process(timeout=timeout)
+#     def launch(iocalc):
+#         cmd = iocalc.calc.command.replace("PREFIX", iocalc.calc.prefix)
+#         iocalc.calc.write_input(atoms)
+#         iocalc.launch_server(cmd)
+#         time.sleep(2)
+#
+#     return launch(iocalc).result()
+#
+#
+# def get_forces(atoms, timeout=_calculation_timeout):
+#     @concurrent.process(timeout=timeout)
+#     def forces(atoms):
+#         return atoms.get_forces()
+#
+#     try:
+#         forces(atoms).result()
+#         return True
+#     except TimeoutError:
+#         warn("TimeoutError raised while computing force", level=1)
+#         warn("return False", level=1)
+#         return False
+#
+#
+# def md_step(md, timeout=_calculation_timeout):
+#     @concurrent.process(timeout=timeout)
+#     def step(md):
+#         if md.nsteps > 2:
+#             print("h")
+#             time.sleep(20)
+#         return md.run(1)
+#
+#     try:
+#         step(md).result()
+#         return True
+#     except TimeoutError:
+#         warn("TimeoutError raised while computing md step", level=1)
+#         return False
+#
