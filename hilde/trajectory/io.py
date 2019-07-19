@@ -4,33 +4,68 @@ import json
 import numpy as np
 from ase import units
 from hilde import son
+from hilde import __version__ as version
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers import Timer, warn, talk
-# from hilde.trajectory import Trajectory
+from hilde.helpers.converters import results2dict
+from hilde.helpers.converters import dict2json as dumper
 from hilde.helpers.utils import progressbar
+from hilde.trajectory.trajectory import Trajectory
+
+
+def step2file(atoms, calc=None, file="trajectory.son", append_cell=True, metadata={}):
+    """Save the current step
+
+    Args:
+        atoms: The structure at the current step
+        calc: The ASE Calculator for the current run
+        file: Path to file to append the current step to
+        append_cell: If True add cell to the calculation
+        metadata: the metadata for the calculation, store to atoms.info if possible
+    """
+
+    dct = {}
+    if metadata:
+        for key, val in metadata.items():
+            if key in atoms.info and atoms.info[key] == val:
+                continue
+            if key not in atoms.info:
+                atoms.info[key] = val
+            else:
+                atoms.info.update({"metadata": metadata})
+                break
+
+    dct.update(results2dict(atoms, calc, append_cell))
+
+    son.dump(dct, file, dumper=dumper)
+
+
+def metadata2file(metadata, file="metadata.son"):
+    """save metadata to file
+
+    Args:
+        metadata: the metadata to save
+        file: filepath to the output file
+    """
+
+    if metadata is None:
+        metadata = {}
+
+    son.dump({**metadata, "hilde": {"version": version}}, file, is_metadata=True)
 
 
 def reader(file="trajectory.son", get_metadata=False, verbose=True):
-    """Convert information in trajectory and metadata files to atoms objects and return them
+    """Convert information in file to Trajectory
 
-    Parameters
-    ----------
-    trajectory: str
-        Trajectory file to pull the structures from
-    get_metadata: bool
-        If True return the metadata
-    verbose: bool
-        If True print more information to the screen
+    Args:
+        trajectory: Trajectory file to pull the structures from
+        get_metadata: If True return the metadata
+        verbose: If True print more information to the screen
 
-    Returns
-    -------
-    trajectory: Trajectory
-        The trajectory from the file
-    metadata: dict
-        The metadata for the trajectory
+    Returns:
+        trajectory: The trajectory from the file
+        metadata: The metadata for the trajectory
     """
-    from hilde.trajectory import Trajectory
-
     timer = Timer(f"Parse trajectory")
 
     try:
@@ -100,12 +135,9 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
 def to_tdep(trajectory, folder=".", skip=1):
     """Convert to TDEP infiles for direct processing
 
-    Parameters
-    ----------
-    folder: str or Path
-        Directory to store tdep files
-    skip: int
-        Number of structures to skip
+    Args:
+        folder: Directory to store tdep files
+        skip: Number of structures to skip
     """
     from pathlib import Path
     from contextlib import ExitStack
