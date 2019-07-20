@@ -5,14 +5,15 @@ import shutil
 
 import numpy as np
 
-from ase import units
+from ase import units, Atoms
+from ase.calculators.calculator import PropertyNotImplementedError
 from hilde import son
 from hilde.fourier import get_timestep
 from hilde.helpers.converters import results2dict, dict2atoms, input2dict
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import Timer, warn, talk
 from hilde.helpers.utils import progressbar
-from hilde.trajectory import io
+from hilde.trajectory import io, heat_flux as hf  # , dataarray as da
 
 
 class Trajectory(list):
@@ -34,7 +35,16 @@ class Trajectory(list):
             self._metadata = {}
 
         # a bit of lazy eval
+        self._supercell = None
         self._times = None
+        self._positions = None
+        self._velocities = None
+        self._forces = None
+        self._stress = None
+        self._stresses = None
+        self._heat_flux = None
+        self._avg_heat_flux = None
+        self._pressure = None
 
     @classmethod
     def from_file(cls, file):
@@ -53,14 +63,14 @@ class Trajectory(list):
         assert isinstance(metadata, dict)
         self._metadata = metadata
 
-    #     fkdev: Might be useful?
-    #     @property
-    #     def ref_atoms(self):
-    #         """ Reference atoms object for computing displacements etc """
-    #         if "supercell" in self.metadata:
-    #             return dict2atoms(self.metadata["supercell"]["atoms"])
-    #         else:
-    #             return self[0]
+    @property
+    def ref_atoms(self):
+        """Reference atoms object for computing displacements etc"""
+        if self.supercell:
+            return dict2atoms(self.metadata["supercell"]["atoms"])
+        else:
+            warn("No supercell found, return first Atoms in trajectory", level=1)
+            return self[0]
 
     @property
     def primitive(self):
@@ -72,25 +82,48 @@ class Trajectory(list):
     @primitive.setter
     def primitive(self, atoms):
         """ Set the supercell atoms object """
+        assert isinstance(atoms, Atoms)
         dct = input2dict(atoms)
-
         self.metadata["primitive"] = dct
         talk(".. primitive added to metadata.")
 
     @property
     def supercell(self):
         """ Return the supercell if it is there """
-        if "supercell" in self.metadata:
-            return dict2atoms(self.metadata["supercell"]["atoms"])
-        warn("supercell not provided in trajectory metadata")
+        if not self._supercell:
+            if "supercell" in self.metadata:
+                self._supercell = dict2atoms(self.metadata["supercell"]["atoms"])
+            else:
+                warn("supercell not provided in trajectory metadata")
+        return self._supercell
 
     @supercell.setter
     def supercell(self, atoms):
         """ Set the supercell atoms object """
+        assert isinstance(atoms, Atoms)
         dct = input2dict(atoms)
-
         self.metadata["supercell"] = dct
         talk(".. supercell added to metadata.")
+        # also add as attribute
+        self._supercell = atoms
+
+    @property
+    def symbols(self):
+        """return chemical symbols"""
+        return self[0].get_chemical_symbols()
+
+    @property
+    def masses(self):
+        """return masses in AMU"""
+        return self[0].get_masses()
+
+    @property
+    def masses_dict(self):
+        """return masses in AMU as dictionary"""
+        masses_dict = {}
+        for sym, mass in zip(self.symbols, self.masses):
+            masses_dict[sym] = mass
+        return masses_dict
 
     @property
     def times(self):
@@ -114,25 +147,79 @@ class Trajectory(list):
 
     @property
     def temperatures(self):
-        """ return the temperatues as 1d array """
+        """return the temperatues as 1d array"""
         return np.array([a.get_temperature() for a in self])
+
+    @property
+    def ref_positions(self):
+        """return reference positions"""
+        return self.ref_atoms.get_positions()
+
+    @property
+    def positions(self):
+        """return the positions as [N_t, N_a, 3] array"""
+        if self._positions is None:
+            self._positions = np.array([a.get_positions() for a in self])
+        return self._positions
 
     @property
     def velocities(self):
         """return the velocities as [N_t, N_a, 3] array"""
-        return np.array([a.get_velocities() for a in self])
+        if self._velocities is None:
+            self._velocities = np.array([a.get_velocities() for a in self])
+        return self._velocities
+
+    @property
+    def forces(self):
+        """return the forces as [N_t, N_a, 3] array"""
+        if self._forces is None:
+            self._forces = np.array([a.get_forces() for a in self])
+        return self._forces
 
     @property
     def stress(self):
-        """retunr the stress as [N_t, N_a, 3, 3] array"""
-        zeros = np.zeros([3, 3])
-        stresses = []
-        for a in self:
-            if "stress" in a.calc.results:
-                stresses.append(a.get_stress(voigt=False))
-            else:
-                stresses.append(zeros)
-        return np.array(stresses)
+        """return the stress as [N_t, 3, 3] array"""
+        if self._stress is None:
+            zeros = np.zeros([3, 3])
+            stresses = []
+            for a in self:
+                if "stress" in a.calc.results:
+                    stresses.append(a.get_stress(voigt=False))
+                else:
+                    stresses.append(zeros)
+            self._stress = np.array(stresses)
+        return self._stress
+
+    @property
+    def stresses(self):
+        """return the atomic stress as [N_t, N_a, 3, 3] array"""
+        if self._stresses is None:
+            atomic_stresses = []
+            for a in self:
+                V = a.get_volume()
+                try:
+                    atomic_stress = a.get_stresses() / V
+                except PropertyNotImplementedError:
+                    msg = "Trajectory contains atoms without stresses computed. "
+                    msg += "Use `trajectory.with_stresses`"
+                    warn(msg, level=2)
+                atomic_stresses.append(atomic_stress)
+            self._stresses = np.mean(atomic_stresses, axis=0)
+        return self._stresses
+
+    @property
+    def heat_flux(self):
+        """return heat flux as [N_t, N_a, 3] array"""
+        if self._heat_flux is None:
+            self._heat_flux, self._avg_heat_flux = hf.get_heat_flux(self)
+        return self._heat_flux
+
+    @property
+    def avg_heat_flux(self):
+        """return heat flux FROM AVERAGED STRESS as [N_t, N_a, 3] array"""
+        if self._avg_heat_flux is None:
+            self._heat_flux, self._avg_heat_flux = hf.get_heat_flux(self)
+        return self._avg_heat_flux
 
     def get_pressure(self, GPa=False):
         """return the pressure as [N_t] array"""
@@ -144,7 +231,9 @@ class Trajectory(list):
     @property
     def pressure(self):
         """return the pressure as [N_t] array"""
-        return self.get_pressure()
+        if self._pressure is None:
+            self._pressure = self.get_pressure()
+        return self._pressure
 
     def with_result(self, result="stresses"):
         """return new trajectory with atoms object that have specific result computed"""

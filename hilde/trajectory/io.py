@@ -54,12 +54,13 @@ def metadata2file(metadata, file="metadata.son"):
     son.dump({**metadata, "hilde": {"version": version}}, file, is_metadata=True)
 
 
-def reader(file="trajectory.son", get_metadata=False, verbose=True):
+def reader(file="trajectory.son", get_metadata=False, with_stresses=False, verbose=True):
     """Convert information in file to Trajectory
 
     Args:
         trajectory: Trajectory file to pull the structures from
         get_metadata: If True return the metadata
+        with_stresses: Return only the atoms with stresses computed
         verbose: If True print more information to the screen
 
     Returns:
@@ -126,6 +127,10 @@ def reader(file="trajectory.son", get_metadata=False, verbose=True):
         trajectory.append(atoms)
 
     timer("done")
+
+    if with_stresses:
+        talk(".. return only atoms with `stresses` computed")
+        trajectory = trajectory.with_stresses
 
     if get_metadata:
         return trajectory, metadata
