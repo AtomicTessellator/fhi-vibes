@@ -9,10 +9,11 @@ def get_timestep(times):
     d_times = (times - np.roll(times, 1))[1:]
     timestep = np.mean(d_times)
 
-    if any(d_times - timestep > 1e-9):
-        msg = f"delta times - timestep: {d_times - timestep}\n"
-        msg += f"timesteps uneven? Inspect times!"
-        raise ValueError(msg)
+    for ii, dt in enumerate(d_times[1:]):
+        if abs(dt - d_times[ii]) > 1e-9:
+            msg = f"\ndelta times[{ii}] = {d_times[ii]}\n"
+            msg += f"delta times[{ii+1}] = {dt}\n"
+            raise ValueError(msg)
 
     return timestep
 
