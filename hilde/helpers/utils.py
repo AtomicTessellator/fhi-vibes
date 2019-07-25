@@ -47,13 +47,14 @@ def talk(message, prefix=None, verbosity=1):
         print()
 
 
-def print_msg(message, prefix=None, indent=0):
+def print_msg(message, prefix=None, indent=0, width=15):
     """print for talk
 
     Args:
         message (str): message to print
         prefix (str): prefix for message
         indent (int): number of spaces to indent by
+        width (int): width of prefix
     """
     indent = indent * " "
     if not prefix:
@@ -62,21 +63,23 @@ def print_msg(message, prefix=None, indent=0):
         pref = f"[{prefix}] "
     if isinstance(message, list):
         for msg in message:
-            print(f"{indent}{pref:12}{msg}", flush=True)
+            print(f"{indent}{pref:{width}}{msg}", flush=True)
     else:
-        print(f"{indent}{pref:12}{message}", flush=True)
+        print(f"{indent}{pref:{width}}{message}", flush=True)
 
 
 class Timer:
     """simple timer with Timeout function"""
 
-    def __init__(self, message=None, use_talk=True, timeout=None, verbose=True):
+    prefix = None
+
+    def __init__(self, message=None, timeout=None, prefix=None, verbose=True):
         """Initialize
 
         Args:
             message: Message to print at initialization
-            use_talk: If true use talk and not print
             timeout: set a timeout after which a TimeoutError is raised
+            prefix: prefix for `talk'
             verboes: be verbose
 
         Timeout inspired by
@@ -85,14 +88,14 @@ class Timer:
         self.time = time()
         self.verbose = verbose
 
-        if use_talk and talk:
-            self.print = talk
-        else:
-            self.print = lambda msg: print(msg, flush=True)
+        self.print = talk
+
+        if prefix:
+            self.prefix = prefix
 
         self.message = message
         if message and verbose:
-            self.print(message)
+            self.print(message, prefix=self.prefix)
 
         self.timeout = timeout
         if timeout:
@@ -104,9 +107,9 @@ class Timer:
         time_str = f"{time() - self.time:.3f}s"
 
         if info_str.strip() and self.verbose:
-            self.print(f".. {info_str} in {time_str}")
+            self.print(f".. {info_str} in {time_str}", prefix=self.prefix)
         elif self.verbose:
-            self.print(f".. time elapsed: {time_str}")
+            self.print(f".. time elapsed: {time_str}", prefix=self.prefix)
 
         # stop signal alarm if it was initialized
         if self.timeout:

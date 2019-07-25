@@ -10,9 +10,16 @@ Logic:
 # from hilde import son
 # from hilde.helpers.converters import results2dict
 # from hilde.helpers.converters import dict2json as dumper
-from hilde.helpers.hash import hash_atoms
-from hilde.trajectory.io import reader, metadata2file, step2file
-from hilde.trajectory.trajectory import Trajectory, input2dict, results2dict
+from hilde.helpers import talk as _talk, Timer
+
+_prefix = "trajectory"
+
+Timer.prefix = _prefix
+
+
+def talk(msg):
+    """wrapper for `utils.talk` with prefix"""
+    return _talk(msg, prefix=_prefix)
 
 
 def get_hashes_from_trajectory(trajectory, verbose=False):
@@ -31,3 +38,8 @@ def get_hashes_from_trajectory(trajectory, verbose=False):
             hashes.append(hash_atoms(atoms))
 
     return hashes
+
+
+from hilde.helpers.hash import hash_atoms
+from hilde.trajectory.io import reader, metadata2file, step2file
+from hilde.trajectory.trajectory import Trajectory, input2dict, results2dict
