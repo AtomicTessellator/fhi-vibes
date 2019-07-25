@@ -1,11 +1,12 @@
 """compute and analyze heat fluxes"""
 import numpy as np
 import scipy.signal as sl
+from scipy.integrate import cumtrapz
 import xarray as xr
 
 from ase import units
-from hilde.fourier import compute_sed, get_frequencies, get_timestep
-from hilde.helpers import progressbar, talk, Timer
+# from hilde.fourier import compute_sed, get_frequencies, get_timestep
+from . import Timer, talk
 
 
 def gk_prefactor(volume, temperature):
@@ -18,107 +19,36 @@ def gk_prefactor(volume, temperature):
     Returns:
         V / (3 * k_B * T^2) * 1602
     """
-    V = volume
-    T = temperature
-    prefactor = 1 / units.kB / T ** 2 * 1602 * V / 3
-    return prefactor
-
-
-def atoms_with_stresses(trajectory):
-    """return new trajectory with atoms that have stresses computed"""
-    return trajectory.with_stresses
-
-
-def average_atomic_stress(trajectory, verbose=True):
-    """compute average atomic stress from trajectory"""
-    timer = Timer("Compute average atomic stress:", verbose=verbose)
-
-    atomic_stresses = []
-    for a in progressbar(trajectory):
-        V = a.get_volume()
-
-        atomic_stress = a.get_stresses() / V
-        atomic_stresses.append(atomic_stress)
-
-    timer()
-
-    return np.mean(atomic_stresses, axis=0)
-
-
-def get_heat_flux(trajectory, return_avg=False):
-    """compute heat fluxes from TRAJECTORY and return as xarray
-
-    Args:
-        trajectory: list of atoms objects
-        return_avg (bool): return flux per atom
-
-    Returns:
-        flux ([N_t, N_a, 3]): the time resolved heat flux in eV/AA**3/ps
-        avg_flux (optional, [N_t, N_a, 3]): high frequency part of heat flux
-    """
-
-    # get atoms that have stresses computed
-    atoms_w_stress = atoms_with_stresses(trajectory)
-
-    # 1) compute average stresses
-    avg_stresses = average_atomic_stress(atoms_w_stress)
-
-    # 2) compute J_avg from average stresses and dJ from variance
-    timer = Timer("Compute heat fluxes:")
-    fluxes = []
-    avg_fluxes = []
-    times = []
-    for a in progressbar(atoms_w_stress):
-        times.append(a.info["dt_fs"] * a.info["nsteps"])
-        V = a.get_volume()
-        stresses = a.get_stresses() / V
-
-        ds = stresses - avg_stresses
-
-        # velocity in \AA / ps
-        vs = a.get_velocities() * units.fs * 1000
-
-        fluxes.append((ds @ vs[:, :, None]))
-        avg_fluxes.append((avg_stresses @ vs[:, :, None]))
-
-    timestep = get_timestep(times)
-    talk(f".. time step is {timestep:.2f} fs")
-
-    times = np.array(times) - min(times)
-
-    if return_avg:
-        fluxes = np.array(avg_fluxes).squeeze()
-        name = "avg_heat_flux"
-    else:
-        fluxes = np.array(fluxes).squeeze()
-        name = "heat_flux"
-
-    df = xr.DataArray(
-        fluxes, dims=["time", "atom", "coord"], coords={"time": times}, name=name
+    V = float(volume)
+    T = float(temperature)
+    prefactor = 1 / units.kB / T ** 2 * 1602 * V / 3  # * 1000
+    talk(
+        [
+            f"Compute Prefactor:",
+            f".. Volume:       {V:10.2f}  AA^3",
+            f".. Temperature:  {T:10.2f}  K",
+            f"-> Prefactor:    {prefactor:10.2f}  W/mK / (eV/AA^/ps)",
+        ]
     )
-
-    timer()
-
-    return df
+    return float(prefactor)
 
 
-def get_heat_flux_aurocorrelation(trajectory, verbose=True):
-    """compute heat flux autocorrelation function from trajectory
+def get_heat_flux_aurocorrelation(dataset, verbose=True):
+    """compute heat flux autocorrelation function from heat flux Dataset
 
     Args:
-        trajectory: list of atoms objects
+        dataset (xarray.Dataset): the heat flux Dataset
     Returns:
-        heat_flux_autocorrelation (xarray.DataArray [N_t, N_a, 3]) in W/mK/ps
+        heat_flux_autocorrelation (xarray.DataArray [N_t, N_a, 3]) in W/mK/fs
     """
-    traj = trajectory.with_stresses
 
-    flux = get_heat_flux(traj)
+    flux = dataset.heat_flux
 
-    timer = Timer("Get heat flux autocorrelation from trajectory", verbose=verbose)
+    timer = Timer("Get heat flux autocorrelation from heat flux", verbose=verbose)
 
     Nt = len(flux.time)
-    temp = traj.temperatures.mean()
-    vol = traj[0].get_volume()
+    temp = dataset.temperature.mean()
+    vol = dataset.attrs["volume"]
 
     prefactor = gk_prefactor(vol, temp)
 
@@ -134,6 +64,7 @@ def get_heat_flux_aurocorrelation(trajectory, verbose=True):
         flux_corr * prefactor,
         dims=flux.dims,
         coords=flux.coords,
+        attrs={"gk_prefactor": prefactor},
         name="heat flux autocorrelation",
     )
 
@@ -142,22 +73,43 @@ def get_heat_flux_aurocorrelation(trajectory, verbose=True):
     return df_corr
 
 
-def get_cumulative_kappa(trajectory, verbose=True):
-    """get kappa(T)"""
+def get_cumulative_kappa(dataset, analytic=False, verbose=True):
+    """compute cumulative kappa(T) with T the integration boundary in fs
 
-    traj = trajectory.with_stresses
+    Args:
+        dataset (xarray.Dataset): the heat flux Dataset with time in fs
+        analytic (bool): integrate analytially by interpolating the flux
 
-    # dt in ps
-    dt = get_timestep(traj.times) / 1000
+    Returns:
+        cumulative_kappa (xarray.DataArray [N_t, N_a, 3]) in W/mK
+    """
 
     # J_corr in .../ps
-    J_corr = get_heat_flux_aurocorrelation(traj)
+    J_corr = get_heat_flux_aurocorrelation(dataset)
 
-    kappa = (J_corr * dt).cumsum(axis=0)
+    # dt in ps
+    times = dataset.coords["time"] / 1000
+    # dt = get_timestep(times)
+    # d_times = (times - np.roll(times, 1))[1:]
 
-    kappa.name = "kappa"
+    # integrate
+    talk(f"Integrate heat flux autocorrelation function cumulatively")
+    talk(f".. Integrator:   `scipy.integrate.cumtrapz`")
+    talk(f".. analytic:      {analytic}")
 
-    return kappa
+    kappa = cumtrapz(J_corr, times, axis=0, initial=0)
+
+    # fmt: off
+    da = xr.DataArray(
+        kappa,
+        dims=J_corr.dims,
+        coords=J_corr.coords,
+        attrs=J_corr.attrs,
+        name="kappa",
+    )
+    # fmt: on
+
+    return da
 
 
 def F_avalanche(series, delta=20):
