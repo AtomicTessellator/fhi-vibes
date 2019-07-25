@@ -11,9 +11,9 @@ from hilde import son
 from hilde.fourier import get_timestep
 from hilde.helpers.converters import results2dict, dict2atoms, input2dict
 from hilde.helpers.hash import hash_atoms
-from hilde.helpers import Timer, warn, talk
+from hilde.helpers import warn
 from hilde.helpers.utils import progressbar
-from hilde.trajectory import io, heat_flux as hf  # , dataarray as da
+from hilde.trajectory import io, heat_flux as hf, talk, Timer  # , dataarray as da
 
 
 class Trajectory(list):
@@ -45,6 +45,7 @@ class Trajectory(list):
         self._heat_flux = None
         self._avg_heat_flux = None
         self._pressure = None
+        self._volume = None
 
     @classmethod
     def from_file(cls, file):
@@ -110,12 +111,12 @@ class Trajectory(list):
     @property
     def symbols(self):
         """return chemical symbols"""
-        return self[0].get_chemical_symbols()
+        return self.ref_atoms.get_chemical_symbols()
 
     @property
     def masses(self):
         """return masses in AMU"""
-        return self[0].get_masses()
+        return self.ref_atoms.get_masses()
 
     @property
     def masses_dict(self):
@@ -124,6 +125,14 @@ class Trajectory(list):
         for sym, mass in zip(self.symbols, self.masses):
             masses_dict[sym] = mass
         return masses_dict
+
+    @property
+    def volume(self):
+        """return averaged volume"""
+        if not self._volume:
+            volumes = [a.get_volume() for a in self]
+            self._volume = np.mean(volumes).squeeze()
+        return self._volume
 
     @property
     def times(self):
@@ -204,7 +213,7 @@ class Trajectory(list):
                     msg += "Use `trajectory.with_stresses`"
                     warn(msg, level=2)
                 atomic_stresses.append(atomic_stress)
-            self._stresses = np.mean(atomic_stresses, axis=0)
+            self._stresses = atomic_stresses
         return self._stresses
 
     @property
@@ -245,6 +254,16 @@ class Trajectory(list):
     def with_stresses(self):
         """return new trajectory with atoms that have stresses computed"""
         return self.with_result("stresses")
+
+    def discard(self, first=0, last=0):
+        """discard atoms before FIRST and after LAST and return as new Trajectory"""
+        n = len(self)
+        part = self[first : n - last]
+        talk(f"Discard first {first} atoms")
+        talk(f"Discard last  {last} atoms")
+        talk(f".. length before: {n}")
+        talk(f".. length after:  {len(part)}")
+        return Trajectory(part, metadata=self.metadata)
 
     def clean_drift(self):
         """ Clean constant drift CAUTION: respect ASE time unit correctly! """
