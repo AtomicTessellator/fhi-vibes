@@ -2,7 +2,8 @@
 import numpy as np
 
 from ase import units
-from hilde.helpers import progressbar, Timer
+from hilde.helpers import progressbar
+from . import Timer
 
 
 def average_atomic_stresses(trajectory, verbose=True):

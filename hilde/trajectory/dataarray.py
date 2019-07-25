@@ -2,7 +2,8 @@
 import xarray as xr
 
 from ase import units
-from hilde.helpers import Timer, warn
+from hilde.helpers import warn
+from . import Timer
 
 
 def get_velocities_data(trajectory, verbose=True):
@@ -99,9 +100,10 @@ def get_heat_flux_data(trajectory, return_avg=False):
     }
     coords = {"time": trajectory.times}
     attrs = {
+        "volume": trajectory.volume,
         "symbols": trajectory.symbols,
-        "masses_dict": trajectory.masses_dict,
-        "reference positions": trajectory.ref_positions,
+        "masses": trajectory.masses,
+        "flattend reference positions": trajectory.ref_positions.flatten(),
     }
 
     ds = xr.Dataset(dataset, coords=coords, attrs=attrs)
