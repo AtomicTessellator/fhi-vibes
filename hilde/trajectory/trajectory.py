@@ -13,7 +13,7 @@ from hilde.helpers.converters import results2dict, dict2atoms, input2dict
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn
 from hilde.helpers.utils import progressbar
-from hilde.trajectory import io, heat_flux as hf, talk, Timer  # , dataarray as da
+from hilde.trajectory import io, heat_flux as hf, talk, Timer, dataarray as xr
 
 
 class Trajectory(list):
@@ -243,6 +243,23 @@ class Trajectory(list):
         if self._pressure is None:
             self._pressure = self.get_pressure()
         return self._pressure
+
+    @property
+    def heat_flux_data(self):
+        """return heat flux and other data as xarray.Dataset
+
+        Contains:
+            heat_flux,
+            avg_heat_flux,
+            velocities,
+            forces,
+            pressure,
+            temperature
+        Metadata:
+            volume, symbols, masses, flattend reference positions
+        """
+        DS = xr.get_heat_flux_data(self)
+        return DS
 
     def with_result(self, result="stresses"):
         """return new trajectory with atoms object that have specific result computed"""

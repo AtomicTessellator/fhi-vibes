@@ -5,6 +5,9 @@ from ase import units
 from hilde.helpers import warn
 from . import Timer
 
+time_index = "time"
+vec_index = [time_index, "atom", "i"]
+
 
 def get_velocities_data(trajectory, verbose=True):
     """extract velocties from TRAJECTORY  and return as xarray.DataArray
@@ -27,8 +30,8 @@ def get_velocities_data(trajectory, verbose=True):
 
     df = xr.DataArray(
         velocities,
-        dims=["time", "atom", "coord"],
-        coords={"time": times},
+        dims=vec_index,
+        coords={time_index: times},
         name="velocities",
         attrs=metadata,
     )
@@ -48,23 +51,30 @@ def get_pressure_data(trajectory, GPa=False, verbose=True):
     """
     timer = Timer("Get pressure from trajectory", verbose=verbose)
 
+    unit = 1.0
+    if GPa:
+        unit = units.GPa
+
     metadata = {
         "time unit": "fs",
         "timestep": trajectory.timestep,
         "atoms": trajectory.symbols,
-        "GPa": GPa,
+        "to_eV": unit,
     }
 
     times = trajectory.times
 
-    pressure = trajectory.pressure
+    pressure = trajectory.pressure / unit
 
-    if GPa:
-        pressure /= units.GPa
-
+    # fmt: off
     df = xr.DataArray(
-        pressure, dims=["time"], coords={"time": times}, name="pressure", attrs=metadata
+        pressure,
+        dims=[time_index],
+        coords={time_index: times},
+        name="pressure",
+        attrs=metadata,
     )
+    # fmt: on
 
     timer()
 
@@ -88,17 +98,19 @@ def get_heat_flux_data(trajectory, return_avg=False):
         warn("remove atoms from trajectory without stresses", level=1)
         trajectory = traj_w_stresses
 
-    vec_index = ["time", "atom", "i"]
-    scalar_index = "time"
+    # add velocities and pressure
+    pressure = get_pressure_data(trajectory)
+    velocities = get_velocities_data(trajectory)
 
     dataset = {
         "heat_flux": (vec_index, trajectory.heat_flux),
         "avg_heat_flux": (vec_index, trajectory.avg_heat_flux),
-        "velocities": (vec_index, trajectory.velocities),
+        "velocities": velocities,  # (vec_index, trajectory.velocities),
         "forces": (vec_index, trajectory.forces),
-        "temperature": (scalar_index, trajectory.temperatures),
+        "pressure": pressure,
+        "temperature": (time_index, trajectory.temperatures),
     }
-    coords = {"time": trajectory.times}
+    coords = {time_index: trajectory.times}
     attrs = {
         "volume": trajectory.volume,
         "symbols": trajectory.symbols,
@@ -106,6 +118,6 @@ def get_heat_flux_data(trajectory, return_avg=False):
         "flattend reference positions": trajectory.ref_positions.flatten(),
     }
 
-    ds = xr.Dataset(dataset, coords=coords, attrs=attrs)
+    DS = xr.Dataset(dataset, coords=coords, attrs=attrs)
 
-    return ds
+    return DS
