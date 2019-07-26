@@ -7,6 +7,7 @@ from . import Timer
 
 time_index = "time"
 vec_index = [time_index, "atom", "i"]
+stress_index = [time_index, "i", "j"]
 
 
 def _time_coords(trajectory):
@@ -106,6 +107,35 @@ def get_pressure_data(trajectory, GPa=False, verbose=True):
     return df
 
 
+def get_trajectory_data(trajectory):
+    """Return trajectory data as xarray.Dataset
+
+    Args:
+        trajectory: list of atoms objects WITH ATOMIC STRESS computed
+    Returns:
+        xarray.Dataset:
+            positions, velocities, forces, stress, pressure, temperature
+    """
+
+    # add velocities and pressure
+    positions = get_positions_data(trajectory)
+    velocities = get_velocities_data(trajectory)
+    pressure = get_pressure_data(trajectory)
+
+    dataset = {
+        "positions": positions,
+        "velocities": velocities,
+        "forces": (vec_index, trajectory.forces),
+        "stress": (stress_index, trajectory.stress),
+        "pressure": pressure,
+        "temperature": (time_index, trajectory.temperatures),
+    }
+    coords = _time_coords(trajectory)
+    attrs = _metadata(trajectory)
+
+    return xr.Dataset(dataset, coords=coords, attrs=attrs)
+
+
 def get_heat_flux_data(trajectory, return_avg=False):
     """compute heat fluxes from TRAJECTORY and return as xarray
 
@@ -124,18 +154,16 @@ def get_heat_flux_data(trajectory, return_avg=False):
         trajectory = traj_w_stresses
 
     # add velocities and pressure
-    pressure = get_pressure_data(trajectory)
-    positions = get_positions_data(trajectory)
-    velocities = get_velocities_data(trajectory)
+    data = get_trajectory_data(trajectory)
 
     dataset = {
         "heat_flux": (vec_index, trajectory.heat_flux),
         "avg_heat_flux": (vec_index, trajectory.avg_heat_flux),
-        "positions": positions,
-        "velocities": velocities,
-        "forces": (vec_index, trajectory.forces),
-        "pressure": pressure,
-        "temperature": (time_index, trajectory.temperatures),
+        "positions": data.positions,
+        "velocities": data.velocities,
+        "forces": data.forces,
+        "pressure": data.pressure,
+        "temperature": data.temperature,
     }
     coords = _time_coords(trajectory)
     attrs = _metadata(trajectory)
