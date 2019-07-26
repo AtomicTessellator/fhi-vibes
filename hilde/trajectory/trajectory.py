@@ -247,21 +247,24 @@ class Trajectory(list):
         return self._pressure
 
     @property
-    def heat_flux_data(self):
+    def dataset(self):
+        """return data as xarray.Dataset
+
+        Contains:
+            positions, velocities, forces, stress, pressure, temperature
+        """
+        return xr.get_trajectory_data(self)
+
+    @property
+    def heat_flux_dataset(self):
         """return heat flux and other data as xarray.Dataset
 
         Contains:
-            heat_flux,
-            avg_heat_flux,
-            velocities,
-            forces,
-            pressure,
-            temperature
+            heat_flux, avg_heat_flux, velocities, forces, pressure, temperature
         Metadata:
             volume, symbols, masses, flattend reference positions
         """
-        DS = xr.get_heat_flux_data(self)
-        return DS
+        return xr.get_heat_flux_data(self)
 
     def with_result(self, result="stresses"):
         """return new trajectory with atoms object that have specific result computed"""
