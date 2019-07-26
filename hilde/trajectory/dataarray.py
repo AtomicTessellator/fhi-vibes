@@ -105,6 +105,7 @@ def get_heat_flux_data(trajectory, return_avg=False):
     dataset = {
         "heat_flux": (vec_index, trajectory.heat_flux),
         "avg_heat_flux": (vec_index, trajectory.avg_heat_flux),
+        "positions": (vec_index, trajectory.positions),
         "velocities": velocities,  # (vec_index, trajectory.velocities),
         "forces": (vec_index, trajectory.forces),
         "pressure": pressure,
