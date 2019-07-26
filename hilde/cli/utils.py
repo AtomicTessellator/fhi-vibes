@@ -135,7 +135,7 @@ def tool_nomad_upload(folders, token, dry):
     nomad_upload(folders, token, dry)
 
 
-@utils.command(cls=AliasedGroup, hidden=True)
+@utils.command(cls=AliasedGroup)
 def trajectory():
     """trajectory utils"""
 

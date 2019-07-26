@@ -3,6 +3,7 @@ from pathlib import Path
 
 import click
 
+from hilde.trajectory import reader
 from hilde.phonopy._defaults import defaults
 
 from .misc import AliasedGroup, complete_filenames
@@ -11,6 +12,27 @@ from .misc import AliasedGroup, complete_filenames
 @click.command(cls=AliasedGroup)
 def output():
     """produce output of hilde workfow"""
+
+
+@output.command("md")
+@click.argument("trajectory", type=complete_filenames)
+@click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
+def md_output(trajectory, heat_flux):
+    """write data in trajectory as xarray.Dataset"""
+
+    click.echo(f"Extract Trajectory dataset from {trajectory}")
+    traj = reader(file=trajectory, with_stresses=heat_flux)
+
+    outfile = "trajectory.nc"
+    DS = traj.dataset
+    DS.to_netcdf(outfile)
+    click.echo(f"Trajectory dataset written to {outfile}")
+
+    if heat_flux:
+        outfile = "heat_flux.nc"
+        DS = traj.heat_flux_dataset
+        DS.to_netcdf(outfile)
+        click.echo(f"Heat flux dataset written to {outfile}")
 
 
 @output.command("phonopy")

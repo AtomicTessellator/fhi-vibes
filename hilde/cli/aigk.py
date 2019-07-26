@@ -18,14 +18,15 @@ def autocorrelation():
 
 
 @autocorrelation.command("vdos")
-@click.argument("filename", default="velocities.nc", type=complete_filenames)
+@click.argument("filename", default="trajectory.nc", type=complete_filenames)
 @click.option("-o", "--output_filename", default="vdos.csv")
 @click.option("-p", "--plot", is_flag=True, help="plot the DOS")
 def velocity_autocorrelation(filename, output_filename, plot):
     """write velocity autocorrelation function to output file"""
     from hilde.green_kubo.velocities import get_vdos, simple_plot
 
-    velocities = xr.open_dataarray(filename)
+    click.echo(f"Read {filename} and extract velocities")
+    velocities = xr.open_dataset(filename).velocities
 
     vdos = get_vdos(velocities=velocities, verbose=True)
 

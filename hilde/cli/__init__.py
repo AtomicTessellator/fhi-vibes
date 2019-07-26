@@ -1,15 +1,12 @@
 """CLI for hilde with click"""
 
 import shutil
-from pathlib import Path
-import importlib.resources as pkg_resources
 
 import click
 import click_completion
 
 from hilde import __version__ as hilde_version
 from hilde.settings import Configuration
-from hilde.helpers.utils import bold
 from hilde._defaults import DEFAULT_CONFIG_FILE
 from .cli_tracker import CliTracker
 from . import info, template, run, utils, output, aigk
