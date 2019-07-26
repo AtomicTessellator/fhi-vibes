@@ -233,6 +233,8 @@ class Trajectory(list):
     def get_pressure(self, GPa=False):
         """return the pressure as [N_t] array"""
         pressure = np.array([-1 / 3 * np.trace(stress) for stress in self.stress])
+        assert len(pressure) == len(self)
+
         if GPa:
             pressure /= units.GPa
         return pressure

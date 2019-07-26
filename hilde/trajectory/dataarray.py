@@ -9,6 +9,51 @@ time_index = "time"
 vec_index = [time_index, "atom", "i"]
 
 
+def _time_coords(trajectory):
+    """return time as coords dict"""
+    coords = {time_index: trajectory.times}
+    return coords
+
+
+def _metadata(trajectory, dct=None):
+    """return metadata dictionary with defaults + custom dct"""
+    attrs = {
+        "time unit": "fs",
+        "timestep": trajectory.timestep,
+        "volume": trajectory.volume,
+        "symbols": trajectory.symbols,
+        "flattend reference positions": trajectory.ref_positions.flatten(),
+    }
+
+    if dct and isinstance(dct, dict):
+        attrs.update(dct)
+
+    return attrs
+
+
+def get_positions_data(trajectory, verbose=True):
+    """extract positions from TRAJECTORY  and return as xarray.DataArray
+
+    Args:
+        trajectory (Trajectory): list of atoms objects
+    Returns:
+        positions (xarray.DataArray [N_t, N_a, 3])
+    """
+    timer = Timer("Get positions from trajectory", verbose=verbose)
+
+    df = xr.DataArray(
+        trajectory.positions,
+        dims=vec_index,
+        coords=_time_coords(trajectory),
+        name="positions",
+        attrs=_metadata(trajectory),
+    )
+
+    timer()
+
+    return df
+
+
 def get_velocities_data(trajectory, verbose=True):
     """extract velocties from TRAJECTORY  and return as xarray.DataArray
 
@@ -19,21 +64,12 @@ def get_velocities_data(trajectory, verbose=True):
     """
     timer = Timer("Get velocities from trajectory", verbose=verbose)
 
-    metadata = {
-        "time unit": "fs",
-        "timestep": trajectory.timestep,
-        "atoms": trajectory.symbols,
-    }
-
-    times = trajectory.times
-    velocities = trajectory.velocities
-
     df = xr.DataArray(
-        velocities,
+        trajectory.velocities,
         dims=vec_index,
-        coords={time_index: times},
+        coords=_time_coords(trajectory),
         name="velocities",
-        attrs=metadata,
+        attrs=_metadata(trajectory),
     )
 
     timer()
@@ -55,26 +91,15 @@ def get_pressure_data(trajectory, GPa=False, verbose=True):
     if GPa:
         unit = units.GPa
 
-    metadata = {
-        "time unit": "fs",
-        "timestep": trajectory.timestep,
-        "atoms": trajectory.symbols,
-        "to_eV": unit,
-    }
+    extra_metadata = {"to_eV": unit}
 
-    times = trajectory.times
-
-    pressure = trajectory.pressure / unit
-
-    # fmt: off
     df = xr.DataArray(
-        pressure,
+        trajectory.pressure / unit,
         dims=[time_index],
-        coords={time_index: times},
+        coords=_time_coords(trajectory),
         name="pressure",
-        attrs=metadata,
+        attrs=_metadata(trajectory, dct=extra_metadata),
     )
-    # fmt: on
 
     timer()
 
@@ -100,25 +125,19 @@ def get_heat_flux_data(trajectory, return_avg=False):
 
     # add velocities and pressure
     pressure = get_pressure_data(trajectory)
+    positions = get_positions_data(trajectory)
     velocities = get_velocities_data(trajectory)
 
     dataset = {
         "heat_flux": (vec_index, trajectory.heat_flux),
         "avg_heat_flux": (vec_index, trajectory.avg_heat_flux),
-        "positions": (vec_index, trajectory.positions),
-        "velocities": velocities,  # (vec_index, trajectory.velocities),
+        "positions": positions,
+        "velocities": velocities,
         "forces": (vec_index, trajectory.forces),
         "pressure": pressure,
         "temperature": (time_index, trajectory.temperatures),
     }
-    coords = {time_index: trajectory.times}
-    attrs = {
-        "volume": trajectory.volume,
-        "symbols": trajectory.symbols,
-        "masses": trajectory.masses,
-        "flattend reference positions": trajectory.ref_positions.flatten(),
-    }
+    coords = _time_coords(trajectory)
+    attrs = _metadata(trajectory)
 
-    DS = xr.Dataset(dataset, coords=coords, attrs=attrs)
-
-    return DS
+    return xr.Dataset(dataset, coords=coords, attrs=attrs)
