@@ -438,7 +438,8 @@ class TaskSettings(Settings):
 
         # use the file specified in geometry.file or the default (geometry.in)
         if "geometry" in self and "file" in self.geometry and self.geometry.file:
-            file = next(Path().glob(self.geometry.file))
+            path = Path(self.geometry.file)
+            file = next(path.parent.glob(path.name))
         else:
             file = DEFAULT_GEOMETRY_FILE
 
