@@ -114,14 +114,19 @@ def get_vdos(velocities=None, trajectory=None, verbose=True):
     return df_vdos
 
 
-def simple_plot(series, file="vdos.pdf"):
+def simple_plot(series, file="vdos.pdf", height=0.05):
     """simple plot of VDOS for overview purpose
 
     Args:
         series (pandas.Series): Intensity vs. omega
+        file (str): file to store the plot to
+        height (float): minimal height to detect peaks
     """
+    # normalize peaks
+    series /= series.max()
     # find peaks:
-    peaks, *_ = sl.find_peaks(series)
+    peaks, *_ = sl.find_peaks(series, height=height)
+    print(peaks)
     high_freq = series.index[peaks[-1]]
     ax = series.plot()
     ax.set_xlim([0, 1.2 * high_freq])
