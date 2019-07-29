@@ -230,7 +230,7 @@ class Settings(ConfigDict):
         if read_config:
             config_files = [config_file, settings_file, fireworks_file]
         else:
-            config_files = settings_file
+            config_files = [settings_file]
 
         if dct:
             super().__init__(dct=dct)
