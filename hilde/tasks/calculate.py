@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 from hilde.helpers import talk
+from hilde.helpers.utils import Spinner
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
 from hilde.helpers.watchdogs import SlurmWatchdog as Watchdog
@@ -207,8 +208,11 @@ def calculate_socket(
                     wd = "."
 
                 # compute and save the aims UUID
-                talk(f"Compute structure {n_cell + 1} of {len(atoms_to_calculate)}")
-                with cwd(wd, mkdir=True):
+                msg = "[hilde]     Compute structure "
+                msg += f"{n_cell + 1} of {len(atoms_to_calculate)}"
+                # talk(msg)
+
+                with cwd(wd, mkdir=True), Spinner(msg):
                     atoms.calc.calculate(atoms, system_changes=["positions"])
                     meta = get_aims_uuid_dict()
 
