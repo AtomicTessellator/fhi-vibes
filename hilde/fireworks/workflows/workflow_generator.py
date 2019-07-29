@@ -87,7 +87,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
     # Phonon Calculations
     phonon_fws = []
     phonon3_fws = []
-    stat_samp_fws = []
+    # stat_samp_fws = []
     aims_calc_fws = []
     if "phonopy" in workflow_settings:
         ignore_keys = ["trigonal", "q_mesh"]
@@ -165,26 +165,26 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
         fw_dep[phonon3_fws[0]] = phonon3_fws[1]
 
     # Statistical Sampling
-    if "statistical_sampling" in workflow_settings:
-        if "phonopy" in workflow_settings:
-            if workflow_settings.phonopy.get("converge_phonons", False):
-                workflow_settings.statistical_sampling[
-                    "phonon_file"
-                ] = f"{workflow_settings.general.workdir_local}/converged/trajectory.son"
-            else:
-                workflow_settings.statistical_sampling[
-                    "phonon_file"
-                ] = f"{workflow_settings.general.workdir_local}/phonopy_analysis/trajectory.son"
-            fw_settings["in_spec_atoms"] = "ph_supercell"
-            fw_settings["in_spec_calc"] = "ph_calculator"
-            fw_settings["from_db"] = True
-        stat_samp_fws.append(
-            generate_stat_samp_fw(workflow_settings, atoms, fw_settings)
-        )
-        if "phonopy" in workflow_settings:
-            fw_dep[phonon_fws[1]].append(stat_samp_fws[0])
-        elif final_initialize_fw:
-            fw_dep[final_initialize_fw].append(stat_samp_fws[0])
+    # if "statistical_sampling" in workflow_settings:
+    #     if "phonopy" in workflow_settings:
+    #         if workflow_settings.phonopy.get("converge_phonons", False):
+    #             workflow_settings.statistical_sampling[
+    #                 "phonon_file"
+    #             ] = f"{workflow_settings.general.workdir_local}/converged/trajectory.son"
+    #         else:
+    #             workflow_settings.statistical_sampling[
+    #                 "phonon_file"
+    #             ] = f"{workflow_settings.general.workdir_local}/phonopy_analysis/trajectory.son"
+    #         fw_settings["in_spec_atoms"] = "ph_supercell"
+    #         fw_settings["in_spec_calc"] = "ph_calculator"
+    #         fw_settings["from_db"] = True
+    #     stat_samp_fws.append(
+    #         generate_stat_samp_fw(workflow_settings, atoms, fw_settings)
+    #     )
+    #     if "phonopy" in workflow_settings:
+    #         fw_dep[phonon_fws[1]].append(stat_samp_fws[0])
+    #     elif final_initialize_fw:
+    #         fw_dep[final_initialize_fw].append(stat_samp_fws[0])
 
     # Aims Calculations if no other term is present
     if not fw_steps and not phonon_fws and not phonon3_fws and not stat_samp_fws:

@@ -12,7 +12,6 @@ from hilde.fireworks.tasks.task_spec import TaskSpec
 from hilde.fireworks.tasks.utility_tasks import update_calc
 from hilde.fireworks.workflows.task_spec_generator import (
     gen_phonon_task_spec,
-    gen_stat_samp_task_spec,
     gen_phonon_analysis_task_spec,
     gen_aims_task_spec,
     gen_kgrid_task_spec,
@@ -604,47 +603,47 @@ def generate_phonon_postprocess_fw_in_wf(
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 
-def generate_stat_samp_fw(workflow, atoms, fw_settings):
-    """
-    Generates a Firework for the phonon initialization
-    Args:
-        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
-        wd (str): Workdirectory
-        fw_settings (dict): Firework settings for the step
-        qadapter (dict): The queueadapter for the step
-        stat_samp_settings (dict): kwargs for the harmonic analysis
+# def generate_stat_samp_fw(workflow, atoms, fw_settings):
+#     """
+#     Generates a Firework for the phonon initialization
+#     Args:
+#         atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
+#         wd (str): Workdirectory
+#         fw_settings (dict): Firework settings for the step
+#         qadapter (dict): The queueadapter for the step
+#         stat_samp_settings (dict): kwargs for the harmonic analysis
 
-    Returns:
-        (Firework): Firework for the harmonic analysis initialization
-    """
-    if "statistical_sampling_qadapter" in workflow:
-        qadapter = workflow["statistical_sampling_qadapter"]
-    elif "phonopy_qadapter" in workflow:
-        qadapter = workflow["phonopy_qadapter"]
-    else:
-        qadapter = None
+#     Returns:
+#         (Firework): Firework for the harmonic analysis initialization
+#     """
+#     if "statistical_sampling_qadapter" in workflow:
+#         qadapter = workflow["statistical_sampling_qadapter"]
+#     elif "phonopy_qadapter" in workflow:
+#         qadapter = workflow["phonopy_qadapter"]
+#     else:
+#         qadapter = None
 
-    if qadapter and "walltime" in qadapter:
-        workflow.statistical_sampling["walltime"] = str2time(qadapter["walltime"])
-    else:
-        workflow.statistical_sampling["walltime"] = 1800
+#     if qadapter and "walltime" in qadapter:
+#         workflow.statistical_sampling["walltime"] = str2time(qadapter["walltime"])
+#     else:
+#         workflow.statistical_sampling["walltime"] = 1800
 
-    workflow.statistical_sampling[
-        "workdir"
-    ] = f"{workflow.general.workdir_cluster}/statistical_sampling/"
+#     workflow.statistical_sampling[
+#         "workdir"
+#     ] = f"{workflow.general.workdir_cluster}/statistical_sampling/"
 
-    if "phonon_file" not in workflow.statistical_sampling:
-        if "phonpy" not in workflow:
-            raise IOError("phonon file must be given")
+#     if "phonon_file" not in workflow.statistical_sampling:
+#         if "phonpy" not in workflow:
+#             raise IOError("phonon file must be given")
 
-        if workflow.phonopy.get("converge_phonons", False):
-            workflow.statistical_sampling[
-                "phonon_file"
-            ] = f"{workflow.general.workdir_local}/converged/trajectory.son"
-        else:
-            workflow.statistical_sampling[
-                "phonon_file"
-            ] = f"{workflow.general.workdir_local}/phonopy_analysis/trajectory.son"
+#         if workflow.phonopy.get("converge_phonons", False):
+#             workflow.statistical_sampling[
+#                 "phonon_file"
+#             ] = f"{workflow.general.workdir_local}/converged/trajectory.son"
+#         else:
+#             workflow.statistical_sampling[
+#                 "phonon_file"
+#             ] = f"{workflow.general.workdir_local}/phonopy_analysis/trajectory.son"
 
 
 def generate_aims_fw(workflow, atoms, fw_settings):
