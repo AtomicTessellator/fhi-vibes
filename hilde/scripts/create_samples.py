@@ -70,7 +70,7 @@ def create_samples(
             exit("** temperature needs to be given")
 
     if not seed:
-        seed = np.random.randint(2 ** 32 - 1)
+        seed = np.random.randint(2 ** 31)
 
     if sobol:
         from hilde.helpers.sobol import RandomState
