@@ -9,6 +9,7 @@ from hilde.fireworks.workflows.firework_generator import (
     generate_phonon_postprocess_fw,
     # generate_stat_samp_fw,
     generate_aims_fw,
+    generate_gruniesen_fd_fw,
 )
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.phonopy import defaults as ph_defaults
@@ -113,6 +114,26 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
         if final_initialize_fw:
             fw_dep[final_initialize_fw].append(phonon_fws[0])
         fw_dep[phonon_fws[0]] = phonon_fws[1]
+        if getattr(workflow_settings.phonopy, "get_gruniesen", False):
+            if getattr(workflow_settings.phonopy, "converge_phonons", False):
+                trajectory = (
+                    workflow_settings.general.workdir_local
+                    + "/converged_mn_1/trajectory.son"
+                )
+            else:
+                trajectory = (
+                    workflow_settings.general.workdir_local
+                    + "/phonopy_analysis/trajectory.son"
+                )
+
+            phonon_fws.append(
+                generate_gruniesen_fd_fw(
+                    workflow_settings, atoms, trajectory, fw_settings
+                )
+            )
+            fw_dep[phonon_fws[1]] = [phonon_fws[-1]]
+        else:
+            fw_dep[phonon_fws[1]] = []
 
     if "phono3py" in workflow_settings:
         from hilde.phono3py import defaults as ph3_defaults
@@ -143,24 +164,27 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
             fw_dep[final_initialize_fw].append(phonon3_fws[0])
         fw_dep[phonon3_fws[0]] = phonon3_fws[1]
 
-    # Harmonic Analysis
-    # if "statistical_sampling" in workflow_settings:
-    #     if "phonopy" in workflow_settings:
-    #         if workflow_settings.phonopy.get("converge_phonons", False):
-    #             workflow_settings.statistical_sampling[
-    #                 "phonon_file"
-    #             ] = f"{workflow_settings.general.workdir_local}/converged/trajectory.son"
-    #         else:
-    #             workflow_settings.statistical_sampling[
-    #                 "phonon_file"
-    #             ] = f"{workflow_settings.general.workdir_local}//phonopy_analysis/trajectory.son"
-    #     stat_samp_fws.append(
-    #         generate_stat_samp_fw(workflow_settings, atoms, fw_settings)
-    #     )
-    #     if "phonopy" in workflow_settings:
-    #         fw_dep[phonon_fws[-1]] = stat_samp_fws[0]
-    #     elif final_initialize_fw:
-    #         fw_dep[final_initialize_fw].append(stat_samp_fws[0])
+    # Statistical Sampling
+    if "statistical_sampling" in workflow_settings:
+        if "phonopy" in workflow_settings:
+            if workflow_settings.phonopy.get("converge_phonons", False):
+                workflow_settings.statistical_sampling[
+                    "phonon_file"
+                ] = f"{workflow_settings.general.workdir_local}/converged/trajectory.son"
+            else:
+                workflow_settings.statistical_sampling[
+                    "phonon_file"
+                ] = f"{workflow_settings.general.workdir_local}/phonopy_analysis/trajectory.son"
+            fw_settings["in_spec_atoms"] = "ph_supercell"
+            fw_settings["in_spec_calc"] = "ph_calculator"
+            fw_settings["from_db"] = True
+        stat_samp_fws.append(
+            generate_stat_samp_fw(workflow_settings, atoms, fw_settings)
+        )
+        if "phonopy" in workflow_settings:
+            fw_dep[phonon_fws[1]].append(stat_samp_fws[0])
+        elif final_initialize_fw:
+            fw_dep[final_initialize_fw].append(stat_samp_fws[0])
 
     # Aims Calculations if no other term is present
     if not fw_steps and not phonon_fws and not phonon3_fws and not stat_samp_fws:
@@ -175,8 +199,11 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
     for fw in aims_calc_fws:
         fw_steps.append(fw)
 
-    if launchpad_yaml:
-        launchpad = LaunchPad.from_file(launchpad_yaml)
+    if to_launchpad:
+        if launchpad_yaml:
+            launchpad = LaunchPad.from_file(launchpad_yaml)
+        else:
+            launchpad = LaunchPad.auto_load()
+        launchpad.add_wf(Workflow(fw_steps, fw_dep, name=fw_settings["name"]))
     else:
-        launchpad = LaunchPad.auto_load()
-    launchpad.add_wf(Workflow(fw_steps, fw_dep, name=fw_settings["name"]))
+        return Workflow(fw_steps, fw_dep, name=fw_settings["name"])

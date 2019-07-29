@@ -16,40 +16,20 @@ from hilde.fireworks.workflows.task_spec_generator import (
     gen_phonon_analysis_task_spec,
     gen_aims_task_spec,
     gen_kgrid_task_spec,
+    gen_gruniesen_task_spec,
 )
 from hilde.helpers.hash import hash_atoms_and_calc
 from hilde.helpers.k_grid import update_k_grid, update_k_grid_calc_dict
+from hilde.helpers.watchdogs import str2time
 from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
 from hilde.phonopy.wrapper import preprocess
 
 
-def get_time(time_str):
-    """Converts a time step to the number of seconds that time stamp represents
-
-    Parameters
-    ----------
-    time_str: str
-        A string representing a specified time
-
-    Returns
-    -------
-    n_secs: int
-        A time presented as a number of seconds
+def time2str(n_sec):
     """
-    time_set = time_str.split(":")
-    n_secs = 0
-    for ii, tt in enumerate(time_set):
-        n_secs += int(round(float(tt))) * 60 ** (len(time_set) - 1 - ii)
-    return int(n_secs)
-
-
-def to_time_str(n_sec):
-    """Converts a number of seconds into a time string
-
-    Parameters
-    ----------
-    n_secs: int
-        A time presented as a number of seconds
+    Converts a number of seconds into a time string
+    Args:
+        n_secs (int): A time presented as a number of seconds
 
     Returns
     -------
@@ -58,8 +38,9 @@ def to_time_str(n_sec):
     """
     secs = int(n_sec % 60)
     mins = int(n_sec / 60) % 60
-    hrs = int(n_sec / 3600)
-    return f"{hrs}:{mins}:{secs}"
+    hrs = int(n_sec / 3600) % 24
+    days = int(n_sec / 86400)
+    return f"{days}-{hrs}:{mins}:{secs}"
 
 
 def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=True):
@@ -182,8 +163,8 @@ def generate_firework(
     if isinstance(task_spec_list, TaskSpec):
         task_spec_list = [task_spec_list]
 
-    if fw_settings and "from_db" in fw_settings:
-        atoms_calc_from_spec = fw_settings["from_db"]
+    if fw_settings:
+        atoms_calc_from_spec = fw_settings.get("from_db", False)
 
     if "fw_name" not in fw_settings:
         fw_settings["fw_base_name"] = ""
@@ -338,7 +319,7 @@ def generate_kgrid_fw(workflow, atoms, fw_settings):
     }
 
     if qadapter and "walltime" in qadapter:
-        func_kwargs["walltime"] = get_time(qadapter["walltime"])
+        func_kwargs["walltime"] = str2time(qadapter["walltime"])
     else:
         func_kwargs["walltime"] = 1800
 
@@ -382,17 +363,20 @@ def generate_relax_fw(workflow, atoms, fw_settings, basisset_type):
     if "relaxation" in workflow:
         method = workflow.relaxation.get("method", "trm")
         force_crit = workflow.relaxation.get("conv_crit", 1e-3)
+        relax_unit_cell = workflow.relaxation.get("relax_unit_cell", "full")
     else:
         method = "trm"
         force_crit = 1e-3
+        relax_unit_cell = "full"
 
     update_settings = {
         "relax_geometry": f"{method} {force_crit}",
-        "relax_unit_cell": "full",
         "basisset_type": basisset_type,
         "scaled": True,
+        "relax_unit_cell": relax_unit_cell,
         "use_sym": True,
     }
+
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, True)
 
 
@@ -421,19 +405,6 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
     else:
         qadapter = dict()
 
-    if (
-        workflow[typ].get("serial", True)
-        and "spec" in fw_settings
-        and "prev_dos_fp" in fw_settings["spec"]
-    ):
-        _, _, scs = preprocess(atoms, workflow[typ]["supercell_matrix"])
-        qadapter["walltime"] = to_time_str(get_time(qadapter["walltime"]) * len(scs))
-
-    if "walltime" in qadapter:
-        workflow[typ]["walltime"] = get_time(qadapter["walltime"])
-    else:
-        workflow[typ]["walltime"] = 1800
-
     update_settings = {}
     if "basisset_type" in workflow[typ]:
         update_settings["basisset_type"] = workflow[typ].pop("basisset_type")
@@ -442,6 +413,22 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
         update_settings["use_pimd_wrapper"] = workflow[typ].pop("socket_io_port")
     elif "use_pimd_wrapper" in workflow[typ]:
         update_settings["use_pimd_wrapper"] = workflow[typ].pop("use_pimd_wrapper")
+
+    if (
+        workflow[typ].get("serial", True)
+        and "spec" in fw_settings
+        and "prev_dos_fp" in fw_settings["spec"]
+    ):
+        ph, _, scs = preprocess(atoms, workflow[typ]["supercell_matrix"])
+        qadapter["walltime"] = time2str(str2time(qadapter["walltime"]) * len(scs))
+        if len(atoms) * np.linalg.det(ph.get_supercell_matrix()) > 200:
+            update_settings["use_local_index"] = True
+            update_settings["load_balancing"] = True
+
+    if "walltime" in qadapter:
+        workflow[typ]["walltime"] = str2time(qadapter["walltime"])
+    else:
+        workflow[typ]["walltime"] = 1800
 
     fw_settings["fw_name"] = typ
     workflow[typ]["workdir"] = f"{workflow.general.workdir_cluster}/{typ}/"
@@ -539,10 +526,10 @@ def generate_phonon_fw_in_wf(
         and "prev_dos_fp" in fw_settings["spec"]
     ):
         _, _, scs = preprocess(atoms, ph_settings["supercell_matrix"])
-        qadapter["walltime"] = to_time_str(get_time(qadapter["walltime"]) * len(scs))
+        qadapter["walltime"] = time2str(str2time(qadapter["walltime"]) * len(scs))
 
     if qadapter and "walltime" in qadapter:
-        ph_settings["walltime"] = get_time(qadapter["walltime"])
+        ph_settings["walltime"] = str2time(qadapter["walltime"])
     else:
         ph_settings["walltime"] = 1800
 
@@ -617,57 +604,47 @@ def generate_phonon_postprocess_fw_in_wf(
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 
-# def generate_stat_samp_fw(workflow, atoms, fw_settings):
-#     """Generates a Firework for the phonon initialization
+def generate_stat_samp_fw(workflow, atoms, fw_settings):
+    """
+    Generates a Firework for the phonon initialization
+    Args:
+        atoms (ASE atoms object, dict): ASE Atoms object to preform the calculation on
+        wd (str): Workdirectory
+        fw_settings (dict): Firework settings for the step
+        qadapter (dict): The queueadapter for the step
+        stat_samp_settings (dict): kwargs for the harmonic analysis
 
-#     Parameters
-#     ----------
-#     atoms: ase.atoms.Atoms, dict
-#         ASE Atoms object to preform the calculation on
-#     wd: str
-#         Workdirectory
-#     fw_settings: dict
-#         Firework settings for the step
-#     qadapter: dict
-#         The queueadapter for the step
-#     stat_samp_settings: dict
-#         kwargs for the harmonic analysis
+    Returns:
+        (Firework): Firework for the harmonic analysis initialization
+    """
+    if "statistical_sampling_qadapter" in workflow:
+        qadapter = workflow["statistical_sampling_qadapter"]
+    elif "phonopy_qadapter" in workflow:
+        qadapter = workflow["phonopy_qadapter"]
+    else:
+        qadapter = None
 
-#     Returns
-#     -------
-#     Firework
-#         Firework for the harmonic analysis initialization
-#     """
-#     if "statistical_sampling_qadapter" in workflow:
-#         qadapter = workflow["statistical_sampling_qadapter"]
-#     elif "phonopy_qadapter" in workflow:
-#         qadapter = workflow["phonopy_qadapter"]
-#     else:
-#         qadapter = None
+    if qadapter and "walltime" in qadapter:
+        workflow.statistical_sampling["walltime"] = str2time(qadapter["walltime"])
+    else:
+        workflow.statistical_sampling["walltime"] = 1800
 
-#     if qadapter and "walltime" in qadapter:
-#         workflow.statistical_sampling["walltime"] = get_time(qadapter["walltime"])
-#     else:
-#         workflow.statistical_sampling["walltime"] = 1800
+    workflow.statistical_sampling[
+        "workdir"
+    ] = f"{workflow.general.workdir_cluster}/statistical_sampling/"
 
-#     workflow.statistical_sampling[
-#         "workdir"
-#     ] = f"{workflow.general.workdir_cluster}/statistical_sampling/"
-#     if workflow.phonopy.get("converge_phonons", False):
-#         workflow.statistical_sampling[
-#             "phonon_file"
-#         ] = f"{workflow.general.workdir_local}/converged/trajectory.son"
-#     else:
-#         workflow.statistical_sampling[
-#             "phonon_file"
-#         ] = f"{workflow.general.workdir_local}/phonopy_analysis/trajectory.son"
+    if "phonon_file" not in workflow.statistical_sampling:
+        if "phonpy" not in workflow:
+            raise IOError("phonon file must be given")
 
-#     fw_settings["fw_name"] = "statistical_sampling"
-#     fw_settings["time_spec_add"] = "stat_samp_times"
-
-#     task_spec = gen_stat_samp_task_spec(workflow.statistical_sampling, fw_settings)
-
-#     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, False)
+        if workflow.phonopy.get("converge_phonons", False):
+            workflow.statistical_sampling[
+                "phonon_file"
+            ] = f"{workflow.general.workdir_local}/converged/trajectory.son"
+        else:
+            workflow.statistical_sampling[
+                "phonon_file"
+            ] = f"{workflow.general.workdir_local}/phonopy_analysis/trajectory.son"
 
 
 def generate_aims_fw(workflow, atoms, fw_settings):
@@ -698,3 +675,38 @@ def generate_aims_fw(workflow, atoms, fw_settings):
     task_spec = gen_aims_task_spec(func_kwargs, dict(), relax=False)
 
     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, True)
+
+
+def generate_gruniesen_fd_fw(workflow, atoms, trajectory, fw_settings):
+    """Generate a FireWork to calculate the Gruniesen Parameter with finite differences
+
+    Parameters
+    ----------
+    workflow: Settings
+        The Workflow Settings
+    atoms: ase.atoms.Atoms
+        The initial ASE Atoms object of the primitive cell
+    fw_settings: dict
+        The FireWork Settings for the current job
+
+    Returns
+    -------
+    Firework:
+        The Gruniesen setup firework
+    """
+    symmetry_block = atoms.info.get("symmetry_block", None).copy()
+    fw_settings[
+        "fw_name"
+    ] = f"gruniesen_setup_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    if symmetry_block:
+        sym_nparams = symmetry_block[0].split()
+        n_lat = int(sym_nparams[2])
+        for ii in range(1, 3):
+            sym_nparams[ii] = str(int(sym_nparams[ii]) - n_lat)
+        symmetry_block[0] = " ".join(sym_nparams)
+        sym_params = symmetry_block[1].split()
+        del (sym_params[1 : n_lat + 1])
+        symmetry_block[1] = " ".join(sym_params)
+
+    task_spec = gen_gruniesen_task_spec(workflow, symmetry_block, trajectory)
+    return generate_firework(task_spec, None, None, fw_settings.copy())

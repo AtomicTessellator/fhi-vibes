@@ -122,7 +122,7 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None):
         args = [None]
 
     return TaskSpec(
-        "hilde.fireworks.tasks.phonopy_phono3py_functions.bootstrap_stat_sample",
+        "hilde.fireworks.tasks.statistical_sampling_wrappers.bootstrap_stat_sample",
         "hilde.fireworks.tasks.fw_out.phonons.post_init_mult_calcs",
         True,
         kwargs_init,
@@ -190,7 +190,7 @@ def gen_phonon_analysis_task_spec(
             func_out,
             False,
             args=[func],
-            inputs=[timekey, "mem_use"],
+            inputs=[timekey],
             func_kwargs=func_kwargs,
             make_abs_path=make_abs_path,
         )
@@ -254,3 +254,33 @@ def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
         func_kwargs,
         make_abs_path=make_abs_path,
     )
+
+
+def gen_gruniesen_task_spec(settings, symmetry_block, trajectory):
+    """Generate a TaskSpec for setting up a Gruniesen parameter calculation
+
+    Parameters
+    ----------
+    settings: Settings
+        The workflow settings
+    symmetry_block: list of str
+        The symmetery block for the primitive cell
+    trajectory: str
+        Path the the equilibrium phonon trajectory
+
+    Returns
+    -------
+    TaskSpec
+        The specification object of the Gruniesen setup task
+    """
+    task_spec_list = [
+        TaskSpec(
+            "hilde.fireworks.tasks.phonopy_phono3py_functions.setup_gruniesen",
+            "hilde.fireworks.tasks.fw_out.general.add_additions_to_spec",
+            False,
+            args=[settings, symmetry_block, trajectory],
+            inputs=["_queueadapter"],
+            make_abs_path=False,
+        )
+    ]
+    return task_spec_list

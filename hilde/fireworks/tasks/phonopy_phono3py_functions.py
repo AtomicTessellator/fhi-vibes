@@ -8,7 +8,10 @@ from hilde.phonopy.context import PhonopyContext
 from hilde.phonopy.workflow import bootstrap
 from hilde.settings import AttributeDict, Settings, TaskSettings
 from hilde.fireworks.tasks.general_py_task import get_func
-from hilde.trajectory import step2file, metadata2file
+from hilde.fireworks.workflows.workflow_generator import generate_workflow
+from hilde.templates.aims import setup_aims
+from hilde.trajectory import step2file, metadata2file, reader
+from hilde.structure.convert import to_Atoms
 
 
 def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
@@ -128,70 +131,13 @@ def bootstrap_phonon(
     outputs = []
     at = atoms.copy()
     at.set_calculator(None)
+    print(ph_settings["supercell_matrix"])
     if ph_settings:
         outputs.append(setup_phonon_outputs(ph_settings, settings, "ph", at, calc))
 
     if ph3_settings:
         outputs.append(setup_phonon_outputs(ph3_settings, settings, "ph3", at, calc))
     return outputs
-
-
-# def bootstrap_stat_sample(
-#     atoms, calc, kpt_density=None, stat_samp_settings=None, fw_settings=None
-# ):
-#     """Initializes the statistical sampling task
-
-#     Parameters
-#     ----------
-#     atoms: ase.atoms.Atoms
-#         Atoms object of the primitive cell
-#     calc: ase.calculators.calulator.Calculator
-#         Calculator for the force calculations
-#     kpt_density: float
-#         k-point density for the MP-Grid
-#     stat_samp_settings: dict
-#         kwargs for statistical sampling setup
-#     fw_settings: dict
-#         FireWork specific settings
-
-#     Returns
-#     -------
-#     outputs: dict
-#         The output of hilde.statistical_sampling.workflow.bootstrap
-
-#     Raises
-#     ------
-#     IOError
-#         If no settings were provided
-#     """
-#     settings = TaskSettings(name=None, settings=Settings(settings_file=None))
-#     settings.atoms = atoms
-#     if kpt_density:
-#         settings["control_kpt"] = AttributeDict({"density": kpt_density})
-
-#     outputs = []
-#     at = atoms.copy()
-#     at.set_calculator(None)
-#     if stat_samp_settings:
-#         settings, kwargs_boot = setup_calc(
-#             settings,
-#             calc,
-#             (
-#                 "use_pimd_wrapper" in stat_samp_settings
-#                 and stat_samp_settings["use_pimd_wrapper"]
-#             ),
-#             dict(),
-#         )
-#         settings["statistical_sampling"] = stat_samp_settings.copy()
-#         stat_samp_out = bootstrap_stat_samp(
-#             name="statistical_sampling", settings=settings, **kwargs_boot
-#         )
-#         stat_samp_out["prefix"] = "stat_samp"
-#         stat_samp_out["settings"] = stat_samp_settings.copy()
-#         outputs.append(stat_samp_out)
-#     else:
-#         raise IOError("Stat sampling requires a settings object")
-#     return outputs
 
 
 def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
@@ -255,3 +201,128 @@ def phonon_postprocess(func_path, phonon_times, max_mem, **kwargs):
     """
     func = get_func(func_path)
     return func(**kwargs)
+
+
+def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
+    settings = settings.copy()
+    dist_primitive = primitive.copy()
+    symmetry_block = symmetry_block.copy()
+
+    dist_primitive.cell *= vol_factor
+    dist_primitive.positions *= vol_factor
+
+    if symmetry_block:
+        if int(symmetry_block[0].split()[-1]) > 0:
+            for ii in range(3):
+                lattice_vector = [str(lv_el) for lv_el in dist_primitive.cell[ii]]
+                symmetry_block[ii + 2] = "symmetry_lv " + ", ".join(lattice_vector)
+        dist_primitive.info["symmetry_block"] = symmetry_block
+
+    dist_settings = Settings()
+    for sec_key, sec_val in settings.items():
+        if isinstance(sec_val, dict):
+            dist_settings[sec_key] = AttributeDict()
+            for key, val in sec_val.items():
+                dist_settings[sec_key][key] = val
+        else:
+            dist_settings[sec_key] = val
+
+    dist_settings.atoms = dist_primitive
+
+    dist_primitive.calc = setup_aims(settings=dist_settings)
+
+    return generate_workflow(
+        dist_settings, dist_primitive, launchpad_yaml=None, to_launchpad=False
+    )
+
+
+def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter):
+    """Set up the finite difference gruniesen parameter calculations
+
+    Parameters
+    ----------
+    settings: dict
+        The workflow settings
+    symmetry_block: list of str
+        The symmetry block for the structure
+    trajectory: str
+        The trajectory file for the equilibrium phonon calculation
+
+    Returns
+    -------
+    pl_gruneisen: Workflow
+        Workflow to run the positive volume change Gruniesen parameter calcs
+    mn_gruneisen: Workflow
+        Workflow to run the positive volume change Gruniesen parameter calcs
+    """
+    # Prepare settings by reset general work_dir and do not reoptimize k_grid
+    # settings["general"]["workdir_local"] = "/".join(settings["general"]["workdir_local"].split("/")[:-3])
+    # settings["general"]["workdir_cluster"] = "/".join(settings["general"]["workdir_cluster"].split("/")[:-3])
+    settings["general"]["opt_kgrid"] = False
+    settings["phonopy"]["get_gruniesen"] = False
+    settings["phonopy"]["converge_phonons"] = False
+    if "statistical_sampling" in settings:
+        del (settings["statistical_sampling"])
+
+    if _queueadapter:
+        settings["phonopy_qadapter"] = _queueadapter
+
+    # Get equilibrium phonon
+    eq_phonon = postprocess(trajectory)
+    _, metadata = reader(trajectory, get_metadata=True)
+
+    settings["phonopy"]["supercell_matrix"] = eq_phonon.get_supercell_matrix()
+    settings["phonopy"]["symprec"] = metadata["Phonopy"].get("symprec", 1e-5)
+    settings["phonopy"]["displacement"] = metadata["Phonopy"]["displacements"][0][1]
+
+    settings["control"] = dict()
+    for key, val in metadata["calculator"]["calculator_parameters"].items():
+        settings["control"][key] = val
+
+    if not symmetry_block:
+        settings["general"]["relax_structure"] = True
+        if "relaxation" not in settings:
+            settings["relaxation"] = dict()
+        settings["relaxation"]["relax_unit_cell"] = "none"
+    elif int(symmetry_block[0].split()[-1]) > 0:
+        settings["general"]["relax_structure"] = True
+    else:
+        settings["general"]["relax_structure"] = False
+
+    primitive = to_Atoms(eq_phonon.get_primitive())
+
+    pl_gruneisen = prepare_gruneisen(settings, primitive, 1.01, symmetry_block)
+    mn_gruneisen = prepare_gruneisen(settings, primitive, 0.99, symmetry_block)
+    # pl_primitive = primitive.copy()
+    # mn_primitive = primitive.copy()
+
+    # pl_primitive.cell *= 1.01
+    # mn_primitive.cell *= 0.99
+
+    # pl_primitive.positions *= 1.01
+    # mn_primitive.positions *= 0.99
+
+    # # Copy the settings over to a Settings object
+    # pl_settings = Settings()
+    # mn_settings = Settings()
+    # for sec_key, sec_val in settings.items():
+    #     if isinstance(sec_val, dict):
+    #         pl_settings[sec_key] = AttributeDict()
+    #         mn_settings[sec_key] = AttributeDict()
+    #         for key, val in sec_val.items():
+    #             pl_settings[sec_key][key] = val
+    #             mn_settings[sec_key][key] = val
+    #     else:
+    #         pl_settings[sec_key] = val
+    #         mn_settings[sec_key] = val
+
+    # pl_settings.atoms = pl_primitive
+    # mn_settings.atoms = mn_primitive
+
+    # pl_primitive.calc = setup_aims(settings=pl_settings)
+    # mn_primitive.calc = setup_aims(settings=mn_settings)
+
+    # pl_gruneisen = generate_workflow(pl_settings, pl_primitive, launchpad_yaml=None, to_launchpad=False)
+    # mn_gruneisen = generate_workflow(mn_settings, mn_primitive, launchpad_yaml=None, to_launchpad=False)
+
+    return pl_gruneisen, mn_gruneisen
