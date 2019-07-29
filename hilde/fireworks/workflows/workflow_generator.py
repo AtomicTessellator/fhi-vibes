@@ -194,16 +194,14 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
         fw_steps.append(fw)
     for fw in phonon3_fws:
         fw_steps.append(fw)
-    for fw in stat_samp_fws:
-        fw_steps.append(fw)
+    # for fw in stat_samp_fws:
+    #     fw_steps.append(fw)
     for fw in aims_calc_fws:
         fw_steps.append(fw)
 
-    if to_launchpad:
-        if launchpad_yaml:
-            launchpad = LaunchPad.from_file(launchpad_yaml)
-        else:
-            launchpad = LaunchPad.auto_load()
+    if launchpad_yaml:
+        launchpad = LaunchPad.from_file(launchpad_yaml)
         launchpad.add_wf(Workflow(fw_steps, fw_dep, name=fw_settings["name"]))
-    else:
-        return Workflow(fw_steps, fw_dep, name=fw_settings["name"])
+        return None
+
+    return Workflow(fw_steps, fw_dep, name=fw_settings["name"])

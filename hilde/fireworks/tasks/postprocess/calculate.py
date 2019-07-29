@@ -13,7 +13,7 @@ def get_calc_times(workdir=None):
     else:
         bakup_dir = Path("./backups/")
     calc_dirs = sorted(
-        bakup_dir.glob("backup.?????"), key=lambda s: int(str(s).split(".")[-1])
+        bakup_dir.glob("backup.?????.*"), key=lambda s: int(str(s).split(".")[-2])
     )
     calc_times = list()
     for direc in calc_dirs:

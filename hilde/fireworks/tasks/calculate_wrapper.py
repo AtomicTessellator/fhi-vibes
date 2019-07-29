@@ -82,7 +82,7 @@ def wrap_calc_socket(
         )
     except RuntimeError:
         if calc_dict["calculator"].lower() == "aims":
-            lines = np.array(open(workdir + "/aims.out").readlines())
+            lines = np.array(open(workdir + "calculations/aims.out").readlines())
             line_sum = np.where(
                 lines
                 == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"

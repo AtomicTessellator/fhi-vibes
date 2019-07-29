@@ -180,7 +180,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
             step2file(atoms, atoms.calc, str(traj))
 
 
-def phonon_postprocess(func_path, phonon_times, max_mem, **kwargs):
+def phonon_postprocess(func_path, phonon_times, **kwargs):
     """Performs phonon postprocessing steps
 
     Parameters
@@ -189,8 +189,6 @@ def phonon_postprocess(func_path, phonon_times, max_mem, **kwargs):
         The path to the postprocessing function
     phonon_times: list of ints
         The time it took to calculate the phonon forces in seconds
-    max_mem: list of floats
-        Maximum memory useage of the calculations
     kwargs: dict
         The keyword arguments for the phonon calculations
 
