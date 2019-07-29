@@ -1,7 +1,10 @@
 """A simple timer"""
+import sys
+import time
+import threading
+import itertools
 
 import signal
-from time import time, strftime
 import inspect
 import click
 from son.progressbar import progressbar
@@ -40,7 +43,7 @@ def talk(message, prefix=None, verbosity=1):
 
         file = frame[1].split("hilde")[-1][1:]
 
-        timestr = strftime("%H:%M:%S %Y/%m/%d")
+        timestr = time.strftime("%H:%M:%S %Y/%m/%d")
 
         print(f"[{timestr} from {file}, l. {frame[2]} in {frame[3]}()]", flush=True)
         print_msg(message, prefix=prefix, indent=2)
@@ -85,7 +88,7 @@ class Timer:
         Timeout inspired by
             https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/
         """
-        self.time = time()
+        self.time = time.time()
         self.verbose = verbose
 
         self.print = talk
@@ -104,7 +107,7 @@ class Timer:
 
     def __call__(self, info_str=""):
         """print how much time elapsed, optionally print `info_str`"""
-        time_str = f"{time() - self.time:.3f}s"
+        time_str = f"{time.time() - self.time:.3f}s"
 
         if info_str.strip() and self.verbose:
             self.print(f".. {info_str} in {time_str}", prefix=self.prefix)
@@ -126,3 +129,77 @@ class Timer:
 def raise_timeout(signum, frame):
     """raise TimeoutError"""
     raise TimeoutError
+
+
+class Spinner:
+    """Spinner for command line feedback
+
+    Inspired by:
+        https://stackoverflow.com/a/39504463/5172579
+    """
+
+    busy = False
+    delay = 0.1
+
+    spinning_cursor = itertools.cycle(["-", "|", "\\", "/"])
+
+    def __init__(self, prefix="working", delay=None, file=sys.stdout, verbose=True):
+        self.prefix = prefix
+        self.file = file
+        self.verbose = verbose
+        self.msg = ""
+        self.isatty = True
+        self.spinner_generator = self.spinning_cursor
+        if delay and float(delay):
+            self.delay = delay
+
+        if not hasattr(file, "isatty") or not file.isatty():
+            self.isatty = False
+
+    def get_msg(self):
+        msg = f"{self.prefix}: "
+        if self.busy:
+            if self.isatty:
+                msg += f"{next(self.spinner_generator)}"
+            else:
+                msg += f"working"
+        else:
+            msg += "finished." + "\n"
+        return msg
+
+    def print(self, newline=False):
+        if self.verbose:
+            self.msg = self.get_msg()
+            if newline:
+                self.file.write("\n")
+            self.file.write(self.msg)
+            self.file.flush()
+
+    def rewind(self):
+        if self.verbose:
+            self.file.write(len(self.msg) * "\b")
+            self.file.flush()
+
+    def spinner_task(self):
+        while self.busy:
+            self.print()
+            time.sleep(self.delay)
+            self.rewind()
+        self.print()
+
+    def __enter__(self):
+        self.busy = True
+        if self.isatty:
+            threading.Thread(target=self.spinner_task).start()
+        else:
+            self.print()
+
+    def __exit__(self, exception, value, tb):
+        self.busy = False
+        if self.isatty:
+            time.sleep(self.delay)
+        else:
+            self.print(newline=True)
+
+        if exception is not None:
+            return exception
