@@ -6,8 +6,8 @@ from scipy.linalg import norm
 from hilde.konstanten import v_unit
 from hilde.konstanten.io import n_geom_digits
 from hilde.konstanten.symmetry import symprec
+from hilde.helpers.utils import talk
 from hilde.helpers.numerics import clean_matrix
-from hilde.helpers import talk
 from hilde.helpers.brillouinzone import get_special_points
 from hilde.structure.misc import get_sysname
 from hilde.spglib.wrapper import get_symmetry_dataset
@@ -153,57 +153,57 @@ def inform(cell, fname=None, verbosity=1, symprec=symprec):
     """
     unique_symbols, multiplicity = np.unique(cell.symbols, return_counts=True)
     # Structure info:
-    talk(f"\nGeometry info for:")
-    talk(f"  input geometry:    {get_sysname(cell)}")
+    talk(f"Geometry info")
+    print(f"  input geometry:    {get_sysname(cell)}")
     if fname:
-        talk(f"  from:              {fname}")
-    talk(f"  Symmetry prec.:    {symprec}")
-    talk(f"  Number of atoms:   {len(cell)}")
+        print(f"  from:              {fname}")
+    print(f"  Symmetry prec.:    {symprec}")
+    print(f"  Number of atoms:   {len(cell)}")
 
     msg = ", ".join([f"{s} ({m})" for (s, m) in zip(unique_symbols, multiplicity)])
-    talk(f"  Species:           {msg}")
-    talk(f"  Periodicity:       {cell.pbc}")
+    print(f"  Species:           {msg}")
+    print(f"  Periodicity:       {cell.pbc}")
     if verbosity > 0 and any(cell.pbc):
-        talk(f"  Lattice:  ")
+        print(f"  Lattice:  ")
         for vec in cell.cell:
-            talk(f"    {vec}")
+            print(f"    {vec}")
 
     print("")
 
     if symprec is not None:
         sds = get_symmetry_dataset(cell, symprec=symprec)
 
-        talk(f"  Spacegroup:          {sds.international} ({sds.number})")
+        print(f"  Spacegroup:          {sds.international} ({sds.number})")
         if sds.number > 1:
             msg = "  Wyckoff positions:   "
-            talk(msg + ", ".join(f"{c}*{w}" for (w, c) in sds.wyckoffs_unique))
+            print(msg + ", ".join(f"{c}*{w}" for (w, c) in sds.wyckoffs_unique))
             msg = "  Equivalent atoms:    "
-            talk(msg + ", ".join(f"{c}*{a}" for (a, c) in sds.equivalent_atoms_unique))
+            print(msg + ", ".join(f"{c}*{a}" for (a, c) in sds.equivalent_atoms_unique))
 
         if verbosity > 1:
-            talk(f"  Standard lattice:  ")
+            print(f"  Standard lattice:  ")
             for vec in sds.std_lattice:
-                talk(f"    {vec}")
+                print(f"    {vec}")
 
         if verbosity > 1:
-            talk(f"  Special k points:")
+            print(f"  Special k points:")
             for key, val in get_special_points(cell).items():
-                talk(f"    {key}: {val}")
+                print(f"    {key}: {val}")
 
     # Info
     for (key, val) in cell.info.items():
-        talk(f"  {key:10s}: {val}")
+        print(f"  {key:10s}: {val}")
 
     # lengths and angles
     if verbosity > 0:
         la = cell.get_cell_lengths_and_angles()
-        talk("\nCell lengths and angles [\u212B, °]:")
-        talk("  a, b, c: {}".format(" ".join([f"{l:11.4f}" for l in la[:3]])))
+        print("\nCell lengths and angles [\u212B, °]:")
+        print("  a, b, c: {}".format(" ".join([f"{l:11.4f}" for l in la[:3]])))
         angles = "  \u03B1, \u03B2, \u03B3: "
         values = "{}".format(" ".join([f"{l:11.4f}" for l in la[3:]]))
-        talk(angles + values)
-        talk(f"  Volume:  {cell.get_volume():11.4f} \u212B**3")
+        print(angles + values)
+        print(f"  Volume:  {cell.get_volume():11.4f} \u212B**3")
 
         if cell.get_velocities() is not None:
             v = cell.get_momenta().sum(axis=0) / v_unit / cell.get_masses().sum()
-            talk(f"\n Net velocity: {v} \u212B/ps")
+            print(f"\n Net velocity: {v} \u212B/ps")
