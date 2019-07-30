@@ -40,6 +40,9 @@ class Trajectory(list):
         self._positions = None
         self._velocities = None
         self._forces = None
+        self._e_kin = None
+        self._e_pot = None
+        self._temperature = None
         self._stress = None
         self._stresses = None
         self._heat_flux = None
@@ -166,7 +169,9 @@ class Trajectory(list):
     @property
     def temperatures(self):
         """return the temperatues as 1d array"""
-        return np.array([a.get_temperature() for a in self])
+        if self._temperature is None:
+            self._temperature = np.array([a.get_temperature() for a in self])
+        return self._temperature
 
     @property
     def ref_positions(self):
@@ -193,6 +198,20 @@ class Trajectory(list):
         if self._forces is None:
             self._forces = np.array([a.get_forces() for a in self])
         return self._forces
+
+    @property
+    def kinetic_energy(self):
+        """return the kinetic energy as [N_t] array"""
+        if self._e_kin is None:
+            self._e_kin = np.array([a.get_kinetic_energy() for a in self])
+        return self._e_kin
+
+    @property
+    def potential_energy(self):
+        """return the potential energy as [N_t] array"""
+        if self._e_pot is None:
+            self._e_pot = np.array([a.get_potential_energy() for a in self])
+        return self._e_pot
 
     @property
     def stress(self):
