@@ -7,7 +7,7 @@ from ase.calculators.calculator import Calculator
 
 from hilde import son
 from hilde.harmonic_analysis.displacements import get_dR
-from hilde.trajectory import input2dict
+from hilde.helpers.converters import input2dict
 
 
 def get_F(dR, force_constants):
