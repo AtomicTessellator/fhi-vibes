@@ -11,7 +11,7 @@ from hilde import son
 from hilde.fourier import get_timestep
 from hilde.helpers.converters import results2dict, dict2atoms, input2dict
 from hilde.helpers.hash import hash_atoms
-from hilde.helpers import warn
+from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
 from hilde.trajectory import io, heat_flux as hf, talk, Timer, dataarray as xr
 
@@ -34,20 +34,10 @@ class Trajectory(list):
         else:
             self._metadata = {}
 
-        # a bit of lazy eval
+        # lazy eval where @lazy_eval is not applicable
         self._supercell = None
-        self._times = None
-        self._positions = None
-        self._velocities = None
-        self._forces = None
-        self._e_kin = None
-        self._e_pot = None
-        self._temperature = None
-        self._stress = None
-        self._stresses = None
         self._heat_flux = None
         self._avg_heat_flux = None
-        self._pressure = None
         self._volume = None
 
     @classmethod
@@ -81,9 +71,8 @@ class Trajectory(list):
         """Reference atoms object for computing displacements etc"""
         if self.supercell:
             return dict2atoms(self.metadata["supercell"]["atoms"])
-        else:
-            warn("No supercell found, return first Atoms in trajectory", level=1)
-            return self[0]
+        warn("No supercell found, return first Atoms in trajectory", level=1)
+        return self[0]
 
     @property
     def primitive(self):
@@ -146,103 +135,85 @@ class Trajectory(list):
             self._volume = np.mean(volumes).squeeze()
         return self._volume
 
-    @property
+    @lazy_property
     def times(self):
         """ return the times as numpy array in fs"""
-        if self._times is None:
-            try:
-                fs = self.metadata["MD"]["fs"]
-            except KeyError:
-                warn("time unit not found in trajectory metadata, use ase.units.fs")
-                fs = units.fs
+        try:
+            fs = self.metadata["MD"]["fs"]
+        except KeyError:
+            warn("time unit not found in trajectory metadata, use ase.units.fs")
+            fs = units.fs
 
-            times = np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
-            self._times = times
-
-        return self._times
+        return np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
 
     @property
     def timestep(self):
         """ return the timestep in fs"""
         return get_timestep(self.times)
 
-    @property
+    @lazy_property
     def temperatures(self):
         """return the temperatues as 1d array"""
-        if self._temperature is None:
-            self._temperature = np.array([a.get_temperature() for a in self])
-        return self._temperature
+        return np.array([a.get_temperature() for a in self])
 
     @property
     def ref_positions(self):
         """return reference positions"""
         return self.ref_atoms.get_positions()
 
-    @property
+    @lazy_property
     def positions(self):
         """return the positions as [N_t, N_a, 3] array"""
-        if self._positions is None:
-            self._positions = np.array([a.get_positions() for a in self])
-        return self._positions
+        return np.array([a.get_positions() for a in self])
 
-    @property
+    @lazy_property
     def velocities(self):
         """return the velocities as [N_t, N_a, 3] array"""
-        if self._velocities is None:
-            self._velocities = np.array([a.get_velocities() for a in self])
-        return self._velocities
+        return np.array([a.get_velocities() for a in self])
 
-    @property
+    @lazy_property
     def forces(self):
         """return the forces as [N_t, N_a, 3] array"""
-        if self._forces is None:
-            self._forces = np.array([a.get_forces() for a in self])
-        return self._forces
+        return np.array([a.get_forces() for a in self])
 
-    @property
+    @lazy_property
     def kinetic_energy(self):
         """return the kinetic energy as [N_t] array"""
-        if self._e_kin is None:
-            self._e_kin = np.array([a.get_kinetic_energy() for a in self])
-        return self._e_kin
+        return np.array([a.get_kinetic_energy() for a in self])
 
-    @property
+    @lazy_property
     def potential_energy(self):
         """return the potential energy as [N_t] array"""
-        if self._e_pot is None:
-            self._e_pot = np.array([a.get_potential_energy() for a in self])
-        return self._e_pot
+        return np.array([a.get_potential_energy() for a in self])
 
-    @property
+    @lazy_property
     def stress(self):
         """return the stress as [N_t, 3, 3] array"""
-        if self._stress is None:
-            zeros = np.zeros([3, 3])
-            stresses = []
-            for a in self:
-                if "stress" in a.calc.results:
-                    stresses.append(a.get_stress(voigt=False))
-                else:
-                    stresses.append(zeros)
-            self._stress = np.array(stresses)
-        return self._stress
+        zeros = np.zeros([3, 3])
+        stresses = []
+        for a in self:
+            if "stress" in a.calc.results:
+                stresses.append(a.get_stress(voigt=False))
+            else:
+                stresses.append(zeros)
 
-    @property
+        return np.array(stresses)
+
+    @lazy_property
     def stresses(self):
         """return the atomic stress as [N_t, N_a, 3, 3] array"""
-        if self._stresses is None:
-            atomic_stresses = []
-            for a in self:
-                V = a.get_volume()
-                try:
-                    atomic_stress = a.get_stresses() / V
-                except PropertyNotImplementedError:
-                    msg = "Trajectory contains atoms without stresses computed. "
-                    msg += "Use `trajectory.with_stresses`"
-                    warn(msg, level=2)
-                atomic_stresses.append(atomic_stress)
-            self._stresses = atomic_stresses
-        return self._stresses
+        atomic_stresses = []
+        for a in self:
+            V = a.get_volume()
+            try:
+                atomic_stress = a.get_stresses() / V
+            except PropertyNotImplementedError:
+                msg = "Trajectory contains atoms without stresses computed. "
+                msg += "Use `trajectory.with_stresses`"
+                warn(msg, level=2)
+            atomic_stresses.append(atomic_stress)
+
+        return atomic_stress
 
     @property
     def heat_flux(self):
@@ -267,12 +238,10 @@ class Trajectory(list):
             pressure /= units.GPa
         return pressure
 
-    @property
+    @lazy_property
     def pressure(self):
         """return the pressure as [N_t] array"""
-        if self._pressure is None:
-            self._pressure = self.get_pressure()
-        return self._pressure
+        return self.get_pressure()
 
     @property
     def dataset(self):
