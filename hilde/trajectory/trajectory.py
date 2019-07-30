@@ -9,11 +9,11 @@ from ase import units, Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
 from hilde import son
 from hilde.fourier import get_timestep
-from hilde.helpers.converters import results2dict, dict2atoms, input2dict
+from hilde.helpers.converters import results2dict, dict2atoms, atoms2dict
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
-from hilde.trajectory import io, heat_flux as hf, talk, Timer, dataarray as xr
+from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al
 
 
 class Trajectory(list):
@@ -78,14 +78,17 @@ class Trajectory(list):
     def primitive(self):
         """ Return the primitive cell if it is there """
         if "primitive" in self.metadata:
-            return dict2atoms(self.metadata["primitive"]["atoms"])
+            dct = self.metadata["primitive"]
+            if "atoms" in dct:
+                dct = dct["atoms"]
+            return dict2atoms(dct)
         warn("primitive cell not provided in trajectory metadata")
 
     @primitive.setter
     def primitive(self, atoms):
         """ Set the supercell atoms object """
         assert isinstance(atoms, Atoms)
-        dct = input2dict(atoms)
+        dct = atoms2dict(atoms)
         self.metadata["primitive"] = dct
         talk(".. primitive added to metadata.")
 
@@ -94,7 +97,10 @@ class Trajectory(list):
         """ Return the supercell if it is there """
         if not self._supercell:
             if "supercell" in self.metadata:
-                self._supercell = dict2atoms(self.metadata["supercell"]["atoms"])
+                dct = self.metadata["supercell"]
+                if "atoms" in dct:
+                    dct = dct["atoms"]
+                self._supercell = dict2atoms(dct)
             else:
                 warn("supercell not provided in trajectory metadata")
         return self._supercell
@@ -103,7 +109,7 @@ class Trajectory(list):
     def supercell(self, atoms):
         """ Set the supercell atoms object """
         assert isinstance(atoms, Atoms)
-        dct = input2dict(atoms)
+        dct = atoms2dict(atoms)
         self.metadata["supercell"] = dct
         talk(".. supercell added to metadata.")
         # also add as attribute
@@ -419,3 +425,10 @@ class Trajectory(list):
                 hashes.append(hash_atoms(atoms))
 
         return hashes
+
+    def summarize(self, vebose=False):
+        """give a summary of relevant statistics"""
+
+        DS = self.dataset
+
+        al.pressure(DS.pressure)
