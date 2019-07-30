@@ -90,7 +90,7 @@ def setup_md(
         )
 
     else:
-        raise RuntimeError(f"Molecular dynamics mode {algorithm} is not suppported.")
+        raise RuntimeError(f"Molecular dynamics mode {driver} is not suppported.")
 
     prepared = prepare_from_trajectory(atoms, md, trajectory)
 

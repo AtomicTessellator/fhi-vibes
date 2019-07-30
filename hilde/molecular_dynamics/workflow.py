@@ -12,7 +12,6 @@ from hilde.helpers.socketio import socket_stress_on, socket_stress_off
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.restarts import restart
 from hilde.helpers import talk, warn
-from . import metadata2dict
 
 
 _calc_dirname = "calculations"
@@ -78,7 +77,7 @@ def run(ctx, backup_folder="backups"):
         return True
 
     # is the calculation similar enough?
-    metadata = metadata2dict(atoms, calc, md)
+    metadata = ctx.metadata
     if trajectory.exists():
         old_metadata, _ = son.load(trajectory)
         check_metadata(metadata, old_metadata)

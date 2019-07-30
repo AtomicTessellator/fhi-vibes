@@ -6,11 +6,12 @@ from ase import Atoms, units as u, md as ase_md
 from ase.io import read
 from ase.calculators.calculator import Calculator
 from ase.md.md import MolecularDynamics
-from hilde.molecular_dynamics.workflow import run as run_md
+
 from hilde import son
 from hilde.aims.context import AimsContext
 from hilde.settings import TaskSettings
 from hilde.helpers import warn, talk
+from hilde.helpers.converters import input2dict
 from ._defaults import defaults, name, mandatory_base, mandatory_task
 from .workflow import run_md, _prefix
 
@@ -169,17 +170,19 @@ class MDContext:
     @property
     def primitive(self):
         """The primitive cell structure"""
-        g = self.settings.geometry
-        if not self._primitive and "primitive" in g:
-            self._primitive = read(g["primitive"], format="aims")
+        if not self._primitive and "geometry" in self.settings:
+            g = self.settings.geometry
+            if "primitive" in g:
+                self._primitive = read(g["primitive"], format="aims")
         return self._primitive
 
     @property
     def supercell(self):
         """The supercell structure"""
-        g = self.settings.geometry
-        if not self._supercell and "supercell" in g:
-            self._supercell = read(g["supercell"], format="aims")
+        if not self._supercell and "geometry" in self.settings:
+            g = self.settings.geometry
+            if "supercell" in g:
+                self._supercell = read(g["supercell"], format="aims")
         return self._supercell
 
     @property
@@ -198,6 +201,25 @@ class MDContext:
                 compute_stresses = int(compute_stresses)
 
         return compute_stresses
+
+    @property
+    def metadata(self):
+        """return MD metadata as dict"""
+
+        md_dict = self.md.todict()
+
+        # save time and mass unit
+        md_dict.update({"fs": u.fs, "kB": u.kB, "dt": self.md.dt, "kg": u.kg})
+
+        # other stuff
+        dct = input2dict(
+            self.atoms,
+            calc=self.calc,
+            primitive=self.primitive,
+            supercell=self.supercell,
+        )
+
+        return {"MD": md_dict, **dct}
 
     def resume(self):
         """resume from trajectory"""
