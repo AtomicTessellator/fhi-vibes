@@ -5,6 +5,7 @@ from .geometry import get_cubicness
 from .numerics import clean_matrix
 from .utils import Timer, progressbar, bold, talk
 from .warnings import warn
+from .properties import lazy_property
 
 
 def list_dim(a):
