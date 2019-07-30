@@ -53,6 +53,15 @@ class Trajectory(list):
         trajectory = io.reader(file)
         return trajectory
 
+    def __getitem__(self, key):
+        """returns `trajectory[key]` as Atoms object or new Trajectory instance"""
+        temp = super().__getitem__(key)
+        if isinstance(temp, Atoms):
+            return temp
+        metadata = self.metadata
+        new_trajectory = Trajectory(temp, metadata=metadata)
+        return new_trajectory
+
     @property
     def metadata(self):
         """ Return metadata """
