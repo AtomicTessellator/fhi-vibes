@@ -126,6 +126,8 @@ def get_trajectory_data(trajectory):
         "positions": positions,
         "velocities": velocities,
         "forces": (vec_index, trajectory.forces),
+        "kinetic_energy": (time_index, trajectory.kinetic_energy),
+        "potential_energy": (time_index, trajectory.potential_energy),
         "stress": (stress_index, trajectory.stress),
         "pressure": pressure,
         "temperature": (time_index, trajectory.temperatures),
