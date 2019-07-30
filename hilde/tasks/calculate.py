@@ -183,10 +183,6 @@ def calculate_socket(
                 if check_precomputed_hashes(cell, precomputed_hashes, n_cell):
                     continue
 
-                # perform backup of settings
-                if settings:
-                    settings.write()
-
                 # make sure a new calculation is started
                 calc.results = {}
                 atoms.calc = calc
@@ -208,7 +204,7 @@ def calculate_socket(
                     wd = "."
 
                 # compute and save the aims UUID
-                msg = "[hilde]     Compute structure "
+                msg = f"{'[hilde]':15}Compute structure "
                 msg += f"{n_cell + 1} of {len(atoms_to_calculate)}"
                 # talk(msg)
 
