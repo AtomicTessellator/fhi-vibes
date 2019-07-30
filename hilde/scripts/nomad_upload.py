@@ -5,39 +5,44 @@ from argparse import ArgumentParser
 from hilde import Settings
 from hilde.helpers import Timer
 
+new_addr = "https://labdev-nomad.esc.rzg.mpg.de/fairdi/nomad/coe/api/uploads/?curl=True"
+old_addr = "http://nomad-repository.eu:8000"
 
-def upload_command(folder, token):
+
+def upload_command(folder, token, legacy):
     """Generate the NOMAD upload command
 
-    Parameters
-    ----------
-    folder: str
-        The folder to upload
-    token: str
-        The NOMAD token
+    Args:
+        folder: The folder to upload
+        token: The NOMAD token
+        legacy: use old NOMAD
 
-    Returns
-    -------
-    cmd: str
-        The upload command
+    Returns:
+        str: The upload command
     """
-    cmd = (
-        f"tar cf - {folder} | curl -XPUT -# -HX-Token:{token} "
-        "-N -F file=@- http://nomad-repository.eu:8000 | "
-        "xargs echo"
-    )
+    if legacy:
+        cmd = (
+            f"tar cf - {folder} | curl -XPUT -# -HX-Token:{token} "
+            f"-N -F file=@- {old_addr} | xargs echo"
+        )
+    else:
+        cmd = (
+            f"tar czf - {folder} | "
+            f'curl -X PUT -H "X-Token: {token}" -F file=@- "{new_addr}"'
+            "| xargs echo"
+        )
+
     return cmd
 
 
-def nomad_upload(folders, token=None, dry=False):
+def nomad_upload(folders, token=None, legacy=False, dry=False):
     """upload folders with calculations to NOMAD
 
-    Parameters
-    ----------
-    folders: list str
-        The folders to upload
-    token: str
-        The NOMAD token
+    Args:
+        folders: The folders to upload
+        token: The NOMAD token
+        legacy: use old NOMAD
+        dry: only show upload command
     """
     timer = Timer()
 
@@ -55,12 +60,13 @@ def nomad_upload(folders, token=None, dry=False):
 
     for ii, folder in enumerate(folders):
 
-        cmd = upload_command(folder, token)
+        cmd = upload_command(folder, token, legacy)
 
         if dry:
             print(f"Upload command {ii+1}:\n{cmd}")
         else:
             print(f"Upload folder {folder:30} ({ii+1} of {len(folders)})")
+            print(f"  with command  {cmd}")
 
             subprocess.check_call(cmd, shell=True)
 

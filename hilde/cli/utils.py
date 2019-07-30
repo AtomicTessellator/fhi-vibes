@@ -128,11 +128,12 @@ def tool_remap_phonopy_force_constants(filename, primitive, supercell):
 @utils.command("nomad_upload")
 @click.argument("folders", nargs=-1, type=complete_filenames)
 @click.option("--token", help="nomad token, otherwise read from .hilderc")
+@click.option("--legacy", is_flag=True, default=True, help="use old Nomad (default)")
 @click.option("--dry", is_flag=True, help="only show the commands")
-def tool_nomad_upload(folders, token, dry):
+def tool_nomad_upload(folders, token, legacy, dry):
     """upload the calculations in FOLDERS to NOMAD"""
 
-    nomad_upload(folders, token, dry)
+    nomad_upload(folders, token, legacy, dry)
 
 
 @utils.command(cls=AliasedGroup)
