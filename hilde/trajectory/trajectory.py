@@ -219,7 +219,7 @@ class Trajectory(list):
                 warn(msg, level=2)
             atomic_stresses.append(atomic_stress)
 
-        return atomic_stress
+        return atomic_stresses
 
     @property
     def heat_flux(self):
