@@ -9,20 +9,25 @@ apt-get install gfortran liblapack-dev liblapacke-dev mongodb
 ```
 
 Make sure `poetry` is installed:
+
 ```
 pip install poetry
 ```
 
 Create a virtual environment
+
 ```bash
 python3 -m venv hilde_venv
 source hilde_venv/bin/activate
 ```
 
 Install `hilde` with `poetry`
+
 ```bash
 poetry install
 ```
+
+(On `python3.6`, please also install `importlib_resources` via `pip install importlib_resources`).
 
 Configure Hilde by creating a `~/.hilderc` configuration file in the home directory. To this end, first
 
