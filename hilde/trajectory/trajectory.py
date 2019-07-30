@@ -70,7 +70,7 @@ class Trajectory(list):
     def ref_atoms(self):
         """Reference atoms object for computing displacements etc"""
         if self.supercell:
-            return dict2atoms(self.metadata["supercell"]["atoms"])
+            return self.supercell
         warn("No supercell found, return first Atoms in trajectory", level=1)
         return self[0]
 
@@ -368,11 +368,7 @@ class Trajectory(list):
         from hilde.harmonic_analysis.displacements import get_dR
 
         # reference atoms
-        if not ref_atoms:
-            if "supercell" in self.metadata:
-                ref_atoms = dict2atoms(self.metadata["supercell"]["atoms"])
-            else:
-                ref_atoms = self[0]
+        ref_atoms = self.ref_atoms
 
         # this will hold the averaged displacement
         avg_displacement = np.zeros_like(ref_atoms.get_positions())
@@ -396,11 +392,7 @@ class Trajectory(list):
             np.ndarray: The average positions of all the atoms in self
         """
         # reference atoms
-        if not ref_atoms:
-            if "supercell" in self.metadata:
-                ref_atoms = dict2atoms(self.metadata["supercell"]["atoms"])
-            else:
-                ref_atoms = self[0]
+        ref_atoms = self.ref_atoms
 
         avg_displacement = self.get_average_displacements(
             ref_atoms=ref_atoms, window=window
