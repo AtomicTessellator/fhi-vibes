@@ -174,14 +174,19 @@ def trajectory_update(filename, uc, sc, format):
     update_trajectory(filename, uc, sc, format)
 
 
-@trajectory.command("extract_velocities")
+@trajectory.command("pick_sample")
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
-@click.option("-o", "--output_filename", default="velocities.nc")
-def extract_velocities(filename, output_filename):
-    """extract velocities from FILENAME and write as xarray.DataArray to netCDF file"""
-    from hilde.green_kubo.velocities import get_velocities
+@click.option("-n", "--number", default=0)
+def pick_sample(filename, number):
+    """pick a sample from trajectory and write to geometry input file"""
+    from hilde.trajectory import reader
 
-    velocities = get_velocities(trajectory=filename)
+    click.echo(f"Read trajectory from {filename} and extract sample {number}:")
 
-    velocities.to_netcdf(output_filename)
-    click.echo(f".. velocities written to {output_filename}")
+    traj = reader(filename)
+    atoms = traj[number]
+
+    outfile = f"geometry.in.{number}"
+    atoms.write(outfile, format="aims", velocities=True)
+
+    click.echo(f".. sample written to {outfile}")
