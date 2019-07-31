@@ -177,16 +177,21 @@ def trajectory_update(filename, uc, sc, format):
 @trajectory.command("pick_sample")
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-n", "--number", default=0)
-def pick_sample(filename, number):
+@click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
+def pick_sample(filename, number, cartesian):
     """pick a sample from trajectory and write to geometry input file"""
     from hilde.trajectory import reader
 
     click.echo(f"Read trajectory from {filename} and extract sample {number}:")
 
     traj = reader(filename)
+
+    if number < 0:
+        number = len(traj) + number
+
     atoms = traj[number]
 
     outfile = f"geometry.in.{number}"
-    atoms.write(outfile, format="aims", velocities=True)
+    atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
 
     click.echo(f".. sample written to {outfile}")
