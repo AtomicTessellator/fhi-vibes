@@ -20,6 +20,7 @@ def _time_coords(trajectory):
 
 def _metadata(trajectory, dct=None):
     """return metadata dictionary with defaults + custom dct"""
+
     attrs = {
         "System Name": get_sysname(trajectory.ref_atoms),
         "natoms": len(trajectory.ref_atoms),
@@ -28,8 +29,17 @@ def _metadata(trajectory, dct=None):
         "nsteps": len(trajectory) - 1,
         "volume": trajectory.volume,
         "symbols": trajectory.symbols,
-        "flattend reference positions": trajectory.ref_positions.flatten(),
+        "flattened reference positions": trajectory.ref_positions.flatten(),
+        "flattened lattice": trajectory.ref_atoms.cell.array.flatten(),
     }
+
+    primitive = trajectory.primitive
+    if primitive:
+        prim_attrs = {
+            "flattened primitive positions": primitive.positions.flatten(),
+            "flattened primitive lattice": primitive.cell.array.flatten(),
+        }
+        attrs.update(prim_attrs)
 
     if dct and isinstance(dct, dict):
         attrs.update(dct)
