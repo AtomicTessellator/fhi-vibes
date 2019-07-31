@@ -4,6 +4,7 @@
 import xarray as xr
 from ase.units import GPa
 from hilde.helpers import talk
+from .plotting import plot_summary
 
 
 def np_thirds(array):
@@ -123,3 +124,10 @@ def summary(dataset, plot=False, **kwargs):
     print()
     talk("Summarize Pressure", prefix="info")
     pressure(dataset.pressure)
+
+    if plot:
+        df = dataset[
+            ["temperature", "kinetic_energy", "potential_energy", "pressure"]
+        ].to_dataframe()
+        df.index /= 1000
+        plot_summary(df, **kwargs)
