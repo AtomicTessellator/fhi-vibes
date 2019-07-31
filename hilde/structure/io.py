@@ -8,6 +8,7 @@ from hilde.konstanten.io import n_geom_digits
 from hilde.konstanten.symmetry import symprec
 from hilde.helpers.utils import talk
 from hilde.helpers.numerics import clean_matrix
+from hilde.helpers.geometry import get_cubicness, inscribed_sphere_in_box
 from hilde.helpers.brillouinzone import get_special_points
 from hilde.structure.misc import get_sysname
 from hilde.spglib.wrapper import get_symmetry_dataset
@@ -167,6 +168,11 @@ def inform(cell, fname=None, verbosity=1, symprec=symprec):
         print(f"  Lattice:  ")
         for vec in cell.cell:
             print(f"    {vec}")
+        cub = get_cubicness(cell.cell)
+        print(f"  Cubicness:         {cub:.3f} ({cub**3:.3f})")
+        sh = inscribed_sphere_in_box(cell.cell)
+        print(f"  Largest Cutoff:    {sh:.3f} AA")
+
 
     print("")
 
