@@ -75,3 +75,6 @@ poetry.lock
 
 # doc
 doc/
+
+# ignore
+*.ignore

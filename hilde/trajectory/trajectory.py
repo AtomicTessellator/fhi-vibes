@@ -13,7 +13,8 @@ from hilde.helpers.converters import results2dict, dict2atoms, atoms2dict
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
-from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al
+from hilde.helpers.displacements import get_dR
+from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al, _prefix
 
 
 class Trajectory(list):
@@ -355,28 +356,38 @@ class Trajectory(list):
         """
         io.to_tdep(self, folder, skip)
 
-    def get_average_displacements(self, ref_atoms=None, window=-1):
+    @lazy_property
+    def displacements(self):
+        """return the displacements for `ref_atoms`"""
+        if not self.supercell:
+            warn("Supercell not set, let us stop here.", level=2)
+
+        atoms_ideal = self.ref_atoms
+
+        # use get_dR
+        list1 = []
+        msg = f"[{_prefix}]   compute displacements: "
+        for atoms in progressbar(self, prefix=msg):
+            list1.append(get_dR(atoms, atoms_ideal))
+        list1 = np.asarray(list1)
+
+        return list1
+
+    def get_average_displacements(self, window=-1):
         """Return averaged displacements
 
         Args:
-            ref_atoms: reference structure for undisplaced system
             window: This does nothing
         Returns:
-        avg_displacement: The average displacements of all the atoms in self
+            array: The average displacements of all the atoms in self
         """
 
-        from hilde.harmonic_analysis.displacements import get_dR
+        displacements = self.displacements
 
-        # reference atoms
-        ref_atoms = self.ref_atoms
+        weight = 1 / len(displacements)
 
         # this will hold the averaged displacement
-        avg_displacement = np.zeros_like(ref_atoms.get_positions())
-
-        weigth = 1 / len(self)
-
-        for atoms in self:
-            avg_displacement += weigth * get_dR(ref_atoms, atoms)
+        avg_displacement = weight * displacements.mean(axis=0)
 
         return avg_displacement
 
