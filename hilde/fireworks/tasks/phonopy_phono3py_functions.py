@@ -291,36 +291,5 @@ def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter):
 
     pl_gruneisen = prepare_gruneisen(settings, primitive, 1.01, symmetry_block)
     mn_gruneisen = prepare_gruneisen(settings, primitive, 0.99, symmetry_block)
-    # pl_primitive = primitive.copy()
-    # mn_primitive = primitive.copy()
-
-    # pl_primitive.cell *= 1.01
-    # mn_primitive.cell *= 0.99
-
-    # pl_primitive.positions *= 1.01
-    # mn_primitive.positions *= 0.99
-
-    # # Copy the settings over to a Settings object
-    # pl_settings = Settings()
-    # mn_settings = Settings()
-    # for sec_key, sec_val in settings.items():
-    #     if isinstance(sec_val, dict):
-    #         pl_settings[sec_key] = AttributeDict()
-    #         mn_settings[sec_key] = AttributeDict()
-    #         for key, val in sec_val.items():
-    #             pl_settings[sec_key][key] = val
-    #             mn_settings[sec_key][key] = val
-    #     else:
-    #         pl_settings[sec_key] = val
-    #         mn_settings[sec_key] = val
-
-    # pl_settings.atoms = pl_primitive
-    # mn_settings.atoms = mn_primitive
-
-    # pl_primitive.calc = setup_aims(settings=pl_settings)
-    # mn_primitive.calc = setup_aims(settings=mn_settings)
-
-    # pl_gruneisen = generate_workflow(pl_settings, pl_primitive, launchpad_yaml=None, to_launchpad=False)
-    # mn_gruneisen = generate_workflow(mn_settings, mn_primitive, launchpad_yaml=None, to_launchpad=False)
 
     return pl_gruneisen, mn_gruneisen

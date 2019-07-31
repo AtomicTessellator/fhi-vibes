@@ -57,7 +57,7 @@ def get_base_work_dir(wd):
         wd_list = [""] + wd_list
 
     # Remove "sc_natoms_???" to get back to the base directory
-    if len(wd_list[-1]) > 9 and wd_list[-1][:10] == "sc_natoms_":
+    if len(wd_list[-1]) > 10 and wd_list[-1][:10] == "sc_natoms_":
         return "/".join(wd_list[:-1])
     return "/".join(wd_list)
 
@@ -137,7 +137,8 @@ def get_converge_phonon_update(
     ph,
     conv_crit=0.95,
     prev_dos_fp=None,
-    **kwargs
+    init_workdir="./",
+    **kwargs,
 ):
     """
     Check phonon convergence and set up future calculations after a phonon calculation
@@ -160,11 +161,11 @@ def get_converge_phonon_update(
 
     traj = f"{workdir}/{trajectory}"
 
-    calculated_atoms, metadata = reader(traj, True)
+    _, metadata = reader(traj, True)
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
     k_pt_density = k2d(
-        dict2atoms(metadata["supercell"]["atoms"]),
+        to_Atoms(ph.get_supercell()),
         calc_dict["calculator_parameters"]["k_grid"],
     )
 
@@ -182,7 +183,7 @@ def get_converge_phonon_update(
     dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
 
     # Get the base working directory
-    init_wd = get_base_work_dir(kwargs["init_wd"])
+    init_wd = get_base_work_dir(init_workdir)
     analysis_wd = get_base_work_dir(workdir)
     if prev_dos_fp:
         ph_conv = check_phonon_conv(dos_fp, prev_dos_fp, conv_crit)
@@ -204,6 +205,7 @@ def get_converge_phonon_update(
             "ph_calculator": calc_dict,
             "ph_primitive": atoms2dict(to_Atoms(ph.get_primitive())),
             "k_pt_density": k_pt_density,
+            "ph_time": calc_time / len(ph.get_supercells_with_displacements())
         }
         return True, update_job
 
@@ -251,6 +253,7 @@ def get_converge_phonon_update(
     disp_mag = np.linalg.norm(displacement)
 
     update_job = {
+        "sc_matrix_original": kwargs["sc_matrix_original"],
         "supercell_matrix": sc_mat,
         "init_wd": init_wd,
         "analysis_wd": analysis_wd,
@@ -258,11 +261,12 @@ def get_converge_phonon_update(
         "expected_walltime": expected_walltime,
         "expected_mem": expected_mem,
         "ph_calculator": calc_dict,
+        "ph_primitive": atoms2dict(to_Atoms(ph.get_primitive())),
+        "ph_supercell": atoms2dict(to_Atoms(ph.get_supercell())),
         "k_pt_density": k_pt_density,
         "prev_dos_fp": dos_fp,
         "prev_wd": workdir,
         "displacement": disp_mag,
-        "ph_supercell": atoms2dict(to_Atoms(ph.get_supercell())),
     }
     return False, update_job
 

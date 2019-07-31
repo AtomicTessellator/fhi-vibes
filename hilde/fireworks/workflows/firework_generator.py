@@ -355,7 +355,7 @@ def generate_relax_fw(workflow, atoms, fw_settings, basisset_type):
     func_kwargs = {
         "workdir": f"{workflow.general.workdir_cluster}/{fw_settings['fw_name']}/"
     }
-    fw_out_kwargs = {"relax_step": 0}
+    fw_out_kwargs = {"calc_number": 0}
 
     task_spec = gen_aims_task_spec(func_kwargs, fw_out_kwargs)
 

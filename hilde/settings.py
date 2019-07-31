@@ -230,7 +230,7 @@ class Settings(ConfigDict):
         if read_config:
             config_files = [config_file, settings_file, fireworks_file]
         else:
-            config_files = settings_file
+            config_files = [settings_file]
 
         if dct:
             super().__init__(dct=dct)
@@ -358,6 +358,8 @@ class TaskSettings(Settings):
             mandatory_keys = []
         if mandatory_obj_keys is None:
             mandatory_obj_keys = []
+        if settings is None:
+            settings = Settings(read_config=read_config)
 
         # read the bare settings
         super().__init__(settings_file=settings.settings_file, read_config=read_config)

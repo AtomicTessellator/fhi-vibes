@@ -47,11 +47,15 @@ cli.add_command(output.output)
 
 try:
     from hilde.fireworks.cli import fireworks
-
     cli.add_command(fireworks.fireworks)
 except ImportError:
     pass
 
+try:
+    import hilde.balsam.cli
+    cli.add_command(hilde.balsam.cli.balsam)
+except ImportError:
+    pass
 
 @cli.command("status", hidden=True)
 @click.option("--verbose", is_flag=True)

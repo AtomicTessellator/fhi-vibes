@@ -21,7 +21,7 @@ from ._defaults import (
 class AimsSettings(TaskSettings):
     """Aims settings. Ensures that settings are set up sensibly"""
 
-    def __init__(self, settings=None):
+    def __init__(self, settings=None, read_config=True):
         """Settings in the context of a phonopy workflow
 
         Parameters
@@ -34,7 +34,6 @@ class AimsSettings(TaskSettings):
         SettingsError
             If the basis set type is not defined
         """
-
         super().__init__(
             name,
             settings=settings,
@@ -42,8 +41,9 @@ class AimsSettings(TaskSettings):
             mandatory_keys=mandatory_base,
             obj_key=obj_key,
             mandatory_obj_keys=mandatory_task,
+            read_config=read_config,
         )
-
+        # print(self)
         # basisset
         if not any(key in self for key in mandatory_basisset):
             msg = f"basisset not specified in {self.settings_file}"
@@ -53,7 +53,7 @@ class AimsSettings(TaskSettings):
 class AimsContext:
     """context for aims calculation"""
 
-    def __init__(self, settings, workdir=None):
+    def __init__(self, settings, workdir=None, read_config=True):
         """Constructor
 
         Parameters
@@ -63,7 +63,7 @@ class AimsContext:
         workdir: str
             Directory to run the calculation in
         """
-        self.settings = AimsSettings(settings)
+        self.settings = AimsSettings(settings, read_config)
         self.workdir = self.settings.workdir
 
         if workdir:

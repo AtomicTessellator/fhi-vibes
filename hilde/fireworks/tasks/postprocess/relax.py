@@ -25,7 +25,7 @@ def check_aims(
         outputs (ASE Atoms Object): The geometry of the final relaxation step
     Returns (FWAction): The correct action (restart or updated spec) if convergence is reached
     """
-    relax_step = kwargs.get("relax_step", 0) + 1
+    calc_number = kwargs.get("calc_number", 0) + 1
     aims_out = np.array(open(kwargs["workdir"] + "/aims.out").readlines())
     completed = "Have a nice day" in aims_out[-2]
     calc = calc2dict(outputs.get_calculator())
@@ -34,6 +34,7 @@ def check_aims(
         if "relax_geometry" in calc["calculator_parameters"]:
             new_atoms = read_aims(kwargs["workdir"] + "/geometry.in.next_step")
             new_atoms.set_calculator(outputs.get_calculator())
+            new_atoms.info = atoms.info.copy()
         else:
             new_atoms = atoms.copy()
     except FileNotFoundError:
@@ -43,12 +44,9 @@ def check_aims(
                 == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
             )[0]
             sum_present = len(line_sum) > 0
-            if (
-                sum_present
-                and float(aims_out[line_sum[0] + 1].split(":")[1].split("s")[1])
-                / walltime
-                > 0.95
-            ):
+            time_used = float(aims_out[line_sum[0] + 1].split(":")[1].split("s")[1])
+
+            if (sum_present and time_used / walltime > 0.95):
                 walltime *= 2
                 calc.parameters["walltime"] = walltime
             else:
@@ -60,7 +58,5 @@ def check_aims(
     for key, val in atoms["info"].items():
         if key not in new_atoms_dict["info"]:
             new_atoms_dict["info"][key] = val
-    os.system(
-        f"cp {kwargs['workdir']}/aims.out {kwargs['workdir']}/aims.out.{relax_step}"
-    )
-    return completed, relax_step, new_atoms_dict, walltime
+    Path(f"{kwargs['workdir']}/aims.out").rename(f"{kwargs['workdir']}/aims.out.{calc_number}")
+    return completed, calc_number, new_atoms_dict, walltime

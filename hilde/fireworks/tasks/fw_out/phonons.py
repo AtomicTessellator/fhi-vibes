@@ -393,7 +393,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         update_spec[fw_settings["kpoint_density_spec"]] = update_spec.pop("k_pt_density")
         return FWAction(update_spec=update_spec)
     else:
-        fw_settings["in_spec_calc"] = update_job["ph_calculator"]
+        fw_settings["in_spec_calc"] = "ph_calculator"
         update_spec = {
             "ph_calculator": update_job["ph_calculator"],
             "prev_dos_fp": update_job["prev_dos_fp"],
@@ -444,6 +444,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
         kwargs["prev_dos_fp"] = update_job["prev_dos_fp"]
         kwargs["trajectory"] = trajectory.split("/")[-1]
+        kwargs["sc_matrix_original"] = update_job["sc_matrix_original"]
         analysis_fw = generate_phonon_postprocess_fw_in_wf(
             pc, update_job["analysis_wd"], fw_settings, kwargs, wd_init=update_job["init_wd"]
         )

@@ -70,10 +70,10 @@ def dict2atoms(atoms_dict):
         for key, val in atoms.calc.results.items():
             if isinstance(val, list):
                 atoms.calc.results[key] = np.array(val)
-    if "use_pimd_wrapper" in atoms.calc.parameters:
-        pimd = atoms.calc.parameters["use_pimd_wrapper"]
-        if isinstance(pimd, int):
-            atoms.calc.parameters["use_pimd_wrapper"] = ("localhost", pimd)
+        if "use_pimd_wrapper" in atoms.calc.parameters:
+            pimd = atoms.calc.parameters["use_pimd_wrapper"]
+            if isinstance(pimd, int):
+                atoms.calc.parameters["use_pimd_wrapper"] = ("localhost", pimd)
 
     return atoms
 

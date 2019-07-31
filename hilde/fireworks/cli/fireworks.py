@@ -1,6 +1,5 @@
 """`hilde fireworks part of the CLI"""
 
-
 import os
 
 import click
