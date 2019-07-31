@@ -34,11 +34,16 @@ def plot_summary(dataframe, avg=50, natoms=None):
     fig_kw = {"sharex": True, "figsize": (8.27, 11.69)}
 
     # pressure: make sure there is enough data, otherwise don't bother plotting
-    p = dataframe.pressure.dropna() / units.GPa
+    p = dataframe.pressure / units.GPa
+    p_int = p.interpolate("akima")
+    p = p.dropna()
     if len(p) > 3:
         fig, (ax, ax2, ax3) = plt.subplots(nrows=3, **fig_kw)
-        p.plot(ax=ax3, **{**plot_kw, "label": "  p"}, color=tc[3], marker="x")
-        p.expanding().mean().plot(ax=ax3, label="<p>", **avg_kw, color=tc[3])
+        p.plot(
+            ax=ax3, **{**plot_kw, "label": "p", "linewidth": 0}, color=tc[3], marker="x"
+        )
+        p_int.plot(ax=ax3, **{**plot_kw, "label": "p (akima)"}, color=tc[3])
+        p_int.expanding().mean().plot(ax=ax3, label="avg. p", **avg_kw, color=tc[3])
         ax3.axhline(0, linewidth=0.75)
         ax3.legend()
         ax3.set_title("Pressure")

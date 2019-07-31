@@ -50,15 +50,23 @@ def p_sum(p, to_GPa=True):
     return f"{p.mean():12.6f} +/- {p.std():10.6f} {unit}"
 
 
-def pressure(series):
-    """summarize pressure from MD"""
+def pressure(series, interpolate=None):
+    """summarize pressure from MD
+
+    Args:
+        series: Series/Dataframe representing pressure
+        interpolate: use `interpolate` to deal with missing values
+    """
 
     if isinstance(series, xr.core.dataarray.DataArray):
         series = series.to_series()
 
     # remove zeros
     len_orig = len(series)
-    series = series.dropna()
+    if interpolate:
+        series = series.interpolate(interpolate)
+    else:
+        series = series.dropna()
 
     # time in ps
     time = series.index / 1000
