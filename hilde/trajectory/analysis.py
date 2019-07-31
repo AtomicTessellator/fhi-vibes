@@ -26,7 +26,7 @@ def pd_thirds(series):
     return sub_1, sub_2, sub_3
 
 
-def pprint(msg1, msg2, width1=20):
+def pprint(msg1, msg2, width1=25):
     """pretty print with fixed field size for first message"""
     print(f"{msg1:{width1}s} {msg2}")
 
@@ -40,6 +40,7 @@ def T_sum(T):
 
 
 def p_sum(p, to_GPa=True):
+    """print summary for pressure (slice)"""
     unit = "eV/AA**3"
     p = p.copy()
     if to_GPa:
@@ -49,18 +50,14 @@ def p_sum(p, to_GPa=True):
 
 
 def pressure(series):
-    """summarize pressure from MD
-
-    Args:
-        series (pandas.Series): the pressure
-    """
+    """summarize pressure from MD"""
 
     if isinstance(series, xr.core.dataarray.DataArray):
         series = series.to_series()
 
     # remove zeros
     len_orig = len(series)
-    series = series[abs(series) > 1e-20]
+    series = series.dropna()
 
     # time in ps
     time = series.index / 1000
@@ -77,11 +74,7 @@ def pressure(series):
 
 
 def temperature(series):
-    """summarize temperature from MD
-
-    Args:
-        series (pandas.Series): the temperature
-    """
+    """summarize temperature from MD"""
 
     if isinstance(series, xr.core.dataarray.DataArray):
         series = series.to_series()
@@ -99,12 +92,34 @@ def temperature(series):
         pprint(f"Temperature ({ii+1}st 1/3):", T_sum(T))
 
 
-def summary(dataset):
+def energy(series):
+    """summarize energies from MD"""
+
+    if isinstance(series, xr.core.dataarray.DataArray):
+        series = series.to_series()
+
+    # time in ps
+    time = series.index / 1000
+
+    # thirds
+    thirds = pd_thirds(series)
+
+    msg = f"{time[-1] - time[0]:8.3f} ps ({len(time)} steps)"
+    pprint("Simulation time:", msg)
+    pprint("Pot. Energy:", e_sum(series))
+    for ii, e in enumerate(thirds):
+        pprint(f"Pot. Energy ({ii+1}st 1/3):", e_sum(e))
+
+
+def summary(dataset, plot=False, **kwargs):
     """summarize MD data in xarray DATASET"""
 
     print()
     talk("Summarize Temperature", prefix="info")
     temperature(dataset.temperature)
+    print()
+    talk("Summarize Potential Energy", prefix="info")
+    energy(dataset.potential_energy)
     print()
     talk("Summarize Pressure", prefix="info")
     pressure(dataset.pressure)
