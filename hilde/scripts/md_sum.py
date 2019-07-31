@@ -1,6 +1,7 @@
 """ Summarize output from ASE.md class (in md.log) """
 
 from pathlib import Path
+from warnings import warn
 from argparse import ArgumentParser
 import numpy as np
 
@@ -33,16 +34,19 @@ def parse_log(filename):
 def md_sum(file, plot, avg, verbose):
     """summarize the MD trajectory in FILE"""
     infile = Path(file)
+    msg = "\nConsider to use `hilde output md` to create `trajectory.nc` "
+    msg += "and plot via `hilde info md trajectory.nc`"
+    warn(msg, FutureWarning, stacklevel=2)
 
     natoms = -1
     if infile.suffix in (".yaml", ".son", ".bz2", ".gz"):
-        trajectory = reader(infile)[1:]
-        e_kin = [atoms.get_kinetic_energy() for atoms in trajectory]
-        e_pot = [atoms.get_potential_energy() for atoms in trajectory]
-        temp = [atoms.get_temperature() for atoms in trajectory]
-        # sum up time steps, necessary if dt changes during md
-        time = np.cumsum([atoms.info["dt_fs"] * 0.001 for atoms in trajectory])
+        trajectory = reader(infile)
+        e_kin = trajectory.kinetic_energy
+        e_pot = trajectory.potential_energy
+        temp = trajectory.temperatures
+        time = trajectory.times / 1000
         natoms = len(trajectory[0])
+
     elif "log" in infile.suffix:
         e_kin, e_pot, temp, time = parse_log(infile)
 
