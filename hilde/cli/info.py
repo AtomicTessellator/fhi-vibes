@@ -1,5 +1,7 @@
 """`hilde info` backend"""
 
+from pathlib import Path
+import xarray as xr
 from ase.io import read
 from hilde import Settings, son
 from hilde.structure.io import inform
@@ -32,14 +34,14 @@ def geometry_info(obj, filename, format, symprec, verbose):
     inform(atoms, symprec=symprec, verbosity=verbosity)
 
 
-@info.command("settings")
-@click.argument("filename", default="settings.in")
-@click.pass_obj
-def settings_info(obj, filename):
-    """inform about content of a settings.in file"""
-
-    settings = Settings(filename)
-    settings.print()
+# @info.command("settings")
+# @click.argument("filename", default="settings.in")
+# @click.pass_obj
+# def settings_info(obj, filename):
+#     """inform about content of a settings.in file"""
+#
+#     settings = Settings(filename)
+#     settings.print()
 
 
 @info.command("md")
@@ -50,7 +52,16 @@ def settings_info(obj, filename):
 def md_info(filename, plot, avg, verbose):
     """inform about content of a settings.in file"""
 
-    md_sum(filename, plot, avg, verbose)
+    if Path(filename).suffix in (".son", ".yaml", ".bz", ".gz", ".log"):
+        md_sum(filename, plot, avg, verbose)
+    elif Path(filename).suffix in (".nc"):
+        from hilde.trajectory import analysis as al
+
+        DS = xr.load_dataset(filename)
+        click.echo(f"Dataset summary for {filename}:")
+        al.summary(DS, plot=plot, avg=avg)
+    else:
+        raise click.FileError(f"File format of {filename} not known.")
 
 
 @info.command("phonopy")
@@ -83,3 +94,14 @@ def trajectory_info(filename):
         settings = Settings.from_dict(metadata["settings"])
         click.echo("Settings:")
         settings.print()
+
+
+@info.command("netcdf")
+@click.argument("file", type=complete_filenames)
+def show_netcdf_file(file):
+    """show contents of netCDF FILE"""
+    import xarray as xr
+
+    DS = xr.open_dataset(file)
+
+    print(DS)
