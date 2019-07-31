@@ -6,7 +6,7 @@ from pathlib import Path
 from ase.calculators.calculator import Calculator
 
 from hilde import son
-from hilde.harmonic_analysis.displacements import get_dR
+from hilde.helpers.displacements import get_dR
 from hilde.helpers.converters import input2dict
 
 

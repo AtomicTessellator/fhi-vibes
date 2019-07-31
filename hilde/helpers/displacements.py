@@ -1,8 +1,7 @@
 """ deal with displacements in supercells """
 
 import numpy as np
-from hilde.helpers.numerics import clean_matrix
-from hilde.konstanten import v_unit
+from .numerics import clean_matrix
 
 
 def get_dR(atoms, atoms0, wrap_tol=1e-5):
