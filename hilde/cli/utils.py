@@ -41,7 +41,7 @@ def geometry_refine(*args, **kwargs):
 @click.argument("filename", default="geometry.in", type=complete_filenames)
 @click.option("-d", "--dimension", type=float, nargs=9)
 @click.option("-n", "--n_target", type=int)
-@click.option("--deviation", default=0.2)
+@click.option("--deviation", default=0.1, show_default=True)
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
 @click.option("--scaled", is_flag=True)
