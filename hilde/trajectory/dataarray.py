@@ -3,6 +3,8 @@ import xarray as xr
 
 from ase import units
 from hilde.helpers import warn
+from hilde.structure.misc import get_sysname
+from .utils import clean_pressure
 from . import Timer
 
 time_index = "time"
@@ -19,8 +21,11 @@ def _time_coords(trajectory):
 def _metadata(trajectory, dct=None):
     """return metadata dictionary with defaults + custom dct"""
     attrs = {
+        "System Name": get_sysname(trajectory.ref_atoms),
+        "natoms": len(trajectory.ref_atoms),
         "time unit": "fs",
         "timestep": trajectory.timestep,
+        "nsteps": len(trajectory) - 1,
         "volume": trajectory.volume,
         "symbols": trajectory.symbols,
         "flattend reference positions": trajectory.ref_positions.flatten(),
@@ -95,7 +100,7 @@ def get_pressure_data(trajectory, GPa=False, verbose=True):
     extra_metadata = {"to_eV": unit}
 
     df = xr.DataArray(
-        trajectory.pressure / unit,
+        clean_pressure(trajectory.pressure / unit),
         dims=[time_index],
         coords=_time_coords(trajectory),
         name="pressure",
