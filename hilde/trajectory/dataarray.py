@@ -29,6 +29,7 @@ def _metadata(trajectory, dct=None):
         "nsteps": len(trajectory) - 1,
         "volume": trajectory.volume,
         "symbols": trajectory.symbols,
+        "masses": trajectory.masses,
         "flattened reference positions": trajectory.ref_positions.flatten(),
         "flattened lattice": trajectory.ref_atoms.cell.array.flatten(),
     }
