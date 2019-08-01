@@ -38,12 +38,15 @@ if not completed and walltime > 0:
     calc.parameters["walltime"] = walltime
 
 calc_dict = calc2dict(calc)
+
+k_pt_density = k2d(dict2atoms(new_atoms_dict), calc_dict["calculator_parameters"]["k_grid"])
+
 del(calc_dict["results"])
+del(calc_dict["calculator_parameters"]["k_grid"])
+del(calc_dict["calculator_parameters"]["use_pimd_wrapper"])
 if completed:
     del(calc_dict["calculator_parameters"]["relax_geometry"])
     del(calc_dict["calculator_parameters"]["relax_unit_cell"])
-
-k_pt_density = k2d(dict2atoms(new_atoms_dict), calc_dict["calculator_parameters"]["k_grid"])
 
 update_data = {
     "atoms": new_atoms_dict,

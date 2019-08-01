@@ -10,10 +10,14 @@ from hilde.aims.context import AimsContext
 from hilde.balsam.data_encoder import encode
 
 from hilde.helpers.hash import hash_atoms
+from hilde.helpers.watchdogs import str2time
 from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
 from hilde.phonopy.context import PhonopyContext
 from hilde.phonopy import defaults as ph_defaults
+from hilde.settings import Settings
 
+ranks_per_node = Settings()["comp_node_stats"]["cores_per_node"]
+max_nodes = Settings()["comp_node_stats"]["max_nodes"]
 
 def generate_aims_job(settings, basisset=None, calc_number=0):
     """Generate an Aims calculation
@@ -69,10 +73,14 @@ def generate_aims_job(settings, basisset=None, calc_number=0):
         "calc_number": calc_number,
     }
 
+    natoms = len(atoms)
     if f"{basisset}_rel_qadapter" in settings:
-        num_nodes = settings[f"{basisset}_rel_qadapter"]["nodes"]
+        num_nodes = settings[f"{basisset}_rel_qadapter"].get("nodes", 1)
+        walltime = settings[f"{basisset}_rel_qadapter"].get("walltime", "1:00:00")
+        walltime = str2time(walltime)/60
     else:
-        num_nodes = 1
+        num_nodes = int(np.ceil(1.0*natoms / ranks_per_node))
+        walltime = 30
 
     job_suffix = f"{atoms.symbols.get_chemical_formula()}/{hash_atoms(atoms)}"
     return BalsamJob(
@@ -80,8 +88,9 @@ def generate_aims_job(settings, basisset=None, calc_number=0):
         workflow=f"{job_suffix}",
         description=f"Aims calculation for {atoms.symbols.get_chemical_formula()} with hash {hash_atoms(atoms)}.",
         application="hilde-run-aims",
-        num_nodes=num_nodes,
-        ranks_per_node=1,
+        num_nodes=min(num_nodes, max_nodes),
+        wall_time_minutes=walltime,
+        ranks_per_node=ranks_per_node,
         cpu_affinity="depth",
         data=encode(data),
         input_files="",
@@ -120,10 +129,13 @@ def generate_phonopy_job(settings):
         "conv_crit": ctx.settings.phonopy.conv_crit,
     }
     basisset = ctx.settings.basisset.type
-    if f"{basisset}_rel_qadapter" in settings:
-        num_nodes = settings[f"{basisset}_rel_qadapter"]["nodes"]
+    if f"phonopy_qadapter" in settings:
+        num_nodes = settings[f"phonopy_qadapter"].get("nodes", 1)
+        walltime = settings[f"phonopy_qadapter"].get("walltime", "1:00:00")
+        walltime = str2time(walltime)/60
     else:
-        num_nodes = 1
+        num_nodes = int(np.ceil(1.0*natoms / ranks_per_node))
+        walltime = 30
 
     natoms = int(
         round(len(atoms) * np.linalg.det(ctx.settings.phonopy.supercell_matrix))
@@ -135,8 +147,9 @@ def generate_phonopy_job(settings):
         workflow=f"{job_suffix}",
         description=f"phonopy calculation for {atoms.symbols.get_chemical_formula()} with hash {hash_atoms(atoms)} and {natoms} supercell.",
         application="hilde-run-phonopy",
-        num_nodes=num_nodes,
-        ranks_per_node=1,
+        num_nodes=min(num_nodes, max_nodes),
+        wall_time_minutes=walltime,
+        ranks_per_node=ranks_per_node,
         cpu_affinity="depth",
         data=encode(data),
         input_files="",
@@ -173,7 +186,9 @@ def generate_gruneisen_jobs(settings, vol_factor):
         sym_params = symmetry_block[1].split()
         del (sym_params[1:n_lat + 1])
         symmetry_block[1] = " ".join(sym_params)
-
+        for ii in range(3):
+            symmetry_block[ii+2] = f"symmetry_lv {atoms.cell[ii, 0]}, {atoms.cell[ii, 1]}, {atoms.cell[ii, 2]}"
+        atoms.info["symmetry_block"] = symmetry_block
     jobs = []
     if "basisset" in settings.general:
         basis = settings.general.pop("basisset")
@@ -182,7 +197,7 @@ def generate_gruneisen_jobs(settings, vol_factor):
 
     settings.atoms = atoms
 
-    if not symmetry_block or int(sym_nparams[1]) - n_lat > 0:
+    if not symmetry_block or int(sym_nparams[-1]) > 0:
         jobs.append(generate_aims_job(settings, "light"))
         # Tighter Basis Set Relaxation
         use_tight_relax = settings.general.get("use_tight_relax", False)

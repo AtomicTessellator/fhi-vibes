@@ -86,12 +86,17 @@ conv, update_job = get_converge_phonon_update(
     workdir,
     sc_matrix_original=data["sc_matrix_original"],
 )
+
+del(update_job["ph_calculator"]["calculator_parameters"]["k_grid"])
+del(update_job["ph_calculator"]["calculator_parameters"]["use_pimd_wrapper"])
+
 update_data = {
-    "atoms": update_job["ph_primitive"],
+    "atoms": data["atoms"],
     "calculator": update_job["ph_calculator"],
     "k_pt_density": update_job["k_pt_density"],
 }
 update_data["atoms"]["info"] = data["atoms"]["info"]
+
 if not conv:
     update_data["prev_dos_fp"] = update_job["prev_dos_fp"]
 

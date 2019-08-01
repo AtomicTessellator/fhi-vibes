@@ -34,7 +34,7 @@ def check_aims(
         if "relax_geometry" in calc["calculator_parameters"]:
             new_atoms = read_aims(kwargs["workdir"] + "/geometry.in.next_step")
             new_atoms.set_calculator(outputs.get_calculator())
-            new_atoms.info = atoms.info.copy()
+            new_atoms.info = atoms["info"].copy()
         else:
             new_atoms = atoms.copy()
     except FileNotFoundError:

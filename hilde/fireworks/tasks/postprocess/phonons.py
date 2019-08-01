@@ -98,7 +98,7 @@ def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
         try:
             new_supercell.calc.calculate()
         except RuntimeError:
-            pass
+            calc.parameters["dry_run"] = False
         lines = open("aims.out").readlines()
     for line in lines:
         if "Size of matrix packed + index [n_hamiltonian_matrix_size]" in line:
