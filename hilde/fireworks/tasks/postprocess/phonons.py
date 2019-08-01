@@ -178,6 +178,8 @@ def get_converge_phonon_update(
         ph.set_total_DOS(freq_min=min_f, freq_max=max_f, tetrahedron_method=True)
     else:
         ph.set_total_DOS(tetrahedron_method=True)
+        if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-2 ):
+            raise ValueError("Negative frequencies at Gamma, terminating workflow here.")
 
     # Get a phonon DOS Finger print to compare against the previous one
     dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
