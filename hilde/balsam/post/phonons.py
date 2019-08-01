@@ -26,6 +26,7 @@ from hilde.trajectory import reader
 def setup_gruneisen(vol_factor, sc_mat):
     ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False))
     calc = setup_aims(AimsContext(Settings(settings_file="phonopy.in")))
+    calc.parameters.pop("use_pimd_wrapper", None)
     ctx.settings.atoms.set_calculator(calc)
 
     ctx.settings.phonopy.supercell_matrix = sc_mat
