@@ -1,6 +1,7 @@
 """
  Functions to run several related calculations with using trajectories as cache
 """
+import sys
 from pathlib import Path
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
@@ -84,6 +85,7 @@ def calculate_socket(
     backup_folder="backups",
     backup_after_calculation=True,
     check_settings_before_resume=True,
+    dry=False,
     **kwargs,
 ):
     """perform calculations for a set of atoms objects, while able to use the socket
@@ -106,6 +108,8 @@ def calculate_socket(
         directory to back up calculations to
     check_settings_before_resume: bool
         only resume when settings didn't change
+    dry: bool
+        only create working directory and write metadata to trajectory
 
     Returns
     -------
@@ -157,16 +161,21 @@ def calculate_socket(
     # perform calculation
     n_cell = -1
     with cwd(calc_dir, mkdir=True):
-        with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
+        # log metadata and sanity check
+        if check_settings_before_resume:
+            try:
+                old_metadata, _ = son.load(trajectory)
+                check_metadata(metadata, old_metadata)
+                talk(f"resume from {trajectory}")
+            except FileNotFoundError:
+                metadata2file(metadata, trajectory)
 
-            # log metadata and sanity check
-            if check_settings_before_resume:
-                try:
-                    old_metadata, _ = son.load(trajectory)
-                    check_metadata(metadata, old_metadata)
-                    talk(f"resume from {trajectory}")
-                except FileNotFoundError:
-                    metadata2file(metadata, trajectory)
+        if dry:
+            talk("dry run requested, stop.")
+            sys.exit()
+
+        # launch socket
+        with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
 
             if socketio_port is not None:
                 calc = iocalc
