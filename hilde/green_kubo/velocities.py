@@ -114,24 +114,29 @@ def get_vdos(velocities=None, trajectory=None, verbose=True):
     return df_vdos
 
 
-def simple_plot(series, file="vdos.pdf", height=0.05):
+def simple_plot(series, file="vdos.pdf", height=-1, max_frequency=30.0):
     """simple plot of VDOS for overview purpose
 
     Args:
         series (pandas.Series): Intensity vs. omega
         file (str): file to store the plot to
         height (float): minimal height to detect peaks
+        max_frequency (float): max. frequency in THz
     """
     # normalize peaks
     series /= series.max()
+
     # find peaks:
-    peaks, *_ = sl.find_peaks(series, height=height)
-    print(peaks)
-    high_freq = series.index[peaks[-1]]
+    if height and height > 0:
+        peaks, *_ = sl.find_peaks(series, height=height)
+        high_freq = series.index[peaks[-1]]
+        talk(f".. highest peak found at   {high_freq:.2f} THz")
+    else:
+        high_freq = max_frequency
     ax = series.plot()
     ax.set_xlim([0, 1.2 * high_freq])
     ax.set_xlabel("Omega [THz]")
     fig = ax.get_figure()
     fig.savefig(file, bbox_inches="tight")
-    talk(f".. highest peak found at   {high_freq:.2f} THz")
+    talk(f".. max. frequency for plot:  {high_freq:.2f} THz")
     talk(f".. plot saved to {file}")
