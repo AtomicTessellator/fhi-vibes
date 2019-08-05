@@ -5,6 +5,7 @@ from scipy.integrate import cumtrapz
 import xarray as xr
 
 from ase import units
+
 # from hilde.fourier import compute_sed, get_frequencies, get_timestep
 from . import Timer, talk
 
@@ -17,11 +18,11 @@ def gk_prefactor(volume, temperature):
         temperature (float): avg. temp. in K (trajectory.temperatures.mean())
 
     Returns:
-        V / (3 * k_B * T^2) * 1602
+        V / (k_B * T^2) * 1602
     """
     V = float(volume)
     T = float(temperature)
-    prefactor = 1 / units.kB / T ** 2 * 1602 * V / 3  # * 1000
+    prefactor = 1 / units.kB / T ** 2 * 1602 * V  # / 3  # * 1000
     talk(
         [
             f"Compute Prefactor:",
