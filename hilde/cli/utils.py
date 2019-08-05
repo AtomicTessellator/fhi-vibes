@@ -39,14 +39,19 @@ def geometry_refine(*args, **kwargs):
 
 @utils.command("make_supercell")
 @click.argument("filename", default="geometry.in", type=complete_filenames)
-@click.option("-d", "--dimension", type=float, nargs=9)
+@click.option("-d", "--dimension", type=int, nargs=9)
+@click.option("-dd", "--diagonal_dimension", type=int, nargs=3)
 @click.option("-n", "--n_target", type=int)
 @click.option("--deviation", default=0.1, show_default=True)
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
 @click.option("--scaled", is_flag=True)
-def tool_make_supercell(filename, dimension, n_target, deviation, dry, format, scaled):
+def tool_make_supercell(
+    filename, dimension, diagonal_dimension, n_target, deviation, dry, format, scaled
+):
     """create a supercell of desired shape or size"""
+    if diagonal_dimension:
+        dimension = diagonal_dimension
     make_supercell(filename, dimension, n_target, deviation, dry, format, scaled)
 
 

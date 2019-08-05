@@ -17,11 +17,15 @@ def output():
 @output.command("md")
 @click.argument("trajectory", type=complete_filenames)
 @click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
-def md_output(trajectory, heat_flux):
+@click.option("-d", "--discard", type=int, help="discard this many steps")
+def md_output(trajectory, heat_flux, discard):
     """write data in trajectory as xarray.Dataset"""
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
     traj = reader(file=trajectory, with_stresses=heat_flux)
+
+    if discard:
+        traj = traj.discard(discard)
 
     outfile = "trajectory.nc"
     DS = traj.dataset
