@@ -5,6 +5,7 @@ import numpy as np
 
 from fireworks import FWAction
 from ase.io.aims import read_aims
+from shutil import copyfile
 
 from hilde.fireworks.workflows.firework_generator import generate_firework, time2str
 from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
@@ -58,5 +59,5 @@ def check_aims(
     for key, val in atoms["info"].items():
         if key not in new_atoms_dict["info"]:
             new_atoms_dict["info"][key] = val
-    Path(f"{kwargs['workdir']}/aims.out").rename(f"{kwargs['workdir']}/aims.out.{calc_number}")
+    copyfile(f"{kwargs['workdir']}/aims.out", f"{kwargs['workdir']}/aims.out.{calc_number}")
     return completed, calc_number, new_atoms_dict, walltime

@@ -22,7 +22,7 @@ from hilde.materials_fp.material_fingerprint import (
 from hilde.phonon_db.row import phonon_to_dict
 from hilde.phonopy.wrapper import preprocess as ph_preprocess
 from hilde.settings import Settings
-from hilde.structure.convert import to_Atoms
+from hilde.structure.convert import to_Atoms_db
 from hilde.trajectory import reader
 
 def get_base_work_dir(wd):
@@ -83,9 +83,8 @@ def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
     """
     settings = Settings()
     calc.parameters["dry_run"] = True
-    if "use_local_index" in calc.parameters:
-        del (calc.parameters["use_local_index"])
-        del (calc.parameters["load_balancing"])
+    calc.parameters.pop("use_local_index", None)
+    calc.parameters.pop("load_balancing", None)
     calc.command = settings.machine.aims_command
     bs_base = settings.machine.basissetloc
     calc.parameters["species_dir"] = (
@@ -94,7 +93,7 @@ def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
     calc.parameters["compute_forces"] = False
     update_k_grid(new_supercell, calc, k_pt_density, even=True)
     new_supercell.set_calculator(calc)
-    with cwd(workdir):
+    with cwd(workdir + "/memory_expectation", mkdir=True):
         try:
             new_supercell.calc.calculate()
         except RuntimeError:
@@ -165,7 +164,7 @@ def get_converge_phonon_update(
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
     k_pt_density = k2d(
-        to_Atoms(ph.get_supercell()),
+        to_Atoms_db(ph.get_supercell()),
         calc_dict["calculator_parameters"]["k_grid"],
     )
 
@@ -205,7 +204,7 @@ def get_converge_phonon_update(
         update_job = {
             "ph_dict": phonon_to_dict(ph),
             "ph_calculator": calc_dict,
-            "ph_primitive": atoms2dict(to_Atoms(ph.get_primitive())),
+            "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
             "k_pt_density": k_pt_density,
             "ph_time": calc_time / len(ph.get_supercells_with_displacements())
         }
@@ -217,25 +216,28 @@ def get_converge_phonon_update(
         dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
 
     # If Not Converged update phonons
-    pc = to_Atoms(ph.get_primitive())
+    pc = to_Atoms_db(ph.get_primitive())
 
     if "sc_matrix_original" not in kwargs:
         kwargs["sc_matrix_original"] = ph.get_supercell_matrix()
     ind = np.where(np.array(kwargs["sc_matrix_original"]).flatten() != 0)[0][0]
-    n_cur = int(
-        round(
-            ph.get_supercell_matrix().flatten()[ind]
-            / np.array(kwargs["sc_matrix_original"]).flatten()[ind]
+    if kwargs.get("sc_matrix_original", None) is not None:
+        n_cur = int(
+            round(
+                ph.get_supercell_matrix().flatten()[ind]
+                / np.array(kwargs["sc_matrix_original"]).flatten()[ind]
+            )
         )
-    )
-    sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_original"]).reshape((3, 3))
+        sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_original"]).reshape((3, 3))
+    else:
+        sc_mat = 2.0 * ph.get_supercell_matrix()
 
     displacement = ph._displacement_dataset["first_atoms"][0]["displacement"]
     disp_mag = np.linalg.norm(displacement)
 
     ratio = np.linalg.det(sc_mat) / np.linalg.det(ph.get_supercell_matrix())
     ph, sc, scs = ph_preprocess(
-        to_Atoms(ph.get_primitive()), sc_mat, displacement=displacement
+        to_Atoms_db(ph.get_primitive()), sc_mat, displacement=displacement
     )
 
     time_scaling = 3.0 * ratio ** 3.0
@@ -263,8 +265,8 @@ def get_converge_phonon_update(
         "expected_walltime": expected_walltime,
         "expected_mem": expected_mem,
         "ph_calculator": calc_dict,
-        "ph_primitive": atoms2dict(to_Atoms(ph.get_primitive())),
-        "ph_supercell": atoms2dict(to_Atoms(ph.get_supercell())),
+        "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
+        "ph_supercell": atoms2dict(to_Atoms_db(ph.get_supercell())),
         "k_pt_density": k_pt_density,
         "prev_dos_fp": dos_fp,
         "prev_wd": workdir,

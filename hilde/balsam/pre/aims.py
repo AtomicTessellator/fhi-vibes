@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-'''Generate the aims.in file for hilde run aims'''
+"""Generate the aims.in file for hilde run aims"""
 
-import numpy as np
 from balsam.launcher.dag import current_job
+
+from hilde.aims.context import AimsContext
+from hilde.aims.setup import setup_aims
 
 from hilde.balsam.data_encoder import decode
 
@@ -16,19 +18,30 @@ atoms_dict = data["atoms"].copy()
 for key, val in data["calculator"].items():
     atoms_dict[key] = val
 
-set = TaskSettings(read_config=False)
+settings = TaskSettings(read_config=False)
 for key, val in data["ctx"].items():
     if isinstance(val, dict):
-        set[key] = AttributeDict()
+        settings[key] = AttributeDict()
         for kk, vv in val.items():
-            set[key][kk] = vv
+            settings[key][kk] = vv
     else:
-        set[key] = val
+        settings[key] = val
 
-set["geometry"] = AttributeDict()
-set["geometry"]["file"] = "geometry.in"
-dict2atoms(atoms_dict).write("geometry.in", scaled=True, use_sym=True)
+settings["control"].update(data["calculator"]["calculator_parameters"])
+settings["geometry"] = AttributeDict({"file": "geometry.in"})
+settings.write("aims.in")
 
-set["control"].update(data["calculator"]["calculator_parameters"])
+atoms = dict2atoms(atoms_dict)
+atoms.set_calculator(None)
+atoms.write("geometry.in")
 
-set.write("aims.in")
+ctx = AimsContext(settings=settings)
+
+calc = setup_aims(ctx)
+
+calc.write_input(
+    atoms,
+    velocities=True,
+    use_sym=calc.parameters.get("use_sym", False),
+    scaled=calc.parameters.get("scaled", False),
+)

@@ -7,17 +7,18 @@ from hilde.fireworks.workflows.firework_generator import generate_firework
 from hilde.phonon_db.ase_converters import atoms2dict
 from hilde.trajectory import reader as traj_reader
 
-def get_calc_times(workdir=None):
-    if workdir:
-        bakup_dir = Path(workdir) / "backups"
-    else:
-        bakup_dir = Path("./backups/")
-    calc_dirs = sorted(
-        bakup_dir.glob("backup.?????.*"), key=lambda s: int(str(s).split(".")[-2])
-    )
+def get_calc_times(workdir=None, calc_dirs=None):
+    if calc_dirs is None:
+        if workdir:
+            bakup_dir = Path(workdir) / "backups"
+        else:
+            bakup_dir = Path("./backups/")
+        calc_dirs = sorted(
+            bakup_dir.glob("backup.?????.*"), key=lambda s: int(str(s).split(".")[-2])
+        )
     calc_times = list()
     for direc in calc_dirs:
-        aims_out = direc / "aims.out"
+        aims_out = Path(direc) / "aims.out"
         if aims_out.exists():
             lines = np.array(open(str(aims_out)).readlines())
             time_text = "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
@@ -27,3 +28,5 @@ def get_calc_times(workdir=None):
             time = 0.0
         calc_times.append(time)
     return calc_times
+
+

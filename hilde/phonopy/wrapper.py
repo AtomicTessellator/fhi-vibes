@@ -52,10 +52,10 @@ def prepare_phonopy(
     phonon: phonopy.Phonopy
         The phonopy object corresponding to the parameters
     """
-
+    print(supercell_matrix)
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
-
     supercell_matrix = get_3x3_matrix(supercell_matrix)
+    print(supercell_matrix)
 
     phonon = Phonopy(
         ph_atoms,
@@ -112,6 +112,7 @@ def preprocess(
     supercells_with_disps: list of ase.atoms.Atoms
         All of the supercells with displacements
     """
+    print(supercell_matrix)
     supercell_matrix = get_3x3_matrix(supercell_matrix)
 
     phonon = prepare_phonopy(

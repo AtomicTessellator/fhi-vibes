@@ -16,10 +16,12 @@ from hilde.aims.setup import setup_aims
 from hilde.cli.misc import AliasedGroup
 from hilde.settings import TaskSettings, AttributeDict, Settings
 
+
 @click.command(cls=AliasedGroup)
 def balsam():
     """Access HiLDe's balsam wrappers"""
     pass
+
 
 @balsam.command("add_wf")
 @click.option("-w", "--workflow", default="workflow.in")
