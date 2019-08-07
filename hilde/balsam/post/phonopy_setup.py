@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Check the completion of an aims calculation"""
+from ase.io import read
 
 import balsam.launcher.dag as dag
 
@@ -27,14 +28,17 @@ for key, val in data["ph_data"]["ctx"].items():
 
 settings["geometry"] = AttributeDict()
 settings["geometry"]["file"] = "geometry.in"
+
 atoms = dict2atoms(data["atoms"])
 atoms.set_calculator(None)
-atoms.write("geometry.in", scaled=True, use_sym=True)
+atoms.write("geometry.in", scaled=True, geo_constrain=True)
+atoms = read("geometry.in")
 
 settings["control"].update(data["calculator"]["calculator_parameters"])
 settings.pop("restart", None)
 settings.pop("relaxation", None)
 settings.general["relax_structure"] = False
+settings.atoms = atoms
 
 ctx = PhonopyContext(settings=settings, read_config=False)
 

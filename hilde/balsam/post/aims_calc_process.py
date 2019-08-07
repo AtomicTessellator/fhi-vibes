@@ -83,7 +83,7 @@ def postprocess_aims(data):
     name = dag.current_job.name.split("_")
 
     restart = generate_aims_job(settings, calc_number=calc_number)
-    restart.name = "_".join(name[:-1] + [calc_number])
+    restart.name = "_".join(name[:-1] + [str(calc_number)])
     restart.workflow = dag.current_job.workflow
     restart.description = (
         dag.current_job.description[:-1] + f" restart number {calc_number}"

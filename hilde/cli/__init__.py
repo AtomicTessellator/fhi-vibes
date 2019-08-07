@@ -54,7 +54,7 @@ except ImportError:
 try:
     import hilde.balsam.cli
     cli.add_command(hilde.balsam.cli.balsam)
-except ImportError:
+except:
     pass
 
 @cli.command("status", hidden=True)

@@ -14,7 +14,6 @@ else:
 balsam_path = os.path.abspath(__file__)
 bp_list = balsam_path.split("/")
 balsam_path = "/".join(bp_list[:-1])
-print(balsam_path, bp_list, __file__)
 
 
 def register():

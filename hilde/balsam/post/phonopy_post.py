@@ -22,6 +22,7 @@ from hilde.balsam.workflow.job_generator import (
     generate_gruneisen_jobs,
     generate_phonopy_jobs,
     get_phonon_setup_data,
+    generate_stat_samp_jobs,
 )
 from hilde.fireworks.tasks.postprocess.calculate import get_calc_times
 from hilde.fireworks.tasks.postprocess.phonons import get_converge_phonon_update
@@ -74,29 +75,21 @@ def setup_gruneisen(vol_factor, sc_mat):
         dag.add_dependency(dag.current_job, job)
 
 
-# def setup_statistical_sampling(sc_mat):
-#     ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False))
-#     settings = ctx.settings
+def setup_statistical_sampling(sc_mat, phonon):
+    ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False))
+    settings = ctx.settings
+    calc = setup_aims(AimsContext(Settings(settings_file="phonopy.in")))
+    calc.parameters.pop("use_pimd_wrapper", None)
 
-#     calc = setup_aims(AimsContext(Settings(settings_file="phonopy.in")))
-#     calc.parameters.pop("use_pimd_wrapper", None)
+    settings.atoms.set_calculator(calc)
+    settings.statistical_sampling["supercell_matrix"] = sc_mat
 
-#     settings.atoms.set_calculator(calc)
-#     settings.statistical_sampling.supercell_matrix = sc_mat
+    settings.general["relax_structure"] = False
+    settings.pop("relaxation", None)
+    jobs = generate_stat_samp_jobs(settings, phonon)
 
-#     settings.general["relax_structure"] = False
-#     settings.phonopy["get_gruniesen"] = False
-#     settings.phonopy["converge_phonons"] = False
-#     settings["statistical_sampling"] = None
-
-#     job = generate_stat_samp(settings)
-#     job.save()
-
-#     dag.add_dependency(dag.current_job, job)
-#     for child in dag.children:
-#         dag.add_dependency(job, child)
-
-#     return job
+    for job in jobs:
+        dag.add_dependency(dag.current_job, job)
 
 data = decode(dag.current_job.data)
 
@@ -167,6 +160,9 @@ with cwd(base_dir):
             with cwd(base_dir):
                 setup_gruneisen(0.99, sc_mat)
                 setup_gruneisen(1.01, sc_mat)
+        if "statistical_sampling" in ctx.settings:
+            with cwd(base_dir):
+                setup_statistical_sampling(sc_mat, phonon)
         exit(0)
 
 update_job["expected_walltime"] /= data["ph_data"]["number_of_sc"]

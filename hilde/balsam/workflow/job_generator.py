@@ -1,7 +1,10 @@
 """Generators for Jobs for the balsam generators"""
 from pathlib import Path
 
+import ase
 from ase.calculators.aims import Aims
+from ase import units as u
+from ase.md.velocitydistribution import PhononHarmonics
 
 from balsam.core.models import BalsamJob
 
@@ -14,12 +17,17 @@ from hilde.aims.setup import setup_aims
 
 from hilde.balsam.data_encoder import decode, encode
 
+from hilde import konstanten as const
+from hilde.helpers.converters import input2dict
 from hilde.helpers.hash import hash_atoms
+from hilde.helpers.supercell import make_supercell
 from hilde.helpers.watchdogs import str2time
 from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
 from hilde.phonopy.context import PhonopyContext
+from hilde.phonopy.utils import remap_force_constants
 from hilde.phonopy.workflow import bootstrap
 from hilde.settings import Settings
+from hilde.structure.convert import to_Atoms
 
 ranks_per_node = Settings()["comp_node_stats"]["cores_per_node"]
 max_nodes = Settings()["comp_node_stats"]["max_nodes"]
@@ -66,11 +74,10 @@ def generate_aims_job(settings, basisset=None, calc_number=0, app="run-aims"):
         relax_unit_cell = "full"
 
     # Update the control settings in the context and calculator
-    update_control = dict(scaled=True)
+    update_control = dict()
     if settings.general.get("relax_structure", True):
         update_control["relax_geometry"] = f"{method} {force_crit}"
         update_control["relax_unit_cell"] = relax_unit_cell
-        update_control["use_sym"] = True
     calc.parameters.update(update_control)
     ctx.settings.control.update(update_control)
 
@@ -81,7 +88,7 @@ def generate_aims_job(settings, basisset=None, calc_number=0, app="run-aims"):
         "ctx": ctx.settings,
         "calc_number": calc_number,
     }
-    if settings.general.relax_structure:
+    if settings.general.get("relax_structure", True):
         data["relaxation"] = {
             "method": method,
             "force_crit": force_crit,
@@ -137,7 +144,6 @@ def generate_phonopy_jobs(settings, data):
     # get the calculator and atoms object from the ctx
     calc = setup_aims(AimsContext(settings))
     atoms = settings.atoms.copy()
-    atoms.set_calculator(calc)
 
     ctx.ref_atoms = atoms
     ph_initialization = bootstrap(ctx)
@@ -146,6 +152,8 @@ def generate_phonopy_jobs(settings, data):
     atoms_hash = hash_atoms(atoms)
 
     workflow = f"{chem_formula}/{atoms_hash}"
+
+    atoms.set_calculator(calc)
 
     natoms = int(
         round(len(atoms) * np.linalg.det(ctx.settings.phonopy.supercell_matrix))
@@ -164,7 +172,7 @@ def generate_phonopy_jobs(settings, data):
 
     Path(copy_wd_base).mkdir(exist_ok=True, parents=True)
     ctx.settings.write(f"{copy_wd_base}/phonopy.in")
-    atoms.write(f"{copy_wd_base}/geometry.in", format="aims", scaled=True, use_sym=True)
+    atoms.write(f"{copy_wd_base}/geometry.in", format="aims", scaled=True, geo_constrain=True)
     job_list = []
 
     for ii, atoms in enumerate(ph_initialization["atoms_to_calculate"]):
@@ -174,8 +182,7 @@ def generate_phonopy_jobs(settings, data):
         ctx.settings.atoms = atoms
         ctx.settings.atoms.set_calculator(calc)
 
-        job = generate_aims_job(ctx.settings)
-        job.application = "run-aims-post-phonopy"
+        job = generate_aims_job(ctx.settings, app="run-aims-post-phonopy")
         job.num_nodes = min(data["ph_data"]["nodes"], max_nodes)
         job.wall_time_minutes = data["ph_data"]["walltime"]
         job.workflow = workflow
@@ -260,8 +267,9 @@ def make_job_phonopy_setup(settings, job):
         ctx.settings, ctx.settings.pop("phonopy_qadapter", None)
     )
     sc_matrix = settings.phonopy.get("supercell_matrix")
-    ph_data["sc_matrix_original"] = (sc_matrix,)
-    ph_data["conv_crit"] = (settings.phonopy.get("conv_crit", 0.95),)
+    del ph_data["ph_primitive"]
+    ph_data["sc_matrix_original"] = sc_matrix
+    ph_data["conv_crit"] = settings.phonopy.get("conv_crit", 0.95)
     ph_data["ctx"] = ctx.settings
 
     job.application = "run-aims-setup-phonopy"
@@ -301,7 +309,7 @@ def generate_gruneisen_jobs(settings, vol_factor):
             sym_nparams[ii] = str(int(sym_nparams[ii]) - n_lat)
         symmetry_block[0] = " ".join(sym_nparams)
         sym_params = symmetry_block[1].split()
-        del (sym_params[1:n_lat + 1])
+        del sym_params[1 : n_lat + 1]
         symmetry_block[1] = " ".join(sym_params)
         for ii in range(3):
             symmetry_block[
@@ -339,84 +347,120 @@ def generate_gruneisen_jobs(settings, vol_factor):
         return generate_phonopy_jobs(settings, data)
 
 
-# def generate_stat_samp_jobs(settings, phonon):
-#     """Generate a FireWork to calculate the Gruniesen Parameter with finite differences
+def generate_stat_samp_jobs(settings, phonon):
+    """Generate a FireWork to calculate the Gruniesen Parameter with finite differences
 
-#     Parameters
-#     ----------
-#     sdettings: Settings
-#         The Workflow Settings
+    Parameters
+    ----------
+    sdettings: Settings
+        The Workflow Settings
 
-#     Returns
-#     -------
-#     BalsamJob:
-#         The Gruniesen
-#     """
-#     atoms = settings.atoms.copy()
-#     atoms.set_calculator(settings.atoms.calc)
+    Returns
+    -------
+    BalsamJob:
+        The Gruniesen
+    """
+    atoms = to_Atoms(phonon.get_primitive())
+    atoms.set_calculator(settings.atoms.calc)
 
-#     if "supercell_matrix" in settings.statistical_sampling:
-#         sc = make_supercell(atoms, settings.statistical_sampling.supercell_matrix)
-#     else:
-#         sc = to_Atoms(phonon.get_supercell())
+    if "supercell_matrix" in settings.statistical_sampling:
+        sc = make_supercell(atoms, settings.statistical_sampling.supercell_matrix)
+    else:
+        sc = to_Atoms(phonon.get_supercell())
 
-#     force_constants = phonon.get_forceconstants().copy()
+    force_constants = phonon.get_force_constants().copy()
 
-#     temperatures = settings.statistical_sampling.get("temperatures", list())
-#     # If using Debye temperature calculate it
-#     if settings.statistical_sampling.get("debye_temp_fact", list()):
-#         if phonon is None:
-#             raise IOError("Debye Temperature must be calculated with phonopy, please add phonon_file")
-#         phonon.set_mesh([51, 51, 51])
-#         phonon.set_total_DOS(freq_pitch=0.01)
-#         phonon.set_Debye_frequency()
-#         debye_temp = phonon.get_Debye_frequency() * const.THzToEv / const.kB
-#         temperatures += [tt * debye_temp for tt in debye_temp_fact]
+    temperatures = settings.statistical_sampling.get("temperatures", list())
+    # If using Debye temperature calculate it
+    debye_temp_fact = settings.statistical_sampling.get("debye_temp_fact", list())
+    if debye_temp_fact:
+        if phonon is None:
+            raise IOError(
+                "Debye Temperature must be calculated with phonopy, please add phonon_file"
+            )
+        phonon.set_mesh([51, 51, 51])
+        phonon.set_total_DOS(freq_pitch=0.01)
+        phonon.set_Debye_frequency()
+        debye_temp = phonon.get_Debye_frequency() * const.THzToEv / const.kB
+        temperatures += [tt * debye_temp for tt in debye_temp_fact]
 
-#     if not temperatures:
-#         raise IOError("temperatures must be given to do harmonic analysis")
+    if not temperatures:
+        raise IOError("temperatures must be given to do harmonic analysis")
 
-#     if "deterministic" in kwargs:
-#         deterministic = kwargs["deterministic"]
+    if "deterministic" in settings.statistical_sampling:
+        deterministic = settings.statistical_sampling["deterministic"]
 
-#     # Generate metadata
-#     metadata = {
-#         "ase_vesrsion": ase.__version__,
-#         "n_samples_per_temperature": n_samples,
-#         "temperatures": temperatures,
-#         "deterministic": deterministic,
-#         "force_constants": force_constants,
-#         "supercell": input2dict(sc),
-#         "primitive": input2dict(atoms),
-#         **input2dict(sc),
-#     }
-#     if not deterministic:
-#         if rng_seed is None:
-#             rng_seed = np.random.randint(2**32-1)
-#         elif not isinstance(rng_seed, int):
-#             rng_seed = int(rng_seed)
-#         metadata["rng_seed"] = rng_seed
-#     rng = np.random.RandomState(rng_seed)
+    nsamples = settings.statistical_sampling.get("n_samples", 1)
+    # Generate metadata
+    metadata = {
+        "ase_vesrsion": ase.__version__,
+        "n_samples_per_temperature": nsamples,
+        "temperatures": temperatures,
+        "deterministic": deterministic,
+        "force_constants": force_constants,
+        "supercell": input2dict(sc),
+        "primitive": input2dict(atoms),
+        **input2dict(sc),
+    }
 
-#     force_constants = remap_force_constants(
-#         force_constants,
-#         atoms,
-#         sc,
-#         two_dim=True,
-#     )
-#     assert(force_constants.shape[0] == force_constants.shape[1] == len(sc)*3 )
+    rng_seed = settings.statistical_sampling.get(
+        "rng_seed", np.random.randint(2 ** 32 - 1)
+    )
+    if not deterministic:
+        if not isinstance(rng_seed, int):
+            rng_seed = int(rng_seed)
+        metadata["rng_seed"] = rng_seed
+    rng = np.random.RandomState(rng_seed)
 
-#     # Set up thermally displaced supercells
-#     td_cells = list()
-#     for temp in temperatures:
-#         sc.info["temperature"] = temp
-#         td_cells += prepare_phonon_harmonic_sampling(
-#             sc,
-#             force_constants,
-#             temp,
-#             n_samples,
-#             deterministic,
-#             rng,
-#         )
-#     job = generate_aims_job()
-#     return job
+    force_constants = remap_force_constants(force_constants, atoms, to_Atoms(phonon.get_supercell()), sc, two_dim=True)
+    assert force_constants.shape[0] == force_constants.shape[1] == len(sc) * 3
+
+    job_list = []
+    # Set up thermally displaced supercells
+    td_cells = list()
+    for temp in temperatures:
+        sc.info["temperature"] = temp
+        td_cells += prepare_phonon_harmonic_sampling(
+            sc, force_constants, temp, nsamples, deterministic, rng
+        )
+    for cell in td_cells:
+        ctx = AimsContext(settings=settings, read_config=False)
+        ctx.settings.atoms = cell.copy()
+        ctx.settings.atoms.calc = setup_aims(AimsContext(settings=settings))
+        job_list.append(generate_aims_job(ctx.settings))
+    return job_list
+
+
+def prepare_phonon_harmonic_sampling(
+    atoms,
+    force_constants,
+    temperature,
+    n_samples=1,
+    deterministic=True,
+    rng=np.random,
+    **kwargs,
+):
+    """
+    Generates a list of displaced supercells based on a thermal excitation of phonons
+    Parameters:
+        atoms (ase.atoms.Atoms): Non-displaced supercell
+        force_constants(np.ndarray(shape=(3*len(atoms), 3*len(atoms)))): Force constant matrix for atoms
+        temperature (float): Temperature to populate the phonons modes at
+        n_samples(int): number of samples to generate
+        deterministic(bool): If True then displace atoms with +/- the amplitude according to PRB 94, 075125
+    Returns (list of ase.atoms.Atoms): The thermally displaced supercells
+    """
+    thermally_disp_cells = []
+    for ii in range(n_samples):
+        td_cell = atoms.copy()
+        PhononHarmonics(
+            td_cell,
+            force_constants,
+            quantum=False,
+            temp=temperature * u.kB,
+            rng=rng,
+            plus_minus=deterministic,
+            failfast=True,
+        )
+        thermally_disp_cells.append(td_cell)
+    return thermally_disp_cells

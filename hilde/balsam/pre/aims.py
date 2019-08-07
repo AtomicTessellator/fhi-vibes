@@ -41,7 +41,4 @@ calc = setup_aims(ctx)
 
 calc.write_input(
     atoms,
-    velocities=True,
-    use_sym=calc.parameters.get("use_sym", False),
-    scaled=calc.parameters.get("scaled", False),
 )
