@@ -58,8 +58,6 @@ def bootstrap(ctx):
         from hilde.phono3py.wrapper import preprocess
 
     # Phonopy preprocess
-    print("bootstrap")
-    print(ctx.settings.obj.supercell_matrix)
     phonon, supercell, scs = preprocess(atoms=ctx.ref_atoms, **ctx.settings.obj)
 
     # if calculator not given, create an aims context for this calculation

@@ -276,6 +276,8 @@ def remap_force_constants(
     map2prim = sds.mapping_to_primitive
 
     sc_r = np.zeros((force_constants.shape[0], force_constants.shape[1], 3))
+
+
     for aa, a1 in enumerate(primitive):
         diff = supercell.positions - a1.position
         p2s = np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0]
