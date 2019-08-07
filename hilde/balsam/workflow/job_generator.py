@@ -16,10 +16,10 @@ from hilde.aims.context import AimsContext
 from hilde.aims.setup import setup_aims
 
 from hilde.balsam.data_encoder import decode, encode
-
 from hilde import konstanten as const
 from hilde.helpers.converters import input2dict
 from hilde.helpers.hash import hash_atoms
+from hilde.helpers.numerics import get_3x3_matrix
 from hilde.helpers.supercell import make_supercell
 from hilde.helpers.watchdogs import str2time
 from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
@@ -141,8 +141,9 @@ def generate_phonopy_jobs(settings, data):
     # Get the initial context
     ctx = PhonopyContext(settings=settings, read_config=False)
 
+
     # get the calculator and atoms object from the ctx
-    calc = setup_aims(AimsContext(settings))
+    calc = setup_aims(AimsContext(settings, read_config=True))
     atoms = settings.atoms.copy()
 
     ctx.ref_atoms = atoms
@@ -221,7 +222,7 @@ def get_phonon_setup_data(settings, qadapter=None, prev_dos_fp=None):
     """
 
     atoms = settings.atoms
-    sc_matrix = settings.phonopy.get("supercell_matrix")
+    sc_matrix = get_3x3_matrix(settings.phonopy.get("supercell_matrix"))
     natoms = len(atoms) * np.linalg.det(sc_matrix)
 
     num_nodes = int(np.ceil(1.0 * natoms / ranks_per_node))
@@ -294,6 +295,7 @@ def generate_gruneisen_jobs(settings, vol_factor):
     BalsamJob:
         The Gruniesen
     """
+
     atoms = settings.atoms.copy()
     atoms.set_calculator(settings.atoms.calc)
 
@@ -323,10 +325,10 @@ def generate_gruneisen_jobs(settings, vol_factor):
         basis = "light"
 
     settings.atoms = atoms
-
-    if not symmetry_block or int(sym_nparams[-1]) > 0:
+    relaxation = decode(dag.current_job.data).get("relaxation", None)
+    if (not symmetry_block or int(sym_nparams[-1]) > 0) and relaxation is not None:
         settings.general["relax_structure"] = True
-        settings["relaxation"] = decode(dag.current_job.data)["relaxation"]
+        settings["relaxation"] = relaxation
         jobs.append(generate_aims_job(settings, "light"))
         # Tighter Basis Set Relaxation
         use_tight_relax = settings.general.get("use_tight_relax", False)
@@ -427,7 +429,11 @@ def generate_stat_samp_jobs(settings, phonon):
         ctx = AimsContext(settings=settings, read_config=False)
         ctx.settings.atoms = cell.copy()
         ctx.settings.atoms.calc = setup_aims(AimsContext(settings=settings))
-        job_list.append(generate_aims_job(ctx.settings))
+        job = generate_aims_job(ctx.settings)
+        job.workflow = dag.current_job.workflow
+        job.save()
+        job_list.append(job)
+
     return job_list
 
 

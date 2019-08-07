@@ -58,7 +58,7 @@ def collect_calcs_to_trajectory(base_dir, metadata):
 
 def setup_gruneisen(vol_factor, sc_mat):
     """Setup a second structure for a gruneisen FD calculation"""
-    ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False))
+    ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False), read_config=False)
     calc = setup_aims(AimsContext(Settings(settings_file="phonopy.in")))
     calc.parameters.pop("use_pimd_wrapper", None)
 
@@ -70,13 +70,20 @@ def setup_gruneisen(vol_factor, sc_mat):
     ctx.settings.phonopy["get_gruniesen"] = False
     ctx.settings.phonopy["converge_phonons"] = False
     ctx.settings.pop("statistical_sampling", None)
+
+    ctx.settings.write("gruneisen.in")
+    ctx.settings._settings_file = "gruneisen.in"
+
     jobs = generate_gruneisen_jobs(ctx.settings, vol_factor)
+
+    Path("gruneisen.in").unlink()
+
     for job in jobs:
         dag.add_dependency(dag.current_job, job)
 
 
 def setup_statistical_sampling(sc_mat, phonon):
-    ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False))
+    ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False), read_config=False)
     settings = ctx.settings
     calc = setup_aims(AimsContext(Settings(settings_file="phonopy.in")))
     calc.parameters.pop("use_pimd_wrapper", None)
@@ -86,7 +93,13 @@ def setup_statistical_sampling(sc_mat, phonon):
 
     settings.general["relax_structure"] = False
     settings.pop("relaxation", None)
+
+    ctx.settings.write("stat_samp.in")
+    ctx.settings._settings_file = "stat_samp.in"
+
     jobs = generate_stat_samp_jobs(settings, phonon)
+
+    Path("stat_samp.in").unlink()
 
     for job in jobs:
         dag.add_dependency(dag.current_job, job)
@@ -111,9 +124,10 @@ if len(completed_calcs) < data["ph_data"]["number_of_sc"]:
 calc_dirs = glob(f"{base_dir}/*/")
 from ase.io import read
 with cwd(base_dir):
-
     collect_calcs_to_trajectory(base_dir, data["ph_data"]["metadata"])
-
+    import os
+    print(os.system("ls"))
+    print(Settings(settings_file="phonopy.in").geometry.file)
     ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False), read_config=False)
     calc = setup_aims(AimsContext(Settings(settings_file="phonopy.in")))
     ctx.settings.atoms.set_calculator(calc)

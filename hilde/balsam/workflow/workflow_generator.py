@@ -2,15 +2,19 @@
 
 import balsam.launcher.dag as dag
 
+from pathlib import Path
+
+from hilde.balsam.data_encoder import encode, decode
 from hilde.balsam.workflow.job_generator import (
     generate_aims_job,
     make_job_phonopy_setup,
     generate_phonopy_jobs,
     get_phonon_setup_data,
 )
-
-from hilde.helpers.hash import hash_atoms_and_calc
+from hilde.helpers.attribute_dict import AttributeDict
+from hilde.helpers.hash import hash_atoms
 from hilde.helpers.numerics import get_3x3_matrix
+from hilde.phonon_db.ase_converters import atoms2dict
 from hilde.phonopy import defaults as ph_defaults
 
 
@@ -33,13 +37,13 @@ def generate_workflow(workflow_settings):
     atoms.set_calculator(workflow_settings.atoms.calc)
 
     name = atoms.symbols.get_chemical_formula()
-    name += "_" + hash_atoms_and_calc(atoms)[0]
+    name += "_" + hash_atoms(atoms)[0]
 
     workflow_settings.general.workdir_local += (
-        atoms.symbols.get_chemical_formula() + "/" + hash_atoms_and_calc(atoms)[0] + "/"
+        atoms.symbols.get_chemical_formula() + "/" + hash_atoms(atoms) + "/"
     )
     workflow_settings.general.workdir_cluster += (
-        atoms.symbols.get_chemical_formula() + "/" + hash_atoms_and_calc(atoms)[0] + "/"
+        atoms.symbols.get_chemical_formula() + "/" + hash_atoms(atoms) + "/"
     )
 
     workflow_settings.atoms = atoms
@@ -53,7 +57,7 @@ def generate_workflow(workflow_settings):
         if "supercell_matrix" not in workflow_settings.phonopy:
             raise IOError("Initial supercell_matrix must be provided")
         else:
-            workflow_settings.phonopy.supercell_matrix = get_3x3_matrix(
+            workflow_settings.phonopy["supercell_matrix"] = get_3x3_matrix(
                 workflow_settings.phonopy.supercell_matrix
             )
         ignore_keys = ["trigonal", "q_mesh"]
@@ -88,6 +92,27 @@ def generate_workflow(workflow_settings):
             ph_data = get_phonon_setup_data(
                 workflow_settings, workflow_settings.pop("phonopy_qadapter")
             )
+            sc_matrix = workflow_settings.phonopy.get("supercell_matrix")
+            ph_data["sc_matrix_original"] = sc_matrix
+            del ph_data["ph_primitive"]
+            ph_data["conv_crit"] = workflow_settings.phonopy.get("conv_crit", 0.95)
             ph_data["ctx"] = workflow_settings
             data = dict(ph_data=ph_data)
-            generate_phonopy_jobs(workflow_settings, data)
+            unlink_geo = True
+            if workflow_settings.geometry.get("file", None) != "geometry.in":
+                workflow_settings["geometry"] = AttributeDict({"file": "geometry.in"})
+                unlink_geo = False
+            atoms.write("geometry.in", scaled=True, geo_constrain=True)
+
+
+            workflow_settings.pop("restart", None)
+            workflow_settings.pop("relaxation", None)
+            workflow_settings.general["relax_structure"] = False
+            jobs = generate_phonopy_jobs(workflow_settings, data)
+            if unlink_geo:
+                Path("geometry.in").unlink()
+            for job in jobs:
+                job_data = decode(job.data)
+                job_data["primitive"] = atoms2dict(atoms)
+                job.data = encode(job_data)
+                job.save()
