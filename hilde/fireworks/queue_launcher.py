@@ -33,7 +33,7 @@ from fireworks.utilities.fw_utilities import (
     create_datestamp_dir,
 )
 
-from hilde.fireworks.combined_launcher import get_ordred_fw_ids
+from hilde.fireworks.combined_launcher import get_ordred_firework_ids
 from hilde.fireworks._defaults import FW_DEFAULTS
 
 from hilde.helpers.watchdogs import str2time
@@ -319,7 +319,7 @@ def rapidfire(
     strm_lvl="CRITICAL",
     timeout=None,
     fill_mode=False,
-    fw_ids=None,
+    firework_ids=None,
     wflow_id=None,
 ):
     """ Submit many jobs to the queue.
@@ -350,19 +350,19 @@ def rapidfire(
         # of seconds after which to stop the rapidfire process
     fill_mode: bool
         whether to submit jobs even when there is nothing to run (only in non-reservation mode)
-    fw_ids: list of ints
-        a list fw_ids to launch (len(fw_ids) == nlaunches)
+    firework_ids: list of ints
+        a list firework_ids to launch (len(firework_ids) == nlaunches)
     wflow_id: list of ints
-        a list fw_ids that are a root of the workflow
+        a list firework_ids that are a root of the workflow
 
     Raises
     ------
     ValueError
         If the luanch directory does not exist
     """
-    if fw_ids and len(fw_ids) != nlaunches:
-        print("WARNING: Setting nlaunches to the length of fw_ids.")
-        nlaunches = len(fw_ids)
+    if firework_ids and len(firework_ids) != nlaunches:
+        print("WARNING: Setting nlaunches to the length of firework_ids.")
+        nlaunches = len(firework_ids)
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     launch_dir = os.path.abspath(launch_dir)
     nlaunches = -1 if nlaunches == "infinite" else int(nlaunches)
@@ -398,9 +398,9 @@ def rapidfire(
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
-                fw_ids = get_ordred_fw_ids(wflow)
+                firework_ids = get_ordred_firework_ids(wflow)
 
-            while launchpad.run_exists(fworker, ids=fw_ids) or (
+            while launchpad.run_exists(fworker, ids=firework_ids) or (
                 fill_mode and not reserve
             ):
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
@@ -422,7 +422,7 @@ def rapidfire(
                     block_dir = create_datestamp_dir(launch_dir, l_logger)
                 return_code = None
                 # launch a single job
-                if fw_ids or wflow_id:
+                if firework_ids or wflow_id:
                     return_code = launch_rocket_to_queue(
                         launchpad,
                         fworker,
@@ -432,7 +432,7 @@ def rapidfire(
                         strm_lvl,
                         True,
                         fill_mode,
-                        fw_ids[num_launched],
+                        firework_ids[num_launched],
                     )
                 else:
                     return_code = launch_rocket_to_queue(
@@ -454,7 +454,7 @@ def rapidfire(
                 if wflow_id:
                     wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                     nlaunches = len(wflow.fws)
-                    fw_ids = get_ordred_fw_ids(wflow)
+                    firework_ids = get_ordred_firework_ids(wflow)
                 num_launched += 1
                 if nlaunches > 0 and num_launched == nlaunches:
                     l_logger.info(
@@ -481,7 +481,7 @@ def rapidfire(
                 )
                 or (
                     nlaunches == 0
-                    and not launchpad.future_run_exists(fworker, ids=fw_ids)
+                    and not launchpad.future_run_exists(fworker, ids=firework_ids)
                 )
             ):
                 break

@@ -15,6 +15,7 @@ from hilde.helpers.watchdogs import str2time
 
 from hilde.fireworks.tasks.postprocess.relax import check_aims
 
+
 def check_aims_complete(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
@@ -49,7 +50,9 @@ def check_aims_complete(
     RuntimeError
         If the FHI-Aims calculation fails
     """
-    completed, calc_number, new_atoms_dict, walltime = check_aims(atoms, calc, outputs, **func_kwargs)
+    completed, calc_number, new_atoms_dict, walltime = check_aims(
+        atoms, calc, outputs, **func_kwargs
+    )
 
     update_spec = dict()
     if completed:
@@ -75,9 +78,7 @@ def check_aims_complete(
         fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(walltime)
     func_kwargs["walltime"] = walltime
     del calc["results"]
-    fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(
-        calc_number
-    )
+    fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(calc_number)
     fw_settings["spec"].update(update_spec)
     fw_settings["from_db"] = False
 

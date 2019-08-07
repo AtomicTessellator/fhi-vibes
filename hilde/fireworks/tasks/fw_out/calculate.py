@@ -3,8 +3,6 @@ from pathlib import Path
 
 from fireworks import FWAction
 
-import numpy as np
-
 from hilde.fireworks.tasks.postprocess.calculate import get_calc_times
 from hilde.fireworks.workflows.firework_generator import generate_firework
 from hilde.phonon_db.ase_converters import atoms2dict

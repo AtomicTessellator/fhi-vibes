@@ -1,19 +1,14 @@
+"""Postprocessing for phonon clalculations"""
 from pathlib import Path
 from shutil import copyfile, rmtree
 
 import numpy as np
 
 from ase.calculators.aims import Aims
-from ase.symbols import Symbols
-from fireworks import FWAction, Workflow
-from phonopy import Phonopy
 
-
-from hilde.phonon_db.ase_converters import calc2dict, atoms2dict
-from hilde.helpers.converters import dict2atoms
+from hilde.phonon_db.ase_converters import atoms2dict
 from hilde.helpers.k_grid import k2d, update_k_grid
 from hilde.helpers.paths import cwd
-from hilde.helpers.watchdogs import str2time
 from hilde.materials_fp.material_fingerprint import (
     get_phonon_dos_fingerprint_phononpy,
     fp_tup,
@@ -24,6 +19,7 @@ from hilde.phonopy.wrapper import preprocess as ph_preprocess
 from hilde.settings import Settings
 from hilde.structure.convert import to_Atoms_db
 from hilde.trajectory import reader
+
 
 def get_base_work_dir(wd):
     """
@@ -166,8 +162,7 @@ def get_converge_phonon_update(
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
     k_pt_density = k2d(
-        to_Atoms_db(ph.get_supercell()),
-        calc_dict["calculator_parameters"]["k_grid"],
+        to_Atoms_db(ph.get_supercell()), calc_dict["calculator_parameters"]["k_grid"]
     )
 
     # Calculate the phonon DOS
@@ -179,8 +174,10 @@ def get_converge_phonon_update(
         ph.set_total_DOS(freq_min=min_f, freq_max=max_f, tetrahedron_method=True)
     else:
         ph.set_total_DOS(tetrahedron_method=True)
-        if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-2 ):
-            raise ValueError("Negative frequencies at Gamma, terminating workflow here.")
+        if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-2):
+            raise ValueError(
+                "Negative frequencies at Gamma, terminating workflow here."
+            )
 
     # Get a phonon DOS Finger print to compare against the previous one
     dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
@@ -198,9 +195,7 @@ def get_converge_phonon_update(
         Path(f"{analysis_wd}/converged/").mkdir(exist_ok=True, parents=True)
         copyfile(traj, f"{analysis_wd}/converged/trajectory.son")
         if "prev_wd" in kwargs:
-            Path(f"{analysis_wd}/converged_mn_1/").mkdir(
-                exist_ok=True, parents=True
-            )
+            Path(f"{analysis_wd}/converged_mn_1/").mkdir(exist_ok=True, parents=True)
             traj_prev = f"{kwargs['prev_wd']}/{trajectory}"
             copyfile(traj_prev, f"{analysis_wd}/converged_mn_1/trajectory.son")
         update_job = {
@@ -208,7 +203,7 @@ def get_converge_phonon_update(
             "ph_calculator": calc_dict,
             "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
             "k_pt_density": k_pt_density,
-            "ph_time": calc_time / len(ph.get_supercells_with_displacements())
+            "ph_time": calc_time / len(ph.get_supercells_with_displacements()),
         }
         return True, update_job
 
@@ -218,7 +213,6 @@ def get_converge_phonon_update(
         dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
 
     # If Not Converged update phonons
-    pc = to_Atoms_db(ph.get_primitive())
 
     if "sc_matrix_original" not in kwargs:
         kwargs["sc_matrix_original"] = ph.get_supercell_matrix()
@@ -238,17 +232,14 @@ def get_converge_phonon_update(
     disp_mag = np.linalg.norm(displacement)
 
     ratio = np.linalg.det(sc_mat) / np.linalg.det(ph.get_supercell_matrix())
-    ph, sc, scs = ph_preprocess(
+    ph, _, scs = ph_preprocess(
         to_Atoms_db(ph.get_primitive()), sc_mat, displacement=displacement
     )
 
     time_scaling = 3.0 * ratio ** 3.0
     expected_walltime = calc_time * time_scaling
     expected_mem = get_memory_expectation(
-        scs[0].copy(),
-        Aims(**calc_dict["calculator_parameters"]),
-        k_pt_density,
-        workdir,
+        scs[0].copy(), Aims(**calc_dict["calculator_parameters"]), k_pt_density, workdir
     )
     ntasks = ph.supercell.get_number_of_atoms()
 
@@ -275,4 +266,3 @@ def get_converge_phonon_update(
         "displacement": disp_mag,
     }
     return False, update_job
-

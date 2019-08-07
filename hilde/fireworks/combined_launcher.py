@@ -43,7 +43,7 @@ else:
     SSH_MULTIPLEXING = "controlpath" in SSHClient.connect.__doc__
 
 
-def get_ordred_fw_ids(wflow):
+def get_ordred_firework_ids(wflow):
     """Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow
 
     Parameters
@@ -53,17 +53,17 @@ def get_ordred_fw_ids(wflow):
 
     Returns
     -------
-    fw_ids_ordered: list of ints
+    firework_ids_ordered: list of ints
         An ordered list for the desired workflow to run
     """
-    fw_ids_ordered = wflow.leaf_fw_ids
+    firework_ids_ordered = wflow.leaf_firework_ids
     parent_links = wflow.links.parent_links
-    for fw_id in fw_ids_ordered:
+    for fw_id in firework_ids_ordered:
         parents = parent_links[fw_id] if fw_id in parent_links else []
         for parent in sorted(parents)[::-1]:
-            if parent not in fw_ids_ordered:
-                fw_ids_ordered.append(parent)
-    return fw_ids_ordered[::-1]
+            if parent not in firework_ids_ordered:
+                firework_ids_ordered.append(parent)
+    return firework_ids_ordered[::-1]
 
 
 def use_queue_launch(fire_work, tasks2queue):
@@ -100,7 +100,7 @@ def rapidfire(
     strm_lvl="CRITICAL",
     timeout=None,
     fill_mode=False,
-    fw_ids=None,
+    firework_ids=None,
     wflow=None,
     tasks2queue=FW_DEFAULTS.tasks2queue,
     gss_auth=False,
@@ -141,8 +141,8 @@ def rapidfire(
         # of seconds after which to stop the rapidfire process
     fill_mode: bool
         whether to submit jobs even when there is nothing to run (only in non-reservation mode)
-    fw_ids: list of ints
-        a list fw_ids to launch (len(fw_ids) == nlaunches)
+    firework_ids: list of ints
+        a list firework_ids to launch (len(firework_ids) == nlaunches)
     wflow: WorkFlow
         the workflow this qlauncher is supposed to run
     tasks2queue: List of str
@@ -187,7 +187,7 @@ def rapidfire(
         else:
             wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
     elif wflow:
-        wflow_id = wflow.root_fw_ids
+        wflow_id = wflow.root_firework_ids
     else:
         wflow_id = None
     if remote_host == "localhost":
@@ -230,9 +230,9 @@ def rapidfire(
             q_kwargs["loglvl"] = strm_lvl
         if njobs_block != 500:
             q_kwargs["maxjobs_block"] = njobs_block
-    if fw_ids and len(fw_ids) != nlaunches:
-        print("WARNING: Setting nlaunches to the length of fw_ids.")
-        nlaunches = len(fw_ids)
+    if firework_ids and len(firework_ids) != nlaunches:
+        print("WARNING: Setting nlaunches to the length of firework_ids.")
+        nlaunches = len(firework_ids)
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     launch_dir = os.path.abspath(launch_dir)
     nlaunches = -1 if nlaunches == "infinite" else int(nlaunches)
@@ -295,10 +295,10 @@ def rapidfire(
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
-                fw_ids = get_ordred_fw_ids(wflow)
+                firework_ids = get_ordred_firework_ids(wflow)
             while (
                 skip_check
-                or launchpad.run_exists(fworker, ids=fw_ids)
+                or launchpad.run_exists(fworker, ids=firework_ids)
                 or (fill_mode and not reserve)
             ):
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
@@ -321,13 +321,13 @@ def rapidfire(
                         block_dir = create_datestamp_dir(launch_dir, l_logger)
                 return_code = None
                 # launch a single job
-                if fw_ids or wflow_id:
-                    fw_id = fw_ids[num_launched]
+                if firework_ids or wflow_id:
+                    fw_id = firework_ids[num_launched]
                 else:
                     fw_id = launchpad._get_a_fw_to_run(
                         fworker.query, fw_id=None, checkout=False
                     ).fw_id
-                print(fw_id, fw_ids)
+                print(fw_id, firework_ids)
                 use_queue = use_queue_launch(launchpad.get_fw_by_id(fw_id), tasks2queue)
                 if use_queue:
                     rlaunch = qlaunch
@@ -336,7 +336,7 @@ def rapidfire(
                     if remote_host == "localhost":
                         kwargs["fw_id"] = fw_id
                     else:
-                        kwargs["fw_ids"] = [fw_id]
+                        kwargs["firework_ids"] = [fw_id]
                 else:
                     rlaunch = launch_rocket
                     args = r_args
@@ -346,7 +346,7 @@ def rapidfire(
                 if wflow_id:
                     wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                     nlaunches = len(wflow.fws)
-                    fw_ids = get_ordred_fw_ids(wflow)
+                    firework_ids = get_ordred_firework_ids(wflow)
                 if use_queue:
                     num_launched += 1
                 elif return_code is None:
@@ -367,7 +367,9 @@ def rapidfire(
                         "Sleeping for {} seconds...zzz...".format(QUEUE_UPDATE_INTERVAL)
                     )
                     time.sleep(QUEUE_UPDATE_INTERVAL)
-                skip_check = not use_queue and launchpad.run_exists(fworker, ids=fw_ids)
+                skip_check = not use_queue and launchpad.run_exists(
+                    fworker, ids=firework_ids
+                )
             if (
                 (nlaunches > 0 and num_launched == nlaunches)
                 or (

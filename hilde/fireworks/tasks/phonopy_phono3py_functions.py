@@ -88,12 +88,15 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
     ctx = PhonopyContext(settings=settings)
     ctx.settings.atoms = atoms.copy()
     ctx.settings.atoms.set_calculator(calc)
-    if "control_kpt" in ctx.settings:
-        del(ctx.settings["control_kpt"])
+    ctx.settings.pop("control_kpt", None)
+
     # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
     outputs = bootstrap(ctx)
 
-    outputs["metadata"]["supercell"] = {"atoms": outputs["metadata"]["atoms"], "calculator": {}}
+    outputs["metadata"]["supercell"] = {
+        "atoms": outputs["metadata"]["atoms"],
+        "calculator": {},
+    }
     outputs["metadata"]["primitive"] = input2dict(atoms)
     outputs["prefix"] = prefix
     outputs["settings"] = ph_settings.copy()
@@ -203,6 +206,24 @@ def phonon_postprocess(func_path, phonon_times, **kwargs):
 
 
 def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
+    """Prepare a Gruneisen calculation
+
+    Parameters
+    ----------
+    settings: Settings
+        The settings object for the calculation
+    primitive: ase.atoms.Atoms
+        The primitive cell for the phonon calculation
+    vol_factor: float
+        The volume rescaling factor
+    symmetry_block: list of str
+        The symmetry block for FHI-aims calculations
+
+    Returns
+    -------
+    Workflow:
+        A Fireworks workflow for the gruneisen calculation
+    """
     settings = settings.copy()
     dist_primitive = primitive.copy()
     symmetry_block = symmetry_block.copy()
@@ -227,7 +248,9 @@ def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
             dist_settings[sec_key] = val
 
     file_original = dist_settings.geometry.pop("file", None)
-    dist_primitive.write("geometry.in.temp", format="aims", geo_constrain=True, scaled=True)
+    dist_primitive.write(
+        "geometry.in.temp", format="aims", geo_constrain=True, scaled=True
+    )
     dist_settings.geometry["file"] = "geometry.in.temp"
     dist_primitive.calc = setup_aims(ctx=AimsContext(settings=dist_settings))
     Path("geometry.in.temp").unlink()
@@ -235,9 +258,7 @@ def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
 
     dist_settings.atoms = dist_primitive
 
-    return generate_workflow(
-        dist_settings, dist_primitive, launchpad_yaml=None
-    )
+    return generate_workflow(dist_settings, dist_primitive, launchpad_yaml=None)
 
 
 def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter):
@@ -265,8 +286,7 @@ def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter):
     settings["general"]["opt_kgrid"] = False
     settings["phonopy"]["get_gruniesen"] = False
     settings["phonopy"]["converge_phonons"] = False
-    if "statistical_sampling" in settings:
-        del (settings["statistical_sampling"])
+    settings.pop("statistical_sampling", None)
 
     if _queueadapter:
         settings["phonopy_qadapter"] = _queueadapter

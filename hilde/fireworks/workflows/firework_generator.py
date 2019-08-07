@@ -71,6 +71,7 @@ def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=T
     fw_settings["fw_name"] = fw_name
     if "spec" not in fw_settings:
         fw_settings["spec"] = {}
+
     if queueadapter:
         fw_settings["spec"]["_queueadapter"] = queueadapter
     elif "_queueadapter" in fw_settings["spec"]:
@@ -308,7 +309,7 @@ def generate_kgrid_fw(workflow, atoms, fw_settings):
     func_kwargs = {
         "workdir": f"{workflow.general.workdir_cluster}/{fw_settings['fw_name']}/",
         "trajectory": "trajectory.son",
-        "dfunc_min": workflow.general.get("kgrid_dfunc_min", 1e-12)
+        "dfunc_min": workflow.general.get("kgrid_dfunc_min", 1e-12),
     }
 
     if qadapter and "walltime" in qadapter:
@@ -696,7 +697,7 @@ def generate_gruniesen_fd_fw(workflow, atoms, trajectory, fw_settings):
             sym_nparams[ii] = str(int(sym_nparams[ii]) - n_lat)
         symmetry_block[0] = " ".join(sym_nparams)
         sym_params = symmetry_block[1].split()
-        del (sym_params[1 : n_lat + 1])
+        del sym_params[1 : n_lat + 1]
         symmetry_block[1] = " ".join(sym_params)
 
     task_spec = gen_gruniesen_task_spec(workflow, symmetry_block, trajectory)

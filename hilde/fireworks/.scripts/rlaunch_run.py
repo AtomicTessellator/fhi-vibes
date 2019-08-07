@@ -230,7 +230,7 @@ def rlaunch():
             strm_lvl=args.loglvl,
             timeout=args.timeout,
             local_redirect=args.local_redirect,
-            fw_ids=args.firework_ids,
+            firework_ids=args.firework_ids,
             wflow_id=args.wflow,
         )
     elif args.command == "multi":

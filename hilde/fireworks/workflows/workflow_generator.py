@@ -78,7 +78,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
     for ii in range(len(fw_steps) - 1):
         fw_dep[fw_steps[ii]] = fw_steps[ii + 1]
 
-    if len(fw_steps) > 0:
+    if fw_steps:
         final_initialize_fw = fw_steps[-1]
         fw_dep[final_initialize_fw] = []
     else:
@@ -187,7 +187,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
     #         fw_dep[final_initialize_fw].append(stat_samp_fws[0])
 
     # Aims Calculations if no other term is present
-    if not fw_steps and not phonon_fws and not phonon3_fws and not stat_samp_fws:
+    if not fw_steps and not phonon_fws and not phonon3_fws:
         aims_calc_fws.append(generate_aims_fw(workflow_settings, atoms, fw_settings))
 
     for fw in phonon_fws:

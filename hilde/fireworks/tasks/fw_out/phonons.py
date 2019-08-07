@@ -1,13 +1,7 @@
 """Generate FWActions after setting Phonon Calculations"""
-from pathlib import Path
-from shutil import copyfile
 
-import numpy as np
-
-from ase.calculators.aims import Aims
 from ase.symbols import Symbols
 from fireworks import FWAction, Workflow
-from phonopy import Phonopy
 
 from hilde.fireworks.workflows.firework_generator import (
     generate_phonon_fw_in_wf,
@@ -17,17 +11,9 @@ from hilde.fireworks.workflows.firework_generator import (
 )
 from hilde.phonon_db.ase_converters import calc2dict, atoms2dict
 from hilde.helpers.converters import dict2atoms
-from hilde.helpers.k_grid import k2d, update_k_grid
-from hilde.helpers.paths import cwd
+from hilde.helpers.k_grid import k2d
 from hilde.helpers.watchdogs import str2time
-from hilde.materials_fp.material_fingerprint import (
-    get_phonon_dos_fingerprint_phononpy,
-    fp_tup,
-    scalar_product,
-)
 from hilde.phonon_db.row import phonon_to_dict, phonon3_to_dict
-from hilde.phonopy.wrapper import preprocess as ph_preprocess
-from hilde.settings import Settings
 from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader
 from hilde.fireworks.tasks.postprocess.phonons import get_converge_phonon_update
@@ -257,8 +243,7 @@ def add_single_calc_to_detours(
             continue
         fw_settings = fw_settings.copy()
         fw_settings["from_db"] = False
-        if "kpoint_density_spec" in fw_settings:
-            del fw_settings["kpoint_density_spec"]
+        fw_settings.pop("kpoint_density_spec", None)
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
         for key, val in calc_dict.items():
@@ -374,83 +359,85 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     workdir = kwargs.pop("workdir")
     trajectory = kwargs.pop("trajectory")
     conv, update_job = get_converge_phonon_update(
-        workdir,
-        trajectory,
-        args[1],
-        ph,
-        **kwargs
+        workdir, trajectory, args[1], ph, **kwargs
     )
+
     if conv:
         qadapter = None
         if fw_settings and "spec" in fw_settings:
             qadapter = fw_settings["spec"].get("_queueadapter", None)
-        update_spec = {
-            "_queueadapter": qadapter,
-            **update_job,
-        }
+        update_spec = {"_queueadapter": qadapter, **update_job}
         if "kpoint_density_spec" not in fw_settings:
             fw_settings["kpoint_density_spec"] = "kgrid"
-        update_spec[fw_settings["kpoint_density_spec"]] = update_spec.pop("k_pt_density")
+        update_spec[fw_settings["kpoint_density_spec"]] = update_spec.pop(
+            "k_pt_density"
+        )
         return FWAction(update_spec=update_spec)
+
+    fw_settings["in_spec_calc"] = "ph_calculator"
+    update_spec = {
+        "ph_calculator": update_job["ph_calculator"],
+        "prev_dos_fp": update_job["prev_dos_fp"],
+    }
+    if "kpoint_density_spec" not in fw_settings:
+        fw_settings["kpoint_density_spec"] = "kgrid"
+    update_spec[fw_settings["kpoint_density_spec"]] = update_job["k_pt_density"]
+
+    if "spec" in fw_settings:
+        fw_settings["spec"].update(update_spec)
     else:
-        fw_settings["in_spec_calc"] = "ph_calculator"
-        update_spec = {
-            "ph_calculator": update_job["ph_calculator"],
-            "prev_dos_fp": update_job["prev_dos_fp"],
-        }
-        if "kpoint_density_spec" not in fw_settings:
-            fw_settings["kpoint_density_spec"] = "kgrid"
-        update_spec[fw_settings["kpoint_density_spec"]] = update_job["k_pt_density"]
+        fw_settings["spec"] = update_spec.copy()
 
-        if "spec" in fw_settings:
-            fw_settings["spec"].update(update_spec)
-        else:
-            fw_settings["spec"] = update_spec.copy()
+    update_spec["ph_supercell"] = update_job["ph_supercell"]
+    func_kwargs = {
+        "type": "phonopy",
+        "displacement": update_job["displacement"],
+        "supercell_matrix": update_job["supercell_matrix"],
+        "serial": kwargs["serial"],
+        "converge_phonons": True,
+        "prev_wd": update_job["prev_wd"],
+    }
+    kwargs.update(func_kwargs)
 
-        displacement = ph._displacement_dataset["first_atoms"][0]["displacement"]
-        disp_mag = np.linalg.norm(displacement)
+    if "spec" in fw_settings:
+        fw_settings["spec"]["prev_dos_fp"] = update_job["prev_dos_fp"]
+    else:
+        fw_settings["spec"] = {"prev_dos_fp": update_job["prev_dos_fp"]}
 
-        update_spec["ph_supercell"] = update_job["ph_supercell"]
-        func_kwargs = {
-            "type": "phonopy",
-            "displacement": update_job["displacement"],
-            "supercell_matrix": update_job["supercell_matrix"],
-            "serial": kwargs["serial"],
-            "converge_phonons": True,
-            "prev_wd": update_job["prev_wd"],
-        }
-        kwargs.update(func_kwargs)
-
-        if "spec" in fw_settings:
-            fw_settings["spec"]["prev_dos_fp"] = update_job["prev_dos_fp"]
-        else:
-            fw_settings["spec"] = {"prev_dos_fp": update_job["prev_dos_fp"]}
-
-        if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
-            if "walltime" in func_kwargs:
-                del func_kwargs["walltime"]
-            if "queue" in fw_settings["spec"]["_queueadapter"]:
-                del (fw_settings["spec"]["_queueadapter"]["queue"])
-            fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(update_job["expected_walltime"])
-            fw_settings["spec"]["_queueadapter"]["expected_mem"] = update_job["expected_mem"]
-            fw_settings["spec"]["_queueadapter"]["ntasks"] = update_job["ntasks"]
-            qadapter = fw_settings["spec"]["_queueadapter"]
-        else:
-            qadapter = None
-        pc = to_Atoms(ph.get_primitive())
-        init_fw = generate_phonon_fw_in_wf(
-            pc, update_job["init_workdir"], fw_settings, qadapter, func_kwargs, update_in_spec=False
+    if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
+        func_kwargs.pop("walltime", None)
+        fw_settings["spec"]["_queueadapter"].pop("queue", None)
+        fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(
+            update_job["expected_walltime"]
         )
+        fw_settings["spec"]["_queueadapter"]["expected_mem"] = update_job[
+            "expected_mem"
+        ]
+        fw_settings["spec"]["_queueadapter"]["ntasks"] = update_job["ntasks"]
+        qadapter = fw_settings["spec"]["_queueadapter"]
+    else:
+        qadapter = None
+    pc = to_Atoms(ph.get_primitive())
+    init_fw = generate_phonon_fw_in_wf(
+        pc,
+        update_job["init_workdir"],
+        fw_settings,
+        qadapter,
+        func_kwargs,
+        update_in_spec=False,
+    )
 
-        kwargs["prev_dos_fp"] = update_job["prev_dos_fp"]
-        kwargs["trajectory"] = trajectory.split("/")[-1]
-        kwargs["sc_matrix_original"] = update_job["sc_matrix_original"]
-        analysis_fw = generate_phonon_postprocess_fw_in_wf(
-            pc, update_job["analysis_wd"], fw_settings, kwargs, wd_init=update_job["init_workdir"]
-        )
+    kwargs["prev_dos_fp"] = update_job["prev_dos_fp"]
+    kwargs["trajectory"] = trajectory.split("/")[-1]
+    kwargs["sc_matrix_original"] = update_job["sc_matrix_original"]
+    analysis_fw = generate_phonon_postprocess_fw_in_wf(
+        pc,
+        update_job["analysis_wd"],
+        fw_settings,
+        kwargs,
+        wd_init=update_job["init_workdir"],
+    )
 
-        detours = [init_fw, analysis_fw]
-        wf = Workflow(detours, {init_fw: [analysis_fw]})
-        return FWAction(detours=wf, update_spec=update_spec)
-
-    return FWAction()
+    detours = [init_fw, analysis_fw]
+    wf = Workflow(detours, {init_fw: [analysis_fw]})
+    return FWAction(detours=wf, update_spec=update_spec)

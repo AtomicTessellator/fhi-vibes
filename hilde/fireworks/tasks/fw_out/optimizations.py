@@ -1,9 +1,11 @@
 """FWAction generators for optimizations"""
-from pathlib import Path
 
 from fireworks import FWAction
 
-from hilde.fireworks.tasks.postprocess.optimizations import load_last_step, move_trajectory_file
+from hilde.fireworks.tasks.postprocess.optimizations import (
+    load_last_step,
+    move_trajectory_file,
+)
 from hilde.fireworks.workflows.firework_generator import generate_firework
 from hilde.phonon_db.ase_converters import calc2dict
 
@@ -37,7 +39,9 @@ def check_kgrid_opt_completion(
     FWAction
         Either another k-grid optimization step, or an updated spec
     """
-    trajectory, atoms, calc = load_last_step(atoms, calc, func_kwargs["workdir"], func_kwargs["trajectory"])
+    trajectory, atoms, calc = load_last_step(
+        atoms, calc, func_kwargs["workdir"], func_kwargs["trajectory"]
+    )
 
     if outputs[0]:
         up_spec = {

@@ -46,8 +46,8 @@ cli.add_command(utils.utils)
 cli.add_command(output.output)
 
 try:
-    from hilde.fireworks.cli import fireworks
-    cli.add_command(fireworks.fireworks)
+    import hilde.fireworks.cli
+    cli.add_command(hilde.fireworks.cli.fireworks)
 except ImportError:
     pass
 

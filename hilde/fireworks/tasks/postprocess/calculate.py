@@ -1,22 +1,18 @@
 """Functions that generate FWActions after performing Aims Calculations"""
-import numpy as np
-
 from pathlib import Path
 
-from hilde.fireworks.workflows.firework_generator import generate_firework
-from hilde.phonon_db.ase_converters import atoms2dict
-from hilde.trajectory import reader as traj_reader
+import numpy as np
+
 
 def get_calc_times(workdir=None, calc_dirs=None):
+    """Get the calculation for a set of Aims Calculations"""
     if calc_dirs is None:
         if workdir:
             backup_dir = Path(workdir) / "backups"
         else:
             backup_dir = Path("./backups/")
 
-        calc_dirs = sorted(
-            backup_dir.glob("backup.?????/*")
-        )
+        calc_dirs = sorted(backup_dir.glob("backup.?????/*"))
     calc_times = list()
     for direc in calc_dirs:
         aims_out = Path(direc) / "aims.out"
@@ -29,5 +25,3 @@ def get_calc_times(workdir=None, calc_dirs=None):
             time = 0.0
         calc_times.append(time)
     return calc_times
-
-

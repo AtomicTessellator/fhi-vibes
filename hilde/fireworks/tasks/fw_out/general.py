@@ -1,6 +1,6 @@
 """General purpose FWAction Generators"""
 from fireworks import FWAction
-from hilde.phonon_db.ase_converters import atoms2dict
+
 
 def add_additions_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     """Adds a set of returned Fireworks to the Workflow

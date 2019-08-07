@@ -53,7 +53,7 @@ def qlaunch_remote(
     maxjobs_block=None,
     nlaunches=None,
     sleep=None,
-    fw_ids=None,
+    firework_ids=None,
     fw_id=None,
     wflow=None,
     silencer=False,
@@ -83,8 +83,8 @@ def qlaunch_remote(
         maximum number of launches to perform (int or "infinite"; default 0 is all jobs in DB)
     sleep: int
         sleep time between loops
-    fw_ids: list of int
-        specific fw_ids to run in reservation mode
+    firework_ids: list of int
+        specific firework_ids to run in reservation mode
     fw_id: int
         ID of a specific FireWork to run in reservation mode
     wflow: list of int or Workflow
@@ -136,13 +136,13 @@ def qlaunch_remote(
         convert_input_to_param("maxjobs_block", maxjobs_block, non_default)
         convert_input_to_param("nlaunches", nlaunches, non_default)
         convert_input_to_param("sleep", sleep, non_default)
-        if fw_ids:
-            non_default.append("--{} {}".format("firework_ids", fw_ids[0]))
-            for fire_work in fw_ids[1:]:
+        if firework_ids:
+            non_default.append("--{} {}".format("firework_ids", firework_ids[0]))
+            for fire_work in firework_ids[1:]:
                 non_default[-1] += " {}".format(fire_work)
         if wflow:
-            non_default.append("--{} {}".format("wflow", wflow.root_fw_ids[0]))
-            for fire_work in wflow.root_fw_ids[1:]:
+            non_default.append("--{} {}".format("wflow", wflow.root_firework_ids[0]))
+            for fire_work in wflow.root_firework_ids[1:]:
                 non_default[-1] += " {}".format(fire_work)
     else:
         convert_input_to_param("fw_id", fw_id, non_default)

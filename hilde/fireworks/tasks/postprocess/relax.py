@@ -1,21 +1,16 @@
-import os
-from pathlib import Path
+"""Post processing for FHI-aims calculations"""
+
+from shutil import copyfile
+
+from ase.io.aims import read_aims
 
 import numpy as np
 
-from fireworks import FWAction
-from ase.io.aims import read_aims
-from shutil import copyfile
-
-from hilde.fireworks.workflows.firework_generator import generate_firework, time2str
+from hilde.fireworks.tasks.calculate_wrapper import check_if_failure_ok
 from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
-from hilde.helpers.fileformats import last_from_yaml
-from hilde.helpers.k_grid import k2d
-from hilde.helpers.watchdogs import str2time
 
-def check_aims(
-    atoms, calc, outputs, **kwargs
-):
+
+def check_aims(atoms, calc, outputs, **kwargs):
     """
     A function that checks if a relaxation is converged (if outputs is True) and either
     stores the relaxed structure in the MongoDB or appends another Firework as its child
@@ -40,14 +35,8 @@ def check_aims(
             new_atoms = atoms.copy()
     except FileNotFoundError:
         if not completed:
-            line_sum = np.where(
-                aims_out
-                == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
-            )[0]
-            sum_present = len(line_sum) > 0
-            time_used = float(aims_out[line_sum[0] + 1].split(":")[1].split("s")[1])
-
-            if (sum_present and time_used / walltime > 0.95):
+            failure_ok = check_if_failure_ok(aims_out, walltime)
+            if failure_ok:
                 walltime *= 2
                 calc.parameters["walltime"] = walltime
             else:
@@ -59,5 +48,7 @@ def check_aims(
     for key, val in atoms["info"].items():
         if key not in new_atoms_dict["info"]:
             new_atoms_dict["info"][key] = val
-    copyfile(f"{kwargs['workdir']}/aims.out", f"{kwargs['workdir']}/aims.out.{calc_number}")
+    copyfile(
+        f"{kwargs['workdir']}/aims.out", f"{kwargs['workdir']}/aims.out.{calc_number}"
+    )
     return completed, calc_number, new_atoms_dict, walltime
