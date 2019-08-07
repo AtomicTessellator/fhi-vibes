@@ -1,12 +1,11 @@
 """click interface for the balsam"""
 # Importing to ensure balsam is installed
-import balsam.launcher.dag as dag
+
+from pathlib import Path
 
 import click
 
 from ase.io.aims import read_aims
-
-from pathlib import Path
 
 from hilde.balsam.apps import register
 from hilde.balsam.workflow.workflow_generator import generate_workflow
@@ -20,7 +19,6 @@ from hilde.settings import TaskSettings, AttributeDict, Settings
 @click.command(cls=AliasedGroup)
 def balsam():
     """Access HiLDe's balsam wrappers"""
-    pass
 
 
 @balsam.command("add_wf")

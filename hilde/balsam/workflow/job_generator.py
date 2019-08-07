@@ -141,7 +141,6 @@ def generate_phonopy_jobs(settings, data):
     # Get the initial context
     ctx = PhonopyContext(settings=settings, read_config=False)
 
-
     # get the calculator and atoms object from the ctx
     calc = setup_aims(AimsContext(settings, read_config=True))
     atoms = settings.atoms.copy()
@@ -173,7 +172,9 @@ def generate_phonopy_jobs(settings, data):
 
     Path(copy_wd_base).mkdir(exist_ok=True, parents=True)
     ctx.settings.write(f"{copy_wd_base}/phonopy.in")
-    atoms.write(f"{copy_wd_base}/geometry.in", format="aims", scaled=True, geo_constrain=True)
+    atoms.write(
+        f"{copy_wd_base}/geometry.in", format="aims", scaled=True, geo_constrain=True
+    )
     job_list = []
 
     for ii, atoms in enumerate(ph_initialization["atoms_to_calculate"]):
@@ -258,8 +259,7 @@ def make_job_phonopy_setup(settings, job):
     ctx = PhonopyContext(settings=settings, read_config=False)
 
     for sec_key in ["phono3py", "md"]:
-        if sec_key in ctx.settings:
-            del (ctx.settings[sec_key])
+        ctx.settings.pop(sec_key, None)
 
     ctx.settings.atoms = settings.atoms.copy()
     ctx.settings.atoms.set_calculator(None)
@@ -340,13 +340,11 @@ def generate_gruneisen_jobs(settings, vol_factor):
             jobs.append(generate_aims_job(settings, basisset_type))
         make_job_phonopy_setup(settings, jobs[-1])
         return jobs
-    else:
-        ph_data = get_phonon_setup_data(
-            settings, settings.pop("phonopy_qadapter", None)
-        )
-        ph_data["ctx"] = settings
-        data = dict(ph_data=ph_data)
-        return generate_phonopy_jobs(settings, data)
+
+    ph_data = get_phonon_setup_data(settings, settings.pop("phonopy_qadapter", None))
+    ph_data["ctx"] = settings
+    data = dict(ph_data=ph_data)
+    return generate_phonopy_jobs(settings, data)
 
 
 def generate_stat_samp_jobs(settings, phonon):
@@ -414,7 +412,9 @@ def generate_stat_samp_jobs(settings, phonon):
         metadata["rng_seed"] = rng_seed
     rng = np.random.RandomState(rng_seed)
 
-    force_constants = remap_force_constants(force_constants, atoms, to_Atoms(phonon.get_supercell()), sc, two_dim=True)
+    force_constants = remap_force_constants(
+        force_constants, atoms, to_Atoms(phonon.get_supercell()), sc, two_dim=True
+    )
     assert force_constants.shape[0] == force_constants.shape[1] == len(sc) * 3
 
     job_list = []
@@ -438,13 +438,7 @@ def generate_stat_samp_jobs(settings, phonon):
 
 
 def prepare_phonon_harmonic_sampling(
-    atoms,
-    force_constants,
-    temperature,
-    n_samples=1,
-    deterministic=True,
-    rng=np.random,
-    **kwargs,
+    atoms, force_constants, temperature, n_samples=1, deterministic=True, rng=np.random
 ):
     """
     Generates a list of displaced supercells based on a thermal excitation of phonons
@@ -457,7 +451,7 @@ def prepare_phonon_harmonic_sampling(
     Returns (list of ase.atoms.Atoms): The thermally displaced supercells
     """
     thermally_disp_cells = []
-    for ii in range(n_samples):
+    for _ in range(n_samples):
         td_cell = atoms.copy()
         PhononHarmonics(
             td_cell,

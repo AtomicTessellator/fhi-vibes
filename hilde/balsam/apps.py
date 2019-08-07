@@ -17,6 +17,7 @@ balsam_path = "/".join(bp_list[:-1])
 
 
 def register():
+    """Register all relevant apps to the balsam db, if they are not already registered"""
     os.chmod(f"{balsam_path}/pre/aims.py", 0o755)
     os.chmod(f"{balsam_path}/post/aims.py", 0o755)
     os.chmod(f"{balsam_path}/post/phonopy_setup.py", 0o755)

@@ -6,7 +6,10 @@ import numpy as np
 
 
 class MyEncoder(json.JSONEncoder):
+    """Encoder taken from ASE to encode numpy objects into JSONable objects"""
+
     def default(self, obj):
+        """default encode function for obj"""
         if hasattr(obj, "todict") or hasattr(obj, "to_dict"):
             try:
                 d = obj.todict()
@@ -37,6 +40,7 @@ encode = MyEncoder().encode
 
 
 def object_hook(dct):
+    """Get an object from the JSON encoded dictionary"""
     if "__datetime__" in dct:
         return datetime.datetime.strptime(dct["__datetime__"], "%Y-%m-%dT%H:%M:%S.%f")
     if "__complex_ndarray__" in dct:
@@ -78,6 +82,7 @@ mydecode = json.JSONDecoder(object_hook=object_hook).decode
 
 
 def intkey(key):
+    """get the integer of the key"""
     try:
         return int(key)
     except ValueError:
@@ -85,6 +90,7 @@ def intkey(key):
 
 
 def numpyfy(obj):
+    """Create a numpy object from the JSONAble object"""
     if isinstance(obj, dict):
         if "__complex_ndarray__" in obj:
             r, i = (np.array(x) for x in obj["__complex_ndarray__"])
@@ -103,4 +109,5 @@ def numpyfy(obj):
 
 
 def decode(txt):
+    """Decode the JSON string into a dictionary"""
     return numpyfy(mydecode(txt))

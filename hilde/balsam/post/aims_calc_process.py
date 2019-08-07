@@ -18,6 +18,20 @@ from hilde.fireworks.tasks.postprocess.relax import check_aims
 
 
 def postprocess_aims(data):
+    """Checks if an aims calculation finished
+
+    Parameters
+    ----------
+    data: dict
+        the decoded job.data dictionary
+
+    Returns
+    -------
+    completed: bool
+        True if the aims calculation finished
+    data: dict
+        The updated job data
+    """
     Path(glob("aims_calc_*")[0]).rename("aims.out")
 
     workdir = "./"

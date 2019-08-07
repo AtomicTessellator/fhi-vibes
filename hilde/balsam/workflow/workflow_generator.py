@@ -1,8 +1,8 @@
 """Functions used to generate a FireWorks Workflow"""
 
-import balsam.launcher.dag as dag
-
 from pathlib import Path
+
+import balsam.launcher.dag as dag
 
 from hilde.balsam.data_encoder import encode, decode
 from hilde.balsam.workflow.job_generator import (
@@ -56,10 +56,11 @@ def generate_workflow(workflow_settings):
     if "phonopy" in workflow_settings:
         if "supercell_matrix" not in workflow_settings.phonopy:
             raise IOError("Initial supercell_matrix must be provided")
-        else:
-            workflow_settings.phonopy["supercell_matrix"] = get_3x3_matrix(
-                workflow_settings.phonopy.supercell_matrix
-            )
+
+        workflow_settings.phonopy["supercell_matrix"] = get_3x3_matrix(
+            workflow_settings.phonopy.supercell_matrix
+        )
+
         ignore_keys = ["trigonal", "q_mesh"]
         for key, val in ph_defaults.items():
             if key not in workflow_settings.phonopy and key not in ignore_keys:
@@ -86,7 +87,7 @@ def generate_workflow(workflow_settings):
         dag.add_dependency(jobs[ii], jobs[ii + 1])
 
     if "phonopy" in workflow_settings:
-        if len(jobs) > 0:
+        if jobs:
             make_job_phonopy_setup(workflow_settings, jobs[-1])
         else:
             ph_data = get_phonon_setup_data(
@@ -103,7 +104,6 @@ def generate_workflow(workflow_settings):
                 workflow_settings["geometry"] = AttributeDict({"file": "geometry.in"})
                 unlink_geo = False
             atoms.write("geometry.in", scaled=True, geo_constrain=True)
-
 
             workflow_settings.pop("restart", None)
             workflow_settings.pop("relaxation", None)

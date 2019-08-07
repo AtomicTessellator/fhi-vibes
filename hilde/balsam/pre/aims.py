@@ -39,6 +39,4 @@ ctx = AimsContext(settings=settings)
 
 calc = setup_aims(ctx)
 
-calc.write_input(
-    atoms,
-)
+calc.write_input(atoms)

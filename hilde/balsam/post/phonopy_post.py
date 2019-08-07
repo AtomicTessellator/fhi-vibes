@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Check the completion of an aims calculation"""
 
-import balsam.launcher.dag as dag
 
 from glob import glob
 
@@ -9,20 +8,22 @@ from pathlib import Path
 
 from shutil import copyfile
 
-import numpy as np
+import balsam.launcher.dag as dag
 
-from ase.io.aims import read_aims_output
+import numpy as np
 
 from hilde.aims.context import AimsContext
 from hilde.aims.setup import setup_aims
-
 from hilde.balsam.data_encoder import decode
 from hilde.balsam.post.aims_calc_process import postprocess_aims
+from hilde.balsam.post.phonopy_postprocess_functions import (
+    collect_calcs_to_trajectory,
+    setup_gruneisen,
+    setup_statistical_sampling,
+)
 from hilde.balsam.workflow.job_generator import (
-    generate_gruneisen_jobs,
     generate_phonopy_jobs,
     get_phonon_setup_data,
-    generate_stat_samp_jobs,
 )
 from hilde.fireworks.tasks.postprocess.calculate import get_calc_times
 from hilde.fireworks.tasks.postprocess.phonons import get_converge_phonon_update
@@ -30,79 +31,9 @@ from hilde.fireworks.workflows.firework_generator import time2str
 from hilde.helpers.attribute_dict import AttributeDict
 from hilde.helpers.paths import cwd
 from hilde.phonon_db.ase_converters import dict2atoms
-from hilde.phonopy import displacement_id_str
 from hilde.phonopy.context import PhonopyContext
 from hilde.phonopy.postprocess import postprocess
 from hilde.settings import Settings
-from hilde.trajectory import metadata2file, step2file
-
-
-def collect_calcs_to_trajectory(base_dir, metadata):
-    """Collect a series of calculations into a trajectory.son file"""
-    trajectory = Path(base_dir) / "trajectory.son"
-
-    files = list(glob(f"{base_dir}/*/aims.out"))
-    files = sorted(files, key=lambda s: int(s.split("/")[-2]))
-    calculated_atoms = [read_aims_output(file) for file in files]
-    # Add the displacement ids
-    for file, atoms in zip(files, calculated_atoms):
-        if atoms.info is None:
-            atoms.info = dict()
-        atoms.info[displacement_id_str] = int(file.split("/")[-2])
-
-    # Create the trajectory file
-    metadata2file(metadata, trajectory)
-    for atoms in calculated_atoms:
-        step2file(atoms, atoms.calc, trajectory)
-
-
-def setup_gruneisen(vol_factor, sc_mat):
-    """Setup a second structure for a gruneisen FD calculation"""
-    ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False), read_config=False)
-    calc = setup_aims(AimsContext(Settings(settings_file="phonopy.in")))
-    calc.parameters.pop("use_pimd_wrapper", None)
-
-    ctx.settings.atoms.set_calculator(calc)
-
-    ctx.settings.phonopy["supercell_matrix"] = sc_mat
-    ctx.settings.obj["supercell_matrix"] = sc_mat
-
-    ctx.settings.phonopy["get_gruniesen"] = False
-    ctx.settings.phonopy["converge_phonons"] = False
-    ctx.settings.pop("statistical_sampling", None)
-
-    ctx.settings.write("gruneisen.in")
-    ctx.settings._settings_file = "gruneisen.in"
-
-    jobs = generate_gruneisen_jobs(ctx.settings, vol_factor)
-
-    Path("gruneisen.in").unlink()
-
-    for job in jobs:
-        dag.add_dependency(dag.current_job, job)
-
-
-def setup_statistical_sampling(sc_mat, phonon):
-    ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False), read_config=False)
-    settings = ctx.settings
-    calc = setup_aims(AimsContext(Settings(settings_file="phonopy.in")))
-    calc.parameters.pop("use_pimd_wrapper", None)
-
-    settings.atoms.set_calculator(calc)
-    settings.statistical_sampling["supercell_matrix"] = sc_mat
-
-    settings.general["relax_structure"] = False
-    settings.pop("relaxation", None)
-
-    ctx.settings.write("stat_samp.in")
-    ctx.settings._settings_file = "stat_samp.in"
-
-    jobs = generate_stat_samp_jobs(settings, phonon)
-
-    Path("stat_samp.in").unlink()
-
-    for job in jobs:
-        dag.add_dependency(dag.current_job, job)
 
 data = decode(dag.current_job.data)
 
@@ -122,13 +53,12 @@ if len(completed_calcs) < data["ph_data"]["number_of_sc"]:
     exit(0)
 
 calc_dirs = glob(f"{base_dir}/*/")
-from ase.io import read
+
 with cwd(base_dir):
     collect_calcs_to_trajectory(base_dir, data["ph_data"]["metadata"])
-    import os
-    print(os.system("ls"))
-    print(Settings(settings_file="phonopy.in").geometry.file)
-    ctx = PhonopyContext(Settings(settings_file="phonopy.in", read_config=False), read_config=False)
+    ctx = PhonopyContext(
+        Settings(settings_file="phonopy.in", read_config=False), read_config=False
+    )
     calc = setup_aims(AimsContext(Settings(settings_file="phonopy.in")))
     ctx.settings.atoms.set_calculator(calc)
 
@@ -174,6 +104,7 @@ with cwd(base_dir):
             with cwd(base_dir):
                 setup_gruneisen(0.99, sc_mat)
                 setup_gruneisen(1.01, sc_mat)
+
         if "statistical_sampling" in ctx.settings:
             with cwd(base_dir):
                 setup_statistical_sampling(sc_mat, phonon)
