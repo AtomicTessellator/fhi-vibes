@@ -94,7 +94,7 @@ def update_calc_in_db(calc_spec, update_calc_params, calc):
     FWAction
         An FWAction that updates the calculator in the spec
     """
-    del_key_list = ["relax_geometry", "relax_unit_cell", "use_sym"]
+    del_key_list = ["relax_geometry", "relax_unit_cell"]
     for key in del_key_list:
         if key in calc["calculator_parameters"]:
             del calc["calculator_parameters"][key]

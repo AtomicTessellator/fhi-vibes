@@ -305,16 +305,10 @@ def generate_kgrid_fw(workflow, atoms, fw_settings):
     else:
         qadapter = None
 
-    # Get convergence criteria
-    if "kgrid_dfunc_min" in workflow.general:
-        dfunc_min = workflow.general.kgrid_dfunc_min
-    else:
-        dfunc_min = 1e-12
-
     func_kwargs = {
         "workdir": f"{workflow.general.workdir_cluster}/{fw_settings['fw_name']}/",
         "trajectory": "trajectory.son",
-        "dfunc_min": dfunc_min,
+        "dfunc_min": workflow.general.get("kgrid_dfunc_min", 1e-12)
     }
 
     if qadapter and "walltime" in qadapter:
@@ -371,9 +365,7 @@ def generate_relax_fw(workflow, atoms, fw_settings, basisset_type):
     update_settings = {
         "relax_geometry": f"{method} {force_crit}",
         "basisset_type": basisset_type,
-        "scaled": True,
         "relax_unit_cell": relax_unit_cell,
-        "use_sym": True,
     }
 
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, True)
@@ -477,7 +469,7 @@ def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
     func_kwargs[
         "analysis_workdir"
     ] = f"{workflow.general.workdir_local}/{fw_settings['fw_name']}/"
-    func_kwargs["init_wd"] = f"{workflow.general.workdir_cluster}/{typ}/"
+    func_kwargs["init_workdir"] = f"{workflow.general.workdir_cluster}/{typ}/"
 
     task_spec = gen_phonon_analysis_task_spec(
         "hilde." + fw_settings["fw_name"][:-9] + ".postprocess.postprocess",
@@ -588,7 +580,7 @@ def generate_phonon_postprocess_fw_in_wf(
     if "workdir" in func_kwargs:
         func_kwargs.pop("workdir")
     func_kwargs["analysis_workdir"] = wd + "/" + fw_settings["fw_name"] + "/"
-    func_kwargs["init_wd"] = wd_init
+    func_kwargs["init_workdir"] = wd_init
     task_spec = gen_phonon_analysis_task_spec(
         "hilde." + fw_settings["fw_name"][:-9] + ".postprocess.postprocess",
         func_kwargs,

@@ -1,15 +1,17 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
+from hilde.aims.setup import setup_aims
+from hilde.aims.context import AimsContext
 from hilde.helpers.converters import input2dict
+from hilde.fireworks.tasks.general_py_task import get_func
+from hilde.fireworks.workflows.workflow_generator import generate_workflow
 from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.context import PhonopyContext
+from hilde.phonopy.postprocess import postprocess
 from hilde.phonopy.workflow import bootstrap
 from hilde.settings import AttributeDict, Settings, TaskSettings
-from hilde.fireworks.tasks.general_py_task import get_func
-from hilde.fireworks.workflows.workflow_generator import generate_workflow
-from hilde.templates.aims import setup_aims
 from hilde.trajectory import step2file, metadata2file, reader
 from hilde.structure.convert import to_Atoms
 
@@ -131,7 +133,6 @@ def bootstrap_phonon(
     outputs = []
     at = atoms.copy()
     at.set_calculator(None)
-    print(ph_settings["supercell_matrix"])
     if ph_settings:
         outputs.append(setup_phonon_outputs(ph_settings, settings, "ph", at, calc))
 
@@ -225,12 +226,17 @@ def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
         else:
             dist_settings[sec_key] = val
 
+    file_original = dist_settings.geometry.pop("file", None)
+    dist_primitive.write("geometry.in.temp", format="aims", geo_constrain=True, scaled=True)
+    dist_settings.geometry["file"] = "geometry.in.temp"
+    dist_primitive.calc = setup_aims(ctx=AimsContext(settings=dist_settings))
+    Path("geometry.in.temp").unlink()
+    dist_settings.geometry["file"] = file_original
+
     dist_settings.atoms = dist_primitive
 
-    dist_primitive.calc = setup_aims(settings=dist_settings)
-
     return generate_workflow(
-        dist_settings, dist_primitive, launchpad_yaml=None, to_launchpad=False
+        dist_settings, dist_primitive, launchpad_yaml=None
     )
 
 

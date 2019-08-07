@@ -28,7 +28,7 @@ def check_aims(
     """
     calc_number = kwargs.get("calc_number", 0) + 1
     aims_out = np.array(open(kwargs["workdir"] + "/aims.out").readlines())
-    completed = "Have a nice day" in aims_out[-2]
+    completed = "Have a nice day" in aims_out[-2] or "Have a nice day" in aims_out[-3]
     calc = calc2dict(outputs.get_calculator())
     walltime = kwargs.get("walltime", 0)
     try:

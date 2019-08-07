@@ -158,8 +158,8 @@ def gen_phonon_analysis_task_spec(
     TaskSpec
         The specification object of the task
     """
-    if "workdir" in func_kwargs and "init_wd" not in func_kwargs:
-        func_kwargs["init_wd"] = func_kwargs["workdir"]
+    if "workdir" in func_kwargs and "init_workdir" not in func_kwargs:
+        func_kwargs["init_workdir"] = func_kwargs["workdir"]
 
     if "analysis_workdir" in func_kwargs:
         func_kwargs["workdir"] = func_kwargs["analysis_workdir"]

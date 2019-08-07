@@ -12,6 +12,8 @@ from fireworks.features.multi_launcher import launch_multiprocess
 from fireworks.fw_config import CONFIG_FILE_DIR, LAUNCHPAD_LOC
 from fireworks.utilities.fw_utilities import get_my_host, get_my_ip, get_fw_logger
 
+from hilde.aims.context import AimsContext
+from hilde.aims.setup import setup_aims
 from hilde.cli.misc import AliasedGroup
 from hilde.fireworks.cli.launch_utils import (
     get_fw_files,
@@ -24,7 +26,6 @@ from hilde.fireworks.rocket_launcher import rapidfire as r_rapidfire
 from hilde.fireworks.workflows.workflow_generator import generate_workflow
 
 from hilde.settings import TaskSettings, AttributeDict, Settings
-from hilde.templates.aims import setup_aims
 
 # Check if fabric 2.0 is installed
 try:
@@ -80,30 +81,32 @@ def fireworks():
 def add_wf(workflow, launchpad):
     """Adds a workflow to the launchpad"""
     wflow = TaskSettings(name=None, settings=Settings(settings_file=workflow))
-    if "basisset" not in wflow and "basisset" in wflow.general:
-        wflow["basisset"] = AttributeDict({"type": wflow.general.basisset})
-    elif "basisset" not in wflow:
-        wflow["basisset"] = AttributeDict({"type": "light"})
-
-    structures = []
-
+    structure_files = []
     if "geometry" in wflow:
         if "files" in wflow.geometry:
             for file in Path.cwd().glob(wflow.geometry.files):
-                structures.append(read_aims(file))
+                structure_files.append(file.relative_to(Path.cwd()))
         if "file" in wflow.geometry:
-            structures.append(wflow.get_atoms())
+            structure_files.append(wflow.geometry.file)
     else:
         raise IOError("No geometry file was specified")
 
-    calc = setup_aims(settings=wflow)
-    for atoms in structures:
-        atoms.set_calculator(calc)
-        wflow = TaskSettings(name=None, settings=Settings(settings_file=workflow))
+    for file in structure_files:
+        settings=Settings(settings_file=workflow)
+        settings.geometry.pop("files", None)
+        settings.geometry["file"] = str(file)
+
+        wflow = TaskSettings(name=None, settings=settings)
+        atoms = wflow.atoms
+
         if "basisset" not in wflow and "basisset" in wflow.general:
             wflow["basisset"] = AttributeDict({"type": wflow.general.basisset})
         elif "basisset" not in wflow:
             wflow["basisset"] = AttributeDict({"type": "light"})
+
+        calc = setup_aims(ctx=AimsContext(settings=wflow))
+        atoms.set_calculator(calc)
+
         generate_workflow(wflow, atoms, launchpad)
 
 

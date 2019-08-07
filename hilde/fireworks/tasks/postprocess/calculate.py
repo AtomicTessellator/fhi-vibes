@@ -10,11 +10,12 @@ from hilde.trajectory import reader as traj_reader
 def get_calc_times(workdir=None, calc_dirs=None):
     if calc_dirs is None:
         if workdir:
-            bakup_dir = Path(workdir) / "backups"
+            backup_dir = Path(workdir) / "backups"
         else:
-            bakup_dir = Path("./backups/")
+            backup_dir = Path("./backups/")
+
         calc_dirs = sorted(
-            bakup_dir.glob("backup.?????.*"), key=lambda s: int(str(s).split(".")[-2])
+            backup_dir.glob("backup.?????/*")
         )
     calc_times = list()
     for direc in calc_dirs:

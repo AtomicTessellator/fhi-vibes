@@ -169,7 +169,6 @@ def launch_rocket_to_queue(
                                     nodes_needed.append(nodes)
                             else:
                                 nodes_needed.append(nodes)
-                        print(nodes_needed)
                         if "queue" in fw.spec["_queueadapter"]:
                             queue_ind = -1
                             for ii, qu in enumerate(qadapter["queues"]):

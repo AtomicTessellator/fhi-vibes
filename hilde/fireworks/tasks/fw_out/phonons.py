@@ -353,7 +353,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
             The Phonopy object from post-processing
         serial: bool
             If True use a serial calculation
-        init_wd: str
+        init_workdir: str
             Path to the base phonon force calculations
         trajectory: str
             trajectory file name
@@ -439,14 +439,14 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
             qadapter = None
         pc = to_Atoms(ph.get_primitive())
         init_fw = generate_phonon_fw_in_wf(
-            pc, update_job["init_wd"], fw_settings, qadapter, func_kwargs, update_in_spec=False
+            pc, update_job["init_workdir"], fw_settings, qadapter, func_kwargs, update_in_spec=False
         )
 
         kwargs["prev_dos_fp"] = update_job["prev_dos_fp"]
         kwargs["trajectory"] = trajectory.split("/")[-1]
         kwargs["sc_matrix_original"] = update_job["sc_matrix_original"]
         analysis_fw = generate_phonon_postprocess_fw_in_wf(
-            pc, update_job["analysis_wd"], fw_settings, kwargs, wd_init=update_job["init_wd"]
+            pc, update_job["analysis_wd"], fw_settings, kwargs, wd_init=update_job["init_workdir"]
         )
 
         detours = [init_fw, analysis_fw]

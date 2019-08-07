@@ -1,5 +1,5 @@
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, rmtree
 
 import numpy as np
 
@@ -93,12 +93,14 @@ def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
     calc.parameters["compute_forces"] = False
     update_k_grid(new_supercell, calc, k_pt_density, even=True)
     new_supercell.set_calculator(calc)
-    with cwd(workdir + "/memory_expectation", mkdir=True):
+    mem_expect_dir = workdir + "/.memory_expectation"
+    with cwd(mem_expect_dir, mkdir=True):
         try:
             new_supercell.calc.calculate()
         except RuntimeError:
             calc.parameters["dry_run"] = False
         lines = open("aims.out").readlines()
+    rmtree(mem_expect_dir)
     for line in lines:
         if "Size of matrix packed + index [n_hamiltonian_matrix_size]" in line:
             nham = int(line.split(":")[1])
@@ -150,7 +152,7 @@ def get_converge_phonon_update(
             Mandatory Keys:
                 outputs: The Phonopy object from post-processing
                 serial (bool): If True use a serial calculation
-                init_wd (str): Path to the base phonon force calculations
+                init_workdir (str): Path to the base phonon force calculations
                 trajectory (str): trajectory file name
 
     Returns:
@@ -184,7 +186,7 @@ def get_converge_phonon_update(
     dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
 
     # Get the base working directory
-    init_wd = get_base_work_dir(init_workdir)
+    init_workdir = get_base_work_dir(init_workdir)
     analysis_wd = get_base_work_dir(workdir)
     if prev_dos_fp:
         ph_conv = check_phonon_conv(dos_fp, prev_dos_fp, conv_crit)
@@ -250,7 +252,7 @@ def get_converge_phonon_update(
     )
     ntasks = ph.supercell.get_number_of_atoms()
 
-    init_wd += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
+    init_workdir += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
     analysis_wd += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
 
     displacement = ph._displacement_dataset["first_atoms"][0]["displacement"]
@@ -259,7 +261,7 @@ def get_converge_phonon_update(
     update_job = {
         "sc_matrix_original": kwargs["sc_matrix_original"],
         "supercell_matrix": sc_mat,
-        "init_wd": init_wd,
+        "init_workdir": init_workdir,
         "analysis_wd": analysis_wd,
         "ntasks": ntasks,
         "expected_walltime": expected_walltime,
