@@ -12,7 +12,11 @@ def get_calc_times(workdir=None, calc_dirs=None):
         else:
             backup_dir = Path("./backups/")
 
-        calc_dirs = sorted(backup_dir.glob("backup.?????/*"))
+        calc_dirs = list(backup_dir.glob("backup.?????/*"))
+        if not calc_dirs:
+            calc_dirs = list(backup_dir.glob("backup.?????.*"))
+        print(calc_dirs)
+
     calc_times = list()
     for direc in calc_dirs:
         aims_out = Path(direc) / "aims.out"
