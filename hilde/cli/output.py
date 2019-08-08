@@ -18,7 +18,8 @@ def output():
 @click.argument("trajectory", type=complete_filenames)
 @click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
 @click.option("-d", "--discard", type=int, help="discard this many steps")
-def md_output(trajectory, heat_flux, discard):
+@click.option("--minimal", is_flag=True, help="only write necessary minimum")
+def md_output(trajectory, heat_flux, discard, minimal):
     """write data in trajectory as xarray.Dataset"""
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
@@ -34,7 +35,7 @@ def md_output(trajectory, heat_flux, discard):
 
     if heat_flux:
         outfile = "heat_flux.nc"
-        DS = traj.heat_flux_dataset
+        DS = traj.get_heat_flux_data(only_flux=minimal)
         DS.to_netcdf(outfile)
         click.echo(f"Heat flux dataset written to {outfile}")
 
