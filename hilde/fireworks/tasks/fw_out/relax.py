@@ -69,10 +69,10 @@ def check_aims_complete(
         update_spec[fw_settings["in_spec_atoms"]] = new_atoms_dict
     if "in_spec_calc" in fw_settings:
         update_spec[fw_settings["in_spec_calc"]] = calc
-    if "kpoint_density_spec" in fw_settings:
-        update_spec[fw_settings["kpoint_density_spec"]] = k2d(
-            dict2atoms(new_atoms), calc["calculator_parameters"]["k_grid"]
-        )
+
+    update_spec["kgrid"] = k2d(
+        dict2atoms(new_atoms), calc["calculator_parameters"]["k_grid"]
+    )
     calc.parameters["walltime"] = walltime
     if fw_settings and "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
         fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(walltime)

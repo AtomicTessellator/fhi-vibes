@@ -51,10 +51,6 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
     if workflow_settings.general.get("opt_kgrid", True):
         fw_steps.append(generate_kgrid_fw(workflow_settings, atoms, fw_settings))
 
-        # Now that the k-grid has been optimized use that data
-        fw_settings["kpoint_density_spec"] = "kgrid"
-        del fw_settings["out_spec_k_den"]
-
     if "basisset" in workflow_settings.general:
         basis = workflow_settings.general.pop("basisset")
     else:

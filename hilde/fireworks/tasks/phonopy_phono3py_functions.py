@@ -49,8 +49,9 @@ def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
             settings["socketio"] = AttributeDict(
                 {"port": settings.pop("use_pimd_wrapper")}
             )
-        if "aims_command" in settings.control:
-            del settings.control["aims_command"]
+        settings.control.pop("aims_command", None)
+        if "control_kpt" in settings:
+            settings.control.pop("kgrid", None)
     return settings, kwargs_boot
 
 
@@ -87,15 +88,13 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
 
     ctx = PhonopyContext(settings=settings)
     ctx.settings.atoms = atoms.copy()
-    ctx.settings.atoms.set_calculator(calc)
-    ctx.settings.pop("control_kpt", None)
+    ctx.settings.atoms.set_calculator(None)
 
     # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
     outputs = bootstrap(ctx)
 
     outputs["metadata"]["supercell"] = {
         "atoms": outputs["metadata"]["atoms"],
-        "calculator": {},
     }
     outputs["metadata"]["primitive"] = input2dict(atoms)
     outputs["prefix"] = prefix
@@ -130,6 +129,7 @@ def bootstrap_phonon(
     """
     settings = TaskSettings(name=None, settings=Settings(settings_file=None))
     settings.atoms = atoms
+
     if kpt_density:
         settings["control_kpt"] = AttributeDict({"density": kpt_density})
 
@@ -141,6 +141,10 @@ def bootstrap_phonon(
 
     if ph3_settings:
         outputs.append(setup_phonon_outputs(ph3_settings, settings, "ph3", at, calc))
+
+    if kpt_density:
+        for out in outputs:
+            out["kpt_density"] = kpt_density
     return outputs
 
 
@@ -184,7 +188,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
             step2file(atoms, atoms.calc, str(traj))
 
 
-def phonon_postprocess(func_path, phonon_times, **kwargs):
+def phonon_postprocess(func_path, phonon_times, kpt_density, **kwargs):
     """Performs phonon postprocessing steps
 
     Parameters
@@ -261,7 +265,7 @@ def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
     return generate_workflow(dist_settings, dist_primitive, launchpad_yaml=None)
 
 
-def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter):
+def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter, kpt_density):
     """Set up the finite difference gruniesen parameter calculations
 
     Parameters
@@ -302,6 +306,8 @@ def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter):
     settings["control"] = dict()
     for key, val in metadata["calculator"]["calculator_parameters"].items():
         settings["control"][key] = val
+    settings["control"].pop("kgrid", None)
+    settings["control_kpt"] = {"density": kpt_density}
 
     if not symmetry_block:
         settings["general"]["relax_structure"] = True

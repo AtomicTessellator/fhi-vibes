@@ -91,6 +91,7 @@ def atoms_calculate_task(
     if "results" in atoms_dict:
         del atoms_dict["results"]
     atoms = dict2atoms(atoms_dict)
+
     try:
         func_timer = Timer()
         if args:

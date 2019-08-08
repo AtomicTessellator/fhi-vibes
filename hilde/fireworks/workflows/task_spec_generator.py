@@ -39,17 +39,8 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
                     kwargs_init[set_key][key] = val
                 if key in out_keys:
                     kwargs_init_fw_out[set_key][key] = val
-    if fw_settings and "kpoint_density_spec" in fw_settings:
-        inputs = [fw_settings["kpoint_density_spec"]]
-        args = []
-        if "kpt_density" in func_kwargs:
-            del func_kwargs["kpt_density"]
-    elif "kpt_density" in func_kwargs:
-        inputs = []
-        args = [func_kwargs.pop("kpt_density")]
-    else:
-        inputs = []
-        args = [None]
+    inputs = ["kgrid"]
+    args = []
 
     return TaskSpec(
         "hilde.fireworks.tasks.phonopy_phono3py_functions.bootstrap_phonon",
@@ -190,7 +181,7 @@ def gen_phonon_analysis_task_spec(
             func_out,
             False,
             args=[func],
-            inputs=[timekey],
+            inputs=[timekey, "kgrid"],
             func_kwargs=func_kwargs,
             make_abs_path=make_abs_path,
         )
@@ -279,7 +270,7 @@ def gen_gruniesen_task_spec(settings, symmetry_block, trajectory):
             "hilde.fireworks.tasks.fw_out.general.add_additions_to_spec",
             False,
             args=[settings, symmetry_block, trajectory],
-            inputs=["_queueadapter"],
+            inputs=["_queueadapter", "kgrid"],
             make_abs_path=False,
         )
     ]

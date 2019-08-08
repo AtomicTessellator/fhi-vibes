@@ -52,25 +52,35 @@ def post_init_mult_calcs(
         fw_settings = dict()
     update_spec = dict()
     detours = []
+
     for out in outputs:
         prefix = out["prefix"]
         fw_set = fw_settings.copy()
         func_set = out["settings"]
+
         if prefix + "_settings" in func_fw_kwargs:
             func_set = dict(func_set, **func_fw_kwargs[prefix + "_settings"])
         if "serial" not in func_set:
             func_set["serial"] = True
+
         update_spec[prefix + "_metadata"] = out["metadata"]
+
+        if "k_pt_density" in out:
+            update_spec["kgrid"] = out["k_pt_density"]
+
         if "spec" in fw_set:
             fw_set["spec"].update(update_spec)
         else:
             fw_set["spec"] = update_spec.copy()
+
         fw_set["mod_spec_add"] = prefix + "_forces"
         fw_set["metadata_spec"] = prefix + "_metadata"
+
         if "calculator" in out:
             calc_dict = calc2dict(out["calculator"])
         else:
             calc_dict = calc.copy()
+
         if (
             "prev_dos_fp" in fw_set
             and "walltime" in fw_set
@@ -80,6 +90,7 @@ def post_init_mult_calcs(
             fw_set["walltime"] = time2str(
                 str2time(fw_set["walltime"]) * len(out["atoms_to_calculate"])
             )
+
         detours = get_detours(
             out["atoms_to_calculate"],
             calc_dict,
@@ -312,9 +323,7 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
             "ph_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_primitive())),
             "_queueadapter": qadapter,
         }
-    if "kpoint_density_spec" not in fw_settings:
-        fw_settings["kpoint_density_spec"] = "kgrid"
-    update_spec[fw_settings["kpoint_density_spec"]] = k_pt_density
+    update_spec["kgrid"] = k_pt_density
     return FWAction(update_spec=update_spec)
 
 
@@ -348,12 +357,17 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     FWAction
         Increases the supercell size or adds the phonon_dict to the spec
     """
-    if fw_settings:
-        fw_settings["from_db"] = False
-        if "in_spec_calc" in fw_settings:
-            fw_settings.pop("in_spec_calc")
-        if "in_spec_atoms" in fw_settings:
-            fw_settings.pop("in_spec_atoms")
+    if not fw_settings:
+        fw_settings = dict()
+        fw_settings["spec"] = dict()
+    elif "spec" not in fw_settings:
+        fw_settings["spec"] = dict()
+
+    fw_settings["from_db"] = False
+    fw_settings.pop("in_spec_calc", None)
+    fw_settings.pop("in_spec_atoms", None)
+
+    fw_settings["spec"]["kgrid"] = args[-1]
 
     ph = kwargs.pop("outputs")
     workdir = kwargs.pop("workdir")
@@ -364,14 +378,9 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     if conv:
         qadapter = None
-        if fw_settings and "spec" in fw_settings:
-            qadapter = fw_settings["spec"].get("_queueadapter", None)
-        update_spec = {"_queueadapter": qadapter, **update_job}
-        if "kpoint_density_spec" not in fw_settings:
-            fw_settings["kpoint_density_spec"] = "kgrid"
-        update_spec[fw_settings["kpoint_density_spec"]] = update_spec.pop(
-            "k_pt_density"
-        )
+        qadapter = fw_settings["spec"].get("_queueadapter", None)
+        update_spec = dict(_queueadapter=qadapter, **update_job)
+        update_spec["kgrid"] = args[-1]
         return FWAction(update_spec=update_spec)
 
     fw_settings["in_spec_calc"] = "ph_calculator"
@@ -379,14 +388,8 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         "ph_calculator": update_job["ph_calculator"],
         "prev_dos_fp": update_job["prev_dos_fp"],
     }
-    if "kpoint_density_spec" not in fw_settings:
-        fw_settings["kpoint_density_spec"] = "kgrid"
-    update_spec[fw_settings["kpoint_density_spec"]] = update_job["k_pt_density"]
 
-    if "spec" in fw_settings:
-        fw_settings["spec"].update(update_spec)
-    else:
-        fw_settings["spec"] = update_spec.copy()
+    fw_settings["spec"].update(update_spec)
 
     update_spec["ph_supercell"] = update_job["ph_supercell"]
     func_kwargs = {
@@ -399,12 +402,9 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     }
     kwargs.update(func_kwargs)
 
-    if "spec" in fw_settings:
-        fw_settings["spec"]["prev_dos_fp"] = update_job["prev_dos_fp"]
-    else:
-        fw_settings["spec"] = {"prev_dos_fp": update_job["prev_dos_fp"]}
+    fw_settings["spec"]["prev_dos_fp"] = update_job["prev_dos_fp"]
 
-    if "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
+    if "_queueadapter" in fw_settings["spec"]:
         func_kwargs.pop("walltime", None)
         fw_settings["spec"]["_queueadapter"].pop("queue", None)
         fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(
@@ -417,6 +417,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         qadapter = fw_settings["spec"]["_queueadapter"]
     else:
         qadapter = None
+
     pc = to_Atoms(ph.get_primitive())
     init_fw = generate_phonon_fw_in_wf(
         pc,

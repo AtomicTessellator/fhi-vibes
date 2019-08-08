@@ -18,7 +18,8 @@ from hilde.fireworks.workflows.task_spec_generator import (
     gen_gruniesen_task_spec,
 )
 from hilde.helpers.hash import hash_atoms_and_calc
-from hilde.helpers.k_grid import update_k_grid, update_k_grid_calc_dict
+from hilde.helpers.k_grid import update_k_grid, update_k_grid_calc_dict, k2d
+from hilde.helpers.numerics import get_3x3_matrix
 from hilde.helpers.watchdogs import str2time
 from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
 from hilde.phonopy.wrapper import preprocess
@@ -194,10 +195,11 @@ def generate_firework(
                 cl = calc2dict(calc)
 
                 for key, val in update_calc_settings.items():
-                    if key != "k_grid_density":
+                    if key != "k_grid_density" and key != "kgrid":
                         cl = update_calc(cl, key, val)
                 for key, val in cl.items():
                     at[key] = val
+                fw_settings["spec"]["kgrid"] = k2d(atoms, cl["calculator_parameters"]["k_grid"])
             else:
                 cl = calc
                 setup_tasks.append(
@@ -212,10 +214,9 @@ def generate_firework(
                     generate_update_calc_task(calc, update_calc_settings)
                 )
 
-        if "kpoint_density_spec" in fw_settings:
             setup_tasks.append(
                 generate_mod_calc_task(
-                    at, cl, "calculator", fw_settings["kpoint_density_spec"]
+                    at, cl, "calculator", "kgrid"
                 )
             )
             cl = "calculator"
@@ -423,7 +424,9 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
         workflow[typ]["walltime"] = 1800
 
     fw_settings["fw_name"] = typ
-    workflow[typ]["workdir"] = f"{workflow.general.workdir_cluster}/{typ}/"
+    natoms = len(atoms) * np.linalg.det(get_3x3_matrix(workflow[typ]["supercell_matrix"]))
+    natoms = int(round(natoms))
+    workflow[typ]["workdir"] = f"{workflow.general.workdir_cluster}/sc_natoms_{natoms}/{typ}/"
     if typ == "phonopy":
         func_kwargs = {"ph_settings": workflow[typ].copy()}
     elif typ == "phono3py":
@@ -467,9 +470,12 @@ def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
     if "workdir" in func_kwargs:
         func_kwargs.pop("workdir")
 
+    natoms = len(atoms) * np.linalg.det(get_3x3_matrix(workflow[typ]["supercell_matrix"]))
+    natoms = int(round(natoms))
+
     func_kwargs[
         "analysis_workdir"
-    ] = f"{workflow.general.workdir_local}/{fw_settings['fw_name']}/"
+    ] = f"{workflow.general.workdir_local}/sc_natoms_{natoms}/{fw_settings['fw_name']}/"
     func_kwargs["init_workdir"] = f"{workflow.general.workdir_cluster}/{typ}/"
 
     task_spec = gen_phonon_analysis_task_spec(

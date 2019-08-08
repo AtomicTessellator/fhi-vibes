@@ -264,7 +264,7 @@ def get_converge_phonon_update(
         "ph_calculator": calc_dict,
         "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
         "ph_supercell": atoms2dict(to_Atoms_db(ph.get_supercell())),
-        "k_pt_density": k_pt_density,
+        # "k_pt_density": k_pt_density,
         "prev_dos_fp": dos_fp,
         "prev_wd": workdir,
         "displacement": disp_mag,
