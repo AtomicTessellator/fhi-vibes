@@ -236,7 +236,11 @@ def get_converge_phonon_update(
         to_Atoms_db(ph.get_primitive()), sc_mat, displacement=displacement
     )
 
-    time_scaling = 3.0 * ratio ** 3.0
+    if ph.get_supercell().get_number_of_atoms() > 500:
+        time_scaling = 3.0 * ratio ** 3.0
+    else:
+        time_scaling = 3.0 * ratio
+
     expected_walltime = calc_time * time_scaling
     expected_mem = get_memory_expectation(
         scs[0].copy(), Aims(**calc_dict["calculator_parameters"]), k_pt_density, workdir
