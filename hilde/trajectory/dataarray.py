@@ -7,14 +7,15 @@ from hilde.structure.misc import get_sysname
 from .utils import clean_pressure
 from . import Timer
 
-time_index = "time"
-vec_index = [time_index, "atom", "i"]
-stress_index = [time_index, "i", "j"]
+time_dims = "time"
+vec_dims = [time_dims, "I", "a"]
+stress_dims = [time_dims, "a", "b"]
+kappa_dims = [time_dims, "I", "J", "a", "b"]
 
 
 def _time_coords(trajectory):
     """return time as coords dict"""
-    coords = {time_index: trajectory.times}
+    coords = {time_dims: trajectory.times}
     return coords
 
 
@@ -60,7 +61,7 @@ def get_positions_data(trajectory, verbose=True):
 
     df = xr.DataArray(
         trajectory.positions,
-        dims=vec_index,
+        dims=vec_dims,
         coords=_time_coords(trajectory),
         name="positions",
         attrs=_metadata(trajectory),
@@ -83,7 +84,7 @@ def get_velocities_data(trajectory, verbose=True):
 
     df = xr.DataArray(
         trajectory.velocities,
-        dims=vec_index,
+        dims=vec_dims,
         coords=_time_coords(trajectory),
         name="velocities",
         attrs=_metadata(trajectory),
@@ -112,7 +113,7 @@ def get_pressure_data(trajectory, GPa=False, verbose=True):
 
     df = xr.DataArray(
         clean_pressure(trajectory.pressure / unit),
-        dims=[time_index],
+        dims=[time_dims],
         coords=_time_coords(trajectory),
         name="pressure",
         attrs=_metadata(trajectory, dct=extra_metadata),
@@ -141,12 +142,12 @@ def get_trajectory_data(trajectory):
     dataset = {
         "positions": positions,
         "velocities": velocities,
-        "forces": (vec_index, trajectory.forces),
-        "kinetic_energy": (time_index, trajectory.kinetic_energy),
-        "potential_energy": (time_index, trajectory.potential_energy),
-        "stress": (stress_index, trajectory.stress),
+        "forces": (vec_dims, trajectory.forces),
+        "kinetic_energy": (time_dims, trajectory.kinetic_energy),
+        "potential_energy": (time_dims, trajectory.potential_energy),
+        "stress": (stress_dims, trajectory.stress),
         "pressure": pressure,
-        "temperature": (time_index, trajectory.temperatures),
+        "temperature": (time_dims, trajectory.temperatures),
     }
     coords = _time_coords(trajectory)
     attrs = _metadata(trajectory)
@@ -154,12 +155,13 @@ def get_trajectory_data(trajectory):
     return xr.Dataset(dataset, coords=coords, attrs=attrs)
 
 
-def get_heat_flux_data(trajectory, return_avg=False):
+def get_heat_flux_data(trajectory, return_avg=False, only_flux=False):
     """compute heat fluxes from TRAJECTORY and return as xarray
 
     Args:
         trajectory: list of atoms objects WITH ATOMIC STRESS computed
         return_avg (bool): return flux per atom
+        only_flux (bool): only return heat flux and attrs
 
     Returns:
         xarray.Dataset:
@@ -175,14 +177,20 @@ def get_heat_flux_data(trajectory, return_avg=False):
     data = get_trajectory_data(trajectory)
 
     dataset = {
-        "heat_flux": (vec_index, trajectory.heat_flux),
-        "avg_heat_flux": (vec_index, trajectory.avg_heat_flux),
-        "positions": data.positions,
-        "velocities": data.velocities,
-        "forces": data.forces,
+        "heat_flux": (vec_dims, trajectory.heat_flux),
         "pressure": data.pressure,
         "temperature": data.temperature,
     }
+
+    if not only_flux:
+        dataset.update(
+            {
+                "avg_heat_flux": (vec_dims, trajectory.avg_heat_flux),
+                "positions": data.positions,
+                "velocities": data.velocities,
+                "forces": data.forces,
+            }
+        )
     coords = _time_coords(trajectory)
     attrs = _metadata(trajectory)
 

@@ -259,8 +259,7 @@ class Trajectory(list):
         """
         return xr.get_trajectory_data(self)
 
-    @property
-    def heat_flux_dataset(self):
+    def get_heat_flux_data(self, only_flux=False):
         """return heat flux and other data as xarray.Dataset
 
         Contains:
@@ -268,7 +267,12 @@ class Trajectory(list):
         Metadata:
             volume, symbols, masses, flattend reference positions
         """
-        return xr.get_heat_flux_data(self)
+        return xr.get_heat_flux_data(self, only_flux=only_flux)
+
+    @property
+    def heat_flux_dataset(self):
+        """== self.get_heat_flux_data()"""
+        return self.get_heat_flux_data()
 
     def with_result(self, result="stresses"):
         """return new trajectory with atoms object that have specific result computed"""
