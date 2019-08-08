@@ -1,17 +1,19 @@
 """compute and analyze heat fluxes"""
 import numpy as np
-import scipy.signal as sl
+from scipy.optimize import curve_fit
 from scipy.integrate import cumtrapz
 import xarray as xr
 
 from ase import units
 
 # from hilde.fourier import compute_sed, get_frequencies, get_timestep
+from hilde.helpers.correlation import correlation
+from hilde.trajectory.dataarray import kappa_dims, stress_dims
 from . import Timer, talk
 
 
 def gk_prefactor(volume, temperature):
-    """convert eV/AA^2/ps to W/mK
+    """convert eV/AA^2/fs to W/mK
 
     Args:
         volume (float): volume of the supercell in AA^3
@@ -22,7 +24,7 @@ def gk_prefactor(volume, temperature):
     """
     V = float(volume)
     T = float(temperature)
-    prefactor = 1 / units.kB / T ** 2 * 1602 * V  # / 3  # * 1000
+    prefactor = 1 / units.kB / T ** 2 * 1602 * V / 1000  # / 3  # * 1000
     talk(
         [
             f"Compute Prefactor:",
@@ -34,36 +36,100 @@ def gk_prefactor(volume, temperature):
     return float(prefactor)
 
 
+def get_kappa(dataset, full=False, delta='auto'):
+    """compute heat flux autocorrelation and cumulative kappa from heat_flux_dataset"""
+
+    if full:
+        J_corr = get_heat_flux_aurocorrelation(dataset)
+    else:
+        flux = dataset.heat_flux.sum(axis=1)
+        Nt = len(flux)
+        temp = dataset.temperature.mean()
+        vol = dataset.attrs["volume"]
+
+        prefactor = gk_prefactor(vol, temp)
+
+        flux_corr = np.zeros([Nt, 3, 3])
+        for aa in range(3):
+            for bb in range(3):
+                corr = correlation(flux[:, aa], flux[:, bb])
+                flux_corr[:, aa, bb] = corr
+
+        J_corr = xr.DataArray(
+            flux_corr * prefactor,
+            dims=stress_dims,
+            coords=flux.coords,
+            attrs={"gk_prefactor": prefactor},
+            name="Jcorr",
+        )
+
+    # dt in ps
+    times = dataset.coords["time"]  # / 1000
+
+    # integrate
+    talk(f"Integrate heat flux autocorrelation function cumulatively")
+    talk(f".. Integrator:   `scipy.integrate.cumtrapz`")
+
+    kappa = cumtrapz(J_corr, times, axis=0, initial=0)
+
+    # estimate avalanche time
+    tmax = t_avalanche(J_corr.sum(axis=(1, 2)).to_series(), delta=delta)
+
+    attrs = J_corr.attrs
+
+    attrs.update({"t_avalanche": tmax})
+
+    # fmt: off
+    da = xr.DataArray(
+        kappa,
+        dims=J_corr.dims,
+        coords=J_corr.coords,
+        attrs=attrs,
+        name="kappa",
+    )
+    # fmt: on
+
+    dataset = {J_corr.name: J_corr, da.name: da}
+    coords = da.coords
+    attrs = da.attrs
+
+    return xr.Dataset(dataset, coords=coords, attrs=attrs)
+
+
 def get_heat_flux_aurocorrelation(dataset, verbose=True):
     """compute heat flux autocorrelation function from heat flux Dataset
 
     Args:
         dataset (xarray.Dataset): the heat flux Dataset
     Returns:
-        heat_flux_autocorrelation (xarray.DataArray [N_t, N_a, 3]) in W/mK/fs
+        heat_flux_autocorrelation (xarray.DataArray [N_t, N_a, N_a, 3, 3]) in W/mK/fs
     """
 
     flux = dataset.heat_flux
 
     timer = Timer("Get heat flux autocorrelation from heat flux", verbose=verbose)
 
-    Nt = len(flux.time)
+    Nt, Na, _ = flux.shape
     temp = dataset.temperature.mean()
     vol = dataset.attrs["volume"]
 
     prefactor = gk_prefactor(vol, temp)
 
-    flux_corr = np.zeros_like(flux)
-    for atom in flux.atom:
-        J_atom = flux[:, atom]
+    flux_corr = np.zeros([Nt, Na, Na, 3, 3])
+    for II in flux.I:
+        print(int(II))
+        for JJ in flux.I:
+            J_I = flux[:, II]
+            J_J = flux[:, JJ]
 
-        for xx in range(3):
-            corr = sl.correlate(J_atom[:, xx], J_atom[:, xx])[Nt - 1 :] / Nt
-            flux_corr[:, atom, xx] = corr
+            for aa in range(3):
+                for bb in range(3):
+                    corr = correlation(J_I[:, aa], J_J[:, bb])[Nt - 1 :]
+                    flux_corr[:, II, JJ, aa, bb] = corr
 
     df_corr = xr.DataArray(
         flux_corr * prefactor,
-        dims=flux.dims,
+        dims=kappa_dims,
         coords=flux.coords,
         attrs={"gk_prefactor": prefactor},
         name="heat flux autocorrelation",
@@ -113,7 +179,7 @@ def get_cumulative_kappa(dataset, analytic=False, verbose=True):
     return da
 
 
-def F_avalanche(series, delta=20):
+def F_avalanche(series, delta="auto", verbose=True):
     """Compute Avalanche Function (windowed noise/signal ratio)
 
     as defined in J. Chen et al. / Phys. Lett. A 374 (2010) 2392
@@ -121,16 +187,59 @@ def F_avalanche(series, delta=20):
 
     Args:
         series (pandas.Series): some time resolved data series
-        delta (int): no. of time steps for windowing
+        delta (int): no. of time steps for windowing, or `auto`
+        verbose (bool): be verbose
 
     Returns:
         F(t, delta) = abs( sigma(series) / E(series)),
         where sigma is the standard deviation of the time series in an interval
         delta around t, and E is the expectation value around t.
+
+    When `delta='auto'`, estimate the correlation time and use that size for binning
+    the time steps for estimating std/E
     """
+    if delta == "auto":
+        # estimate correlation time
+
+        exp = lambda x, y0, tau: y0 * np.exp(-x / tau)
+
+        # where is jc drops below 0 the first time
+        idx = series[series < series.max() / np.e].index[0]
+        x = series[:idx]
+        y0 = x.iloc[0]
+        tau = idx
+        bounds = ([0.75 * y0, 1.5 * y0], [0.5 * idx, 2 * idx])
+        (y0, tau), _ = curve_fit(exp, x.index, x, bounds=bounds)
+
+        delta = len(series[series.index < tau])
+
+        if verbose:
+            talk(f"Pre-est. correlation time (drop below 1/e): {idx:10.2f} fs")
+            talk(f".. use {len(x)} data points to fit exponential")
+            talk(f".. estimated correlation time:              {tau:10.2f} fs")
+            talk(f"-> choose delta of size: {delta:20d} data points")
+
+        assert 0.5 < idx / tau < 2, (idx, tau)
+
     sigma = series.rolling(window=delta, min_periods=0).std()
     E = series.rolling(window=delta, min_periods=0).mean()
 
-    F = (sigma / E).abs()
+    F = (sigma / E).abs().dropna()
 
     return F
+
+
+def t_avalanche(series, Fmax=1, verbose=True, **kwargs):
+    """get avalanche time for series from F_avalanche
+
+    Args:
+        Fmax (float): max. allowed value for avalanche function
+    """
+    F = F_avalanche(series, verbose=verbose, **kwargs)
+
+    tmax = F[F > Fmax].index[0]
+
+    if verbose:
+        print(f"-> avalanche time with max. F of {Fmax:2d}: {tmax:17.2f} fs")
+
+    return tmax
