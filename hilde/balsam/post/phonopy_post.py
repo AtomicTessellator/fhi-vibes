@@ -69,7 +69,6 @@ with cwd(base_dir):
     workdir = data["ph_data"]["analysis_wd"]
     trajectory = "trajectory.son"
     ph_times = get_calc_times(calc_dirs=calc_dirs)
-
     phonon = postprocess(f"./{trajectory}")
 
     conv, update_job = get_converge_phonon_update(
@@ -81,7 +80,8 @@ with cwd(base_dir):
         data["ph_data"].get("prev_dos_fp", None),
         sc_matrix_original=data["ph_data"].get("sc_matrix_original", None),
     )
-
+    for key, val in update_job.items():
+        print(f"{key}: {val}")
     update_job["ph_calculator"]["calculator_parameters"].pop("k_grid", None)
     update_job["ph_calculator"]["calculator_parameters"].pop("use_pimd_wrapper", None)
 

@@ -39,13 +39,6 @@ def generate_workflow(workflow_settings):
     name = atoms.symbols.get_chemical_formula()
     name += "_" + hash_atoms(atoms)[0]
 
-    workflow_settings.general.workdir_local += (
-        atoms.symbols.get_chemical_formula() + "/" + hash_atoms(atoms) + "/"
-    )
-    workflow_settings.general.workdir_cluster += (
-        atoms.symbols.get_chemical_formula() + "/" + hash_atoms(atoms) + "/"
-    )
-
     workflow_settings.atoms = atoms
     if "basisset" in workflow_settings.general:
         basis = workflow_settings.general.pop("basisset")
