@@ -23,8 +23,10 @@ all_tests:
   script:
     - service mongodb start --ipv6
     - pip install fireworks
+    - cd $CI_PROJECT_DIR/tests
+    - pytest fireworks
+    - cd cli; bash test_cli.sh
       #    - pip install phono3py
-    - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; python test_lattice_points.py
     - cd ../phonopy; python run_phonopy.py
       #    - python run_phono3py.py
     - cd ../harmonic_analysis; python mode_projection.py
