@@ -1,5 +1,7 @@
 """ test green kubo cumulative kappa"""
 from pathlib import Path
+import numpy as np
+import pandas as pd
 import xarray as xr
 import hilde.green_kubo.heat_flux as hf
 
@@ -11,11 +13,12 @@ def test_kappa(datafile=parent / "heat_flux.nc"):
     DS = xr.load_dataset(datafile)
 
     # compute cumulative kappa
-    kappa = hf.get_cumulative_kappa(DS)
+    kappa = hf.get_kappa(DS).kappa
 
-    k = kappa.sum(axis=(1, 2)).to_series() / 3
+    k = np.trace(kappa, axis1=1, axis2=2) / 3
+    k = pd.Series(k, index=DS.time)
 
-    assert abs(k.iloc[-1] - 0.4980131763627837) < 1e-5
+    assert abs(k.iloc[10] - 0.3401563148255578) < 1e-5, k.iloc[10]
 
 
 def test_j_corr(datafile=parent / "heat_flux.nc"):
@@ -23,12 +26,14 @@ def test_j_corr(datafile=parent / "heat_flux.nc"):
     DS = xr.load_dataset(datafile)
 
     # Compute heat flux autoccorrelation function
-    jcorr = hf.get_heat_flux_aurocorrelation(DS)
+    jcorr = hf.get_kappa(DS).Jcorr
 
-    j = jcorr.sum(axis=(1, 2)).to_series()
+    # x component
+    jx = jcorr[:, 0, 0].to_series() * 1000
 
-    assert abs(j[0] - 27.89026177401778) < 1e-5
+    assert abs(jx[0] - 10.560280496761488) < 1e-5, jx[0]
 
 
 if __name__ == "__main__":
     test_kappa()
+    test_j_corr()
