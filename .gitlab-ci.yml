@@ -24,7 +24,7 @@ all_tests:
     - service mongodb start --ipv6
     - pip install fireworks
     - cd $CI_PROJECT_DIR/tests
-    - pytest fireworks
+    - pytest
     - cd cli; bash test_cli.sh
       #    - pip install phono3py
     - cd ../phonopy; python run_phonopy.py
