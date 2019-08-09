@@ -7,7 +7,7 @@ import numpy as np
 from hilde.io import read, get_info_str
 from hilde.structure.io import inform
 from hilde.helpers import supercell as sc
-from hilde.helpers.geometry import get_cubicness
+from hilde.helpers.geometry import get_cubicness, inscribed_sphere_in_box
 from hilde.helpers.numerics import get_3x3_matrix
 from hilde.spglib.wrapper import get_spacegroup
 from hilde.helpers import Timer
@@ -72,11 +72,10 @@ def make_supercell(filename, dimension, n_target, deviation, dry, format, scaled
     print(f"\nSuperlattice:")
     print(supercell.cell.array)
     print(f"\nNumber of atoms:  {len(supercell)}")
-    print(
-        "Cubicness:        {:.3f} ({:.3f})".format(
-            get_cubicness(supercell.cell), get_cubicness(supercell.cell) ** 3
-        )
-    )
+    cub = get_cubicness(supercell.cell)
+    print(f"  Cubicness:         {cub:.3f} ({cub**3:.3f})")
+    sh = inscribed_sphere_in_box(supercell.cell)
+    print(f"  Largest Cutoff:    {sh:.3f} AA")
 
     if not dry:
         spacegroup = get_spacegroup(cell)

@@ -230,7 +230,7 @@ class Settings(ConfigDict):
         if read_config:
             config_files = [config_file, settings_file, fireworks_file]
         else:
-            config_files = settings_file
+            config_files = [settings_file]
 
         if dct:
             super().__init__(dct=dct)
@@ -438,7 +438,8 @@ class TaskSettings(Settings):
 
         # use the file specified in geometry.file or the default (geometry.in)
         if "geometry" in self and "file" in self.geometry and self.geometry.file:
-            file = next(Path().glob(self.geometry.file))
+            path = Path(self.geometry.file)
+            file = next(path.parent.glob(path.name))
         else:
             file = DEFAULT_GEOMETRY_FILE
 

@@ -1,7 +1,12 @@
 """`hilde input` part of the CLI"""
 
 from pathlib import Path
-import importlib.resources as pkg_resources
+
+try:
+    import importlib.resources as pkg_resources
+except ModuleNotFoundError:
+    import importlib_resources as pkg_resources
+
 
 import click
 from hilde.templates import settings, config_files

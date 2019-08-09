@@ -23,7 +23,7 @@ def preprocess(filename, settings_file, dimension, format, write_supercell=False
     else:
         atoms = settings.get_atoms(format=format)
 
-    _, _, scs_ref = ph.preprocess(atoms, supercell_matrix=1)
+    _, _, scs_ref = ph.preprocess(atoms, **{**settings.phonopy, "supercell_matrix": 1})
 
     if dimension is not None:
         phonon, sc, scs = ph.preprocess(atoms, supercell_matrix=dimension)

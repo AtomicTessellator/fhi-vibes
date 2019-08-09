@@ -93,5 +93,6 @@ def bootstrap(ctx):
         "metadata": metadata,
         "workdir": ctx.workdir,
         "settings": ctx.settings,
+        "save_input": True,
         "backup_after_calculation": False,
     }

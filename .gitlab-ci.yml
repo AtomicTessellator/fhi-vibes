@@ -1,7 +1,6 @@
 image: registry.gitlab.com/flokno/hilde:poetry
 
 before_script:
-  - service mongodb start --ipv6
   - cp hilde/templates/config_files/hilderc.template ~/.hilderc
   - python -m venv venv --system-site-packages
   - source venv/bin/activate
@@ -12,35 +11,27 @@ before_script:
 basic_tests:
   script:
     - cd $CI_PROJECT_DIR/tests
-    - pytest test_sobol.py
-    - cd commensurate_qpoints; python test_lattice_points.py
-    - cd ../hashes; python hashes.py
-    - cd ../cli; bash test_cli.sh
-    - cd ../anharmonicity_score; python test_r2.py
+    - pytest --ignore fireworks
+    - cd cli; bash test_cli.sh
     - cd ../phonopy; python run_phonopy.py
-    - cd ../md; python run_md.py
     - cd ../harmonic_analysis; python mode_projection.py
-    - cd ../trajectory; python test_son.py
     - cd $CI_PROJECT_DIR/examples/devel
     - python material_fingerprints/material_fingerprints.py
-
-
 
 all_tests:
   when: manual
   script:
+    - service mongodb start --ipv6
     - pip install fireworks
+    - cd $CI_PROJECT_DIR/tests
+    - pytest
+    - cd cli; bash test_cli.sh
       #    - pip install phono3py
-    - cd $CI_PROJECT_DIR/tests/commensurate_qpoints; python test_lattice_points.py
-    - cd ../hashes; python hashes.py
-    - cd ../anharmonicity_score; python test_r2.py
     - cd ../phonopy; python run_phonopy.py
       #    - python run_phono3py.py
-    - cd ../md; python run_md.py
     - cd ../harmonic_analysis; python mode_projection.py
       #    - cd ../statistical_sampling; python run_stat_sampling.py
     - cd ../phonon_db; python phonon_db.py; python phonon_db.py;
-    - cd ../trajectory; python test_son.py
     - cd $CI_PROJECT_DIR/tests/fireworks; python fireworks_test.py
     - cd $CI_PROJECT_DIR/examples/devel
     - python material_fingerprints/material_fingerprints.py

@@ -3,7 +3,8 @@
 from argparse import ArgumentParser
 
 from ase.io import read
-from hilde.trajectory import Trajectory, input2dict
+from hilde.trajectory import Trajectory
+from hilde.helpers.converters import input2dict
 
 
 def main():
