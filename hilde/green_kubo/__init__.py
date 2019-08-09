@@ -6,6 +6,6 @@ _prefix = "GreenKubo"
 Timer.prefix = _prefix
 
 
-def talk(msg):
+def talk(msg, **kw):
     """wrapper for `utils.talk` with prefix"""
-    return _talk(msg, prefix=_prefix)
+    return _talk(msg, prefix=_prefix, **kw)

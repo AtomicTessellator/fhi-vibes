@@ -12,7 +12,7 @@ from hilde.trajectory.dataarray import kappa_dims, stress_dims
 from . import Timer, talk
 
 
-def gk_prefactor(volume, temperature):
+def gk_prefactor(volume, temperature, verbose=True):
     """convert eV/AA^2/fs to W/mK
 
     Args:
@@ -31,16 +31,65 @@ def gk_prefactor(volume, temperature):
             f".. Volume:       {V:10.2f}  AA^3",
             f".. Temperature:  {T:10.2f}  K",
             f"-> Prefactor:    {prefactor:10.2f}  W/mK / (eV/AA^/ps)",
-        ]
+        ],
+        verbose=verbose,
     )
     return float(prefactor)
 
 
-def get_kappa(dataset, full=False, delta='auto'):
-    """compute heat flux autocorrelation and cumulative kappa from heat_flux_dataset"""
+def _get_kappa_array(jcorr, delta="auto", verbose=True):
+    """integrate HFACF to obtain kappa as xr.Dataarray and determinde avalanche time
+
+    Args:
+        jcorr: HFACF as pd.Series or xr.DataArray
+        delta: mode to compute avalanche time
+    Returns:
+        cumulative kappa as xr.DataArray
+    """
+    # integrate
+    talk(f"Integrate heat flux autocorrelation function cumulatively", verbose=verbose)
+    talk(f".. Integrator:   `scipy.integrate.cumtrapz`", verbose=verbose)
+
+    kappa = cumtrapz(jcorr, jcorr.time, axis=0, initial=0)
+
+    # estimate avalanche time
+    jc = jcorr[:, 0, 0] + jcorr[:, 1, 1] + jcorr[:, 2, 2]
+
+    tmax = t_avalanche(jc.to_series(), delta=delta)
+
+    attrs = jcorr.attrs
+    attrs.update({"t_avalanche": tmax})
+
+    # fmt: off
+    da = xr.DataArray(
+        kappa,
+        dims=jcorr.dims,
+        coords=jcorr.coords,
+        attrs=attrs,
+        name="kappa",
+    )
+    # fmt: on
+
+    return da
+
+
+def get_kappa(dataset, full=False, delta="auto", verbose=True):
+    """compute heat flux autocorrelation and cumulative kappa from heat_flux_dataset
+
+    Args:
+        dataset (xr.Dataset): contains heat flux per atom
+        full (bool): return correlation function per atom
+        delta: compute mode for avalanche time
+    Returns:
+        dataset containing
+            Jcorr: heat flux autocorrelation function (HFACF)
+            Jcorr_II: sum_I term of HFACF
+            kappa: cumulative kappa from integrating HFACF
+            kappa_II: cumulative kappa from integrating Jcorr_II
+    """
 
     if full:
-        J_corr = get_heat_flux_aurocorrelation(dataset)
+        J_corr = get_heat_flux_aurocorrelation(dataset, verbose=verbose)
     else:
         flux = dataset.heat_flux.sum(axis=1)
         Nt = len(flux)
@@ -63,51 +112,37 @@ def get_kappa(dataset, full=False, delta='auto'):
             name="Jcorr",
         )
 
-    # dt in ps
-    times = dataset.coords["time"]  # / 1000
+    J_corr_II = get_heat_flux_aurocorrelation(dataset, verbose=verbose)
+    J_corr_II.name = J_corr.name + "_II"
 
-    # integrate
-    talk(f"Integrate heat flux autocorrelation function cumulatively")
-    talk(f".. Integrator:   `scipy.integrate.cumtrapz`")
+    kappa = _get_kappa_array(J_corr, delta=delta, verbose=verbose)
+    kappa_II = _get_kappa_array(J_corr_II.sum(axis=1), delta=delta, verbose=verbose)
+    kappa_II.name = kappa.name + "_II"
 
-    kappa = cumtrapz(J_corr, times, axis=0, initial=0)
-
-    # estimate avalanche time
-    tmax = t_avalanche(J_corr.sum(axis=(1, 2)).to_series(), delta=delta)
-
+    datasets = (J_corr, J_corr_II, kappa, kappa_II)
+    dct = {da.name: da for da in datasets}
+    coords = J_corr.coords
     attrs = J_corr.attrs
 
-    attrs.update({"t_avalanche": tmax})
-
-    # fmt: off
-    da = xr.DataArray(
-        kappa,
-        dims=J_corr.dims,
-        coords=J_corr.coords,
-        attrs=attrs,
-        name="kappa",
-    )
-    # fmt: on
-
-    dataset = {J_corr.name: J_corr, da.name: da}
-    coords = da.coords
-    attrs = da.attrs
-
-    return xr.Dataset(dataset, coords=coords, attrs=attrs)
+    return xr.Dataset(dct, coords=coords, attrs=attrs)
 
 
-def get_heat_flux_aurocorrelation(dataset, verbose=True):
+def get_heat_flux_aurocorrelation(dataset, full_tensor=False, verbose=True):
     """compute heat flux autocorrelation function from heat flux Dataset
 
     Args:
         dataset (xarray.Dataset): the heat flux Dataset
+        full_tensor (bool): return [N_t, N_a, N_a, 3, 3], otherwise [N_t, N_a, 3, 3]
     Returns:
-        heat_flux_autocorrelation (xarray.DataArray [N_t, N_a, N_a, 3, 3]) in W/mK/fs
+        heat_flux_autocorrelation (xarray.DataArray [N_t, N_a, (N_a, 3,) 3]) in W/mK/fs
     """
 
     flux = dataset.heat_flux
 
     timer = Timer("Get heat flux autocorrelation from heat flux", verbose=verbose)
+
+    if full_tensor:
+        talk(".. return full tensor [N_t, N_a, N_a, 3, 3]", verbose=verbose)
 
     Nt, Na, _ = flux.shape
     temp = dataset.temperature.mean()
@@ -115,21 +150,33 @@ def get_heat_flux_aurocorrelation(dataset, verbose=True):
 
     prefactor = gk_prefactor(vol, temp)
 
-    flux_corr = np.zeros([Nt, Na, Na, 3, 3])
-    for II in flux.I:
-        print(int(II))
-        for JJ in flux.I:
-            J_I = flux[:, II]
-            J_J = flux[:, JJ]
+    if full_tensor:
+        flux_corr = np.zeros([Nt, Na, Na, 3, 3])
+        for II in flux.I:
+            print(int(II))
+            for JJ in flux.I:
+                J_I = flux[:, II]
+                J_J = flux[:, JJ]
+
+                for aa in range(3):
+                    for bb in range(3):
+                        corr = correlation(J_I[:, aa], J_J[:, bb])
+                        flux_corr[:, II, JJ, aa, bb] = corr
+        dims = kappa_dims
+    else:
+        flux_corr = np.zeros([Nt, Na, 3, 3])
+        for atom in flux.I:
+            J_atom = flux[:, atom]
 
             for aa in range(3):
                 for bb in range(3):
-                    corr = correlation(J_I[:, aa], J_J[:, bb])[Nt - 1 :]
-                    flux_corr[:, II, JJ, aa, bb] = corr
+                    corr = correlation(J_atom[:, aa], J_atom[:, bb])
+                    flux_corr[:, atom, aa, bb] = corr
+        dims = flux.dims + (kappa_dims[-1],)
 
     df_corr = xr.DataArray(
         flux_corr * prefactor,
-        dims=kappa_dims,
+        dims=dims,
         coords=flux.coords,
         attrs={"gk_prefactor": prefactor},
         name="heat flux autocorrelation",
@@ -240,6 +287,6 @@ def t_avalanche(series, Fmax=1, verbose=True, **kwargs):
     tmax = F[F > Fmax].index[0]
 
     if verbose:
-        print(f"-> avalanche time with max. F of {Fmax:2d}: {tmax:17.2f} fs")
+        talk(f"-> avalanche time with max. F of {Fmax:2d}: {tmax:17.2f} fs")
 
     return tmax
