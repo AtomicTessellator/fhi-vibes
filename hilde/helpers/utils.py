@@ -17,7 +17,7 @@ def bold(text):
     return "\033[1m" + text + "\033[0m"
 
 
-def talk(message, prefix=None, verbosity=1):
+def talk(message, prefix=None, verbose=True):
     """hilde message output. Use instead of print. Sensitive to CLI context
 
     https://stackoverflow.com/a/2654130/5172579
@@ -28,7 +28,6 @@ def talk(message, prefix=None, verbosity=1):
         verbosity (int): verbosity level (0, 1, 2)
     """
     # see if we are in a CLI context
-    verbose = 1
     try:
         ctx = click.get_current_context()
         verbose = ctx.obj.verbose
