@@ -77,34 +77,40 @@ def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
     float:
         The expected memory of the calculation, scaling based on empirical tests
     """
-    settings = Settings()
-    calc.parameters["dry_run"] = True
-    calc.parameters.pop("use_local_index", None)
-    calc.parameters.pop("load_balancing", None)
-    calc.command = settings.machine.aims_command
-    bs_base = settings.machine.basissetloc
-    calc.parameters["species_dir"] = (
-        bs_base + "/" + calc.parameters["species_dir"].split("/")[-1]
-    )
-    calc.parameters["compute_forces"] = False
-    update_k_grid(new_supercell, calc, k_pt_density, even=True)
-    new_supercell.set_calculator(calc)
-    mem_expect_dir = workdir + "/.memory_expectation"
-    with cwd(mem_expect_dir, mkdir=True):
-        try:
-            new_supercell.calc.calculate()
-        except RuntimeError:
-            calc.parameters["dry_run"] = False
-        lines = open("aims.out").readlines()
-    rmtree(mem_expect_dir)
-    for line in lines:
-        if "Size of matrix packed + index [n_hamiltonian_matrix_size]" in line:
-            nham = int(line.split(":")[1])
-            break
-    try:
-        return 10.0e-6 * float(nham) + 5.0
-    except NameError:
-        return 1.0
+    # settings = Settings()
+    # calc.parameters["dry_run"] = True
+    # calc.parameters.pop("use_local_index", None)
+    # calc.parameters.pop("load_balancing", None)
+    # calc.command = settings.machine.aims_command
+    # bs_base = settings.machine.basissetloc
+    # calc.parameters["species_dir"] = (
+    #     bs_base + "/" + calc.parameters["species_dir"].split("/")[-1]
+    # )
+    # calc.parameters["compute_forces"] = False
+    # update_k_grid(new_supercell, calc, k_pt_density, even=True)
+    # new_supercell.set_calculator(calc)
+    # mem_expect_dir = workdir + "/.memory_expectation"
+    # with cwd(mem_expect_dir, mkdir=True):
+    #     try:
+    #         new_supercell.calc.calculate()
+    #     except RuntimeError:
+    #         calc.parameters["dry_run"] = False
+    #     lines = open("aims.out").readlines()
+    # rmtree(mem_expect_dir)
+    # for line in lines:
+    #     if  "Max. angular integration grid size" in line:
+    #         max_ang_int_grid = int(line.split(":")[1])
+    #         continue
+    #     if "Number of basis functions in a single unit cell" in line:
+    #         max_ang_int_grid = int(line.split(":")[1])
+    #         continue
+    #     if "Number of centers in hartree multipole" in line
+    # 275 + 10.3*max_ang_int_grid - 0.862*n_basis_uc + 0.0276*n_cent_harree_mp + 1.07e-5*max_n_basis_types2
+
+    # try:
+    #     return 10.0e-6 * float(nham) + 5.0
+    # except NameError:
+    return 1.0
 
 
 def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):

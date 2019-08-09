@@ -232,7 +232,7 @@ def get_phonon_setup_data(settings, qadapter=None, prev_dos_fp=None):
     if qadapter is not None:
         num_nodes = qadapter.get("nodes", num_nodes)
         walltime = qadapter.get("walltime", walltime)
-    walltime = str2time(walltime) / 60
+    walltime = int(np.ceil(float(str2time(walltime)) / float(60)))
 
     ph_data = {
         "ph_primitive": atoms2dict(atoms),

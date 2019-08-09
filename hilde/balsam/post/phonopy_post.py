@@ -14,7 +14,7 @@ import numpy as np
 
 from hilde.aims.context import AimsContext
 from hilde.aims.setup import setup_aims
-from hilde.balsam.data_encoder import decode
+from hilde.balsam.data_encoder import decode, encode
 from hilde.balsam.post.aims_calc_process import postprocess_aims
 from hilde.balsam.post.phonopy_postprocess_functions import (
     collect_calcs_to_trajectory,
@@ -80,14 +80,11 @@ with cwd(base_dir):
         data["ph_data"].get("prev_dos_fp", None),
         sc_matrix_original=data["ph_data"].get("sc_matrix_original", None),
     )
-    for key, val in update_job.items():
-        print(f"{key}: {val}")
     update_job["ph_calculator"]["calculator_parameters"].pop("k_grid", None)
     update_job["ph_calculator"]["calculator_parameters"].pop("use_pimd_wrapper", None)
 
     update_data = {
         "calculator": update_job["ph_calculator"],
-        "k_pt_density": update_job["k_pt_density"],
     }
 
     if conv or not ctx.settings.phonopy.converge_phonons:
@@ -97,24 +94,30 @@ with cwd(base_dir):
             n = int(round(sc_matrix_max / sc_matrix_orig_max))
             n -= 1
             sc_mat = n * np.array(data["ph_data"]["sc_matrix_original"]).reshape((3, 3))
+            walltime = dag.parents[0].wall_time_minutes
         else:
             sc_mat = ctx.settings.phonopy.supercell_matrix
+            walltime = dag.current_job.wall_time_minutes
 
         if ctx.settings.phonopy.get_gruniesen:
             with cwd(base_dir):
-                setup_gruneisen(0.99, sc_mat)
-                setup_gruneisen(1.01, sc_mat)
+                setup_gruneisen(0.99, sc_mat, walltime)
+                setup_gruneisen(1.01, sc_mat, walltime)
 
         if "statistical_sampling" in ctx.settings:
             with cwd(base_dir):
-                setup_statistical_sampling(sc_mat, phonon)
+                setup_statistical_sampling(sc_mat, phonon, walltime)
         exit(0)
 
-update_job["expected_walltime"] /= data["ph_data"]["number_of_sc"]
+# print("\n\n\n\n\n")
+# print("expected_walltime")
+# print(update_job["expected_walltime"])
+# update_job["expected_walltime"] /= data["ph_data"]["number_of_sc"]
+# print(update_job["expected_walltime"])
 
 ctx.settings.atoms = dict2atoms(data["primitive"])
 ctx.settings.control.update(update_data["calculator"]["calculator_parameters"])
-ctx.settings["control_kpt"] = AttributeDict(dict(density=update_data["k_pt_density"]))
+ctx.settings.control.pop("k_grid", None)
 ctx.ref_atoms = dict2atoms(data["primitive"])
 
 qadapter = dict(walltime=time2str(update_job["expected_walltime"]))
@@ -127,5 +130,9 @@ jobs = generate_phonopy_jobs(ctx.settings, data)
 
 for job in jobs:
     dag.add_dependency(dag.current_job, job)
-    job.wall_time_minutes = float(dag.current_job.num_nodes) / float(job.num_nodes)
+    ex_wt = job.wall_time_minutes * float(dag.current_job.num_nodes) / float(job.num_nodes)
+    job.wall_time_minutes = int(np.ceil(ex_wt))
+    job_data = decode(job.data)
+    job_data["primitive"] = data["primitive"]
+    job.data = encode(job_data)
     job.save()
