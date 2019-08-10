@@ -99,6 +99,7 @@ def temperature(series):
     pprint("Temperature:", T_sum(series))
     for ii, T in enumerate(thirds):
         pprint(f"Temperature ({ii+1}st 1/3):", T_sum(T))
+    pprint(f"Temperature (last 1/2):  ", T_sum(series.iloc[len(series) // 2 :]))
 
 
 def energy(series):
