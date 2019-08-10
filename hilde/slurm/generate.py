@@ -15,7 +15,7 @@ args = (
 
 def _verify_dct(dct):
     for key in args:
-        assert key in dct
+        assert key in dct, f"key `{key}` missing"
 
 
 def generate_jobscript(dct, file=None):
