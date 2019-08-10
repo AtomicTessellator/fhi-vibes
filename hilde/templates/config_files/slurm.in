@@ -2,7 +2,8 @@
 name:         test
 mail_type:    all
 mail_address: ${common:email}
-nodes:      1
-cores:      32
+nodes:        1
+cores:        32
 queue:        express
 timeout:      30
+pre_command:  source_hilde

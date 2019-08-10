@@ -19,6 +19,7 @@ template = r"""#!/bin/bash -l
 
 {{ pre_command }}
 {{ command }}
+
 """
 
 
