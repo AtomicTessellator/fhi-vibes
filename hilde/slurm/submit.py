@@ -23,7 +23,7 @@ def submit(
     if submit_output == "":
         submit_output = "empty (e.g. local computation)"
 
-    talk(submit_output.stdout)
+    print(submit_output.stdout)
 
     try:
         timestr = time.strftime("%Y/%m/%d_%H:%M:%S")
