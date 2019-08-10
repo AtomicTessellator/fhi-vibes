@@ -69,6 +69,15 @@ def configuration_input(obj, filename):
     write_input(obj, "hilderc.template", filename, from_folder=config_files)
 
 
+@template.command("slurm")
+@click.argument("filename", default="slurm.in")
+@click.pass_obj
+def slurm_input(obj, filename):
+    """provide template slurm settings"""
+
+    write_input(obj, "slurm.in", filename, from_folder=config_files)
+
+
 def write_input(obj, name, filename, from_folder=settings):
     """write the input function"""
 
