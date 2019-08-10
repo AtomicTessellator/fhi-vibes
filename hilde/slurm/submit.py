@@ -1,6 +1,7 @@
 import time
 import subprocess as sp
 
+from hilde.helpers import talk
 from .generate import generate_jobscript
 
 
@@ -21,6 +22,9 @@ def submit(
 
     if submit_output == "":
         submit_output = "empty (e.g. local computation)"
+
+    talk(submit_output.stdout)
+
     try:
         timestr = time.strftime("%Y/%m/%d_%H:%M:%S")
         with open(log, "a") as f:

@@ -11,8 +11,8 @@ template = r"""#!/bin/bash -l
 #SBATCH -D ./
 #SBATCH --mail-type={{ mail_type }}
 #SBATCH --mail-user={{ mail_address }}
-#SBATCH --nodes={{ n_nodes }}
-#SBATCH --ntasks-per-node={{ n_cores }}
+#SBATCH --nodes={{ nodes }}
+#SBATCH --ntasks-per-node={{ cores }}
 #SBATCH --ntasks-per-core=1
 #SBATCH -t {{ h }}:{{ min }}:00
 #SBATCH --partition={{ queue }}
