@@ -22,3 +22,11 @@
 #  name =             test.db
 #  db_path =          ${location}/${name}
 
+[slurm]
+name:         test
+mail_type:    all
+mail_address: ${common:email}
+n_nodes:      1
+n_cores:      32
+queue:        express
+timeout:      30
