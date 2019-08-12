@@ -360,7 +360,7 @@ class TaskSettings(Settings):
             mandatory_obj_keys = []
 
         # read the bare settings
-        super().__init__(settings_file=settings.settings_file, read_config=read_config)
+        super().__init__(dct=settings)
 
         self._atoms = None
         self._workdir = None
