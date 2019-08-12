@@ -33,6 +33,7 @@ def atoms_calculate_task(
     calc_dict,
     *args,
     fw_settings=None,
+    walltime=None,
 ):
     """A wrapper function that converts a general function that performs some operation on ASE Atoms/Calculators into a FireWorks style operation
 
@@ -65,6 +66,10 @@ def atoms_calculate_task(
     RuntimeError
         If the Task fails
     """
+    if walltime:
+        func_kwargs["walltime"] = walltime
+        func_fw_out_kwargs["walltime"] = walltime
+
     start_dir = os.getcwd()
     if fw_settings is None:
         fw_settings = {}
@@ -86,6 +91,7 @@ def atoms_calculate_task(
     if "results" in atoms_dict:
         del atoms_dict["results"]
     atoms = dict2atoms(atoms_dict)
+
     try:
         func_timer = Timer()
         if args:

@@ -44,10 +44,17 @@ cli.add_command(output.output)
 cli.add_command(aigk.aiGK)
 
 try:
-    from hilde.fireworks.cli import fireworks
+    import hilde.fireworks.cli
 
-    cli.add_command(fireworks.fireworks)
+    cli.add_command(hilde.fireworks.cli.fireworks)
 except ImportError:
+    pass
+
+try:
+    import hilde.balsam.cli
+
+    cli.add_command(hilde.balsam.cli.balsam)
+except:
     pass
 
 

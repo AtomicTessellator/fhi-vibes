@@ -89,7 +89,7 @@ def do_launch(args):
             strm_lvl=args.loglvl,
             timeout=args.timeout,
             fill_mode=args.fill_mode,
-            fw_ids=args.firework_ids,
+            firework_ids=args.firework_ids,
             wflow_id=args.wflow,
         )
     else:

@@ -5,6 +5,24 @@ from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.settings import TaskSettings, Settings
 from hilde.tasks.calculate import calculate_socket, calculate
 
+TIME_SUMMARY_LINE = "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
+E_F_INCONSISTENCY = "  ** Inconsistency of forces<->energy above specified tolerance.\n"
+
+
+def check_if_failure_ok(lines, walltime):
+    """Checks if the FHI-aims calculation finished"""
+    line_sum = np.where(lines == TIME_SUMMARY_LINE)[0]
+    time_used = float(lines[line_sum[0] + 1].split(":")[1].split("s")[1])
+    sum_present = line_sum.size > 0
+
+    if sum_present and time_used / walltime > 0.95:
+        return True
+
+    if E_F_INCONSISTENCY in lines:
+        return True
+
+    return False
+
 
 def wrap_calc_socket(
     atoms_dict_to_calculate,
@@ -82,21 +100,14 @@ def wrap_calc_socket(
         )
     except RuntimeError:
         if calc_dict["calculator"].lower() == "aims":
-            lines = np.array(open(workdir + "/aims.out").readlines())
-            line_sum = np.where(
-                lines
-                == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
-            )[0]
-            sum_present = len(line_sum) > 0
-            if (
-                not sum_present
-                or float(lines[line_sum[0] + 1].split(":")[1].split("s")[1]) / walltime
-                < 0.95
-            ):
+            lines = np.array(open(workdir + "calculations/aims.out").readlines())
+            failure_okay = check_if_failure_ok(lines, walltime)
+            if not failure_okay:
                 raise RuntimeError(
                     "FHI-aims failed to converge, and it is not a walltime issue"
                 )
             return True
+
         raise RuntimeError("The calculation failed")
 
 
@@ -130,22 +141,11 @@ def wrap_calculate(atoms, calc, workdir=".", walltime=1800):
     except RuntimeError:
         if calc.name.lower() == "aims":
             lines = np.array(open(workdir + "/aims.out").readlines())
-            line_sum = np.where(
-                lines
-                == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
-            )[0]
-            sum_present = len(line_sum) > 0
-            if (
-                sum_present
-                and float(lines[line_sum[0] + 1].split(":")[1].split("s")[1]) / walltime
-                > 0.95
-            ):
+            failure_okay = check_if_failure_ok(lines, walltime)
+
+            if failure_okay:
                 return atoms
-            if (
-                "  ** Inconsistency of forces<->energy above specified tolerance.\n"
-                in lines
-            ):
-                return atoms
+
             raise RuntimeError(
                 "FHI-aims failed to converge, and it is not a walltime issue"
             )

@@ -33,9 +33,10 @@ from fireworks.utilities.fw_utilities import (
     create_datestamp_dir,
 )
 
-from hilde.fireworks.combined_launcher import get_ordred_fw_ids
+from hilde.fireworks.combined_launcher import get_ordred_firework_ids
 from hilde.fireworks._defaults import FW_DEFAULTS
-from hilde.fireworks.workflows.firework_generator import get_time
+
+from hilde.helpers.watchdogs import str2time
 
 __author__ = "Anubhav Jain, Michael Kocher, Modified by Thomas Purcell"
 __copyright__ = "Copyright 2012, The Materials Project, Modified 2.11.2018"
@@ -147,6 +148,9 @@ def launch_rocket_to_queue(
                 qadapter.update({"job_name": job_name})
                 if "_queueadapter" in fw.spec:
                     l_logger.debug("updating queue params using Firework spec..")
+                    ntasks = fw.spec["_queueadapter"].pop("ntasks", 1)
+                    nodes = int(np.ceil(ntasks / qadapter["ntasks_per_node"]))
+
                     if "queues" in qadapter:
                         nodes_needed = []
                         if "expected_mem" in fw.spec["_queueadapter"]:
@@ -154,105 +158,73 @@ def launch_rocket_to_queue(
                         else:
                             expect_mem = 1e-10
                         for queue in qadapter["queues"]:
-                            if "max_mem_per_rank" in queue:
-                                accessible_mem = queue["max_mem_per_rank"]
+                            if "max_mem" in queue:
+                                accessible_mem = queue["max_mem"]
+                                print(accessible_mem, expect_mem)
                                 if expect_mem > accessible_mem:
                                     nodes_needed.append(
                                         int(np.ceil(expect_mem / accessible_mem))
                                     )
                                 else:
-                                    nodes_needed.append(1)
+                                    nodes_needed.append(nodes)
                             else:
-                                nodes_needed.append(0)
+                                nodes_needed.append(nodes)
                         if "queue" in fw.spec["_queueadapter"]:
-                            qu_ind = -1
-                            for ii, queue in enumerate(qadapter["queues"]):
-                                if queue["name"] == fw.spec["_queueadapter"]["queue"]:
-                                    qu_ind = ii
-                            if qu_ind < 0:
+                            queue_ind = -1
+                            for ii, qu in enumerate(qadapter["queues"]):
+                                if qu["name"] == fw.spec["_queueadapter"]["queue"]:
+                                    queue = qu
+                                    queue_ind = ii
+                            if queue_ind < 0:
                                 raise ValueError(
                                     "Queue Name not found for that resources"
                                 )
-                            if (
-                                qadapter["queues"][qu_ind]["max_nodes"]
-                                < nodes_needed[qu_ind]
-                            ):
+                            if queue["max_nodes"] < nodes_needed[queue_ind]:
                                 raise IOError(
                                     "Requested resource does not have enough memory to complete the job"
                                 )
                             if "walltime" not in fw.spec["_queueadapter"]:
-                                fw.spec["_queueadapter"]["walltime"] = qadapter[
-                                    "queues"
-                                ][qu_ind]["max_walltime"]
-                        elif "walltime" in fw.spec["_queueadapter"]:
-                            nodes = 1
-                            if "nodes" in fw.spec["_queueadapter"]:
-                                nodes = fw.spec["_queueadapter"]["nodes"]
-                            sc_wt = nodes * get_time(
-                                fw.spec["_queueadapter"]["walltime"]
-                            )
-                            min_acceptable_qu_ind = -1
-                            min_acceptable_qu_wt = 1.0e15
-                            min_acceptable_qu = None
-                            for ii, queue in enumerate(qadapter["queues"]):
-                                if nodes_needed[ii] > queue["max_nodes"]:
-                                    continue
-                                if (
-                                    min_acceptable_qu_wt
-                                    > get_time(queue["max_walltime"])
-                                    * queue["max_nodes"]
-                                    > sc_wt
-                                ):
-                                    min_acceptable_qu_wt = (
-                                        get_time(queue["max_walltime"])
-                                        * queue["max_nodes"]
-                                    )
-                                    min_acceptable_qu = queue["name"]
-                                    min_acceptable_qu_ind = ii
-                            if min_acceptable_qu is None:
-                                raise ValueError("Job can't run on requested resource")
-                            fw.spec["_queueadapter"]["queue"] = min_acceptable_qu
-                            if sc_wt < get_time(
-                                qadapter["queues"][min_acceptable_qu_ind][
+                                fw.spec["_queueadapter"]["walltime"] = queue[
                                     "max_walltime"
                                 ]
-                            ):
-                                fw.spec["_queueadapter"]["nodes"] = 1
+                        elif "walltime" in fw.spec["_queueadapter"]:
+                            sc_wt = str2time(fw.spec["_queueadapter"]["walltime"])
+                            queue_wt = 1.0e15
+                            queue = None
+                            queue_ind = -1
+                            for ii, qu in enumerate(qadapter["queues"]):
+                                if nodes_needed[ii] > qu["max_nodes"]:
+                                    continue
+                                max_comp_time = (
+                                    str2time(qu["max_walltime"]) * qu["max_nodes"]
+                                )
+                                if queue_wt > max_comp_time > sc_wt:
+                                    queue_wt = max_comp_time
+                                    queue = qu
+                                    queue_ind = ii
+                            if queue is None:
+                                raise ValueError("Job can't run on requested resource")
+                            fw.spec["_queueadapter"]["queue"] = queue["name"]
+                            if nodes * sc_wt < str2time(queue["max_walltime"]):
+                                fw.spec["_queueadapter"]["nodes"] = nodes
                             else:
                                 fw.spec["_queueadapter"]["nodes"] = int(
-                                    np.ceil(
-                                        sc_wt
-                                        / get_time(
-                                            qadapter["queues"][min_acceptable_qu_ind][
-                                                "max_walltime"
-                                            ]
-                                        )
-                                    )
+                                    np.ceil(sc_wt / str2time(queue["max_walltime"]))
                                 )
-                                fw.spec["_queueadapter"]["walltime"] = qadapter[
-                                    "queues"
-                                ][min_acceptable_qu_ind]["max_walltime"]
-                            if (
-                                nodes_needed[min_acceptable_qu_ind]
-                                > fw.spec["_queueadapter"]["nodes"]
-                            ):
-                                fw.spec["_queueadapter"]["nodes"] = nodes_needed[
-                                    min_acceptable_qu_ind
+                                fw.spec["_queueadapter"]["walltime"] = queue[
+                                    "max_walltime"
                                 ]
-                        del qadapter["queues"]
+                    if nodes_needed[queue_ind] > fw.spec["_queueadapter"]["nodes"]:
+                        fw.spec["_queueadapter"]["nodes"] = nodes_needed[queue_ind]
+                    del qadapter["queues"]
                     qadapter.update(fw.spec["_queueadapter"])
                 if "walltime" in qadapter:
                     for tt, task in enumerate(fw.spec["_tasks"]):
-                        if "kwargs" in task and "walltime" in task["kwargs"]:
+                        if ("kwargs" in task and "walltime" in task["kwargs"]) or (
+                            "calculate_wrapper" in task["args"][0]
+                        ):
                             fw.spec["_tasks"][tt]["kwargs"]["walltime"] = (
-                                get_time(qadapter["walltime"]) - 180.0
-                            )
-                        elif "calculate" in task["func"]:
-                            fw.spec["_tasks"][tt]["args"][2]["walltime"] = (
-                                get_time(qadapter["walltime"]) - 180.0
-                            )
-                            fw.spec["_tasks"][tt]["args"][3]["walltime"] = (
-                                get_time(qadapter["walltime"]) - 180.0
+                                str2time(qadapter["walltime"]) - 180.0
                             )
 
                 launchpad.update_spec([fw.fw_id], fw.spec)
@@ -347,7 +319,7 @@ def rapidfire(
     strm_lvl="CRITICAL",
     timeout=None,
     fill_mode=False,
-    fw_ids=None,
+    firework_ids=None,
     wflow_id=None,
 ):
     """ Submit many jobs to the queue.
@@ -378,19 +350,19 @@ def rapidfire(
         # of seconds after which to stop the rapidfire process
     fill_mode: bool
         whether to submit jobs even when there is nothing to run (only in non-reservation mode)
-    fw_ids: list of ints
-        a list fw_ids to launch (len(fw_ids) == nlaunches)
+    firework_ids: list of ints
+        a list firework_ids to launch (len(firework_ids) == nlaunches)
     wflow_id: list of ints
-        a list fw_ids that are a root of the workflow
+        a list firework_ids that are a root of the workflow
 
     Raises
     ------
     ValueError
         If the luanch directory does not exist
     """
-    if fw_ids and len(fw_ids) != nlaunches:
-        print("WARNING: Setting nlaunches to the length of fw_ids.")
-        nlaunches = len(fw_ids)
+    if firework_ids and len(firework_ids) != nlaunches:
+        print("WARNING: Setting nlaunches to the length of firework_ids.")
+        nlaunches = len(firework_ids)
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     launch_dir = os.path.abspath(launch_dir)
     nlaunches = -1 if nlaunches == "infinite" else int(nlaunches)
@@ -426,9 +398,9 @@ def rapidfire(
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
-                fw_ids = get_ordred_fw_ids(wflow)
+                firework_ids = get_ordred_firework_ids(wflow)
 
-            while launchpad.run_exists(fworker, ids=fw_ids) or (
+            while launchpad.run_exists(fworker, ids=firework_ids) or (
                 fill_mode and not reserve
             ):
                 if timeout and (datetime.now() - start_time).total_seconds() >= timeout:
@@ -450,7 +422,7 @@ def rapidfire(
                     block_dir = create_datestamp_dir(launch_dir, l_logger)
                 return_code = None
                 # launch a single job
-                if fw_ids or wflow_id:
+                if firework_ids or wflow_id:
                     return_code = launch_rocket_to_queue(
                         launchpad,
                         fworker,
@@ -460,7 +432,7 @@ def rapidfire(
                         strm_lvl,
                         True,
                         fill_mode,
-                        fw_ids[num_launched],
+                        firework_ids[num_launched],
                     )
                 else:
                     return_code = launch_rocket_to_queue(
@@ -482,7 +454,7 @@ def rapidfire(
                 if wflow_id:
                     wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                     nlaunches = len(wflow.fws)
-                    fw_ids = get_ordred_fw_ids(wflow)
+                    firework_ids = get_ordred_firework_ids(wflow)
                 num_launched += 1
                 if nlaunches > 0 and num_launched == nlaunches:
                     l_logger.info(
@@ -509,7 +481,7 @@ def rapidfire(
                 )
                 or (
                     nlaunches == 0
-                    and not launchpad.future_run_exists(fworker, ids=fw_ids)
+                    and not launchpad.future_run_exists(fworker, ids=firework_ids)
                 )
             ):
                 break

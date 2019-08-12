@@ -104,14 +104,14 @@ class TaskSpec:
     @property
     def pt_kwargs(self):
         """get the PyTask kwargs for the task """
-        if not self._fw_settings:
-            self._fw_settings = {}
+        if not self.fw_settings:
+            self.fw_settings = {}
 
         if self.task_with_atoms_obj:
-            return {"fw_settings": self._fw_settings}
+            return {"fw_settings": self.fw_settings}
 
         to_ret = dict(self.func_kwargs, **self.func_fw_out_kwargs)
-        to_ret["fw_settings"] = self._fw_settings
+        to_ret["fw_settings"] = self.fw_settings
 
         return to_ret
 

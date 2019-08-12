@@ -1,39 +1,32 @@
 """General purpose FWAction Generators"""
 from fireworks import FWAction
-from hilde.phonon_db.ase_converters import atoms2dict
 
 
-def mod_spec_add(
-    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
-):
-    """A function that appends the current results to a specified spec in the MongoDB
-
+def add_additions_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
+    """Adds a set of returned Fireworks to the Workflow
     Parameters
     ----------
-    atoms: ase.atoms.Atoms
-        The original atoms at the start of this job
-    calc: ase.calculators.calulator.Calculator
-        The original calculator
-    outputs: ase.atoms.Atoms
-        The atoms with attached calculator to be added to the spec
     func: str
         Path to function that performs the MD like operation
     func_fw_out: str
         Path to this function
-    func_kwargs: dict
-        keyword arguments for func
-    func_fw_kwargs: dict
-        Keyword arguments for fw_out function
+    args: list
+        List of arguments to pass to func
     fw_settings: dict
         FireWorks specific settings
+    kwargs: dict
+        keyword arguments for func
 
     Returns
     -------
-    FWAction
-        Action to added the calculated atoms to the spec
+    FWAction:
+        A FWAction to add the outputted FireWorks/Workflows as additions
     """
-    atoms_dict = atoms2dict(outputs)
-    return FWAction(mod_spec=[{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}])
+    additions = []
+    for out in kwargs["outputs"]:
+        additions.append(out)
+
+    return FWAction(additions=additions)
 
 
 def fireworks_no_mods(

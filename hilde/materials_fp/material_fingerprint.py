@@ -448,7 +448,7 @@ def to_dict(fp, to_mongo=False):
     Parameters
     ----------
     fp: namedtuple(fp_tup)
-        The fingerprint to be onverted into a dictionary
+        The fingerprint to be converted into a dictionary
     to_mongo: bool
         True if the database that this will be stored in is a mongo db
 
@@ -488,6 +488,8 @@ def dict2namedtuple(fp):
     namedtuple(fp_tup)
         The namedtuple representation of the fingerprint
     """
+    if fp is None:
+        return None
     freqs = [fp[pt][:, 0] for pt in fp]
     n_state = [fp[pt][:, 1] for pt in fp]
     sp_pts = [pt for pt in fp]

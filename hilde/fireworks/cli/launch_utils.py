@@ -193,7 +193,7 @@ def do_launch(ctx):
             strm_lvl=ctx.obj.loglvl,
             timeout=ctx.obj.timeout,
             fill_mode=ctx.obj.fill_mode,
-            fw_ids=ctx.obj.firework_ids,
+            firework_ids=ctx.obj.firework_ids,
             wflow_id=ctx.obj.wflow,
         )
     else:

@@ -15,7 +15,7 @@ from fireworks.utilities.fw_utilities import (
     redirect_local,
 )
 
-from .combined_launcher import get_ordred_fw_ids
+from .combined_launcher import get_ordred_firework_ids
 
 __author__ = "Anubhav Jain, Modified by Thomas Purcell Nov 2, 2018"
 __copyright__ = "Copyright 2013, The Materials Project"
@@ -94,8 +94,10 @@ def rapidfire(
         if wflow_id:
             wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
             nlaunches = len(wflow.fws)
-            firework_ids = get_ordred_fw_ids(wflow)
-        while (skip_check or launchpad.run_exists(fworker, ids=firework_ids)) and time_ok():
+            firework_ids = get_ordred_firework_ids(wflow)
+        while (
+            skip_check or launchpad.run_exists(fworker, ids=firework_ids)
+        ) and time_ok():
             os.chdir(curdir)
             launcher_dir = create_datestamp_dir(curdir, l_logger, prefix="launcher_")
             os.chdir(launcher_dir)
@@ -135,7 +137,7 @@ def rapidfire(
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
-                firework_ids = get_ordred_fw_ids(wflow)
+                firework_ids = get_ordred_firework_ids(wflow)
             if rocket_ran:
                 num_launched += 1
             elif not os.listdir(launcher_dir):

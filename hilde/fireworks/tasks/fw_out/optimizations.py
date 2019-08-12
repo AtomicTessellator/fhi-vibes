@@ -1,11 +1,13 @@
 """FWAction generators for optimizations"""
-from pathlib import Path
 
 from fireworks import FWAction
 
+from hilde.fireworks.tasks.postprocess.optimizations import (
+    load_last_step,
+    move_trajectory_file,
+)
 from hilde.fireworks.workflows.firework_generator import generate_firework
 from hilde.phonon_db.ase_converters import calc2dict
-from hilde.helpers.fileformats import last_from_yaml
 
 
 def check_kgrid_opt_completion(
@@ -37,13 +39,10 @@ def check_kgrid_opt_completion(
     FWAction
         Either another k-grid optimization step, or an updated spec
     """
-    trajectory = Path(func_kwargs["workdir"]) / func_kwargs["trajectory"]
-    last_step_dict = last_from_yaml(trajectory)
-    for key, val in last_step_dict["atoms"].items():
-        atoms[key] = val
-    calc["results"] = last_step_dict["calculator"]
-    for key, val in calc.items():
-        atoms[key] = val
+    trajectory, atoms, calc = load_last_step(
+        atoms, calc, func_kwargs["workdir"], func_kwargs["trajectory"]
+    )
+
     if outputs[0]:
         up_spec = {
             fw_settings["out_spec_k_den"]: outputs[1],
@@ -55,15 +54,8 @@ def check_kgrid_opt_completion(
     fw_settings["fw_name"] = fw_settings["fw_base_name"]
     if fw_settings["to_launchpad"]:
         fw_settings["to_launchpad"] = False
-    new_traj_list = trajectory.split(".")
-    try:
-        temp_list = new_traj_list[-2].split("_")
-        temp_list[-1] = str(int(temp_list[-1]) + 1)
-        new_traj_list[-2] = "_".join(temp_list)
-        trajectory = ".".join(new_traj_list)
-    except ValueError:
-        new_traj_list[-2] += "_restart_1"
-        trajectory = ".".join(new_traj_list)
+
+    move_trajectory_file(trajectory)
 
     fw = generate_firework(
         func=func,

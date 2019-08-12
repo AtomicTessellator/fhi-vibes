@@ -1,14 +1,19 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
+from hilde.aims.setup import setup_aims
+from hilde.aims.context import AimsContext
 from hilde.helpers.converters import input2dict
+from hilde.fireworks.tasks.general_py_task import get_func
+from hilde.fireworks.workflows.workflow_generator import generate_workflow
 from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.context import PhonopyContext
+from hilde.phonopy.postprocess import postprocess
 from hilde.phonopy.workflow import bootstrap
 from hilde.settings import AttributeDict, Settings, TaskSettings
-from hilde.fireworks.tasks.general_py_task import get_func
-from hilde.trajectory import step2file, metadata2file
+from hilde.trajectory import step2file, metadata2file, reader
+from hilde.structure.convert import to_Atoms
 
 
 def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
@@ -44,8 +49,9 @@ def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
             settings["socketio"] = AttributeDict(
                 {"port": settings.pop("use_pimd_wrapper")}
             )
-        if "aims_command" in settings.control:
-            del settings.control["aims_command"]
+        settings.control.pop("aims_command", None)
+        if "control_kpt" in settings:
+            settings.control.pop("kgrid", None)
     return settings, kwargs_boot
 
 
@@ -82,13 +88,15 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
 
     ctx = PhonopyContext(settings=settings)
     ctx.settings.atoms = atoms.copy()
-    ctx.settings.atoms.set_calculator(calc)
-    if "control_kpt" in ctx.settings:
-        del(ctx.settings["control_kpt"])
+    if calc is not None and calc.name.lower() != "aims":
+        ctx.settings.atoms.set_calculator(calc)
+    else:
+        ctx.settings.atoms.set_calculator(None)
+
     # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
     outputs = bootstrap(ctx)
 
-    outputs["metadata"]["supercell"] = {"atoms": outputs["metadata"]["atoms"], "calculator": {}}
+    outputs["metadata"]["supercell"] = {"atoms": outputs["metadata"]["atoms"]}
     outputs["metadata"]["primitive"] = input2dict(atoms)
     outputs["prefix"] = prefix
     outputs["settings"] = ph_settings.copy()
@@ -122,6 +130,7 @@ def bootstrap_phonon(
     """
     settings = TaskSettings(name=None, settings=Settings(settings_file=None))
     settings.atoms = atoms
+
     if kpt_density:
         settings["control_kpt"] = AttributeDict({"density": kpt_density})
 
@@ -133,65 +142,11 @@ def bootstrap_phonon(
 
     if ph3_settings:
         outputs.append(setup_phonon_outputs(ph3_settings, settings, "ph3", at, calc))
+
+    if kpt_density:
+        for out in outputs:
+            out["kpt_density"] = kpt_density
     return outputs
-
-
-# def bootstrap_stat_sample(
-#     atoms, calc, kpt_density=None, stat_samp_settings=None, fw_settings=None
-# ):
-#     """Initializes the statistical sampling task
-
-#     Parameters
-#     ----------
-#     atoms: ase.atoms.Atoms
-#         Atoms object of the primitive cell
-#     calc: ase.calculators.calulator.Calculator
-#         Calculator for the force calculations
-#     kpt_density: float
-#         k-point density for the MP-Grid
-#     stat_samp_settings: dict
-#         kwargs for statistical sampling setup
-#     fw_settings: dict
-#         FireWork specific settings
-
-#     Returns
-#     -------
-#     outputs: dict
-#         The output of hilde.statistical_sampling.workflow.bootstrap
-
-#     Raises
-#     ------
-#     IOError
-#         If no settings were provided
-#     """
-#     settings = TaskSettings(name=None, settings=Settings(settings_file=None))
-#     settings.atoms = atoms
-#     if kpt_density:
-#         settings["control_kpt"] = AttributeDict({"density": kpt_density})
-
-#     outputs = []
-#     at = atoms.copy()
-#     at.set_calculator(None)
-#     if stat_samp_settings:
-#         settings, kwargs_boot = setup_calc(
-#             settings,
-#             calc,
-#             (
-#                 "use_pimd_wrapper" in stat_samp_settings
-#                 and stat_samp_settings["use_pimd_wrapper"]
-#             ),
-#             dict(),
-#         )
-#         settings["statistical_sampling"] = stat_samp_settings.copy()
-#         stat_samp_out = bootstrap_stat_samp(
-#             name="statistical_sampling", settings=settings, **kwargs_boot
-#         )
-#         stat_samp_out["prefix"] = "stat_samp"
-#         stat_samp_out["settings"] = stat_samp_settings.copy()
-#         outputs.append(stat_samp_out)
-#     else:
-#         raise IOError("Stat sampling requires a settings object")
-#     return outputs
 
 
 def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
@@ -234,7 +189,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
             step2file(atoms, atoms.calc, str(traj))
 
 
-def phonon_postprocess(func_path, phonon_times, max_mem, **kwargs):
+def phonon_postprocess(func_path, phonon_times, kpt_density, **kwargs):
     """Performs phonon postprocessing steps
 
     Parameters
@@ -243,8 +198,6 @@ def phonon_postprocess(func_path, phonon_times, max_mem, **kwargs):
         The path to the postprocessing function
     phonon_times: list of ints
         The time it took to calculate the phonon forces in seconds
-    max_mem: list of floats
-        Maximum memory useage of the calculations
     kwargs: dict
         The keyword arguments for the phonon calculations
 
@@ -255,3 +208,121 @@ def phonon_postprocess(func_path, phonon_times, max_mem, **kwargs):
     """
     func = get_func(func_path)
     return func(**kwargs)
+
+
+def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
+    """Prepare a Gruneisen calculation
+
+    Parameters
+    ----------
+    settings: Settings
+        The settings object for the calculation
+    primitive: ase.atoms.Atoms
+        The primitive cell for the phonon calculation
+    vol_factor: float
+        The volume rescaling factor
+    symmetry_block: list of str
+        The symmetry block for FHI-aims calculations
+
+    Returns
+    -------
+    Workflow:
+        A Fireworks workflow for the gruneisen calculation
+    """
+    settings = settings.copy()
+    dist_primitive = primitive.copy()
+    symmetry_block = symmetry_block.copy()
+
+    dist_primitive.cell *= vol_factor
+    dist_primitive.positions *= vol_factor
+
+    if symmetry_block:
+        if int(symmetry_block[0].split()[-1]) > 0:
+            for ii in range(3):
+                lattice_vector = [str(lv_el) for lv_el in dist_primitive.cell[ii]]
+                symmetry_block[ii + 2] = "symmetry_lv " + ", ".join(lattice_vector)
+        dist_primitive.info["symmetry_block"] = symmetry_block
+
+    dist_settings = Settings()
+    for sec_key, sec_val in settings.items():
+        if isinstance(sec_val, dict):
+            dist_settings[sec_key] = AttributeDict()
+            for key, val in sec_val.items():
+                dist_settings[sec_key][key] = val
+        else:
+            dist_settings[sec_key] = val
+
+    file_original = dist_settings.geometry.pop("file", None)
+    dist_primitive.write(
+        "geometry.in.temp", format="aims", geo_constrain=True, scaled=True
+    )
+    dist_settings.geometry["file"] = "geometry.in.temp"
+    dist_primitive.calc = setup_aims(ctx=AimsContext(settings=dist_settings))
+    Path("geometry.in.temp").unlink()
+    dist_settings.geometry["file"] = file_original
+
+    dist_settings.atoms = dist_primitive
+
+    return generate_workflow(dist_settings, dist_primitive, launchpad_yaml=None)
+
+
+def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter, kpt_density):
+    """Set up the finite difference gruniesen parameter calculations
+
+    Parameters
+    ----------
+    settings: dict
+        The workflow settings
+    symmetry_block: list of str
+        The symmetry block for the structure
+    trajectory: str
+        The trajectory file for the equilibrium phonon calculation
+
+    Returns
+    -------
+    pl_gruneisen: Workflow
+        Workflow to run the positive volume change Gruniesen parameter calcs
+    mn_gruneisen: Workflow
+        Workflow to run the positive volume change Gruniesen parameter calcs
+    """
+    # Prepare settings by reset general work_dir and do not reoptimize k_grid
+    # settings["general"]["workdir_local"] = "/".join(settings["general"]["workdir_local"].split("/")[:-3])
+    # settings["general"]["workdir_cluster"] = "/".join(settings["general"]["workdir_cluster"].split("/")[:-3])
+    settings["general"]["opt_kgrid"] = False
+    settings["phonopy"]["get_gruniesen"] = False
+    settings["phonopy"]["converge_phonons"] = False
+    settings.pop("statistical_sampling", None)
+
+    if _queueadapter:
+        settings["phonopy_qadapter"] = _queueadapter
+
+    # Get equilibrium phonon
+    eq_phonon = postprocess(trajectory)
+    _, metadata = reader(trajectory, get_metadata=True)
+
+    settings["phonopy"]["supercell_matrix"] = eq_phonon.get_supercell_matrix()
+    settings["phonopy"]["symprec"] = metadata["Phonopy"].get("symprec", 1e-5)
+    settings["phonopy"]["displacement"] = metadata["Phonopy"]["displacements"][0][1]
+
+    settings["control"] = dict()
+    for key, val in metadata["calculator"]["calculator_parameters"].items():
+        settings["control"][key] = val
+    settings["control"].pop("kgrid", None)
+    settings["control_kpt"] = {"density": kpt_density}
+
+    if not symmetry_block:
+        settings["general"]["relax_structure"] = True
+        if "relaxation" not in settings:
+            settings["relaxation"] = dict()
+        settings["relaxation"]["relax_unit_cell"] = "none"
+    elif int(symmetry_block[0].split()[-1]) > 0:
+        settings["general"]["relax_structure"] = True
+    else:
+        settings["general"]["relax_structure"] = False
+
+    primitive = to_Atoms(eq_phonon.get_primitive())
+
+    pl_gruneisen = prepare_gruneisen(settings, primitive, 1.01, symmetry_block)
+    mn_gruneisen = prepare_gruneisen(settings, primitive, 0.99, symmetry_block)
+
+    return pl_gruneisen, mn_gruneisen

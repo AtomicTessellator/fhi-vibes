@@ -8,11 +8,10 @@ from phonopy.file_IO import parse_FORCE_CONSTANTS
 from phonopy.structure.atoms import PhonopyAtoms
 
 from hilde.helpers import Timer, progressbar
-from hilde.structure.convert import to_Atoms
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
 from hilde.phonopy._defaults import displacement_id_str
-from hilde.spglib.wrapper import get_symmetry_dataset
+from hilde.structure.convert import to_Atoms
 
 
 def last_calculation_id(trajectory):
@@ -260,6 +259,7 @@ def remap_force_constants(
         The remapped force constants
 
     """
+    from hilde.spglib.wrapper import get_symmetry_dataset
 
     timer = Timer("remap force constants")
 
@@ -279,6 +279,7 @@ def remap_force_constants(
     map2prim = sds.mapping_to_primitive
 
     sc_r = np.zeros((force_constants.shape[0], force_constants.shape[1], 3))
+
     for aa, a1 in enumerate(primitive):
         diff = supercell.positions - a1.position
         p2s = np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0]

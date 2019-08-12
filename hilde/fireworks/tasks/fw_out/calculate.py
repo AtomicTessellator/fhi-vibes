@@ -3,8 +3,7 @@ from pathlib import Path
 
 from fireworks import FWAction
 
-import numpy as np
-
+from hilde.fireworks.tasks.postprocess.calculate import get_calc_times
 from hilde.fireworks.workflows.firework_generator import generate_firework
 from hilde.phonon_db.ase_converters import atoms2dict
 from hilde.trajectory import reader as traj_reader
@@ -45,22 +44,6 @@ def mod_spec_add(
         mod_spec[0]["_push"][fw_settings["time_spec_add"]] = func_fw_kwargs.pop(
             "run_time"
         )
-    if "_queueadapter" in fw_settings and "nodes" in fw_settings["_queueadapter"]:
-        nodes = fw_settings["_queueadapter"]["nodes"]
-    else:
-        nodes = 1
-    aims_out = Path(func_kwargs["workdir"]) / "calculations/aims.out"
-    if aims_out.exists():
-        lines = np.array(open(str(aims_out)).readlines())
-        max_mem_line = (
-            np.where(lines == "          Partial memory accounting:\n")[0][0] + 4
-        )
-        max_mem = (
-            nodes * float(lines[max_mem_line].split(":")[1].split("M")[0]) / 1024.0
-        )
-    else:
-        max_mem = 1e-6
-    mod_spec[0]["_push"]["mem_use"] = max_mem
     return FWAction(mod_spec=mod_spec)
 
 
@@ -85,59 +68,22 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
     FWAction
         Either a new Firework to restart the calculation or an updated spec with the list of atoms
     """
-    if len(args) > 3 and isinstance(args[3], list):
-        times = args[3].copy()
-    else:
-        times = list()
     if "workdir" in kwargs:
-        bakup_dir = Path(kwargs["workdir"]) / "backups"
+        calc_times = get_calc_times(kwargs["workdir"])
     else:
-        bakup_dir = Path("./backups/")
-    calc_dirs = sorted(
-        bakup_dir.glob("backup.?????.*"), key=lambda s: int(str(s).split(".")[1])
-    )
-    calc_times = []
-    max_mem = []
-    if "_queueadapter" in fw_settings and "nodes" in fw_settings["_queueadapter"]:
-        nodes = fw_settings["_queueadapter"]["nods"]
-    else:
-        nodes = 1
-    for direc in calc_dirs:
-        aims_out = direc / "aims.out"
-        if aims_out.exists():
-            lines = np.array(open(str(aims_out)).readlines())
-            max_mem_line = (
-                np.where(lines == "          Partial memory accounting:\n")[0][0] + 4
-            )
-            mem = (
-                nodes * float(lines[max_mem_line].split(":")[1].split("M")[0]) / 1024.0
-            )
-            time_line = (
-                np.where(
-                    lines
-                    == "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
-                )[0][0]
-                + 1
-            )
-            time = float(lines[time_line].split(":")[1].split("s")[0])
-        else:
-            mem = 1e-6
-            time = 0.0
-        calc_times.append(time)
-        max_mem.append(mem)
+        calc_times = get_calc_times()
+
     update_spec = {
         fw_settings["calc_atoms_spec"]: args[0],
         fw_settings["calc_spec"]: args[1],
         fw_settings["metadata_spec"]: args[2],
         fw_settings["time_spec_add"]: calc_times,
-        "mem_use": max_mem,
     }
     inputs = [
         fw_settings["calc_atoms_spec"],
         fw_settings["calc_spec"],
         fw_settings["metadata_spec"],
         fw_settings["time_spec_add"],
-        "mem_use",
     ]
 
     if kwargs["outputs"]:
