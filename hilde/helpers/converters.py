@@ -225,6 +225,9 @@ def results2dict(atoms, calc=None, append_cell=False):
         else:
             calc_dict[key] = val
 
+    if not calc_dict:
+        raise RuntimeError("calc_dict is empty, was the calculation successful?")
+
     return {"atoms": atoms_dict, "calculator": calc_dict}
 
 

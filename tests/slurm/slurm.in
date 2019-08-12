@@ -1,0 +1,10 @@
+[slurm]
+name:         test
+mail_type:    all
+mail_address: knoop@fhi-berlin.mpg.de
+nodes:        1
+cores:        32
+queue:        express
+timeout:      30
+# pre_command:  source_hilde
+command:      hilde info geometry

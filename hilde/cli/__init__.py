@@ -9,7 +9,7 @@ from hilde import __version__ as hilde_version
 from hilde.settings import Configuration
 from hilde._defaults import DEFAULT_CONFIG_FILE
 from .cli_tracker import CliTracker
-from . import info, template, run, utils, output, aigk
+from . import info, template, run, utils, output, aigk, submit
 from .misc import AliasedGroup, check_path
 
 click_completion.init()
@@ -42,6 +42,7 @@ cli.add_command(run.run)
 cli.add_command(utils.utils)
 cli.add_command(output.output)
 cli.add_command(aigk.aiGK)
+cli.add_command(submit.submit)
 
 try:
     import hilde.fireworks.cli
