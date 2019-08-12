@@ -9,12 +9,9 @@ before_script:
   - poetry install
   - cd $CI_PROJECT_DIR/tests
 
-minimal:
+default:
   script:
     - pytest --ignore fireworks
-
-non_pytest:
-  script:
     - cd cli; bash test_cli.sh
     - cd ../phonopy; python run_phonopy.py
     - cd ../harmonic_analysis; python mode_projection.py
