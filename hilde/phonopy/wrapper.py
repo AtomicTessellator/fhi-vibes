@@ -27,6 +27,7 @@ def prepare_phonopy(
     symprec=defaults.symprec,
     trigonal=defaults.is_trigonal,
     is_diagonal=defaults.is_diagonal,
+    is_plusminus=defaults.is_plusminus,
 ):
     """Create a Phonopy object
 
@@ -46,6 +47,8 @@ def prepare_phonopy(
         If True use trigonal displacements
     is_diagonal: bool
         If True use diagonal displacements
+    is_plusminus: bool
+        trigger to compute both + and - the displacement
 
     Returns
     -------
@@ -65,7 +68,7 @@ def prepare_phonopy(
 
     phonon.generate_displacements(
         distance=displacement,
-        is_plusminus="auto",
+        is_plusminus=is_plusminus,
         # is_diagonal=False is chosen to be in line with phono3py, see
         # https://github.com/atztogo/phono3py/pull/15
         is_diagonal=is_diagonal,
@@ -84,6 +87,7 @@ def preprocess(
     displacement=defaults.displacement,
     symprec=defaults.symprec,
     trigonal=defaults.is_trigonal,
+    is_plusminus=defaults.is_plusminus,
     **kwargs,
 ):
     """Generate phonopy objects and return displacements as Atoms objects
@@ -100,6 +104,8 @@ def preprocess(
         tolerance for determining the symmetry/spacegroup of the primitive cell
     trigonal: bool
         If True use trigonal displacements
+    is_plusminus: bool
+        use +/- displacements
 
     Returns
     -------
@@ -118,6 +124,7 @@ def preprocess(
         displacement=displacement,
         symprec=symprec,
         trigonal=trigonal,
+        is_plusminus=is_plusminus,
     )
 
     return get_supercells_with_displacements(phonon)

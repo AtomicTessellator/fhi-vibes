@@ -1,21 +1,15 @@
 """CLI for hilde with click"""
 
 import shutil
-from pathlib import Path
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import pkg_resources
 
 import click
 import click_completion
 
 from hilde import __version__ as hilde_version
 from hilde.settings import Configuration
-from hilde.helpers.utils import bold
 from hilde._defaults import DEFAULT_CONFIG_FILE
 from .cli_tracker import CliTracker
-from . import info, template, run, utils, output
+from . import info, template, run, utils, output, aigk
 from .misc import AliasedGroup, check_path
 
 click_completion.init()
@@ -47,6 +41,7 @@ cli.add_command(template.template)
 cli.add_command(run.run)
 cli.add_command(utils.utils)
 cli.add_command(output.output)
+cli.add_command(aigk.aiGK)
 
 try:
     import hilde.fireworks.cli

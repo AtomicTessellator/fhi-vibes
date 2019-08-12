@@ -15,6 +15,7 @@ defaults = adict(
         "symprec": 1e-5,
         "is_diagonal": False,
         "is_trigonal": False,
+        "is_plusminus": "auto",
         "q_mesh": [45, 45, 45],
     }
 )

@@ -4,8 +4,9 @@ from pathlib import Path
 
 try:
     import importlib.resources as pkg_resources
-except ImportError:
-    import pkg_resources
+except ModuleNotFoundError:
+    import importlib_resources as pkg_resources
+
 
 import click
 from hilde.templates import settings, config_files

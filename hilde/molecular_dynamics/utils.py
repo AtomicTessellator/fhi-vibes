@@ -5,8 +5,9 @@ from pathlib import Path
 
 from ase.calculators.calculator import Calculator
 
-from hilde.harmonic_analysis.displacements import get_dR
-from hilde.trajectory import son, input2dict
+from hilde import son
+from hilde.helpers.displacements import get_dR
+from hilde.helpers.converters import input2dict
 
 
 def get_F(dR, force_constants):
@@ -106,7 +107,6 @@ class MDLogger:
         dct = {
             "atoms": {
                 "info": info,
-                "cell": atoms.cell.array,
                 "positions": atoms.positions,
                 "velocities": atoms.get_velocities(),
             },

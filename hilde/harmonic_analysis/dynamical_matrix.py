@@ -24,23 +24,24 @@ def _prefactor(q, r):
     return np.exp(-2j * np.pi * q @ r)
 
 
-def get_frequencies(dyn_matrix, omega_to_THz=omega_to_THz):
+def get_frequencies(dyn_matrix, masses=None, factor=omega_to_THz):
     """ Diagonalize dynamical_matrix and convert to THz
 
-    Parameters
-    ----------
-    dyn_matrix: np.ndarray
-        The dynamical matrix
-    omega_to_THz: float
-        Unit conversion to THz
+    Args:
+        dyn_matrix: The dynamical matrix
+        masses: used for mass weihting when `dyn_matrix` is the force constants
+        factor: Unit conversion factor (default: to eV/AMU/AA*2 to THz)
 
-    Returns
-    -------
-    np.ndarray:
-        The eigenvalues of the dynamical matrix
+    Returns:
+        np.ndarray: The eigenvalues of the dynamical matrix
     """
+    if masses is not None:
+        rminv = (np.asarray(masses) ** -0.5).repeat(3)
+        assert rminv.size ** 2 == np.asarray(dyn_matrix).size
+        dyn_matrix = np.asarray(dyn_matrix) * rminv[:, None] * rminv[None, :]
+
     evals = np.linalg.eigh(dyn_matrix)[0]
-    return np.sign(evals) * np.sqrt(abs(evals)) * omega_to_THz
+    return np.sign(evals) * np.sqrt(abs(evals)) * factor
 
 
 def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
@@ -64,6 +65,12 @@ def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
     np.ndarray
         They dynamical matrix
     """
+
+    if np.size(q) == 1:
+        q = q * np.ones(3)
+    if isinstance(q, list) and len(q) == 3:
+        q = np.asarray(q)
+
     return get_dynamical_matrices([q], primitive, supercell, force_constants, eps)[0]
 
 

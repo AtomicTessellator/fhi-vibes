@@ -38,11 +38,12 @@ def run_phonopy(**kwargs):
         talk("done.")
 
 
-def bootstrap(ctx):
+def bootstrap(ctx, dry=False):
     """load settings, prepare atoms, calculator, and phonopy
 
     Args:
         ctx (PhonopyContext): The context for the calculation
+        dry (bool): prepare dry run
 
     Returns:
         dict: The necessary information to run the workflow with the following items
@@ -61,7 +62,7 @@ def bootstrap(ctx):
     phonon, supercell, scs = preprocess(atoms=ctx.ref_atoms, **ctx.settings.obj)
 
     # if calculator not given, create an aims context for this calculation
-    if ctx.settings.atoms and  ctx.settings.atoms.calc:
+    if ctx.settings.atoms and ctx.settings.atoms.calc:
         calc = ctx.settings.atoms.calc
     else:
         aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.workdir)
@@ -82,5 +83,6 @@ def bootstrap(ctx):
         "settings": ctx.settings,
         "save_input": True,
         "backup_after_calculation": False,
+        "dry": dry,
         **ctx.settings.obj,
     }

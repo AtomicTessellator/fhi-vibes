@@ -11,7 +11,6 @@ from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
 from hilde.phonopy._defaults import displacement_id_str
 from hilde.spglib.wrapper import get_symmetry_dataset
-from hilde.structure.convert import to_Atoms
 
 
 def last_calculation_id(trajectory):
@@ -259,12 +258,14 @@ def remap_force_constants(
         The remapped force constants
 
     """
-    from hilde.spglib.wrapper import get_symmetry_dataset  # , standardize_cell
 
     timer = Timer("remap force constants")
 
     if new_supercell is None:
         new_supercell = supercell.copy()
+
+    # make sure we wrap the positions in the primitive cell correctly
+    primitive.cell = supercell.cell
 
     primitive.wrap(eps=tol)
     supercell.wrap(eps=tol)
@@ -372,7 +373,7 @@ def parse_phonopy_force_constants(
         Force constants in (3*N_sc, 3*N_sc) shape
     """
 
-    if "poscar" in uc_filename.lower():
+    if "poscar" in str(uc_filename).lower():
         format = "vasp"
 
     uc = read(uc_filename, format=format)

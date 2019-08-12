@@ -15,6 +15,7 @@ workdir:                       auto
 supercell_matrix:              [[-2, 2, 2], [2, -2, 2], [2, 2, -2]]
 displacement:                  0.01
 is_diagonal:                   False
+is_plusminus:                  auto
 q_mesh:                        [26, 26, 26]
 symprec:                       1e-5
 

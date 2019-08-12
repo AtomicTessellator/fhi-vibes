@@ -1,6 +1,7 @@
 """ tools for compression """
 
 import shutil
+from glob import glob
 import tarfile
 from pathlib import Path
 
@@ -8,7 +9,7 @@ from hilde.helpers import talk
 from hilde.helpers.aims import peek_aims_uuid
 
 
-def backup_filename(workdir=".", zip=False):
+def backup_filename(workdir="."):
     """generate a backup file name
 
     Parameters
@@ -25,14 +26,10 @@ def backup_filename(workdir=".", zip=False):
     """
 
     counter = 0
-    if zip:
-        suffix = ".tgz"
-    else:
-        suffix = ""
 
-    file = lambda counter: Path(workdir) / f"backup.{counter:05d}{suffix}"
+    file = lambda counter: Path(workdir) / f"backup.{counter:05d}"
 
-    while file(counter).exists():
+    while glob(f"{file(counter)}*"):
         counter += 1
 
     return file(counter)
@@ -62,15 +59,15 @@ def backup_folder(
         True if source_dir exists and is not empty
     """
 
-    output_filename = backup_filename(target_folder, zip=zip)
+    output_filename = backup_filename(target_folder)
 
     if not Path(source_dir).exists():
-        talk(f"{source_dir} does not exists, nothing to back up.")
+        talk(f"{source_dir} does not exists, nothing to back up.", prefix="backup")
         return False
 
     try:
         Path(source_dir).rmdir()
-        talk(f"{source_dir} is empty, do not backup and remove.")
+        talk(f"{source_dir} is empty, do not backup and remove.", prefix="backup")
         return False
     except OSError:
         pass
@@ -83,17 +80,18 @@ def backup_folder(
         output_filename = f"{output_filename}.{aims_uuid[:8]}"
 
     if zip:
+        output_filename += ".tgz"
         make_tarfile(output_filename, source_dir, additional_files=additional_files)
     else:
         shutil.move(source_dir, output_filename)
 
     message = []
     message += [f"Folder:             {source_dir}"]
-    message += [f"was backed up in:   {output_filename}."]
+    message += [f"was backed up in:   {output_filename}"]
     message += [info_str]
 
     if verbose:
-        talk(message)
+        talk(message, prefix="backup")
 
     return True
 

@@ -32,7 +32,7 @@ def lammps_si_tersoff_calculator(tmp_dir="./lammps"):
 
 def run(
     maxsteps=1001,
-    dt=1,
+    dt=5,
     harmonic=True,
     sample="geometry.in.supercell.300K",
     primitive="geometry.in.primitive",

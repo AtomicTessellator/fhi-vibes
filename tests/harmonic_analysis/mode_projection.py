@@ -13,7 +13,7 @@ from hilde.helpers.lattice_points import (
 )
 from hilde.harmonic_analysis import HarmonicAnalysis
 from hilde.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
-from hilde.harmonic_analysis.displacements import get_U, get_dUdt
+from hilde.helpers.displacements import get_U, get_dUdt
 from hilde.harmonic_analysis.normal_modes import projector, u_s_to_u_I, get_A_qst2
 from hilde.trajectory import reader
 from hilde.tdep.wrapper import (

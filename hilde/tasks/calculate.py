@@ -1,10 +1,12 @@
 """
  Functions to run several related calculations with using trajectories as cache
 """
+import sys
 from pathlib import Path
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 from hilde.helpers import talk
+from hilde.helpers.utils import Spinner
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
 from hilde.helpers.watchdogs import SlurmWatchdog as Watchdog
@@ -83,6 +85,7 @@ def calculate_socket(
     backup_folder="backups",
     backup_after_calculation=True,
     check_settings_before_resume=True,
+    dry=False,
     **kwargs,
 ):
     """perform calculations for a set of atoms objects, while able to use the socket
@@ -105,6 +108,8 @@ def calculate_socket(
         directory to back up calculations to
     check_settings_before_resume: bool
         only resume when settings didn't change
+    dry: bool
+        only create working directory and write metadata to trajectory
 
     Returns
     -------
@@ -156,16 +161,21 @@ def calculate_socket(
     # perform calculation
     n_cell = -1
     with cwd(calc_dir, mkdir=True):
-        with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
+        # log metadata and sanity check
+        if check_settings_before_resume:
+            try:
+                old_metadata, _ = son.load(trajectory)
+                check_metadata(metadata, old_metadata)
+                talk(f"resume from {trajectory}")
+            except FileNotFoundError:
+                metadata2file(metadata, trajectory)
 
-            # log metadata and sanity check
-            if check_settings_before_resume:
-                try:
-                    old_metadata, _ = son.load(trajectory)
-                    check_metadata(metadata, old_metadata)
-                    talk(f"resume from {trajectory}")
-                except FileNotFoundError:
-                    metadata2file(metadata, trajectory)
+        if dry:
+            talk("dry run requested, stop.")
+            sys.exit()
+
+        # launch socket
+        with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
 
             if socketio_port is not None:
                 calc = iocalc
@@ -181,10 +191,6 @@ def calculate_socket(
                     continue
                 if check_precomputed_hashes(cell, precomputed_hashes, n_cell):
                     continue
-
-                # perform backup of settings
-                if settings:
-                    settings.write()
 
                 # make sure a new calculation is started
                 calc.results = {}
@@ -207,8 +213,11 @@ def calculate_socket(
                     wd = "."
 
                 # compute and save the aims UUID
-                talk(f"Compute structure {n_cell + 1} of {len(atoms_to_calculate)}")
-                with cwd(wd, mkdir=True):
+                msg = f"{'[hilde]':15}Compute structure "
+                msg += f"{n_cell + 1} of {len(atoms_to_calculate)}"
+                # talk(msg)
+
+                with cwd(wd, mkdir=True), Spinner(msg):
                     atoms.calc.calculate(atoms, system_changes=["positions"])
                     meta = get_aims_uuid_dict()
 

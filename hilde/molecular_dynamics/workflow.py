@@ -1,15 +1,8 @@
 """ run molecular dynamics simulations using the ASE classes """
 
-from pathlib import Path
-
 import numpy as np
-
 from ase.calculators.socketio import SocketIOCalculator
-from ase import md as ase_md
-from ase import units as u
-
 from hilde import son
-from hilde.aims.context import AimsContext
 from hilde.trajectory import step2file, metadata2file
 from hilde.helpers.aims import get_aims_uuid_dict
 from hilde.helpers.watchdogs import SlurmWatchdog as Watchdog
@@ -18,142 +11,56 @@ from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.socketio import socket_stress_on, socket_stress_off
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.restarts import restart
-from hilde.helpers import talk, Timer
-from . import metadata2dict
+from hilde.helpers import talk, warn
 
 
 _calc_dirname = "calculations"
+# _socket_timeout = 60
+# _calculation_timeout = 30
+_prefix = "md"
 
 
-def run_md(ctx):
+def run_md(ctx, timeout=None):
     """ high level function to run MD """
 
-    args = bootstrap(ctx)
-
-    converged = run(**args)
+    converged = run(ctx)
 
     if not converged:
-        restart(ctx.settings)
+        talk("restart", prefix=_prefix)
+        restart(ctx.settings, trajectory=ctx.trajectory)
     else:
-        talk("done.")
+        talk("done.", prefix=_prefix)
 
 
-def bootstrap(ctx):
-    """Load settings, prepare atoms, calculator and MD algorithm
-
-    Args:
-        ctx (MDContext): Context for the workflow
-
-    Returns:
-        dict:
-            atoms (ase.atoms.Atoms): The reference structure
-            calc (ase.calculators.calulator.Calculator): The Calculator for the MD
-            maxsteps (int): Maximum number of steps for the MD
-            compute_stresses (bool): If True compute the stresses
-            workdir (str): working directory for the run
-    """
-
-    # read structure
-    atoms = ctx.settings.get_atoms()
-
-    # workdir has to exist
-    Path(ctx.workdir).mkdir(exist_ok=True)
-
-    # create aims from context
-    aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.settings.workdir)
-
-    # make sure `compute_forces .true.` is set and create aims
-    aims_ctx.settings.obj["compute_forces"] = True
-
-    calc = aims_ctx.get_calculator()
-
-    # create md from context
-    obj = ctx.settings.obj
-    md_settings = {
-        "atoms": atoms,
-        "timestep": obj.timestep * u.fs,
-        "logfile": Path(ctx.workdir) / obj.logfile,
-    }
-
-    if "verlet" in obj.driver.lower():
-        md = ase_md.VelocityVerlet(**md_settings)
-    if "langevin" in obj.driver.lower():
-        md = ase_md.Langevin(
-            temperature=obj.temperature * u.kB, friction=obj.friction, **md_settings
-        )
-
-    compute_stresses = 0
-    if "compute_stresses" in obj:
-        compute_stresses = obj.compute_stresses
-
-    # resume?
-    prepare_from_trajectory(atoms, md, ctx.trajectory)
-
-    return {
-        "atoms": atoms,
-        "calc": calc,
-        "md": md,
-        "maxsteps": ctx.maxsteps,
-        "compute_stresses": compute_stresses,
-        "workdir": ctx.workdir,
-    }
-
-
-def run(
-    atoms,
-    calc,
-    md,
-    maxsteps,
-    compute_stresses=0,
-    buffer=3,
-    trajectory="trajectory.son",
-    metadata_file="md_metadata.yaml",
-    workdir=".",
-    backup_folder="backups",
-    socket_timeout=60,
-    **kwargs,
-):
+def run(ctx, backup_folder="backups"):
     """run and MD for a specific time
 
     Args:
-        atoms (ase.atoms.Atoms): Initial step geometry
-        calc (ase.calculators.calulator.Calculator): The calculator for the MD run
-        md (ase.md.MolecularDynamics):  The MD propagator
-        maxsteps (int): Maximum number of steps
-        compute_stresses (int or bool): Number of steps in between stress computations
-        trajectory (Path or str): trajectory file path
-        metadata_file (str or Path): File to store the metadata in
-        workdir (Path or str): Path to working directory
+        ctx (MDContext): context of the MD
         backup_folder (str or Path): Path to the back up folders
-        socket_timeout (int): timeout for the socket communication
     Returns:
-    bool: True if hit max steps or completed
+        bool: True if hit max steps or completed
     """
 
-    # make sure compute_stresses describes a step length
-    if compute_stresses is True:
-        compute_stresses = 1
-    elif compute_stresses is False:
-        compute_stresses = 0
-    else:
-        compute_stresses = int(compute_stresses)
+    # extract things from context
+    atoms = ctx.atoms
+    calc = ctx.calc
+    md = ctx.md
+    maxsteps = ctx.maxsteps
+    compute_stresses = ctx.compute_stresses
+    settings = ctx.settings
 
     # create watchdog
+    buffer = 3
     if compute_stresses > 0:
         buffer = 5
     watchdog = Watchdog(buffer=buffer)
 
     # create working directories
-    workdir = Path(workdir)
-    trajectory = (workdir / trajectory).absolute()
+    workdir = ctx.workdir
+    trajectory = ctx.trajectory
     calc_dir = workdir / _calc_dirname
     backup_folder = workdir / backup_folder
-
-    # atomic stresses
-    if calc.name == "aims":
-        if compute_stresses:
-            talk(f"Compute atomic stresses every {compute_stresses} steps")
-            calc.parameters["compute_heat_flux"] = True
 
     # prepare the socketio stuff
     socketio_port = get_port(calc)
@@ -165,11 +72,12 @@ def run(
 
     # does it make sense to start everything?
     if md.nsteps >= maxsteps:
-        talk(f"MD run already finished, please inspect {workdir.absolute()}")
+        msg = f"run already finished, please inspect {workdir.absolute()}"
+        talk(msg, prefix=_prefix)
         return True
 
     # is the calculation similar enough?
-    metadata = metadata2dict(atoms, calc, md)
+    metadata = ctx.metadata
     if trajectory.exists():
         old_metadata, _ = son.load(trajectory)
         check_metadata(metadata, old_metadata)
@@ -177,34 +85,42 @@ def run(
     # backup previously computed data
     backup(calc_dir, target_folder=backup_folder)
 
-    msg = f"Enter socket with timeout: {socket_timeout}"
-    socket_timer = Timer(msg, timeout=socket_timeout)
+    # back up settings
+    if settings:
+        with cwd(workdir, mkdir=True):
+            settings.obj["workdir"] = "."
+            settings.write()
 
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
         calc_dir, mkdir=True
     ):
 
-        socket_timer("Socket entered")
-
-        if socketio_port is not None:
+        # make sure the socket is entered
+        if socket_calc is not None:
             atoms.calc = iocalc
 
         # log very initial step and metadata
         if md.nsteps == 0:
+            # carefully compute forces
+            if not get_forces(atoms):
+                return False
+            # log metadata
             metadata2file(metadata, file=trajectory)
+            # log initial structure computation
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
-            _ = atoms.get_forces()
             meta = get_aims_uuid_dict()
-            step2file(atoms, file=trajectory, metadata=meta, append_cell=False)
+            if compute_stresses:
+                stresses = get_stresses(atoms)
+                atoms.calc.results["stresses"] = stresses
 
-        # store MD metadata locally
-        metadata2file(metadata, file=metadata_file)
+            step2file(atoms, file=trajectory, metadata=meta, append_cell=False)
 
         while not watchdog() and md.nsteps < maxsteps:
 
-            md.run(1)
+            if not md_step(md):
+                break
 
-            talk(f"Step {md.nsteps} finished, log.")
+            talk(f"Step {md.nsteps} finished, log.", prefix=_prefix)
 
             if compute_stresses_now(compute_stresses, md.nsteps):
                 stresses = get_stresses(atoms)
@@ -213,19 +129,19 @@ def run(
             # peek into aims file and grep for uuid
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
             meta = get_aims_uuid_dict()
-            step2file(atoms, atoms.calc, trajectory, metadata=meta)
+            step2file(atoms, atoms.calc, trajectory, metadata=meta, append_cell=False)
 
             if compute_stresses:
                 if compute_stresses_next(compute_stresses, md.nsteps):
-                    talk("switch stresses computation on")
+                    talk("switch stresses computation on", prefix=_prefix)
                     socket_stress_on(iocalc)
                 else:
-                    talk("switch stresses computation off")
+                    talk("switch stresses computation off", prefix=_prefix)
                     socket_stress_off(iocalc)
 
                 continue
 
-        talk("Stop MD.\n")
+        talk("Stop.\n", prefix=_prefix)
 
     # restart
     if md.nsteps < maxsteps:
@@ -241,24 +157,6 @@ def compute_stresses_now(compute_stresses, nsteps):
 def compute_stresses_next(compute_stresses, nsteps):
     """Return if stress should be computed in the NEXT step"""
     return compute_stresses_now(compute_stresses, nsteps + 1)
-
-
-def prepare_from_trajectory(atoms, md, trajectory):
-    """Take the last step from trajectory and initialize atoms + md accordingly"""
-
-    trajectory = Path(trajectory)
-    if trajectory.exists():
-        last_atoms = son.last_from(trajectory)
-        assert "info" in last_atoms["atoms"]
-        md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
-
-        atoms.set_positions(last_atoms["atoms"]["positions"])
-        atoms.set_velocities(last_atoms["atoms"]["velocities"])
-        talk(f"Resume MD from step {md.nsteps} in\n  {trajectory}\n")
-        return True
-
-    talk(f"** {trajectory} does not exist, nothing to prepare")
-    return False
 
 
 def check_metadata(new_metadata, old_metadata):
@@ -282,8 +180,82 @@ def check_metadata(new_metadata, old_metadata):
 
     # sanity check values:
     for key in ("xc", "k_grid", "relativistic"):
+        if key not in om and key not in nm:
+            continue
         ov, nv = om[key], nm[key]
         if isinstance(ov, float):
             assert np.allclose(ov, nv, rtol=1e-10), f"{key} changed from {ov} to {nv}"
         else:
             assert ov == nv, f"{key} changed from {ov} to {nv}"
+
+
+def get_forces(atoms):
+    try:
+        _ = atoms.get_forces()
+        return True
+    except OSError as error:
+        warn(f"Error during force computation:")
+        print(error, flush=True)
+        return False
+
+
+def md_step(md):
+    try:
+        md.run(1)
+        return True
+    except OSError as error:
+        warn(f"Error during MD step:")
+        print(error, flush=True)
+        return False
+
+
+# devel stuff from trying out pebble
+# def launch_server(atoms, timeout=_socket_timeout):
+#     """wraps `iocalc.launch_server` with pebble to kill the job if it takes too long
+#
+#     Args:
+#         atoms: Atoms object with `iocalc` attached
+#         timeout: the timeout in seconds
+#     """
+#     talk(f"Enter socket with timeout: {timeout}", prefix=_prefix)
+#     iocalc = atoms.calc
+#
+#     @concurrent.process(timeout=timeout)
+#     def launch(iocalc):
+#         cmd = iocalc.calc.command.replace("PREFIX", iocalc.calc.prefix)
+#         iocalc.calc.write_input(atoms)
+#         iocalc.launch_server(cmd)
+#         time.sleep(2)
+#
+#     return launch(iocalc).result()
+#
+#
+# def get_forces(atoms, timeout=_calculation_timeout):
+#     @concurrent.process(timeout=timeout)
+#     def forces(atoms):
+#         return atoms.get_forces()
+#
+#     try:
+#         forces(atoms).result()
+#         return True
+#     except TimeoutError:
+#         warn("TimeoutError raised while computing force", level=1)
+#         warn("return False", level=1)
+#         return False
+#
+#
+# def md_step(md, timeout=_calculation_timeout):
+#     @concurrent.process(timeout=timeout)
+#     def step(md):
+#         if md.nsteps > 2:
+#             print("h")
+#             time.sleep(20)
+#         return md.run(1)
+#
+#     try:
+#         step(md).result()
+#         return True
+#     except TimeoutError:
+#         warn("TimeoutError raised while computing md step", level=1)
+#         return False
+#
