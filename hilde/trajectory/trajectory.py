@@ -14,6 +14,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
 from hilde.helpers.displacements import get_dR
+from hilde.anharmonicity_score import get_harmonic_forces
 from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al, _prefix
 
 
@@ -40,6 +41,8 @@ class Trajectory(list):
         self._heat_flux = None
         self._avg_heat_flux = None
         self._volume = None
+        self._harmonic_forces = None
+        self._force_constants = None
 
     @classmethod
     def from_file(cls, file):
@@ -182,6 +185,39 @@ class Trajectory(list):
     def forces(self):
         """return the forces as [N_t, N_a, 3] array"""
         return np.array([a.get_forces() for a in self])
+
+    @property
+    def force_constants(self):
+        """return force constants"""
+        return self._force_constants
+
+    @force_constants.setter
+    def force_constants(self, fc):
+        """set force constants"""
+        assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
+        self._force_constants = fc
+
+    def set_harmonic_forces(self, force_constants=None):
+        """return harmonic force computed from force_constants"""
+        if force_constants is not None:
+            self.force_constants = force_constants
+
+        timer = Timer("Set harmonic forces")
+        f_ha = get_harmonic_forces
+
+        forces_ha = [f_ha(a, self.supercell, self.force_constants) for a in self]
+        timer()
+
+        self._harmonic_forces = np.array(forces_ha).reshape(self.positions.shape)
+
+    @property
+    def harmonic_forces(self):
+        """return harmonic forces, None if not set via `set_force_constants`"""
+        if self._harmonic_forces is None:
+            if self.force_constants:
+                self.set_harmonic_forces()
+
+        return self._harmonic_forces
 
     @lazy_property
     def kinetic_energy(self):
