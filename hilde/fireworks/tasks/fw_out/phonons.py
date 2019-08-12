@@ -303,10 +303,14 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     _, metadata = reader(traj, True)
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
-    k_pt_density = k2d(
-        dict2atoms(metadata["supercell"]["atoms"]),
-        calc_dict["calculator_parameters"]["k_grid"],
-    )
+    calc_dict["calculator"] == "aims"
+    if calc_dict["calculator"] == "aims":
+        k_pt_density = k2d(
+            dict2atoms(metadata["supercell"]["atoms"]),
+            calc_dict["calculator_parameters"]["k_grid"],
+        )
+    else:
+        k_pt_density = None
     qadapter = dict()
     if fw_settings and "spec" in fw_settings:
         qadapter = fw_settings["spec"].get("_queueadapter", None)

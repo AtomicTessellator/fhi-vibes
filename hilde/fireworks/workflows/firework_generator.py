@@ -182,9 +182,12 @@ def generate_firework(
                         cl = update_calc(cl, key, val)
                 for key, val in cl.items():
                     at[key] = val
-                fw_settings["spec"]["kgrid"] = k2d(
-                    atoms, cl["calculator_parameters"]["k_grid"]
-                )
+                if cl["calculator"].lower() == "aims":
+                    fw_settings["spec"]["kgrid"] = k2d(
+                        atoms, cl["calculator_parameters"]["k_grid"]
+                    )
+                else:
+                    fw_settings["spec"]["kgrid"] = None
             else:
                 cl = calc
                 setup_tasks.append(

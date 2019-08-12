@@ -88,7 +88,10 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
 
     ctx = PhonopyContext(settings=settings)
     ctx.settings.atoms = atoms.copy()
-    ctx.settings.atoms.set_calculator(None)
+    if calc is not None and calc.name.lower() != "aims":
+        ctx.settings.atoms.set_calculator(calc)
+    else:
+        ctx.settings.atoms.set_calculator(None)
 
     # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
     outputs = bootstrap(ctx)

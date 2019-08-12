@@ -56,7 +56,7 @@ def get_ordred_firework_ids(wflow):
     firework_ids_ordered: list of ints
         An ordered list for the desired workflow to run
     """
-    firework_ids_ordered = wflow.leaf_firework_ids
+    firework_ids_ordered = wflow.leaf_fw_ids
     parent_links = wflow.links.parent_links
     for fw_id in firework_ids_ordered:
         parents = parent_links[fw_id] if fw_id in parent_links else []

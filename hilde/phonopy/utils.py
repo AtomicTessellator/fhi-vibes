@@ -372,7 +372,7 @@ def parse_phonopy_force_constants(
         Force constants in (3*N_sc, 3*N_sc) shape
     """
 
-    if "poscar" in uc_filename.lower():
+    if "poscar" in str(uc_filename).lower():
         fmt = "vasp"
 
     uc = read(uc_filename, format=fmt)
