@@ -3,6 +3,7 @@ import xarray as xr
 
 from ase import units
 from hilde.helpers import warn
+from hilde.helpers.converters import atoms2json
 from hilde.structure.misc import get_sysname
 from .utils import clean_pressure
 from . import Timer
@@ -31,16 +32,11 @@ def _metadata(trajectory, dct=None):
         "volume": trajectory.volume,
         "symbols": trajectory.symbols,
         "masses": trajectory.masses,
-        "flattened reference positions": trajectory.ref_positions.flatten(),
-        "flattened lattice": trajectory.ref_atoms.cell.array.flatten(),
+        "reference atoms": atoms2json(trajectory.ref_atoms),
     }
 
-    primitive = trajectory.primitive
-    if primitive:
-        prim_attrs = {
-            "flattened primitive positions": primitive.positions.flatten(),
-            "flattened primitive lattice": primitive.cell.array.flatten(),
-        }
+    if trajectory.primitive:
+        prim_attrs = {"reference primitive atoms": atoms2json(trajectory.primitive)}
         attrs.update(prim_attrs)
 
     if dct and isinstance(dct, dict):
