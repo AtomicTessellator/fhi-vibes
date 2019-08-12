@@ -45,15 +45,18 @@ cli.add_command(aigk.aiGK)
 
 try:
     import hilde.fireworks.cli
+
     cli.add_command(hilde.fireworks.cli.fireworks)
 except ImportError:
     pass
 
 try:
     import hilde.balsam.cli
+
     cli.add_command(hilde.balsam.cli.balsam)
 except:
     pass
+
 
 @cli.command("status", hidden=True)
 @click.option("--verbose", is_flag=True)

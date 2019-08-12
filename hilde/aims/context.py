@@ -34,6 +34,7 @@ class AimsSettings(TaskSettings):
         SettingsError
             If the basis set type is not defined
         """
+
         super().__init__(
             name,
             settings=settings,
