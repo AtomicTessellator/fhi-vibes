@@ -15,7 +15,7 @@ def output():
 
 
 @output.command("md")
-@click.argument("trajectory", type=complete_filenames)
+@click.argument("trajectory", default="trajectory.son", type=complete_filenames)
 @click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
 @click.option("-d", "--discard", type=int, help="discard this many steps")
 @click.option("--minimal", is_flag=True, help="only write necessary minimum")
@@ -41,7 +41,7 @@ def md_output(trajectory, heat_flux, discard, minimal):
 
 
 @output.command("phonopy")
-@click.argument("trajectory", type=complete_filenames)
+@click.argument("trajectory", default="trajectory.son", type=complete_filenames)
 # necessary?
 @click.option("--q_mesh", nargs=3, default=None)
 @click.option("-od", "--output_directory")
