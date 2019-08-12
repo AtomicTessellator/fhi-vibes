@@ -7,22 +7,29 @@ from hilde.helpers.hash import hash_atoms, hash_atoms_and_calc
 parent = Path(__file__).parent
 
 atoms = bulk("Si") * (2, 2, 2)
-atoms.write("geometry.in", format="aims")
 
-config_file = parent / "hash.cfg"
 
-ctx = AimsContext(Settings(settings_file=parent / "aims.in", config_file=None))
+def test_hash(atoms=atoms):
+    atoms.write("geometry.in", format="aims")
 
-atoms = ctx.ref_atoms
-calc = ctx.get_calculator()
+    config_file = parent / "hash.cfg"
 
-atoms.calc = calc
+    ctx = AimsContext(Settings(settings_file=parent / "aims.in", config_file=None))
 
-atomshash = hash_atoms(atoms)
+    atoms = ctx.ref_atoms
+    calc = ctx.get_calculator()
 
-_, calchash = hash_atoms_and_calc(atoms, ignore_file=config_file)
+    atoms.calc = calc
 
-assert atomshash == "065d7dc8cde297d3691a7b776177780662acdc4c", atomshash
-assert calchash == "d228b55e927f4f10e15f79feb9b3bf81f997ab7e", calchash
+    atomshash = hash_atoms(atoms)
 
-Path("geometry.in").unlink()
+    _, calchash = hash_atoms_and_calc(atoms, ignore_file=config_file)
+
+    assert atomshash == "065d7dc8cde297d3691a7b776177780662acdc4c", atomshash
+    assert calchash == "d228b55e927f4f10e15f79feb9b3bf81f997ab7e", calchash
+
+    Path("geometry.in").unlink()
+
+
+if __name__ == "__main__":
+    test_hash()
