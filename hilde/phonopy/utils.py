@@ -345,7 +345,7 @@ def parse_phonopy_force_constants(
     two_dim=True,
     eps=1e-13,
     tol=1e-5,
-    fmt="aims",
+    format="aims",
 ):
     """parse phonopy FORCE_CONSTANTS file and return as 2D array
 
@@ -363,7 +363,7 @@ def parse_phonopy_force_constants(
         finite zero
     tol: float
         tolerance to discern pairs
-    fmt: str
+    format: str
         File format for the input geometries
 
     Returns
@@ -373,10 +373,10 @@ def parse_phonopy_force_constants(
     """
 
     if "poscar" in str(uc_filename).lower():
-        fmt = "vasp"
+        format = "vasp"
 
-    uc = read(uc_filename, format=fmt)
-    sc = read(sc_filename, format=fmt)
+    uc = read(uc_filename, format=format)
+    sc = read(sc_filename, format=format)
 
     fc = parse_FORCE_CONSTANTS(fc_filename)
 

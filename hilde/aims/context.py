@@ -21,7 +21,7 @@ from ._defaults import (
 class AimsSettings(TaskSettings):
     """Aims settings. Ensures that settings are set up sensibly"""
 
-    def __init__(self, settings=None, read_config=True):
+    def __init__(self, settings=None):
         """Settings in the context of a phonopy workflow
 
         Parameters
@@ -41,7 +41,6 @@ class AimsSettings(TaskSettings):
             mandatory_keys=mandatory_base,
             obj_key=obj_key,
             mandatory_obj_keys=mandatory_task,
-            read_config=read_config,
         )
         # print(self)
         # basisset
@@ -53,7 +52,7 @@ class AimsSettings(TaskSettings):
 class AimsContext:
     """context for aims calculation"""
 
-    def __init__(self, settings, workdir=None, read_config=True):
+    def __init__(self, settings, workdir=None):
         """Constructor
 
         Parameters
@@ -63,7 +62,7 @@ class AimsContext:
         workdir: str
             Directory to run the calculation in
         """
-        self.settings = AimsSettings(settings, read_config)
+        self.settings = AimsSettings(settings)
         self.workdir = self.settings.workdir
 
         if workdir:

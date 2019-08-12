@@ -12,7 +12,7 @@ from ._defaults import defaults, name, mandatory_base, mandatory_task
 class PhonopySettings(TaskSettings):
     """Phonopy settings. Ensures that settings.phonopy is set up sensibly"""
 
-    def __init__(self, settings, read_config=True):
+    def __init__(self, settings):
         """Settings in the context of a phonopy workflow
 
         Parameters
@@ -26,7 +26,6 @@ class PhonopySettings(TaskSettings):
             defaults=defaults,
             mandatory_keys=mandatory_base,
             mandatory_obj_keys=mandatory_task,
-            read_config=read_config,
         )
 
         # validate
@@ -41,7 +40,7 @@ class PhonopySettings(TaskSettings):
 class PhonopyContext:
     """context for phonopy calculation"""
 
-    def __init__(self, settings, workdir=None, read_config=True):
+    def __init__(self, settings, workdir=None):
         """Intializer
 
         Parameters
@@ -51,7 +50,7 @@ class PhonopyContext:
         workdir: str or Path
             The working directory for the workflow
         """
-        self.settings = PhonopySettings(settings, read_config)
+        self.settings = PhonopySettings(settings)
         self._ref_atoms = None
 
         if workdir:
