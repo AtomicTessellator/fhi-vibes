@@ -15,5 +15,4 @@ port:                          12345
 
 [phonopy]
 supercell_matrix:              [1, 2, 1]
-displacement:                  0.01
 
