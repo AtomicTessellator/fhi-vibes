@@ -5,6 +5,7 @@ import click
 
 from hilde.trajectory import reader
 from hilde.phonopy._defaults import defaults
+from hilde.phonopy.utils import parse_phonopy_force_constants
 
 from .misc import AliasedGroup, complete_filenames
 
@@ -19,7 +20,9 @@ def output():
 @click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
 @click.option("-d", "--discard", type=int, help="discard this many steps")
 @click.option("--minimal", is_flag=True, help="only write necessary minimum")
-def md_output(trajectory, heat_flux, discard, minimal):
+@click.option("-fc", "--force_constants", help="use FC to compute ha. forces")
+@click.option("-o", "--outfile", default="auto", show_default=True)
+def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile):
     """write data in trajectory as xarray.Dataset"""
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
@@ -28,7 +31,16 @@ def md_output(trajectory, heat_flux, discard, minimal):
     if discard:
         traj = traj.discard(discard)
 
-    outfile = "trajectory.nc"
+    # harmonic forces?
+    if force_constants:
+        fc = parse_phonopy_force_constants(
+            force_constants, primitive=traj.primitive, supercell=traj.supercell
+        )
+        traj.set_harmonic_forces(force_constants=fc)
+
+    if "auto" in outfile.lower():
+        outfile = Path(trajectory).stem + ".nc"
+
     DS = traj.dataset
     DS.to_netcdf(outfile)
     click.echo(f"Trajectory dataset written to {outfile}")
