@@ -379,7 +379,19 @@ def get_json(obj):
     return json.dumps(obj, cls=MyEncoder, sort_keys=True)
 
 
-def atoms2json(
+def atoms2json(atoms):
+    """return json representation of Atoms"""
+    rep = dict2json(atoms2dict(atoms))
+    return rep
+
+
+def json2atoms(rep):
+    """return Atoms from json string"""
+    atoms = dict2atoms(json.loads(rep))
+    return atoms
+
+
+def atoms_calc2json(
     atoms, ignore_results=False, ignore_keys=["unique_id"], ignore_calc_params=[]
 ):
     """Return json representation of atoms and calculator objects. possibility to remove certain keys from the atoms dictionary, e.g. for hashing
