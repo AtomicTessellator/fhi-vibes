@@ -20,6 +20,7 @@ from hilde.settings import Settings
 from hilde.structure.convert import to_Atoms_db
 from hilde.trajectory import reader
 
+
 def time2str(n_sec):
     """
     Converts a number of seconds into a time string
@@ -36,6 +37,7 @@ def time2str(n_sec):
     hrs = int(n_sec / 3600) % 24
     days = int(n_sec / 86400)
     return f"{days}-{hrs}:{mins}:{secs}"
+
 
 def get_base_work_dir(wd):
     """
@@ -130,10 +132,10 @@ def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
         if "Number of k-point" in line:
             n_kpt = int(line.split(":")[1])
             continue
-
+    n_spin = 1
     total_mem += n_basis * n_basis
     total_mem += n_hamiltonian_matrix_size
-    total_mem += n_basis*n_states*n_spin*n_kpt
+    total_mem += n_basis * n_states * n_spin * n_kpt
     total_mem *= 16 * 10
     return total_mem
 
@@ -263,7 +265,7 @@ def get_converge_phonon_update(
     disp_mag = np.linalg.norm(displacement)
 
     ratio = np.linalg.det(sc_mat) / np.linalg.det(ph.get_supercell_matrix())
-    ph, _, scs = ph_preprocess(
+    ph, _, _ = ph_preprocess(
         to_Atoms_db(ph.get_primitive()), sc_mat, displacement=displacement
     )
 
@@ -276,7 +278,7 @@ def get_converge_phonon_update(
     # expected_mem = get_memory_expectation(
     #     scs[0].copy(), Aims(**calc_dict["calculator_parameters"]), k_pt_density, workdir
     # )
-    ntasks = int(np.ceil(ph.supercell.get_number_of_atoms()*1.25))
+    ntasks = int(np.ceil(ph.supercell.get_number_of_atoms() * 1.25))
 
     init_workdir += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
     analysis_wd += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"

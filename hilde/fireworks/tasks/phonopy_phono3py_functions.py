@@ -93,9 +93,7 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
     # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
     outputs = bootstrap(ctx)
 
-    outputs["metadata"]["supercell"] = {
-        "atoms": outputs["metadata"]["atoms"],
-    }
+    outputs["metadata"]["supercell"] = {"atoms": outputs["metadata"]["atoms"]}
     outputs["metadata"]["primitive"] = input2dict(atoms)
     outputs["prefix"] = prefix
     outputs["settings"] = ph_settings.copy()

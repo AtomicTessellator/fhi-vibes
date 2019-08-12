@@ -1,17 +1,10 @@
 """FWAction generators for relaxations"""
-import os
-from pathlib import Path
-
-import numpy as np
 
 from fireworks import FWAction
-from ase.io.aims import read_aims
 
 from hilde.fireworks.workflows.firework_generator import generate_firework, time2str
-from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
-from hilde.helpers.fileformats import last_from_yaml
+from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.helpers.k_grid import k2d
-from hilde.helpers.watchdogs import str2time
 
 from hilde.fireworks.tasks.postprocess.relax import check_aims
 
@@ -71,7 +64,7 @@ def check_aims_complete(
         update_spec[fw_settings["in_spec_calc"]] = calc
 
     update_spec["kgrid"] = k2d(
-        dict2atoms(new_atoms), calc["calculator_parameters"]["k_grid"]
+        dict2atoms(new_atoms_dict), calc["calculator_parameters"]["k_grid"]
     )
     calc.parameters["walltime"] = walltime
     if fw_settings and "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
