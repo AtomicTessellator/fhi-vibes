@@ -171,4 +171,3 @@ class AimsContext:
     def name(self):
         """The name of the calculation"""
         return self.settings.name
-
