@@ -1,5 +1,7 @@
+"""test for hilde.phonopy.utils.parse_phonopy_force_constants"""
 from pathlib import Path
 import numpy as np
+
 from ase.io import read
 from hilde.phonopy.utils import parse_phonopy_force_constants
 from hilde.harmonic_analysis.dynamical_matrix import get_frequencies
@@ -14,13 +16,14 @@ frequencies = np.loadtxt(assets / "frequencies.dat")
 
 
 def test_remap():
+    """test parsing and remapping force constants"""
 
     atoms = read(sc_filename, format="aims")
 
     fc = parse_phonopy_force_constants(
-        uc_filename=uc_filename,
-        sc_filename=sc_filename,
         fc_filename=fc_filename,
+        primitive=uc_filename,
+        supercell=sc_filename,
         two_dim=True,
     )
 
