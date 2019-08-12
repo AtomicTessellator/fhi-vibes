@@ -25,6 +25,7 @@ def test_remap():
         primitive=uc_filename,
         supercell=sc_filename,
         two_dim=True,
+        format="aims",
     )
 
     freqs = get_frequencies(fc, masses=atoms.get_masses())
