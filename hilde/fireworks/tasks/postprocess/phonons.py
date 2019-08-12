@@ -20,6 +20,22 @@ from hilde.settings import Settings
 from hilde.structure.convert import to_Atoms_db
 from hilde.trajectory import reader
 
+def time2str(n_sec):
+    """
+    Converts a number of seconds into a time string
+    Args:
+        n_secs (int): A time presented as a number of seconds
+
+    Returns
+    -------
+    time_str: str
+        A string representing a specified time
+    """
+    secs = int(n_sec % 60)
+    mins = int(n_sec / 60) % 60
+    hrs = int(n_sec / 3600) % 24
+    days = int(n_sec / 86400)
+    return f"{days}-{hrs}:{mins}:{secs}"
 
 def get_base_work_dir(wd):
     """
@@ -77,40 +93,49 @@ def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
     float:
         The expected memory of the calculation, scaling based on empirical tests
     """
-    # settings = Settings()
-    # calc.parameters["dry_run"] = True
-    # calc.parameters.pop("use_local_index", None)
-    # calc.parameters.pop("load_balancing", None)
-    # calc.command = settings.machine.aims_command
-    # bs_base = settings.machine.basissetloc
-    # calc.parameters["species_dir"] = (
-    #     bs_base + "/" + calc.parameters["species_dir"].split("/")[-1]
-    # )
-    # calc.parameters["compute_forces"] = False
-    # update_k_grid(new_supercell, calc, k_pt_density, even=True)
-    # new_supercell.set_calculator(calc)
-    # mem_expect_dir = workdir + "/.memory_expectation"
-    # with cwd(mem_expect_dir, mkdir=True):
-    #     try:
-    #         new_supercell.calc.calculate()
-    #     except RuntimeError:
-    #         calc.parameters["dry_run"] = False
-    #     lines = open("aims.out").readlines()
-    # rmtree(mem_expect_dir)
-    # for line in lines:
-    #     if  "Max. angular integration grid size" in line:
-    #         max_ang_int_grid = int(line.split(":")[1])
-    #         continue
-    #     if "Number of basis functions in a single unit cell" in line:
-    #         max_ang_int_grid = int(line.split(":")[1])
-    #         continue
-    #     if "Number of centers in hartree multipole" in line
-    # 275 + 10.3*max_ang_int_grid - 0.862*n_basis_uc + 0.0276*n_cent_harree_mp + 1.07e-5*max_n_basis_types2
+    settings = Settings()
+    calc.parameters["dry_run"] = True
+    calc.parameters.pop("use_local_index", None)
+    calc.parameters.pop("load_balancing", None)
+    calc.command = settings.machine.aims_command
+    bs_base = settings.machine.basissetloc
+    calc.parameters["species_dir"] = (
+        bs_base + "/" + calc.parameters["species_dir"].split("/")[-1]
+    )
+    calc.parameters["compute_forces"] = False
+    update_k_grid(new_supercell, calc, k_pt_density, even=True)
+    new_supercell.set_calculator(calc)
+    mem_expect_dir = workdir + "/.memory_expectation"
+    with cwd(mem_expect_dir, mkdir=True):
+        try:
+            new_supercell.calc.calculate()
+        except RuntimeError:
+            calc.parameters["dry_run"] = False
+        lines = open("aims.out").readlines()
+    rmtree(mem_expect_dir)
 
-    # try:
-    #     return 10.0e-6 * float(nham) + 5.0
-    # except NameError:
-    return 1.0
+    for line in lines:
+        if "Maximum number of basis functions" in line:
+            n_basis = int(line.split(":")[1])
+            continue
+
+        if "Number of Kohn-Sham states (occupied + empty)" in line:
+            n_states = int(line.split(":")[1])
+            continue
+
+        if "Size of matrix packed + index [n_hamiltonian_matrix_size]" in line:
+            n_hamiltonian_matrix_size = int(line.split(":")[1])
+            break
+
+        if "Number of k-point" in line:
+            n_kpt = int(line.split(":")[1])
+            continue
+
+    total_mem += n_basis * n_basis
+    total_mem += n_hamiltonian_matrix_size
+    total_mem += n_basis*n_states*n_spin*n_kpt
+    total_mem *= 16 * 10
+    return total_mem
 
 
 def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
@@ -167,9 +192,10 @@ def get_converge_phonon_update(
     _, metadata = reader(traj, True)
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
-    k_pt_density = k2d(
-        to_Atoms_db(ph.get_supercell()), calc_dict["calculator_parameters"]["k_grid"]
-    )
+
+    # k_pt_density = k2d(
+    #     to_Atoms_db(ph.get_supercell()), calc_dict["calculator_parameters"]["k_grid"]
+    # )
 
     # Calculate the phonon DOS
     ph.set_mesh([51, 51, 51])
@@ -208,7 +234,6 @@ def get_converge_phonon_update(
             "ph_dict": phonon_to_dict(ph),
             "ph_calculator": calc_dict,
             "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
-            "k_pt_density": k_pt_density,
             "ph_time": calc_time / len(ph.get_supercells_with_displacements()),
         }
         return True, update_job
@@ -248,10 +273,10 @@ def get_converge_phonon_update(
         time_scaling = 3.0 * ratio
 
     expected_walltime = calc_time * time_scaling
-    expected_mem = get_memory_expectation(
-        scs[0].copy(), Aims(**calc_dict["calculator_parameters"]), k_pt_density, workdir
-    )
-    ntasks = ph.supercell.get_number_of_atoms()
+    # expected_mem = get_memory_expectation(
+    #     scs[0].copy(), Aims(**calc_dict["calculator_parameters"]), k_pt_density, workdir
+    # )
+    ntasks = int(np.ceil(ph.supercell.get_number_of_atoms()*1.25))
 
     init_workdir += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
     analysis_wd += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
@@ -266,11 +291,10 @@ def get_converge_phonon_update(
         "analysis_wd": analysis_wd,
         "ntasks": ntasks,
         "expected_walltime": expected_walltime,
-        "expected_mem": expected_mem,
+        # "expected_mem": expected_mem,
         "ph_calculator": calc_dict,
         "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
         "ph_supercell": atoms2dict(to_Atoms_db(ph.get_supercell())),
-        # "k_pt_density": k_pt_density,
         "prev_dos_fp": dos_fp,
         "prev_wd": workdir,
         "displacement": disp_mag,

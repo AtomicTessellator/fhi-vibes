@@ -8,6 +8,7 @@ from hilde.fireworks.workflows.task_generator import (
     generate_update_calc_task,
     generate_mod_calc_task,
 )
+from hilde.fireworks.tasks.postprocess.phonons import time2str
 from hilde.fireworks.tasks.task_spec import TaskSpec
 from hilde.fireworks.tasks.utility_tasks import update_calc
 from hilde.fireworks.workflows.task_spec_generator import (
@@ -23,25 +24,6 @@ from hilde.helpers.numerics import get_3x3_matrix
 from hilde.helpers.watchdogs import str2time
 from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
 from hilde.phonopy.wrapper import preprocess
-
-
-def time2str(n_sec):
-    """
-    Converts a number of seconds into a time string
-    Args:
-        n_secs (int): A time presented as a number of seconds
-
-    Returns
-    -------
-    time_str: str
-        A string representing a specified time
-    """
-    secs = int(n_sec % 60)
-    mins = int(n_sec / 60) % 60
-    hrs = int(n_sec / 3600) % 24
-    days = int(n_sec / 86400)
-    return f"{days}-{hrs}:{mins}:{secs}"
-
 
 def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=True):
     """update the fw_settings for the next step

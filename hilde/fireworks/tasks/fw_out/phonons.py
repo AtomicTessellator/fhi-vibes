@@ -410,9 +410,9 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(
             update_job["expected_walltime"]
         )
-        fw_settings["spec"]["_queueadapter"]["expected_mem"] = update_job[
-            "expected_mem"
-        ]
+        # fw_settings["spec"]["_queueadapter"]["expected_mem"] = update_job[
+        #     "expected_mem"
+        # ]
         fw_settings["spec"]["_queueadapter"]["ntasks"] = update_job["ntasks"]
         qadapter = fw_settings["spec"]["_queueadapter"]
     else:
