@@ -2,7 +2,10 @@
 
 import shutil
 from pathlib import Path
-import importlib.resources as pkg_resources
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    import pkg_resources
 
 import click
 import click_completion
