@@ -43,7 +43,7 @@ class AimsSettings(TaskSettings):
             obj_key=obj_key,
             mandatory_obj_keys=mandatory_task,
         )
-        # print(self)
+
         # basisset
         if not any(key in self for key in mandatory_basisset):
             msg = f"basisset not specified in {self.settings_file}"
