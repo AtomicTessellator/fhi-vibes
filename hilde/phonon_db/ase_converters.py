@@ -93,7 +93,7 @@ def calc2dict(calc):
     """
     if calc is None:
         return {}
-    elif isinstance(calc, dict):
+    if isinstance(calc, dict):
         return calc
     calc_dict = {}
     calc_dict["calculator"] = calc.name.lower()

@@ -235,7 +235,7 @@ def get_dos(
     return phonon.get_projected_dos_dict()
 
 
-def set_bandstructure(phonon, paths=None, force_sets=None):
+def set_bandstructure(phonon, paths=None):
     """Compute bandstructure for given path and attach to phonopy object
 
     Parameters
@@ -244,8 +244,6 @@ def set_bandstructure(phonon, paths=None, force_sets=None):
         Phonopy object with calculated force constants if force_Sets is None
     paths: list of str
         List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
-    force_sets: np.ndarray
-        set of forces to calculate force constants with
     """
     bands, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
 
@@ -275,7 +273,7 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
         phonon.produce_force_constants(force_sets)
 
     _, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
-    set_bandstructure(phonon, paths, force_sets)
+    set_bandstructure(phonon, paths)
 
     return (phonon.get_band_structure_dict(), labels)
 
@@ -309,7 +307,7 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
         Force sets to calculate the force constants with
     """
 
-    set_bandstructure(phonon, paths, force_sets)
+    set_bandstructure(phonon, paths)
 
     plt = phonon.plot_band_structure()
 

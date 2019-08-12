@@ -6,11 +6,9 @@ from phonopy.file_IO import parse_FORCE_CONSTANTS
 from phonopy.structure.atoms import PhonopyAtoms
 
 from hilde.helpers import Timer, progressbar
-from hilde.structure.convert import to_Atoms
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
 from hilde.phonopy._defaults import displacement_id_str
-from hilde.spglib.wrapper import get_symmetry_dataset
 from hilde.structure.convert import to_Atoms
 
 
@@ -259,7 +257,7 @@ def remap_force_constants(
         The remapped force constants
 
     """
-    from hilde.spglib.wrapper import get_symmetry_dataset  # , standardize_cell
+    from hilde.spglib.wrapper import get_symmetry_dataset
 
     timer = Timer("remap force constants")
 
@@ -276,7 +274,6 @@ def remap_force_constants(
     map2prim = sds.mapping_to_primitive
 
     sc_r = np.zeros((force_constants.shape[0], force_constants.shape[1], 3))
-
 
     for aa, a1 in enumerate(primitive):
         diff = supercell.positions - a1.position
@@ -345,7 +342,7 @@ def parse_phonopy_force_constants(
     two_dim=True,
     eps=1e-13,
     tol=1e-5,
-    format="aims",
+    fmt="aims",
 ):
     """parse phonopy FORCE_CONSTANTS file and return as 2D array
 
@@ -363,7 +360,7 @@ def parse_phonopy_force_constants(
         finite zero
     tol: float
         tolerance to discern pairs
-    format: str
+    fmt: str
         File format for the input geometries
 
     Returns
@@ -373,10 +370,10 @@ def parse_phonopy_force_constants(
     """
 
     if "poscar" in uc_filename.lower():
-        format = "vasp"
+        fmt = "vasp"
 
-    uc = read(uc_filename, format=format)
-    sc = read(sc_filename, format=format)
+    uc = read(uc_filename, format=fmt)
+    sc = read(sc_filename, format=fmt)
 
     fc = parse_FORCE_CONSTANTS(fc_filename)
 

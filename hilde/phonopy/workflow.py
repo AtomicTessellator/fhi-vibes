@@ -61,7 +61,7 @@ def bootstrap(ctx):
     phonon, supercell, scs = preprocess(atoms=ctx.ref_atoms, **ctx.settings.obj)
 
     # if calculator not given, create an aims context for this calculation
-    if ctx.settings.atoms and  ctx.settings.atoms.calc:
+    if ctx.settings.atoms and ctx.settings.atoms.calc:
         calc = ctx.settings.atoms.calc
     else:
         aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.workdir)
