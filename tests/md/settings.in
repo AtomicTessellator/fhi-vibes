@@ -1,5 +1,7 @@
 [md]
-maxsteps =    50
+driver =     Verlet
+timestep =   1
+maxsteps =   5
 workdir =    test_run
 
 [restart]

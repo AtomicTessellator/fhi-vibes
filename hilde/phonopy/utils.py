@@ -257,12 +257,18 @@ def remap_force_constants(
         The remapped force constants
 
     """
+<<<<<<< HEAD
     from hilde.spglib.wrapper import get_symmetry_dataset
+=======
+>>>>>>> 86aec637f6d5e8d91a3e86739da3a4cb23890c5f
 
     timer = Timer("remap force constants")
 
     if new_supercell is None:
         new_supercell = supercell.copy()
+
+    # make sure we wrap the positions in the primitive cell correctly
+    primitive.cell = supercell.cell
 
     primitive.wrap(eps=tol)
     supercell.wrap(eps=tol)
@@ -369,8 +375,13 @@ def parse_phonopy_force_constants(
         Force constants in (3*N_sc, 3*N_sc) shape
     """
 
+<<<<<<< HEAD
     if "poscar" in uc_filename.lower():
         fmt = "vasp"
+=======
+    if "poscar" in str(uc_filename).lower():
+        format = "vasp"
+>>>>>>> 86aec637f6d5e8d91a3e86739da3a4cb23890c5f
 
     uc = read(uc_filename, format=fmt)
     sc = read(sc_filename, format=fmt)

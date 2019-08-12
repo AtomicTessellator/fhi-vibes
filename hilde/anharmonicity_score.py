@@ -2,7 +2,7 @@
     (future reference)"""
 
 import numpy as np
-from hilde.harmonic_analysis.displacements import get_dR
+from hilde.helpers.displacements import get_dR
 from hilde.spglib.wrapper import get_symmetry_dataset
 
 
@@ -27,6 +27,8 @@ def get_r2(in_f_data, in_f_model):
 
     f_data = np.ravel(in_f_data)
     f_model = np.ravel(in_f_model)
+
+    assert f_data.shape == f_model.shape, "Check shape of input arrays!"
 
     f_data_mean = np.mean(f_data, axis=0)
     Sres = (f_data - f_model) @ (f_data - f_model)

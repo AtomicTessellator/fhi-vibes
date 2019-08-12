@@ -1,5 +1,6 @@
 """test the anharmonicity quantification"""
 
+from pathlib import Path
 import numpy as np
 
 from hilde.trajectory import reader
@@ -7,10 +8,13 @@ from hilde.tdep.wrapper import parse_tdep_remapped_forceconstant
 import hilde.anharmonicity_score as score
 
 
-def test_r2():
-    fc = parse_tdep_remapped_forceconstant("outfile.forceconstant_remapped")
+parent = Path(__file__).parent
 
-    trajectory = reader("trajectory.son")
+
+def test_r2():
+    fc = parse_tdep_remapped_forceconstant(parent / "outfile.forceconstant_remapped")
+
+    trajectory = reader(parent / "trajectory.son")
 
     supercell = trajectory.supercell
 

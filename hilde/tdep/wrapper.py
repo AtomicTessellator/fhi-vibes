@@ -4,8 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from ase.io.vasp import read_vasp
-from ase.io.aims import read_aims
+from ase.io import read
 
 from hilde.helpers import Timer
 from hilde.helpers.paths import cwd
@@ -86,7 +85,7 @@ def canonical_configuration(
     with cwd(workdir, mkdir=True), open(logfile, "w") as file:
         run(command, stdout=file)
     outfiles = Path(workdir).glob("aims_conf*")
-    return [read_aims(of) for of in outfiles]
+    return [read(of, format="aims") for of in outfiles]
 
 
 def extract_forceconstants_from_trajectory(
@@ -225,11 +224,11 @@ def parse_tdep_forceconstant(
     """
 
     try:
-        primitive = read_vasp(uc_filename)
-        supercell = read_vasp(sc_filename)
+        primitive = read(uc_filename, format="vasp")
+        supercell = read(sc_filename, format="vasp")
     except ValueError:
-        primitive = read_aims(uc_filename)
-        supercell = read_aims(sc_filename)
+        primitive = read(uc_filename, format="aims")
+        supercell = read(sc_filename, format="aims")
 
     primitive.wrap(eps=tol)
     supercell.wrap(eps=tol)

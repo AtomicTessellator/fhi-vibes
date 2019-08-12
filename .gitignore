@@ -20,6 +20,7 @@ fireworks.cfg
 # Python
 *.ipynb_checkpoints
 *.pyc
+.pytest_cache
 
 # Aims
 *geometry.in
@@ -65,3 +66,15 @@ venv
 # docker
 docker.md
 Dockerfile
+
+# pylint
+.pylintrc
+
+# poetry
+poetry.lock
+
+# doc
+doc/
+
+# ignore
+*.ignore
