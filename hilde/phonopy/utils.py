@@ -1,6 +1,8 @@
 """ hilde quality of life """
+from pathlib import Path
 import numpy as np
 
+from ase import Atoms
 from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS
 from phonopy.structure.atoms import PhonopyAtoms
@@ -339,9 +341,9 @@ def reduce_force_constants(fc_full, map2prim):
 
 
 def parse_phonopy_force_constants(
-    uc_filename="geometry.primitive",
-    sc_filename="geometry.supercell",
     fc_filename="FORCE_CONSTANTS",
+    primitive="geometry.primitive",
+    supercell="geometry.supercell",
     two_dim=True,
     eps=1e-13,
     tol=1e-5,
@@ -349,34 +351,31 @@ def parse_phonopy_force_constants(
 ):
     """parse phonopy FORCE_CONSTANTS file and return as 2D array
 
-    Parameters
-    ----------
-    uc_filename: str or Path
-        primitive unit cell
-    sc_filename: str or Path
-        supercell
-    fc_filename: str or Path
-        phonopy forceconstant file to parse
-    two_dim: bool
-        return in [3*N_sc, 3*N_sc] shape
-    eps: float
-        finite zero
-    tol: float
-        tolerance to discern pairs
-    format: str
-        File format for the input geometries
+    Args:
+        fc_filename (Pathlike): phonopy forceconstant file to parse
+        primitive (Atoms or Pathlike): either unitcell as Atoms or where to find it
+        supercell (Atoms or Pathlike): either supercell as Atoms or where to find it
+        two_dim (bool): return in [3*N_sc, 3*N_sc] shape
+        eps: finite zero
+        tol: tolerance to discern pairs and wrap
+        format: File format for the input geometries
 
-    Returns
-    -------
-    force_constant: (np.ndarray(dtype=float))
+    Returns:
         Force constants in (3*N_sc, 3*N_sc) shape
     """
+    if isinstance(primitive, Atoms):
+        uc = primitive
+    elif Path(primitive).exists():
+        uc = read(primitive, format=format)
+    else:
+        raise RuntimeError("primitive cell missing")
 
-    if "poscar" in str(uc_filename).lower():
-        format = "vasp"
-
-    uc = read(uc_filename, format=format)
-    sc = read(sc_filename, format=format)
+    if isinstance(supercell, Atoms):
+        sc = supercell
+    elif Path(supercell).exists():
+        sc = read(supercell, format=format)
+    else:
+        raise RuntimeError("supercell missing")
 
     fc = parse_FORCE_CONSTANTS(fc_filename)
 
