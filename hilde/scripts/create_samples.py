@@ -186,8 +186,8 @@ def check_frequencies(atoms, force_constants):
     w2 = get_frequencies(force_constants, masses=atoms.get_masses())
     print("The first 6 frequencies:")
     for ii, freq in enumerate(w2[:6]):
-        print(f" {ii + 1:4d}: {np.sign(freq) * np.sqrt(abs(freq))}")
+        print(f" {ii + 1:4d}: {freq}")
 
     print("Highest 6 frequencies")
     for ii, freq in enumerate(w2[-6:]):
-        print(f" {len(w2) - ii:4d}: {np.sign(freq) * np.sqrt(abs(freq))}")
+        print(f" {len(w2) - ii:4d}: {freq }")
