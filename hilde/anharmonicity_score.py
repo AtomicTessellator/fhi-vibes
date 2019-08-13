@@ -1,7 +1,7 @@
 """Functions to calculate anharmonicity scores as described in
     (future reference)"""
-
 import numpy as np
+import xarray as xr
 from hilde.helpers.displacements import get_dR
 from hilde.spglib.wrapper import get_symmetry_dataset
 
@@ -86,7 +86,7 @@ def get_r2_per_atom(
     if np.shape(forces_dft)[1] == 3 * len(ref_structure):
         compare_to = compare_to.repeat(3)
 
-    unique_atoms = np.unique(compare_to)
+    unique_atoms, counts = np.unique(compare_to, return_counts=True)
 
     r2_atom = []
     for u in unique_atoms:
@@ -98,7 +98,14 @@ def get_r2_per_atom(
         # compute r^2
         r2_atom.append(get_r2(f_dft, f_ha))
 
-    return unique_atoms, r2_atom
+    # tup = namedtuple("anharmonicity_score", "r2_per_atom unique counts")
+    # ret = tup(np.array(r2_atom), unique_atoms, counts)
+
+    attrs = {"unique_atoms": unique_atoms, "counts": counts}
+
+    ret = xr.DataArray(np.array(r2_atom), attrs=attrs)
+
+    return ret
 
 
 def get_forces_from_trajectory(trajectory, ref_structure=None, force_constants=None):

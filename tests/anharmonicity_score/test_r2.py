@@ -22,7 +22,7 @@ def test_r2():
 
     r2 = score.get_r2(f_dft, f_ha)
 
-    _, r2_per_atom = score.get_r2_per_atom(
+    r2_per_atom = score.get_r2_per_atom(
         f_dft, f_ha, supercell, reduce_by_symmetry=True
     )
 
