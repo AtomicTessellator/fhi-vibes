@@ -1,11 +1,8 @@
-image: registry.gitlab.com/flokno/hilde:poetry
+image: registry.gitlab.com/flokno/hilde:default
 
 before_script:
   - cp hilde/templates/config_files/hilderc.template ~/.hilderc
-  - python -m venv venv --system-site-packages
-  - source venv/bin/activate
-  - pip install -U pip
-  - pip install -U poetry
+  - poetry update
   - poetry install
   - cd $CI_PROJECT_DIR/tests
 
@@ -24,4 +21,4 @@ fireworks:
     - service mongodb start --ipv6
     - pip install fireworks
     - pytest fireworks
-    - cd ../phonon_db; python phonon_db.py; python phonon_db.py;
+    - cd $CI_PROJECT_DIR/tests/phonon_db; python phonon_db.py; python phonon_db.py;
