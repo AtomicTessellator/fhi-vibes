@@ -12,7 +12,6 @@ from hilde.helpers.geometry import get_cubicness
 from hilde.helpers.lattice import fractional
 from hilde.helpers.numerics import clean_matrix
 from hilde.helpers.warnings import warn
-from hilde.phonopy.wrapper import preprocess
 from . import supercell as sc
 
 
@@ -345,6 +344,7 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
     supercell: ase.atoms.Atoms
         The supercell from atoms and supercell_matrix
     """
+    from hilde.phonopy.wrapper import preprocess
 
     _, supercell, _ = preprocess(atoms, supercell_matrix)
     supercell.cell = clean_matrix(supercell.cell)
