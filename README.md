@@ -1,5 +1,6 @@
 hilde
 ===
+
 ## Installation
 
 External dependencies:
@@ -40,6 +41,7 @@ of running aims. This can be either just `mpirun aims.x`, or a script loading ne
 modules etc. and finally calling `srun aims.x` on a cluster.
 
 Then copy to your home folder with 
+
 ```
 cp hilderc ~/.hilderc
 ```
@@ -47,40 +49,53 @@ cp hilderc ~/.hilderc
 **You're now good to go!** Just make sure your hilde virtual environment is activated.
 
 ### Autocompletion
+
 To activate autocompletion of `hilde` subcommands, add this to your `.bashrc`:
+
 ```bash
 eval "$(_HILDE_COMPLETE=source hilde)"
 ```
+
 and source it.
 
 If you use the `fishshell`, add a file `~/.config/fish/completions/hilde.fish` containing
+
 ```bash
 eval (env _HILDE_COMPLETE=source-fish hilde)
 ```
 
 ### Remarks for Cluster
+
 On clusters with `conda` environment, it is typically best to have a minimal base
 environment that holds nothing but `python`, `numpy`, and `scipy` to benefit from `mkl`
 speedup:
+
 ```bash
 conda create -n py37 python=3.7 numpy scipy mkl
 ```
+
 From within the conda environment (`conda activate py37`), a `venv` can be created that
 holds the other dependencies. To benefit from `numpy` and `mkl`, the `venv` can be
 created with
+
 ```bash
 python3 -m venv hilde_venv --system-site-packages
 source hilde_venv/bin/activate
 ```
+
 One should verify that the `numpy` and `scipy` packages are indeed the ones from the
 conda environment by inspecting 
+
 ```bash
 conda list | grep numpy
 ```
+
  within conda and
+
 ```bash
 pip list | grep numpy
 ```
+
 with `hilde_venv`. To enforce this, the `pyproject.toml` file
 can be adjusted.
 
@@ -95,6 +110,7 @@ valid `JSON`. The inputs get converted to Python objects according to [this conv
 table](https://realpython.com/python-json/#serializing-json).
 
 **New Features**
+
 * Simplified Settings Files:
   * Settings files named `settings.in` are automatically parsed when calling
     `Settings()` within Hilde.
@@ -115,35 +131,35 @@ table](https://realpython.com/python-json/#serializing-json).
     Example in `examples/md/md_with_watchdog.ipynb`
 * Wrapper for `phono3py`
   * Preprocess and re-creation of Phono3py objects from precomputed force
-  constants, see examples
+    constants, see examples
 * Wrapper for `phonopy`
   * Preprocess and (some) postprocess, see examples
 * Templates
   * `from hilde.templates.lammps import setup_lammps_si` to provide lammps calculator
 * Brillouin zone helpers
   * `hilde.helpers.brillouinzone` features `get_paths`, `get_bands`, and
-  `get_labels` to provide paths in the BZ that can be fed to `phonopy` via
-  `phonon.set_bandstructure(bands)`, and
-  `phonon.plot_band_structure(labels=labels)`.
+    `get_labels` to provide paths in the BZ that can be fed to `phonopy` via
+    `phonon.set_bandstructure(bands)`, and
+    `phonon.plot_band_structure(labels=labels)`.
   * These functions are used by `hilde.phonopy.plot_dos_and_bandstructure` to
-  plot DOS and bandstructure in the working directory.
+    plot DOS and bandstructure in the working directory.
 * Scripts:
   * `make_supercell`: create supercell from supercell matrix or
-  target target
+    target target
   * `geometry_info`: print geometry information for given input
-  structure
+    structure
 * Symmetry Block Generation Functions
   * `AtomsInput`: A storage class that stores relevant information about a structure
   * `write_sym_constraints_geo`: Read any geometry.in file and use the list of `AtomInputs`
-  to create a new supercell with a user defined symmetry block added to it
+    to create a new supercell with a user defined symmetry block added to it
 * FireWorks integration
   * Functions that can be used with PyTask to use FireWorks as a job manager
   * Jobs can now be submitted to the queue from a local machine and have the results processed locally
 
-
 **Setup of FireWorks on Computational Resources**
 
 See also: `doc/README_FHI_FireWorksConnections.md`
+
 * Overview of Managing FireWorks Remotely
   * FireWorks does not copy functions but only finds them in the PYTHONPATH
   * To pass it functions give it the function_module.function_name as a str
@@ -206,3 +222,25 @@ See also: `doc/README_FHI_FireWorksConnections.md`
 * FireWorks Etiquette
   * Name all Fireworks/WorkFlows
   * If you are using a shared launchpad only use lpad reset if everyone is okay with that
+
+# Docker
+
+`Dockerfile` for docker image `default`:
+
+```
+FROM python:3.7-slim
+RUN apt-get update
+RUN apt-get install -yq gfortran
+RUN apt-get install -yq git
+RUN apt-get install -yq liblapack-dev liblapacke-dev
+RUN apt-get install -yq mongodb
+RUN apt-get install -yq texlive-base
+RUN pip install -U pip
+RUN pip install -U poetry
+ADD pyproject.toml /app/
+WORKDIR /app
+RUN poetry config settings.virtualenvs.create false
+RUN poetry install --no-interaction
+```
+
+
