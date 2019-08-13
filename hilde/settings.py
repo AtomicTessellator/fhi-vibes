@@ -234,6 +234,8 @@ class Settings(ConfigDict):
 
         if dct:
             super().__init__(dct=dct)
+            if hasattr(dct, "settings_file"):
+                self._settings_file = dct.settings_file
         else:
             super().__init__(config_files=[file for file in config_files if file])
 
