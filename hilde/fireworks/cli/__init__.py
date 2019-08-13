@@ -719,7 +719,7 @@ def rlaunch_rapidfire(
 @click.pass_context
 @click.option(
     "-f",
-    "--firework_id",
+    "--fw_id",
     help="specific firework_id to run in reservation mode",
     default=None,
     type=int,
