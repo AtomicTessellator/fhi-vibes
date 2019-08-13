@@ -7,11 +7,12 @@ from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS
 from phonopy.structure.atoms import PhonopyAtoms
 
-from hilde.helpers import Timer, progressbar
+from hilde.helpers import Timer, progressbar, talk
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
 from hilde.phonopy._defaults import displacement_id_str
 from hilde.structure.convert import to_Atoms
+from hilde.helpers.supercell.supercell import supercell as fort
 
 
 def last_calculation_id(trajectory):
@@ -231,6 +232,7 @@ def remap_force_constants(
     two_dim=False,
     tol=1e-5,
     eps=1e-13,
+    fortran=True,
 ):
     """remap force constants [N_prim, N_sc, 3, 3] to [N_sc, N_sc, 3, 3]
 
@@ -285,21 +287,37 @@ def remap_force_constants(
         p2s = np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0]
         sc_r[aa] = supercell.get_distances(p2s, range(n_sc), mic=True, vector=True)
 
-    ref_struct_pos = new_supercell.get_scaled_positions(wrap=True)
+    if fortran:
+        talk(".. use fortran", prefix="utils")
+        fc_out = fort.remap_force_constants(
+            positions=new_supercell.positions,
+            pairs=sc_r,
+            fc_in=force_constants,
+            map2prim=map2prim,
+            inv_lattice=supercell.get_reciprocal_cell(),
+            tol=tol,
+            eps=eps,
+        )
+    else:
 
-    fc_out = np.zeros((n_sc_new, n_sc_new, 3, 3))
-    for a1, r0 in enumerate(progressbar(new_supercell.positions)):
-        uc_index = map2prim[a1]
-        for sc_a2, sc_r2 in enumerate(sc_r[uc_index]):
-            r_pair = r0 + sc_r2
-            sc_temp = new_supercell.get_cell(complete=True)
-            r_pair = np.linalg.solve(sc_temp.T, r_pair.T).T % 1.0
-            for a2 in range(n_sc_new):
-                r_diff = np.abs(r_pair - ref_struct_pos[a2])
-                # Integer value is the equivalent of 0.0
-                r_diff -= np.floor(r_diff + eps)
-                if np.sum(np.abs(r_diff)) < tol:
-                    fc_out[a1, a2, :, :] += force_constants[uc_index, sc_a2, :, :]
+        ref_struct_pos = new_supercell.get_scaled_positions(wrap=True)
+
+        fc_out = np.zeros((n_sc_new, n_sc_new, 3, 3))
+        for a1, r0 in enumerate((new_supercell.positions)):
+            uc_index = map2prim[a1]
+            for sc_a2, sc_r2 in enumerate(sc_r[uc_index]):
+                r_pair = r0 + sc_r2
+                print(r_pair)
+                sc_temp = new_supercell.get_cell(complete=True)
+                r_pair = np.linalg.solve(sc_temp.T, r_pair.T).T % 1.0
+                print(r_pair)
+                print()
+                for a2 in range(n_sc_new):
+                    r_diff = np.abs(r_pair - ref_struct_pos[a2])
+                    # Integer value is the equivalent of 0.0
+                    r_diff -= np.floor(r_diff + eps)
+                    if np.sum(np.abs(r_diff)) < tol:
+                        fc_out[a1, a2, :, :] += force_constants[uc_index, sc_a2, :, :]
 
     timer()
 
