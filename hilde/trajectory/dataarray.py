@@ -39,6 +39,10 @@ def _metadata(trajectory, dct=None):
         prim_attrs = {"reference primitive atoms": atoms2json(trajectory.primitive)}
         attrs.update(prim_attrs)
 
+    if trajectory.force_constants is not None:
+        fc_attrs = {"flattened force_constants": trajectory.force_constants.flatten()}
+        attrs.update(fc_attrs)
+
     if dct and isinstance(dct, dict):
         attrs.update(dct)
 
