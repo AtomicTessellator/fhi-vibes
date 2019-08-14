@@ -1,5 +1,6 @@
 [slurm]
 name:         test
+tag:          hilde
 mail_type:    all
 mail_address: ${common:email}
 nodes:        1

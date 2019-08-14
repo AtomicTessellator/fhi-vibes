@@ -8,7 +8,7 @@ parent = Path(__file__).parent
 
 ref_submit_script = """#!/bin/bash -l
 
-#SBATCH -J test|h
+#SBATCH -J test|hilde
 #SBATCH -o log.test.%j
 #SBATCH -e log.test.%j
 #SBATCH -D ./

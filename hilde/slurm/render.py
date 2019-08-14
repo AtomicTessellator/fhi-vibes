@@ -5,7 +5,7 @@ from jinja2 import Template
 
 template = r"""#!/bin/bash -l
 
-#SBATCH -J {{ name }}|h
+#SBATCH -J {{ name }}|{{ tag }}
 #SBATCH -o log.{{ name }}.%j
 #SBATCH -e log.{{ name }}.%j
 #SBATCH -D ./
