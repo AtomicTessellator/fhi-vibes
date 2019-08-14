@@ -150,8 +150,8 @@ def get_trajectory_data(trajectory):
         "temperature": (time_dims, trajectory.temperatures),
     }
 
-    if trajectory.harmonic_forces is not None:
-        dataset.update({"harmonic_forces": (vec_dims, trajectory.harmonic_forces)})
+    if trajectory.forces_harmonic is not None:
+        dataset.update({"forces_harmonic": (vec_dims, trajectory.forces_harmonic)})
 
     coords = _time_coords(trajectory)
     attrs = _metadata(trajectory)

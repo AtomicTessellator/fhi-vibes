@@ -81,7 +81,7 @@ def get_r2_per_atom(
     if reduce_by_symmetry:
         compare_to = sds.equivalent_atoms
     else:
-        compare_to = sds.mapping_to_primitive
+        compare_to = ref_structure.numbers
 
     if np.shape(forces_dft)[1] == 3 * len(ref_structure):
         compare_to = compare_to.repeat(3)
@@ -109,7 +109,7 @@ def get_r2_per_atom(
 
 
 def get_forces_from_trajectory(trajectory, ref_structure=None, force_constants=None):
-    """get forces from trajectory, consider to use `trajectory.set_harmonic_forces`
+    """get forces from trajectory, consider to use `trajectory.set_forces_harmonic`
 
     Args:
         trajectory: list of Atoms objects with forces
@@ -121,7 +121,7 @@ def get_forces_from_trajectory(trajectory, ref_structure=None, force_constants=N
         forces_harmonic: harmonic forces in [N_steps, 3N] shape
     """
 
-    f_ha = get_harmonic_forces
+    f_ha = get_forces_harmonic
 
     forces_dft = [a.get_forces().flatten() for a in trajectory]
     forces_ha = [f_ha(a, ref_structure, force_constants) for a in trajectory]
@@ -129,7 +129,7 @@ def get_forces_from_trajectory(trajectory, ref_structure=None, force_constants=N
     return np.array(forces_dft), np.array(forces_ha)
 
 
-def get_harmonic_forces(sc, ref_structure, force_constants):
+def get_forces_harmonic(sc, ref_structure, force_constants):
     """helper function: compute forces from force_constants
 
     Args:

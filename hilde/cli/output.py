@@ -36,7 +36,7 @@ def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile)
         fc = parse_phonopy_force_constants(
             force_constants, primitive=traj.primitive, supercell=traj.supercell
         )
-        traj.set_harmonic_forces(force_constants=fc)
+        traj.set_forces_harmonic(force_constants=fc)
 
     if "auto" in outfile.lower():
         outfile = Path(trajectory).stem + ".nc"
