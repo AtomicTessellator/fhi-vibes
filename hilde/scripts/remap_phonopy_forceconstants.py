@@ -33,9 +33,9 @@ def remap_phonopy_force_constants(
     """
 
     fc = parse_phonopy_force_constants(
-        uc_filename=uc_filename,
-        sc_filename=sc_filename,
         fc_filename=fc_filename,
+        primitive=uc_filename,
+        supercell=sc_filename,
         two_dim=True,
         eps=eps,
         tol=tol,
