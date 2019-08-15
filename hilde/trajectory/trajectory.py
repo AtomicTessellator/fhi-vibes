@@ -2,6 +2,7 @@
 
 import os
 import shutil
+from pathlib import Path
 
 import numpy as np
 
@@ -286,7 +287,7 @@ class Trajectory(list):
         """return the pressure as [N_t] array"""
         return self.get_pressure()
 
-    @property
+    @lazy_property
     def dataset(self):
         """return data as xarray.Dataset
 
@@ -349,14 +350,23 @@ class Trajectory(list):
 
         timer("velocities and positions cleaned from drift")
 
-    def write(self, file="trajectory.son"):
+    def write(self, file="trajectory.son", netcdf=False):
         """Write to son file
 
         Args:
             file: path to trajecotry son file
+            netcdf: write dataset to netDCF file instead
         """
 
+        if netcdf:
+            file = Path(file).stem + ".nc"
+
         timer = Timer(f"Write trajectory to {file}")
+
+        if netcdf:
+            self.dataset.to_netcdf(file)
+            timer()
+            return True
 
         temp_file = "temp.son"
 
