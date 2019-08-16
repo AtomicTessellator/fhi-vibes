@@ -7,7 +7,7 @@ from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS
 from phonopy.structure.atoms import PhonopyAtoms
 
-from hilde.helpers import Timer, progressbar, talk
+from hilde.helpers import Timer, progressbar, talk, warn
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
 from hilde.phonopy._defaults import displacement_id_str
@@ -319,7 +319,16 @@ def remap_force_constants(
     timer()
 
     if two_dim:
-        return fc_out.swapaxes(1, 2).reshape(2 * (3 * fc_out.shape[1],))
+        fc_out = fc_out.swapaxes(1, 2).reshape(2 * (3 * fc_out.shape[1],))
+
+        # symmetrize
+        violation = np.linalg.norm(fc_out - fc_out.T)
+        if violation > 1e-5:
+            msg = f"Force constants are not symmetric by {violation:.2e}. Symmetrize."
+            warn(msg, level=1)
+            fc_out = 0.5 * (fc_out + fc_out.T)
+
+        return fc_out
 
     if reduce_fc:
         p2s_map = np.zeros(len(primitive), dtype=int)
