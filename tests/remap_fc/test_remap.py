@@ -5,7 +5,7 @@ from phonopy.file_IO import parse_FORCE_CONSTANTS
 
 parent = Path(__file__).parent
 
-folders = ["."]
+folders = ["."]  # , "CdYF3"]
 
 
 def _symmetric(mat):
@@ -23,6 +23,23 @@ def _parse(folder, fortran=True):
     return fc
 
 
+def _parse_phonopy(file):
+    fc_out = parse_FORCE_CONSTANTS(file)
+    fc_out = fc_out.swapaxes(1, 2).reshape(2 * (3 * fc_out.shape[1],))
+
+    # symmetrize
+    violation = np.linalg.norm(fc_out - fc_out.T)
+    if violation > 1e-5:
+        msg = f"**Phonopy force constants are not symmetric by {violation:.2e}."
+        msg += " Symmetrize."
+        print(msg, flush=True)
+        fc_out = 0.5 * (fc_out + fc_out.T)
+
+    _symmetric(fc_out)
+
+    return fc_out
+
+
 def _test_folder(folder="."):
     fc_fortran = _parse(folder, fortran=True)
     _symmetric(fc_fortran)
@@ -30,8 +47,7 @@ def _test_folder(folder="."):
     fc_python = _parse(folder, fortran=False)
     _symmetric(fc_python)
 
-    fc_phonopy = parse_FORCE_CONSTANTS(parent / folder / "FORCE_CONSTANTS_reference")
-    fc_phonopy = fc_phonopy.swapaxes(1, 2).reshape(2 * (3 * fc_phonopy.shape[1],))
+    fc_phonopy = _parse_phonopy(parent / folder / "FORCE_CONSTANTS_reference")
 
     norm = np.linalg.norm(fc_python - fc_fortran)
     assert norm < 1e-12, (norm, folder)
