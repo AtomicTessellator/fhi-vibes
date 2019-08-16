@@ -235,11 +235,11 @@ module supercell
         uc_index = map2prim(i1) + 1
         do i2 = 1, natoms
             r_pair = r0 + pairs(uc_index, i2, :)
-            r_pair_frac = modulo(matmul(inv_lattice, r_pair) + eps, 1.0d0) - eps
+            r_pair_frac = modulo(matmul(inv_lattice, r_pair), 1.0d0)
             do i3 = 1, natoms
               ref_pos_frac = modulo( &
-                matmul(inv_lattice, positions(i3, :) + eps), 1.0d0 &
-              ) - eps
+                matmul(inv_lattice, positions(i3, :)), 1.0d0 &
+              )
               r_diff = abs(r_pair_frac - ref_pos_frac)
               r_diff = r_diff - floor(r_diff + eps)
               if (sum(abs(r_diff)) < tol) then
