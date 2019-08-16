@@ -7,7 +7,7 @@ from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS
 from phonopy.structure.atoms import PhonopyAtoms
 
-from hilde.helpers import Timer, progressbar, talk, warn
+from hilde.helpers import Timer, talk, warn
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
 from hilde.phonopy._defaults import displacement_id_str
@@ -261,14 +261,13 @@ def remap_force_constants(
         The remapped force constants
 
     """
-    from hilde.spglib.wrapper import get_symmetry_dataset
-
     timer = Timer("remap force constants")
 
     if new_supercell is None:
         new_supercell = supercell.copy()
 
     # make sure we wrap the positions in the primitive cell correctly
+    primitive_cell = primitive.cell.copy()
     primitive.cell = supercell.cell
 
     primitive.wrap(eps=tol)
@@ -277,15 +276,22 @@ def remap_force_constants(
     n_sc = len(supercell)
     n_sc_new = len(new_supercell)
 
-    sds = get_symmetry_dataset(new_supercell)
-    map2prim = sds.mapping_to_primitive
-
     sc_r = np.zeros((force_constants.shape[0], force_constants.shape[1], 3))
 
     for aa, a1 in enumerate(primitive):
         diff = supercell.positions - a1.position
         p2s = np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0]
         sc_r[aa] = supercell.get_distances(p2s, range(n_sc), mic=True, vector=True)
+
+    map2prim = []
+    new_supercell_with_prim_cell = new_supercell.copy()
+    primitive.cell = primitive_cell
+    new_supercell_with_prim_cell.cell = primitive_cell
+    primitive.wrap(eps=tol)
+    new_supercell_with_prim_cell.wrap(eps=tol)
+    for a1 in new_supercell_with_prim_cell:
+        diff = primitive.positions - a1.position
+        map2prim.append(np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0])
 
     if fortran:
         talk(".. use fortran", prefix="utils")
