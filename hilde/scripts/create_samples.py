@@ -71,6 +71,8 @@ def create_samples(
 
     if not seed:
         seed = np.random.randint(2 ** 31)
+        if sobol:
+            seed = np.random.randint(2 ** 16)
 
     if sobol:
         from hilde.helpers.sobol import RandomState
