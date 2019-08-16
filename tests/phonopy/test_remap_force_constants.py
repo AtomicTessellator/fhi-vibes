@@ -30,7 +30,7 @@ def test_remap():
 
     freqs = get_frequencies(fc, masses=atoms.get_masses())
 
-    assert np.linalg.norm(freqs - frequencies) < 1e-12, np.linalg.norm(freqs - frequencies)
+    assert np.linalg.norm(freqs - frequencies) < 1e-10, np.linalg.norm(freqs - frequencies)
 
 
 if __name__ == "__main__":
