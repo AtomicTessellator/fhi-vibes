@@ -155,7 +155,11 @@ class Trajectory(list):
             warn("time unit not found in trajectory metadata, use ase.units.fs")
             fs = units.fs
 
-        return np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
+        try:
+            return np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
+        except KeyError:
+            warn("no time steps found, return time as index", level=1)
+            return np.arange(len(self))
 
     @property
     def timestep(self):
