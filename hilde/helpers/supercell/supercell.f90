@@ -217,13 +217,13 @@ module supercell
       real*8,  intent(in)   :: positions(:,:), pairs(:,:,:), fc_in(:,:,:,:)
       real*8,  intent(in)   :: inv_lattice(3, 3), tol, eps
       integer, intent(in)   :: map2prim(:)
-      real*8                :: fc_out(size(fc_in, 2), size(fc_in, 2), 3, 3)
+      real*8                :: fc_out(size(positions, 1), size(positions, 1), 3, 3)
       real*8                :: r_pair(3), r_pair_frac(3)
       real*8                :: r_diff(3), ref_pos_frac(3), r0(3)
       integer               :: natoms, nprim, uc_index, i1, i2, i3
 
-      nprim = size(pairs, 1)
-      natoms = size(pairs, 2)
+      natoms = size(positions, 1)
+      natoms_orig = size(pairs, 2)
 
       frac_lp = 0.0
 
@@ -233,7 +233,7 @@ module supercell
       do i1 = 1, natoms
         r0 = positions(i1, :)
         uc_index = map2prim(i1) + 1
-        do i2 = 1, natoms
+        do i2 = 1, natoms_orig
             r_pair = r0 + pairs(uc_index, i2, :)
             r_pair_frac = modulo(matmul(inv_lattice, r_pair), 1.0d0)
             do i3 = 1, natoms
