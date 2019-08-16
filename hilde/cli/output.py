@@ -54,6 +54,7 @@ def md_output(trajectory, heat_flux, discard, minimal):
 @click.option("--born", type=complete_filenames)
 @click.option("--full", is_flag=True)
 @click.option("--tdep", is_flag=True, hidden=True)
+@click.option("--remap_fc", is_flag=True, hidden=True)
 @click.option("-v", "--verbose", is_flag=True, help="print frequencies at gamma point")
 @click.pass_obj
 def phonopy_output(
@@ -70,6 +71,7 @@ def phonopy_output(
     born,
     full,
     tdep,
+    remap_fc,
     verbose,
 ):
     """perform phonopy postprocess for TRAJECTORY"""
@@ -79,7 +81,11 @@ def phonopy_output(
         q_mesh = defaults.q_mesh.copy()
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
-    phonon = postprocess(trajectory=trajectory, born_charges_file=born)
+    phonon = postprocess(
+        trajectory=trajectory,
+        born_charges_file=born,
+        calculate_full_force_constants=remap_fc,
+    )
 
     if not output_directory:
         output_directory = Path(trajectory).parent / "output"
@@ -98,6 +104,7 @@ def phonopy_output(
         "tdep": tdep,
         "animate": animate or full,
         "animate_q": animate_q,
+        "remap_fc": remap_fc,
         "verbose": verbose,
     }
 

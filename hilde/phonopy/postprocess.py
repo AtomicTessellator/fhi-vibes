@@ -88,9 +88,6 @@ def postprocess(
         nac_params = get_born_parameters(open(born_charges_file), prim, psym)
         phonon.set_nac_params(nac_params)
 
-    if calculate_full_force_constants:
-        phonon.produce_force_constants(force_sets, calculate_full_force_constants=True)
-
     if verbose:
         timer("done")
     return phonon
@@ -114,6 +111,7 @@ def extract_results(
     output_dir="phonopy_output",
     tdep=False,
     tdep_reduce_fc=True,
+    remap_fc=False,
     verbose=False,
 ):
     """ Extract results from phonopy object and present them.
@@ -173,11 +171,17 @@ def extract_results(
             write(supercell, "geometry.in.supercell")
 
         if write_force_constants:
-            talk(f".. write force constants")
+            if remap_fc:
+                talk(f".. write force constants (remapped)")
+                filename = "FORCE_CONSTANTS_remapped_phonopy"
+                p2s_map = None
+            else:
+                talk(f".. write force constants")
+                filename = "FORCE_CONSTANTS"
+                p2s_map = phonon.get_primitive().get_primitive_to_supercell_map()
+
             write_FORCE_CONSTANTS(
-                phonon.get_force_constants(),
-                filename="FORCE_CONSTANTS",
-                p2s_map=phonon.get_primitive().get_primitive_to_supercell_map(),
+                phonon.get_force_constants(), filename=filename, p2s_map=p2s_map
             )
 
         if write_thermal_properties:
