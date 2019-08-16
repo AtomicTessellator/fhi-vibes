@@ -51,13 +51,25 @@ def get_r2(in_f_data, in_f_model):
     f_data = np.ravel(in_f_data)
     f_model = np.ravel(in_f_model)
 
-    assert f_data.shape == f_model.shape, "Check shape of input arrays!"
+    assert f_data.shape == f_model.shape, (
+        "Check shape of input arrays!: ",
+        f_data.shape,
+        f_model.shape,
+    )
 
     f_data_mean = np.mean(f_data, axis=0)
     Sres = (f_data - f_model) @ (f_data - f_model)
     Stot = (f_data - f_data_mean) @ (f_data - f_data_mean)
 
     return 1 - Sres / Stot
+
+
+def get_r2_per_sample(f_data, f_model, skip=0):
+    """compute r2 for each sample"""
+    data = []
+    for fd, fm in zip(f_data[skip:], f_model[skip:]):
+        data.append(get_r2(fd, fm))
+    return np.array(data)
 
 
 def get_r2_per_atom(
