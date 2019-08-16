@@ -122,11 +122,15 @@ def tool_suggest_k_grid(filename, density, uneven, format):
 @click.argument("filename", default="FORCE_CONSTANTS", type=complete_filenames)
 @click.option("-pc", "--primitive", default="geometry.in.primitive", show_default=True)
 @click.option("-sc", "--supercell", default="geometry.in.supercell", show_default=True)
-def tool_remap_phonopy_force_constants(filename, primitive, supercell):
+@click.option("--python", is_flag=True)
+def tool_remap_phonopy_force_constants(filename, primitive, supercell, python):
     """remap phonopy force constants in FILENAME to [3N, 3N] shape"""
 
     remap_phonopy_force_constants(
-        uc_filename=primitive, sc_filename=supercell, fc_filename=filename
+        uc_filename=primitive,
+        sc_filename=supercell,
+        fc_filename=filename,
+        fortran=not python,
     )
 
 

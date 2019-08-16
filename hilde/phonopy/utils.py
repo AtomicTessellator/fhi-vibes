@@ -307,11 +307,8 @@ def remap_force_constants(
             uc_index = map2prim[a1]
             for sc_a2, sc_r2 in enumerate(sc_r[uc_index]):
                 r_pair = r0 + sc_r2
-                print(r_pair)
                 sc_temp = new_supercell.get_cell(complete=True)
                 r_pair = np.linalg.solve(sc_temp.T, r_pair.T).T % 1.0
-                print(r_pair)
-                print()
                 for a2 in range(n_sc_new):
                     r_diff = np.abs(r_pair - ref_struct_pos[a2])
                     # Integer value is the equivalent of 0.0
@@ -362,6 +359,7 @@ def parse_phonopy_force_constants(
     fc_filename="FORCE_CONSTANTS",
     primitive="geometry.primitive",
     supercell="geometry.supercell",
+    fortran=True,
     two_dim=True,
     eps=1e-13,
     tol=1e-5,
@@ -397,6 +395,8 @@ def parse_phonopy_force_constants(
 
     fc = parse_FORCE_CONSTANTS(fc_filename)
 
-    fc = remap_force_constants(fc, uc, sc, two_dim=two_dim, tol=tol, eps=eps)
+    fc = remap_force_constants(
+        fc, uc, sc, two_dim=two_dim, tol=tol, eps=eps, fortran=fortran
+    )
 
     return fc
