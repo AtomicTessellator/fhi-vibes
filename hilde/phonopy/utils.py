@@ -300,20 +300,20 @@ def remap_force_constants(
             pairs=sc_r,
             fc_in=force_constants,
             map2prim=map2prim,
-            inv_lattice=supercell.get_reciprocal_cell(),
+            inv_lattice=new_supercell.get_reciprocal_cell(),
             tol=tol,
             eps=eps,
         )
     else:
 
         ref_struct_pos = new_supercell.get_scaled_positions(wrap=True)
+        sc_temp = new_supercell.get_cell(complete=True)
 
         fc_out = np.zeros((n_sc_new, n_sc_new, 3, 3))
         for a1, r0 in enumerate((new_supercell.positions)):
             uc_index = map2prim[a1]
             for sc_a2, sc_r2 in enumerate(sc_r[uc_index]):
                 r_pair = r0 + sc_r2
-                sc_temp = new_supercell.get_cell(complete=True)
                 r_pair = np.linalg.solve(sc_temp.T, r_pair.T).T % 1.0
                 for a2 in range(n_sc_new):
                     r_diff = np.abs(r_pair - ref_struct_pos[a2])
@@ -364,8 +364,8 @@ def reduce_force_constants(fc_full, map2prim):
     """
     uc_index = np.unique(map2prim)
     fc_out = np.zeros((len(uc_index), fc_full.shape[1], 3, 3))
-    for ii, _ in enumerate(uc_index):
-        fc_out[ii, :, :, :] = fc_full[uc_index, :, :, :]
+    for ii, uc_ind in enumerate(uc_index):
+        fc_out[ii, :, :, :] = fc_full[uc_ind, :, :, :]
 
     return fc_out
 

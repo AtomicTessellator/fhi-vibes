@@ -238,7 +238,8 @@ module supercell
             r_pair_frac = modulo(matmul(inv_lattice, r_pair), 1.0d0)
             do i3 = 1, natoms
               ref_pos_frac = modulo( &
-                matmul(inv_lattice, positions(i3, :)), 1.0d0 &
+                modulo(matmul(inv_lattice, positions(i3, :)), 1.0d0), &
+                1.0d0 &
               )
               r_diff = abs(r_pair_frac - ref_pos_frac)
               r_diff = r_diff - floor(r_diff + eps)
