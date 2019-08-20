@@ -5,7 +5,7 @@ import click
 
 from hilde.trajectory import reader
 from hilde.phonopy._defaults import defaults
-from hilde.phonopy.utils import parse_phonopy_force_constants
+from hilde.io import parse_force_constants
 
 from .misc import AliasedGroup, complete_filenames
 
@@ -33,7 +33,7 @@ def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile)
 
     # harmonic forces?
     if force_constants:
-        fc = parse_phonopy_force_constants(
+        fc = parse_force_constants(
             force_constants, primitive=traj.primitive, supercell=traj.supercell
         )
         traj.set_forces_harmonic(force_constants=fc)
