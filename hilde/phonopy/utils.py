@@ -280,18 +280,22 @@ def remap_force_constants(
 
     for aa, a1 in enumerate(primitive):
         diff = supercell.positions - a1.position
-        p2s = np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0]
+        p2s = np.where(np.linalg.norm(diff, axis=1) < tol)[0][0]
         sc_r[aa] = supercell.get_distances(p2s, range(n_sc), mic=True, vector=True)
 
     map2prim = []
+
     new_supercell_with_prim_cell = new_supercell.copy()
+
     primitive.cell = primitive_cell
     new_supercell_with_prim_cell.cell = primitive_cell
+
     primitive.wrap(eps=tol)
     new_supercell_with_prim_cell.wrap(eps=tol)
+
     for a1 in new_supercell_with_prim_cell:
         diff = primitive.positions - a1.position
-        map2prim.append(np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0])
+        map2prim.append(np.where(np.linalg.norm(diff, axis=1) < tol)[0][0])
 
     if fortran:
         talk(".. use fortran", prefix="utils")
@@ -319,7 +323,7 @@ def remap_force_constants(
                     r_diff = np.abs(r_pair - ref_struct_pos[a2])
                     # Integer value is the equivalent of 0.0
                     r_diff -= np.floor(r_diff + eps)
-                    if np.sum(np.abs(r_diff)) < tol:
+                    if np.linalg.norm(r_diff) < tol:
                         fc_out[a1, a2, :, :] += force_constants[uc_index, sc_a2, :, :]
 
     timer()
@@ -338,10 +342,19 @@ def remap_force_constants(
 
     if reduce_fc:
         p2s_map = np.zeros(len(primitive), dtype=int)
+
+        primitive.cell = new_supercell.cell
+
         new_supercell.wrap(eps=tol)
+        primitive.wrap(eps=tol)
+
         for aa, a1 in enumerate(primitive):
             diff = new_supercell.positions - a1.position
-            p2s_map[aa] = np.where(np.sum(np.abs(diff), axis=1) < tol)[0][0]
+            p2s_map[aa] = np.where(np.linalg.norm(diff, axis=1) < tol)[0][0]
+
+        primitive.cell = primitive_cell
+        primitive.wrap(eps=tol)
+
         return reduce_force_constants(fc_out, p2s_map)
 
     return fc_out
