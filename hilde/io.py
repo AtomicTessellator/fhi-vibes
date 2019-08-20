@@ -1,3 +1,4 @@
+from pathlib import Path
 from ase.io import read as ase_read
 from hilde.structure.io import inform
 from hilde.spglib.wrapper import get_symmetry_dataset
@@ -78,3 +79,19 @@ def write(atoms, fname, format="aims", spacegroup=False, **kwargs):
         )
 
     return True
+
+
+def parse_force_constants(fc_file, **kwargs):
+    """parse either phonopy FORCE_CONSTANTS or tdep infile.forceconstants"""
+    file = Path(fc_file)
+
+    if "force_constants" in str(file).lower():
+        from hilde.phonopy.utils import parse_phonopy_force_constants
+
+        return parse_phonopy_force_constants(file, **kwargs)
+    elif ".forceconstant" in str(file).lower():
+        from hilde.tdep.wrapper import parse_tdep_forceconstant
+
+        return parse_tdep_forceconstant(file, **kwargs)
+    else:
+        raise RuntimeError(f"{file} is neither phonopy nor tdep force constants")
