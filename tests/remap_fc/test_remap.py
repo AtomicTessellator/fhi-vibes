@@ -1,7 +1,9 @@
 from pathlib import Path
 import numpy as np
-from hilde.phonopy.utils import parse_phonopy_force_constants
+from hilde.phonopy.utils import parse_phonopy_force_constants, remap_force_constants
 from phonopy.file_IO import parse_FORCE_CONSTANTS
+
+from ase.io import read
 
 parent = Path(__file__).parent
 
@@ -39,6 +41,20 @@ def _parse_phonopy(file):
 
     return fc_out
 
+def _remap_fc(folder, fortran):
+    force_constants = parse_FORCE_CONSTANTS(parent / folder / "FORCE_CONSTANTS")
+    primitive = read(parent / folder / "geometry.in.primitive", format="aims")
+    supercell = read(parent / folder / "geometry.in.supercell", format="aims")
+    new_supercell = read(parent / folder / "geometry.in.new_supercell", format="aims")
+
+    return remap_force_constants(
+        force_constants,
+        primitive,
+        supercell,
+        new_supercell,
+        reduce_fc=True,
+        fortran=fortran,
+    )
 
 def _test_folder(folder="."):
     fc_fortran = _parse(folder, fortran=True)
@@ -55,6 +71,12 @@ def _test_folder(folder="."):
     # check phonopy
     norm = np.linalg.norm(fc_python - fc_phonopy)
     assert norm < 1e-12, (norm, folder)
+
+    fc_python_remap = _remap_fc(folder, False)
+    fc_fortran_remap = _remap_fc(folder, True)
+
+    norm = np.linalg.norm(fc_python_remap - fc_fortran_remap)
+    assert norm < 1e-12
 
 
 def test_folders(folders=folders):
