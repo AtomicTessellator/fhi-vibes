@@ -7,4 +7,4 @@ test_all:
 	pytest
 
 clean:
-	./clean.py > /dev/null
+	./clean.py
