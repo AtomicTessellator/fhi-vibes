@@ -33,10 +33,11 @@ def main():
     primitive = read("geometry.in.primitive")
     supercell = read("geometry.in.supercell")
     force_constants = parse_tdep_forceconstant(
-        uc_filename="geometry.in.primitive",
-        sc_filename="geometry.in.supercell",
         fc_filename="infile.forceconstant",
+        primitive="geometry.in.primitive",
+        supercell="geometry.in.supercell",
         two_dim=True,
+        format="aims",
     )
 
     masses = supercell.get_masses()
