@@ -4,7 +4,7 @@ from hilde.scripts.refine_geometry import refine_geometry
 from hilde.scripts.make_supercell import make_supercell
 from hilde.scripts.create_samples import create_samples
 from hilde.scripts.suggest_k_grid import suggest_k_grid
-from hilde.scripts.remap_phonopy_forceconstants import remap_phonopy_force_constants
+from hilde.scripts.remap_phonopy_forceconstants import remap_force_constants
 from hilde.scripts.nomad_upload import nomad_upload
 from hilde.scripts.update_md_trajectory import update_trajectory
 from hilde.scripts.get_relaxation_info import get_relaxation_info
@@ -118,18 +118,18 @@ def tool_suggest_k_grid(filename, density, uneven, format):
     suggest_k_grid(filename, density, uneven, format)
 
 
-@utils.command("remap_phonopy_force_constants")
+@utils.command("remap_force_constants")
 @click.argument("filename", default="FORCE_CONSTANTS", type=complete_filenames)
-@click.option("-pc", "--primitive", default="geometry.in.primitive", show_default=True)
+@click.option("-uc", "--primitive", default="geometry.in.primitive", show_default=True)
 @click.option("-sc", "--supercell", default="geometry.in.supercell", show_default=True)
 @click.option("--python", is_flag=True)
 def tool_remap_phonopy_force_constants(filename, primitive, supercell, python):
     """remap phonopy force constants in FILENAME to [3N, 3N] shape"""
 
-    remap_phonopy_force_constants(
+    remap_force_constants(
+        fc_filename=filename,
         uc_filename=primitive,
         sc_filename=supercell,
-        fc_filename=filename,
         fortran=not python,
     )
 
