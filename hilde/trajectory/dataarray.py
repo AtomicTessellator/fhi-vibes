@@ -150,11 +150,13 @@ def get_trajectory_data(trajectory):
         "temperature": (time_dims, trajectory.temperatures),
     }
 
-    if trajectory.forces_harmonic is not None:
-        dataset.update({"forces_harmonic": (vec_dims, trajectory.forces_harmonic)})
-
     coords = _time_coords(trajectory)
     attrs = _metadata(trajectory)
+
+    if trajectory.forces_harmonic is not None:
+        dataset.update({"forces_harmonic": (vec_dims, trajectory.forces_harmonic)})
+        dataset.update({"r2_per_sample": (time_dims, trajectory.r2_per_sample)})
+        attrs.update({"r2": trajectory.r2_per_sample.mean()})
 
     return xr.Dataset(dataset, coords=coords, attrs=attrs)
 

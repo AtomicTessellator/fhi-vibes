@@ -15,7 +15,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
 from hilde.helpers.displacements import get_dR
-from hilde.anharmonicity_score import get_forces_harmonic
+from hilde.anharmonicity_score import get_forces_harmonic, get_r2_per_sample
 from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al, _prefix
 
 
@@ -290,6 +290,15 @@ class Trajectory(list):
     def pressure(self):
         """return the pressure as [N_t] array"""
         return self.get_pressure()
+
+    @property
+    def r2_per_sample(self):
+        """return r2 per time step"""
+        if self.forces_harmonic is not None:
+            x = self.forces
+            y = self.forces_harmonic
+            r2 = get_r2_per_sample(x, y)
+            return r2
 
     @lazy_property
     def dataset(self):
