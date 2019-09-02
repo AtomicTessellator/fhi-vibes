@@ -33,6 +33,7 @@ def _metadata(trajectory, dct=None):
         "symbols": trajectory.symbols,
         "masses": trajectory.masses,
         "reference atoms": atoms2json(trajectory.ref_atoms),
+        "reference positions": trajectory.ref_positions.flatten(),
     }
 
     if trajectory.primitive:
@@ -141,6 +142,7 @@ def get_trajectory_data(trajectory):
 
     dataset = {
         "positions": positions,
+        "displacements": (vec_dims, trajectory.displacements),
         "velocities": velocities,
         "forces": (vec_dims, trajectory.forces),
         "kinetic_energy": (time_dims, trajectory.kinetic_energy),
