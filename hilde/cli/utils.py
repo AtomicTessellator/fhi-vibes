@@ -175,8 +175,8 @@ def t2xyz(filename, file):
 
 @trajectory.command("update")
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
-@click.option("-uc", help="Add a (primitive) unit cell")
-@click.option("-sc", help="Add the respective supercell")
+@click.option("-uc", help="Add a (primitive) unit cell", type=complete_filenames)
+@click.option("-sc", help="Add the respective supercell", type=complete_filenames)
 @click.option("--format", default="aims")
 def trajectory_update(filename, uc, sc, format):
     """add unit cell from UC and supercell from SC to trajectory in FILENAME"""
