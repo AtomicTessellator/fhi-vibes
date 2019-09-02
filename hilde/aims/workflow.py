@@ -25,7 +25,7 @@ def run_aims(ctx):
     completed = calculate_socket(**args)
 
     if not completed:
-        restart()
+        restart(ctx.settings, trajectory=ctx.trajectory)
     else:
         talk("done.")
 

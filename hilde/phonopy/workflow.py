@@ -31,7 +31,7 @@ def run_phonopy(**kwargs):
         completed = calculate_socket(**args)
 
     if not completed:
-        restart()
+        restart(args["settings"])
     else:
         talk("Start postprocess.")
         postprocess(**args)
