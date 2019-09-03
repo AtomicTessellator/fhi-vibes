@@ -123,7 +123,7 @@ def calculate_socket(
     """
 
     # create watchdog
-    watchdog = Watchdog(buffer=1)
+    watchdog = Watchdog()
 
     # create working directories
     workdir = Path(workdir).absolute()
