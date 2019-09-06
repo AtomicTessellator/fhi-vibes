@@ -12,12 +12,13 @@ from hilde.helpers.socketio import socket_stress_on, socket_stress_off
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.restarts import restart
 from hilde.helpers import talk, warn
+from ._defaults import name
 
 
 _calc_dirname = "calculations"
 # _socket_timeout = 60
 # _calculation_timeout = 30
-_prefix = "md"
+_prefix = name
 
 
 def run_md(ctx, timeout=None):

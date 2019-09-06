@@ -6,7 +6,7 @@ from hilde.aims.context import AimsContext
 from hilde.phonopy.context import PhonopyContext
 from hilde.molecular_dynamics.context import MDContext
 from hilde.settings import Settings
-from hilde.helpers import cwd, talk
+from hilde.helpers import talk
 
 from .misc import AliasedGroup, complete_filenames
 
@@ -30,6 +30,9 @@ def aims_run(obj, settings, workdir):
 
     ctx = AimsContext(Settings(settings_file=settings), workdir=workdir)
 
+    if obj.verbose > 0:
+        talk(f"run aims calculations with settings from {settings}\n", prefix=_prefix)
+
     run_aims(ctx)
 
 
@@ -43,6 +46,9 @@ def phonopy_run(obj, settings, workdir, dry):
     from hilde.phonopy.workflow import run_phonopy
 
     ctx = PhonopyContext(Settings(settings_file=settings), workdir=workdir)
+
+    if obj.verbose > 0:
+        talk(f"run phonpoy workflow with settings from {settings}\n", prefix=_prefix)
 
     run_phonopy(ctx=ctx, dry=dry)
 

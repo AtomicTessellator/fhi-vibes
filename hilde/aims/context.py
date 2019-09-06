@@ -168,6 +168,11 @@ class AimsContext:
         return setup_aims(self)
 
     @property
+    def calc(self):
+        """return ASE calculator based on this context"""
+        return self.get_calculator()
+
+    @property
     def name(self):
         """The name of the calculation"""
         return self.settings.name

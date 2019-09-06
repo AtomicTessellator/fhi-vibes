@@ -8,8 +8,6 @@ from hilde.helpers import talk
 from hilde.helpers.converters import input2dict, atoms2dict
 from hilde.helpers.restarts import restart
 
-from .setup import setup_aims
-
 
 def run_aims(ctx):
     """ high level function to run aims calculation
@@ -68,7 +66,7 @@ def bootstrap(ctx):
     if not atoms_to_calculate:
         raise RuntimeError("no structures to compute.")
 
-    calc = setup_aims(ctx)
+    calc = ctx.calc
 
     # save metadata
     metadata = input2dict(
