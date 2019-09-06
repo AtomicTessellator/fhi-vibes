@@ -3,10 +3,11 @@
 from pathlib import Path
 import xarray as xr
 from ase.io import read
-from hilde import Settings, son
+from hilde import Settings, son, reader
 from hilde.structure.io import inform
 from hilde.scripts.md_sum import md_sum
 from hilde.scripts.hilde_phonopy import preprocess
+from hilde.trajectory import analysis as al
 
 from .misc import AliasedGroup, click, complete_filenames
 
@@ -47,21 +48,28 @@ def geometry_info(obj, filename, format, symprec, verbose):
 @info.command("md")
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-p", "--plot", is_flag=True, help="plot a summary")
+@click.option("-w", "--write", is_flag=True, help="write Dataset to nc file")
 @click.option("--avg", default=100, help="window size for running avg")
 @click.option("-v", "--verbose", is_flag=True, help="be verbose")
-def md_info(filename, plot, avg, verbose):
+def md_info(filename, plot, write, avg, verbose):
     """inform about content of a settings.in file"""
 
-    if Path(filename).suffix in (".son", ".yaml", ".bz", ".gz", ".log"):
-        md_sum(filename, plot, avg, verbose)
-    elif Path(filename).suffix in (".nc"):
-        from hilde.trajectory import analysis as al
+    file = Path(filename)
 
+    if file.suffix in (".son", ".yaml", ".bz", ".gz"):
+        trajectory = reader(filename)
+        DS = trajectory.dataset
+        if write:
+            trajectory.write(netcdf=True)
+    elif file.suffix in (".nc"):
         DS = xr.load_dataset(filename)
-        click.echo(f"Dataset summary for {filename}:")
-        al.summary(DS, plot=plot, avg=avg)
+    elif file.suffix in (".log"):
+        md_sum(filename, plot, avg, verbose)
     else:
         raise click.FileError(f"File format of {filename} not known.")
+
+    click.echo(f"Dataset summary for {filename}:")
+    al.summary(DS, plot=plot, avg=avg)
 
 
 @info.command("phonopy")

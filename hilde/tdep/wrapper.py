@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
+from ase import Atoms
 from ase.io import read
 
 from hilde.helpers import Timer
@@ -185,59 +186,51 @@ def parse_tdep_remapped_forceconstant(fname="infile.forceconstant", force_remap=
 
 
 def parse_tdep_forceconstant(
-    uc_filename="infile.ucposcar",
-    sc_filename="infile.ssposcar",
-    fc_filename="infile.forceconstant",
-    two_dim=False,
+    fc_filename="infile.forceconstants",
+    primitive="infile.ucposcar",
+    supercell="infile.ssposcar",
+    fortran=True,
+    two_dim=True,
     reduce_fc=True,
     eps=1e-13,
     tol=1e-5,
+    format="vasp",
 ):
     """Parse the the TDEP force constants into the phonopy format
 
-    Parameters
-    ----------
-    uc_filename: str or Path
-        tdep primitive unit cell
-    sc_filename: str or Path
-        tdep supercell
-    fc_filename: str or Path
-        tdep forceconstant file to parse
-    two_dim: bool
-        return in [3*N_sc, 3*N_sc] shape
-    reduce_fc: bool
-        return in [N_prim, N_sc, 3, 3]  shape
-    eps: float
-        finite zero
-    tol: float
-        tolerance to discern pairs
+    Args:
+        fc_filename (Pathlike): phonopy forceconstant file to parse
+        primitive (Atoms or Pathlike): either unitcell as Atoms or where to find it
+        supercell (Atoms or Pathlike): either supercell as Atoms or where to find it
+        two_dim (bool): return in [3*N_sc, 3*N_sc] shape
+        reduce_fc (bool): return in [N_uc, N_sc, 3, 3] shape similar to phonopy
+        eps: finite zero
+        tol: tolerance to discern pairs and wrap
+        format: File format for the input geometries
 
-    Returns
-    -------
-    force_constants: np.ndarray(dtype=float)
-        Force constants in the desire shape. Default: (N_uc, N_sc, 3, 3)
-
-    Raises
-    ------
-    AssertionError
-        If the number of atoms in the force constant file does equal the number of atoms in the unitcell
+    Returns:
+        Force constants in (3*N_sc, 3*N_sc) shape
     """
+    if isinstance(primitive, Atoms):
+        uc = primitive
+    elif Path(primitive).exists():
+        uc = read(primitive, format=format)
+    else:
+        raise RuntimeError("primitive cell missing")
 
-    try:
-        primitive = read(uc_filename, format="vasp")
-        supercell = read(sc_filename, format="vasp")
-    except ValueError:
-        primitive = read(uc_filename, format="aims")
-        supercell = read(sc_filename, format="aims")
+    if isinstance(supercell, Atoms):
+        sc = supercell
+    elif Path(supercell).exists():
+        sc = read(supercell, format=format)
+    else:
+        raise RuntimeError("supercell missing")
 
-    primitive.wrap(eps=tol)
-    supercell.wrap(eps=tol)
-    # primitive.set_scaled_positions(primitive.get_scaled_positions(wrap=True))
-    # supercell.set_scaled_positions(supercell.get_scaled_positions(wrap=True))
-    n_uc = len(primitive)
-    n_sc = len(supercell)
+    uc.wrap(eps=tol)
+    sc.wrap(eps=tol)
+    n_uc = len(uc)
+    n_sc = len(sc)
 
-    force_constants = np.zeros((len(primitive), len(supercell), 3, 3))
+    force_constants = np.zeros((len(uc), len(sc), 3, 3))
 
     with open(fc_filename) as fo:
         n_atoms = int(next(fo).split()[0])
@@ -257,17 +250,17 @@ def parse_tdep_forceconstant(
                 # lattice vector
                 lp = np.array(next(fo).split(), dtype=float)
                 phi = np.array([next(fo).split() for _ in range(3)], dtype=float)
-                r_target = primitive.positions[i2] + np.dot(lp, primitive.cell)
-                for ii, r1 in enumerate(supercell.positions):
+                r_target = uc.positions[i2] + np.dot(lp, uc.cell[:])
+                for ii, r1 in enumerate(sc.positions):
                     r_diff = np.abs(r_target - r1)
-                    sc_temp = supercell.get_cell(complete=True)
+                    sc_temp = sc.get_cell(complete=True)
                     r_diff = np.linalg.solve(sc_temp.T, r_diff.T).T % 1.0
                     r_diff -= np.floor(r_diff + eps)
                     if np.sum(r_diff) < tol:
                         force_constants[i1, ii, :, :] += phi
 
     if not reduce_fc or two_dim:
-        force_constants = remap_force_constants(force_constants, primitive, supercell)
+        force_constants = remap_force_constants(force_constants, uc, sc)
 
     if two_dim:
         return force_constants.swapaxes(2, 1).reshape(2 * (3 * n_sc,))

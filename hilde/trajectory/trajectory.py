@@ -2,6 +2,7 @@
 
 import os
 import shutil
+from pathlib import Path
 
 import numpy as np
 
@@ -14,6 +15,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
 from hilde.helpers.displacements import get_dR
+from hilde.anharmonicity_score import get_forces_harmonic, get_r2_per_sample
 from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al, _prefix
 
 
@@ -40,6 +42,8 @@ class Trajectory(list):
         self._heat_flux = None
         self._avg_heat_flux = None
         self._volume = None
+        self._forces_harmonic = None
+        self._force_constants = None
 
     @classmethod
     def from_file(cls, file):
@@ -151,7 +155,11 @@ class Trajectory(list):
             warn("time unit not found in trajectory metadata, use ase.units.fs")
             fs = units.fs
 
-        return np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
+        try:
+            return np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
+        except KeyError:
+            warn("no time steps found, return time as index", level=1)
+            return np.arange(len(self))
 
     @property
     def timestep(self):
@@ -182,6 +190,39 @@ class Trajectory(list):
     def forces(self):
         """return the forces as [N_t, N_a, 3] array"""
         return np.array([a.get_forces() for a in self])
+
+    @property
+    def force_constants(self):
+        """return force constants"""
+        return self._force_constants
+
+    @force_constants.setter
+    def force_constants(self, fc):
+        """set force constants"""
+        assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
+        self._force_constants = fc
+
+    def set_forces_harmonic(self, force_constants=None):
+        """return harmonic force computed from force_constants"""
+        if force_constants is not None:
+            self.force_constants = force_constants
+
+        timer = Timer("Set harmonic forces")
+        f_ha = get_forces_harmonic
+
+        forces_ha = [f_ha(a, self.supercell, self.force_constants) for a in self]
+        timer()
+
+        self._forces_harmonic = np.array(forces_ha).reshape(self.positions.shape)
+
+    @property
+    def forces_harmonic(self):
+        """return harmonic forces, None if not set via `set_force_constants`"""
+        if self._forces_harmonic is None:
+            if self.force_constants:
+                self.set_forces_harmonic()
+
+        return self._forces_harmonic
 
     @lazy_property
     def kinetic_energy(self):
@@ -251,6 +292,15 @@ class Trajectory(list):
         return self.get_pressure()
 
     @property
+    def r2_per_sample(self):
+        """return r2 per time step"""
+        if self.forces_harmonic is not None:
+            x = self.forces
+            y = self.forces_harmonic
+            r2 = get_r2_per_sample(x, y)
+            return r2
+
+    @lazy_property
     def dataset(self):
         """return data as xarray.Dataset
 
@@ -313,14 +363,23 @@ class Trajectory(list):
 
         timer("velocities and positions cleaned from drift")
 
-    def write(self, file="trajectory.son"):
+    def write(self, file="trajectory.son", netcdf=False):
         """Write to son file
 
         Args:
             file: path to trajecotry son file
+            netcdf: write dataset to netDCF file instead
         """
 
+        if netcdf:
+            file = Path(file).stem + ".nc"
+
         timer = Timer(f"Write trajectory to {file}")
+
+        if netcdf:
+            self.dataset.to_netcdf(file)
+            timer()
+            return True
 
         temp_file = "temp.son"
 

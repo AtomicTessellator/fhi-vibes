@@ -21,7 +21,7 @@ click_completion.init()
 @click.option("--silent", is_flag=True, help="set verbosity level to 0")
 @click.pass_context
 def cli(ctx, verbose, silent):
-    """hilde: lattice dynamics with pyhon"""
+    """hilde: lattice dynamics with python"""
     if verbose:
         verbosity = 2
     elif silent:

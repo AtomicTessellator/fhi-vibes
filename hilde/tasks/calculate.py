@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
-from hilde.helpers import talk
+from hilde.helpers import talk, warn
 from hilde.helpers.utils import Spinner
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
@@ -123,7 +123,7 @@ def calculate_socket(
     """
 
     # create watchdog
-    watchdog = Watchdog(buffer=1)
+    watchdog = Watchdog()
 
     # create working directories
     workdir = Path(workdir).absolute()
@@ -269,9 +269,11 @@ def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
             continue
         if isinstance(nm[key], dict):
             check_metadata(nm[key], om[key], keys=nm[key].keys())
-        if nm[key] != om[key]:
+        if key not in om:
+            warn(f"{key} not in previous metadata. Check?", level=1)
+        elif nm[key] != om[key]:
             msg = f"{key} changed: from {nm[key]} to {om[key]}"
-            raise ValueError(msg)
+            warn(msg, level=1)
 
 
 def fix_emt(atoms, calc):

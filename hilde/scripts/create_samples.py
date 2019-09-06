@@ -71,6 +71,8 @@ def create_samples(
 
     if not seed:
         seed = np.random.randint(2 ** 31)
+        if sobol:
+            seed = np.random.randint(2 ** 16)
 
     if sobol:
         from hilde.helpers.sobol import RandomState
@@ -129,8 +131,13 @@ def create_samples(
         else:
             vd.MaxwellBoltzmannDistribution(sample, **mb_args)
 
+        d = np.ravel(sample.positions - atoms.positions)
+        epot_ha = 0.5 * (fc @ d @ d)
+        epot_ha_temp = epot_ha / u.kB / len(atoms) / 3 * 2
+
+        talk(f".. harmonic potential energy:   {epot_ha:9.3f}eV ({epot_ha_temp:.2f}K)")
+        talk(f".. temperature before cleaning: {sample.get_temperature():9.3f}K")
         talk(f".. remove net momentum from sample and force temperature")
-        talk(f".. temperature before cleaning: {sample.get_temperature():.3f}K")
         vd.force_temperature(sample, temp)
         vd.Stationary(sample)
         vd.ZeroRotation(sample)
@@ -141,7 +148,7 @@ def create_samples(
 
         sample.write(filename, info_str=sample_info_str, velocities=True, format=format)
 
-        talk(f".. temperature in sample {ii}:     {sample.get_temperature():.3f}K")
+        talk(f".. temperature in sample {ii}:     {sample.get_temperature():9.3f}K")
         talk(f".. written to {filename}")
 
 

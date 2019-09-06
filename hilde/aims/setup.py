@@ -4,7 +4,7 @@ from pathlib import Path
 
 # from ase.calculators.aims import Aims
 from ase.calculators.aims import Aims
-from hilde.helpers import talk
+from ._defaults import talk, name
 from hilde.helpers.k_grid import d2k
 from hilde.helpers.warnings import warn
 
@@ -95,25 +95,22 @@ def add_basisset(loc, typ, elem, num, folder, fallback="light"):
         shutil.copy(loc / fallback / rep, folder)
 
 
-def setup_aims(ctx):
+def setup_aims(ctx, verbose=True):
     """Set up an aims calculator.
 
-    Parameters
-    ----------
-    ctx: AimsContext
-        The context for the calculation
+    Args:
+        ctx (AimsContext): The context for the calculation
+        verbose (bool): inform about the calculator details
 
-    Returns
-    -------
-    calc: ase.calculators.calulator.Calculator
-        Calculator object for the calculation
+    Returns:
+        calc: Calculator object for the calculation
     """
 
     settings = ctx.settings
 
     # update k_grid
     if ctx.ref_atoms and "control_kpt" in settings:
-        if not "density" in settings.control_kpt:
+        if "density" not in settings.control_kpt:
             warn("'control_kpt' given, but not kpt density. Check!", level=1)
         else:
             kptdensity = settings.control_kpt.density
@@ -139,6 +136,10 @@ def setup_aims(ctx):
 
     if "k_grid" not in aims_settings:
         talk("No k_grid in aims calculator. Check!")
+
+    talk(f"Calculator: {name}")
+    msg = ["settings:", *[f"  {k}: {v}" for k, v in aims_settings.items()]]
+    talk(msg)
 
     calc = Aims(**aims_settings)
 

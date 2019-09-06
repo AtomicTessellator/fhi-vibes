@@ -3,6 +3,7 @@ import xarray as xr
 
 from ase import units
 from hilde.helpers import warn
+from hilde.helpers.converters import atoms2json
 from hilde.structure.misc import get_sysname
 from .utils import clean_pressure
 from . import Timer
@@ -31,17 +32,17 @@ def _metadata(trajectory, dct=None):
         "volume": trajectory.volume,
         "symbols": trajectory.symbols,
         "masses": trajectory.masses,
-        "flattened reference positions": trajectory.ref_positions.flatten(),
-        "flattened lattice": trajectory.ref_atoms.cell.array.flatten(),
+        "reference atoms": atoms2json(trajectory.ref_atoms),
+        "reference positions": trajectory.ref_positions.flatten(),
     }
 
-    primitive = trajectory.primitive
-    if primitive:
-        prim_attrs = {
-            "flattened primitive positions": primitive.positions.flatten(),
-            "flattened primitive lattice": primitive.cell.array.flatten(),
-        }
+    if trajectory.primitive:
+        prim_attrs = {"reference primitive atoms": atoms2json(trajectory.primitive)}
         attrs.update(prim_attrs)
+
+    if trajectory.force_constants is not None:
+        fc_attrs = {"flattened force_constants": trajectory.force_constants.flatten()}
+        attrs.update(fc_attrs)
 
     if dct and isinstance(dct, dict):
         attrs.update(dct)
@@ -141,6 +142,7 @@ def get_trajectory_data(trajectory):
 
     dataset = {
         "positions": positions,
+        "displacements": (vec_dims, trajectory.displacements),
         "velocities": velocities,
         "forces": (vec_dims, trajectory.forces),
         "kinetic_energy": (time_dims, trajectory.kinetic_energy),
@@ -149,8 +151,14 @@ def get_trajectory_data(trajectory):
         "pressure": pressure,
         "temperature": (time_dims, trajectory.temperatures),
     }
+
     coords = _time_coords(trajectory)
     attrs = _metadata(trajectory)
+
+    if trajectory.forces_harmonic is not None:
+        dataset.update({"forces_harmonic": (vec_dims, trajectory.forces_harmonic)})
+        dataset.update({"r2_per_sample": (time_dims, trajectory.r2_per_sample)})
+        attrs.update({"r2": trajectory.r2_per_sample.mean()})
 
     return xr.Dataset(dataset, coords=coords, attrs=attrs)
 

@@ -1,5 +1,6 @@
 """ hilde defaults for aims"""
 
+from hilde.helpers import talk as _talk
 from hilde.helpers.attribute_dict import AttributeDict as adict
 
 name = "aims"
@@ -19,3 +20,8 @@ defaults = adict(
         "output_level": "MD_light",
     }
 )
+
+
+def talk(msg, verbose=True):
+    """wrapper for helpers.talk with 'aims' prefix"""
+    return _talk(msg, prefix=name, verbose=verbose)

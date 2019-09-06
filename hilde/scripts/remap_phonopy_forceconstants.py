@@ -3,17 +3,16 @@
 import numpy as np
 
 from hilde.helpers import talk
-from hilde.phonopy.utils import parse_phonopy_force_constants
+from hilde.io import parse_force_constants
 
 
-def remap_phonopy_force_constants(
+def remap_force_constants(
+    fc_filename="FORCE_CONSTANTS",
     uc_filename="geometry.primitive",
     sc_filename="geometry.supercell",
-    fc_filename="FORCE_CONSTANTS",
     fortran=True,
     eps=1e-13,
     tol=1e-5,
-    format="aims",
 ):
     """take phonopy FORCE_CONSTANTS and remap to given supercell
 
@@ -33,15 +32,14 @@ def remap_phonopy_force_constants(
         File format for the input geometries
     """
 
-    fc = parse_phonopy_force_constants(
-        fc_filename=fc_filename,
+    fc = parse_force_constants(
+        fc_file=fc_filename,
         primitive=uc_filename,
         supercell=sc_filename,
         fortran=fortran,
         two_dim=True,
         eps=eps,
         tol=tol,
-        format=format,
     )
 
     msg = f"remapped force constants from {fc_filename}, shape [{fc.shape}]"

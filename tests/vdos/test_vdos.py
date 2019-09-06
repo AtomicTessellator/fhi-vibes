@@ -16,10 +16,11 @@ parent = Path(__file__).parent
 def test_parse_force_constants():
     # frequencies from force constants
     fc = parse_tdep_forceconstant(
+        parent / "infile.forceconstant",
         parent / "geometry.in.primitive",
         parent / "geometry.in.supercell",
-        parent / "infile.forceconstant",
         two_dim=True,
+        format="aims",
     )
 
     return fc
