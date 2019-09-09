@@ -204,3 +204,55 @@ def pick_sample(filename, number, cartesian):
     atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
 
     click.echo(f".. sample written to {outfile}")
+
+
+@utils.command(cls=AliasedGroup)
+def harmonicity():
+    """utils for quantifying harmonicity"""
+    ...
+
+
+@harmonicity.command("r2")
+@click.argument("filenames", type=complete_filenames, nargs=-1)
+@click.option("-o", "--outfile", default="r2.csv", show_default=True)
+@click.option("--quiet", is_flag=True)
+def compute_r2(filenames, outfile, quiet):
+    """Compute r2 and some statistics"""
+
+    import pandas as pd
+    import xarray as xr
+    from hilde.anharmonicity_score import get_r, get_r2_per_sample, get_r2_MAE
+
+    click.echo(f"Compute harmonicity score for {len(filenames)} materials:")
+
+    dct = {}
+    for filename in filenames:
+        click.echo(f" parse {filename}")
+
+        DS = xr.open_dataset(filename)
+
+        f = DS.forces
+        fh = DS.forces_harmonic
+
+        r = get_r(f, fh)
+        r2s = get_r2_per_sample(f, fh)
+        r2a = get_r2_MAE(f, fh)
+
+        name = DS.attrs["System Name"]
+        dct[name] = {
+            "r": r,
+            "r2 (RMS)": r2s.mean(),
+            "r2 (RMA)": 1 - (1 - r2a) ** 2,
+            "fa (MSE)": (1 - r2s.mean()) ** 0.5,
+            "fa (MAE)": 1 - r2a,
+        }
+
+    df = pd.DataFrame(dct).T
+    if not quiet:
+        click.echo("\nDataFrame:")
+        click.echo(df)
+        click.echo("\nDataFrame.describe():")
+        click.echo(df.describe())
+
+    df.to_csv(outfile, index_label="material")
+    click.echo(f"\n.. Dataframe written to {outfile}")
