@@ -126,6 +126,30 @@ def get_r2_per_atom(
     return ret
 
 
+def get_r2_MAE(in_f_data, in_f_model):
+    r"""Calculate  1 - MAE/MA
+
+    Args:
+        in_f_data: input data
+        in_f_model: input model data
+
+    Returns:
+        float: Coefficient of Determination
+    """
+
+    f_data = np.ravel(in_f_data)
+    f_model = np.ravel(in_f_model)
+
+    _check_shape(f_data, f_model)
+
+    Sres = np.mean(abs(f_data - f_model))
+    Stot = np.mean(abs(f_data))
+
+    MAE = Sres / Stot
+
+    return 1 - MAE
+
+
 def get_forces_from_trajectory(trajectory, ref_structure=None, force_constants=None):
     """get forces from trajectory, consider to use `trajectory.set_forces_harmonic`
 
