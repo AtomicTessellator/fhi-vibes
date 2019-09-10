@@ -2,19 +2,25 @@ import numpy as np
 from numpy import cos, sin
 
 
-def get_sysname(atoms, spacegroup=None, empirical=True):
+def get_sysname(atoms, spacegroup=None, empirical=True, metal=True):
     """ Get name of the system
 
     Args:
         atoms (ase.atoms.Atoms): The structure to name
         spacegroup (int): The space group of atoms to attach to the name
         empirical (bool): return empirical name (remove duplicitiy)
+        metal (bool): use `mode='metal'` instead of `'hill'` to put metal elements first
 
     Returns:
         str: The name of atoms
     """
 
-    chemical_formula = atoms.get_chemical_formula(empirical=empirical)
+    if metal:
+        mode = "metal"
+    else:
+        mode = "hill"
+
+    chemical_formula = atoms.get_chemical_formula(mode=mode, empirical=empirical)
 
     if spacegroup is None and hasattr(atoms, "spacegroup"):
         spacegroup = atoms.spacegroup
