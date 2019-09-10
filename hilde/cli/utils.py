@@ -254,5 +254,5 @@ def compute_r2(filenames, outfile, quiet):
         click.echo("\nDataFrame.describe():")
         click.echo(df.describe())
 
-    df.to_csv(outfile, index_label="material")
+    df.to_csv(outfile, index_label="material", float_format="%15.12e")
     click.echo(f"\n.. Dataframe written to {outfile}")
