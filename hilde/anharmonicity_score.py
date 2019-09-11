@@ -6,6 +6,16 @@ from hilde.helpers.displacements import get_dR
 from hilde.spglib.wrapper import get_symmetry_dataset
 
 
+def _check_shape(f1, f2):
+    """check if sizes of input data are compatible"""
+
+    assert np.shape(f1) == np.shape(f2), (
+        "Check shape of input arrays!: ",
+        f1.shape,
+        f2.shape,
+    )
+
+
 def get_r(in_f_data, in_f_model):
     r"""Calculate Pearson coefficient between f_data and f_model
 
