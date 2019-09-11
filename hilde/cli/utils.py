@@ -216,9 +216,11 @@ def harmonicity():
 @click.argument("filenames", type=complete_filenames, nargs=-1)
 @click.option("-o", "--outfile", default="r2.csv", show_default=True)
 @click.option("--quiet", is_flag=True)
-def compute_r2(filenames, outfile, quiet):
+@click.option("--pick", type=int, help="pick one sample")
+def compute_r2(filenames, outfile, quiet, pick):
     """Compute r2 and some statistics"""
 
+    from pathlib import Path
     import pandas as pd
     import xarray as xr
     from hilde.anharmonicity_score import get_r, get_r2_per_sample, get_r2_MAE
@@ -233,6 +235,13 @@ def compute_r2(filenames, outfile, quiet):
 
         f = DS.forces
         fh = DS.forces_harmonic
+
+        if pick is not None:
+            f = DS.forces[pick]
+            fh = DS.forces_harmonic[pick]
+        else:
+            f = DS.forces
+            fh = DS.forces_harmonic
 
         r = get_r(f, fh)
         r2s = get_r2_per_sample(f, fh)
@@ -254,5 +263,6 @@ def compute_r2(filenames, outfile, quiet):
         click.echo("\nDataFrame.describe():")
         click.echo(df.describe())
 
-    df.to_csv(outfile, index_label="material", float_format="%15.12e")
-    click.echo(f"\n.. Dataframe written to {outfile}")
+    if Path(outfile).exists() and input(f"{outfile} exists, overwrite? (Y/n) ") == "Y":
+        df.to_csv(outfile, index_label="material", float_format="%15.12e")
+        click.echo(f"\n.. Dataframe written to {outfile}")
