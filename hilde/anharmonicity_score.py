@@ -33,7 +33,7 @@ def get_r(in_f_data, in_f_model):
     f_data = np.ravel(in_f_data)
     f_model = np.ravel(in_f_model)
 
-    assert f_data.shape == f_model.shape, "Check shape of input arrays!"
+    _check_shape(f_data, f_model)
 
     f_data_mean = np.mean(f_data, axis=0)
     f_model_mean = np.mean(f_model, axis=0)
@@ -61,11 +61,7 @@ def get_r2(in_f_data, in_f_model):
     f_data = np.ravel(in_f_data)
     f_model = np.ravel(in_f_model)
 
-    assert f_data.shape == f_model.shape, (
-        "Check shape of input arrays!: ",
-        f_data.shape,
-        f_model.shape,
-    )
+    _check_shape(f_data, f_model)
 
     f_data_mean = np.mean(f_data, axis=0)
     Sres = (f_data - f_model) @ (f_data - f_model)
