@@ -1,5 +1,6 @@
 """hilde CLI utils"""
 
+from pathlib import Path
 from hilde.scripts.refine_geometry import refine_geometry
 from hilde.scripts.make_supercell import make_supercell
 from hilde.scripts.create_samples import create_samples
@@ -214,7 +215,7 @@ def harmonicity():
 
 @harmonicity.command("r2")
 @click.argument("filenames", type=complete_filenames, nargs=-1)
-@click.option("-o", "--outfile", default="r2.csv", show_default=True)
+@click.option("-o", "--outfile", help="Save dataframe to csv")
 @click.option("--quiet", is_flag=True)
 @click.option("--pick", type=int, help="pick one sample")
 def compute_r2(filenames, outfile, quiet, pick):
@@ -263,6 +264,51 @@ def compute_r2(filenames, outfile, quiet, pick):
         click.echo("\nDataFrame.describe():")
         click.echo(df.describe())
 
-    if Path(outfile).exists() and input(f"{outfile} exists, overwrite? (Y/n) ") == "Y":
-        df.to_csv(outfile, index_label="material", float_format="%15.12e")
-        click.echo(f"\n.. Dataframe written to {outfile}")
+    if outfile is not None:
+        inp = f"{outfile} exists, overwrite? (Y/n) "
+        if Path(outfile).exists() and input(inp) == "Y":
+            df.to_csv(outfile, index_label="material", float_format="%15.12e")
+            click.echo(f"\n.. Dataframe written to {outfile}")
+
+
+@utils.command(cls=AliasedGroup)
+def hdf5():
+    """utils for working with hdf5 files and pandas"""
+    ...
+
+
+@hdf5.command("describe")
+@click.argument("file", type=complete_filenames)
+@click.option("-v", "--verbose", is_flag=True)
+def show_hdf5_file(file, verbose):
+    """show contents of HDF5 FILE"""
+    import pandas as pd
+
+    click.echo(f"Summarize file {file}")
+    with pd.HDFStore(file) as store:
+        click.echo("Keys:")
+        for k in store:
+            click.echo(f"  {k}")
+
+        if verbose:
+            click.echo()
+            for k in store:
+                click.echo(f"Describe {k}")
+                click.echo(store[k].describe())
+
+
+@hdf5.command("join")
+@click.argument("files", nargs=-1, type=complete_filenames)
+@click.option("-o", "--outfile", default="data.h5", show_default=True)
+def join_hdf5(files, outfile):
+    """join csv containing pandas.DataFrames to one hdf5 store"""
+    import pandas as pd
+
+    click.echo(f"Join files {files}")
+
+    with pd.HDFStore(outfile) as store:
+        for file in files:
+            click.echo(f'.. append {file} to {outfile}')
+            df = pd.read_csv(file)
+            key = Path(file).stem.replace(".", "_")
+            store[key] = df
