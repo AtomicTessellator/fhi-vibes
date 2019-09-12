@@ -29,28 +29,17 @@ def create_samples(
 ):
     """create samples for Monte Carlo sampling
 
-    Parameters
-    ----------
-    geometry: str
-        The input geometry file
-    temperature: float
-        The temperature in Kelvin
-    n_samples: int
-        The number of samples to create (default: 1)
-    force_constants: str
-        The filename of the file holding force constants for phonon rattle
-    mc_rattle: bool
-        If True use hiphive mc rattle
-    quantum: bool
-        If True use Bose-Einstein distribution instead of Maxwell-Boltzmann
-    deterministic: bool
-        If True create sample deterministically
-    sobol: bool
-        Use sobol numbers for the sampling
-    random_seed: int
-        The seed the random number generator
-    format: str
-        The ASE file format for geometry files
+    Args:
+        geometry: input geometry file
+        temperature: temperature in Kelvin
+        n_samples: number of samples to create (default: 1)
+        force_constants: filename of the file holding force constants for phonon rattle
+        mc_rattle: hiphive mc rattle
+        quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
+        deterministic: create sample deterministically
+        sobol: Use sobol numbers for the sampling
+        random_seed: seed for random number generator
+        format: The ASE file format for geometry files
     """
 
     atoms = read(geometry, format=format)
@@ -135,14 +124,18 @@ def create_samples(
         epot_ha = 0.5 * (fc @ d @ d)
         epot_ha_temp = epot_ha / u.kB / len(atoms) / 3 * 2
 
-        talk(f".. harmonic potential energy:   {epot_ha:9.3f}eV ({epot_ha_temp:.2f}K)")
+        ha_epot_str = f"{epot_ha:9.3f}eV ({epot_ha_temp:.2f}K)"
+
+        sample_info_str = info_str + [f"Harmonic E_pot:    {ha_epot_str}"]
+
+        talk(f".. harmonic potential energy:   {ha_epot_str})")
         talk(f".. temperature before cleaning: {sample.get_temperature():9.3f}K")
         talk(f".. remove net momentum from sample and force temperature")
         vd.force_temperature(sample, temp)
         vd.Stationary(sample)
         vd.ZeroRotation(sample)
 
-        filename = f"{geometry}.{int(temp)}K"
+        filename = f"{geometry}.{int(temp):04d}K"
         if n_samples > 1:
             filename += f".{ii:03d}"
 
