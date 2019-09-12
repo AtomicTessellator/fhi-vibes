@@ -10,12 +10,9 @@ from hilde.helpers.utils import Spinner
 from hilde.helpers.compression import backup_folder as backup
 from hilde.helpers.socketio import get_port
 from hilde.helpers.watchdogs import SlurmWatchdog as Watchdog
-from hilde.trajectory import (
-    get_hashes_from_trajectory,
-    hash_atoms,
-    metadata2file,
-    step2file,
-)
+from hilde.helpers.hash import hash_atoms
+from hilde.helpers.lists import expand_list
+from hilde.trajectory import get_hashes_from_trajectory, metadata2file, step2file
 
 from hilde.son import son
 
@@ -260,9 +257,9 @@ def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
     if "atoms" in new_metadata:
         new_atoms = new_metadata["atoms"]
         old_atoms = old_metadata["atoms"]
-        if new_atoms["symbols"] != old_atoms["symbols"]:
-            msg = f"Compare Structures:\n{new_atoms}\n{old_atoms}"
-            raise RuntimeError(msg)
+        s1 = expand_list(new_atoms["symbols"])
+        s2 = expand_list(old_atoms["symbols"])
+        assert s1 == s2, ("symbols changed:", s1, s2)
 
     for key in keys:
         if key == "walltime":
