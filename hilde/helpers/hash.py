@@ -66,6 +66,8 @@ def hash_dict(dct, velocities=False):
 
     dct = dct.copy()
 
+    dct.pop("info", None)
+
     # legacy: check for species_dir
     k1 = "calculator_parameters"
     k2 = "species_dir"

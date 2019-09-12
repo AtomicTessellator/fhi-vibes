@@ -62,9 +62,6 @@ def atoms2dict(atoms):
 
     atoms_dict = {}
 
-    atoms.info["hash"] = hash_dict(atoms_dict)
-    atoms_dict.update({"info": atoms.info})
-
     # if periodic system, append lattice (before positions)
     if any(atoms.pbc):
         atoms_dict.update({"cell": atoms.cell.tolist()})
@@ -81,6 +78,9 @@ def atoms2dict(atoms):
             key_masses: reduce_list(atoms.get_masses()),
         }
     )
+
+    atoms.info["hash"] = hash_dict(atoms_dict)
+    atoms_dict.update({"info": atoms.info})
 
     return atoms_dict
 

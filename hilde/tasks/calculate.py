@@ -284,14 +284,15 @@ def fix_emt(atoms, calc):
 
 def check_precomputed_hashes(atoms, precomputed_hashes, index):
     """check if atoms was computed before"""
+    hash = hash_atoms(atoms)
     try:
-        if hash_atoms(atoms) == precomputed_hashes[index]:
-            talk(f"Structure {index + 1} already computed, skip.")
-            return True
+        pre_hash = precomputed_hashes[index]
     except IndexError:
-        pass
+        return False
 
-    return False
+    if hash == pre_hash:
+        talk(f"Structure {index + 1} already computed, skip.")
+        return True
 
 
 def check_cell(atoms, new_atoms):
