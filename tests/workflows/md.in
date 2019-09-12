@@ -17,8 +17,7 @@ driver =      Langevin
 timestep =    1
 temperature = 300
 friction =    0.02
-maxsteps =    11
-compute_stresses = 2
+maxsteps =    2
 workdir =     md_test
 
 [restart]

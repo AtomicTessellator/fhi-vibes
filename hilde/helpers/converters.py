@@ -12,7 +12,10 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import voigt_6_to_full_3x3_stress
 
 from hilde.konstanten.io import n_yaml_digits
-from hilde.helpers import list_dim
+from hilde.helpers.lists import list_dim, expand_list, reduce_list
+
+key_symbols = "symbols"
+key_masses = "masses"
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -55,11 +58,12 @@ def atoms2dict(atoms):
     atoms_dict: dict
         The dict representation of atoms
     """
+    from .hash import hash_dict
 
-    atoms_dict = {
-        "symbols": [f"{sym}" for sym in atoms.symbols],
-        "masses": atoms.get_masses().tolist(),
-    }
+    atoms_dict = {}
+
+    atoms.info["hash"] = hash_dict(atoms_dict)
+    atoms_dict.update({"info": atoms.info})
 
     # if periodic system, append lattice (before positions)
     if any(atoms.pbc):
@@ -70,8 +74,13 @@ def atoms2dict(atoms):
     if atoms.get_velocities() is not None:
         atoms_dict.update({"velocities": atoms.get_velocities().tolist()})
 
-    if atoms.info != {}:
-        atoms_dict.update({"info": atoms.info})
+    # append symbols and masses
+    atoms_dict.update(
+        {
+            key_symbols: reduce_list(atoms.get_chemical_symbols()),
+            key_masses: reduce_list(atoms.get_masses()),
+        }
+    )
 
     return atoms_dict
 
@@ -166,49 +175,26 @@ def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
     return input_dict
 
 
-def results2dict(atoms, calc=None, append_cell=False):
+def results2dict(atoms, calc=None):
     """extract information from atoms and calculator and convert to plain dict
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        The structure to be converted to a dict
-    calc: ase.calculators.calulator.Calculator
-        The calculator to be converted to a dict
-    append_cell: bool
-        If True append the cell in atoms_dict
+    Args:
+        atoms: The structure to be converted to a dict
+        calc: The calculator to be converted to a dict
 
-    Returns
-    -------
-    dict
-        The dictionary items
-
-        calculator: dict
-            The calc_dict of the inputs
-        atoms: dict
-            The atoms_dict of the inputs
+    Returns:
+        dict: dictionary with items
+            calculator: calc_dict of the inputs
+            atoms: atoms_dict of the inputs
     """
 
-    if calc is None:
-        calc = atoms.calc
-
-    if atoms.info:
-        atoms_dict = {"info": atoms.info}
-    else:
-        atoms_dict = {}
-
-    # if periodic system, append lattice
-    if append_cell and any(atoms.pbc):
-        atoms_dict.update({"cell": atoms.cell.tolist()})
-
-    # add positions
-    atoms_dict.update({"positions": atoms.positions.tolist()})
-
-    if atoms.get_velocities() is not None:
-        atoms_dict.update({"velocities": atoms.get_velocities().tolist()})
+    atoms_dict = atoms2dict(atoms)
 
     # calculated values
     calc_dict = {}
+
+    if calc is None:
+        calc = atoms.calc
 
     # convert stress to 3x3 if present
     if "stress" in calc.results:
@@ -255,6 +241,12 @@ def dict2atoms(atoms_dict, calc_dict=None):
         velocities = atoms_dict.pop("velocities")
     except KeyError:
         velocities = None
+
+    if key_masses in atoms_dict:
+        atoms_dict[key_masses] = expand_list(atoms_dict[key_masses])
+    if key_symbols in atoms_dict:
+        atoms_dict[key_symbols] = expand_list(atoms_dict[key_symbols])
+
     atoms = Atoms(**atoms_dict, pbc=pbc)
 
     if velocities is not None:
