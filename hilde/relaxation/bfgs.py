@@ -84,7 +84,7 @@ def relax(
 
         for _, converged in enumerate(opt.irun(fmax=fmax, steps=maxsteps)):
             atoms.info.update({"nsteps": opt.nsteps})
-            step2file(atoms, atoms.calc, trajectory, append_cell=unit_cell)
+            step2file(atoms, atoms.calc, trajectory)
             if watchdog():
                 break
 

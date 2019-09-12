@@ -4,7 +4,6 @@ from json import dumps
 from pathlib import Path
 from configparser import ConfigParser
 from hashlib import sha1 as hash_sha
-from .converters import atoms2dict, atoms_calc2json, get_json, dict2json
 
 
 def hashfunc(string, empty_str="", digest=True):
@@ -31,30 +30,56 @@ def hashfunc(string, empty_str="", digest=True):
     return hash_sha(string.encode("utf8"))
 
 
-def hash_atoms(atoms):
+def hash_atoms(atoms, velocities=False):
     """hash the atoms object as it would be written to trajectory
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        Atoms to has
+    Args:
+        atoms: Atoms to hash
+        velocities: hash velocities as well
 
-    Returns
-    -------
-    atoms_hash: str
-        The hash of the atoms Object
+    Returns:
+        atoms_hash: The hash of the atoms Object
     """
+    from .converters import atoms2dict
+
     a = atoms.copy()
     a.info = {}
 
-    if "momenta" in a.arrays:
-        del a.arrays["momenta"]
-
-    rep = dict2json(atoms2dict(a))
-
-    atoms_hash = hashfunc(rep)
+    atoms_hash = hash_dict(atoms2dict(a), velocities=velocities)
 
     return atoms_hash
+
+
+def hash_dict(dct, velocities=False):
+    """hash a dictionary as it would be written to trajectory
+
+    Replace full `species_dir` by only the last bit
+
+    Args:
+        dct: dictionary to hash
+        velocities: hash velocities
+
+    Returns:
+        hash: The hash of the dictionary
+    """
+    from .converters import dict2json
+
+    dct = dct.copy()
+
+    # legacy: check for species_dir
+    k1 = "calculator_parameters"
+    k2 = "species_dir"
+    if k1 in dct:
+        if k2 in dct[k2]:
+            dct[k1][k2] = Path(dct[k1][k2]).parts[-1]
+
+    if not velocities:
+        dct.pop("velocities", None)
+
+    rep = dict2json(dct)
+    hash = hashfunc(rep)
+
+    return hash
 
 
 def hash_atoms_and_calc(
@@ -86,6 +111,7 @@ def hash_atoms_and_calc(
     calchash: str
         hash of atoms.calc
     """
+    from .converters import atoms_calc2json
 
     if ignore_file is not None:
         fil = Path(ignore_file)
@@ -127,31 +153,10 @@ def hash_traj(calculated_atoms, metadata, hash_meta=False):
     metahash: str
         hash of the metadata
     """
+    from .converters import atoms_calc2json
 
     calculated_atoms_dct = [atoms_calc2json(at) for at in calculated_atoms]
     dct = dict(metadata, calculated_atoms=calculated_atoms_dct)
     if hash_meta:
         return hashfunc(dumps(dct)), hashfunc(dumps(metadata))
     return hashfunc(dumps(dct))
-
-
-def hash_dict(dct):
-    """hash a dictionary and check if for species_dir is a key, if so remove it
-
-    Parameters
-    ----------
-    dct: dict
-        Dictionary to hash
-
-    Returns
-    -------
-    str
-        hash of the dictionary
-    """
-    if "calculator_parameters" in dct:
-        if "species_dir" in dct["calculator_parameters"]:
-            dct["calculator_parameters"]["species_dir"] = Path(
-                dct["calculator_parameters"]["species_dir"]
-            ).parts[-1]
-
-    return hashfunc(get_json(dct))

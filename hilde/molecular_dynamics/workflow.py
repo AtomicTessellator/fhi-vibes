@@ -114,7 +114,7 @@ def run(ctx, backup_folder="backups"):
                 stresses = get_stresses(atoms)
                 atoms.calc.results["stresses"] = stresses
 
-            step2file(atoms, file=trajectory, metadata=meta, append_cell=False)
+            step2file(atoms, file=trajectory, metadata=meta)
 
         while not watchdog() and md.nsteps < maxsteps:
 
@@ -130,7 +130,7 @@ def run(ctx, backup_folder="backups"):
             # peek into aims file and grep for uuid
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
             meta = get_aims_uuid_dict()
-            step2file(atoms, atoms.calc, trajectory, metadata=meta, append_cell=False)
+            step2file(atoms, atoms.calc, trajectory, metadata=meta)
 
             if compute_stresses:
                 if compute_stresses_next(compute_stresses, md.nsteps):

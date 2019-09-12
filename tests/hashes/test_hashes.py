@@ -25,7 +25,7 @@ def test_hash(atoms=atoms):
 
     _, calchash = hash_atoms_and_calc(atoms, ignore_file=config_file)
 
-    assert atomshash == "065d7dc8cde297d3691a7b776177780662acdc4c", atomshash
+    assert atomshash == "5a21662c8bb81819cb73e9046d74f92c01072b72", atomshash
     assert calchash == "d228b55e927f4f10e15f79feb9b3bf81f997ab7e", calchash
 
     Path("geometry.in").unlink()

@@ -13,14 +13,13 @@ from hilde.helpers.utils import progressbar
 from hilde.trajectory.trajectory import Trajectory
 
 
-def step2file(atoms, calc=None, file="trajectory.son", append_cell=True, metadata={}):
+def step2file(atoms, calc=None, file="trajectory.son", metadata={}):
     """Save the current step
 
     Args:
         atoms: The structure at the current step
         calc: The ASE Calculator for the current run
         file: Path to file to append the current step to
-        append_cell: If True add cell to the calculation
         metadata: the metadata for the calculation, store to atoms.info if possible
     """
 
@@ -35,7 +34,7 @@ def step2file(atoms, calc=None, file="trajectory.son", append_cell=True, metadat
                 atoms.info.update({"metadata": metadata})
                 break
 
-    dct.update(results2dict(atoms, calc, append_cell))
+    dct.update(results2dict(atoms, calc))
 
     son.dump(dct, file, dumper=dumper)
 
