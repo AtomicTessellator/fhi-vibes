@@ -267,8 +267,9 @@ def compute_r2(filenames, outfile, quiet, pick):
     if outfile is not None:
         inp = f"{outfile} exists, overwrite? (Y/n) "
         if Path(outfile).exists() and input(inp) == "Y":
-            df.to_csv(outfile, index_label="material", float_format="%15.12e")
-            click.echo(f"\n.. Dataframe written to {outfile}")
+            return
+        df.to_csv(outfile, index_label="material", float_format="%15.12e")
+        click.echo(f"\n.. Dataframe written to {outfile}")
 
 
 @utils.command(cls=AliasedGroup)
