@@ -59,6 +59,7 @@ def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile)
 @click.option("-od", "--output_directory")
 @click.option("-bs", "--bandstructure", is_flag=True)
 @click.option("-dos", "--density_of_states", is_flag=True)
+@click.option("-debye", "--debye_temperature", is_flag=True)
 @click.option("-pdos", "--projected_density_of_states", is_flag=True)
 @click.option("-tp", "--thermal_properties", is_flag=True)
 @click.option("--animate", is_flag=True, help="print animation files for special kpts")
@@ -76,6 +77,7 @@ def phonopy_output(
     output_directory,
     bandstructure,
     density_of_states,
+    debye_temperature,
     projected_density_of_states,
     thermal_properties,
     animate,
@@ -106,6 +108,7 @@ def phonopy_output(
         "write_thermal_properties": thermal_properties or full,
         "write_bandstructure": bandstructure or full,
         "write_dos": density_of_states or full,
+        "write_debye": debye_temperature or full,
         "write_pdos": projected_density_of_states,
         "plot_bandstructure": bandstructure or full,
         "plot_thermal_properties": thermal_properties or full,

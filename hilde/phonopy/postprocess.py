@@ -1,8 +1,12 @@
 """ Provide a full highlevel phonopy workflow """
 from pathlib import Path
 
+import numpy as np
+
+from ase.dft.kpoints import get_cellinfo
 from phonopy.file_IO import write_FORCE_CONSTANTS
 
+from hilde import konstanten as const
 from hilde.helpers.brillouinzone import get_special_points
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers.paths import cwd
@@ -101,6 +105,7 @@ def extract_results(
     write_bandstructure=False,
     write_dos=False,
     write_pdos=False,
+    write_debye=False,
     plot_bandstructure=True,
     plot_thermal_properties=False,
     plot_dos=False,
@@ -200,12 +205,16 @@ def extract_results(
             talk(f".. write band structure yaml file")
             wrapper.set_bandstructure(phonon)
             phonon.write_yaml_band_structure()
-
-        if write_dos:
+        if write_dos or write_debye:
             talk(f".. write DOS")
             phonon.run_mesh(q_mesh, with_eigenvectors=True)
             phonon.run_total_dos(use_tetrahedron_method=True)
             phonon.write_total_dos()
+            phonon.set_Debye_frequency()
+            debye_temp = phonon.get_Debye_frequency() * const.THzToEv / const.kB
+            with open("debye.dat", "w") as f:
+                f.write(str(debye_temp))
+            talk(f".. Debye temperature: {debye_temp:.2f}K written to file.")
         if plot_dos:
             talk(f".. plot DOS")
             wrapper.plot_bandstructure_and_dos(phonon, file="bands_and_dos.pdf")
@@ -242,7 +251,7 @@ def extract_results(
         write_settings = {"format": "vasp", "direct": True, "vasp5": True}
         fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
 
-        # reproduce reduces force constants
+        # reproduce reduced force constants
         if tdep_reduce_fc:
             phonon.produce_force_constants(calculate_full_force_constants=False)
 
@@ -255,6 +264,17 @@ def extract_results(
             talk(f"Supercell cell written to {fname}")
 
     timer(f"all files written to {output_dir}")
+
+    # check negative frequencies:
+    special_points = get_cellinfo(primitive.cell).special_points
+    for k in special_points:
+        sp = special_points[k]
+        f = phonon.get_frequencies(sp)
+        if any(f < 0):
+            warn(f"Negative frequencies found at {k} = {sp}:")
+            print("# Mode   Frequency")
+            for ii, fi in enumerate(f[f < 0]):
+                print(f"  {ii+1:3d} {fi:12.7f} THz")
 
     if verbose:
         talk("\nFrequencies at Gamma point:")
