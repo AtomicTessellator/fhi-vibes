@@ -1,8 +1,6 @@
 """ Provide a full highlevel phonopy workflow """
 from pathlib import Path
 
-import numpy as np
-
 from ase.dft.kpoints import get_cellinfo
 from phonopy.file_IO import write_FORCE_CONSTANTS
 
@@ -270,11 +268,11 @@ def extract_results(
     for k in special_points:
         sp = special_points[k]
         f = phonon.get_frequencies(sp)
-        if any(f < 0):
+        if any(f < 1e-8):
             warn(f"Negative frequencies found at {k} = {sp}:")
             print("# Mode   Frequency")
             for ii, fi in enumerate(f[f < 0]):
-                print(f"  {ii+1:3d} {fi:12.7f} THz")
+                print(f"  {ii+1:3d} {fi:12.5e} THz")
 
     if verbose:
         talk("\nFrequencies at Gamma point:")
