@@ -14,6 +14,8 @@ from hilde.phonopy._defaults import displacement_id_str
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.supercell.supercell import supercell as fort
 
+_prefix = 'phonopy.utils'
+
 
 def last_calculation_id(trajectory):
     """Return the id of the last computed supercell
@@ -261,7 +263,7 @@ def remap_force_constants(
         The remapped force constants
 
     """
-    timer = Timer("remap force constants")
+    timer = Timer("remap force constants", prefix=_prefix)
 
     if new_supercell is None:
         new_supercell = supercell.copy()
@@ -298,7 +300,7 @@ def remap_force_constants(
         map2prim.append(np.where(np.linalg.norm(diff, axis=1) < tol)[0][0])
 
     if fortran:
-        talk(".. use fortran", prefix="utils")
+        talk(".. use fortran", prefix=_prefix)
         fc_out = fort.remap_force_constants(
             positions=new_supercell.positions,
             pairs=sc_r,

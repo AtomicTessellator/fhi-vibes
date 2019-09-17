@@ -129,7 +129,6 @@ def extract_results(
     q_mesh=None,
     output_dir="phonopy_output",
     tdep=False,
-    tdep_reduce_fc=True,
     remap_fc=False,
     verbose=False,
 ):
@@ -169,8 +168,6 @@ def extract_results(
         Directory to store output files
     tdep: bool
         If True the necessary input files for TDEP's `convert_phonopy_to_forceconstant` are written.
-    tdep_reduce_fc: bool
-        If True reduce force_constants to match tdep's format
     """
 
     timer = Timer("\nExtract phonopy results:")
@@ -261,19 +258,19 @@ def extract_results(
             wrapper.get_animation(phonon, val, outfile)
             talk(f".. {outfile} written")
 
-    if tdep:
-        write_settings = {"format": "vasp", "direct": True, "vasp5": True}
-        fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
+        if tdep:
+            #with cwd(".", mkdir=True):
+            write_settings = {"format": "vasp", "direct": True, "vasp5": True}
+            # fc_path = Path("FORCE_CONSTANTS")
+            # if fc_path.exists():
+            #     fc_path.unlink()
+            # fc_path.symlink_to("../FORCE_CONSTANTS")
 
-        # reproduce reduced force constants
-        if tdep_reduce_fc:
-            phonon.produce_force_constants(calculate_full_force_constants=False)
-
-            fname = fnames["primitive"]
+            fname = _tdep_fnames["primitive"]
             primitive.write(fname, **write_settings)
             talk(f"Primitive cell written to {fname}")
 
-            fname = fnames["supercell"]
+            fname = _tdep_fnames["supercell"]
             supercell.write(fname, **write_settings)
             talk(f"Supercell cell written to {fname}")
 

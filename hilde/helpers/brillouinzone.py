@@ -20,7 +20,10 @@ def get_paths(atoms):
 
     """
     cellinfo = kpoints.get_cellinfo(atoms.cell)
-    paths = kpoints.special_paths[cellinfo.lattice].split(",")
+    if cellinfo.lattice == "fcc":
+        paths = ["GXU", "KGL"]
+    else:
+        paths = kpoints.special_paths[cellinfo.lattice].split(",")
     return paths
 
 
