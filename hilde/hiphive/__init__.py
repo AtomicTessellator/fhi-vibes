@@ -21,7 +21,7 @@ def Timer(msg=None):
     return _Timer(message=msg, prefix=_prefix)
 
 
-def enforce_rotational_sum_rules(phonon):
+def enforce_rotational_sum_rules(phonon, only_project=False):
     """enforce the rotational sum rules on phonopy object
 
     Reference:
@@ -54,12 +54,15 @@ def enforce_rotational_sum_rules(phonon):
     # talk(f"Use fit method `{kw}`")
     parameters = extract_parameters(fcs, cs)  # , **kw)
 
-    # Apply sum rules
-    sum_rules = ["Huang", "Born-Huang"]
-    msg = f"Enforce {sum_rules} via `hiphive.enforce_rotational_sum_rules`"
-    timer = Timer(msg)
-    parameters_rot = _enfore_sum_rules(cs, parameters, sum_rules)
-    timer()
+    if only_project:
+        parameters_rot = parameters
+    else:
+        # Apply sum rules
+        sum_rules = ["Huang", "Born-Huang"]
+        msg = f"Enforce {sum_rules} via `hiphive.enforce_rotational_sum_rules`"
+        timer = Timer(msg)
+        parameters_rot = _enfore_sum_rules(cs, parameters, sum_rules)
+        timer()
 
     # create new ForceConstantPotential
     fcp_rot = ForceConstantPotential(cs, parameters_rot)

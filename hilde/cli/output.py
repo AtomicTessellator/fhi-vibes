@@ -123,7 +123,6 @@ def phonopy_output(
         "plot_pdos": projected_density_of_states,
         "q_mesh": q_mesh,
         "output_dir": output_directory,
-        # "tdep": tdep,
         "animate": animate or full,
         "animate_q": animate_q,
         "remap_fc": remap_fc,

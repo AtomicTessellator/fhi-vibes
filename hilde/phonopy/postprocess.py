@@ -35,7 +35,7 @@ def postprocess(
     workdir=".",
     calculate_full_force_constants=False,
     born_charges_file=None,
-    enforce_sum_rules=True,
+    enforce_sum_rules=False,
     verbose=True,
     **kwargs,
 ):
@@ -92,7 +92,7 @@ def postprocess(
 
     if enforce_sum_rules:
         timer = Timer("Enforce rotational sum rules with hiphive")
-        enforce_rotational_sum_rules(phonon)
+        enforce_rotational_sum_rules(phonon, only_project=True)
         timer()
 
     # born charges?
