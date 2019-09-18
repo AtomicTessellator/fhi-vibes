@@ -120,15 +120,16 @@ def create_samples(
         else:
             vd.MaxwellBoltzmannDistribution(sample, **mb_args)
 
-        d = np.ravel(sample.positions - atoms.positions)
-        epot_ha = 0.5 * (fc @ d @ d)
-        epot_ha_temp = epot_ha / u.kB / len(atoms) / 3 * 2
+        if force_constants is not None:
+            d = np.ravel(sample.positions - atoms.positions)
+            epot_ha = 0.5 * (fc @ d @ d)
+            epot_ha_temp = epot_ha / u.kB / len(atoms) / 3 * 2
 
-        ha_epot_str = f"{epot_ha:9.3f}eV ({epot_ha_temp:.2f}K)"
+            ha_epot_str = f"{epot_ha:9.3f}eV ({epot_ha_temp:.2f}K)"
 
-        sample_info_str = info_str + [f"Harmonic E_pot:    {ha_epot_str}"]
+            sample_info_str += [f"Harmonic E_pot:    {ha_epot_str}"]
+            talk(f".. harmonic potential energy:   {ha_epot_str})")
 
-        talk(f".. harmonic potential energy:   {ha_epot_str})")
         talk(f".. temperature before cleaning: {sample.get_temperature():9.3f}K")
         talk(f".. remove net momentum from sample and force temperature")
         vd.force_temperature(sample, temp)
