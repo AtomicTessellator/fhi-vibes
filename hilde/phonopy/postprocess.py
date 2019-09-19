@@ -14,7 +14,6 @@ from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader
 from hilde.io import write
 from hilde.helpers import warn, talk as _talk, Timer as _Timer
-from hilde.hiphive import enforce_rotational_sum_rules
 
 from . import displacement_id_str
 
@@ -91,6 +90,8 @@ def postprocess(
     )
 
     if enforce_sum_rules:
+        from hilde.hiphive import enforce_rotational_sum_rules
+
         timer = Timer("Enforce rotational sum rules with hiphive")
         enforce_rotational_sum_rules(phonon, only_project=True)
         timer()
@@ -259,7 +260,7 @@ def extract_results(
             talk(f".. {outfile} written")
 
         if tdep:
-            #with cwd(".", mkdir=True):
+            # with cwd(".", mkdir=True):
             write_settings = {"format": "vasp", "direct": True, "vasp5": True}
             # fc_path = Path("FORCE_CONSTANTS")
             # if fc_path.exists():

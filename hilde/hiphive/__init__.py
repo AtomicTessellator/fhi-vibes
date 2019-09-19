@@ -1,14 +1,18 @@
 """hiphive utilities"""
-import numpy as np
 
-from hiphive import ForceConstants, ForceConstantPotential, ClusterSpace
-from hiphive import enforce_rotational_sum_rules as _enfore_sum_rules
-from hiphive.utilities import extract_parameters
-
+from hilde.helpers import warn, Timer as _Timer, talk as _talk
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.geometry import inscribed_sphere_in_box
-from hilde.helpers import warn, Timer as _Timer, talk as _talk
 from hilde.phonopy.utils import remap_force_constants
+
+
+try:
+    from hiphive import ForceConstants, ForceConstantPotential, ClusterSpace
+    from hiphive import enforce_rotational_sum_rules as _enfore_sum_rules
+    from hiphive.utilities import extract_parameters
+except ModuleNotFoundError:
+    warn(f"`hiphive` could not be loaded, enforcing sum rules not possible", level=1)
+
 
 _prefix = "hiphive"
 
