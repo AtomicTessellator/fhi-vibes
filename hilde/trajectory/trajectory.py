@@ -219,7 +219,7 @@ class Trajectory(list):
     def forces_harmonic(self):
         """return harmonic forces, None if not set via `set_force_constants`"""
         if self._forces_harmonic is None:
-            if self.force_constants:
+            if self.force_constants is not None:
                 self.set_forces_harmonic()
 
         return self._forces_harmonic
