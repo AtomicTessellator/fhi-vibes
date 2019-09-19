@@ -4,43 +4,9 @@ import scipy.signal as sl
 import xarray as xr
 
 from hilde.trajectory import reader, Trajectory
+from hilde.trajectory.dataarray import get_velocities_data
 from hilde.fourier import compute_sed, get_frequencies
 from hilde.helpers import Timer, talk
-
-
-def get_velocities(trajectory, verbose=True):
-    """extract velocties from TRAJECTORY  and return as xarray.DataArray
-
-    Args:
-        trajectory (Trajectory or Path): list of atoms objects or where to find them
-    Returns:
-        velocities (xarray.DataArray [N_t, N_a, 3])
-    """
-    timer = Timer("Get velocities from trajectory", verbose=verbose)
-
-    if not isinstance(trajectory, Trajectory):
-        trajectory = reader(trajectory)
-
-    metadata = {
-        "time unit": "fs",
-        "timestep": trajectory.timestep,
-        "atoms": trajectory[0].get_chemical_symbols(),
-    }
-
-    times = trajectory.times
-    velocities = np.array([a.get_velocities() for a in trajectory])
-
-    df = xr.DataArray(
-        velocities,
-        dims=["time", "atom", "coord"],
-        coords={"time": times},
-        name="velocities",
-        attrs=metadata,
-    )
-
-    timer()
-
-    return df
 
 
 def get_velocity_aurocorrelation(velocities=None, trajectory=None, verbose=True):
@@ -53,7 +19,7 @@ def get_velocity_aurocorrelation(velocities=None, trajectory=None, verbose=True)
         velocity_autocorrelation (xarray.DataArray [N_t, N_a, 3])
     """
     if velocities is None and trajectory is not None:
-        velocities = get_velocities(trajectory, verbose=verbose)
+        velocities = get_velocities_data(trajectory, verbose=verbose)
 
     timer = Timer("Get velocity autocorrelation", verbose=verbose)
 
@@ -91,7 +57,7 @@ def get_vdos(velocities=None, trajectory=None, verbose=True):
         vdos (xarray.DataArray [N_t, N_a, 3])
     """
     if velocities is None and trajectory is not None:
-        velocities = get_velocities(trajectory, verbose=verbose)
+        velocities = get_velocities_data(trajectory, verbose=verbose)
 
     v_corr = get_velocity_aurocorrelation(velocities)
 
