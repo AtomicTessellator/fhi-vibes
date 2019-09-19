@@ -196,6 +196,7 @@ def parse_tdep_forceconstant(
     supercell="infile.ssposcar",
     fortran=True,
     two_dim=True,
+    symmetrize=False,
     reduce_fc=True,
     eps=1e-13,
     tol=1e-5,
@@ -265,7 +266,9 @@ def parse_tdep_forceconstant(
                         force_constants[i1, ii, :, :] += phi
 
     if not reduce_fc or two_dim:
-        force_constants = remap_force_constants(force_constants, uc, sc)
+        force_constants = remap_force_constants(
+            force_constants, uc, sc, symmetrize=symmetrize
+        )
 
     if two_dim:
         return force_constants.swapaxes(2, 1).reshape(2 * (3 * n_sc,))

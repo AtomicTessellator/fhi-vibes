@@ -35,7 +35,10 @@ def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile)
     # harmonic forces?
     if force_constants:
         fc = parse_force_constants(
-            force_constants, primitive=traj.primitive, supercell=traj.supercell
+            force_constants,
+            primitive=traj.primitive,
+            supercell=traj.supercell,
+            symmetrize=False,
         )
         traj.set_forces_harmonic(force_constants=fc)
 
