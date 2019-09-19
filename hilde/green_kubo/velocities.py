@@ -60,7 +60,7 @@ def get_velocity_aurocorrelation(velocities=None, trajectory=None, verbose=True)
     Nt = len(velocities.time)
 
     v_atom_corr = np.zeros_like(velocities)
-    for atom in velocities.atom:
+    for atom in velocities.I:
         v_atom = velocities[:, atom]
 
         for xx in range(3):
