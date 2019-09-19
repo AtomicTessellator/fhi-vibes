@@ -137,8 +137,9 @@ def calculate_socket(
         socket_calc = None
     else:
         socket_calc = calculator
-        # perform backup if calculation folder exists
-        backup(calc_dir, target_folder=f"{backup_folder}")
+
+    # perform backup if calculation folder exists
+    backup(calc_dir, target_folder=backup_folder)
 
     # append settings to metadata
     if settings:
