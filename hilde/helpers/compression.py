@@ -36,7 +36,7 @@ def backup_filename(workdir="."):
 
 
 def backup_folder(
-    source_dir, target_folder=".", additional_files=[], zip=False, verbose=True
+    source_dir, target_folder=".", additional_files=None, zip=True, verbose=True
 ):
     """backup a folder as .tgz
 
@@ -72,6 +72,9 @@ def backup_folder(
     except OSError:
         pass
 
+    if not Path(target_folder).exists():
+        Path(target_folder).mkdir()
+
     # peek aims output file
     info_str = ""
     aims_uuid = peek_aims_uuid(Path(source_dir) / "aims.out")
@@ -80,8 +83,13 @@ def backup_folder(
         output_filename = f"{output_filename}.{aims_uuid[:8]}"
 
     if zip:
-        output_filename += ".tgz"
-        make_tarfile(output_filename, source_dir, additional_files=additional_files)
+        output_filename = f"{output_filename}.tgz"
+        make_tarfile(
+            output_filename,
+            source_dir,
+            additional_files=additional_files,
+            arcname=Path(source_dir).stem,
+        )
     else:
         shutil.move(source_dir, output_filename)
 
@@ -96,7 +104,7 @@ def backup_folder(
     return True
 
 
-def make_tarfile(output_filename, source_dir, additional_files=[], arcname=None):
+def make_tarfile(output_filename, source_dir, additional_files=None, arcname=None):
     """create a tgz directory
 
     Parameters
@@ -115,5 +123,6 @@ def make_tarfile(output_filename, source_dir, additional_files=[], arcname=None)
 
     with tarfile.open(outfile, "w:gz") as tar:
         tar.add(source_dir, arcname=arcname)
-        for file in additional_files:
-            tar.add(file)
+        if additional_files is not None:
+            for file in additional_files:
+                tar.add(file)

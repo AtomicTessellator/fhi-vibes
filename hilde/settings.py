@@ -245,6 +245,11 @@ class Settings(ConfigDict):
         return cls(dct=dct)
 
     @property
+    def file(self):
+        """return path to the settings file"""
+        return self._settings_file
+
+    @property
     def settings_file(self):
         """return path to the settings file"""
         return self._settings_file
