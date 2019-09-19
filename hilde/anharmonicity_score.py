@@ -99,7 +99,7 @@ def get_r2_per_atom(
     if reduce_by_symmetry:
         compare_to = sds.equivalent_atoms
     else:
-        compare_to = ref_structure.numbers
+        compare_to = ref_structure.symbols
 
     if np.shape(forces_dft)[1] == 3 * len(ref_structure):
         compare_to = compare_to.repeat(3)
