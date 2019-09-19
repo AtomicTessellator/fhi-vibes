@@ -36,7 +36,7 @@ def backup_filename(workdir="."):
 
 
 def backup_folder(
-    source_dir, target_folder=".", additional_files=None zip=True, verbose=True
+    source_dir, target_folder=".", additional_files=None, zip=True, verbose=True
 ):
     """backup a folder as .tgz
 
