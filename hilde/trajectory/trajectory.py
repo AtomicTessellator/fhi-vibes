@@ -423,7 +423,11 @@ class Trajectory(list):
     def displacements(self):
         """return the displacements for `ref_atoms`"""
         if not self.supercell:
-            warn("Supercell not set, let us stop here.", level=2)
+            # warn("Supercell not set, let us stop here.", level=2)
+            warn(
+                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms",
+                level=1,
+            )
 
         atoms_ideal = self.ref_atoms
 
