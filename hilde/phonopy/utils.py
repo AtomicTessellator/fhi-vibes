@@ -14,6 +14,8 @@ from hilde.phonopy._defaults import displacement_id_str
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.supercell.supercell import supercell as fort
 
+_prefix = "phonopy.utils"
+
 
 def last_calculation_id(trajectory):
     """Return the id of the last computed supercell
@@ -230,6 +232,7 @@ def remap_force_constants(
     new_supercell=None,
     reduce_fc=False,
     two_dim=False,
+    symmetrize=True,
     tol=1e-5,
     eps=1e-13,
     fortran=True,
@@ -250,6 +253,8 @@ def remap_force_constants(
         return in [N_prim, N_sc, 3, 3]  shape
     two_dim: bool
         return in [3*N_sc, 3*N_sc] shape
+    symmetrize: bool
+        make force constants symmetric
     tol: float
         tolerance to discern pairs
     eps: float
@@ -261,7 +266,7 @@ def remap_force_constants(
         The remapped force constants
 
     """
-    timer = Timer("remap force constants")
+    timer = Timer("remap force constants", prefix=_prefix)
 
     if new_supercell is None:
         new_supercell = supercell.copy()
@@ -298,7 +303,7 @@ def remap_force_constants(
         map2prim.append(np.where(np.linalg.norm(diff, axis=1) < tol)[0][0])
 
     if fortran:
-        talk(".. use fortran", prefix="utils")
+        talk(".. use fortran", prefix=_prefix)
         fc_out = fort.remap_force_constants(
             positions=new_supercell.positions,
             pairs=sc_r,
@@ -334,9 +339,23 @@ def remap_force_constants(
         # symmetrize
         violation = np.linalg.norm(fc_out - fc_out.T)
         if violation > 1e-5:
-            msg = f"Force constants are not symmetric by {violation:.2e}. Symmetrize."
+            msg = f"Force constants are not symmetric by {violation:.2e}."
             warn(msg, level=1)
-            fc_out = 0.5 * (fc_out + fc_out.T)
+            if symmetrize:
+                talk("Symmetrize force constants.")
+                fc_out = 0.5 * (fc_out + fc_out.T)
+
+        # sum rule 1
+        violation = abs(fc_out.sum(axis=0)).mean()
+        if violation > 1e-9:
+            msg = f"Sum rule violated by {violation:.2e} (axis 1)."
+            warn(msg, level=1)
+
+        # sum rule 2
+        violation = abs(fc_out.sum(axis=1)).mean()
+        if violation > 1e-9:
+            msg = f"Sum rule violated by {violation:.2e} (axis 2)."
+            warn(msg, level=1)
 
         return fc_out
 
@@ -388,6 +407,7 @@ def parse_phonopy_force_constants(
     primitive="geometry.primitive",
     supercell="geometry.supercell",
     fortran=True,
+    symmetrize=True,
     two_dim=True,
     eps=1e-13,
     tol=1e-5,
@@ -399,6 +419,7 @@ def parse_phonopy_force_constants(
         fc_filename (Pathlike): phonopy forceconstant file to parse
         primitive (Atoms or Pathlike): either unitcell as Atoms or where to find it
         supercell (Atoms or Pathlike): either supercell as Atoms or where to find it
+        symmetrize (bool): make force constants symmetric
         two_dim (bool): return in [3*N_sc, 3*N_sc] shape
         eps: finite zero
         tol: tolerance to discern pairs and wrap
@@ -424,7 +445,14 @@ def parse_phonopy_force_constants(
     fc = parse_FORCE_CONSTANTS(fc_filename)
 
     fc = remap_force_constants(
-        fc, uc, sc, two_dim=two_dim, tol=tol, eps=eps, fortran=fortran
+        fc,
+        uc,
+        sc,
+        two_dim=two_dim,
+        tol=tol,
+        eps=eps,
+        fortran=fortran,
+        symmetrize=symmetrize,
     )
 
     return fc

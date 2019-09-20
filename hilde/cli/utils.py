@@ -9,6 +9,7 @@ from hilde.scripts.remap_phonopy_forceconstants import remap_force_constants
 from hilde.scripts.nomad_upload import nomad_upload
 from hilde.scripts.update_md_trajectory import update_trajectory
 from hilde.scripts.get_relaxation_info import get_relaxation_info
+from hilde.helpers.converters import json2atoms
 
 from .misc import click, AliasedGroup, complete_filenames
 
@@ -218,13 +219,19 @@ def harmonicity():
 @click.option("-o", "--outfile", help="Save dataframe to csv")
 @click.option("--quiet", is_flag=True)
 @click.option("--pick", type=int, help="pick one sample")
-def compute_r2(filenames, outfile, quiet, pick):
+@click.option("--per_atom", is_flag=True)
+def compute_r2(filenames, outfile, quiet, pick, per_atom):
     """Compute r2 and some statistics"""
 
     from pathlib import Path
     import pandas as pd
     import xarray as xr
-    from hilde.anharmonicity_score import get_r, get_r2_per_sample, get_r2_MAE
+    from hilde.anharmonicity_score import (
+        get_r,
+        get_r2_per_sample,
+        get_r2_MAE,
+        get_r2_per_atom,
+    )
 
     click.echo(f"Compute harmonicity score for {len(filenames)} materials:")
 
@@ -233,6 +240,8 @@ def compute_r2(filenames, outfile, quiet, pick):
         click.echo(f" parse {filename}")
 
         DS = xr.open_dataset(filename)
+
+        ref_atoms = json2atoms(DS.attrs["reference atoms"])
 
         f = DS.forces
         fh = DS.forces_harmonic
@@ -250,12 +259,20 @@ def compute_r2(filenames, outfile, quiet, pick):
 
         name = DS.attrs["System Name"]
         dct[name] = {
-            "r": r,
+            # "r": r,
             "r2 (RMS)": r2s.mean(),
             "r2 (RMA)": 1 - (1 - r2a) ** 2,
-            "fa (MSE)": (1 - r2s.mean()) ** 0.5,
-            "fa (MAE)": 1 - r2a,
+            # "fa (MSE)": (1 - r2s.mean()) ** 0.5,
+            # "fa (MAE)": 1 - r2a,
         }
+
+        if per_atom:
+            r2s = get_r2_per_atom(f, fh, ref_atoms)
+            d = {}
+            for ii, r in zip(r2s.attrs["unique_atoms"], r2s):  # enumerate(r2s):
+                d[f"r2 [{ii}]"] = float(r)
+
+            dct[name].update(d)
 
     df = pd.DataFrame(dct).T
     if not quiet:
@@ -309,7 +326,7 @@ def join_hdf5(files, outfile):
 
     with pd.HDFStore(outfile) as store:
         for file in files:
-            click.echo(f'.. append {file} to {outfile}')
+            click.echo(f".. append {file} to {outfile}")
             df = pd.read_csv(file)
             key = Path(file).stem.replace(".", "_")
             store[key] = df

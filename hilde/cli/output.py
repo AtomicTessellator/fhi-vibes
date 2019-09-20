@@ -5,6 +5,7 @@ import click
 
 from hilde.trajectory import reader
 from hilde.phonopy._defaults import defaults
+from hilde.tdep.wrapper import convert_phonopy_to_tdep
 from hilde.io import parse_force_constants
 
 from .misc import AliasedGroup, complete_filenames
@@ -34,7 +35,10 @@ def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile)
     # harmonic forces?
     if force_constants:
         fc = parse_force_constants(
-            force_constants, primitive=traj.primitive, supercell=traj.supercell
+            force_constants,
+            primitive=traj.primitive,
+            supercell=traj.supercell,
+            symmetrize=False,
         )
         traj.set_forces_harmonic(force_constants=fc)
 
@@ -67,7 +71,8 @@ def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile)
 @click.option("--born", type=complete_filenames)
 @click.option("--full", is_flag=True)
 @click.option("--tdep", is_flag=True, hidden=True)
-@click.option("--remap_fc", is_flag=True, hidden=True)
+@click.option("--remap_fc", is_flag=True)
+@click.option("--sum_rules", is_flag=True)
 @click.option("-v", "--verbose", is_flag=True, help="print frequencies at gamma point")
 @click.pass_obj
 def phonopy_output(
@@ -86,6 +91,7 @@ def phonopy_output(
     full,
     tdep,
     remap_fc,
+    sum_rules,
     verbose,
 ):
     """perform phonopy postprocess for TRAJECTORY"""
@@ -99,10 +105,14 @@ def phonopy_output(
         trajectory=trajectory,
         born_charges_file=born,
         calculate_full_force_constants=remap_fc,
+        enforce_sum_rules=sum_rules,
     )
 
     if not output_directory:
-        output_directory = Path(trajectory).parent / "output"
+        folder = "output"
+        if sum_rules:
+            folder += "_sum_rules"
+        output_directory = Path(trajectory).parent / folder
 
     kwargs = {
         "write_thermal_properties": thermal_properties or full,
@@ -116,7 +126,6 @@ def phonopy_output(
         "plot_pdos": projected_density_of_states,
         "q_mesh": q_mesh,
         "output_dir": output_directory,
-        "tdep": tdep,
         "animate": animate or full,
         "animate_q": animate_q,
         "remap_fc": remap_fc,
@@ -124,3 +133,6 @@ def phonopy_output(
     }
 
     extract_results(phonon, **kwargs)
+
+    if tdep:
+        convert_phonopy_to_tdep(phonon, workdir=str(output_directory) + "_tdep")

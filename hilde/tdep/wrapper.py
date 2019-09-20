@@ -15,7 +15,7 @@ from hilde.trajectory import reader
 
 
 def convert_phonopy_to_tdep(
-    phonon, workdir="tdep", logfile="convert_phonopy_to_tdep.log"
+    phonon, workdir="output_tdep", logfile="convert_phonopy_to_tdep.log"
 ):
     """Convert phonopy FORCE_CONSTANTS to tdep outfile.forceconstant
 
@@ -30,19 +30,24 @@ def convert_phonopy_to_tdep(
     """
     command = ["convert_phonopy_to_forceconstant", "--truncate"]
 
+    print(workdir)
+
     with cwd(workdir, mkdir=True), open(logfile, "w") as file:
         extract_results(
             phonon,
             tdep=True,
-            tdep_reduce_fc=True,
-            output_dir=".",
+            output_dir=Path().absolute(),
             write_geometries=False,
             plot_bandstructure=False,
         )
 
         run(command, stdout=file)
-
         print(f".. outfile.converted_forceconstant created.")
+
+        fc_file = Path("infile.forceconstant")
+        if not fc_file.exists():
+            fc_file.symlink_to("outfile.converted_forceconstant")
+            print(f".. and symlinked to {fc_file}")
 
 
 def canonical_configuration(
@@ -191,6 +196,7 @@ def parse_tdep_forceconstant(
     supercell="infile.ssposcar",
     fortran=True,
     two_dim=True,
+    symmetrize=False,
     reduce_fc=True,
     eps=1e-13,
     tol=1e-5,
@@ -260,7 +266,9 @@ def parse_tdep_forceconstant(
                         force_constants[i1, ii, :, :] += phi
 
     if not reduce_fc or two_dim:
-        force_constants = remap_force_constants(force_constants, uc, sc)
+        force_constants = remap_force_constants(
+            force_constants, uc, sc, symmetrize=symmetrize
+        )
 
     if two_dim:
         return force_constants.swapaxes(2, 1).reshape(2 * (3 * n_sc,))

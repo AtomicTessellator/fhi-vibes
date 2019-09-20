@@ -13,9 +13,20 @@ from hilde.phonopy import defaults
 from hilde.structure.convert import to_Atoms
 from hilde.trajectory import reader
 from hilde.io import write
-from hilde.helpers import warn, talk, Timer
+from hilde.helpers import warn, talk as _talk, Timer as _Timer
 
 from . import displacement_id_str
+
+_prefix = "phonopy.postprocess"
+_tdep_fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
+
+
+def talk(msg):
+    return _talk(msg, prefix=_prefix)
+
+
+def Timer(msg=None):
+    return _Timer(msg, prefix=_prefix)
 
 
 def postprocess(
@@ -23,6 +34,7 @@ def postprocess(
     workdir=".",
     calculate_full_force_constants=False,
     born_charges_file=None,
+    enforce_sum_rules=False,
     verbose=True,
     **kwargs,
 ):
@@ -47,11 +59,9 @@ def postprocess(
         The Phonopy object with the force constants calculated
     """
 
-    timer = Timer()
+    timer = Timer("Start phonopy postprocess:")
 
     trajectory = Path(workdir) / trajectory
-
-    talk("Start phonopy postprocess:")
 
     calculated_atoms, metadata = reader(trajectory, True)
 
@@ -78,6 +88,13 @@ def postprocess(
     phonon.produce_force_constants(
         force_sets, calculate_full_force_constants=calculate_full_force_constants
     )
+
+    if enforce_sum_rules:
+        from hilde.hiphive import enforce_rotational_sum_rules
+
+        timer = Timer("Enforce rotational sum rules with hiphive")
+        enforce_rotational_sum_rules(phonon, only_project=True)
+        timer()
 
     # born charges?
     if born_charges_file:
@@ -113,7 +130,6 @@ def extract_results(
     q_mesh=None,
     output_dir="phonopy_output",
     tdep=False,
-    tdep_reduce_fc=True,
     remap_fc=False,
     verbose=False,
 ):
@@ -153,8 +169,6 @@ def extract_results(
         Directory to store output files
     tdep: bool
         If True the necessary input files for TDEP's `convert_phonopy_to_forceconstant` are written.
-    tdep_reduce_fc: bool
-        If True reduce force_constants to match tdep's format
     """
 
     timer = Timer("\nExtract phonopy results:")
@@ -245,19 +259,19 @@ def extract_results(
             wrapper.get_animation(phonon, val, outfile)
             talk(f".. {outfile} written")
 
-    if tdep:
-        write_settings = {"format": "vasp", "direct": True, "vasp5": True}
-        fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
+        if tdep:
+            # with cwd(".", mkdir=True):
+            write_settings = {"format": "vasp", "direct": True, "vasp5": True}
+            # fc_path = Path("FORCE_CONSTANTS")
+            # if fc_path.exists():
+            #     fc_path.unlink()
+            # fc_path.symlink_to("../FORCE_CONSTANTS")
 
-        # reproduce reduced force constants
-        if tdep_reduce_fc:
-            phonon.produce_force_constants(calculate_full_force_constants=False)
-
-            fname = fnames["primitive"]
+            fname = _tdep_fnames["primitive"]
             primitive.write(fname, **write_settings)
             talk(f"Primitive cell written to {fname}")
 
-            fname = fnames["supercell"]
+            fname = _tdep_fnames["supercell"]
             supercell.write(fname, **write_settings)
             talk(f"Supercell cell written to {fname}")
 
