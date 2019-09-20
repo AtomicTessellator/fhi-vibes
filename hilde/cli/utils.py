@@ -219,117 +219,54 @@ def harmonicity():
 
 @harmonicity.command("r2")
 @click.argument("filenames", type=complete_filenames, nargs=-1)
-@click.option("-o", "--outfile", help="Save dataframe to csv")
+@click.option("-csv", "--store_csv", is_flag=True, help="store dataframes to csv")
+@click.option("-h5", "--store_hdf5", is_flag=True, help="store dataframes to hdf5")
 @click.option("--quiet", is_flag=True)
 @click.option("--pick", type=int, help="pick one sample")
 @click.option("--per_atom", is_flag=True)
-def compute_r2(filenames, outfile, quiet, pick, per_atom):
+@click.option("--per_sample", is_flag=True)
+@click.option("--per_direction", is_flag=True)
+@click.option("--describe", is_flag=True)
+def compute_r2(
+    filenames,
+    store_csv,
+    store_hdf5,
+    quiet,
+    pick,
+    per_atom,
+    per_sample,
+    per_direction,
+    describe,
+):
     """Compute r2 and some statistics"""
-
-    from pathlib import Path
     import pandas as pd
     import xarray as xr
-    from hilde.anharmonicity_score import (
-        get_r,
-        get_r2_per_sample,
-        get_r2_MAE,
-        get_r2_per_atom,
-    )
+    from hilde.anharmonicity_score import get_dataframe
 
     click.echo(f"Compute harmonicity score for {len(filenames)} materials:")
 
-    dct = {}
     for filename in filenames:
         click.echo(f" parse {filename}")
 
         DS = xr.open_dataset(filename)
 
-        ref_atoms = json2atoms(DS.attrs["reference atoms"])
-
-        f = DS.forces
-        fh = DS.forces_harmonic
-
-        if pick is not None:
-            f = DS.forces[pick]
-            fh = DS.forces_harmonic[pick]
-        else:
-            f = DS.forces
-            fh = DS.forces_harmonic
-
-        r = get_r(f, fh)
-        r2s = get_r2_per_sample(f, fh)
-        r2a = get_r2_MAE(f, fh)
-
         name = DS.attrs["System Name"]
-        dct[name] = {
-            # "r": r,
-            "r2 (RMS)": r2s.mean(),
-            "r2 (RMA)": 1 - (1 - r2a) ** 2,
-            # "fa (MSE)": (1 - r2s.mean()) ** 0.5,
-            # "fa (MAE)": 1 - r2a,
-        }
+        df = get_dataframe(DS)
 
-        if per_atom:
-            r2s = get_r2_per_atom(f, fh, ref_atoms)
-            d = {}
-            for ii, r in zip(r2s.attrs["unique_atoms"], r2s):  # enumerate(r2s):
-                d[f"r2 [{ii}]"] = float(r)
+        if not quiet:
+            click.echo("\nDataFrame:")
+            click.echo(df)
+            if describe:
+                click.echo("\nDataFrame.describe():")
+                click.echo(df.describe())
 
-            dct[name].update(d)
+        if store_csv:
+            outfile = f"{name}.csv"
+            df.to_csv(outfile, index_label="material", float_format="%15.12e")
+            click.echo(f"\n.. Dataframe for {name} written to {outfile}")
 
-    df = pd.DataFrame(dct).T
-    if not quiet:
-        click.echo("\nDataFrame:")
-        click.echo(df)
-        click.echo("\nDataFrame.describe():")
-        click.echo(df.describe())
-
-    if outfile is not None:
-        inp = f"{outfile} exists, overwrite? (Y/n) "
-        if Path(outfile).exists() and input(inp) != "Y":
-            return
-        df.to_csv(outfile, index_label="material", float_format="%15.12e")
-        click.echo(f"\n.. Dataframe written to {outfile}")
-
-
-@utils.command(cls=AliasedGroup)
-def hdf5():
-    """utils for working with hdf5 files and pandas"""
-    ...
-
-
-@hdf5.command("describe")
-@click.argument("file", type=complete_filenames)
-@click.option("-v", "--verbose", is_flag=True)
-def show_hdf5_file(file, verbose):
-    """show contents of HDF5 FILE"""
-    import pandas as pd
-
-    click.echo(f"Summarize file {file}")
-    with pd.HDFStore(file) as store:
-        click.echo("Keys:")
-        for k in store:
-            click.echo(f"  {k}")
-
-        if verbose:
-            click.echo()
-            for k in store:
-                click.echo(f"Describe {k}")
-                click.echo(store[k].describe())
-
-
-@hdf5.command("join")
-@click.argument("files", nargs=-1, type=complete_filenames)
-@click.option("-o", "--outfile", default="data.h5", show_default=True)
-def join_hdf5(files, outfile):
-    """join csv containing pandas.DataFrames to one hdf5 store"""
-    import pandas as pd
-
-    click.echo(f"Join files {files}")
-
-    with pd.HDFStore(outfile) as store:
-        for file in files:
-            click.echo(f".. append {file} to {outfile}")
-            df = pd.read_csv(file)
-            key = Path(file).stem.replace(".", "_")
-            store[key] = df
+        if store_hdf5:
+            outfile = f"r2_data.h5"
+            with pd.HDFStore(outfile) as store:
+                click.echo(f".. append dataframe for {name} to {outfile}")
+                store[name] = df
