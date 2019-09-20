@@ -1,16 +1,6 @@
 """hilde CLI utils"""
 
 from pathlib import Path
-from hilde.scripts.refine_geometry import refine_geometry
-from hilde.scripts.make_supercell import make_supercell
-from hilde.scripts.create_samples import create_samples
-from hilde.scripts.suggest_k_grid import suggest_k_grid
-from hilde.scripts.remap_phonopy_forceconstants import remap_force_constants
-from hilde.scripts.nomad_upload import nomad_upload
-from hilde.scripts.update_md_trajectory import update_trajectory
-from hilde.scripts.get_relaxation_info import get_relaxation_info
-from hilde.helpers.converters import json2atoms
-
 from .misc import click, AliasedGroup, complete_filenames
 
 
@@ -36,6 +26,8 @@ def geometry():
 @click.option("-t", "--symprec", default=1e-5)
 def geometry_refine(*args, **kwargs):
     """hilde.scripts.refine_geometry"""
+    from hilde.scripts.refine_geometry import refine_geometry
+
     refine_geometry(*args, **kwargs)
 
 
@@ -52,6 +44,8 @@ def tool_make_supercell(
     filename, dimension, diagonal_dimension, n_target, deviation, dry, format, scaled
 ):
     """create a supercell of desired shape or size"""
+    from hilde.scripts.make_supercell import make_supercell
+
     if diagonal_dimension:
         dimension = diagonal_dimension
     make_supercell(filename, dimension, n_target, deviation, dry, format, scaled)
@@ -66,6 +60,8 @@ def tool_make_supercell(
 @click.argument("filenames", nargs=-1, type=complete_filenames)
 def relaxation_info(filenames):
     """analyze aims relaxation"""
+    from hilde.scripts.get_relaxation_info import get_relaxation_info
+
     get_relaxation_info(filenames)
 
 
@@ -93,6 +89,8 @@ def tool_create_samples(
     format,
 ):
     """create samples from geometry in FILENAME"""
+    from hilde.scripts.create_samples import create_samples
+
     click.echo("hilde CLI: create_samples")
     create_samples(
         filename,
@@ -115,6 +113,7 @@ def tool_create_samples(
 @click.option("--format", default="aims")
 def tool_suggest_k_grid(filename, density, uneven, format):
     """suggest a k_grid for geometry in FILENAME based on density"""
+    from hilde.scripts.suggest_k_grid import suggest_k_grid
 
     click.echo("hilde CLI: suggest_k_grid")
     suggest_k_grid(filename, density, uneven, format)
@@ -127,6 +126,7 @@ def tool_suggest_k_grid(filename, density, uneven, format):
 @click.option("--python", is_flag=True)
 def tool_remap_phonopy_force_constants(filename, primitive, supercell, python):
     """remap phonopy force constants in FILENAME to [3N, 3N] shape"""
+    from hilde.scripts.remap_phonopy_forceconstants import remap_force_constants
 
     remap_force_constants(
         fc_filename=filename,
@@ -143,6 +143,7 @@ def tool_remap_phonopy_force_constants(filename, primitive, supercell, python):
 @click.option("--dry", is_flag=True, help="only show the commands")
 def tool_nomad_upload(folders, token, legacy, dry):
     """upload the calculations in FOLDERS to NOMAD"""
+    from hilde.scripts.nomad_upload import nomad_upload
 
     nomad_upload(folders, token, legacy, dry)
 
@@ -182,6 +183,8 @@ def t2xyz(filename, file):
 @click.option("--format", default="aims")
 def trajectory_update(filename, uc, sc, format):
     """add unit cell from UC and supercell from SC to trajectory in FILENAME"""
+    from hilde.scripts.update_md_trajectory import update_trajectory
+
     update_trajectory(filename, uc, sc, format)
 
 
