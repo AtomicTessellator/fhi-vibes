@@ -123,17 +123,58 @@ def tool_suggest_k_grid(filename, density, uneven, format):
 @click.argument("filename", default="FORCE_CONSTANTS", type=complete_filenames)
 @click.option("-uc", "--primitive", default="geometry.in.primitive", show_default=True)
 @click.option("-sc", "--supercell", default="geometry.in.supercell", show_default=True)
+@click.option("-nsc", "--new_supercell", show_default=True)
+@click.option("-o", "--output_filename")
+@click.option("--symmetrize", is_flag=True)
 @click.option("--python", is_flag=True)
-def tool_remap_phonopy_force_constants(filename, primitive, supercell, python):
+@click.option("--format", default="aims")
+def tool_remap_phonopy_force_constants(
+    filename,
+    primitive,
+    supercell,
+    new_supercell,
+    output_filename,
+    symmetrize,
+    python,
+    eps=1e-13,
+    tol=1e-5,
+    format="aims",
+):
     """remap phonopy force constants in FILENAME to [3N, 3N] shape"""
-    from hilde.scripts.remap_phonopy_forceconstants import remap_force_constants
+    # copy: from hilde.scripts.remap_phonopy_forceconstants import remap_force_constants
+    import numpy as np
+    from ase.io import read
+    from hilde.io import parse_force_constants
+    from hilde.phonopy.utils import remap_force_constants
 
-    remap_force_constants(
-        fc_filename=filename,
-        uc_filename=primitive,
-        sc_filename=supercell,
-        fortran=not python,
-    )
+    uc = read(primitive, format=format)
+    sc = read(supercell, format=format)
+
+    nsc = None
+    if new_supercell:
+        nsc = read(new_supercell, format=format)
+
+    kwargs = {
+        "primitive": uc,
+        "supercell": sc,
+        "fortran": not python,
+        "eps": eps,
+        "tol": tol,
+    }
+
+    fc = parse_force_constants(fc_file=filename, two_dim=False, **kwargs)
+
+    kwargs.update({"new_supercell": nsc, "two_dim": True, "symmetrize": symmetrize})
+
+    fc = remap_force_constants(fc, **kwargs)
+
+    if not output_filename:
+        output_filename = f"{filename}_remapped"
+
+    msg = f"remapped force constants from {filename}, shape [{fc.shape}]"
+    np.savetxt(output_filename, fc, header=msg)
+
+    click.echo(f".. remapped force constants written to {output_filename}")
 
 
 @utils.command("nomad_upload")
