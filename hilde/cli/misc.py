@@ -2,12 +2,13 @@
 
 from pathlib import Path
 import click
+import click_aliases
 
 complete_filenames = click.Path(exists=True)
 
 
 class AliasedGroup(click.Group):
-    """modified groupd for shorthand arguments
+    """modified group for shorthand arguments
 
     see https://click.palletsprojects.com/en/7.x/advanced/#command-aliases
 
@@ -15,6 +16,27 @@ class AliasedGroup(click.Group):
 
     def get_command(self, ctx, cmd_name):
         """geturn command based on prefix"""
+
+        rv = click.Group.get_command(self, ctx, cmd_name)
+        if rv is not None:
+            return rv
+
+        matches = [x for x in self.list_commands(ctx) if x.startswith(cmd_name)]
+
+        if not matches:
+            return None
+        if len(matches) == 1:
+            return click.Group.get_command(self, ctx, matches[0])
+
+        ctx.fail("Too many matches: %s" % ", ".join(sorted(matches)))
+
+
+class ClickAliasedGroup(click_aliases.ClickAliasedGroup):
+    """modified AliasedGroup for aliases"""
+
+    def get_command(self, ctx, cmd_name):
+        """geturn command based on prefix"""
+        cmd_name = self.resolve_alias(cmd_name)
 
         rv = click.Group.get_command(self, ctx, cmd_name)
         if rv is not None:

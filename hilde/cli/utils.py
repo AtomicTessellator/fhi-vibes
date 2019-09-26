@@ -3,7 +3,7 @@
 from .misc import click, AliasedGroup, ClickAliasedGroup, complete_filenames
 
 
-@click.command(cls=AliasedGroup)
+@click.group(cls=ClickAliasedGroup)
 def utils():
     """tools and utils"""
 
@@ -55,16 +55,16 @@ def tool_make_supercell(
 #     """utilities, for example `aims get_relaxation_info`"""
 
 
-@utils.command("get_relaxation_info")
+@utils.command(aliases=["relax_info"])
 @click.argument("filenames", nargs=-1, type=complete_filenames)
-def relaxation_info(filenames):
+def get_relaxation_info(filenames):
     """analyze aims relaxation"""
     from hilde.scripts.get_relaxation_info import get_relaxation_info
 
     get_relaxation_info(filenames)
 
 
-@utils.command("create_samples")
+@utils.command(aliases=["samples"])
 @click.argument("filename", type=complete_filenames)
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
@@ -75,7 +75,7 @@ def relaxation_info(filenames):
 @click.option("--sobol", is_flag=True, help="use Sobol numbers to create samples")
 @click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
 @click.option("--format", default="aims")
-def tool_create_samples(
+def create_samples(
     filename,
     temperature,
     n_samples,
@@ -118,7 +118,13 @@ def tool_suggest_k_grid(filename, density, uneven, format):
     suggest_k_grid(filename, density, uneven, format)
 
 
-@utils.command("remap_force_constants")
+@utils.group(aliases=["fc"])
+def force_constants():
+    """utils for working with force constants"""
+    ...
+
+
+@force_constants.command()
 @click.argument("filename", default="FORCE_CONSTANTS", type=complete_filenames)
 @click.option("-uc", "--primitive", default="geometry.in.primitive", show_default=True)
 @click.option("-sc", "--supercell", default="geometry.in.supercell", show_default=True)
@@ -127,7 +133,7 @@ def tool_suggest_k_grid(filename, density, uneven, format):
 @click.option("--symmetrize", is_flag=True)
 @click.option("--python", is_flag=True)
 @click.option("--format", default="aims")
-def tool_remap_phonopy_force_constants(
+def remap(
     filename,
     primitive,
     supercell,
@@ -176,7 +182,12 @@ def tool_remap_phonopy_force_constants(
     click.echo(f".. remapped force constants written to {output_filename}")
 
 
-@utils.command("nomad_upload")
+@utils.group()
+def nomad():
+    ...
+
+
+@nomad.command("upload")
 @click.argument("folders", nargs=-1, type=complete_filenames)
 @click.option("--token", help="nomad token, otherwise read from .hilderc")
 @click.option("--legacy", is_flag=True, default=True, help="use old Nomad (default)")
@@ -188,7 +199,7 @@ def tool_nomad_upload(folders, token, legacy, dry):
     nomad_upload(folders, token, legacy, dry)
 
 
-@utils.command(cls=AliasedGroup)
+@utils.group()
 def trajectory():
     """trajectory utils"""
 
@@ -255,7 +266,7 @@ def pick_sample(filename, number, cartesian):
     click.echo(f".. sample written to {outfile}")
 
 
-@utils.command(cls=AliasedGroup)
+@utils.group(aliases=["ha"])
 def harmonicity():
     """utils for quantifying harmonicity"""
     ...
