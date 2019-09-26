@@ -1,7 +1,6 @@
 """hilde CLI utils"""
 
-from pathlib import Path
-from .misc import click, AliasedGroup, complete_filenames
+from .misc import click, AliasedGroup, ClickAliasedGroup, complete_filenames
 
 
 @click.command(cls=AliasedGroup)
@@ -224,7 +223,11 @@ def t2xyz(filename, file):
 @click.option("--format", default="aims")
 def trajectory_update(filename, uc, sc, format):
     """add unit cell from UC and supercell from SC to trajectory in FILENAME"""
-    from hilde.scripts.update_md_trajectory import update_trajectory
+    # copy: from hilde.scripts.update_md_trajectory import update_trajectory
+    import shutil
+    from ase.io import read
+    from hilde.trajectory import reader
+
 
     update_trajectory(filename, uc, sc, format)
 

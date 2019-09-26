@@ -1,8 +1,8 @@
 """hilde CLI utils"""
 
-import scipy.signal as sl
-import xarray as xr
-from hilde.trajectory import reader
+# import scipy.signal as sl
+# import xarray as xr
+# from hilde.trajectory import reader
 from .misc import click, AliasedGroup, complete_filenames
 
 
@@ -25,6 +25,7 @@ def aiGK():
 @click.option("-mf", "--max_frequency", default=30.0, help="max. freq. in THz")
 def velocity_autocorrelation(filename, output_filename, plot, peak, max_frequency):
     """write velocity autocorrelation function to output file"""
+    import xarray as xr
     from hilde.green_kubo.velocities import get_vdos, simple_plot
 
     click.echo(f"Read {filename} and extract velocities")

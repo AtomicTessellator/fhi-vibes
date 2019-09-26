@@ -44,6 +44,7 @@ cli.add_command(aigk.aiGK)
 cli.add_command(submit.submit)
 
 try:
+    import fireworks
     import hilde.fireworks.cli
 
     cli.add_command(hilde.fireworks.cli.fireworks)
@@ -54,7 +55,7 @@ try:
     import hilde.balsam.cli
 
     cli.add_command(hilde.balsam.cli.balsam)
-except:
+except ImportError:
     pass
 
 

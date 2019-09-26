@@ -2,10 +2,10 @@
 
 import click
 
-from hilde.aims.context import AimsContext
-from hilde.phonopy.context import PhonopyContext
-from hilde.molecular_dynamics.context import MDContext
-from hilde.settings import Settings
+# from hilde.aims.context import AimsContext
+# from hilde.phonopy.context import PhonopyContext
+# from hilde.molecular_dynamics.context import MDContext
+# from hilde.settings import Settings
 from hilde.helpers import talk
 
 from .misc import AliasedGroup, complete_filenames
@@ -26,7 +26,8 @@ def run():
 @click.pass_obj
 def aims_run(obj, settings, workdir):
     """run one or several aims calculations from SETTINGS (default: aims.in)"""
-    from hilde.aims.workflow import run_aims
+    from hilde.settings import Settings
+    from hilde.aims import AimsContext, run_aims
 
     ctx = AimsContext(Settings(settings_file=settings), workdir=workdir)
 
@@ -43,6 +44,8 @@ def aims_run(obj, settings, workdir):
 @click.pass_obj
 def phonopy_run(obj, settings, workdir, dry):
     """run a phonopy calculation for SETTINGS (default: phonopy.in)"""
+    from hilde.settings import Settings
+    from hilde.phonopy.context import PhonopyContext
     from hilde.phonopy.workflow import run_phonopy
 
     ctx = PhonopyContext(Settings(settings_file=settings), workdir=workdir)
@@ -60,6 +63,9 @@ def phonopy_run(obj, settings, workdir, dry):
 @click.pass_obj
 def md_run(obj, settings, workdir, timeout):
     """run an MD simulation from SETTINS (default: md.in)"""
+    from hilde.settings import Settings
+    from hilde.molecular_dynamics.context import MDContext
+
     ctx = MDContext(Settings(settings_file=settings), workdir=workdir)
 
     if obj.verbose > 0:
