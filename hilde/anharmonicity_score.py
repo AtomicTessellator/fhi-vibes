@@ -154,7 +154,9 @@ def get_r2_MAE(in_f_data, in_f_model):
 
     MAE = Sres / Stot
 
-    return 1 - MAE
+    r2a = 1 - MAE
+
+    return 1 - (1 - r2a) ** 2
 
 
 def get_r2_per_direction(f_data, f_model):
@@ -221,7 +223,7 @@ def get_dataframe(dataset):
     for ii, (f, fh) in enumerate(zip(fs, fhs)):
 
         key = f"{name}.{ii:04d}"
-        dct[key] = {"r2 (RMS)": get_r2(f, fh)}
+        dct[key] = {"r2 (RMS)": get_r2(f, fh), "r2 (RMA)": get_r2_MAE(f, fh)}
 
         r2s = get_r2_per_atom(f, fh, ref_atoms, reduce_by_symmetry=False)
         d = {}
