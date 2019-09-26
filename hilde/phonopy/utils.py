@@ -451,6 +451,12 @@ def parse_phonopy_force_constants(
 
     fc = parse_FORCE_CONSTANTS(fc_filename)
 
+    if fc.shape[0] == len(sc):
+        if two_dim:
+            fc = fc.swapaxes(1, 2).reshape(3 * len(sc), 3 * len(sc))
+
+        return fc
+
     if two_dim:
 
         fc = remap_force_constants(

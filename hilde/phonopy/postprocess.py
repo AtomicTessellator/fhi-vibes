@@ -229,7 +229,11 @@ def extract_results(
             talk(f".. Debye temperature: {debye_temp:.2f}K written to file.")
         if plot_dos:
             talk(f".. plot DOS")
-            wrapper.plot_bandstructure_and_dos(phonon, file="bandstructure_dos.pdf")
+            wrapper.plot_bandstructure_and_dos(
+                phonon,
+                file="bandstructure_dos.pdf",
+                run_mesh=not (write_dos or write_debye),
+            )
 
         if write_pdos:
             talk(f".. write projected DOS")
@@ -240,7 +244,10 @@ def extract_results(
         if plot_pdos:
             talk(f".. plot projected DOS")
             wrapper.plot_bandstructure_and_dos(
-                phonon, partial=True, file="bandstructure_pdos.pdf", run_mesh=False
+                phonon,
+                partial=True,
+                file="bandstructure_pdos.pdf",
+                run_mesh=not write_pdos,
             )
 
         animate_q_points = {}
