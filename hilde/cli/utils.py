@@ -88,22 +88,28 @@ def get_relaxation_info(filenames):
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
 @click.option("-fc", "--force_constants", type=complete_filenames)
-@click.option("--mc_rattle", is_flag=True, help="`hiphive.mc_rattle`", hidden=True)
+@click.option("--rattle", type=float, help="atoms.rattle(stdev=X) (ASE default: 0.001)")
 @click.option("--quantum", is_flag=True, help="use quantum distribution function")
 @click.option("--deterministic", is_flag=True, help="create a deterministic sample")
+@click.option("--plus_minus", is_flag=True)
+@click.option("--gauge_eigenvectors", is_flag=True)
 @click.option("--sobol", is_flag=True, help="use Sobol numbers to create samples")
 @click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
+@click.option("--propagate", type=float, help="propagate this many fs")
 @click.option("--format", default="aims")
 def create_samples(
     filename,
     temperature,
     n_samples,
     force_constants,
-    mc_rattle,
+    rattle,
     quantum,
     deterministic,
+    plus_minus,
+    gauge_eigenvectors,
     sobol,
     random_seed,
+    propagate,
     format,
 ):
     """create samples from geometry in FILENAME"""
@@ -115,11 +121,14 @@ def create_samples(
         temperature,
         n_samples,
         force_constants,
-        mc_rattle,
+        rattle,
         quantum,
         deterministic,
+        plus_minus,
+        gauge_eigenvectors,
         sobol,
         random_seed,
+        propagate,
         format,
     )
 

@@ -10,7 +10,6 @@ from ase import units as u
 import ase.md.velocitydistribution as vd
 
 from hilde.structure.io import inform
-from hilde.konstanten.einheiten import omega_to_THz
 from hilde.helpers import talk
 from hilde.harmonic_analysis.dynamical_matrix import get_frequencies
 
@@ -20,11 +19,14 @@ def create_samples(
     temperature,
     n_samples,
     force_constants,
-    mc_rattle,
+    rattle,
     quantum,
     deterministic,
+    plus_minus,
+    gauge_eigenvectors,
     sobol,
     random_seed,
+    propagate,
     format,
 ):
     """create samples for Monte Carlo sampling
@@ -34,11 +36,14 @@ def create_samples(
         temperature: temperature in Kelvin
         n_samples: number of samples to create (default: 1)
         force_constants: filename of the file holding force constants for phonon rattle
-        mc_rattle: hiphive mc rattle
+        rattle: atoms.rattle
         quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
         deterministic: create sample deterministically
+        plus_minus: use +/-
+        gauge_eigenvectors: make largest entry positive
         sobol: Use sobol numbers for the sampling
         random_seed: seed for random number generator
+        propagate: propagate atoms according to velocities for this many fs
         format: The ASE file format for geometry files
     """
 
@@ -49,12 +54,7 @@ def create_samples(
     temp = temperature
     info_str = []
 
-    if mc_rattle:
-        try:
-            from hiphive.structure_generation import mc_rattle
-        except (ModuleNotFoundError, ImportError):
-            exit("** hiphive needs to be installed to use mc_rattle.")
-    else:
+    if not rattle:
         if temp is None:
             exit("** temperature needs to be given")
 
@@ -88,11 +88,20 @@ def create_samples(
             "force_constants": fc,
             "quantum": quantum,
             "temp": temp * u.kB,
-            "plus_minus": deterministic,
             "failfast": True,
             "rng": rng,
         }
+
         info_str += ["created from force constants", f"T = {temp} K"]
+
+        # ase 3.18 legacy
+        if deterministic:
+            phonon_harmonic_args.update({"deterministic": True})
+        if plus_minus:
+            phonon_harmonic_args.update({"plus_minus": True})
+        if gauge_eigenvectors:
+            phonon_harmonic_args.update({"gauge_eigenvectors": True})
+
         talk(f"\nUse force constants from {force_constants} to prepare samples")
         talk(f"Random seed: {seed}")
 
@@ -101,21 +110,24 @@ def create_samples(
         info_str += ["created from MB distrubtion", f"T = {temperature} K"]
         talk(f"Use Maxwell Boltzamnn to set up samples")
 
-    info_str += [f"quantum:           {quantum}"]
-    info_str += [f"deterministic:     {deterministic}"]
-    info_str += [f"Sobol numbers:     {sobol}"]
-    info_str += [f"Random seed:       {seed}"]
+    info_str += [f"quantum:             {quantum}"]
+    info_str += [f"deterministic:       {deterministic}"]
+    info_str += [f"plus_minus:          {plus_minus}"]
+    info_str += [f"gauge_eigenvectors:  {gauge_eigenvectors}"]
+    info_str += [f"Sobol numbers:       {sobol}"]
+    info_str += [f"Random seed:         {seed}"]
 
     for ii in range(n_samples):
         talk(f"Sample {ii:3d}:")
-        sample_info_str = info_str + [f"Sample number:     {ii + 1}"]
+        sample_info_str = info_str + [f"Sample number:       {ii + 1}"]
         sample = atoms.copy()
 
         if force_constants is not None:
             vd.PhononHarmonics(sample, **phonon_harmonic_args)
 
-        elif mc_rattle:
-            exit("mc_rattle not yet implemented")
+        elif rattle is not None:
+            sample.rattle(rattle)
+            sample_info_str = info_str + [f"Rattle with stdev:   {rattle}"]
 
         else:
             vd.MaxwellBoltzmannDistribution(sample, **mb_args)
@@ -134,7 +146,12 @@ def create_samples(
         talk(f".. remove net momentum from sample and force temperature")
         vd.force_temperature(sample, temp)
         vd.Stationary(sample)
-        vd.ZeroRotation(sample)
+        # vd.ZeroRotation(sample)
+
+        if propagate:
+            talk(f".. propagate positions for {propagate} fs")
+            sample_info_str += [f"Propagated for:      {propagate} fs"]
+            sample.positions += sample.get_velocities() * propagate * u.fs
 
         filename = f"{geometry}.{int(temp):04d}K"
         if n_samples > 1:
