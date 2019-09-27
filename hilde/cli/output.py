@@ -23,8 +23,19 @@ def output():
 @click.option("-d", "--discard", type=int, help="discard this many steps")
 @click.option("--minimal", is_flag=True, help="only write necessary minimum")
 @click.option("-fc", "--force_constants", help="use FC to compute ha. forces")
+@click.option("-rfc", "--remapped_force_constants", help="use remapped FC")
 @click.option("-o", "--outfile", default="auto", show_default=True)
-def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile):
+@click.option("-avg", "--average_reference", is_flag=True)
+def md_output(
+    trajectory,
+    heat_flux,
+    discard,
+    minimal,
+    force_constants,
+    remapped_force_constants,
+    outfile,
+    average_reference,
+):
     """write data in trajectory as xarray.Dataset"""
     import numpy as np
     from hilde.trajectory import reader
@@ -42,9 +53,16 @@ def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile)
             force_constants,
             primitive=traj.primitive,
             supercell=traj.supercell,
-            symmetrize=False,
+            symmetrize=True
         )
-        traj.set_forces_harmonic(force_constants=fc)
+        traj.set_forces_harmonic(
+            force_constants=fc, average_reference=average_reference
+        )
+    elif remapped_force_constants:
+        fc = np.loadtxt(remapped_force_constants)
+        traj.set_forces_harmonic(
+            force_constants=fc, average_reference=average_reference
+        )
 
     if "auto" in outfile.lower():
         outfile = Path(trajectory).stem + ".nc"
