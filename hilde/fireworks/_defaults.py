@@ -8,7 +8,7 @@ SETTINGS = ConfigDict(config_files=[DEFAULT_FIREWORKS_FILE])
 REMOTE_SETUP = SETTINGS.pop("remote_setup", dict())
 REMOTE_HOST_AUTH = SETTINGS.pop("remote_host_auth", dict())
 REMOTE_QUEUE_PARAM = SETTINGS.pop("remote_queue_param", dict())
-LAUNCH_PARAMS = SETTINGS.pop("launch_params")
+LAUNCH_PARAMS = SETTINGS.pop("launch_params", dict())
 
 FW_DEFAULTS = adict(
     {
