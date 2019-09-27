@@ -44,7 +44,6 @@ cli.add_command(aigk.aiGK)
 cli.add_command(submit.submit)
 
 try:
-    import fireworks
     import hilde.fireworks.cli
 
     cli.add_command(hilde.fireworks.cli.fireworks)
