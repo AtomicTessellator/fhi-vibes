@@ -285,16 +285,39 @@ def t2xyz(filename, file):
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-uc", help="Add a (primitive) unit cell", type=complete_filenames)
 @click.option("-sc", help="Add the respective supercell", type=complete_filenames)
+@click.option("-o", "--output_filename")
 @click.option("--format", default="aims")
-def trajectory_update(filename, uc, sc, format):
+def trajectory_update(filename, uc, sc, output_filename, format):
     """add unit cell from UC and supercell from SC to trajectory in FILENAME"""
     # copy: from hilde.scripts.update_md_trajectory import update_trajectory
     import shutil
     from ase.io import read
     from hilde.trajectory import reader
 
+    traj = reader(filename)
 
-    update_trajectory(filename, uc, sc, format)
+    if uc:
+        atoms = read(uc, format=format)
+        traj.primitive = atoms
+
+    if sc:
+        atoms = read(sc, format=format)
+        traj.supercell = atoms
+
+    if not output_filename:
+        new_trajectory = "temp.son"
+        fname = f"{filename}.bak"
+        click.echo(f".. back up old trajectory to {fname}")
+        shutil.copy(filename, fname)
+
+    else:
+        new_trajectory = output_filename
+
+    traj.write(file=new_trajectory)
+
+    if not output_filename:
+        click.echo(f".. move new trajectory to {filename}")
+        shutil.move(new_trajectory, filename)
 
 
 @trajectory.command("pick_sample")
