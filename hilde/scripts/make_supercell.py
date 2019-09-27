@@ -24,7 +24,9 @@ def print_matrix(matrix, indent=2):
     print(rep)
 
 
-def make_supercell(filename, dimension, n_target, deviation, dry, format, scaled):
+def make_supercell(
+    filename, dimension, n_target, deviation, dry, format, scaled, output_filename=None
+):
     """create or find a supercell
 
     Parameters
@@ -79,7 +81,8 @@ def make_supercell(filename, dimension, n_target, deviation, dry, format, scaled
 
     if not dry:
         spacegroup = get_spacegroup(cell)
-        output_filename = f"{filename}.supercell_{len(supercell)}"
+        if not output_filename:
+            output_filename = f"{filename}.supercell_{len(supercell)}"
         info_str = get_info_str(supercell, spacegroup)
         info_str += [f"Supercell matrix:    {smatrix.flatten()}"]
         supercell.write(
