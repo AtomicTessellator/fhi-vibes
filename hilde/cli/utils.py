@@ -201,6 +201,41 @@ def remap(
     click.echo(f".. remapped force constants written to {output_filename}")
 
 
+@force_constants.command()
+@click.argument("filename", default="FORCE_CONSTANTS_remapped", type=complete_filenames)
+@click.option("-sc", "--supercell", default="geometry.in.supercell", show_default=True)
+@click.option("-n", "--show_n_frequencies", default=6, type=int, show_default=True)
+@click.option("-o", "--output_filename", default="frequencies.dat", show_default=True)
+@click.option("--symmetrize", is_flag=True)
+@click.option("--format", default="aims")
+def frequencies(
+    filename, supercell, show_n_frequencies, output_filename, symmetrize, format
+):
+    """compute the frequency spectrum"""
+    import numpy as np
+    from ase.io import read
+    from hilde.harmonic_analysis.dynamical_matrix import get_frequencies
+
+    atoms = read(supercell, format=format)
+    fc = np.loadtxt(filename)
+
+    w2 = get_frequencies(fc, masses=atoms.get_masses())
+
+    if show_n_frequencies:
+        nn = show_n_frequencies
+        print(f"The first {nn} frequencies:")
+        for ii, freq in enumerate(w2[:nn]):
+            print(f" {ii + 1:4d}: {freq}")
+
+        print(f"Highest {nn} frequencies")
+        for ii, freq in enumerate(w2[-nn:]):
+            print(f" {len(w2) - ii:4d}: {freq }")
+
+    if isinstance(output_filename, str):
+        np.savetxt(output_filename, w2)
+        click.echo(f".. frequencies written to {output_filename}")
+
+
 @utils.group()
 def nomad():
     ...
