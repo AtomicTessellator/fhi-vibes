@@ -1,6 +1,6 @@
 """helpers for aims"""
 
-from hilde.helpers import talk
+from hilde.helpers import talk, warn
 
 
 def peek_aims_uuid(filename="aims.out"):
@@ -22,7 +22,9 @@ def peek_aims_uuid(filename="aims.out"):
             return line.split()[-1]
     except FileNotFoundError:
         talk(f"No aims_uuid found.")
-        return ""
+    except StopIteration:
+        warn(f"{filename} presumably empty, no aims_uuid found")
+    return ""
 
 
 def get_aims_uuid_dict(filename="aims.out"):
