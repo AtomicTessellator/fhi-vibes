@@ -218,35 +218,40 @@ module supercell
       real*8,  intent(in)   :: inv_lattice(3, 3), tol, eps
       integer, intent(in)   :: map2prim(:)
       real*8                :: fc_out(size(positions, 1), size(positions, 1), 3, 3)
-      real*8                :: r_pair(3), r_pair_frac(3)
-      real*8                :: r_diff(3), ref_pos_frac(3), r0(3)
-      integer               :: natoms, nprim, uc_index, i1, i2, i3
+      real*8                :: r_12(3), r_12_frac(3)
+      real*8                :: r_diff(3), ref_pair_frac(3), r_1(3), r_3(3)
+      integer               :: natoms, uc_index, i1, i2, i3
 
       natoms = size(positions, 1)
       natoms_orig = size(pairs, 2)
 
       frac_lp = 0.0
 
-      ! ! initialize matrices and values
+      ! initialize matrices and values
       fc_out = 0.0d0
 
       do i1 = 1, natoms
-        r0 = positions(i1, :)
+        ! position of atoms i1
+        r_1 = positions(i1, :)
+        ! index of atom in primitive cell of which i1 is an image
         uc_index = map2prim(i1) + 1
         do i2 = 1, natoms_orig
-            r_pair = r0 + pairs(uc_index, i2, :)
-            r_pair_frac = modulo(matmul(inv_lattice, r_pair), 1.0d0)
-            do i3 = 1, natoms
-              ref_pos_frac = modulo( &
-                modulo(matmul(inv_lattice, positions(i3, :)), 1.0d0), &
-                1.0d0 &
-              )
-              r_diff = abs(r_pair_frac - ref_pos_frac)
-              r_diff = r_diff - floor(r_diff + eps)
-              if (sum(abs(r_diff)) < tol) then
-                fc_out(i1, i3, :, :) = fc_out(i1, i3, :, :) + fc_in(uc_index, i2, :, :)
-              end if
-            end do
+          ! pair vector
+          r_12 = r_1 + pairs(uc_index, i2, :)
+          ! pair vector in fractional coord. w.r.t supercell
+          r_12_frac = modulo(matmul(inv_lattice, r_12), 1.0d0)
+          do i3 = 1, natoms
+            ! reference pair vector in fractional coord. w.r.t supercell
+            r_3 = positions(i3, :)
+            ref_pair_frac = modulo( &
+              modulo(matmul(inv_lattice, r_3), 1.0d0), 1.0d0 &
+            )
+            r_diff = abs(r_12_frac - ref_pair_frac)
+            r_diff = r_diff - floor(r_diff + eps)
+            if (sum(abs(r_diff)) < tol) then
+              fc_out(i1, i3, :, :) = fc_out(i1, i3, :, :) + fc_in(uc_index, i2, :, :)
+            end if
+          end do
         end do
        end do
 

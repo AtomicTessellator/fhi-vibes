@@ -15,7 +15,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
 from hilde.helpers.displacements import get_dR
-from hilde.anharmonicity_score import get_forces_harmonic, get_r2_per_sample
+from hilde.anharmonicity_score import get_forces_harmonic, get_r2_per_sample, get_r2
 from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al, _prefix
 
 
@@ -39,11 +39,14 @@ class Trajectory(list):
 
         # lazy eval where @lazy_eval is not applicable
         self._supercell = None
+        self._reference_atoms = None
+        self._average_atoms = None
         self._heat_flux = None
         self._avg_heat_flux = None
         self._volume = None
         self._forces_harmonic = None
         self._force_constants = None
+        self._displacements = None
 
     @classmethod
     def from_file(cls, file):
@@ -72,12 +75,29 @@ class Trajectory(list):
         self._metadata = metadata
 
     @property
-    def ref_atoms(self):
+    def reference_atoms(self):
         """Reference atoms object for computing displacements etc"""
-        if self.supercell:
-            return self.supercell
-        warn("No supercell found, return first Atoms in trajectory", level=1)
-        return self[0]
+        if not self._reference_atoms:
+            if self.supercell:
+                self._reference_atoms = self.supercell.copy()
+            else:
+                warn("No supercell found, return first Atoms in trajectory", level=1)
+                self._reference_atoms = self[0].copy()
+        return self._reference_atoms
+
+    @reference_atoms.setter
+    def reference_atoms(self, atoms):
+        assert isinstance(atoms, Atoms)
+        self._reference_atoms = atoms
+
+    # ref_atoms legacy
+    @property
+    def ref_atoms(self):
+        return self.reference_atoms
+
+    @ref_atoms.setter
+    def ref_atoms(self, atoms):
+        self.reference_atoms = atoms
 
     @property
     def primitive(self):
@@ -123,12 +143,12 @@ class Trajectory(list):
     @property
     def symbols(self):
         """return chemical symbols"""
-        return self.ref_atoms.get_chemical_symbols()
+        return self.reference_atoms.get_chemical_symbols()
 
     @property
     def masses(self):
         """return masses in AMU"""
-        return self.ref_atoms.get_masses()
+        return self.reference_atoms.get_masses()
 
     @property
     def masses_dict(self):
@@ -174,7 +194,7 @@ class Trajectory(list):
     @property
     def ref_positions(self):
         """return reference positions"""
-        return self.ref_atoms.get_positions()
+        return self.reference_atoms.get_positions()
 
     @lazy_property
     def positions(self):
@@ -185,6 +205,11 @@ class Trajectory(list):
     def velocities(self):
         """return the velocities as [N_t, N_a, 3] array"""
         return np.array([a.get_velocities() for a in self])
+
+    @lazy_property
+    def momenta(self):
+        """return the velocities as [N_t, N_a, 3] array"""
+        return np.array([a.get_momenta() for a in self])
 
     @lazy_property
     def forces(self):
@@ -202,15 +227,21 @@ class Trajectory(list):
         assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
         self._force_constants = fc
 
-    def set_forces_harmonic(self, force_constants=None):
+    def set_forces_harmonic(self, force_constants=None, average_reference=False):
         """return harmonic force computed from force_constants"""
+        if average_reference:
+            talk("Compute harmonic force constants with average positions as reference")
+            ref_atoms = self.average_atoms
+        else:
+            ref_atoms = self.reference_atoms
+
         if force_constants is not None:
             self.force_constants = force_constants
 
         timer = Timer("Set harmonic forces")
         f_ha = get_forces_harmonic
 
-        forces_ha = [f_ha(a, self.supercell, self.force_constants) for a in self]
+        forces_ha = [f_ha(a, ref_atoms, self.force_constants) for a in self]
         timer()
 
         self._forces_harmonic = np.array(forces_ha).reshape(self.positions.shape)
@@ -219,7 +250,7 @@ class Trajectory(list):
     def forces_harmonic(self):
         """return harmonic forces, None if not set via `set_force_constants`"""
         if self._forces_harmonic is None:
-            if self.force_constants:
+            if self.force_constants is not None:
                 self.set_forces_harmonic()
 
         return self._forces_harmonic
@@ -290,6 +321,15 @@ class Trajectory(list):
     def pressure(self):
         """return the pressure as [N_t] array"""
         return self.get_pressure()
+
+    @property
+    def r2(self):
+        """return r2 per time step"""
+        if self.forces_harmonic is not None:
+            x = self.forces
+            y = self.forces_harmonic
+            r2 = get_r2(x, y)
+            return r2
 
     @property
     def r2_per_sample(self):
@@ -419,13 +459,16 @@ class Trajectory(list):
         """
         io.to_tdep(self, folder, skip)
 
-    @lazy_property
-    def displacements(self):
-        """return the displacements for `ref_atoms`"""
+    def set_displacements(self):
+        """calculate the displacements for `reference_atoms`"""
         if not self.supercell:
-            warn("Supercell not set, let us stop here.", level=2)
+            # warn("Supercell not set, let us stop here.", level=2)
+            warn(
+                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms",
+                level=1,
+            )
 
-        atoms_ideal = self.ref_atoms
+        atoms_ideal = self.reference_atoms
 
         # use get_dR
         list1 = []
@@ -434,7 +477,19 @@ class Trajectory(list):
             list1.append(get_dR(atoms, atoms_ideal))
         list1 = np.asarray(list1)
 
-        return list1
+        self.displacements = list1
+
+    @property
+    def displacements(self):
+        """cached version of `get_displacements`"""
+        if self._displacements is None:
+            self.set_displacements()
+        return self._displacements
+
+    @displacements.setter
+    def displacements(self, displacement_array):
+        assert np.shape(displacement_array) == np.shape(self.positions)
+        self._displacements = displacement_array
 
     def get_average_displacements(self, window=-1):
         """Return averaged displacements
@@ -447,18 +502,17 @@ class Trajectory(list):
 
         displacements = self.displacements
 
-        weight = 1 / len(displacements)
+        weight = 1  # 1 / len(displacements)
 
         # this will hold the averaged displacement
         avg_displacement = weight * displacements.mean(axis=0)
 
         return avg_displacement
 
-    def get_average_positions(self, ref_atoms=None, window=-1, wrap=False):
+    def get_average_positions(self, window=-1, wrap=False):
         """ Return averaged positions
 
         Args:
-            ref_atoms: reference structure for undisplaced system
             window: This does nothing
             wrap: If True wrap all the atoms to be within the unit cell
 
@@ -466,11 +520,9 @@ class Trajectory(list):
             np.ndarray: The average positions of all the atoms in self
         """
         # reference atoms
-        ref_atoms = self.ref_atoms
+        ref_atoms = self.reference_atoms
 
-        avg_displacement = self.get_average_displacements(
-            ref_atoms=ref_atoms, window=window
-        )
+        avg_displacement = self.get_average_displacements(window=window)
 
         avg_atoms = ref_atoms.copy()
         avg_atoms.positions += avg_displacement
@@ -479,6 +531,19 @@ class Trajectory(list):
             avg_atoms.wrap()
 
         return avg_atoms.get_positions()
+
+    @property
+    def average_atoms(self):
+        """Atoms object with averaged positions"""
+        if not self._average_atoms:
+            self.set_average_reference()
+        return self._average_atoms
+
+    def set_average_reference(self):
+        talk(f"(Re-)set average positions")
+        avg_atoms = self.reference_atoms.copy()
+        avg_atoms.positions = self.get_average_positions()
+        self._average_atoms = avg_atoms
 
     def get_hashes(self, verbose=False):
         """return all hashes from trajectory"""

@@ -7,7 +7,7 @@ from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS
 from phonopy.structure.atoms import PhonopyAtoms
 
-from hilde.helpers import Timer, talk, warn
+from hilde.helpers import Timer, talk, warn, progressbar
 from hilde.helpers.fileformats import last_from_yaml
 from hilde.helpers.converters import input2dict
 from hilde.phonopy._defaults import displacement_id_str
@@ -271,7 +271,7 @@ def remap_force_constants(
     if new_supercell is None:
         new_supercell = supercell.copy()
 
-    # make sure we wrap the positions in the primitive cell correctly
+    # find positions of primitive cell within the (reference) supercell
     primitive_cell = primitive.cell.copy()
     primitive.cell = supercell.cell
 
@@ -281,15 +281,17 @@ def remap_force_constants(
     n_sc = len(supercell)
     n_sc_new = len(new_supercell)
 
+    # make a list of all pairs for each atom in primitive cell
     sc_r = np.zeros((force_constants.shape[0], force_constants.shape[1], 3))
-
     for aa, a1 in enumerate(primitive):
         diff = supercell.positions - a1.position
         p2s = np.where(np.linalg.norm(diff, axis=1) < tol)[0][0]
         sc_r[aa] = supercell.get_distances(p2s, range(n_sc), mic=True, vector=True)
 
+    # find mapping from supercell to origin atom in primitive cell
     map2prim = []
 
+    # represent new supercell in fractional coords of primitive cell
     new_supercell_with_prim_cell = new_supercell.copy()
 
     primitive.cell = primitive_cell
@@ -298,9 +300,14 @@ def remap_force_constants(
     primitive.wrap(eps=tol)
     new_supercell_with_prim_cell.wrap(eps=tol)
 
+    # create list that maps atoms in supercell to atoms in primitive cell
     for a1 in new_supercell_with_prim_cell:
         diff = primitive.positions - a1.position
         map2prim.append(np.where(np.linalg.norm(diff, axis=1) < tol)[0][0])
+
+    # make sure every atom in primitive was matched equally often
+    _, counts = np.unique(map2prim, return_counts=True)
+    assert counts.std() == 0, counts
 
     if fortran:
         talk(".. use fortran", prefix=_prefix)
@@ -319,7 +326,7 @@ def remap_force_constants(
         sc_temp = new_supercell.get_cell(complete=True)
 
         fc_out = np.zeros((n_sc_new, n_sc_new, 3, 3))
-        for a1, r0 in enumerate((new_supercell.positions)):
+        for a1, r0 in enumerate(progressbar(new_supercell.positions)):
             uc_index = map2prim[a1]
             for sc_a2, sc_r2 in enumerate(sc_r[uc_index]):
                 r_pair = r0 + sc_r2
@@ -444,15 +451,23 @@ def parse_phonopy_force_constants(
 
     fc = parse_FORCE_CONSTANTS(fc_filename)
 
-    fc = remap_force_constants(
-        fc,
-        uc,
-        sc,
-        two_dim=two_dim,
-        tol=tol,
-        eps=eps,
-        fortran=fortran,
-        symmetrize=symmetrize,
-    )
+    if fc.shape[0] == len(sc):
+        if two_dim:
+            fc = fc.swapaxes(1, 2).reshape(3 * len(sc), 3 * len(sc))
+
+        return fc
+
+    if two_dim:
+
+        fc = remap_force_constants(
+            fc,
+            uc,
+            sc,
+            two_dim=two_dim,
+            tol=tol,
+            eps=eps,
+            fortran=fortran,
+            symmetrize=symmetrize,
+        )
 
     return fc

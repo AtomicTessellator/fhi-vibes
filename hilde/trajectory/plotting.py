@@ -58,7 +58,7 @@ def plot_summary(dataframe, avg=50, natoms=None):
         e_temp = (e_kin + e_pot) / natoms / 3 / units.kB
         e_temp.plot(color=tc[1], ax=ax, **plot_kw)
         e_temp.rolling(window=avg, min_periods=0).mean().plot(
-            color=tc[1], label=f"E_tot", ax=ax, **av_kwg
+            color=tc[1], label=f"E_tot", ax=ax, **avg_kw
         )
 
     roll = temp.rolling(window=avg, min_periods=0).mean()

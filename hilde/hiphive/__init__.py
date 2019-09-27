@@ -1,5 +1,6 @@
 """hiphive utilities"""
 
+import numpy as np
 from hilde.helpers import warn, Timer as _Timer, talk as _talk
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.geometry import inscribed_sphere_in_box

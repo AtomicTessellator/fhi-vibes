@@ -32,7 +32,8 @@ def _metadata(trajectory, dct=None):
         "volume": trajectory.volume,
         "symbols": trajectory.symbols,
         "masses": trajectory.masses,
-        "reference atoms": atoms2json(trajectory.ref_atoms),
+        "reference atoms": atoms2json(trajectory.reference_atoms),
+        "average atoms": atoms2json(trajectory.average_atoms),
         "reference positions": trajectory.ref_positions.flatten(),
     }
 
@@ -144,6 +145,7 @@ def get_trajectory_data(trajectory):
         "positions": positions,
         "displacements": (vec_dims, trajectory.displacements),
         "velocities": velocities,
+        "momenta": (vec_dims, trajectory.momenta),
         "forces": (vec_dims, trajectory.forces),
         "kinetic_energy": (time_dims, trajectory.kinetic_energy),
         "potential_energy": (time_dims, trajectory.potential_energy),
@@ -158,7 +160,8 @@ def get_trajectory_data(trajectory):
     if trajectory.forces_harmonic is not None:
         dataset.update({"forces_harmonic": (vec_dims, trajectory.forces_harmonic)})
         dataset.update({"r2_per_sample": (time_dims, trajectory.r2_per_sample)})
-        attrs.update({"r2": trajectory.r2_per_sample.mean()})
+        attrs.update({"r2 (avg)": trajectory.r2_per_sample.mean()})
+        attrs.update({"r2": trajectory.r2.mean()})
 
     return xr.Dataset(dataset, coords=coords, attrs=attrs)
 

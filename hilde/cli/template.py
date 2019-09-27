@@ -10,7 +10,6 @@ except ModuleNotFoundError:
 
 import click
 from hilde.templates import settings, config_files
-
 from .misc import AliasedGroup
 
 

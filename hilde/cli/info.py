@@ -1,14 +1,6 @@
 """`hilde info` backend"""
 
 from pathlib import Path
-import xarray as xr
-from ase.io import read
-from hilde import Settings, son, reader
-from hilde.structure.io import inform
-from hilde.scripts.md_sum import md_sum
-from hilde.scripts.hilde_phonopy import preprocess
-from hilde.trajectory import analysis as al
-
 from .misc import AliasedGroup, click, complete_filenames
 
 
@@ -25,6 +17,8 @@ def info():
 @click.pass_obj
 def geometry_info(obj, filename, format, symprec, verbose):
     """inform about a structure in a geometry input file"""
+    from ase.io import read
+    from hilde.structure.io import inform
 
     atoms = read(filename, format=format)
 
@@ -53,6 +47,9 @@ def geometry_info(obj, filename, format, symprec, verbose):
 @click.option("-v", "--verbose", is_flag=True, help="be verbose")
 def md_info(filename, plot, write, avg, verbose):
     """inform about content of a settings.in file"""
+    import xarray as xr
+    from hilde.scripts.md_sum import md_sum
+    from hilde.trajectory import analysis as al, reader
 
     file = Path(filename)
 
@@ -78,6 +75,7 @@ def md_info(filename, plot, write, avg, verbose):
 @click.option("--format", default="aims", show_default=True)
 def phonopy_info(filename, write_supercell, format):
     """inform about a phonopy calculation before it is started"""
+    from hilde.scripts.hilde_phonopy import preprocess
 
     preprocess(
         filename=None,
@@ -92,6 +90,8 @@ def phonopy_info(filename, write_supercell, format):
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
 def trajectory_info(filename):
     """inform about content of trajectory file"""
+    from hilde import son
+    from hilde.settings import Settings
 
     metadata, _ = son.load(filename)
 
@@ -113,3 +113,23 @@ def show_netcdf_file(file):
     DS = xr.open_dataset(file)
 
     print(DS)
+
+
+@info.command("hdf5")
+@click.argument("file", type=complete_filenames)
+@click.option("-v", "--verbose", is_flag=True)
+def show_hdf5_file(file, verbose):
+    """show contents of HDF5 FILE"""
+    import pandas as pd
+
+    click.echo(f"Summarize file {file}")
+    with pd.HDFStore(file) as store:
+        click.echo("Keys:")
+        for k in store:
+            click.echo(f"  {k}")
+
+        if verbose:
+            click.echo()
+            for k in store:
+                click.echo(f"Describe {k}")
+                click.echo(store[k].describe())

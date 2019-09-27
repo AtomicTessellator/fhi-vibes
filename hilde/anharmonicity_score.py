@@ -84,8 +84,8 @@ def get_r2_per_atom(
     """Compute r^2 score per atom in primitive cell. Optionally use symmetry.
 
     Args:
-        forces_dft: forces from dft calculations
-        forces_harmonic: forces from harmonic approximation
+        forces_dft: forces from dft calculations in shape [Nt, Na, 3]
+        forces_harmonic: forces from harmonic approximation in shape [Nt, Na, 3]
         ref_structure: reference structure for symmetry analysis
         reduce_by_symmetry: project on symmetry equivalent instead of primitive
 
@@ -95,6 +95,11 @@ def get_r2_per_atom(
     """
 
     sds = get_symmetry_dataset(ref_structure)
+
+    # check shape:
+    if len(np.shape(forces_dft)) == 2:
+        forces_dft = np.expand_dims(forces_dft, axis=0)
+        forces_harmonic = np.expand_dims(forces_harmonic, axis=0)
 
     if reduce_by_symmetry:
         compare_to = sds.equivalent_atoms
@@ -129,6 +134,8 @@ def get_r2_per_atom(
 def get_r2_MAE(in_f_data, in_f_model):
     r"""Calculate  1 - MAE/MA
 
+    "r2 (RMA)": 1 - (1 - r2a) ** 2,
+
     Args:
         in_f_data: input data
         in_f_model: input model data
@@ -147,7 +154,20 @@ def get_r2_MAE(in_f_data, in_f_model):
 
     MAE = Sres / Stot
 
-    return 1 - MAE
+    r2a = 1 - MAE
+
+    return 1 - (1 - r2a) ** 2
+
+
+def get_r2_per_direction(f_data, f_model):
+    """compute r2 for each Cartesian direction"""
+    assert f_data.shape[-1] == 3
+    directions = ("x", "y", "z")
+    y = np.asarray(f_data).swapaxes(-1, 0)
+    f = np.asarray(f_model).swapaxes(-1, 0)
+
+    r2_direction = [get_r2(y[xx], f[xx]) for xx in range(len(directions))]
+    return r2_direction
 
 
 def get_forces_from_trajectory(trajectory, ref_structure=None, force_constants=None):
@@ -183,3 +203,43 @@ def get_forces_harmonic(sc, ref_structure, force_constants):
         The harmonic forces
     """
     return -force_constants @ get_dR(sc, ref_structure).flatten()
+
+
+def get_dataframe(dataset):
+    """return anharmonicity dataframe for xarray.Dataset DS"""
+    from pandas import DataFrame
+    from hilde.helpers.converters import json2atoms
+
+    DS = dataset
+
+    ref_atoms = json2atoms(DS.attrs["reference atoms"])
+
+    fs = DS.forces
+    fhs = DS.forces_harmonic
+
+    name = DS.attrs["System Name"]
+
+    dct = {}
+    for ii, (f, fh) in enumerate(zip(fs, fhs)):
+
+        key = f"{name}.{ii:04d}"
+        dct[key] = {"r2 (RMS)": get_r2(f, fh), "r2 (RMA)": get_r2_MAE(f, fh)}
+
+        r2s = get_r2_per_atom(f, fh, ref_atoms, reduce_by_symmetry=False)
+        d = {}
+        for ii, r in zip(r2s.attrs["unique_atoms"], r2s):  # enumerate(r2s):
+            d[f"r2 [{ii}]"] = float(r)
+
+        dct[key].update(d)
+
+        directions = ("x", "y", "z")
+        r2s = get_r2_per_direction(f, fh)
+        d = {}
+        for ii, xx in enumerate(directions):
+            d[f"r2 [{xx}]"] = r2s[ii]
+
+        dct[key].update(d)
+
+    df = DataFrame(dct)
+    df[name] = df.mean(axis=1)
+    return df.T

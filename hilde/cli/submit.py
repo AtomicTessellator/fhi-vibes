@@ -1,10 +1,6 @@
 """`hilde run` part of the CLI"""
 
 import click
-
-from hilde import Settings
-from hilde.slurm.submit import submit as _submit
-
 from .misc import AliasedGroup, complete_filenames
 
 paths = complete_filenames
@@ -14,6 +10,9 @@ _command = lambda c: f"hilde run {c}"
 
 def _start(settings_file, name):
     """check if settings contain [slurm] and submit"""
+    from hilde.settings import Settings
+    from hilde.slurm.submit import submit as _submit
+
     settings = Settings(settings_file=settings_file)
     if "slurm" not in settings:
         raise click.ClickException(f"[slurm] settings not found in {settings_file}")

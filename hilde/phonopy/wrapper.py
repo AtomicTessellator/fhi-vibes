@@ -325,7 +325,11 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
 
 
 def plot_bandstructure_and_dos(
-    phonon, q_mesh=defaults.q_mesh, partial=False, file="bands_and_dos.pdf"
+    phonon,
+    q_mesh=defaults.q_mesh,
+    partial=False,
+    file="bands_and_dos.pdf",
+    run_mesh=True,
 ):
     """Plot bandstructure and PDOS
 
@@ -344,12 +348,14 @@ def plot_bandstructure_and_dos(
     set_bandstructure(phonon)
 
     if partial:
-        phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
-        phonon.run_projected_dos(use_tetrahedron_method=True)
+        if run_mesh:
+            phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
+            phonon.run_projected_dos(use_tetrahedron_method=True)
         pdos_indices = map_unique_to_atoms(phonon.get_primitive())
     else:
-        phonon.run_mesh(q_mesh)  # , with_eigenvectors=True,)
-        phonon.run_total_dos(use_tetrahedron_method=True)
+        if run_mesh:
+            phonon.run_mesh(q_mesh)  # , with_eigenvectors=True,)
+            phonon.run_total_dos(use_tetrahedron_method=True)
         pdos_indices = None
 
     plt = phonon.plot_band_structure_and_dos(pdos_indices=pdos_indices)

@@ -1,50 +1,26 @@
 """Default definitions for FireWorks"""
-from hilde.settings import Settings
+from hilde.settings import ConfigDict
 from hilde.helpers.attribute_dict import AttributeDict as adict
+from hilde._defaults import DEFAULT_FIREWORKS_FILE
 
-SETTINGS = Settings()
-REMOTE_SETUP = SETTINGS.remote_setup if "remote_setup" in SETTINGS else {}
-REMOTE_HOST_AUTH = SETTINGS.remote_host_auth if "remote_host_auth" in SETTINGS else {}
-REMOTE_QUEUE_PARAM = (
-    SETTINGS.remote_queue_param if "remote_queue_param" in SETTINGS else {}
-)
-LAUNCH_PARAMS = SETTINGS.launch_params if "launch_params" in SETTINGS else {}
+SETTINGS = ConfigDict(config_files=[DEFAULT_FIREWORKS_FILE])
+
+REMOTE_SETUP = SETTINGS.pop("remote_setup", dict())
+REMOTE_HOST_AUTH = SETTINGS.pop("remote_host_auth", dict())
+REMOTE_QUEUE_PARAM = SETTINGS.pop("remote_queue_param", dict())
+LAUNCH_PARAMS = SETTINGS.pop("launch_params", dict())
 
 FW_DEFAULTS = adict(
     {
-        "launch_dir": (
-            REMOTE_SETUP.launch_dir if "launch_dir" in REMOTE_SETUP else "."
-        ),
-        "remote_host": (
-            REMOTE_SETUP.remote_host if "remote_host" in REMOTE_SETUP else None
-        ),
-        "remote_config_dir": (
-            REMOTE_SETUP.remote_config_dir
-            if "remote_config_dir" in REMOTE_SETUP
-            else "~/.fireworks"
-        ),
-        "remote_user": (
-            REMOTE_HOST_AUTH.remote_user if "remote_user" in REMOTE_HOST_AUTH else None
-        ),
-        "remote_password": (
-            REMOTE_HOST_AUTH.remote_password
-            if "remote_password" in REMOTE_HOST_AUTH
-            else None
-        ),
-        "njobs_queue": (
-            REMOTE_QUEUE_PARAM.njobs_queue if "njobs_queue" in REMOTE_QUEUE_PARAM else 0
-        ),
-        "njobs_block": (
-            REMOTE_QUEUE_PARAM.njobs_block
-            if "njobs_block" in REMOTE_QUEUE_PARAM
-            else 500
-        ),
-        "nlaunches": (LAUNCH_PARAMS.nlaunches if "nlaunches" in LAUNCH_PARAMS else 0),
-        "sleep_time": (
-            LAUNCH_PARAMS.sleep_time if "sleep_time" in LAUNCH_PARAMS else None
-        ),
-        "tasks2queue": (
-            LAUNCH_PARAMS.tasks2queue if "tasks2queue" in LAUNCH_PARAMS else ""
-        ),
+        "launch_dir": REMOTE_SETUP.pop("launch_dir", "."),
+        "remote_host": REMOTE_SETUP.pop("remote_host", None),
+        "remote_config_dir": REMOTE_SETUP.pop("remote_config_dir", "~/.fireworks"),
+        "remote_user": REMOTE_HOST_AUTH.pop("remote_user", None),
+        "remote_password": REMOTE_HOST_AUTH.pop("remote_password", None),
+        "njobs_queue": REMOTE_QUEUE_PARAM.pop("njobs_queue", 0),
+        "njobs_block": REMOTE_QUEUE_PARAM.pop("njobs_block", 500),
+        "nlaunches": LAUNCH_PARAMS.pop("nlaunches", 0),
+        "sleep_time": LAUNCH_PARAMS.pop("sleep_time", None),
+        "tasks2queue": LAUNCH_PARAMS.pop("tasks2queue", ""),
     }
 )

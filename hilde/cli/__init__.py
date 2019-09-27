@@ -6,7 +6,6 @@ import click
 import click_completion
 
 from hilde import __version__ as hilde_version
-from hilde.settings import Configuration
 from hilde._defaults import DEFAULT_CONFIG_FILE
 from .cli_tracker import CliTracker
 from . import info, template, run, utils, output, aigk, submit
@@ -55,7 +54,7 @@ try:
     import hilde.balsam.cli
 
     cli.add_command(hilde.balsam.cli.balsam)
-except:
+except ImportError:
     pass
 
 
@@ -64,6 +63,7 @@ except:
 @click.pass_obj
 def hilde_status(obj, verbose):
     """check if everything is set up"""
+    from hilde.settings import Configuration
 
     configfile = DEFAULT_CONFIG_FILE
 

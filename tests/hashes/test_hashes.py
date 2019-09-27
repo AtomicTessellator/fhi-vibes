@@ -1,6 +1,6 @@
 from pathlib import Path
 from ase.build import bulk
-from hilde import Settings
+from hilde.settings import Settings
 from hilde.aims.context import AimsContext
 from hilde.helpers.hash import hash_atoms, hash_atoms_and_calc
 

@@ -1,12 +1,13 @@
 """`hilde output` part of the CLI"""
 from pathlib import Path
+# import numpy as np
 
 import click
 
-from hilde.trajectory import reader
-from hilde.phonopy._defaults import defaults
-from hilde.tdep.wrapper import convert_phonopy_to_tdep
-from hilde.io import parse_force_constants
+# from hilde.trajectory import reader
+# from hilde.phonopy._defaults import defaults
+# from hilde.tdep.wrapper import convert_phonopy_to_tdep
+# from hilde.io import parse_force_constants
 
 from .misc import AliasedGroup, complete_filenames
 
@@ -22,9 +23,23 @@ def output():
 @click.option("-d", "--discard", type=int, help="discard this many steps")
 @click.option("--minimal", is_flag=True, help="only write necessary minimum")
 @click.option("-fc", "--force_constants", help="use FC to compute ha. forces")
+@click.option("-rfc", "--remapped_force_constants", help="use remapped FC")
 @click.option("-o", "--outfile", default="auto", show_default=True)
-def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile):
+@click.option("-avg", "--average_reference", is_flag=True)
+def md_output(
+    trajectory,
+    heat_flux,
+    discard,
+    minimal,
+    force_constants,
+    remapped_force_constants,
+    outfile,
+    average_reference,
+):
     """write data in trajectory as xarray.Dataset"""
+    import numpy as np
+    from hilde.trajectory import reader
+    from hilde.io import parse_force_constants
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
     traj = reader(file=trajectory, with_stresses=heat_flux)
@@ -38,9 +53,16 @@ def md_output(trajectory, heat_flux, discard, minimal, force_constants, outfile)
             force_constants,
             primitive=traj.primitive,
             supercell=traj.supercell,
-            symmetrize=False,
+            symmetrize=True
         )
-        traj.set_forces_harmonic(force_constants=fc)
+        traj.set_forces_harmonic(
+            force_constants=fc, average_reference=average_reference
+        )
+    elif remapped_force_constants:
+        fc = np.loadtxt(remapped_force_constants)
+        traj.set_forces_harmonic(
+            force_constants=fc, average_reference=average_reference
+        )
 
     if "auto" in outfile.lower():
         outfile = Path(trajectory).stem + ".nc"
@@ -95,7 +117,9 @@ def phonopy_output(
     verbose,
 ):
     """perform phonopy postprocess for TRAJECTORY"""
+    from hilde.phonopy._defaults import defaults
     from hilde.phonopy.postprocess import postprocess, extract_results
+    from hilde.tdep.wrapper import convert_phonopy_to_tdep
 
     if not q_mesh:
         q_mesh = defaults.q_mesh.copy()
