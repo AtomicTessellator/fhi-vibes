@@ -7,7 +7,7 @@ import numpy as np
 
 from ase.io import read
 from ase import units as u
-import ase.md.velocitydistribution as vd
+import hilde.ase.md.velocitydistribution as vd
 
 from hilde.structure.io import inform
 from hilde.helpers import talk
@@ -90,17 +90,12 @@ def create_samples(
             "temp": temp * u.kB,
             "failfast": True,
             "rng": rng,
+            "deterministic": deterministic,
+            "plus_minus": plus_minus,
+            "gauge_eigenvectors": gauge_eigenvectors,
         }
 
         info_str += ["created from force constants", f"T = {temp} K"]
-
-        # ase 3.18 legacy
-        if deterministic:
-            phonon_harmonic_args.update({"deterministic": True})
-        if plus_minus:
-            phonon_harmonic_args.update({"plus_minus": True})
-        if gauge_eigenvectors:
-            phonon_harmonic_args.update({"gauge_eigenvectors": True})
 
         talk(f"\nUse force constants from {force_constants} to prepare samples")
         talk(f"Random seed: {seed}")
@@ -110,12 +105,14 @@ def create_samples(
         info_str += ["created from MB distrubtion", f"T = {temperature} K"]
         talk(f"Use Maxwell Boltzamnn to set up samples")
 
-    info_str += [f"quantum:             {quantum}"]
-    info_str += [f"deterministic:       {deterministic}"]
-    info_str += [f"plus_minus:          {plus_minus}"]
-    info_str += [f"gauge_eigenvectors:  {gauge_eigenvectors}"]
-    info_str += [f"Sobol numbers:       {sobol}"]
-    info_str += [f"Random seed:         {seed}"]
+    info_str += [
+        f"quantum:             {quantum}",
+        f"deterministic:       {deterministic}",
+        f"plus_minus:          {plus_minus}",
+        f"gauge_eigenvectors:  {gauge_eigenvectors}",
+        f"Sobol numbers:       {sobol}",
+        f"Random seed:         {seed}",
+    ]
 
     for ii in range(n_samples):
         talk(f"Sample {ii:3d}:")
