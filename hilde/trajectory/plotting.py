@@ -19,7 +19,6 @@ def plot_summary(dataframe, avg=50, natoms=None):
     matplotlib.use("pdf")
 
     from matplotlib import pyplot as plt
-    from matplotlib import gridspec
 
     from hilde.helpers.plotting import tableau_colors as tc
 
@@ -33,19 +32,24 @@ def plot_summary(dataframe, avg=50, natoms=None):
     # settings for the immediate plot
     plot_kw = {"alpha": 0.4, "linewidth": 1.0, "label": ""}
     avg_kw = {"linewidth": 1.5}
-    fig_kw = {"figsize": (8.27, 11.69)}
+    fig_kw = {
+        "figsize": (8.27, 11.69),
+        "gridspec_kw": {"height_ratios": [1, 1, 0.5, 0.5]},
+        "sharex": True,
+    }
 
     # pressure: make sure there is enough data, otherwise don't bother plotting
     p = dataframe.pressure / units.GPa
     p_int = p.interpolate("akima")
     p = p.dropna()
     if len(p) > 3:
-        fig = plt.figure(**fig_kw)
-        gs = gridspec.GridSpec(nrows=6, ncols=1)
-        ax = fig.add_subplot(gs[0:2])
-        ax2 = fig.add_subplot(gs[2:4], sharex=ax)
-        ax3 = fig.add_subplot(gs[4])
-        ax4 = fig.add_subplot(gs[5])
+        fig, (ax, ax2, ax3, ax4) = plt.subplots(nrows=4, **fig_kw)
+        # fig = plt.figure(**fig_kw)
+        # gs = gridspec.GridSpec(nrows=6, ncols=1)
+        # ax = fig.add_subplot(gs[0:2])
+        # ax2 = fig.add_subplot(gs[2:4])
+        # ax3 = fig.add_subplot(gs[4])
+        # ax4 = fig.add_subplot(gs[5])
         # fig, (ax, ax2, ax3) = plt.subplots(nrows=3, **fig_kw)
         p.plot(
             ax=ax3, **{**plot_kw, "label": "p", "linewidth": 0}, color=tc[3], marker="x"
@@ -68,6 +72,7 @@ def plot_summary(dataframe, avg=50, natoms=None):
         roll.plot(color=tc[5], ax=ax4, label="std(|dR|)", **avg_kw)
         # ax4.fill_between(dr.index, dr + dr_std, dr - dr_std, color=tc[4], alpha=0.3)
         ax4.set_ylabel("Displacement [Å]")
+        ax4.set_title("Displacement")
         ax4.axhline(0)
         ax4.legend(loc=4)
 
