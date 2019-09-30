@@ -78,20 +78,20 @@ def plot_summary(dataframe, avg=50, natoms=None):
     # fig, ax = plt.subplots()
 
     e_tot = e_pot + e_kin
-    e_dif = e_pot - e_kin
+    e_dif = e_kin - e_pot
 
     e_tot.plot(color=tc[0], title="Energy", ax=ax2, **plot_kw)
     roll = e_tot.rolling(window=avg, min_periods=0).mean()
     roll.plot(color=tc[0], ax=ax2, label="E_tot", **avg_kw)
 
-    e_pot.plot(color=tc[3], ax=ax2, **plot_kw)
-    roll = e_pot.rolling(window=avg, min_periods=0).mean()
-    roll.plot(color=tc[3], ax=ax2, label="E_pot", **avg_kw)
+    e_kin.plot(color=tc[3], ax=ax2, **plot_kw)
+    roll = e_kin.rolling(window=avg, min_periods=0).mean()
+    roll.plot(color=tc[3], ax=ax2, label="E_kin", **avg_kw)
 
     ax2.axhline(0, linewidth=0.75)
     e_dif.plot(color=tc[1], ax=ax2, **plot_kw)
     exp = e_dif.rolling(min_periods=0, window=avg).mean()
-    exp.plot(color=tc[1], ax=ax2, label="E_pot - E_kin", **avg_kw)
+    exp.plot(color=tc[1], ax=ax2, label="E_kin - E_pot", **avg_kw)
 
     ax2.legend()
     ax2.set_ylabel("Energy [eV]")
