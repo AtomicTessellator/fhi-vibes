@@ -13,6 +13,7 @@ from hilde.helpers.converters import input2dict
 from hilde.phonopy._defaults import displacement_id_str
 from hilde.structure.convert import to_Atoms
 from hilde.helpers.supercell.supercell import supercell as fort
+from hilde.ase.geometry import get_distances
 
 _prefix = "phonopy.utils"
 
@@ -225,6 +226,31 @@ def get_force_constants_from_trajectory(
     )
 
 
+def _map2prim(primitive, supercell, tol=1e-5):
+    map2prim = []
+    primitive = primitive.copy()
+    supercell = supercell.copy()
+
+    # represent new supercell in fractional coords of primitive cell
+    supercell_with_prim_cell = supercell.copy()
+
+    supercell_with_prim_cell.cell = primitive.cell.copy()
+
+    primitive.wrap(eps=tol)
+    supercell_with_prim_cell.wrap(eps=tol)
+
+    # create list that maps atoms in supercell to atoms in primitive cell
+    for a1 in supercell_with_prim_cell:
+        diff = primitive.positions - a1.position
+        map2prim.append(np.where(np.linalg.norm(diff, axis=1) < tol)[0][0])
+
+    # make sure every atom in primitive was matched equally often
+    _, counts = np.unique(map2prim, return_counts=True)
+    assert counts.std() == 0, counts
+
+    return map2prim
+
+
 def remap_force_constants(
     force_constants,
     primitive,
@@ -286,28 +312,14 @@ def remap_force_constants(
     for aa, a1 in enumerate(primitive):
         diff = supercell.positions - a1.position
         p2s = np.where(np.linalg.norm(diff, axis=1) < tol)[0][0]
-        sc_r[aa] = supercell.get_distances(p2s, range(n_sc), mic=True, vector=True)
+        # sc_r[aa] = supercell.get_distances(p2s, range(n_sc), mic=True, vector=True)
+        # replace with post 3.18 ase routine:
+        spos = supercell.positions
+        sc_r[aa], _ = get_distances([spos[p2s]], spos, cell=supercell.cell, pbc=True)
 
     # find mapping from supercell to origin atom in primitive cell
-    map2prim = []
-
-    # represent new supercell in fractional coords of primitive cell
-    new_supercell_with_prim_cell = new_supercell.copy()
-
     primitive.cell = primitive_cell
-    new_supercell_with_prim_cell.cell = primitive_cell
-
-    primitive.wrap(eps=tol)
-    new_supercell_with_prim_cell.wrap(eps=tol)
-
-    # create list that maps atoms in supercell to atoms in primitive cell
-    for a1 in new_supercell_with_prim_cell:
-        diff = primitive.positions - a1.position
-        map2prim.append(np.where(np.linalg.norm(diff, axis=1) < tol)[0][0])
-
-    # make sure every atom in primitive was matched equally often
-    _, counts = np.unique(map2prim, return_counts=True)
-    assert counts.std() == 0, counts
+    map2prim = _map2prim(primitive, new_supercell)
 
     if fortran:
         talk(".. use fortran", prefix=_prefix)

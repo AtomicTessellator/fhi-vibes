@@ -77,8 +77,8 @@ def test_fireworks():
 
     phonon = postprocess(f"{workdir}/analysis/trajectory.son")
 
-    phonon.set_mesh(3 * [5])
-    _, _, frequencies, _ = phonon.get_mesh()
+    phonon.run_mesh(3 * [5])
+    frequencies = phonon.get_mesh_dict()["frequencies"]
     print(f"Highest frequency: {frequencies.max():.3f} THz (Target: [8,10] THz)")
     assert 8 < frequencies.max() < 10
 
