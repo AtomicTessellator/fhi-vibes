@@ -6,15 +6,11 @@ from hilde.helpers.numerics import clean_matrix
 def inscribed_sphere_in_box(cell):
     """Find the radius of an inscribed sphere in a unit cell
 
-    Parameters
-    ----------
-    cell: np.ndarray
-        Cell where the sphere should be inscribed
+    Args:
+        cell (np.ndarray): Cell where the sphere should be inscribed
 
-    Returns
-    -------
-    rr: float
-        The radius of the inscribed sphere
+    Returns:
+        float: The radius of the inscribed sphere
     """
 
     # the normals of the faces of the box
@@ -31,6 +27,25 @@ def inscribed_sphere_in_box(cell):
     rr = min(rr, abs(nc @ cell[2, :]))
     rr *= 0.5
     return rr
+
+
+def bounding_sphere_of_box(cell):
+    """Find the radius of the sphere bounding a box
+
+    Args:
+        cell (np.ndarray): Cell where the sphere should be wrapped around
+
+    Returns:
+        float: The radius of the inscribed sphere
+    """
+    a, b, c = np.asarray(cell)
+
+    d1 = a + b + c
+    d2 = a + b - c
+    d3 = a - b + c
+    d4 = a - b - b
+
+    return max(np.linalg.norm([d1, d2, d3, d4], axis=0)) / 2
 
 
 def get_cubicness(cell):
