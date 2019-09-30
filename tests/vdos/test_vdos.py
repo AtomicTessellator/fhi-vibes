@@ -47,7 +47,7 @@ def test_vdos():
     ds = df_vdos.sum(axis=(1, 2)).to_series()
 
     # compare peak positions and analytical frequencies
-    peaks = ds.iloc[sl.find_peaks(ds.real)[0]].index
+    peaks = ds.iloc[sl.find_peaks(ds.to_numpy().real)[0]].index
 
     unique_freqs = np.unique(np.round(freqs.real, decimals=3))[1:]
 
