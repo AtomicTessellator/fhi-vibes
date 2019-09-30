@@ -1,5 +1,6 @@
 """gather statistics about trajectory data"""
-# import numpy as np
+import numpy as np
+
 # import pandas as pd
 import xarray as xr
 from ase.units import GPa
@@ -134,9 +135,23 @@ def summary(dataset, plot=False, **kwargs):
     talk("Summarize Pressure", prefix="info")
     pressure(dataset.pressure)
 
+    # dr = np.linalg.norm(dataset.displacements, axis=(1, 2))
+    # dr = np.linalg.norm(dataset.displacements, axis=(1, 2)) / len(dataset.positions[0])
+    dr = np.linalg.norm(dataset.displacements, axis=2)
+    dr_mean = np.mean(dr, axis=1)
+    dr_std = np.std(dr, axis=1)
+    # displacements = np.mean(dr, axis=1)
+    # displacements_std = np.std(abs(dataset.displacements), axis=(1, 2))
+
     if plot:
         df = dataset[
             ["temperature", "kinetic_energy", "potential_energy", "pressure"]
         ].to_dataframe()
         df.index /= 1000
+
+        df["dr_mean"] = dr_mean
+        df["dr_std"] = dr_std
+        # df["dr"] = displacements
+        # df["dr_std"] = dr_std
+
         plot_summary(df, **kwargs)
