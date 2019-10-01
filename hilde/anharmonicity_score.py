@@ -2,6 +2,7 @@
     (future reference)"""
 import numpy as np
 import xarray as xr
+from hilde.helpers import warn
 from hilde.helpers.displacements import get_dR
 from hilde.spglib.wrapper import get_symmetry_dataset
 
@@ -44,7 +45,7 @@ def get_r(in_f_data, in_f_model):
     return cov / sigma1 / sigma2
 
 
-def get_r2(in_f_data, in_f_model):
+def get_r2(in_f_data, in_f_model, mean=True, silent=False):
     r"""Calculate coefficient of determination between f_data and f_model
 
     Refrence Website
@@ -53,6 +54,8 @@ def get_r2(in_f_data, in_f_model):
     Args:
         in_f_data: input data
         in_f_model: input model data
+        mean (bool): take out mean of f_data
+        silent (bool): make silent
 
     Returns:
         float: Coefficient of Determination
@@ -64,8 +67,17 @@ def get_r2(in_f_data, in_f_model):
     _check_shape(f_data, f_model)
 
     f_data_mean = np.mean(f_data, axis=0)
+
+    # check f_data_mean, should be small
+    if f_data_mean > 1e-1 and not silent:
+        warn(f"|f_data.mean()| is {f_data_mean}", level=1)
+
     Sres = (f_data - f_model) @ (f_data - f_model)
-    Stot = (f_data - f_data_mean) @ (f_data - f_data_mean)
+
+    if mean:
+        Stot = (f_data - f_data_mean) @ (f_data - f_data_mean)
+    else:
+        Stot = (f_data) @ (f_data)
 
     return 1 - Sres / Stot
 
@@ -79,7 +91,7 @@ def get_r2_per_sample(f_data, f_model, skip=0):
 
 
 def get_r2_per_atom(
-    forces_dft, forces_harmonic, ref_structure, reduce_by_symmetry=False
+    forces_dft, forces_harmonic, ref_structure, reduce_by_symmetry=False, silent=True
 ):
     """Compute r^2 score per atom in primitive cell. Optionally use symmetry.
 
@@ -88,6 +100,7 @@ def get_r2_per_atom(
         forces_harmonic: forces from harmonic approximation in shape [Nt, Na, 3]
         ref_structure: reference structure for symmetry analysis
         reduce_by_symmetry: project on symmetry equivalent instead of primitive
+        silent (bool): silence the `get_r2` call
 
     Returns:
         unique_atoms: the atoms from ref_structure for which r^2 was computed
@@ -119,7 +132,7 @@ def get_r2_per_atom(
         f_dft = forces_dft[:, mask]
         f_ha = forces_harmonic[:, mask]
         # compute r^2
-        r2_atom.append(get_r2(f_dft, f_ha))
+        r2_atom.append(get_r2(f_dft, f_ha, silent=silent))
 
     # tup = namedtuple("anharmonicity_score", "r2_per_atom unique counts")
     # ret = tup(np.array(r2_atom), unique_atoms, counts)
