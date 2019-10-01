@@ -78,6 +78,7 @@ def plot_summary(dataframe, avg=50, natoms=None):
 
         ax4.set_xlabel("Time [ps]")
     else:
+        fig_kw["gridspec_kw"] = {"height_ratios": [1, 1]}
         fig, (ax, ax2) = plt.subplots(nrows=2, **fig_kw)
 
     temp.plot(color=tc[3], title="Nuclear Temperature", ax=ax, **plot_kw)

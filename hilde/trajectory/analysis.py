@@ -69,6 +69,9 @@ def pressure(series, interpolate=None):
     else:
         series = series.dropna()
 
+    if len(series) < 1:
+        return
+
     # time in ps
     time = series.index / 1000
 
