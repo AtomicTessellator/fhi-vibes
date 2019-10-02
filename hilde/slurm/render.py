@@ -6,8 +6,8 @@ from jinja2 import Template
 template = r"""#!/bin/bash -l
 
 #SBATCH -J {{ name }}|{{ tag }}
-#SBATCH -o log.{{ name }}.%j
-#SBATCH -e log.{{ name }}.%j
+#SBATCH -o {{ logfile }}.%j
+#SBATCH -e {{ logfile}}.%j
 #SBATCH -D ./
 #SBATCH --mail-type={{ mail_type }}
 #SBATCH --mail-user={{ mail_address }}
