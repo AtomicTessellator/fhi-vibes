@@ -254,5 +254,5 @@ def get_dataframe(dataset):
         dct[key].update(d)
 
     df = DataFrame(dct)
-    df[name] = df.mean(axis=1)
+    # df[name] = df.mean(axis=1)
     return df.T
