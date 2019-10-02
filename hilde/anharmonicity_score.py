@@ -2,7 +2,7 @@
     (future reference)"""
 import numpy as np
 import xarray as xr
-from hilde.helpers import warn
+from hilde.helpers import warn, progressbar
 from hilde.helpers.displacements import get_dR
 from hilde.spglib.wrapper import get_symmetry_dataset
 
@@ -233,7 +233,7 @@ def get_dataframe(dataset):
     name = DS.attrs["System Name"]
 
     dct = {}
-    for ii, (f, fh) in enumerate(zip(fs, fhs)):
+    for ii, (f, fh) in enumerate(zip(progressbar(fs), fhs)):
 
         key = f"{name}.{ii:04d}"
         dct[key] = {"r2 (RMS)": get_r2(f, fh), "r2 (RMA)": get_r2_MAE(f, fh)}
