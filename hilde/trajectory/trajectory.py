@@ -15,7 +15,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
 from hilde.helpers.displacements import get_dR
-from hilde.anharmonicity_score import get_forces_harmonic, get_r2_per_sample, get_r2
+from hilde.anharmonicity_score import get_r2_per_sample, get_r2
 from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al, _prefix
 
 
@@ -231,17 +231,14 @@ class Trajectory(list):
         """return harmonic force computed from force_constants"""
         if average_reference:
             talk("Compute harmonic force constants with average positions as reference")
-            ref_atoms = self.average_atoms
-        else:
-            ref_atoms = self.reference_atoms
+            self.reference_atoms = self.average_atoms
 
         if force_constants is not None:
             self.force_constants = force_constants
 
         timer = Timer("Set harmonic forces")
-        f_ha = get_forces_harmonic
 
-        forces_ha = [f_ha(a, ref_atoms, self.force_constants) for a in self]
+        forces_ha = [-force_constants @ d.flatten() for d in self.displacements]
         timer()
 
         self._forces_harmonic = np.array(forces_ha).reshape(self.positions.shape)
