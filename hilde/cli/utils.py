@@ -411,3 +411,20 @@ def compute_r2(
             with pd.HDFStore(outfile) as store:
                 click.echo(f".. append dataframe for {name} to {outfile}")
                 store[name] = df
+
+
+@utils.group(aliases=["pd"])
+def pandas():
+    """utils for working with pandas dataframes"""
+    ...
+
+
+@pandas.command()
+@click.argument("filename", type=complete_filenames)
+def describe(filename):
+    import pandas as pd
+
+    df = pd.read_csv(filename)
+
+    click.echo(f"Describe {type(df)} from {filename}:")
+    click.echo(df.describe())
