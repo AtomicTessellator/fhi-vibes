@@ -3,6 +3,7 @@ from .render import render
 # args that should be set
 args = (
     "name",
+    'logfile',
     "mail_type",
     "mail_address",
     "nodes",

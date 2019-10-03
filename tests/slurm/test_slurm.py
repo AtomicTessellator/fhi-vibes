@@ -9,8 +9,8 @@ parent = Path(__file__).parent
 ref_submit_script = """#!/bin/bash -l
 
 #SBATCH -J test|hilde
-#SBATCH -o log.test.%j
-#SBATCH -e log.test.%j
+#SBATCH -o log/test.%j
+#SBATCH -e log/test.%j
 #SBATCH -D ./
 #SBATCH --mail-type=all
 #SBATCH --mail-user=knoop@fhi-berlin.mpg.de
@@ -30,7 +30,7 @@ def test_submit():
 
     logfile = parent / "test.log"
     submit_script = parent / "submit.sh"
-    submit(s, submit_command="bash", log=logfile, file=submit_script)
+    submit(s, submit_command="bash", submit_log=logfile, file=submit_script)
 
     assert logfile.exists()
     assert submit_script.exists()
