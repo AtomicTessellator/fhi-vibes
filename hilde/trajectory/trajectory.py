@@ -238,7 +238,7 @@ class Trajectory(list):
 
         timer = Timer("Set harmonic forces")
 
-        forces_ha = [-force_constants @ d.flatten() for d in self.displacements]
+        forces_ha = [-self.force_constants @ d.flatten() for d in self.displacements]
         timer()
 
         self._forces_harmonic = np.array(forces_ha).reshape(self.positions.shape)
