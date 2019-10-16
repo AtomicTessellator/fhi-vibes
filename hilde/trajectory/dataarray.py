@@ -158,7 +158,9 @@ def get_trajectory_data(trajectory):
     attrs = _metadata(trajectory)
 
     if trajectory.forces_harmonic is not None:
+        epot_ha = trajectory.potential_energy_harmonic
         dataset.update({"forces_harmonic": (vec_dims, trajectory.forces_harmonic)})
+        dataset.update({"potential_energy_harmonic": (time_dims, epot_ha)})
         dataset.update({"r2_per_sample": (time_dims, trajectory.r2_per_sample)})
         attrs.update({"r2 (avg)": trajectory.r2_per_sample.mean()})
         attrs.update({"r2": trajectory.r2.mean()})

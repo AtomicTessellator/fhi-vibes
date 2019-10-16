@@ -263,6 +263,10 @@ class Trajectory(list):
         return np.array([a.get_potential_energy() for a in self])
 
     @lazy_property
+    def potential_energy_harmonic(self):
+        return -0.5 * (self.forces_harmonic * self.displacements).sum(axis=(1, 2))
+
+    @lazy_property
     def stress(self):
         """return the stress as [N_t, 3, 3] array"""
         zeros = np.zeros([3, 3])
