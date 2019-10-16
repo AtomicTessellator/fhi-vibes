@@ -253,13 +253,14 @@ def nomad():
 @nomad.command("upload")
 @click.argument("folders", nargs=-1, type=complete_filenames)
 @click.option("--token", help="nomad token, otherwise read from .hilderc")
-@click.option("--legacy", is_flag=True, default=True, help="use old Nomad (default)")
+@click.option("--tar", is_flag=True, help="tar folders before upload")
+@click.option("--legacy", is_flag=True, help="use old Nomad")
 @click.option("--dry", is_flag=True, help="only show the commands")
-def tool_nomad_upload(folders, token, legacy, dry):
+def tool_nomad_upload(folders, token, tar, legacy, dry):
     """upload the calculations in FOLDERS to NOMAD"""
     from hilde.scripts.nomad_upload import nomad_upload
 
-    nomad_upload(folders, token, legacy, dry)
+    nomad_upload(folders, token, tar,legacy, dry)
 
 
 @utils.group()
