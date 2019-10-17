@@ -253,13 +253,14 @@ def nomad():
 @nomad.command("upload")
 @click.argument("folders", nargs=-1, type=complete_filenames)
 @click.option("--token", help="nomad token, otherwise read from .hilderc")
-@click.option("--legacy", is_flag=True, default=True, help="use old Nomad (default)")
+@click.option("--tar", is_flag=True, help="tar folders before upload")
+@click.option("--legacy", is_flag=True, help="use old Nomad")
 @click.option("--dry", is_flag=True, help="only show the commands")
-def tool_nomad_upload(folders, token, legacy, dry):
+def tool_nomad_upload(folders, token, tar, legacy, dry):
     """upload the calculations in FOLDERS to NOMAD"""
     from hilde.scripts.nomad_upload import nomad_upload
 
-    nomad_upload(folders, token, legacy, dry)
+    nomad_upload(folders, token, tar,legacy, dry)
 
 
 @utils.group()
@@ -411,3 +412,20 @@ def compute_r2(
             with pd.HDFStore(outfile) as store:
                 click.echo(f".. append dataframe for {name} to {outfile}")
                 store[name] = df
+
+
+@utils.group(aliases=["pd"])
+def pandas():
+    """utils for working with pandas dataframes"""
+    ...
+
+
+@pandas.command()
+@click.argument("filename", type=complete_filenames)
+def describe(filename):
+    import pandas as pd
+
+    df = pd.read_csv(filename)
+
+    click.echo(f"Describe {type(df)} from {filename}:")
+    click.echo(df.describe())

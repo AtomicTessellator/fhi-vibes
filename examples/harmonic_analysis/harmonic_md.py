@@ -45,7 +45,11 @@ def run(
     atoms = read(sample)
 
     force_constants = parse_tdep_forceconstant(
-        uc_filename=primitive, sc_filename=supercell, fc_filename=fc_file, two_dim=True
+        primitive=primitive,
+        supercell=supercell,
+        fc_filename=fc_file,
+        two_dim=True,
+        format="aims",
     )
     # force_constants.resize(2 * (3 * len(supercell),))
 

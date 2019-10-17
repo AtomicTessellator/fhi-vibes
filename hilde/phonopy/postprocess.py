@@ -63,7 +63,7 @@ def postprocess(
 
     trajectory = Path(workdir) / trajectory
 
-    calculated_atoms, metadata = reader(trajectory, True)
+    calculated_atoms, metadata = reader(trajectory, get_metadata=True)
 
     # make sure the calculated atoms are in order
     for nn, atoms in enumerate(calculated_atoms):

@@ -61,24 +61,9 @@ def plot_summary(dataframe, avg=50, natoms=None):
         ax3.set_title("Pressure")
         ax3.set_ylabel("Pressure [GPa]")
 
-        dr = dataframe.dr_mean
-        dr_std = dataframe.dr_std
-        dr.plot(color=tc[4], ax=ax4, **plot_kw)
-        roll = dr.rolling(window=avg, min_periods=0).mean()
-        roll.plot(color=tc[4], ax=ax4, label="mean(|dR|)", **avg_kw)
-
-        dr_std.plot(color=tc[5], ax=ax4, **plot_kw)
-        roll = dr_std.rolling(window=avg, min_periods=0).mean()
-        roll.plot(color=tc[5], ax=ax4, label="std(|dR|)", **avg_kw)
-        # ax4.fill_between(dr.index, dr + dr_std, dr - dr_std, color=tc[4], alpha=0.3)
-        ax4.set_ylabel("Displacement [Å]")
-        ax4.set_title("Displacement")
-        ax4.axhline(0)
-        ax4.legend(loc=4)
-
-        ax4.set_xlabel("Time [ps]")
     else:
-        fig, (ax, ax2) = plt.subplots(nrows=2, **fig_kw)
+        fig_kw["gridspec_kw"] = {"height_ratios": [1, 1, 1]}
+        fig, (ax, ax2, ax4) = plt.subplots(nrows=3, **fig_kw)
 
     temp.plot(color=tc[3], title="Nuclear Temperature", ax=ax, **plot_kw)
 
@@ -123,6 +108,25 @@ def plot_summary(dataframe, avg=50, natoms=None):
 
     ax2.legend(loc=4)
     ax2.set_ylabel("Energy [eV]")
+
+    # displacements
+    dr = dataframe.dr_mean
+    dr_std = dataframe.dr_std
+    dr.plot(color=tc[4], ax=ax4, **plot_kw)
+    roll = dr.rolling(window=avg, min_periods=0).mean()
+    roll.plot(color=tc[4], ax=ax4, label="mean(|dR|)", **avg_kw)
+
+    dr_std.plot(color=tc[5], ax=ax4, **plot_kw)
+    roll = dr_std.rolling(window=avg, min_periods=0).mean()
+    roll.plot(color=tc[5], ax=ax4, label="std(|dR|)", **avg_kw)
+    # ax4.fill_between(dr.index, dr + dr_std, dr - dr_std, color=tc[4], alpha=0.3)
+    ax4.set_ylabel("Displacement [Å]")
+    ax4.set_title("Displacement")
+    ax4.axhline(0)
+    ax4.legend(loc=4)
+
+    ax4.set_xlabel("Time [ps]")
+ 
 
     # fig.tight_layout()
     fname = "md_summary.pdf"

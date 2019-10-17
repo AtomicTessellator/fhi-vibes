@@ -5,42 +5,46 @@ from argparse import ArgumentParser
 from hilde import Settings
 from hilde.helpers import Timer
 
-new_addr = "https://labdev-nomad.esc.rzg.mpg.de/fairdi/nomad/coe/api/uploads/?curl=True"
+new_addr = "http://repository.nomad-coe.eu/uploads/api/uploads/?curl=True"
 old_addr = "http://nomad-repository.eu:8000"
 
 
-def upload_command(folder, token, legacy):
+def upload_command(folder, token, tar=False, legacy=False):
     """Generate the NOMAD upload command
 
     Args:
         folder: The folder to upload
         token: The NOMAD token
+        tar: tar folder before upload
         legacy: use old NOMAD
 
     Returns:
         str: The upload command
     """
+    cmd = ""
+
     if legacy:
-        cmd = (
-            f"tar cf - {folder} | curl -XPUT -# -HX-Token:{token} "
-            f"-N -F file=@- {old_addr} | xargs echo"
+        if tar:
+            cmd += f"tar cf - {folder} | "
+        cmd = +(
+            f"curl -XPUT -# -HX-Token:{token} " f"-N -F file=@- {old_addr} | xargs echo"
         )
     else:
-        cmd = (
-            f"tar czf - {folder} | "
-            f'curl -X PUT -H "X-Token: {token}" -F file=@- "{new_addr}"'
-            "| xargs echo"
-        )
+        if tar:
+            cmd += f"tar czf - {folder} | "
+
+        cmd += f'curl -H "X-Token:{token}" "{new_addr}" -T {folder}' "| xargs echo"
 
     return cmd
 
 
-def nomad_upload(folders, token=None, legacy=False, dry=False):
+def nomad_upload(folders, token=None, tar=False, legacy=False, dry=False):
     """upload folders with calculations to NOMAD
 
     Args:
         folders: The folders to upload
         token: The NOMAD token
+        tar: tar folder before upload
         legacy: use old NOMAD
         dry: only show upload command
     """
@@ -60,7 +64,7 @@ def nomad_upload(folders, token=None, legacy=False, dry=False):
 
     for ii, folder in enumerate(folders):
 
-        cmd = upload_command(folder, token, legacy)
+        cmd = upload_command(folder, token, tar, legacy)
 
         if dry:
             print(f"Upload command {ii+1}:\n{cmd}")
