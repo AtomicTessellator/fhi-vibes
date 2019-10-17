@@ -219,14 +219,21 @@ def extract_results(
             phonon.write_yaml_band_structure()
         if write_dos or write_debye:
             talk(f".. write DOS")
-            phonon.run_mesh(q_mesh, with_eigenvectors=True)
-            phonon.run_total_dos(use_tetrahedron_method=True)
-            phonon.write_total_dos()
-            phonon.set_Debye_frequency()
-            debye_temp = phonon.get_Debye_frequency() * const.THzToEv / const.kB
-            with open("debye.dat", "w") as f:
-                f.write(str(debye_temp))
-            talk(f".. Debye temperature: {debye_temp:.2f}K written to file.")
+            if write_debye:
+                freq_pitch = 0.01
+            else:
+                freq_pitch = 0.1
+            dos = wrapper.get_dos(
+                phonon,
+                q_mesh=q_mesh,
+                freq_pitch=freq_pitch,
+                write=write_dos,
+            )
+            if write_debye:
+                debye_temp = wrapper.get_debye_temperature(dos=dos)
+                with open("debye.dat", "w") as f:
+                    f.write(str(debye_temp[0]))
+                talk(f".. Debye temperature: {debye_temp[0]:.2f}K written to file.")
         if plot_dos:
             talk(f".. plot DOS")
             wrapper.plot_bandstructure_and_dos(

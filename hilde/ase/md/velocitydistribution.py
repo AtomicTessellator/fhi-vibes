@@ -8,6 +8,8 @@ MaxwellBoltzmannDistribution, which sets the momenta of a list of
 atoms according to a Maxwell-Boltzmann distribution at a given
 temperature.
 
+COPYRIGHT notice: This file was originally distributed with ase3.18 under the LGPL
+license
 """
 
 import numpy as np

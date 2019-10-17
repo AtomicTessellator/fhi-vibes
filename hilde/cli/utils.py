@@ -91,7 +91,7 @@ def get_relaxation_info(filenames):
 @click.option("--rattle", type=float, help="atoms.rattle(stdev=X) (ASE default: 0.001)")
 @click.option("--quantum", is_flag=True, help="use quantum distribution function")
 @click.option("--deterministic", is_flag=True, help="create a deterministic sample")
-@click.option("--plus_minus", is_flag=True)
+@click.option("--zacharias", is_flag=True, help="Zacharias Sampling (deterministic)")
 @click.option("--gauge_eigenvectors", is_flag=True)
 @click.option("--sobol", is_flag=True, help="use Sobol numbers to create samples")
 @click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
@@ -105,7 +105,7 @@ def create_samples(
     rattle,
     quantum,
     deterministic,
-    plus_minus,
+    zacharias,
     gauge_eigenvectors,
     sobol,
     random_seed,
@@ -124,7 +124,7 @@ def create_samples(
         rattle,
         quantum,
         deterministic,
-        plus_minus,
+        zacharias,
         gauge_eigenvectors,
         sobol,
         random_seed,
