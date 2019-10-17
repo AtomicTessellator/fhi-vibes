@@ -6,7 +6,7 @@ hilde
 External dependencies:
 
 ```bash
-apt-get install gfortran liblapack-dev liblapacke-dev mongodb
+apt-get install gfortran
 ```
 
 Make sure `poetry` is installed:
@@ -15,11 +15,17 @@ Make sure `poetry` is installed:
 pip install poetry
 ```
 
-Create a virtual environment
+Create a virtual environment with
 
 ```bash
 python3 -m venv hilde_venv
 source hilde_venv/bin/activate
+```
+
+or make sure that `poetry` will no creat a virtual environment of its own by
+
+```bash
+poetry config settings.virtualenvs.create false 
 ```
 
 Install `hilde` with `poetry`
@@ -66,6 +72,12 @@ eval (env _HILDE_COMPLETE=source-fish hilde)
 
 ### Remarks for Cluster
 
+First make sure that `poetry` doesn't creat virtual environments on its own:
+
+```bash
+poetry config settings.virtualenvs.create false 
+```
+
 On clusters with `conda` environment, it is typically best to have a minimal base
 environment that holds nothing but `python`, `numpy`, and `scipy` to benefit from `mkl`
 speedup:
@@ -74,32 +86,21 @@ speedup:
 conda create -n py37 python=3.7 numpy scipy mkl
 ```
 
-From within the conda environment (`conda activate py37`), a `venv` can be created that
-holds the other dependencies. To benefit from `numpy` and `mkl`, the `venv` can be
-created with
-
-```bash
-python3 -m venv hilde_venv --system-site-packages
-source hilde_venv/bin/activate
-```
-
-One should verify that the `numpy` and `scipy` packages are indeed the ones from the
-conda environment by inspecting 
+From within the conda environment (`conda activate py37`), you can install just like above. To enforce using the `mkl` `numpy`, you can find out the version with
 
 ```bash
 conda list | grep numpy
 ```
 
- within conda and
+ or
 
 ```bash
 pip list | grep numpy
 ```
 
-with `hilde_venv`. To enforce this, the `pyproject.toml` file
-can be adjusted.
+and adjust the `pyproject.toml` file to match the exact version number.
 
-Don't forget to activate `hilde_venv` before starting to work!
+Don't forget to activate `py37` with `conda activate py37` before starting to work!
 
 ## Settings Files
 
@@ -242,5 +243,3 @@ WORKDIR /app
 RUN poetry config settings.virtualenvs.create false
 RUN poetry install --no-interaction
 ```
-
-
