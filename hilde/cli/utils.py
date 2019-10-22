@@ -14,6 +14,40 @@ def geometry():
     ...
 
 
+@geometry.command("2frac")
+@click.argument("filename", default="geometry.in", type=complete_filenames)
+@click.option("-o", "--output_filename")
+@click.option("--format", default="aims")
+def to_fractional(filename, output_filename, format):
+    """rewrite geometry in fractional coordinates"""
+    from ase.io import read
+
+    if not output_filename:
+        output_filename = filename + ".fractional"
+
+    atoms = read(filename, format=format)
+    atoms.write(output_filename, format=format, scaled=True)
+
+    click.echo(f"Geometry written to {output_filename}")
+
+
+@geometry.command("2cart")
+@click.argument("filename", default="geometry.in", type=complete_filenames)
+@click.option("-o", "--output_filename")
+@click.option("--format", default="aims")
+def to_cartesian(filename, output_filename, format):
+    """rewrite geometry in cartesian coordinates"""
+    from ase.io import read
+
+    if not output_filename:
+        output_filename = filename + ".cartesian"
+
+    atoms = read(filename, format=format)
+    atoms.write(output_filename, format=format, scaled=False)
+
+    click.echo(f"Geometry written to {output_filename}")
+
+
 @geometry.command("refine")
 @click.argument("filename", type=complete_filenames)
 @click.option("-prim", "--primitive", is_flag=True)
