@@ -51,9 +51,7 @@ def force_temperature(atoms, temperature, unit="K"):
     atoms.set_momenta(atoms.get_momenta() * np.sqrt(gamma))
 
 
-def _maxwellboltzmanndistribution(
-    masses, temp, communicator=world, rng=np.random
-):
+def _maxwellboltzmanndistribution(masses, temp, communicator=world, rng=np.random):
     # For parallel GPAW simulations, the random velocities should be
     # distributed.  Uses gpaw world communicator as default, but allow
     # option of specifying other communicator (for ensemble runs)
@@ -154,6 +152,7 @@ def phonon_harmonics(
     gauge_eigenvectors=False,
     return_eigensolution=False,
     failfast=True,
+    ignore_negative=True,
 ):
     r"""Return displacements and velocities that produce a given temperature.
 
@@ -181,6 +180,8 @@ def phonon_harmonics(
     failfast: bool
         True for sanity checking the phonon spectrum for negative
         frequencies at Gamma
+    ignore_negative: bool
+        If True freeze out the imaginary modes
 
     Returns:
 
@@ -232,24 +233,30 @@ def phonon_harmonics(
     # Solve eigenvalue problem to compute phonon spectrum and eigenvectors
     w2_s, X_is = np.linalg.eigh(dynamical_matrix)
 
+    # First three modes are translational so ignore:
+    last_ignore_mode = 3
+    # if ignore_negative ignore all modes with frequency < 0.0 threshold (1e-3)
+    if ignore_negative:
+        last_ignore_mode = len(np.where(w2_s < 1e-3)[0])
+
     # Check for soft modes
     if failfast:
-        zeros = w2_s[:3]
+        w2min = w2_s[last_ignore_mode:].min()
+        if w2min < 0:
+            msg = "Dynamical matrix has negative eigenvalues such as "
+            raise ValueError(msg + "{}".format(w2min))
+
+        zeros = w2_s[last_ignore_mode - 3 : last_ignore_mode]
         worst_zero = np.abs(zeros).max()
         if worst_zero > 1e-3:
             msg = "Translational deviate from 0 significantly: "
             raise ValueError(msg + "{}".format(w2_s[:3]))
 
-        w2min = w2_s[3:].min()
-        if w2min < 0:
-            msg = "Dynamical matrix has negative eigenvalues such as "
-            raise ValueError(msg + "{}".format(w2min))
-
-    # First three modes are translational so ignore:
-    nw = len(w2_s) - 3
+    nw = len(w2_s) - last_ignore_mode
     n_atoms = len(masses)
-    w_s = np.sqrt(w2_s[3:])
-    X_acs = X_is[:, 3:].reshape(n_atoms, 3, nw)
+
+    w_s = np.sqrt(w2_s[last_ignore_mode:])
+    X_acs = X_is[:, last_ignore_mode:].reshape(n_atoms, 3, nw)
 
     # Assign the amplitudes according to Bose-Einstein distribution
     # or high temperature (== classical) limit
@@ -258,6 +265,10 @@ def phonon_harmonics(
         A_s = np.sqrt(hbar * (2 * n_BE(temp, hbar * w_s) + 1) / (2 * w_s))
     else:
         A_s = np.sqrt(temp) / w_s
+
+    if ignore_negative:
+        A_s[np.where(np.isnan(w_s))[0]] = 0.0
+        w_s[np.where(np.isnan(w_s))[0]] = 0.0
 
     if plus_minus or gauge_eigenvectors:
         # gauge eigenvectors: largest value always positive
@@ -324,6 +335,7 @@ def PhononHarmonics(
     plus_minus=False,
     gauge_eigenvectors=False,
     failfast=True,
+    ignore_negative=False,
 ):
     r"""Excite phonon modes to specified temperature.
 
@@ -353,7 +365,8 @@ def PhononHarmonics(
     failfast: bool
         True for sanity checking the phonon spectrum for negative frequencies
         at Gamma.
-
+    ignore_negative: bool
+        If True freeze out the imaginary modes
     """
 
     # Receive displacements and velocities from phonon_harmonics()
@@ -367,6 +380,7 @@ def PhononHarmonics(
         quantum=quantum,
         gauge_eigenvectors=gauge_eigenvectors,
         failfast=failfast,
+        ignore_negative=ignore_negative,
         return_eigensolution=False,
     )
 

@@ -93,6 +93,7 @@ def get_relaxation_info(filenames):
 @click.option("--deterministic", is_flag=True, help="create a deterministic sample")
 @click.option("--zacharias", is_flag=True, help="Zacharias Sampling (deterministic)")
 @click.option("--gauge_eigenvectors", is_flag=True)
+@click.option("--ignore_negative", is_flag=True)
 @click.option("--sobol", is_flag=True, help="use Sobol numbers to create samples")
 @click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
 @click.option("--propagate", type=float, help="propagate this many fs")
@@ -107,6 +108,7 @@ def create_samples(
     deterministic,
     zacharias,
     gauge_eigenvectors,
+    ignore_negative,
     sobol,
     random_seed,
     propagate,
@@ -126,6 +128,7 @@ def create_samples(
         deterministic,
         zacharias,
         gauge_eigenvectors,
+        ignore_negative,
         sobol,
         random_seed,
         propagate,
@@ -260,7 +263,7 @@ def tool_nomad_upload(folders, token, tar, legacy, dry):
     """upload the calculations in FOLDERS to NOMAD"""
     from hilde.scripts.nomad_upload import nomad_upload
 
-    nomad_upload(folders, token, tar,legacy, dry)
+    nomad_upload(folders, token, tar, legacy, dry)
 
 
 @utils.group()
