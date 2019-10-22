@@ -24,6 +24,7 @@ def create_samples(
     deterministic,
     plus_minus,
     gauge_eigenvectors,
+    ignore_negative,
     sobol,
     random_seed,
     propagate,
@@ -93,6 +94,7 @@ def create_samples(
             "deterministic": deterministic,
             "plus_minus": plus_minus,
             "gauge_eigenvectors": gauge_eigenvectors,
+            "ignore_negative": ignore_negative,
         }
 
         info_str += ["created from force constants", f"T = {temp} K"]
@@ -179,6 +181,7 @@ def main():
     args = parser.parse_args()
 
     create_samples(
+
         args.geom,
         args.temperature,
         args.n_samples,
@@ -199,10 +202,11 @@ if __name__ == "__main__":
 def check_frequencies(atoms, force_constants):
     """print lowest and highest frequencies obtained from force constants"""
     w2 = get_frequencies(force_constants, masses=atoms.get_masses())
+
     print("The first 6 frequencies:")
     for ii, freq in enumerate(w2[:6]):
         print(f" {ii + 1:4d}: {freq}")
 
     print("Highest 6 frequencies")
-    for ii, freq in enumerate(w2[-6:]):
+    for ii, freq in enumerate(w2[:-7:-1]):
         print(f" {len(w2) - ii:4d}: {freq }")
