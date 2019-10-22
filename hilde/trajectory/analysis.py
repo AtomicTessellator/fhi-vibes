@@ -128,6 +128,9 @@ def energy(series):
 def summary(dataset, plot=False, **kwargs):
     """summarize MD data in xarray DATASET"""
 
+    symbols = dataset.attrs["symbols"]
+    usymbols = np.unique(symbols)
+
     print()
     talk("Summarize Temperature", prefix="info")
     temperature(dataset.temperature)
@@ -138,13 +141,31 @@ def summary(dataset, plot=False, **kwargs):
     talk("Summarize Pressure", prefix="info")
     pressure(dataset.pressure)
 
-    # dr = np.linalg.norm(dataset.displacements, axis=(1, 2))
-    # dr = np.linalg.norm(dataset.displacements, axis=(1, 2)) / len(dataset.positions[0])
+    # displacements
     dr = np.linalg.norm(dataset.displacements, axis=2)
     dr_mean = np.mean(dr, axis=1)
     dr_std = np.std(dr, axis=1)
-    # displacements = np.mean(dr, axis=1)
-    # displacements_std = np.std(abs(dataset.displacements), axis=(1, 2))
+
+    print()
+    talk("Summarize Displacements", prefix="info")
+    pprint(f"Avg. Displacement:", f"{dr.mean():.5} \AA")
+    pprint(f"Max. Displacement:", f"{dr.max():.5} \AA")
+    for sym in usymbols:
+        mask = np.array(symbols) == sym
+        # forces = dataset.forces[:, mask, :].data
+        pprint(f"Avg. Displacement [{sym}]:", f"{dr[:, mask].mean():.5} \AA")
+
+    # forces
+    forces = dataset.forces.data
+    print()
+    talk("Summarize Forces", prefix="info")
+    pprint(f"Avg. Force:", f"{forces.mean():.5} eV/\AA")
+    pprint(f"Std. Force:", f"{forces.std():.5} eV/\AA")
+
+    for sym in usymbols:
+        mask = np.array(symbols) == sym
+        # forces = dataset.forces[:, mask, :].data
+        pprint(f"Std. Force [{sym}]:", f"{forces[:, mask].std():.5} eV/\AA")
 
     if plot:
         df = dataset[
