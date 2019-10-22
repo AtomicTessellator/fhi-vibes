@@ -51,9 +51,7 @@ def force_temperature(atoms, temperature, unit="K"):
     atoms.set_momenta(atoms.get_momenta() * np.sqrt(gamma))
 
 
-def _maxwellboltzmanndistribution(
-    masses, temp, communicator=world, rng=np.random
-):
+def _maxwellboltzmanndistribution(masses, temp, communicator=world, rng=np.random):
     # For parallel GPAW simulations, the random velocities should be
     # distributed.  Uses gpaw world communicator as default, but allow
     # option of specifying other communicator (for ensemble runs)
@@ -248,7 +246,7 @@ def phonon_harmonics(
             msg = "Dynamical matrix has negative eigenvalues such as "
             raise ValueError(msg + "{}".format(w2min))
 
-        zeros = w2_s[last_ignore_mode-3:last_ignore_mode]
+        zeros = w2_s[last_ignore_mode - 3 : last_ignore_mode]
         worst_zero = np.abs(zeros).max()
         if worst_zero > 1e-3:
             msg = "Translational deviate from 0 significantly: "

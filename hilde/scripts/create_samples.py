@@ -181,7 +181,6 @@ def main():
     args = parser.parse_args()
 
     create_samples(
-
         args.geom,
         args.temperature,
         args.n_samples,

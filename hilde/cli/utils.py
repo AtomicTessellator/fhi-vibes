@@ -263,7 +263,7 @@ def tool_nomad_upload(folders, token, tar, legacy, dry):
     """upload the calculations in FOLDERS to NOMAD"""
     from hilde.scripts.nomad_upload import nomad_upload
 
-    nomad_upload(folders, token, tar,legacy, dry)
+    nomad_upload(folders, token, tar, legacy, dry)
 
 
 @utils.group()
