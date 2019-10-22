@@ -117,14 +117,16 @@ def get_r2_per_atom(
     if reduce_by_symmetry:
         compare_to = sds.equivalent_atoms
     else:
-        compare_to = ref_structure.symbols
+        compare_to = ref_structure.numbers
 
     if np.shape(forces_dft)[1] == 3 * len(ref_structure):
         compare_to = compare_to.repeat(3)
 
+    symbols = np.array(ref_structure.get_chemical_symbols())
     unique_atoms, counts = np.unique(compare_to, return_counts=True)
 
     r2_atom = []
+    f_norms = []
     for u in unique_atoms:
         # which atoms belong to the prototype?
         mask = compare_to == u
@@ -133,11 +135,18 @@ def get_r2_per_atom(
         f_ha = forces_harmonic[:, mask]
         # compute r^2
         r2_atom.append(get_r2(f_dft, f_ha, silent=silent))
+        f_norms.append(float(f_dft.std()))
 
-    # tup = namedtuple("anharmonicity_score", "r2_per_atom unique counts")
-    # ret = tup(np.array(r2_atom), unique_atoms, counts)
+    # compute weighted mean
+    mean = (np.array(r2_atom) @ counts) / counts.sum()
 
-    attrs = {"unique_atoms": unique_atoms, "counts": counts}
+    attrs = {
+        "unique_atoms": unique_atoms,
+        "symbols": symbols[unique_atoms],
+        "counts": counts,
+        "f_norms": f_norms,
+        "mean": mean,
+    }
 
     ret = xr.DataArray(np.array(r2_atom), attrs=attrs)
 
@@ -218,7 +227,7 @@ def get_forces_harmonic(sc, ref_structure, force_constants):
     return -force_constants @ get_dR(sc, ref_structure).flatten()
 
 
-def get_dataframe(dataset):
+def get_dataframe(dataset, per_sample=False):
     """return anharmonicity dataframe for xarray.Dataset DS"""
     from pandas import DataFrame
     from hilde.helpers.converters import json2atoms
@@ -233,26 +242,61 @@ def get_dataframe(dataset):
     name = DS.attrs["System Name"]
 
     dct = {}
-    for ii, (f, fh) in enumerate(zip(progressbar(fs), fhs)):
+    if per_sample:
+        for ii, (f, fh) in enumerate(zip(progressbar(fs), fhs)):
 
-        key = f"{name}.{ii:04d}"
-        dct[key] = {"r2 (RMS)": get_r2(f, fh), "r2 (RMA)": get_r2_MAE(f, fh)}
+            key = f"{name}.{ii:04d}"
+            dct[key] = {"r2 (RMS)": get_r2(f, fh)}
 
-        r2s = get_r2_per_atom(f, fh, ref_atoms, reduce_by_symmetry=False)
+            r2s = get_r2_per_atom(f, fh, ref_atoms, reduce_by_symmetry=True)
+            dct[key].update({"r2_atom_mean": r2s.attrs["mean"]})
+            d = {}
+            for sym, r in zip(r2s.attrs["symbols"], r2s):  # enumerate(r2s):
+                k = _key(sym, d)
+                d[k] = float(r)
+
+            dct[key].update(d)
+
+            directions = ("x", "y", "z")
+            r2s = get_r2_per_direction(f, fh)
+            d = {}
+            for ii, xx in enumerate(directions):
+                d[f"r2 [{xx}]"] = r2s[ii]
+
+            dct[key].update(d)
+
+    else:
+        key = f"{name}"
+        dct[key] = {"r2 (RMS)": get_r2(fs, fhs)}
+
+        r2s = get_r2_per_atom(fs, fhs, ref_atoms, reduce_by_symmetry=True)
+        dct[key].update({"r2_atom_mean": r2s.attrs["mean"]})
         d = {}
-        for ii, r in zip(r2s.attrs["unique_atoms"], r2s):  # enumerate(r2s):
-            d[f"r2 [{ii}]"] = float(r)
+        for sym, r in zip(r2s.attrs["symbols"], r2s):  # enumerate(r2s):
+            k = _key(sym, d)
+            d[k] = float(r)
 
         dct[key].update(d)
 
         directions = ("x", "y", "z")
-        r2s = get_r2_per_direction(f, fh)
+        r2s = get_r2_per_direction(fs, fhs)
         d = {}
         for ii, xx in enumerate(directions):
             d[f"r2 [{xx}]"] = r2s[ii]
 
         dct[key].update(d)
 
+
     df = DataFrame(dct)
     # df[name] = df.mean(axis=1)
     return df.T
+
+
+def _key(sym, d):
+    key = f"r2 [{sym}]"
+    if key in d:
+        for ii in range(1, 100):
+            key = f"r2 [{sym}{ii}]"
+            if key not in d:
+                break
+    return key
