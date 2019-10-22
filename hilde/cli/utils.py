@@ -430,7 +430,7 @@ def compute_r2(
         DS = xr.open_dataset(filename)
 
         name = DS.attrs["System Name"]
-        df = get_dataframe(DS)
+        df = get_dataframe(DS, per_sample=per_sample)
 
         if not quiet:
             click.echo("\nDataFrame:")

@@ -173,7 +173,6 @@ def inform(cell, fname=None, verbosity=1, symprec=symprec):
         sh = inscribed_sphere_in_box(cell.cell)
         print(f"  Largest Cutoff:    {sh:.3f} AA")
 
-
     print("")
 
     if symprec is not None:
@@ -208,7 +207,8 @@ def inform(cell, fname=None, verbosity=1, symprec=symprec):
         angles = "  \u03B1, \u03B2, \u03B3: "
         values = "{}".format(" ".join([f"{l:11.4f}" for l in la[3:]]))
         print(angles + values)
-        print(f"  Volume:  {cell.get_volume():11.4f} \u212B**3")
+        print(f"  Volume:           {cell.get_volume():11.4f} \u212B**3")
+        print(f"  Volume per atom:  {cell.get_volume() / len(cell):11.4f} \u212B**3")
 
         if cell.get_velocities() is not None:
             v = cell.get_momenta().sum(axis=0) / v_unit / cell.get_masses().sum()
