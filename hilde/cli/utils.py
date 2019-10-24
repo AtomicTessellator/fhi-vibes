@@ -328,6 +328,17 @@ def t2xyz(filename, file):
     traj.to_xyz(file=file)
 
 
+@trajectory.command("2db")
+@click.argument("filename", default="trajectory.son", type=complete_filenames)
+@click.option("-o", "--output_filename", default="trajectory.db")
+def t2db(filename, output_filename):
+    """extract trajectory in FILENAME and store as ase db"""
+    from hilde.trajectory import reader
+
+    traj = reader(filename)
+    traj.to_db(file)
+
+
 @trajectory.command("update")
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-uc", help="Add a (primitive) unit cell", type=complete_filenames)

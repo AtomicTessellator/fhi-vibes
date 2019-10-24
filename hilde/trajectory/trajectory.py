@@ -460,6 +460,15 @@ class Trajectory(list):
         """
         io.to_tdep(self, folder, skip)
 
+    def to_db(self, database):
+        """Convert to ase database
+
+        Args:
+            database: Filename or address of database
+
+        """
+        io.to_db(self, database)
+
     def set_displacements(self):
         """calculate the displacements for `reference_atoms`"""
         if not self.supercell:

@@ -1,63 +1,43 @@
 """ Test for the phonon database """
 
+def test_phonon_db():
+    from pathlib import Path
 
-def main():
     import numpy as np
 
-    from hilde.phonon_db.database_interface import traj_to_database, from_database
-    from hilde.phonon_db.phonon_db import connect
-    from hilde.phonopy.postprocess import postprocess as postprocess_ph
-    from hilde.phono3py.postprocess import postprocess as postprocess_ph3
+    from hilde.helpers.hash import hash_traj
 
-    # get database path
-    db_path = "test.db"
+    from hilde.phonon_db.phonon_db import connect
+    from hilde.phonopy.postprocess import postprocess
+
+    from hilde.trajectory import reader
 
     # Write the initial structure with the phonopy object
-    hashes_ph = traj_to_database(db_path, "trajectory_phonopy.yaml", True)
-    # Update the database with third order properties
-    hashes_ph3 = traj_to_database(db_path, "trajectory_phono3py.yaml", True)
+    phonon = postprocess(trajectory="trajectory.son")
 
-    phonon = postprocess_ph(
-        trajectory="trajectory_phonopy.yaml", calculate_full_force_constants=True
-    )
-    phonon3 = postprocess_ph3(trajectory="trajectory_phono3py.yaml")
-
-    ph3_db = from_database(
-        db_path,
-        get_phonon3=True,
-        sc_matrix_2=phonon.get_supercell_matrix(),
-        sc_matrix_3=phonon3.get_supercell_matrix(),
-        atoms_hash=hashes_ph["atoms_hash"],
-        calc_hash=hashes_ph["calc_hash"],
-        ph_hash=hashes_ph["ph_hash"],
-        ph3_hash=hashes_ph3["ph3_hash"],
-    )
-    print(np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])))
-    assert np.max(np.abs(ph3_db.get_fc2()[:] - phonon.get_force_constants()[:])) < 1e-12
-    assert np.max(np.abs(ph3_db.get_fc3()[:] - phonon3.get_fc3()[:])) < 1e-12
+    traj_hash, meta_hash = hash_traj(*reader("trajectory.son", True), True)
+    hashes = {
+        "traj_hash": traj_hash,
+        "meta_hash": meta_hash,
+    }
 
     # Get the row from the database
-    db = connect(db_path)
-    row = list(
-        db.select(
-            sc_matrix_2=phonon.get_supercell_matrix(),
-            sc_matrix_3=phonon.get_supercell_matrix(),
-            atoms_hash=hashes_ph["atoms_hash"],
-            calc_hash=hashes_ph["calc_hash"],
-            has_fc2=True,
-            has_fc3=True,
-            columns=["id", "fc_2", "fc_3"],
-        )
-    )[0]
+    for db_path in [Path("test.json")]:
+        db = connect(db_path)
+        db.write(phonon, hashes)
+        row = list(
+            db.select(
+                sc_matrix_2=phonon.get_supercell_matrix(),
+                traj_hash=hashes["traj_hash"],
+                meta_hash=hashes["meta_hash"],
+                has_fc2=True,
+                columns=["id", "fc_2", "force_2"],
+            )
+        )[0]
 
-    assert np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-12
-    assert np.max(np.abs(row.fc_3[:] - phonon3.get_fc3()[:])) < 1e-12
+        assert np.max(np.abs(row.fc_2[:] - phonon.get_force_constants()[:])) < 1e-12
 
+        db_path.unlink()
 
-try:
-    import phono3py
-
-    main()
-
-except ModuleNotFoundError:
-    print("phono3py not installed, skip")
+if __name__ == "__main__":
+    test_phonon_db()

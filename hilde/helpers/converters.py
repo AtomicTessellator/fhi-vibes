@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 from ase.db.row import atoms2dict as ase_atoms2dict
 from ase.io.jsonio import MyEncoder
-from ase.calculators.calculator import all_properties
+from ase.calculators.calculator import all_properties, get_calculator_class
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import voigt_6_to_full_3x3_stress
@@ -217,7 +217,7 @@ def results2dict(atoms, calc=None):
     return {"atoms": atoms_dict, "calculator": calc_dict}
 
 
-def dict2atoms(atoms_dict, calc_dict=None):
+def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
     """Convert dictionaries into atoms and calculator objects
 
     Parameters
@@ -257,12 +257,17 @@ def dict2atoms(atoms_dict, calc_dict=None):
         results = {}
         if "results" in calc_dict:
             results = calc_dict.pop("results")
-
-        calc = SinglePointCalculator(atoms, **results)
-        if "calculator" in calc_dict:
-            calc.name = calc_dict["calculator"].lower()
-        if "calculator_parameters" in calc_dict:
-            calc.parameters.update(calc_dict["calculator_parameters"])
+        if single_point_calc:
+            calc = SinglePointCalculator(atoms, **results)
+            if "calculator" in calc_dict:
+                calc.name = calc_dict["calculator"].lower()
+            if "calculator_parameters" in calc_dict:
+                calc.parameters.update(calc_dict["calculator_parameters"])
+        else:
+            calc = get_calculator_class(calc_dict["calculator"].lower())(
+                **calc_dict["calculator_parameters"]
+            )
+            calc.results = results
         if "command" in calc_dict:
             calc.command = calc_dict["command"]
     else:

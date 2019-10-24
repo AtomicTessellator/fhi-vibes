@@ -299,6 +299,7 @@ class PhononDatabase(Database):
         int
             ID of the new row (for default set it to 1)
         """
+        key_value_pairs.update(row.get("key_value_pairs", {}))
         check(key_value_pairs)
         return 1
 
@@ -370,8 +371,6 @@ class PhononDatabase(Database):
         self,
         id,
         dct=None,
-        phonon3=None,
-        phonon=None,
         store_second_order=False,
         delete_keys=None,
         data=None,
@@ -429,12 +428,7 @@ class PhononDatabase(Database):
         check(add_key_value_pairs)
 
         oldrow = self._get_row(id)
-        if phonon3:
-            row = PhononRow(phonon3=phonon3, store_second_order=store_second_order)
-        elif phonon:
-            row = PhononRow(phonon=phonon)
-        elif dct:
-            row = PhononRow(dct)
+        row = PhononRow(dct, store_second_order=store_second_order)
 
         # Copy over data, kvp, ctime, user and id
         row._data = oldrow._data
@@ -444,10 +438,10 @@ class PhononDatabase(Database):
         row.ctime = oldrow.ctime
         row.user = oldrow.user
         row.id = id
-        if "forces_2" not in row and "forces_2" in oldrow:
-            row.forces_2 = oldrow.forces_2
-        if "forces_3" not in row and "forces_3" in oldrow:
-            row.forces_3 = oldrow.forces_3
+        if "force_2" not in row and "force_2" in oldrow:
+            row.force_2 = oldrow.force_2
+        if "force_3" not in row and "force_3" in oldrow:
+            row.force_3 = oldrow.force_3
         kvp = row.key_value_pairs
 
         n = len(kvp)
@@ -486,9 +480,7 @@ class PhononDatabase(Database):
 
     def write(
         self,
-        dct=None,
-        phonon3=None,
-        phonon=None,
+        dct,
         key_value_pairs=None,
         data=None,
         id=None,
@@ -522,14 +514,11 @@ class PhononDatabase(Database):
             data = {}
         if key_value_pairs is None:
             key_value_pairs = {}
-        if phonon3:
-            row = PhononRow(phonon3=phonon3, phonon=phonon)
-        elif phonon:
-            row = PhononRow(phonon=phonon)
-        elif dct:
-            row = PhononRow(dct=dct)
+
+        row = PhononRow(dct)
         row.user = os.getenv("USER")
         row.ctime = now()
+
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
         hashes = []
@@ -609,7 +598,9 @@ class PhononDatabase(Database):
                 sort = "ctime"
             elif sort.lstrip("-") == "user":
                 sort += "name"
+
         keys, cmps = parse_selection(selection, **kwargs)
+
         for row in self._select(
             keys,
             cmps,

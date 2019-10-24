@@ -12,6 +12,8 @@ default:
     - cd cli; bash test_cli.sh
     - cd ../phonopy; python run_phonopy.py
     - cd ../harmonic_analysis; python mode_projection.py
+    - cd ../trajectory; python test_to_db.py
+    - cd ../phonon_db; python phonon_db.py
     - cd $CI_PROJECT_DIR/examples/devel
     - python material_fingerprints/material_fingerprints.py
 

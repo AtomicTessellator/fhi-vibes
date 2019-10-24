@@ -351,8 +351,8 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             row.get("natoms_in_sc_3"),
             encode(row.get("sc_matrix_2")),
             encode(row.get("sc_matrix_3")),
-            blob(row.get("forces_2")),
-            blob(row.get("forces_3")),
+            blob(row.get("force_2")),
+            blob(row.get("force_3")),
             encode(row.get("displacement_dataset_2")),
             encode(row.get("displacement_dataset_3")),
             encode(row.get("qmesh")),
@@ -478,9 +478,9 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         if values[28] is not None:
             dct["sc_matrix_3"] = jsonio.decode(values[28])
         if values[29] is not None:
-            dct["forces_2"] = deblob(values[29], shape=(-1, values[25], 3))
+            dct["force_2"] = deblob(values[29], shape=(-1, values[25], 3))
         if values[30] is not None:
-            dct["forces_3"] = deblob(values[30], shape=(-1, values[26], 3))
+            dct["force_3"] = deblob(values[30], shape=(-1, values[26], 3))
         if values[31] is not None:
             dct["displacement_dataset_2"] = decode(values[31])
         if values[32] is not None:
@@ -757,10 +757,12 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         values = np.array([None for i in range(len(self.columnnames) - 6)])
         values[len(self.columnnames) - 8] = "{}"
         values[len(self.columnnames) - 7] = "null"
+
         if "fc_2" in columns and not "natoms_in_sc_2" in columns:
             columns = "all"
         if "fc_3" in columns and not "natoms_in_sc_3" in columns:
             columns = "all"
+
         if columns == "all":
             columnindex = list(range(len(self.columnnames) - 7))
         else:
