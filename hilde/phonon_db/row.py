@@ -1,20 +1,26 @@
 """
 A file defining a row object for the phonon database
 """
+import copy
+
 import numpy as np
-import re
 
 from ase.db.row import AtomsRow, atoms2dict
 from ase.io.jsonio import decode
 
-from spglib import get_spacegroup
+from hilde.spglib.wrapper import get_spacegroup
 
 from hilde import konstanten as const
-from hilde.phonon_db.ase_converters import dict2atoms
+# from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import to_dict
 from hilde.structure.convert import to_Atoms, to_phonopy_atoms
+
+
+def standardize_sc_matrix(sc_matrix):
+    """convert sc_matrix into a list of ints"""
+    return list(np.array(sc_matrix, dtype=int).T.flatten())
 
 
 def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
@@ -33,25 +39,25 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
         the dictionary representation of phonon
     """
     dct = atoms2dict(to_Atoms(phonon.get_primitive()))
-    dct["symprec"] = phonon._symprec
+    dct["key_value_pairs"] = {"symprec": phonon._symprec}
     if phonon.get_supercell_matrix() is not None:
-        dct["sc_matrix_2"] = list(
-            np.array(phonon.get_supercell_matrix()).transpose().flatten()
-        )
+        dct["sc_matrix_2"] = standardize_sc_matrix(phonon.get_supercell_matrix())
         dct["natoms_in_sc_2"] = len(dct["numbers"]) * int(
             round(np.linalg.det(phonon.get_supercell_matrix()))
         )
-    if not add_fc:
-        dct["forces_2"] = []
-        for disp1 in phonon._displacement_dataset["first_atoms"]:
-            if "forces" in disp1:
-                dct["forces_2"].append(disp1.pop("forces"))
-
-        dct["forces_2"] = np.array(dct["forces_2"])
-    else:
+    if add_fc:
         n_atoms = phonon.get_supercell().get_number_of_atoms()
         dct["_fc_2"] = np.array(phonon.get_force_constants())
-    dct["displacement_dataset_2"] = phonon._displacement_dataset
+    else:
+        displacement_dataset = copy.deepcopy(phonon._displacement_dataset)
+        dct["force_2"] = []
+        for disp1 in displacement_dataset["first_atoms"]:
+            if "forces" in disp1:
+                dct["force_2"].append(disp1.pop("forces"))
+
+        dct["force_2"] = np.array(dct["force_2"])
+
+    dct["displacement_dataset_2"] = displacement_dataset
 
     if phonon.mesh is not None:
         dct["qmesh"] = phonon.mesh.mesh_numbers
@@ -68,10 +74,10 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
         dct["phonon_bs_fp"] = to_dict(
             get_phonon_bs_fingerprint_phononpy(phonon, dct["qpoints"]), to_mongo
         )
-        if to_mongo and "qpoints" in dct:
+        if to_mongo:
             q_pt = {}
             for pt in dct["qpoints"]:
-                q_pt[re.sub("[.]", "_", str(pt))] = dct["qpoints"][pt]
+                q_pt[str(pt).replace(".", "_")] = dct["qpoints"][pt]
             dct["qpoints"] = q_pt
     if phonon.thermal_properties is not None:
         dct["tp_ZPE"] = phonon.thermal_properties.zero_point_energy
@@ -79,6 +85,7 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
         dct["tp_T"], dct["tp_A"], dct["tp_S"], dct[
             "tp_Cv"
         ] = phonon.get_thermal_properties()
+
     return dct
 
 
@@ -103,46 +110,44 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
     dct["symprec"] = phonon3._symprec
 
     if phonon3.get_supercell_matrix() is not None:
-        dct["sc_matrix_3"] = list(
-            np.array(phonon3.get_supercell_matrix()).transpose().flatten()
-        )
+        dct["sc_matrix_3"] = standardize_sc_matrix(phonon3.get_supercell_matrix())
         dct["natoms_in_sc_3"] = len(dct["numbers"]) * int(
             round(np.linalg.det(phonon3.get_supercell_matrix()))
         )
 
-    if phonon3._phonon_supercell_matrix is not None and store_second_order:
-        dct["sc_matrix_2"] = list(
-            np.array(phonon3._phonon_supercell_matrix).transpose().flatten()
-        )
+    if store_second_order and phonon3._phonon_supercell_matrix is not None:
+        dct["sc_matrix_2"] = standardize_sc_matrix(phonon3._phonon_supercell_matrix)
         dct["natoms_in_sc_2"] = len(dct["numbers"]) * int(
             round(np.linalg.det(phonon3._phonon_supercell_matrix))
         )
 
-    dct["forces_3"] = []
+    dct["force_3"] = []
     get_forces = True
-    for disp1 in phonon3._displacement_dataset["first_atoms"]:
+    displacement_dataset = copy.deepcopy(phonon3._displacement_dataset)
+    for disp1 in displacement_dataset["first_atoms"]:
         if "forces" in disp1:
             if disp1["forces"].shape[0] == dct["natoms_in_sc_3"]:
-                dct["forces_3"].append(disp1.pop("forces"))
+                dct["force_3"].append(disp1.pop("forces"))
             else:
                 get_forces = False
                 break
 
     if get_forces:
-        for ii, disp1 in enumerate(phonon3._displacement_dataset["first_atoms"]):
+        for ii, disp1 in enumerate(displacement_dataset["first_atoms"]):
             for disp2 in disp1["second_atoms"]:
                 if "delta_forces" in disp2:
-                    dct["forces_3"].append(
-                        disp2.pop("delta_forces") + dct["forces_3"][ii]
+                    dct["force_3"].append(
+                        disp2.pop("delta_forces") + dct["force_3"][ii]
                     )
+        dct["force_3"] = np.array(dct["force_3"])
     else:
         print(
             "Warning not storing forces as number of atoms in the supercell are not consistent"
         )
-        dct["forces_3"] = []
+        dct["force_3"] = np.ndarray(0)
 
-    dct["forces_3"] = np.array(dct["forces_3"])
-    dct["displacement_dataset_3"] = phonon3._displacement_dataset
+    dct["force_3"] = np.array(dct["force_3"])
+    dct["displacement_dataset_3"] = displacement_dataset
 
     if phonon3.get_thermal_conductivity():
         dct["tp_T"] = phonon3.get_thermal_conductivity().get_temperatures()
@@ -155,20 +160,13 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
 class PhononRow(AtomsRow):
     """Class that is largely based off of the ASE AtomsRow object but expanded for phonopy"""
 
-    def __init__(self, dct=None, phonon3=None, phonon=None, store_second_order=False):
+    def __init__(self, dct, store_second_order=False):
         """Constructor for the PhononRow.
 
         Parameters
         ----------
         dct: dict
             A dictionary representation of the PhononRow
-        phonon3: phono3py.phonon3.Phono3py
-            The Phono3py object to be converted
-        phonon: phonopy.Phonopy
-            The Phonopy object to be converted
-        store_second_order: bool
-            If True store the second order properties of the phonopy object
-
         Raises
         ------
         AttributeError
@@ -177,49 +175,46 @@ class PhononRow(AtomsRow):
             If dct does not have numbers OR
             If dct does not have cell
         """
-        if dct:
-            dct = dct.copy()
-            if "sc_matrix_2" in dct and isinstance(dct["sc_matrix_2"], np.ndarray):
-                dct["sc_matrix_2"] = list(dct["sc_matrix_2"].flatten())
-            elif (
-                "sc_matrix_2" in dct
-                and isinstance(dct["sc_matrix_2"], list)
-                and isinstance(dct["sc_matrix_2"][0], str)
-            ):
-                for i, sc_el in enumerate(dct["sc_matrix_2"]):
-                    dct["sc_matrix_2"][i] = int(sc_el)
-            if "sc_matrix_3" in dct and isinstance(dct["sc_matrix_3"], np.ndarray):
-                dct["sc_matrix_3"] = list(dct["sc_matrix_3"].flatten())
-            elif (
-                "sc_matrix_3" in dct
-                and isinstance(dct["sc_matrix_3"], list)
-                and isinstance(dct["sc_matrix_3"][0], str)
-            ):
-                for i, sc_el in enumerate(dct["sc_matrix_3"]):
-                    dct["sc_matrix_3"][i] = int(sc_el)
-        elif phonon3:
-            dct = phonon3_to_dict(phonon3, store_second_order)
-        elif phonon:
-            dct = phonon_to_dict(phonon)
+        from phonopy import Phonopy
+        from ase.atoms import Atoms
+
+        if isinstance(dct, dict):
+            if "sc_matrix_2" in dct:
+                dct["sc_matrix_2"] = standardize_sc_matrix(dct["sc_matrix_2"])
+            if dct.get("sc_matrix_3", None):
+                dct["sc_matrix_3"] = standardize_sc_matrix(dct["sc_matrix_3"])
+            if "force_2" in dct:
+                dct["key_value_pairs"]["has_fc2"] = True
+            if "force_3" in dct:
+                dct["key_value_pairs"]["has_fc3"] = True
+        elif isinstance(dct, Phonopy):
+            dct = phonon_to_dict(dct)
+            dct["key_value_pairs"]["has_fc2"] = True
+        elif isinstance(dct, Atoms):
+            dct = atoms2dict(dct)
+            dct["key_value_pairs"] = dict()
         else:
-            raise AttributeError("dct, phonon3 or phonon must be defined")
-        assert "numbers" in dct
-        assert "cell" in dct
-        try:
-            symprec = dct["symprec"] if "symprec" in dct else 1e-5
-            dct["space_group"] = get_spacegroup(dict2atoms(dct), symprec=symprec)
-            kvp = dct.pop("key_value_pairs", {})
-            kvp["space_group"] = dct["space_group"]
-        except AttributeError:
-            kvp = dct.pop("key_value_pairs", {})
-        self._constraints = dct.pop("constraints", [])
-        self._constrained_forces = None
-        self._data = dct.pop("data", {})
-        # If the dictionary has additional keys that are not default add them here
-        self._keys = list(kvp.keys())
-        self.__dict__.update(kvp)
-        self.__dict__.update(dct)
+            try:
+                from phono3py.phonon3 import Phono3py
+                if isinstance(dct, Phono3py):
+                    dct = phonon3_to_dict(dct)
+                    dct["key_value_pairs"]["has_fc3"] = True
+                    if store_second_order:
+                        dct["key_value_pairs"]["has_fc2"] = True
+            except ModuleNotFoundError:
+                pass
+
+        atoms = AtomsRow(dct).toatoms()
+        sg = get_spacegroup(atoms)
+        if sg is None:
+            dct["key_value_pairs"]["space_group"] = -1
+        else:
+            dct["key_value_pairs"]["space_group"] = int(sg.split("(")[-1].split(")")[0])
+
+        super(PhononRow, self).__init__(dct)
+
         self.clean_displacement_dataset()
+
 
     def clean_displacement_dataset(self):
         """Cleans the displacement dataset
@@ -257,14 +252,14 @@ class PhononRow(AtomsRow):
         phonon = Phonopy(
             to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3),
-            symprec=self.symprec,
+            symprec=self.get("symprec", 1e-5),
             is_symmetry=True,
             factor=const.omega_to_THz,
             log_level=0,
         )
         phonon.set_displacement_dataset(self.displacement_dataset_2)
-        if "forces_2" in self and len(self.forces_2) > 0:
-            phonon.produce_force_constants(self.forces_2)
+        if "force_2" in self and len(self.force_2) > 0:
+            phonon.produce_force_constants(self.force_2)
         return phonon.get_force_constants()
 
     @property
@@ -284,7 +279,10 @@ class PhononRow(AtomsRow):
         np.ndarray
             Third order force constants
         """
-        from phono3py.phonon3 import Phono3py
+        try:
+            from phono3py.phonon3 import Phono3py
+        except ModuleNotFoundError:
+            return None
 
         phonon3 = Phono3py(
             to_phonopy_atoms(self.toatoms()),
@@ -299,9 +297,16 @@ class PhononRow(AtomsRow):
         phonon3._phonon_displacement_dataset = self.displacement_dataset_2.copy()
         phonon3.set_displacement_dataset(self.displacement_dataset_3)
 
-        if "forces_3" in self and len(self.forces_3) > 0:
-            phonon3.produce_fc3(self.forces_3)
+        if "force_3" in self and len(self.force_3) > 0:
+            phonon3.produce_fc3(self.force_3)
         return phonon3.get_fc3()
+
+    @property
+    def spacegroup(self):
+        if self.key_value_pairs["space_group"] > 0:
+            return self.key_value_pairs["space_group"]
+        else:
+            return None
 
     def to_phonon(self):
         """Converts the row back into a phonopy object
@@ -323,8 +328,8 @@ class PhononRow(AtomsRow):
         phonon.set_displacement_dataset(self.displacement_dataset_2)
         if "_fc_2" in self:
             phonon.set_force_constants(self.fc_2)
-        elif "forces_2" in self and len(self.forces_2) > 0:
-            phonon.produce_force_constants(self.forces_2)
+        elif "force_2" in self and len(self.force_2) > 0:
+            phonon.produce_force_constants(self.force_2)
             self.__dict__["_fc_2"] = phonon.get_force_constants()
         if "qmesh" in self and self.qmesh is not None:
             phonon.set_mesh(self.qmesh)
@@ -357,15 +362,15 @@ class PhononRow(AtomsRow):
         phonon3._phonon_displacement_dataset = self.displacement_dataset_2.copy()
         phonon3.set_displacement_dataset(self.displacement_dataset_3)
 
-        if "forces_2" in self and len(self.forces_2) > 0:
+        if "force_2" in self and len(self.force_2) > 0:
             phonon3.produce_fc2(
-                self.forces_2, displacement_dataset=self.displacement_dataset_2
+                self.force_2, displacement_dataset=self.displacement_dataset_2
             )
             self.__dict__["_fc_2"] = phonon3.get_fc2()
 
-        if "forces_3" in self and len(self.forces_3) > 0:
+        if "force_3" in self and len(self.force_3) > 0:
             phonon3.produce_fc3(
-                self.forces_3, displacement_dataset=self.displacement_dataset_3
+                self.force_3, displacement_dataset=self.displacement_dataset_3
             )
             self.__dict__["_fc_3"] = phonon3.get_fc3()
 

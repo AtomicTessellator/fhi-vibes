@@ -59,6 +59,7 @@ def reader(
     fc_file=None,
     with_stresses=False,
     verbose=True,
+    single_point_calc=True,
 ):
     """Convert information in file to Trajectory
 
@@ -112,7 +113,7 @@ def reader(
         # remember that the results need to go to a dedicated results dict in calc
         calc_dict = {**pre_calc_dict, "results": obj["calculator"]}
 
-        atoms = dict2atoms(atoms_dict, calc_dict)
+        atoms = dict2atoms(atoms_dict, calc_dict, single_point_calc)
 
         # info
         if "MD" in metadata:
@@ -229,3 +230,33 @@ def to_tdep(trajectory, folder=".", skip=1):
     talk(f".. {sdir} written.")
     talk(f".. {pdir} written.")
     talk(f".. {fdir} written.")
+
+
+def to_db(trajectory, database):
+    """Write hilde trajectory as ase database
+
+    Always creates a new database. Database type
+    is always inferred from the filename. Metadata
+    is carried over to the ase database.
+
+    Please be aware that ase.db indices start from
+    1, not from 0 as usual.
+
+    Args:
+        trajectory: Trajectory instance
+        database: Filename or address of database
+
+    """
+    from hilde.phonon_db import connect
+
+    timer = Timer(f"Save as ase database {database}")
+
+    with connect(database, append=False) as db:
+        for atoms in progressbar(trajectory, prefix=".. writing db: "):
+            db.write(atoms, data={"info": atoms.info})
+
+    # metadata can only be written *after* the database exists
+    with connect(database) as db:
+        db.metadata = trajectory.metadata
+
+    timer("done")
