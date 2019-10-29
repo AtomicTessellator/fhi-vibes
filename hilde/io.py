@@ -85,11 +85,13 @@ def parse_force_constants(fc_file, **kwargs):
     """parse either phonopy FORCE_CONSTANTS or tdep infile.forceconstants"""
     file = Path(fc_file)
 
-    if "force_constants" in str(file).lower():
+    name = str(file).lower()
+
+    if "force_constants" in name or "fc2" in name:
         from hilde.phonopy.utils import parse_phonopy_force_constants
 
         return parse_phonopy_force_constants(file, **kwargs)
-    elif ".forceconstant" in str(file).lower():
+    elif ".forceconstant" in name:
         from hilde.tdep.wrapper import parse_tdep_forceconstant
 
         return parse_tdep_forceconstant(file, **kwargs)

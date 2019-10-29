@@ -125,6 +125,7 @@ def extract_results(
     plot_thermal_properties=False,
     plot_dos=False,
     plot_pdos=False,
+    bz_path=None,
     animate=None,
     animate_q=None,
     q_mesh=None,
@@ -212,10 +213,10 @@ def extract_results(
 
         if plot_bandstructure:
             talk(f".. plot band structure")
-            wrapper.plot_bandstructure(phonon, file="bandstructure.pdf")
+            wrapper.plot_bandstructure(phonon, file="bandstructure.pdf", paths=bz_path)
         if write_bandstructure:
             talk(f".. write band structure yaml file")
-            wrapper.set_bandstructure(phonon)
+            wrapper.set_bandstructure(phonon, paths=bz_path)
             phonon.write_yaml_band_structure()
         if write_dos or write_debye:
             talk(f".. write DOS")
@@ -224,10 +225,7 @@ def extract_results(
             else:
                 freq_pitch = 0.1
             dos = wrapper.get_dos(
-                phonon,
-                q_mesh=q_mesh,
-                freq_pitch=freq_pitch,
-                write=write_dos,
+                phonon, q_mesh=q_mesh, freq_pitch=freq_pitch, write=write_dos
             )
             if write_debye:
                 debye_temp = wrapper.get_debye_temperature(dos=dos)

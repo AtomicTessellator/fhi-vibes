@@ -252,6 +252,9 @@ def set_bandstructure(phonon, paths=None):
     paths: list of str
         List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
     """
+    if isinstance(paths, str):
+        paths = [paths]
+
     bands, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
 
     phonon.run_band_structure(bands, labels=labels)
@@ -466,5 +469,6 @@ def get_debye_temperature(
     ener = dos["frequency_points"] * const.THzToEv
     gp = dos["total_dos"]
     eps_p_1 = np.trapz(gp * ener, ener) / np.trapz(gp, ener)
-    eps_p_2 = np.trapz(gp * ener**2.0, ener) / np.trapz(gp, ener)
-    return eps_p_1 / const.kB, np.sqrt(5.0/3.0 * eps_p_2) / const.kB
+    eps_p_2 = np.trapz(gp * ener ** 2.0, ener) / np.trapz(gp, ener)
+    return eps_p_1 / const.kB, np.sqrt(5.0 / 3.0 * eps_p_2) / const.kB
+
