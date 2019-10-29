@@ -73,7 +73,7 @@ def geometry_refine(*args, **kwargs):
 @click.option("--deviation", default=0.1, show_default=True)
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
-@click.option("--scaled", is_flag=True)
+@click.option("-frac", "--fractional", is_flag=True)
 def tool_make_supercell(
     filename,
     dimension,
@@ -83,7 +83,7 @@ def tool_make_supercell(
     deviation,
     dry,
     format,
-    scaled,
+    fractional,
 ):
     """create a supercell of desired shape or size"""
     from hilde.scripts.make_supercell import make_supercell
@@ -98,7 +98,7 @@ def tool_make_supercell(
         deviation,
         dry,
         format,
-        scaled,
+        fractional,
         output_filename=output_filename,
     )
 
@@ -405,6 +405,7 @@ def harmonicity():
 @click.option("--per_atom", is_flag=True)
 @click.option("--per_sample", is_flag=True)
 @click.option("--per_direction", is_flag=True)
+@click.option("--by_symmetry", is_flag=True)
 @click.option("--describe", is_flag=True)
 def compute_r2(
     filenames,
@@ -415,6 +416,7 @@ def compute_r2(
     per_atom,
     per_sample,
     per_direction,
+    by_symmetry,
     describe,
 ):
     """Compute r2 and some statistics"""
@@ -430,7 +432,12 @@ def compute_r2(
         DS = xr.open_dataset(filename)
 
         name = DS.attrs["System Name"]
-        df = get_dataframe(DS, per_sample=per_sample)
+        df = get_dataframe(
+            DS,
+            per_sample=per_sample,
+            per_direction=per_direction,
+            by_symmetry=by_symmetry,
+        )
 
         if not quiet:
             click.echo("\nDataFrame:")
