@@ -1,5 +1,6 @@
 """`hilde output` part of the CLI"""
 from pathlib import Path
+
 # import numpy as np
 
 import click
@@ -53,7 +54,7 @@ def md_output(
             force_constants,
             primitive=traj.primitive,
             supercell=traj.supercell,
-            symmetrize=True
+            symmetrize=True,
         )
         traj.set_forces_harmonic(
             force_constants=fc, average_reference=average_reference
@@ -88,6 +89,7 @@ def md_output(
 @click.option("-debye", "--debye_temperature", is_flag=True)
 @click.option("-pdos", "--projected_density_of_states", is_flag=True)
 @click.option("-tp", "--thermal_properties", is_flag=True)
+@click.option("-path", "--bz_path", type=str)
 @click.option("--animate", is_flag=True, help="print animation files for special kpts")
 @click.option("--animate_q", nargs=3, multiple=True, type=float, help="animation at q")
 @click.option("--born", type=complete_filenames)
@@ -107,6 +109,7 @@ def phonopy_output(
     debye_temperature,
     projected_density_of_states,
     thermal_properties,
+    bz_path,
     animate,
     animate_q,
     born,
@@ -148,6 +151,7 @@ def phonopy_output(
         "plot_thermal_properties": thermal_properties or full,
         "plot_dos": density_of_states or full,
         "plot_pdos": projected_density_of_states,
+        "bz_path": bz_path,
         "q_mesh": q_mesh,
         "output_dir": output_directory,
         "animate": animate or full,

@@ -15,7 +15,7 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
 from hilde.helpers.displacements import get_dR
-from hilde.anharmonicity_score import get_r2_per_sample, get_r2
+from hilde.anharmonicity_score import get_r2_per_sample, get_r2, get_r2_per_atom
 from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al, _prefix
 
 
@@ -340,6 +340,16 @@ class Trajectory(list):
             y = self.forces_harmonic
             r2 = get_r2_per_sample(x, y)
             return r2
+
+    @property
+    def r2_per_atom(self):
+        """return r2 per time step"""
+        if self.forces_harmonic is not None:
+            x = self.forces
+            y = self.forces_harmonic
+            r2 = get_r2_per_atom(x, y, self.reference_atoms)
+            return r2
+
 
     @lazy_property
     def dataset(self):

@@ -162,8 +162,9 @@ def get_trajectory_data(trajectory):
         dataset.update({"forces_harmonic": (vec_dims, trajectory.forces_harmonic)})
         dataset.update({"potential_energy_harmonic": (time_dims, epot_ha)})
         dataset.update({"r2_per_sample": (time_dims, trajectory.r2_per_sample)})
-        attrs.update({"r2 (avg)": trajectory.r2_per_sample.mean()})
         attrs.update({"r2": trajectory.r2.mean()})
+        attrs.update({"r2 (avg)": trajectory.r2_per_sample.mean()})
+        attrs.update({"r2 (mean)": trajectory.r2_per_atom.attrs["mean"]})
 
     return xr.Dataset(dataset, coords=coords, attrs=attrs)
 

@@ -4,7 +4,7 @@ import numpy as np
 
 from ase import Atoms
 from ase.io import read
-from phonopy.file_IO import parse_FORCE_CONSTANTS
+from phonopy.file_IO import parse_FORCE_CONSTANTS, read_force_constants_hdf5
 from phonopy.structure.atoms import PhonopyAtoms
 
 from hilde.helpers import Timer, talk, warn, progressbar
@@ -461,7 +461,10 @@ def parse_phonopy_force_constants(
     else:
         raise RuntimeError("supercell missing")
 
-    fc = parse_FORCE_CONSTANTS(fc_filename)
+    if "hdf5" in str(fc_filename):
+        fc = read_force_constants_hdf5(fc_filename)
+    else:
+        fc = parse_FORCE_CONSTANTS(fc_filename)
 
     if fc.shape[0] == len(sc):
         if two_dim:
