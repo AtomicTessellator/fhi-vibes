@@ -28,6 +28,7 @@ def prepare_phonopy(
     trigonal=defaults.is_trigonal,
     is_diagonal=defaults.is_diagonal,
     is_plusminus=defaults.is_plusminus,
+    wrap=False,
 ):
     """Create a Phonopy object
 
@@ -55,7 +56,7 @@ def prepare_phonopy(
     phonon: phonopy.Phonopy
         The phonopy object corresponding to the parameters
     """
-    ph_atoms = to_phonopy_atoms(atoms, wrap=True)
+    ph_atoms = to_phonopy_atoms(atoms, wrap=wrap)
     supercell_matrix = get_3x3_matrix(supercell_matrix)
 
     phonon = Phonopy(
