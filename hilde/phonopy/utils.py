@@ -154,7 +154,7 @@ def metadata2dict(phonon, calculator):
                 The displacement dataset for the phonon calculation
     """
 
-    atoms = to_Atoms(phonon.get_primitive())
+    atoms = to_Atoms(phonon.get_unitcell())
 
     prim_data = input2dict(atoms)
 

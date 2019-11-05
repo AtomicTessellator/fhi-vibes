@@ -177,7 +177,7 @@ def extract_results(
         q_mesh = defaults.q_mesh.copy()
     talk(f".. q_mesh:   {q_mesh}")
 
-    primitive = to_Atoms(phonon.get_primitive())
+    primitive = to_Atoms(phonon.get_unitcell())
     supercell = to_Atoms(phonon.get_supercell())
 
     Path.mkdir(Path(output_dir), exist_ok=True)
