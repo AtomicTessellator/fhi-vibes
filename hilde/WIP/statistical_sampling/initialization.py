@@ -1,4 +1,4 @@
-''' Initialize thermally displaced cells for statistical sampling '''
+""" Initialize thermally displaced cells for statistical sampling """
 import ase
 from ase import units as u
 from ase.md.velocitydistribution import PhononHarmonics
@@ -15,6 +15,7 @@ from hilde.phonopy.utils import get_force_constants_from_trajectory
 from hilde.phonopy.wrapper import preprocess as preprocess_ph
 from hilde.structure.convert import to_Atoms
 
+
 def prepare_phonon_harmonic_sampling(
     atoms,
     force_constants,
@@ -22,9 +23,9 @@ def prepare_phonon_harmonic_sampling(
     n_samples=1,
     deterministic=True,
     rng=np.random,
-    **kwargs
+    **kwargs,
 ):
-    '''
+    """
     Generates a list of displaced supercells based on a thermal excitation of phonons
     Parameters:
         atoms (ase.atoms.Atoms): Non-displaced supercell
@@ -33,7 +34,7 @@ def prepare_phonon_harmonic_sampling(
         n_samples(int): number of samples to generate
         deterministic(bool): If True then displace atoms with +/- the amplitude according to PRB 94, 075125
     Returns (list of ase.atoms.Atoms): The thermally displaced supercells
-    '''
+    """
     thermally_disp_cells = []
     for ii in range(n_samples):
         td_cell = atoms.copy()
@@ -49,6 +50,7 @@ def prepare_phonon_harmonic_sampling(
         thermally_disp_cells.append(td_cell)
     return thermally_disp_cells
 
+
 def preprocess(
     atoms,
     phonon_file,
@@ -59,7 +61,7 @@ def preprocess(
     rng_seed=None,
     **kwargs,
 ):
-    '''
+    """
     Sets ups the statistical sampling
     Parameters:
         atoms (ase.atoms.Atoms): structure to perform statistical sampling on
@@ -72,31 +74,37 @@ def preprocess(
     Additional arguments in kwargs:
         supercell_matrix (np.ndarray(int)): Supercell matrix used to create the supercell from atoms
     Returns: (list(dicts)): A list of thermally displaced supercells to calculate the forces on
-    '''
+    """
     if temperatures is None:
         temperatures = list()
 
     # Set up supercell and Force Constants
     if "supercell_matrix" in kwargs:
-        sc = make_supercell(atoms, np.array(kwargs["supercell_matrix"]).reshape(3,3))
+        sc = make_supercell(atoms, np.array(kwargs["supercell_matrix"]).reshape(3, 3))
     else:
         sc = None
     if phonon_file:
-        phonon = postprocess_ph(phonon_file, write_files=False, calculate_full_force_constants=False)
+        phonon = postprocess_ph(
+            phonon_file, write_files=False, calculate_full_force_constants=False
+        )
         if sc is None:
             sc = to_Atoms(phonon.get_supercell())
-        force_constants = get_force_constants_from_trajectory(phonon_file, sc, two_dim=True)
+        force_constants = get_force_constants_from_trajectory(
+            phonon_file, sc, two_dim=True
+        )
     else:
         phonon = None
 
     if sc is None:
         sc = atoms.copy()
-    assert(force_constants.shape[0] == force_constants.shape[1] == len(sc)*3 )
+    assert force_constants.shape[0] == force_constants.shape[1] == len(sc) * 3
 
     # If using Debye temperature calculate it
     if debye_temp_fact is not None:
         if phonon is None:
-            raise IOError("Debye Temperature must be calculated with phonopy, please add phonon_file")
+            raise IOError(
+                "Debye Temperature must be calculated with phonopy, please add phonon_file"
+            )
         phonon.set_mesh([51, 51, 51])
         phonon.set_total_DOS(freq_pitch=0.01)
         phonon.set_Debye_frequency()
@@ -121,7 +129,7 @@ def preprocess(
     }
     if not deterministic:
         if rng_seed is None:
-            rng_seed = np.random.randint(2**32-1)
+            rng_seed = np.random.randint(2 ** 32 - 1)
         elif not isinstance(rng_seed, int):
             rng_seed = int(rng_seed)
         metadata["rng_seed"] = rng_seed
@@ -132,11 +140,6 @@ def preprocess(
     for temp in temperatures:
         sc.info["temperature"] = temp
         td_cells += prepare_phonon_harmonic_sampling(
-            sc,
-            force_constants,
-            temp,
-            n_samples,
-            deterministic,
-            rng,
+            sc, force_constants, temp, n_samples, deterministic, rng
         )
     return td_cells, metadata

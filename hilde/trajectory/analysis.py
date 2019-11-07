@@ -148,24 +148,24 @@ def summary(dataset, plot=False, **kwargs):
 
     print()
     talk("Summarize Displacements", prefix="info")
-    pprint(f"Avg. Displacement:", f"{dr.mean():.5} \AA")
-    pprint(f"Max. Displacement:", f"{dr.max():.5} \AA")
+    pprint(f"Avg. Displacement:", f"{dr.mean():.5} AA")
+    pprint(f"Max. Displacement:", f"{dr.max():.5} AA")
     for sym in usymbols:
         mask = np.array(symbols) == sym
         # forces = dataset.forces[:, mask, :].data
-        pprint(f"Avg. Displacement [{sym}]:", f"{dr[:, mask].mean():.5} \AA")
+        pprint(f"Avg. Displacement [{sym}]:", f"{dr[:, mask].mean():.5} AA")
 
     # forces
     forces = dataset.forces.data
     print()
     talk("Summarize Forces", prefix="info")
-    pprint(f"Avg. Force:", f"{forces.mean():.5} eV/\AA")
-    pprint(f"Std. Force:", f"{forces.std():.5} eV/\AA")
+    pprint(f"Avg. Force:", f"{forces.mean():.5} eV/AA")
+    pprint(f"Std. Force:", f"{forces.std():.5} eV/AA")
 
     for sym in usymbols:
         mask = np.array(symbols) == sym
         # forces = dataset.forces[:, mask, :].data
-        pprint(f"Std. Force [{sym}]:", f"{forces[:, mask].std():.5} eV/\AA")
+        pprint(f"Std. Force [{sym}]:", f"{forces[:, mask].std():.5} eV/AA")
 
     if plot:
         df = dataset[
