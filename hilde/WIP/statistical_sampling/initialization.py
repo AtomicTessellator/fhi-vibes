@@ -110,7 +110,7 @@ def preprocess(
 
     # Generate metadata
     metadata = {
-        "ase_vesrsion": ase.__version__,
+        "ase_version": ase.__version__,
         "n_samples_per_temperature": n_samples,
         "temperatures": temperatures,
         "deterministic": deterministic,
