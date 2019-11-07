@@ -26,7 +26,7 @@ def to_fractional(filename, output_filename, format):
         output_filename = filename + ".fractional"
 
     atoms = read(filename, format=format)
-    atoms.write(output_filename, format=format, scaled=True)
+    atoms.write(output_filename, format=format, scaled=True, geo_constrain=True)
 
     click.echo(f"Geometry written to {output_filename}")
 
