@@ -1,14 +1,16 @@
 """Trajectory File I/O"""
 
+import os
+import shutil
 import json
+from pathlib import Path
 import numpy as np
 from ase import units
 from hilde import son
 from hilde import __version__ as version
-from hilde.helpers.converters import dict2atoms
+from hilde import io
+from hilde.helpers.converters import dict2atoms, results2dict, dict2json as dumper
 from hilde.helpers import Timer, warn, talk
-from hilde.helpers.converters import results2dict
-from hilde.helpers.converters import dict2json as dumper
 from hilde.helpers.utils import progressbar
 from hilde.trajectory.trajectory import Trajectory
 
@@ -51,6 +53,42 @@ def metadata2file(metadata, file="metadata.son"):
         metadata = {}
 
     son.dump({**metadata, "hilde": {"version": version}}, file, is_metadata=True)
+
+
+def write(trajectory, file="trajectory.son", netcdf=False):
+    """Write to son file
+
+    Args:
+        file: path to trajecotry son file
+        netcdf: write dataset to netDCF file instead
+    """
+    if netcdf:
+        file = Path(file).stem + ".nc"
+
+    timer = Timer(f"Write trajectory to {file}")
+
+    if netcdf:
+        trajectory.dataset.to_netcdf(file)
+        timer()
+        return True
+
+    temp_file = "temp.son"
+
+    # check for file and make backup
+    if os.path.exists(file):
+        ofile = f"{file}.bak"
+        shutil.copy(file, ofile)
+        talk(f".. {file} copied to {ofile}")
+
+    metadata2file(trajectory.metadata, temp_file)
+
+    prefix = f"Write to {temp_file}:"
+    for elem in progressbar(trajectory, prefix=prefix):
+        son.dump(results2dict(elem), temp_file)
+
+    shutil.move(temp_file, file)
+
+    timer()
 
 
 def reader(

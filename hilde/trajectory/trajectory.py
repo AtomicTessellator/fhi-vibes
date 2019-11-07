@@ -421,34 +421,7 @@ class Trajectory(list):
             file: path to trajecotry son file
             netcdf: write dataset to netDCF file instead
         """
-
-        if netcdf:
-            file = Path(file).stem + ".nc"
-
-        timer = Timer(f"Write trajectory to {file}")
-
-        if netcdf:
-            self.dataset.to_netcdf(file)
-            timer()
-            return True
-
-        temp_file = "temp.son"
-
-        # check for file and make backup
-        if os.path.exists(file):
-            ofile = f"{file}.bak"
-            shutil.copy(file, ofile)
-            talk(f".. {file} copied to {ofile}")
-
-        io.metadata2file(self.metadata, temp_file)
-
-        prefix = f"Write to {temp_file}:"
-        for elem in progressbar(self, prefix=prefix):
-            son.dump(results2dict(elem), temp_file)
-
-        shutil.move(temp_file, file)
-
-        timer()
+        io.write(self, file=file, netcdf=netcdf)
 
     def to_xyz(self, file="positions.xyz"):
         """Write positions to simple xyz file for e.g. viewing with VMD
