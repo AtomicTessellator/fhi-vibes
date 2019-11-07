@@ -225,11 +225,12 @@ class Trajectory(list):
     @property
     def force_constants(self):
         """return force constants"""
-        Np, Na = len(self.primitive), len(self.supercell)
         fc = np.asarray(self.metadata[_fc_key])
-        assert fc.shape == (Np, Na, 3, 3), fc.shape
+        if fc:
+            Np, Na = len(self.primitive), len(self.supercell)
+            assert fc.shape == (Np, Na, 3, 3), fc.shape
 
-        return fc
+            return fc
 
     def set_force_constants(self, fc):
         """set force constants"""
@@ -278,7 +279,7 @@ class Trajectory(list):
     def forces_harmonic(self):
         """return harmonic forces, None if not set via `set_force_constants`"""
         if self._forces_harmonic is None:
-            if self.force_constants is not None:
+            if self.force_constants_remapped is not None:
                 self.set_forces_harmonic()
 
         return self._forces_harmonic

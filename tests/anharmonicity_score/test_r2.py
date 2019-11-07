@@ -15,7 +15,7 @@ def test_r2():
     fc = parse_tdep_remapped_forceconstant(parent / "outfile.forceconstant_remapped")
 
     trajectory = reader(parent / "trajectory.son")
-    trajectory.force_constants = fc
+    trajectory.set_force_constants_remapped(fc)
 
     supercell = trajectory.supercell
 
