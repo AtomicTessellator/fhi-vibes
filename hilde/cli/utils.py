@@ -343,16 +343,17 @@ def t2db(filename, output_filename):
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-uc", help="Add a (primitive) unit cell", type=complete_filenames)
 @click.option("-sc", help="Add the respective supercell", type=complete_filenames)
+@click.option("-fc", help="Add the force constants", type=complete_filenames)
 @click.option("-o", "--output_filename")
 @click.option("--format", default="aims")
-def trajectory_update(filename, uc, sc, output_filename, format):
+def trajectory_update(filename, uc, sc, fc, output_filename, format):
     """add unit cell from UC and supercell from SC to trajectory in FILENAME"""
     # copy: from hilde.scripts.update_md_trajectory import update_trajectory
     import shutil
     from ase.io import read
     from hilde.trajectory import reader
 
-    traj = reader(filename)
+    traj = reader(filename, fc_file=fc)
 
     if uc:
         atoms = read(uc, format=format)

@@ -13,6 +13,7 @@ Logic:
 from hilde.helpers import talk as _talk, Timer
 
 _prefix = "trajectory"
+_fc_key = 'force_constants'
 
 Timer.prefix = _prefix
 
@@ -41,5 +42,5 @@ def get_hashes_from_trajectory(trajectory, verbose=False):
 
 
 from hilde.helpers.hash import hash_atoms
-from hilde.trajectory.io import reader, metadata2file, step2file
-from hilde.trajectory.trajectory import Trajectory, results2dict
+from hilde.trajectory.io import reader, metadata2file, step2file, results2dict
+from hilde.trajectory.trajectory import Trajectory

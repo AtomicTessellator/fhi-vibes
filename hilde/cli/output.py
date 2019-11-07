@@ -43,27 +43,18 @@ def md_output(
     from hilde.io import parse_force_constants
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
-    traj = reader(file=trajectory, with_stresses=heat_flux)
+    traj = reader(file=trajectory, with_stresses=heat_flux, fc_file=force_constants)
 
     if discard:
         traj = traj.discard(discard)
 
     # harmonic forces?
     if force_constants:
-        fc = parse_force_constants(
-            force_constants,
-            primitive=traj.primitive,
-            supercell=traj.supercell,
-            symmetrize=True,
-        )
-        traj.set_forces_harmonic(
-            force_constants=fc, average_reference=average_reference
-        )
+        traj.set_forces_harmonic(average_reference=average_reference)
     elif remapped_force_constants:
         fc = np.loadtxt(remapped_force_constants)
-        traj.set_forces_harmonic(
-            force_constants=fc, average_reference=average_reference
-        )
+        traj.set_force_constants_remapped(fc)
+        traj.set_forces_harmonic(average_reference=average_reference)
 
     if "auto" in outfile.lower():
         outfile = Path(trajectory).stem + ".nc"

@@ -178,8 +178,8 @@ def reader(
         trajectory = trajectory.with_stresses
 
     if fc_file:
-        fc = np.loadtxt(fc_file)
-        trajectory.force_constants = fc
+        fc = io.parse_force_constants(fc_file, two_dim=False)
+        trajectory.set_force_constants(fc)
 
     if get_metadata:
         return trajectory, metadata
