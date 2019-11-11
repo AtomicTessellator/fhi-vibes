@@ -25,7 +25,15 @@ def print_matrix(matrix, indent=2):
 
 
 def make_supercell(
-    filename, dimension, n_target, deviation, dry, format, scaled, output_filename=None
+    filename,
+    dimension,
+    n_target,
+    deviation,
+    dry,
+    format,
+    scaled,
+    wrap=False,
+    output_filename=None,
 ):
     """create or find a supercell
 
@@ -45,6 +53,8 @@ def make_supercell(
         Format of the input geometry file (default: aims)
     scaled: bool
         If True use fractional coordinates
+    wrap: bool
+        wrap atoms back to cell
     """
 
     timer = Timer()
@@ -61,7 +71,7 @@ def make_supercell(
         )
     elif dimension:
         smatrix = get_3x3_matrix(dimension)
-        supercell = sc.make_supercell(cell, smatrix)
+        supercell = sc.make_supercell(cell, smatrix, wrap=wrap)
     else:
         exit("Please specify either a target cell size or a supercell matrix")
 

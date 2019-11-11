@@ -26,7 +26,7 @@ def to_fractional(filename, output_filename, format):
         output_filename = filename + ".fractional"
 
     atoms = read(filename, format=format)
-    atoms.write(output_filename, format=format, scaled=True)
+    atoms.write(output_filename, format=format, scaled=True, geo_constrain=True)
 
     click.echo(f"Geometry written to {output_filename}")
 
@@ -74,6 +74,7 @@ def geometry_refine(*args, **kwargs):
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
 @click.option("-frac", "--fractional", is_flag=True)
+@click.option("--wrap", is_flag=False)
 def tool_make_supercell(
     filename,
     dimension,
@@ -84,6 +85,7 @@ def tool_make_supercell(
     dry,
     format,
     fractional,
+    wrap,
 ):
     """create a supercell of desired shape or size"""
     from hilde.scripts.make_supercell import make_supercell
@@ -100,6 +102,7 @@ def tool_make_supercell(
         format,
         fractional,
         output_filename=output_filename,
+        wrap=wrap,
     )
 
 

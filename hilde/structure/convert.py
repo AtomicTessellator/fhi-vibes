@@ -25,6 +25,7 @@ def to_phonopy_atoms(structure, wrap=False):
         masses=structure.get_masses(),
         positions=structure.get_positions(wrap=wrap),
     )
+
     return phonopy_atoms
 
 
