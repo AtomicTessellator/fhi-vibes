@@ -447,32 +447,31 @@ def parse_phonopy_force_constants(
     Returns:
         Force constants in (3*N_sc, 3*N_sc) shape
     """
-    if isinstance(primitive, Atoms):
-        uc = primitive
-    elif Path(primitive).exists():
-        uc = read(primitive, format=format)
-    else:
-        raise RuntimeError("primitive cell missing")
-
-    if isinstance(supercell, Atoms):
-        sc = supercell
-    elif Path(supercell).exists():
-        sc = read(supercell, format=format)
-    else:
-        raise RuntimeError("supercell missing")
-
     if "hdf5" in str(fc_filename):
         fc = read_force_constants_hdf5(fc_filename)
     else:
         fc = parse_FORCE_CONSTANTS(fc_filename)
 
-    if fc.shape[0] == len(sc):
+    if fc.shape[0] == fc.shape[1]:
         if two_dim:
-            fc = fc.swapaxes(1, 2).reshape(3 * len(sc), 3 * len(sc))
+            fc = fc.swapaxes(1, 2).reshape(3 * fc.shape[1], 3 * fc.shape[1])
 
         return fc
 
     if two_dim:
+        if isinstance(primitive, Atoms):
+            uc = primitive
+        elif Path(primitive).exists():
+            uc = read(primitive, format=format)
+        else:
+            raise RuntimeError("primitive cell missing")
+
+        if isinstance(supercell, Atoms):
+            sc = supercell
+        elif Path(supercell).exists():
+            sc = read(supercell, format=format)
+        else:
+            raise RuntimeError("supercell missing")
 
         fc = remap_force_constants(
             fc,

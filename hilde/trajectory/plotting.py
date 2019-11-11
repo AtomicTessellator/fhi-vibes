@@ -126,7 +126,6 @@ def plot_summary(dataframe, avg=50, natoms=None):
     ax4.legend(loc=4)
 
     ax4.set_xlabel("Time [ps]")
- 
 
     # fig.tight_layout()
     fname = "md_summary.pdf"

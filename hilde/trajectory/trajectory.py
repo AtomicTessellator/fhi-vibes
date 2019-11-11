@@ -1,22 +1,26 @@
 """the hilde.Trajectory class"""
 
-import os
-import shutil
-from pathlib import Path
-
 import numpy as np
 
 from ase import units, Atoms
 from ase.calculators.calculator import PropertyNotImplementedError
-from hilde import son
 from hilde.fourier import get_timestep
-from hilde.helpers.converters import results2dict, dict2atoms, atoms2dict
+from hilde.helpers.converters import dict2atoms, atoms2dict
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
 from hilde.helpers.displacements import get_dR
 from hilde.anharmonicity_score import get_r2_per_sample, get_r2, get_r2_per_atom
-from . import io, heat_flux as hf, talk, Timer, dataarray as xr, analysis as al, _prefix
+from . import (
+    io,
+    heat_flux as hf,
+    talk,
+    Timer,
+    dataarray as xr,
+    analysis as al,
+    _prefix,
+    _fc_key,
+)
 
 
 class Trajectory(list):
@@ -45,13 +49,15 @@ class Trajectory(list):
         self._avg_heat_flux = None
         self._volume = None
         self._forces_harmonic = None
-        self._force_constants = None
         self._displacements = None
+        self._force_constants_remapped = None
+        if _fc_key not in self._metadata:
+            self._metadata[_fc_key] = None
 
     @classmethod
-    def from_file(cls, file):
+    def read(cls, file="trajectory.son", **kwargs):
         """ Read trajectory from file """
-        trajectory = io.reader(file)
+        trajectory = io.reader(file, **kwargs)
         return trajectory
 
     def __getitem__(self, key):
@@ -219,13 +225,39 @@ class Trajectory(list):
     @property
     def force_constants(self):
         """return force constants"""
-        return self._force_constants
+        fc = np.asarray(self.metadata[_fc_key])
+        if fc:
+            Np, Na = len(self.primitive), len(self.supercell)
+            assert fc.shape == (Np, Na, 3, 3), fc.shape
 
-    @force_constants.setter
-    def force_constants(self, fc):
+            return fc
+
+    def set_force_constants(self, fc):
         """set force constants"""
-        assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
-        self._force_constants = fc
+        Np, Na = len(self.primitive), len(self.supercell)
+        # assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
+        assert fc.shape == (Np, Na, 3, 3), fc.shape
+        self.metadata[_fc_key] = fc
+
+    @property
+    def force_constants_remapped(self):
+        """return remapped force constants [3 * Na, 3 * Na]"""
+        if self._force_constants_remapped is None:
+            fc = self.force_constants
+            if fc is not None:
+                uc, sc = self.primitive, self.supercell
+                from hilde.phonopy.utils import remap_force_constants
+
+                fc = remap_force_constants(fc, uc, sc, two_dim=True, symmetrize=True)
+
+                self._force_constants_remapped = fc
+        return self._force_constants_remapped
+
+    def set_force_constants_remapped(self, fc):
+        """set remapped force constants"""
+        Na = len(self.supercell)
+        assert fc.shape == (3 * Na, 3 * Na), fc.shape
+        self._force_constants_remapped = fc
 
     def set_forces_harmonic(self, force_constants=None, average_reference=False):
         """return harmonic force computed from force_constants"""
@@ -233,12 +265,12 @@ class Trajectory(list):
             talk("Compute harmonic force constants with average positions as reference")
             self.reference_atoms = self.average_atoms
 
-        if force_constants is not None:
-            self.force_constants = force_constants
+        if force_constants is None:
+            force_constants = self.force_constants_remapped
 
         timer = Timer("Set harmonic forces")
 
-        forces_ha = [-self.force_constants @ d.flatten() for d in self.displacements]
+        forces_ha = [-force_constants @ d.flatten() for d in self.displacements]
         timer()
 
         self._forces_harmonic = np.array(forces_ha).reshape(self.positions.shape)
@@ -247,7 +279,7 @@ class Trajectory(list):
     def forces_harmonic(self):
         """return harmonic forces, None if not set via `set_force_constants`"""
         if self._forces_harmonic is None:
-            if self.force_constants is not None:
+            if self.force_constants_remapped is not None:
                 self.set_forces_harmonic()
 
         return self._forces_harmonic
@@ -350,7 +382,6 @@ class Trajectory(list):
             r2 = get_r2_per_atom(x, y, self.reference_atoms)
             return r2
 
-
     @lazy_property
     def dataset(self):
         """return data as xarray.Dataset
@@ -421,34 +452,7 @@ class Trajectory(list):
             file: path to trajecotry son file
             netcdf: write dataset to netDCF file instead
         """
-
-        if netcdf:
-            file = Path(file).stem + ".nc"
-
-        timer = Timer(f"Write trajectory to {file}")
-
-        if netcdf:
-            self.dataset.to_netcdf(file)
-            timer()
-            return True
-
-        temp_file = "temp.son"
-
-        # check for file and make backup
-        if os.path.exists(file):
-            ofile = f"{file}.bak"
-            shutil.copy(file, ofile)
-            talk(f".. {file} copied to {ofile}")
-
-        io.metadata2file(self.metadata, temp_file)
-
-        prefix = f"Write to {temp_file}:"
-        for elem in progressbar(self, prefix=prefix):
-            son.dump(results2dict(elem), temp_file)
-
-        shutil.move(temp_file, file)
-
-        timer()
+        io.write(self, file=file, netcdf=netcdf)
 
     def to_xyz(self, file="positions.xyz"):
         """Write positions to simple xyz file for e.g. viewing with VMD
