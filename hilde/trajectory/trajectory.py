@@ -224,9 +224,12 @@ class Trajectory(list):
 
     @property
     def force_constants(self):
-        """return force constants"""
-        fc = np.asarray(self.metadata[_fc_key])
-        if fc:
+        """return (reduced) force constants or warn if not set"""
+        fc = self.metadata[_fc_key]
+        if any(x is None for x in (fc, self.primitive, self.supercell)):
+            warn("`trajectory.force_constants` not set, return None")
+        else:
+            fc = np.asarray(fc)
             Np, Na = len(self.primitive), len(self.supercell)
             assert fc.shape == (Np, Na, 3, 3), fc.shape
 
