@@ -31,14 +31,7 @@ def get_hashes_from_trajectory(trajectory, verbose=False):
     except (FileNotFoundError, KeyError):
         return []
 
-    hashes = []
-    for atoms in traj:
-        try:
-            hashes.append(atoms.info["hash"])
-        except (KeyError, AttributeError):
-            hashes.append(hash_atoms(atoms))
-
-    return hashes
+    return traj.get_hashes()
 
 
 from hilde.helpers.hash import hash_atoms

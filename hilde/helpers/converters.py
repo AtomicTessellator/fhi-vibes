@@ -60,7 +60,6 @@ def atoms2dict(atoms, reduce=True):
     atoms_dict: dict
         The dict representation of atoms
     """
-    from .hash import hash_dict
 
     atoms_dict = {}
 
@@ -82,7 +81,6 @@ def atoms2dict(atoms, reduce=True):
         }
     )
 
-    atoms.info["hash"] = hash_dict(atoms_dict)
     atoms_dict.update({"info": atoms.info})
 
     return atoms_dict
