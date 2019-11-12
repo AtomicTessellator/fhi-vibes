@@ -8,8 +8,6 @@ A runnable script for launching rockets (a command-line interface to queue_launc
 
 from argparse import ArgumentParser
 import os
-import sys
-import time
 
 try:
     import fabric
@@ -28,10 +26,8 @@ from fireworks.fw_config import (
     LAUNCHPAD_LOC,
 )
 from fireworks.core.fworker import FWorker
-from fireworks.queue.queue_launcher import launch_rocket_to_queue
 from fireworks.utilities.fw_serializers import load_object_from_file
 
-from hilde import DEFAULT_CONFIG_FILE
 from hilde.fireworks.combined_launcher import rapidfire
 from hilde.fireworks.launchpad import LaunchPad as LaunchPad
 from hilde.settings import TaskSettings, Settings
@@ -78,7 +74,7 @@ fw_defaults = {
 
 
 def claunch():
-    """Defines the command claunch_hidle"""
+    """Defines the command claunch_hilde"""
     m_description = (
         "This program is used to submit jobs to a queueing system. "
         "Details of the job and queue interaction are handled by the "

@@ -37,6 +37,7 @@ from hilde.fireworks.combined_launcher import get_ordred_firework_ids
 from hilde.fireworks._defaults import FW_DEFAULTS
 
 from hilde.helpers.watchdogs import str2time
+from hilde.helpers import talk
 
 __author__ = "Anubhav Jain, Michael Kocher, Modified by Thomas Purcell"
 __copyright__ = "Copyright 2012, The Materials Project, Modified 2.11.2018"
@@ -150,7 +151,8 @@ def launch_rocket_to_queue(
                     l_logger.debug("updating queue params using Firework spec..")
                     ntasks = fw.spec["_queueadapter"].pop("ntasks", 1)
                     nodes = int(np.ceil(ntasks / qadapter["ntasks_per_node"]))
-
+                    if nodes < fw.spec["_queueadapter"].get("nodes", 1):
+                        nodes = fw.spec["_queueadapter"].get("nodes", 1)
                     if "queues" in qadapter:
                         nodes_needed = []
                         if "expected_mem" in fw.spec["_queueadapter"]:
@@ -160,7 +162,6 @@ def launch_rocket_to_queue(
                         for queue in qadapter["queues"]:
                             if "max_mem" in queue:
                                 accessible_mem = queue["max_mem"]
-                                print(accessible_mem, expect_mem)
                                 if expect_mem > accessible_mem:
                                     nodes_needed.append(
                                         int(np.ceil(expect_mem / accessible_mem))
@@ -169,6 +170,33 @@ def launch_rocket_to_queue(
                                     nodes_needed.append(nodes)
                             else:
                                 nodes_needed.append(nodes)
+                        if (
+                            "queue" in fw.spec["_queueadapter"]
+                            and "walltime" in fw.spec["_queueadapter"]
+                        ):
+                            queue_ind = -1
+                            for ii, qu in enumerate(qadapter["queues"]):
+                                if qu["name"] == fw.spec["_queueadapter"]["queue"]:
+                                    queue = qu
+                                    queue_ind = ii
+                            if queue_ind < 0:
+                                raise ValueError(
+                                    "Queue Name not found for that resources"
+                                )
+                            if queue["max_nodes"] < nodes_needed[queue_ind]:
+                                raise IOError(
+                                    "Requested resource does not have enough memory to complete the job"
+                                )
+                            sc_wt = str2time(fw.spec["_queueadapter"]["walltime"])
+                            if nodes * sc_wt < str2time(queue["max_walltime"]):
+                                fw.spec["_queueadapter"]["nodes"] = nodes
+                            else:
+                                fw.spec["_queueadapter"]["nodes"] = int(
+                                    np.ceil(sc_wt / str2time(queue["max_walltime"]))
+                                )
+                                fw.spec["_queueadapter"]["walltime"] = queue[
+                                    "max_walltime"
+                                ]
                         if "queue" in fw.spec["_queueadapter"]:
                             queue_ind = -1
                             for ii, qu in enumerate(qadapter["queues"]):
@@ -187,8 +215,11 @@ def launch_rocket_to_queue(
                                 fw.spec["_queueadapter"]["walltime"] = queue[
                                     "max_walltime"
                                 ]
-                        elif "walltime" in fw.spec["_queueadapter"]:
-                            sc_wt = str2time(fw.spec["_queueadapter"]["walltime"])
+                        else:
+                            if "walltime" in fw.spec["_queueadapter"]:
+                                sc_wt = str2time(fw.spec["_queueadapter"]["walltime"])
+                            else:
+                                sc_wt = 1800
                             queue_wt = 1.0e15
                             queue = None
                             queue_ind = -1
@@ -218,6 +249,7 @@ def launch_rocket_to_queue(
                         fw.spec["_queueadapter"]["nodes"] = nodes_needed[queue_ind]
                     del qadapter["queues"]
                     qadapter.update(fw.spec["_queueadapter"])
+                    qadapter.pop("ntasks", 1)
                 if "walltime" in qadapter:
                     for tt, task in enumerate(fw.spec["_tasks"]):
                         if ("kwargs" in task and "walltime" in task["kwargs"]) or (
@@ -361,7 +393,10 @@ def rapidfire(
         If the luanch directory does not exist
     """
     if firework_ids and len(firework_ids) != nlaunches:
-        print("WARNING: Setting nlaunches to the length of firework_ids.")
+        talk(
+            "WARNING: Setting nlaunches to the length of firework_ids.",
+            prefix="fireworks",
+        )
         nlaunches = len(firework_ids)
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     launch_dir = os.path.abspath(launch_dir)

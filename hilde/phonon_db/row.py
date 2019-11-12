@@ -5,12 +5,13 @@ import copy
 
 import numpy as np
 
-from ase.db.row import AtomsRow, atoms2dict
-from ase.io.jsonio import decode
+from ase.db.row import AtomsRow
 
 from hilde.spglib.wrapper import get_spacegroup
 
 from hilde import konstanten as const
+from hilde.ase.db.dict_converters import atoms2dict
+
 # from hilde.phonon_db.ase_converters import dict2atoms
 from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
 from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
@@ -46,7 +47,6 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
             round(np.linalg.det(phonon.get_supercell_matrix()))
         )
     if add_fc:
-        n_atoms = phonon.get_supercell().get_number_of_atoms()
         dct["_fc_2"] = np.array(phonon.get_force_constants())
     else:
         displacement_dataset = copy.deepcopy(phonon._displacement_dataset)
@@ -196,6 +196,7 @@ class PhononRow(AtomsRow):
         else:
             try:
                 from phono3py.phonon3 import Phono3py
+
                 if isinstance(dct, Phono3py):
                     dct = phonon3_to_dict(dct)
                     dct["key_value_pairs"]["has_fc3"] = True
@@ -214,7 +215,6 @@ class PhononRow(AtomsRow):
         super(PhononRow, self).__init__(dct)
 
         self.clean_displacement_dataset()
-
 
     def clean_displacement_dataset(self):
         """Cleans the displacement dataset
@@ -259,7 +259,9 @@ class PhononRow(AtomsRow):
         )
         phonon.set_displacement_dataset(self.displacement_dataset_2)
         if "force_2" in self and len(self.force_2) > 0:
-            phonon.produce_force_constants(self.force_2)
+            phonon.produce_force_constants(
+                self.force_2, calculate_full_force_constants=False
+            )
         return phonon.get_force_constants()
 
     @property
@@ -326,11 +328,8 @@ class PhononRow(AtomsRow):
             factor=const.omega_to_THz,
         )
         phonon.set_displacement_dataset(self.displacement_dataset_2)
-        if "_fc_2" in self:
-            phonon.set_force_constants(self.fc_2)
-        elif "force_2" in self and len(self.force_2) > 0:
-            phonon.produce_force_constants(self.force_2)
-            self.__dict__["_fc_2"] = phonon.get_force_constants()
+        phonon.set_force_constants(self.fc_2)
+
         if "qmesh" in self and self.qmesh is not None:
             phonon.set_mesh(self.qmesh)
             if "tp_T" in self and self.tp_T is not None:

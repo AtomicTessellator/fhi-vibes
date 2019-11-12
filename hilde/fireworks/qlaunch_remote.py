@@ -2,6 +2,8 @@
 import os
 import time
 
+from hilde.helpers import talk
+
 try:
     import fabric
 
@@ -136,10 +138,12 @@ def qlaunch_remote(
         convert_input_to_param("maxjobs_block", maxjobs_block, non_default)
         convert_input_to_param("nlaunches", nlaunches, non_default)
         convert_input_to_param("sleep", sleep, non_default)
+
         if firework_ids:
             non_default.append("--{} {}".format("firework_ids", firework_ids[0]))
             for fire_work in firework_ids[1:]:
                 non_default[-1] += " {}".format(fire_work)
+                fw_id = fire_work
         if wflow:
             non_default.append("--{} {}".format("wflow", wflow.root_firework_ids[0]))
             for fire_work in wflow.root_firework_ids[1:]:
@@ -154,13 +158,17 @@ def qlaunch_remote(
     if reserve:
         pre_non_default.append("--reserve")
     pre_non_default = " ".join(pre_non_default)
-    print(f"hilde fireworks qlaunch {pre_non_default} {command} {non_default}")
     interval = daemon
     while True:
         for host in remote_host:
             connect_kwargs = {"password": remote_password, "gss_auth": gss_auth}
             if SSH_MULTIPLEXING:
                 connect_kwargs["controlpath"] = controlpath
+            talk(
+                f"Launching FireWork {fw_id} on {host} with command: \n"
+                + f"\t\thilde fireworks qlaunch {pre_non_default} {command} {non_default}",
+                prefix="fireworks",
+            )
             with fabric.Connection(
                 host=host,
                 user=remote_user,
@@ -176,9 +184,10 @@ def qlaunch_remote(
                             )
                         )
         if interval > 0:
-            print(
+            talk(
                 "Next run in {} seconds... Press Ctrl-C to exit at any "
-                "time.".format(interval)
+                "time.".format(interval),
+                prefix="fireworks",
             )
             time.sleep(daemon)
         else:

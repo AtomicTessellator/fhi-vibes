@@ -7,7 +7,6 @@ try:
 except ModuleNotFoundError:
     import importlib_resources as pkg_resources
 
-
 import click
 from hilde.templates import settings, config_files
 from .misc import AliasedGroup

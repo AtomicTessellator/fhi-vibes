@@ -4,7 +4,6 @@ from pathlib import Path
 from ase.dft.kpoints import get_cellinfo
 from phonopy.file_IO import write_FORCE_CONSTANTS
 
-from hilde import konstanten as const
 from hilde.helpers.brillouinzone import get_special_points
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers.paths import cwd
@@ -84,7 +83,6 @@ def postprocess(
     phonon._displacement_dataset = metadata["Phonopy"]["displacement_dataset"].copy()
 
     force_sets = [atoms.get_forces() for atoms in calculated_atoms]
-
     phonon.produce_force_constants(
         force_sets, calculate_full_force_constants=calculate_full_force_constants
     )

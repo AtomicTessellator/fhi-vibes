@@ -1,7 +1,7 @@
 """Wrappers to the hilde calculate functions"""
 import numpy as np
 
-from hilde.phonon_db.ase_converters import dict2atoms
+from hilde.helpers.converters import dict2atoms
 from hilde.settings import TaskSettings, Settings
 from hilde.tasks.calculate import calculate_socket, calculate
 
@@ -15,7 +15,7 @@ def check_if_failure_ok(lines, walltime):
     time_used = float(lines[line_sum[0] + 1].split(":")[1].split("s")[1])
     sum_present = line_sum.size > 0
 
-    if sum_present and time_used / walltime > 0.95:
+    if walltime and sum_present and time_used / walltime > 0.95:
         return True
 
     if E_F_INCONSISTENCY in lines:
@@ -33,7 +33,7 @@ def wrap_calc_socket(
     trajectory="trajectory.son",
     workdir=".",
     backup_folder="backups",
-    walltime=1800,
+    walltime=None,
     **kwargs,
 ):
     """Wrapper for the clalculate_socket function
@@ -80,13 +80,12 @@ def wrap_calc_socket(
                 settings.machine.basissetloc, species_type
             )
         calc_dict["command"] = settings.machine.aims_command
-        calc_dict["calculator_parameters"]["walltime"] = walltime - 180
+        if walltime:
+            calc_dict["calculator_parameters"]["walltime"] = walltime - 180
 
     for at_dict in atoms_dict_to_calculate:
-        for key, val in calc_dict.items():
-            at_dict[key] = val
-        atoms_to_calculate.append(dict2atoms(at_dict))
-    calculator = dict2atoms(atoms_dict_to_calculate[0]).calc
+        atoms_to_calculate.append(dict2atoms(at_dict, calc_dict, False))
+    calculator = dict2atoms(atoms_dict_to_calculate[0], calc_dict, False).calc
     try:
         return calculate_socket(
             atoms_to_calculate,
@@ -95,7 +94,6 @@ def wrap_calc_socket(
             trajectory=trajectory,
             workdir=workdir,
             backup_folder=backup_folder,
-            walltime=walltime,
             **kwargs,
         )
     except RuntimeError:

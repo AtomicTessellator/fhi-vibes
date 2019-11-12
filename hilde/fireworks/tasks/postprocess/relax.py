@@ -7,7 +7,7 @@ from ase.io.aims import read_aims
 import numpy as np
 
 from hilde.fireworks.tasks.calculate_wrapper import check_if_failure_ok
-from hilde.phonon_db.ase_converters import atoms2dict, calc2dict
+from hilde.helpers.converters import atoms2dict, dict2atoms, calc2dict, key_constraints
 
 
 def check_aims(atoms, calc, outputs, **kwargs):
@@ -32,7 +32,7 @@ def check_aims(atoms, calc, outputs, **kwargs):
             new_atoms.set_calculator(outputs.get_calculator())
             new_atoms.info = atoms["info"].copy()
         else:
-            new_atoms = atoms.copy()
+            new_atoms = dict2atoms(atoms)
     except FileNotFoundError:
         if not completed:
             failure_ok = check_if_failure_ok(aims_out, walltime)
@@ -45,6 +45,7 @@ def check_aims(atoms, calc, outputs, **kwargs):
                 )
         new_atoms = outputs
     new_atoms_dict = atoms2dict(new_atoms)
+    new_atoms_dict[key_constraints] = atoms.get(key_constraints, list())
     for key, val in atoms["info"].items():
         if key not in new_atoms_dict["info"]:
             new_atoms_dict["info"][key] = val

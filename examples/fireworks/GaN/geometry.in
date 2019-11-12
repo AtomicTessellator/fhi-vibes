@@ -1,18 +1,24 @@
-# 
-# This is the geometry file that corresponds to the current relaxation step.
-# If you do not want this file to be written, set the "write_restart_geometry" flag to .false.
-#  aims_uuid : 13CFEFD7-F6A5-494B-A3F3-ED49FD370CC4                                
-# 
-lattice_vector      0.00000000      2.28199105      2.28199105
-lattice_vector      2.28199105      0.00000000      2.28199105
-lattice_vector      2.28199105      2.28199105      0.00000000
-atom_frac       0.25000000      0.25000000      0.25000000 Ga
-atom_frac       0.00000000      0.00000000      0.00000000 N
-symmetry_n_params 1 1 0
-symmetry_params a
-symmetry_lv 0 , (1.0/2.0)*a , (1.0/2.0)*a
-symmetry_lv (1.0/2.0)*a , 0 , (1.0/2.0)*a
-symmetry_lv (1.0/2.0)*a , (1.0/2.0)*a , 0
-symmetry_frac (1.0/4.0) , (1.0/4.0) , (1.0/4.0)
-symmetry_frac (0.0) , (0.0) , (0.0)
-
+#=======================================================
+# FHI-aims file: ./geometry.in
+# Created using the Atomic Simulation Environment (ASE)
+# Fri Oct  4 10:39:31 2019
+#=======================================================
+lattice_vector      1.58258856     -2.74112380      0.00000000
+lattice_vector      1.58258856      2.74112380      0.00000000
+lattice_vector      0.00000000      0.00000000      5.16260605
+atom_frac       0.33333333      0.66666667      0.99935951 Ga
+atom_frac       0.66666667      0.33333333      0.49935951 Ga
+atom_frac       0.33333333      0.66666667      0.37564049 N
+atom_frac       0.66666667      0.33333333      0.87564049 N
+#=======================================================
+# Parametric constraints
+#=======================================================
+symmetry_n_params 4 2 2
+symmetry_params a c z1 z2
+symmetry_lv 0.5*a, -0.8660254037844*a, 0
+symmetry_lv 0.5*a, 0.8660254037844*a, 0
+symmetry_lv 0, 0, c
+symmetry_frac 0.3333333333333, 0.6666666666667, 1 + z1
+symmetry_frac 0.6666666666667, 0.3333333333333, 0.5 + z1
+symmetry_frac 0.3333333333333, 0.6666666666667, z2
+symmetry_frac 0.6666666666667, 0.3333333333333, 0.5 + z2

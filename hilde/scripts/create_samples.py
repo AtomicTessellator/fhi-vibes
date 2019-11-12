@@ -14,8 +14,8 @@ from hilde.helpers import talk
 from hilde.harmonic_analysis.dynamical_matrix import get_frequencies
 
 
-def create_samples(
-    geometry,
+def generate_samples(
+    atoms,
     temperature,
     n_samples,
     force_constants,
@@ -48,7 +48,6 @@ def create_samples(
         format: The ASE file format for geometry files
     """
 
-    atoms = read(geometry, format=format)
     inform(atoms, verbosity=0)
 
     seed = random_seed
@@ -75,18 +74,16 @@ def create_samples(
         rng = np.random.RandomState(seed)
 
     if force_constants is not None:
-        # if 3Nx3N shaped txt file:
-        try:
-            fc = np.loadtxt(force_constants)
-        except ValueError:
+        # if 3Nx3N shaped force_constants:
+        if np.any(np.array(force_constants.shape, dtype=int) != 3 * len(atoms)):
             exit("other force constants not yet implemented")
 
         # Check dyn. matrix
-        check_frequencies(atoms, fc)
+        check_frequencies(atoms, force_constants)
 
         # collect arguments for PhononHarmonics
         phonon_harmonic_args = {
-            "force_constants": fc,
+            "force_constants": force_constants,
             "quantum": quantum,
             "temp": temp * u.kB,
             "failfast": True,
@@ -98,10 +95,7 @@ def create_samples(
         }
 
         info_str += ["created from force constants", f"T = {temp} K"]
-
-        talk(f"\nUse force constants from {force_constants} to prepare samples")
         talk(f"Random seed: {seed}")
-
     else:
         mb_args = {"temp": temp * u.kB, "rng": rng}
         info_str += ["created from MB distrubtion", f"T = {temperature} K"]
@@ -115,6 +109,8 @@ def create_samples(
         f"Sobol numbers:       {sobol}",
         f"Random seed:         {seed}",
     ]
+
+    sample_list = []
 
     for ii in range(n_samples):
         talk(f"Sample {ii:3d}:")
@@ -133,7 +129,7 @@ def create_samples(
 
         if force_constants is not None:
             d = np.ravel(sample.positions - atoms.positions)
-            epot_ha = 0.5 * (fc @ d @ d)
+            epot_ha = 0.5 * (force_constants @ d @ d)
             epot_ha_temp = epot_ha / u.kB / len(atoms) / 3 * 2
 
             ha_epot_str = f"{epot_ha:9.3f}eV ({epot_ha_temp:.2f}K)"
@@ -152,12 +148,86 @@ def create_samples(
             sample_info_str += [f"Propagated for:      {propagate} fs"]
             sample.positions += sample.get_velocities() * propagate * u.fs
 
-        filename = f"{geometry}.{int(temp):04d}K"
+        sample.info["info_str"] = sample_info_str
+        sample_list.append(sample)
+
+        talk(f".. temperature in sample {ii}:     {sample.get_temperature():9.3f}K")
+
+    return sample_list
+
+
+def create_samples(
+    geometry,
+    temperature,
+    n_samples,
+    force_constants,
+    rattle,
+    quantum,
+    deterministic,
+    plus_minus,
+    gauge_eigenvectors,
+    ignore_negative,
+    sobol,
+    random_seed,
+    propagate,
+    format,
+):
+    """create samples for Monte Carlo sampling
+
+    Args:
+        geometry: input geometry file
+        temperature: temperature in Kelvin
+        n_samples: number of samples to create (default: 1)
+        force_constants: filename of the file holding force constants for phonon rattle
+        mc_rattle: hiphive mc rattle
+        quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
+        deterministic: create sample deterministically
+        sobol: Use sobol numbers for the sampling
+        random_seed: seed for random number generator
+        format: The ASE file format for geometry files
+        return_samples (bool): If True do not write the samples, but return them
+    """
+
+    atoms = read(geometry, format=format)
+    inform(atoms, verbosity=0)
+
+    if force_constants is not None:
+        # if 3Nx3N shaped txt file:
+        try:
+            fc = np.loadtxt(force_constants)
+        except ValueError:
+            exit("other force constants not yet implemented")
+        talk(f"\nUse force constants from {force_constants} to prepare samples")
+
+    sample_list = generate_samples(
+        atoms,
+        temperature,
+        n_samples,
+        fc,
+        rattle,
+        quantum,
+        deterministic,
+        plus_minus,
+        gauge_eigenvectors,
+        ignore_negative,
+        sobol,
+        random_seed,
+        propagate,
+        format,
+    )
+
+    for ii, sample in enumerate(sample_list):
+        talk(f"Sample {ii:3d}:")
+        filename = f"{geometry}.{int(temperature):04d}K"
         if n_samples > 1:
             filename += f".{ii:03d}"
 
-        sample.write(filename, info_str=sample_info_str, velocities=True, format=format)
-
+        sample.write(
+            filename,
+            info_str=sample.info.pop("info_str"),
+            velocities=True,
+            format=format,
+        )
         talk(f".. temperature in sample {ii}:     {sample.get_temperature():9.3f}K")
         talk(f".. written to {filename}")
 

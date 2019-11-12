@@ -1,4 +1,6 @@
 """Functions used to generate a FireWorks Workflow"""
+import numpy as np
+
 from fireworks import Workflow
 
 from hilde.fireworks.launchpad import LaunchPad
@@ -7,11 +9,13 @@ from hilde.fireworks.workflows.firework_generator import (
     generate_relax_fw,
     generate_phonon_fw,
     generate_phonon_postprocess_fw,
-    # generate_stat_samp_fw,
+    generate_stat_samp_fw,
+    generate_stat_samp_postprocess_fw,
     generate_aims_fw,
     generate_gruniesen_fd_fw,
 )
 from hilde.helpers.hash import hash_atoms_and_calc
+from hilde.helpers.numerics import get_3x3_matrix
 from hilde.phonopy import defaults as ph_defaults
 
 
@@ -36,25 +40,28 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
     fw_dep = {}
 
     fw_settings = {
-        "name": atoms.symbols.get_chemical_formula()
+        "name": atoms.symbols.get_chemical_formula(mode="metal", empirical=True)
         + "_"
         + hash_atoms_and_calc(atoms)[0]
     }
     workflow_settings.general.workdir_local += (
-        atoms.symbols.get_chemical_formula() + "/" + hash_atoms_and_calc(atoms)[0] + "/"
+        atoms.symbols.get_chemical_formula(mode="metal", empirical=True)
+        + "/"
+        + hash_atoms_and_calc(atoms)[0]
+        + "/"
     )
     workflow_settings.general.workdir_cluster += (
-        atoms.symbols.get_chemical_formula() + "/" + hash_atoms_and_calc(atoms)[0] + "/"
+        atoms.symbols.get_chemical_formula(mode="metal", empirical=True)
+        + "/"
+        + hash_atoms_and_calc(atoms)[0]
+        + "/"
     )
 
     # K-grid optimization
     if workflow_settings.general.get("opt_kgrid", True):
         fw_steps.append(generate_kgrid_fw(workflow_settings, atoms, fw_settings))
 
-    if "basisset" in workflow_settings.general:
-        basis = workflow_settings.general.pop("basisset")
-    else:
-        basis = "light"
+    basis = workflow_settings.general.get("basisset", "light")
 
     # Relaxation
     if workflow_settings.general.get("relax_structure", True):
@@ -83,7 +90,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
     # Phonon Calculations
     phonon_fws = []
     phonon3_fws = []
-    # stat_samp_fws = []
+    stat_samp_fws = []
     aims_calc_fws = []
     if "phonopy" in workflow_settings:
         ignore_keys = ["trigonal", "q_mesh"]
@@ -114,17 +121,23 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
             if getattr(workflow_settings.phonopy, "converge_phonons", False):
                 trajectory = (
                     workflow_settings.general.workdir_local
-                    + "/converged_mn_1/trajectory.son"
+                    + "/converged/trajectory.son"
                 )
             else:
+                sc_mat = get_3x3_matrix(workflow_settings.phonopy.supercell_matrix)
+                natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
                 trajectory = (
                     workflow_settings.general.workdir_local
-                    + "/phonopy_analysis/trajectory.son"
+                    + f"/sc_natoms_{natoms}/phonopy_analysis/trajectory.son"
                 )
+
+            constraints = []
+            for cosntr in atoms.constraints:
+                constraints.append(cosntr.todict())
 
             phonon_fws.append(
                 generate_gruniesen_fd_fw(
-                    workflow_settings, atoms, trajectory, fw_settings
+                    workflow_settings, atoms, trajectory, constraints, fw_settings
                 )
             )
             fw_dep[phonon_fws[1]] = [phonon_fws[-1]]
@@ -161,37 +174,33 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
         fw_dep[phonon3_fws[0]] = phonon3_fws[1]
 
     # Statistical Sampling
-    # if "statistical_sampling" in workflow_settings:
-    #     if "phonopy" in workflow_settings:
-    #         if workflow_settings.phonopy.get("converge_phonons", False):
-    #             workflow_settings.statistical_sampling[
-    #                 "phonon_file"
-    #             ] = f"{workflow_settings.general.workdir_local}/converged/trajectory.son"
-    #         else:
-    #             workflow_settings.statistical_sampling[
-    #                 "phonon_file"
-    #             ] = f"{workflow_settings.general.workdir_local}/phonopy_analysis/trajectory.son"
-    #         fw_settings["in_spec_atoms"] = "ph_supercell"
-    #         fw_settings["in_spec_calc"] = "ph_calculator"
-    #         fw_settings["from_db"] = True
-    #     stat_samp_fws.append(
-    #         generate_stat_samp_fw(workflow_settings, atoms, fw_settings)
-    #     )
-    #     if "phonopy" in workflow_settings:
-    #         fw_dep[phonon_fws[1]].append(stat_samp_fws[0])
-    #     elif final_initialize_fw:
-    #         fw_dep[final_initialize_fw].append(stat_samp_fws[0])
+    if "statistical_sampling" in workflow_settings:
+        stat_samp_fws.append(
+            generate_stat_samp_fw(workflow_settings, atoms, fw_settings)
+        )
 
-    # Aims Calculations if no other term is present
-    if not fw_steps and not phonon_fws and not phonon3_fws:
-        aims_calc_fws.append(generate_aims_fw(workflow_settings, atoms, fw_settings))
+        stat_samp_fws.append(
+            generate_stat_samp_postprocess_fw(workflow_settings, atoms, fw_settings)
+        )
+
+        if "phonopy" in workflow_settings:
+            fw_dep[phonon_fws[1]].append(stat_samp_fws[0])
+        elif final_initialize_fw:
+            fw_dep[final_initialize_fw].append(stat_samp_fws[0])
+
+        fw_dep[stat_samp_fws[0]] = stat_samp_fws[1]
 
     for fw in phonon_fws:
         fw_steps.append(fw)
     for fw in phonon3_fws:
         fw_steps.append(fw)
-    # for fw in stat_samp_fws:
-    #     fw_steps.append(fw)
+    for fw in stat_samp_fws:
+        fw_steps.append(fw)
+
+    # Aims Calculations if no other term is present
+    if not fw_steps and not phonon_fws and not phonon3_fws:
+        aims_calc_fws.append(generate_aims_fw(workflow_settings, atoms, fw_settings))
+
     for fw in aims_calc_fws:
         fw_steps.append(fw)
 

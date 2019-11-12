@@ -157,7 +157,7 @@ def get_dos(
     phonon,
     total=True,
     q_mesh=defaults.q_mesh,
-    freq_min=0,
+    freq_min="auto",
     freq_max="auto",
     freq_pitch=0.1,
     tetrahedron_method=True,
@@ -211,6 +211,12 @@ def get_dos(
 
         if freq_max == "auto":
             freq_max = phonon.get_mesh()[2].max() * 1.05
+        if freq_min == "auto":
+            freq_min = phonon.get_mesh()[2].min()
+            if freq_min < 0.0:
+                freq_min *= 1.05
+            else:
+                freq_min = 0.0
         phonon.run_total_dos(
             freq_min=freq_min,
             freq_max=freq_max,
@@ -472,4 +478,3 @@ def get_debye_temperature(
     eps_p_1 = np.trapz(gp * ener, ener) / np.trapz(gp, ener)
     eps_p_2 = np.trapz(gp * ener ** 2.0, ener) / np.trapz(gp, ener)
     return eps_p_1 / const.kB, np.sqrt(5.0 / 3.0 * eps_p_2) / const.kB
-

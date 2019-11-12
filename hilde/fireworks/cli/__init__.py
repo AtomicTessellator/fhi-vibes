@@ -4,6 +4,8 @@ import click
 from fireworks.fw_config import CONFIG_FILE_DIR, LAUNCHPAD_LOC
 from hilde.cli.misc import AliasedGroup
 from hilde.fireworks._defaults import FW_DEFAULTS
+from hilde.helpers import talk
+from hilde.structure.misc import get_sysname
 
 
 class ListOption(click.Option):
@@ -43,6 +45,7 @@ def fireworks():
 def add_wf(workflow, launchpad):
     """Adds a workflow to the launchpad"""
     from pathlib import Path
+    from glob import glob
 
     from hilde.aims.context import AimsContext
     from hilde.aims.setup import setup_aims
@@ -50,13 +53,18 @@ def add_wf(workflow, launchpad):
     from hilde.settings import TaskSettings, AttributeDict, Settings
 
     wflow = TaskSettings(name=None, settings=Settings(settings_file=workflow))
+    """Adds a workflow to the launchpad"""
     structure_files = []
     if "geometry" in wflow:
         if "files" in wflow.geometry:
-            for file in Path.cwd().glob(wflow.geometry.files):
-                structure_files.append(file.relative_to(Path.cwd()))
+            if "/" == wflow.geometry.files[0]:
+                files = glob(wflow.geometry.pop("files"))
+            else:
+                files = Path.cwd().glob(wflow.geometry.pop("files"))
+            for file in files:
+                structure_files.append(Path(file).relative_to(Path.cwd()))
         if "file" in wflow.geometry:
-            structure_files.append(wflow.geometry.file)
+            structure_files.append(wflow.geometry.pop("file"))
     else:
         raise IOError("No geometry file was specified")
 
@@ -73,9 +81,9 @@ def add_wf(workflow, launchpad):
         elif "basisset" not in wflow:
             wflow["basisset"] = AttributeDict({"type": "light"})
 
-        calc = setup_aims(ctx=AimsContext(settings=wflow))
+        talk(f"Generating workflow for {get_sysname(atoms)}", prefix="fireworks")
+        calc = setup_aims(ctx=AimsContext(settings=wflow), verbose=False)
         atoms.set_calculator(calc)
-
         generate_workflow(wflow, atoms, launchpad)
 
 
@@ -244,6 +252,7 @@ def claunch(
 ):
     """Launches Fireworks both locally and remotely based on what the tasks func is"""
     from hilde.fireworks.combined_launcher import rapidfire
+
     # Check if fabric 2.0 is installed
     try:
         import fabric
@@ -260,10 +269,8 @@ def claunch(
             "Remote options require the Fabric package v2+ to be installed!"
         )
 
-    from hilde.fireworks.cli.launch_utils import (
-        get_fw_files,
-        get_lpad_fworker_qadapter
-    )
+    from hilde.fireworks.cli.launch_utils import get_fw_files, get_lpad_fworker_qadapter
+
     launchpad_file, fworker_file, queueadapter_file = get_fw_files(
         config_dir, launchpad_file, fworker_file, queueadapter_file, remote_host
     )
@@ -568,6 +575,7 @@ def qlaunch_rapidfire(
 ):
     """Preform a qlaunch rpaidfire"""
     from hilde.fireworks.cli.launch_utils import do_qluanch
+
     ctx.obj.firework_ids = firework_ids
     ctx.obj.wflow = wflow
     ctx.obj.maxjobs_queue = maxjobs_queue
@@ -608,6 +616,7 @@ def qlaunch_rapidfire(
 def qlaunch_singleshot(ctx, firework_id):
     """preform a qlaunch singleshot"""
     from hilde.fireworks.cli.launch_utils import do_qluanch
+
     ctx.obj.firework_id = firework_id
     ctx.obj.command = "singleshot"
     non_default = []
@@ -636,6 +645,7 @@ def rlaunch(ctx, loglvl, silencer, launchpad_file, fworker_file, config_dir):
     from fireworks.utilities.fw_utilities import get_my_host, get_my_ip, get_fw_logger
 
     from hilde.fireworks.cli.launch_utils import get_fw_files
+
     launchpad_file, fworker_file, _ = get_fw_files(
         config_dir, launchpad_file, fworker_file, None, None
     )
@@ -706,6 +716,7 @@ def rlaunch_rapidfire(
 ):
     from hilde.fireworks.cli.launch_utils import get_lpad_fworker_qadapter
     from hilde.fireworks.rocket_launcher import rapidfire
+
     """preform a rlaunch rpaidfire"""
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx)
     rapidfire(
@@ -734,14 +745,14 @@ def rlaunch_rapidfire(
 )
 @click.option("--offline", help="run in offline mode (FW.json required)", is_flag=True)
 @click.option("--pdb", help="shortcut to invoke debugger on error", is_flag=True)
-def rlaunch_singleshot(ctx, firework_id, offline, pdb):
+def rlaunch_singleshot(ctx, fw_id, offline, pdb):
     """preform a rlaunch singleshot"""
     from fireworks.core.rocket_launcher import launch_rocket
     from hilde.fireworks.cli.launch_utils import get_lpad_fworker_qadapter
 
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx, offline)
 
-    launch_rocket(launchpad, fworker, firework_id, ctx.obj.loglvl, pdb_on_exception=pdb)
+    launch_rocket(launchpad, fworker, fw_id, ctx.obj.loglvl, pdb_on_exception=pdb)
 
 
 @rlaunch.command("multi")
@@ -801,6 +812,7 @@ def rlaunch_multi(
     import os
     from fireworks.features.multi_launcher import launch_multiprocess
     from hilde.fireworks.cli.launch_utils import get_lpad_fworker_qadapter
+
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx)
 
     total_node_list = None

@@ -1,6 +1,5 @@
 """Generate FWActions after setting Phonon Calculations"""
 
-from ase.symbols import Symbols
 from fireworks import FWAction, Workflow
 
 from hilde.fireworks.workflows.firework_generator import (
@@ -9,7 +8,7 @@ from hilde.fireworks.workflows.firework_generator import (
     generate_firework,
     time2str,
 )
-from hilde.phonon_db.ase_converters import calc2dict, atoms2dict
+from hilde.helpers.converters import calc2dict, atoms2dict
 from hilde.helpers.converters import dict2atoms
 from hilde.helpers.k_grid import k2d
 from hilde.helpers.watchdogs import str2time
@@ -203,9 +202,8 @@ def add_socket_calc_to_detours(detours, atoms, func_kwargs, fw_settings, prefix)
         if key in func_kwargs:
             calc_kwargs[key] = func_kwargs[key]
     fw_set = fw_settings.copy()
-    fw_set["fw_name"] = (
-        prefix + f"_serial_forces_{Symbols(atoms['numbers']).get_chemical_formula()}"
-    )
+    formula = dict2atoms(atoms).get_chemical_formula(mode="metal", empirical=True)
+    fw_set["fw_name"] = prefix + f"_ser_F_{formula}"
     fw = generate_firework(
         func="hilde.fireworks.tasks.calculate_wrapper.wrap_calc_socket",
         func_fw_out="hilde.fireworks.tasks.fw_out.calculate.socket_calc_check",
@@ -260,9 +258,9 @@ def add_single_calc_to_detours(
         for key, val in calc_dict.items():
             sc_dict[key] = val
         calc_kwargs = {"workdir": func_fw_kwargs["workdir"] + f"/{i:05d}"}
-        fw_settings["fw_name"] = (
-            prefix + f"forces_{Symbols(sc_dict['numbers']).get_chemical_formula()}_{i}"
-        )
+        formula = dict2atoms(sc_dict).get_chemical_formula(mode="metal", empirical=True)
+
+        fw_settings["fw_name"] = prefix + f"forces_{formula}_{i}"
         detours.append(
             generate_firework(
                 func="hilde.fireworks.tasks.calculate_wrapper.wrap_calculate",
@@ -324,7 +322,7 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
         update_spec = {
             "ph_dict": phonon_to_dict(kwargs["outputs"]),
             "ph_calculator": calc_dict,
-            "ph_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_primitive())),
+            "ph_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_supercell())),
             "_queueadapter": qadapter,
         }
     update_spec["kgrid"] = k_pt_density
@@ -380,6 +378,9 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         workdir, trajectory, args[1], ph, **kwargs
     )
 
+    if not kwargs.get("serial", True):
+        update_job["expected_walltime"] /= len(ph.get_supercells_with_displacements())
+
     if conv:
         qadapter = None
         qadapter = fw_settings["spec"].get("_queueadapter", None)
@@ -412,11 +413,8 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         func_kwargs.pop("walltime", None)
         fw_settings["spec"]["_queueadapter"].pop("queue", None)
         fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(
-            update_job["expected_walltime"]
+            update_job["expected_walltime"] + 120
         )
-        # fw_settings["spec"]["_queueadapter"]["expected_mem"] = update_job[
-        #     "expected_mem"
-        # ]
         fw_settings["spec"]["_queueadapter"]["ntasks"] = update_job["ntasks"]
         qadapter = fw_settings["spec"]["_queueadapter"]
     else:

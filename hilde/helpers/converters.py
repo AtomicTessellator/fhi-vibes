@@ -9,13 +9,14 @@ from ase.io.jsonio import MyEncoder
 from ase.calculators.calculator import all_properties, get_calculator_class
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
-from ase.constraints import voigt_6_to_full_3x3_stress
+from ase.constraints import voigt_6_to_full_3x3_stress, dict2constraint
 
 from hilde.konstanten.io import n_yaml_digits
 from hilde.helpers.lists import list_dim, expand_list, reduce_list
 
 key_symbols = "symbols"
 key_masses = "masses"
+key_constraints = "constraint"
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -45,7 +46,7 @@ class NumpyEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def atoms2dict(atoms, reduce=True):
+def atoms2dict(atoms, reduce=True, add_constraints=False):
     """Converts an Atoms object into a dict
 
     Parameters
@@ -82,6 +83,9 @@ def atoms2dict(atoms, reduce=True):
     )
 
     atoms_dict.update({"info": atoms.info})
+
+    if add_constraints:
+        atoms_dict[key_constraints] = [constr.todict() for constr in atoms.constraints]
 
     return atoms_dict
 
@@ -247,6 +251,11 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
     if key_symbols in atoms_dict:
         atoms_dict[key_symbols] = expand_list(atoms_dict[key_symbols])
 
+    if key_constraints in atoms_dict:
+        atoms_dict[key_constraints] = [
+            dict2constraint(d) for d in atoms_dict[key_constraints]
+        ]
+
     atoms = Atoms(**atoms_dict)
 
     if velocities is not None:
@@ -274,7 +283,8 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
         calc = None
 
     atoms.calc = calc
-
+    if "info" in atoms_dict:
+        atoms.info = atoms_dict["info"]
     return atoms
 
 

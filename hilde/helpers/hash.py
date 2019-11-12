@@ -50,7 +50,7 @@ def hash_atoms(atoms, velocities=False):
     return atoms_hash
 
 
-def hash_dict(dct, velocities=False):
+def hash_dict(dct, velocities=False, ignore_keys=None):
     """hash a dictionary as it would be written to trajectory
 
     Replace full `species_dir` by only the last bit
@@ -64,24 +64,26 @@ def hash_dict(dct, velocities=False):
     """
     from .converters import dict2json
 
+    if ignore_keys is None:
+        ignore_keys = []
+
     dct = dct.copy()
 
     dct.pop("info", None)
-
+    for key in ignore_keys:
+        dct.pop(key, None)
     # legacy: check for species_dir
     k1 = "calculator_parameters"
     k2 = "species_dir"
     if k1 in dct:
-        if k2 in dct[k2]:
+        if k2 in dct[k1]:
             dct[k1][k2] = Path(dct[k1][k2]).parts[-1]
 
     if not velocities:
         dct.pop("velocities", None)
 
     rep = dict2json(dct)
-    hash = hashfunc(rep)
-
-    return hash
+    return hashfunc(rep)
 
 
 def hash_atoms_and_calc(

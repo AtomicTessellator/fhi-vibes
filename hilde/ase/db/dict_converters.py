@@ -35,7 +35,6 @@ def atoms2dict(atoms):
     # attach calculator
     for key, val in calc2dict(atoms.calc).items():
         atoms_dict[key] = val
-
     return atoms_dict
 
 
@@ -74,7 +73,6 @@ def dict2atoms(atoms_dict):
             pimd = atoms.calc.parameters["use_pimd_wrapper"]
             if isinstance(pimd, int):
                 atoms.calc.parameters["use_pimd_wrapper"] = ("localhost", pimd)
-
     return atoms
 
 

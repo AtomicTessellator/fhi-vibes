@@ -8,7 +8,6 @@ A runnable script for launching rockets (a command-line interface to queue_launc
 
 from argparse import ArgumentParser
 import os
-import sys
 import time
 
 try:
