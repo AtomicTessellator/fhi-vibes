@@ -45,13 +45,15 @@ class NumpyEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def atoms2dict(atoms):
+def atoms2dict(atoms, reduce=True):
     """Converts an Atoms object into a dict
 
     Parameters
     ----------
     atoms: ase.atoms.Atoms
         The structure to be converted to a dict
+    reduce: bool
+        use reduced representation of `symbols` and `masses`
 
     Returns
     -------
@@ -64,6 +66,7 @@ def atoms2dict(atoms):
 
     # if periodic system, append lattice (before positions)
     if any(atoms.pbc):
+        atoms_dict.update({"pbc": np.asarray(atoms.pbc)})
         atoms_dict.update({"cell": atoms.cell.tolist()})
 
     atoms_dict.update({"positions": atoms.positions.tolist()})
@@ -74,8 +77,8 @@ def atoms2dict(atoms):
     # append symbols and masses
     atoms_dict.update(
         {
-            key_symbols: reduce_list(atoms.get_chemical_symbols()),
-            key_masses: reduce_list(atoms.get_masses()),
+            key_symbols: reduce_list(atoms.get_chemical_symbols(), reduce=reduce),
+            key_masses: reduce_list(atoms.get_masses(), reduce=reduce),
         }
     )
 
@@ -233,9 +236,8 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
         The atoms represented by atoms_dict with the calculator represented by calc_dict attached
     """
 
-    pbc = False
-    if "cell" in atoms_dict:
-        pbc = True
+    if "pbc" not in atoms_dict:
+        atoms_dict.update({"pbc": "cell" in atoms_dict})
 
     try:
         velocities = atoms_dict.pop("velocities")
@@ -247,7 +249,7 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
     if key_symbols in atoms_dict:
         atoms_dict[key_symbols] = expand_list(atoms_dict[key_symbols])
 
-    atoms = Atoms(**atoms_dict, pbc=pbc)
+    atoms = Atoms(**atoms_dict)
 
     if velocities is not None:
         atoms.set_velocities(velocities)
@@ -379,9 +381,9 @@ def get_json(obj):
     return json.dumps(obj, cls=MyEncoder, sort_keys=True)
 
 
-def atoms2json(atoms):
+def atoms2json(atoms, reduce=True):
     """return json representation of Atoms"""
-    rep = dict2json(atoms2dict(atoms))
+    rep = dict2json(atoms2dict(atoms, reduce=reduce))
     return rep
 
 
