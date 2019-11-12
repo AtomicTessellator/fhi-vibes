@@ -49,6 +49,10 @@ class AimsSettings(TaskSettings):
             msg = f"basisset not specified in {self.settings_file}"
             raise SettingsError(msg)
 
+        # KS_method
+        if "ks_method" in self.control:
+            self.control["KS_method"] = self.control.pop("ks_method")
+
 
 class AimsContext:
     """context for aims calculation"""

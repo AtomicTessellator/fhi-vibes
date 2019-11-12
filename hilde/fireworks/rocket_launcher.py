@@ -16,6 +16,7 @@ from fireworks.utilities.fw_utilities import (
 )
 
 from .combined_launcher import get_ordred_firework_ids
+from hilde.helpers import talk
 
 __author__ = "Anubhav Jain, Modified by Thomas Purcell Nov 2, 2018"
 __copyright__ = "Copyright 2013, The Materials Project"
@@ -69,7 +70,10 @@ def rapidfire(
         list of ids of the root nodes of a workflow
     """
     if firework_ids and len(firework_ids) != nlaunches:
-        print("WARNING: Setting nlaunches to the length of firework_ids.")
+        talk(
+            "WARNING: Setting nlaunches to the length of firework_ids.",
+            prefix="fireworks",
+        )
         nlaunches = len(firework_ids)
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     curdir = m_dir if m_dir else os.getcwd()

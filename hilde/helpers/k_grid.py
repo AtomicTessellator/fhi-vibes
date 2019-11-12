@@ -74,7 +74,6 @@ def k2d(atoms, k_grid=[2, 2, 2]):
     np.ndarray
         The density of kpoints in each direction. Use result.mean() to compute average kpoint density.
     """
-
     recipcell = atoms.get_reciprocal_cell()
     densities = k_grid / (2 * np.pi * np.sqrt((recipcell ** 2).sum(axis=1)))
     return np.array(densities)
@@ -108,7 +107,7 @@ def update_k_grid(atoms, calc, kptdensity, even=True):
     return calc
 
 
-def update_k_grid_calc_dict(calc_dict, recipcell, pbc, kptdensity, even=True):
+def update_k_grid_calc_dict(calc_dict, recipcell, kptdensity, even=True):
     """Update the k_grid in dictionary representation of a calculator with the respective density
 
     Parameters
@@ -117,8 +116,6 @@ def update_k_grid_calc_dict(calc_dict, recipcell, pbc, kptdensity, even=True):
         Dictionary representation of calc
     recipcell: np.ndarray
         The reciprocal lattice
-    pbc: list of bool (len=3)
-        True if preodic in that direction
     kptdensity: list of floats
         Desired k-point density in all directions
     even: bool
@@ -129,7 +126,7 @@ def update_k_grid_calc_dict(calc_dict, recipcell, pbc, kptdensity, even=True):
     calc_dict: dict
         The dictionary representation of the calculator with an updated kgrid
     """
-    k_grid = d2k_cellinfo(recipcell, pbc, kptdensity, even)
+    k_grid = d2k_cellinfo(recipcell, [True, True, True], kptdensity, even)
 
     calc_dict["calculator_parameters"]["k_grid"] = k_grid
     return calc_dict

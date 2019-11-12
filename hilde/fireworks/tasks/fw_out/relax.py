@@ -3,7 +3,7 @@
 from fireworks import FWAction
 
 from hilde.fireworks.workflows.firework_generator import generate_firework, time2str
-from hilde.phonon_db.ase_converters import dict2atoms
+from hilde.helpers.converters import dict2atoms
 from hilde.helpers.k_grid import k2d
 
 from hilde.fireworks.tasks.postprocess.relax import check_aims
@@ -62,7 +62,6 @@ def check_aims_complete(
         update_spec[fw_settings["in_spec_atoms"]] = new_atoms_dict
     if "in_spec_calc" in fw_settings:
         update_spec[fw_settings["in_spec_calc"]] = calc
-
     update_spec["kgrid"] = k2d(
         dict2atoms(new_atoms_dict), calc["calculator_parameters"]["k_grid"]
     )

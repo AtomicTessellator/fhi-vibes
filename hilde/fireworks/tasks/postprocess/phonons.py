@@ -4,10 +4,8 @@ from shutil import copyfile, rmtree
 
 import numpy as np
 
-from ase.calculators.aims import Aims
-
-from hilde.phonon_db.ase_converters import atoms2dict
-from hilde.helpers.k_grid import k2d, update_k_grid
+from hilde.helpers.converters import atoms2dict
+from hilde.helpers.k_grid import update_k_grid
 from hilde.helpers.paths import cwd
 from hilde.materials_fp.material_fingerprint import (
     get_phonon_dos_fingerprint_phononpy,
@@ -133,7 +131,7 @@ def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
             n_kpt = int(line.split(":")[1])
             continue
     n_spin = 1
-    total_mem += n_basis * n_basis
+    total_mem = n_basis * n_basis
     total_mem += n_hamiltonian_matrix_size
     total_mem += n_basis * n_states * n_spin * n_kpt
     total_mem *= 16 * 10
@@ -151,9 +149,12 @@ def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
     Returns:
         (bool): True if conv_criteria is met
     """
-    for ll in range(4):
-        prev_dos_fp[ll] = np.array(prev_dos_fp[ll])
-    prev_dos_fp = fp_tup(prev_dos_fp[0], prev_dos_fp[1], prev_dos_fp[2], prev_dos_fp[3])
+    if not isinstance(prev_dos_fp, fp_tup):
+        for ll in range(4):
+            prev_dos_fp[ll] = np.array(prev_dos_fp[ll])
+        prev_dos_fp = fp_tup(
+            prev_dos_fp[0], prev_dos_fp[1], prev_dos_fp[2], prev_dos_fp[3]
+        )
     return (
         scalar_product(dos_fp, prev_dos_fp, col=1, pt=0, normalize=False, tanimoto=True)
         >= conv_crit
@@ -195,12 +196,10 @@ def get_converge_phonon_update(
     calc_dict = metadata["calculator"]
     calc_dict["calculator"] = calc_dict["calculator"].lower()
 
-    # k_pt_density = k2d(
-    #     to_Atoms_db(ph.get_supercell()), calc_dict["calculator_parameters"]["k_grid"]
-    # )
-
     # Calculate the phonon DOS
     ph.set_mesh([51, 51, 51])
+    if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-1):
+        raise ValueError("Negative frequencies at Gamma, terminating workflow here.")
     if prev_dos_fp:
         de = prev_dos_fp[0][0][1] - prev_dos_fp[0][0][0]
         min_f = prev_dos_fp[0][0][0] - 0.5 * de
@@ -208,10 +207,6 @@ def get_converge_phonon_update(
         ph.set_total_DOS(freq_min=min_f, freq_max=max_f, tetrahedron_method=True)
     else:
         ph.set_total_DOS(tetrahedron_method=True)
-        if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-2):
-            raise ValueError(
-                "Negative frequencies at Gamma, terminating workflow here."
-            )
 
     # Get a phonon DOS Finger print to compare against the previous one
     dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
@@ -249,6 +244,7 @@ def get_converge_phonon_update(
 
     if "sc_matrix_original" not in kwargs:
         kwargs["sc_matrix_original"] = ph.get_supercell_matrix()
+
     ind = np.where(np.array(kwargs["sc_matrix_original"]).flatten() != 0)[0][0]
     if kwargs.get("sc_matrix_original", None) is not None:
         n_cur = int(
@@ -275,9 +271,7 @@ def get_converge_phonon_update(
         time_scaling = 3.0 * ratio
 
     expected_walltime = calc_time * time_scaling
-    # expected_mem = get_memory_expectation(
-    #     scs[0].copy(), Aims(**calc_dict["calculator_parameters"]), k_pt_density, workdir
-    # )
+
     ntasks = int(np.ceil(ph.supercell.get_number_of_atoms() * 1.25))
 
     init_workdir += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"

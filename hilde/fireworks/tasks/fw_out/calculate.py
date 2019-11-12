@@ -5,7 +5,7 @@ from fireworks import FWAction
 
 from hilde.fireworks.tasks.postprocess.calculate import get_calc_times
 from hilde.fireworks.workflows.firework_generator import generate_firework
-from hilde.phonon_db.ase_converters import atoms2dict
+from hilde.helpers.converters import atoms2dict, calc2dict
 from hilde.trajectory import reader as traj_reader
 
 
@@ -39,6 +39,9 @@ def mod_spec_add(
         Modifies the spec to add the current atoms list to it
     """
     atoms_dict = atoms2dict(outputs)
+    calc_dict = calc2dict(outputs.calc)
+    calc_dict["results"] = calc.results
+    atoms_dict["calculator_dict"] = calc_dict
     mod_spec = [{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}]
     if "time_spec_add" in fw_settings:
         mod_spec[0]["_push"][fw_settings["time_spec_add"]] = func_fw_kwargs.pop(
@@ -89,10 +92,21 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
     if kwargs["outputs"]:
         wd = Path(kwargs.get("workdir", "."))
         traj = kwargs.get("trajectory", "trajectory.son")
+
         ca = traj_reader(str((wd / traj).absolute()), False)
-        update_spec[fw_settings["mod_spec_add"]] = [atoms2dict(at) for at in ca]
+
+        update_spec[fw_settings["mod_spec_add"]] = []
+        for atoms in ca:
+            atoms_dict = atoms2dict(atoms)
+            calc_dict = calc2dict(atoms.calc)
+            calc_dict["results"] = atoms.calc.results
+            atoms_dict["calculator_dict"] = calc_dict
+            update_spec[fw_settings["mod_spec_add"]].append(atoms_dict)
+
         return FWAction(update_spec=update_spec)
+
     fw_settings["spec"].update(update_spec)
+
     fw = generate_firework(
         func="hilde.fireworks.tasks.calculate_wrapper.wrap_calc_socket",
         func_fw_out="hilde.fireworks.tasks.fw_out.calculate.socket_calc_check",
@@ -101,4 +115,5 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
         inputs=inputs,
         fw_settings=fw_settings,
     )
+
     return FWAction(update_spec=update_spec, detours=[fw])

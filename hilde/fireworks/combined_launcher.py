@@ -25,6 +25,7 @@ from fireworks.utilities.fw_utilities import (
 
 from hilde.fireworks.qlaunch_remote import qlaunch_remote
 from hilde.fireworks._defaults import FW_DEFAULTS
+from hilde.helpers import talk
 
 # See if Fabric2 is installed
 try:
@@ -231,7 +232,10 @@ def rapidfire(
         if njobs_block != 500:
             q_kwargs["maxjobs_block"] = njobs_block
     if firework_ids and len(firework_ids) != nlaunches:
-        print("WARNING: Setting nlaunches to the length of firework_ids.")
+        talk(
+            "WARNING: Setting nlaunches to the length of firework_ids.",
+            prefix="fireworks",
+        )
         nlaunches = len(firework_ids)
     sleep_time = sleep_time if sleep_time else RAPIDFIRE_SLEEP_SECS
     launch_dir = os.path.abspath(launch_dir)
@@ -327,7 +331,7 @@ def rapidfire(
                     fw_id = launchpad._get_a_fw_to_run(
                         fworker.query, fw_id=None, checkout=False
                     ).fw_id
-                print(fw_id, firework_ids)
+                talk(f"Running FireWork with ID: {fw_id}", prefix="fireworks")
                 use_queue = use_queue_launch(launchpad.get_fw_by_id(fw_id), tasks2queue)
                 if use_queue:
                     rlaunch = qlaunch

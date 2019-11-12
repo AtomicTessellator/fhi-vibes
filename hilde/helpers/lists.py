@@ -14,7 +14,7 @@ def expand_list(obj):
     """expand a list of tuples (count, entry) as produced ty `reduce_list`"""
     if isinstance(obj[0], type(obj)):
         lis = []
-        for l in (l * [g] for (l, g) in obj):
+        for l in (int(l) * [g] for (l, g) in obj):
             lis.extend(l)
         return lis
     return obj

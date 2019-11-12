@@ -2,7 +2,7 @@
 import os
 
 from hilde import DEFAULT_CONFIG_FILE
-from hilde.phonon_db.ase_converters import dict2atoms
+from hilde.helpers.converters import dict2atoms
 from hilde.helpers import Timer
 from hilde.settings import TaskSettings, Settings
 
@@ -66,6 +66,7 @@ def atoms_calculate_task(
     RuntimeError
         If the Task fails
     """
+
     if walltime:
         func_kwargs["walltime"] = walltime
         func_fw_out_kwargs["walltime"] = walltime
@@ -86,12 +87,9 @@ def atoms_calculate_task(
             + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
         )
 
-    for key, val in calc_dict.items():
-        atoms_dict[key] = val
-    if "results" in atoms_dict:
-        del atoms_dict["results"]
-    atoms = dict2atoms(atoms_dict)
-
+    if "results" in calc_dict:
+        del calc_dict["results"]
+    atoms = dict2atoms(atoms_dict.copy(), calc_dict, False)
     try:
         func_timer = Timer()
         if args:

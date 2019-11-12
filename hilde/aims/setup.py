@@ -137,9 +137,9 @@ def setup_aims(ctx, verbose=True):
     if "k_grid" not in aims_settings:
         talk("No k_grid in aims calculator. Check!")
 
-    talk(f"Calculator: {name}")
+    talk(f"Calculator: {name}", verbose=verbose)
     msg = ["settings:", *[f"  {k}: {v}" for k, v in aims_settings.items()]]
-    talk(msg)
+    talk(msg, verbose=verbose)
 
     calc = Aims(**aims_settings)
 

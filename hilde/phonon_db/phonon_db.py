@@ -4,11 +4,10 @@ import operator
 import os
 import re
 import warnings
-from pathlib import Path
 import numpy as np
 
 # Import ase
-from ase.utils import Lock, basestring, PurePath
+from ase.utils import Lock, basestring
 from ase.db.core import Database, lock, parse_selection, str_represents, now
 from ase.calculators.calculator import all_properties, all_changes
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
@@ -478,14 +477,7 @@ class PhononDatabase(Database):
 
         return m, n
 
-    def write(
-        self,
-        dct,
-        key_value_pairs=None,
-        data=None,
-        id=None,
-        **kwargs,
-    ):
+    def write(self, dct, key_value_pairs=None, data=None, id=None, **kwargs):
         """Write atoms to database with key-value pairs.
 
         Parameters

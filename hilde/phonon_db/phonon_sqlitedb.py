@@ -1,6 +1,5 @@
 """ Defines the phonon SQLite 3 Database """
 from __future__ import absolute_import, print_function
-import os
 import json
 import numbers
 import sqlite3
@@ -583,7 +582,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         for key, op, value in cmps:
             if key == "tp_T":
                 if op != "=":
-                    raise ValeError("For temperature searches the operator must be =")
+                    raise ValueError("For temperature searches the operator must be =")
                 else:
                     temp = hex(struct.unpack(">Q", struct.pack(">d", value))[0])
         for key, op, value in cmps:
@@ -605,7 +604,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 args.append(value)
             elif key in ["tp_A", "tp_S", "tp_Cv", "tp_kappa"]:
                 if temp is None:
-                    raise ValeError(
+                    raise ValueError(
                         "If selecting with a thermal property a temperature must also be given."
                     )
                 op_actual = op
@@ -758,9 +757,9 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         values[len(self.columnnames) - 8] = "{}"
         values[len(self.columnnames) - 7] = "null"
 
-        if "fc_2" in columns and not "natoms_in_sc_2" in columns:
+        if "fc_2" in columns and "natoms_in_sc_2" not in columns:
             columns = "all"
-        if "fc_3" in columns and not "natoms_in_sc_3" in columns:
+        if "fc_3" in columns and "natoms_in_sc_3" not in columns:
             columns = "all"
 
         if columns == "all":

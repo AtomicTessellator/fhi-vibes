@@ -22,7 +22,7 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
     kwargs_init = {}
     kwargs_init_fw_out = {}
     preprocess_keys = {
-        "ph_settings": ["supercell_matrix", "displacement"],
+        "ph_settings": ["supercell_matrix", "displacement", "sc_matrix_original"],
         "ph3_settings": ["supercell_matrix", "displacement", "cutoff_pair_distance"],
     }
     out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
@@ -54,74 +54,75 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
     )
 
 
-# def gen_stat_samp_task_spec(func_kwargs, fw_settings=None):
-#     """Generate a Harmonic Analysis task
+def gen_stat_samp_task_spec(func_kwargs, fw_settings=None):
+    """Generate a Harmonic Analysis task
 
-#     Parameters
-#     ----------
-#     func_kwargs: dict
-#         The defined kwargs for func
-#     fw_settings: dict
-#         Settings used by fireworks to place objects in the right part of
-#                             the MongoDB
+    Parameters
+    ----------
+    func_kwargs: dict
+        The defined kwargs for func
+    fw_settings: dict
+        Settings used by fireworks to place objects in the right part of
+                            the MongoDB
 
-#     Returns
-#     -------
-#     TaskSpec
-#         The specification object of the task
-#     """
-#     preprocess_keys = [
-#         "supercell_matrix",
-#         "phonon_file",
-#         "temperatures",
-#         "debye_temp_fact",
-#         "n_samples",
-#         "deterministic",
-#         "rng_seed",
-#     ]
-#     out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
-#     kwargs_init = {}
-#     kwargs_init_fw_out = {}
+    Returns
+    -------
+    TaskSpec
+        The specification object of the task
+    """
+    preprocess_keys = [
+        "supercell_matrix",
+        "phonon_file",
+        "temperatures",
+        "debye_temp_fact",
+        "n_samples",
+        "deterministic",
+        "rng_seed",
+    ]
 
-#     kwargs_init["stat_samp_settings"] = {}
-#     kwargs_init_fw_out["stat_samp_settings"] = {}
+    out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
+    kwargs_init = {}
+    kwargs_init_fw_out = {}
 
-#     if "workdir" in func_kwargs:
-#         wd = func_kwargs["workdir"]
-#     else:
-#         wd = "."
+    kwargs_init["stat_samp_settings"] = {}
+    kwargs_init_fw_out["stat_samp_settings"] = {}
 
-#     kwargs_init_fw_out["stat_samp_settings"] = {"workdir": wd}
-#     kwargs_init["stat_samp_settings"] = {"workdir": wd}
+    if "workdir" in func_kwargs:
+        wd = func_kwargs["workdir"]
+    else:
+        wd = "."
 
-#     for key, val in func_kwargs.items():
-#         if key in preprocess_keys:
-#             kwargs_init["stat_samp_settings"][key] = val
-#         if key in out_keys:
-#             kwargs_init_fw_out["stat_samp_settings"][key] = val
+    kwargs_init_fw_out["stat_samp_settings"] = {"workdir": wd}
+    kwargs_init["stat_samp_settings"] = {"workdir": wd}
 
-#     if fw_settings and "kpoint_density_spec" in fw_settings:
-#         inputs = [fw_settings["kpoint_density_spec"]]
-#         args = []
-#         if "kpt_density" in func_kwargs:
-#             del func_kwargs["kpt_density"]
-#     elif "kpt_density" in func_kwargs:
-#         inputs = []
-#         args = [func_kwargs.pop("kpt_density")]
-#     else:
-#         inputs = []
-#         args = [None]
+    for key, val in func_kwargs.items():
+        if key in preprocess_keys:
+            kwargs_init["stat_samp_settings"][key] = val
+        if key in out_keys:
+            kwargs_init_fw_out["stat_samp_settings"][key] = val
 
-#     return TaskSpec(
-#         "hilde.fireworks.tasks.statistical_sampling_wrappers.bootstrap_stat_sample",
-#         "hilde.fireworks.tasks.fw_out.phonons.post_init_mult_calcs",
-#         True,
-#         kwargs_init,
-#         args=args,
-#         inputs=inputs,
-#         func_fw_out_kwargs=kwargs_init,
-#         make_abs_path=False,
-#     )
+    if fw_settings and "kpoint_density_spec" in fw_settings:
+        inputs = [fw_settings["kpoint_density_spec"]]
+        args = []
+        if "kpt_density" in func_kwargs:
+            del func_kwargs["kpt_density"]
+    elif "kpt_density" in func_kwargs:
+        inputs = []
+        args = [func_kwargs.pop("kpt_density")]
+    else:
+        inputs = []
+        args = [None]
+
+    return TaskSpec(
+        "hilde.fireworks.tasks.statistical_sampling_wrappers.bootstrap_stat_sample",
+        "hilde.fireworks.tasks.fw_out.phonons.post_init_mult_calcs",
+        True,
+        kwargs_init,
+        args=args,
+        inputs=inputs,
+        func_fw_out_kwargs=kwargs_init,
+        make_abs_path=False,
+    )
 
 
 def gen_phonon_analysis_task_spec(
@@ -189,6 +190,60 @@ def gen_phonon_analysis_task_spec(
     return task_spec_list
 
 
+def gen_stat_samp_analysis_task_spec(
+    func_kwargs, metakey, forcekey, make_abs_path=False
+):
+    """Generate a serial Phononpy or Phono3py calculation task
+
+    Parameters
+    ----------
+    func_kwargs: dict
+        The defined kwargs for func
+    metakey: str
+        Key to find the phonon calculation's metadata to recreate the trajectory
+    forcekey: str
+        Key to find the phonon calculation's force data to recreate the trajectory
+    make_abs_path: bool
+        If True make the paths of directories absolute
+
+    Returns
+    -------
+    TaskSpec
+        The specification object of the task
+    """
+    if "analysis_workdir" in func_kwargs:
+        func_kwargs["workdir"] = func_kwargs["analysis_workdir"]
+    elif "workdir" not in func_kwargs:
+        func_kwargs["workdir"] = "."
+
+    if "trajectory" not in func_kwargs:
+        func_kwargs["trajectory"] = "trajectory.son"
+
+    task_spec_list = []
+    task_spec_list.append(
+        TaskSpec(
+            "hilde.fireworks.tasks.phonopy_phono3py_functions.collect_to_trajectory",
+            "hilde.fireworks.tasks.fw_out.general.fireworks_no_mods_gen_function",
+            False,
+            args=[func_kwargs["workdir"], func_kwargs["trajectory"]],
+            inputs=[forcekey, metakey],
+            make_abs_path=make_abs_path,
+        )
+    )
+    task_spec_list.append(
+        TaskSpec(
+            "hilde.fireworks.tasks.statistical_sampling_wrappers.postprocess_statistical_sampling",
+            "hilde.fireworks.tasks.fw_out.statistical_sampling.add_stat_samp_to_spec",
+            False,
+            args=[],
+            inputs=[],
+            func_kwargs=func_kwargs,
+            make_abs_path=make_abs_path,
+        )
+    )
+    return task_spec_list
+
+
 def gen_aims_task_spec(
     func_kwargs, func_fw_out_kwargs, make_abs_path=False, relax=True
 ):
@@ -247,17 +302,17 @@ def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
     )
 
 
-def gen_gruniesen_task_spec(settings, symmetry_block, trajectory):
+def gen_gruniesen_task_spec(settings, trajectory, constraints):
     """Generate a TaskSpec for setting up a Gruniesen parameter calculation
 
     Parameters
     ----------
     settings: Settings
         The workflow settings
-    symmetry_block: list of str
-        The symmetery block for the primitive cell
     trajectory: str
         Path the the equilibrium phonon trajectory
+    constraints: list of dict
+        list of relevant constraint dictionaries for relaxations
 
     Returns
     -------
@@ -269,7 +324,7 @@ def gen_gruniesen_task_spec(settings, symmetry_block, trajectory):
             "hilde.fireworks.tasks.phonopy_phono3py_functions.setup_gruniesen",
             "hilde.fireworks.tasks.fw_out.general.add_additions_to_spec",
             False,
-            args=[settings, symmetry_block, trajectory],
+            args=[settings, trajectory, constraints],
             inputs=["_queueadapter", "kgrid"],
             make_abs_path=False,
         )

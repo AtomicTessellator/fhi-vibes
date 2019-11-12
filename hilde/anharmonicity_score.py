@@ -16,7 +16,6 @@ def _check_shape(f1, f2):
         f2.shape,
     )
 
-
 def get_r(in_f_data, in_f_model):
     r"""Calculate Pearson coefficient between f_data and f_model
 

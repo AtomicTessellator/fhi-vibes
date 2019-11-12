@@ -1,12 +1,20 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
+from ase.constraints import (
+    FixScaledParametricRelations,
+    FixCartesianParametricRelations,
+    dict2constraint,
+)
+
+import numpy as np
+
 from hilde.aims.setup import setup_aims
 from hilde.aims.context import AimsContext
 from hilde.helpers.converters import input2dict
 from hilde.fireworks.tasks.general_py_task import get_func
 from hilde.fireworks.workflows.workflow_generator import generate_workflow
-from hilde.phonon_db.ase_converters import dict2atoms
+from hilde.helpers.converters import dict2atoms
 from hilde.phonopy import displacement_id_str
 from hilde.phonopy.context import PhonopyContext
 from hilde.phonopy.postprocess import postprocess
@@ -137,6 +145,7 @@ def bootstrap_phonon(
     outputs = []
     at = atoms.copy()
     at.set_calculator(None)
+    print(ph_settings["supercell_matrix"])
     if ph_settings:
         outputs.append(setup_phonon_outputs(ph_settings, settings, "ph", at, calc))
 
@@ -158,7 +167,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
             working directory for the task
         trajectory: str
             file name for the trajectory file
-        calculated_atoms: list of ase.atoms.Atoms
+        calculated_atoms: list of dicts
             Results of the force calculations
         metadata: dict
             metadata for the phonon calculations
@@ -176,14 +185,28 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
                 el2["number"] = int(el2["number"])
 
     metadata2file(metadata, str(traj))
+
     if isinstance(calculated_atoms[0], dict):
-        temp_atoms = [dict2atoms(cell) for cell in calculated_atoms]
+        temp_atoms = []
+        for atoms_dict in calculated_atoms:
+            calc_dict = atoms_dict.pop("calculator_dict")
+        temp_atoms.append(dict2atoms(atoms_dict, calc_dict))
     else:
         temp_atoms = calculated_atoms.copy()
-    calculated_atoms = sorted(
-        temp_atoms,
-        key=lambda x: x.info[displacement_id_str] if x else len(calculated_atoms) + 1,
-    )
+    try:
+        calculated_atoms = sorted(
+            temp_atoms,
+            key=lambda x: x.info[displacement_id_str]
+            if x
+            else len(calculated_atoms) + 1,
+        )
+    except KeyError:
+        calculated_atoms = sorted(
+            temp_atoms,
+            key=lambda x: int(x.info["info_str"][1].split("T = ")[1].split(" K")[0])
+            if x
+            else len(calculated_atoms) + 1,
+        )
     for atoms in calculated_atoms:
         if atoms:
             step2file(atoms, atoms.calc, str(traj))
@@ -210,7 +233,7 @@ def phonon_postprocess(func_path, phonon_times, kpt_density, **kwargs):
     return func(**kwargs)
 
 
-def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
+def prepare_gruneisen(settings, primitive, vol_factor):
     """Prepare a Gruneisen calculation
 
     Parameters
@@ -221,34 +244,33 @@ def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
         The primitive cell for the phonon calculation
     vol_factor: float
         The volume rescaling factor
-    symmetry_block: list of str
-        The symmetry block for FHI-aims calculations
 
     Returns
     -------
     Workflow:
         A Fireworks workflow for the gruneisen calculation
     """
-    settings = settings.copy()
     dist_primitive = primitive.copy()
-    symmetry_block = symmetry_block.copy()
+    scaled_pos = dist_primitive.get_scaled_positions()
+    dist_primitive.cell *= vol_factor ** (1.0 / 3.0)
+    dist_primitive.set_scaled_positions(scaled_pos)
 
-    dist_primitive.cell *= vol_factor
-    dist_primitive.positions *= vol_factor
-
-    if symmetry_block:
-        if int(symmetry_block[0].split()[-1]) > 0:
-            for ii in range(3):
-                lattice_vector = [str(lv_el) for lv_el in dist_primitive.cell[ii]]
-                symmetry_block[ii + 2] = "symmetry_lv " + ", ".join(lattice_vector)
-        dist_primitive.info["symmetry_block"] = symmetry_block
+    for constraint in dist_primitive.constraints:
+        if isinstance(constraint, FixCartesianParametricRelations):
+            constraint.params = []
+            constraint.Jacobian = np.zeros((constraint.Jacobian.shape[0], 0))
+            constraint.Jacobian_inv = np.zeros((0, constraint.Jacobian.shape[0]))
+            constraint.const_shift = dist_primitive.cell.flatten()
 
     dist_settings = Settings()
     for sec_key, sec_val in settings.items():
         if isinstance(sec_val, dict):
             dist_settings[sec_key] = AttributeDict()
             for key, val in sec_val.items():
-                dist_settings[sec_key][key] = val
+                try:
+                    dist_settings[sec_key][key] = val.copy()
+                except AttributeError:
+                    dist_settings[sec_key][key] = val
         else:
             dist_settings[sec_key] = val
 
@@ -266,17 +288,21 @@ def prepare_gruneisen(settings, primitive, vol_factor, symmetry_block):
     return generate_workflow(dist_settings, dist_primitive, launchpad_yaml=None)
 
 
-def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter, kpt_density):
+def setup_gruneisen(settings, trajectory, constraints, _queueadapter, kpt_density):
     """Set up the finite difference gruniesen parameter calculations
 
     Parameters
     ----------
     settings: dict
         The workflow settings
-    symmetry_block: list of str
-        The symmetry block for the structure
     trajectory: str
         The trajectory file for the equilibrium phonon calculation
+    constraints: list of dict
+        list of relevant constraint dictionaries for relaxations
+    _queueadapter: dict
+        The queueadapter for the equilibrium phonon calculations
+    kpt_density:
+        The k-point density to use for the calculations
 
     Returns
     -------
@@ -286,11 +312,10 @@ def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter, kpt_den
         Workflow to run the positive volume change Gruniesen parameter calcs
     """
     # Prepare settings by reset general work_dir and do not reoptimize k_grid
-    # settings["general"]["workdir_local"] = "/".join(settings["general"]["workdir_local"].split("/")[:-3])
-    # settings["general"]["workdir_cluster"] = "/".join(settings["general"]["workdir_cluster"].split("/")[:-3])
     settings["general"]["opt_kgrid"] = False
     settings["phonopy"]["get_gruniesen"] = False
     settings["phonopy"]["converge_phonons"] = False
+
     settings.pop("statistical_sampling", None)
 
     if _queueadapter:
@@ -310,19 +335,27 @@ def setup_gruniesen(settings, symmetry_block, trajectory, _queueadapter, kpt_den
     settings["control"].pop("kgrid", None)
     settings["control_kpt"] = {"density": kpt_density}
 
-    if not symmetry_block:
-        settings["general"]["relax_structure"] = True
-        if "relaxation" not in settings:
-            settings["relaxation"] = dict()
-        settings["relaxation"]["relax_unit_cell"] = "none"
-    elif int(symmetry_block[0].split()[-1]) > 0:
-        settings["general"]["relax_structure"] = True
-    else:
-        settings["general"]["relax_structure"] = False
-
     primitive = to_Atoms(eq_phonon.get_primitive())
+    add_constraints = []
+    for constr in constraints:
+        constraint = dict2constraint(constr)
+        if isinstance(constraint, FixScaledParametricRelations):
+            if not constraint.params:
+                settings["general"]["relax_structure"] = False
+                settings["control"].pop("relax_unit_cell", None)
+                settings.pop("relaxation", None)
+            else:
+                add_constraints.append(constraint)
 
-    pl_gruneisen = prepare_gruneisen(settings, primitive, 1.01, symmetry_block)
-    mn_gruneisen = prepare_gruneisen(settings, primitive, 0.99, symmetry_block)
+    primitive.constraints = add_constraints
+
+    settings["general"]["relax_structure"] = True
+    if "relaxation" not in settings:
+        settings["relaxation"] = dict()
+    settings["control"]["relax_unit_cell"] = "none"
+    settings["relaxation"]["relax_unit_cell"] = "none"
+
+    pl_gruneisen = prepare_gruneisen(settings, primitive, 1.01)
+    mn_gruneisen = prepare_gruneisen(settings, primitive, 0.99)
 
     return pl_gruneisen, mn_gruneisen

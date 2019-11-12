@@ -7,7 +7,7 @@ from hilde.fireworks.tasks.postprocess.optimizations import (
     move_trajectory_file,
 )
 from hilde.fireworks.workflows.firework_generator import generate_firework
-from hilde.phonon_db.ase_converters import calc2dict
+from hilde.helpers.converters import calc2dict
 
 
 def check_kgrid_opt_completion(

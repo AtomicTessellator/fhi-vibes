@@ -6,14 +6,12 @@ import json
 
 import numpy as np
 from psycopg2 import connect
-from psycopg2.extras import execute_values
 
 import ase.io.jsonio
 from ase.db.postgresql import jsonb_indices
 from ase.db.postgresql import remove_nan_and_inf
 from ase.db.postgresql import insert_nan_and_inf
 from ase.db.postgresql import Connection
-from ase.db.postgresql import Cursor
 
 from hilde.phonon_db.phonon_sqlitedb import init_statements
 from hilde.phonon_db.phonon_sqlitedb import index_statements

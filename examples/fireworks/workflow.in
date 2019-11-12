@@ -1,37 +1,43 @@
 # information to build a default control.in
 [geometry]
-file = geometry.in
-#files = */geometry.in
+#file = geometry.in
+files = Si*/geometry.in
 
 [general]
-workdir_cluster = "/home/purcell/git/hilde_develop/examples/fireworks/test_run/"
-workdir_local   = "/home/purcell/git/hilde_develop/examples/fireworks/test_run/"
+workdir_cluster = "test_run/"
+workdir_local   = "test_run/"
 use_third = False
 basisset = light
 use_tight_relax = False
-kgrid_dfunc_min = 1e-3
-opt_kgrid = True
+kgrid_dfunc_min = 1e13
+opt_kgrid = False
 relax_structure = True
 
 [control]
 xc =                 pw-lda
-sc_accuracy_rho =    1e-6
-sc_accuracy_forces = 5E-4
+sc_accuracy_rho =    1e-4
+sc_accuracy_forces = 5E-3
 output_level =       MD_light
 relativistic =       "atomic_zora scalar"
 
 [control_kpt]
-density = 1.0
+density = 1.00
 
 [phonopy]
-#supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-supercell_matrix = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 conv_crit = 0.05
 walltime = 3500
 serial = True
 displacement = 0.01
-converge_phonons = True
+converge_phonons = False
 get_gruniesen = True
+
+[statistical_sampling]
+serial = True
+temperatures = [300]
+supercell_matrix = [-1,1,1,1,-1,1,1,1,-1]
+n_samples = 1
+deterministic = True
 
 [phonopy_qadapter]
 walltime = 1:00:00
