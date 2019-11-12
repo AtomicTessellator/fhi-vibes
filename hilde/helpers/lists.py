@@ -2,9 +2,12 @@
 from itertools import groupby
 
 
-def reduce_list(obj):
+def reduce_list(obj, reduce=True):
     """reduce a with duplicate entries and return tuples of (count, entry)"""
-    return tuple((len(list(g)), k) for k, g in groupby(obj))
+    if reduce:
+        return tuple((len(list(g)), k) for k, g in groupby(obj))
+    else:
+        return obj
 
 
 def expand_list(obj):
@@ -49,4 +52,3 @@ def list2str(lis):
         The json string version of the list
     """
     return "[{}]".format(", ".join([str(el) for el in lis]))
-

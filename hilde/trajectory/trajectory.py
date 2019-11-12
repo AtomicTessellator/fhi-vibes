@@ -577,10 +577,7 @@ class Trajectory(list):
 
         hashes = []
         for atoms in self:
-            try:
-                hashes.append(atoms.info["hash"])
-            except (KeyError, AttributeError):
-                hashes.append(hash_atoms(atoms))
+            hashes.append(hash_atoms(atoms))
 
         return hashes
 

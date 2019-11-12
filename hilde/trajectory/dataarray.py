@@ -32,13 +32,14 @@ def _metadata(trajectory, dct=None):
         "volume": trajectory.volume,
         "symbols": trajectory.symbols,
         "masses": trajectory.masses,
-        "reference atoms": atoms2json(trajectory.reference_atoms),
-        "average atoms": atoms2json(trajectory.average_atoms),
+        "reference atoms": atoms2json(trajectory.reference_atoms, reduce=False),
+        "average atoms": atoms2json(trajectory.average_atoms, reduce=False),
         "reference positions": trajectory.ref_positions.flatten(),
     }
 
     if trajectory.primitive:
-        prim_attrs = {"reference primitive atoms": atoms2json(trajectory.primitive)}
+        rep = atoms2json(trajectory.primitive, reduce=False)
+        prim_attrs = {"reference primitive atoms": rep}
         attrs.update(prim_attrs)
 
     if trajectory.force_constants_remapped is not None:
