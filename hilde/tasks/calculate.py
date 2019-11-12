@@ -12,7 +12,7 @@ from hilde.helpers.socketio import get_port
 from hilde.helpers.watchdogs import SlurmWatchdog as Watchdog
 from hilde.helpers.hash import hash_atoms
 from hilde.helpers.lists import expand_list
-from hilde.trajectory import metadata2file, step2file
+from hilde.trajectory import metadata2file, step2file, get_hashes_from_trajectory_file
 
 from hilde.son import son
 
@@ -154,7 +154,7 @@ def calculate_socket(
                 settings.write()
 
     # fetch list of hashes from trajectory
-    precomputed_hashes = trajectory.get_hashes()
+    precomputed_hashes = get_hashes_from_trajectory_file(trajectory)
 
     # perform calculation
     n_cell = -1

@@ -23,7 +23,7 @@ def talk(msg):
     return _talk(msg, prefix=_prefix)
 
 
-def get_hashes_from_trajectory(trajectory, verbose=False):
+def get_hashes_from_trajectory_file(trajectory, verbose=False):
     """return all hashes from trajectory"""
 
     try:
