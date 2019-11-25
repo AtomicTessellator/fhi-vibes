@@ -8,6 +8,7 @@ before_script:
 
 default:
   script:
+    - flake8 hilde -v
     - pytest --ignore fireworks
     - cd cli; bash test_cli.sh
     - cd ../phonopy; python run_phonopy.py
