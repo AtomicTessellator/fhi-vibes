@@ -313,7 +313,7 @@ def launch_rocket_to_queue(
                 if reserve:
                     launchpad.set_reservation_id(launch_id, reservation_id)
             return reservation_id
-        except:
+        except Exception:
             log_exception(l_logger, "Error writing/submitting queue script!")
             if reserve and launch_id is not None:
                 try:
@@ -324,7 +324,7 @@ def launch_rocket_to_queue(
                     )
                     launchpad.cancel_reservation(launch_id)
                     launchpad.forget_offline(launch_id)
-                except:
+                except Exception:
                     log_exception(
                         l_logger, "Error unreserving FW with fw_id {}".format(fw.fw_id)
                     )
@@ -526,5 +526,5 @@ def rapidfire(
             )
             time.sleep(sleep_time)
             l_logger.info("Checking for Rockets to run...")
-    except:
+    except Exception:
         log_exception(l_logger, "Error with queue launcher rapid fire!")
