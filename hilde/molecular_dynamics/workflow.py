@@ -9,7 +9,7 @@ from hilde.helpers.watchdogs import SlurmWatchdog as Watchdog
 from hilde.helpers.paths import cwd
 from hilde.helpers.socketio import get_port, get_stresses
 from hilde.helpers.socketio import socket_stress_on, socket_stress_off
-from hilde.helpers.compression import backup_folder as backup
+from hilde.helpers.backup import backup_folder as backup
 from hilde.helpers.restarts import restart
 from hilde.helpers import talk, warn
 from ._defaults import name

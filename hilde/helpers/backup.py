@@ -1,4 +1,4 @@
-""" tools for compression """
+""" tools for backup """
 
 import shutil
 from glob import glob
