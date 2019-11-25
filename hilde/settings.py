@@ -1,12 +1,10 @@
 """ Settings class for holding settings, based on configparser.ConfigParser """
+import json
 import time
 import configparser
-import json
 from pathlib import Path
 
 import numpy as np
-from ase.io import read
-from ase.atoms import Atoms
 
 
 from hilde._defaults import (
@@ -433,6 +431,8 @@ class TaskSettings(Settings):
     @atoms.setter
     def atoms(self, obj):
         """Set the settings._atoms with an  ase.atoms.Atoms object"""
+        from ase.atoms import Atoms
+
         assert isinstance(obj, Atoms), type(obj)
         self._atoms = obj
 
@@ -444,6 +444,7 @@ class TaskSettings(Settings):
         format: str
             format of self.geometry.file
         """
+        from ase.io import read
 
         # use the file specified in geometry.file or the default (geometry.in)
         if "geometry" in self and "file" in self.geometry and self.geometry.file:
