@@ -11,6 +11,6 @@ def main():
     args = parser.parse_args()
     if not args.db_path:
         settings = Settings()
-        arg.db_path = settings.database.name
+        args.db_path = settings.database.name
     hashes = traj_to_database(args.db_path, args.trajectory, True)
     print(hashes)

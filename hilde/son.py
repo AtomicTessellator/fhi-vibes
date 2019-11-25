@@ -13,6 +13,7 @@ def load(*args, **kwargs):
     """wrapper for son.load"""
     return son.load(*args, **kwargs)
 
+
 def last_from(file):
     """ return last entry from yaml file
 

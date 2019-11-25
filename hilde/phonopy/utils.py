@@ -304,7 +304,6 @@ def remap_force_constants(
     primitive.wrap(eps=tol)
     supercell.wrap(eps=tol)
 
-    n_sc = len(supercell)
     n_sc_new = len(new_supercell)
 
     # make a list of all pairs for each atom in primitive cell

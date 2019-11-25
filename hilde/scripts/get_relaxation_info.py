@@ -5,6 +5,7 @@
 # 12/6/2019: refactor for hilde cli
 # 27/6/2019: Add docstrings
 
+
 # Find the optimizer type
 def get_optimizer(f):
     """Find the optimzer type

@@ -339,7 +339,7 @@ def t2db(filename, output_filename):
     from hilde.trajectory import reader
 
     traj = reader(filename)
-    traj.to_db(file)
+    traj.to_db(output_filename)
 
 
 @trajectory.command("update")

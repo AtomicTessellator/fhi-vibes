@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 # copied from ASE commit 94475ea6a54541b816bf00912551c0959ec73548 on
@@ -33,8 +34,14 @@ def translate_pretty(fractional, pbc):
     return fractional
 
 
-def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
-                   pretty_translation=False, eps=1e-7):
+def wrap_positions(
+    positions,
+    cell,
+    pbc=True,
+    center=(0.5, 0.5, 0.5),
+    pretty_translation=False,
+    eps=1e-7,
+):
     """Wrap positions to unit cell.
 
     Returns positions changed by a multiple of the unit cell vectors to
@@ -68,10 +75,10 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
     array([[ 0.9 ,  0.01, -0.5 ]])
     """
 
-    if not hasattr(pbc, '__len__'):
+    if not hasattr(pbc, "__len__"):
         pbc = (pbc,) * 3
 
-    if not hasattr(center, '__len__'):
+    if not hasattr(center, "__len__"):
         center = (center,) * 3
 
     shift = np.asarray(center) - 0.5 - eps
@@ -82,8 +89,7 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
     assert np.asarray(cell)[np.asarray(pbc)].any(axis=1).all(), (cell, pbc)
 
     cell = complete_cell(cell)
-    fractional = np.linalg.solve(cell.T,
-                                 np.asarray(positions).T).T - shift
+    fractional = np.linalg.solve(cell.T, np.asarray(positions).T).T - shift
 
     if pretty_translation:
         fractional = translate_pretty(fractional, pbc)
@@ -157,16 +163,14 @@ def find_mic(D, cell, pbc=True):
 
     cell = complete_cell(cell)
     # Calculate the 4 unique unit cell diagonal lengths
-    diags = np.sqrt((np.dot([[1, 1, 1],
-                             [-1, 1, 1],
-                             [1, -1, 1],
-                             [-1, -1, 1],
-                             ], cell)**2).sum(1))
+    diags = np.sqrt(
+        (np.dot([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [-1, -1, 1]], cell) ** 2).sum(1)
+    )
 
     # calculate 'mic' vectors (D) and lengths (D_len) using simple method
     Dr = np.dot(D, np.linalg.inv(cell))
     D = np.dot(Dr - np.round(Dr) * pbc, cell)
-    D_len = np.sqrt((D**2).sum(1))
+    D_len = np.sqrt((D ** 2).sum(1))
     # return mic vectors and lengths for only orthorhombic cells,
     # as the results may be wrong for non-orthorhombic cells
     if (max(diags) - min(diags)) / max(diags) < 1e-9:
@@ -174,7 +178,7 @@ def find_mic(D, cell, pbc=True):
 
     # The cutoff radius is the longest direct distance between atoms
     # or half the longest lattice diagonal, whichever is smaller
-    cutoff = min(max(D_len), max(diags) / 2.)
+    cutoff = min(max(D_len), max(diags) / 2.0)
 
     # The number of neighboring images to search in each direction is
     # equal to the ceiling of the cutoff distance (defined above) divided
@@ -184,10 +188,9 @@ def find_mic(D, cell, pbc=True):
     # The numerator is just the lattice volume, so this can be simplified
     # to V / (|b| |c|). This is rewritten as V |a| / (|a| |b| |c|)
     # for vectorization purposes.
-    latt_len = np.sqrt((cell**2).sum(1))
+    latt_len = np.sqrt((cell ** 2).sum(1))
     V = abs(np.linalg.det(cell))
-    n = pbc * np.array(np.ceil(cutoff * np.prod(latt_len) /
-                               (V * latt_len)), dtype=int)
+    n = pbc * np.array(np.ceil(cutoff * np.prod(latt_len) / (V * latt_len)), dtype=int)
 
     # Construct a list of translation vectors. For example, if we are
     # searching only the nearest images (27 total), tvecs will be a
@@ -203,10 +206,9 @@ def find_mic(D, cell, pbc=True):
                 tvecs.append(latt_ab + k * cell[2])
     tvecs = np.array(tvecs)
 
-
     # Check periodic neighbors iff the displacement vector in
     # scaled coordinates is greater than 0.5.
-    good = np.sqrt((np.linalg.solve(cell.T, D.T)**2).sum(0)) <= 0.5
+    good = np.sqrt((np.linalg.solve(cell.T, D.T) ** 2).sum(0)) <= 0.5
 
     D_min = D.copy()
     D_min_len = D_len.copy()
@@ -218,7 +220,7 @@ def find_mic(D, cell, pbc=True):
         # Translate the direct displacement vector by each translation
         # vector, and calculate the corresponding length.
         Di_trans = Di[np.newaxis] + tvecs
-        Di_trans_len = np.sqrt((Di_trans**2).sum(1))
+        Di_trans_len = np.sqrt((Di_trans ** 2).sum(1))
 
         # Find mic distance and corresponding vector.
         Di_min_ind = Di_trans_len.argmin()
@@ -250,13 +252,13 @@ def get_angles(v1, v2, cell=None, pbc=None):
     nv1 = np.linalg.norm(v1, axis=1)[:, np.newaxis]
     nv2 = np.linalg.norm(v2, axis=1)[:, np.newaxis]
     if (nv1 <= 0).any() or (nv2 <= 0).any():
-        raise ZeroDivisionError('Undefined angle')
+        raise ZeroDivisionError("Undefined angle")
     v1 /= nv1
     v2 /= nv2
 
     # We just normalized the vectors, but in some cases we can get
     # bad things like 1+2e-16.  These we clip away:
-    angles = np.arccos(np.einsum('ij,ij->i', v1, v2).clip(-1.0, 1.0))
+    angles = np.arccos(np.einsum("ij,ij->i", v1, v2).clip(-1.0, 1.0))
 
     return angles * f
 
@@ -290,7 +292,7 @@ def get_distances(p1, p2=None, cell=None, pbc=None):
 
         D, D_len = find_mic(D, cell, pbc)
     else:
-        D_len = np.sqrt((D**2).sum(1))
+        D_len = np.sqrt((D ** 2).sum(1))
 
     # Expand back to matrix indexing
     D.shape = (-1, len(p2), 3)
@@ -306,8 +308,9 @@ def get_duplicate_atoms(atoms, cutoff=0.1, delete=False):
     Delete one set of them if delete == True.
     """
     from scipy.spatial.distance import pdist
-    dists = pdist(atoms.get_positions(), 'sqeuclidean')
-    dup = np.nonzero(dists < cutoff**2)
+
+    dists = pdist(atoms.get_positions(), "sqeuclidean")
+    dup = np.nonzero(dists < cutoff ** 2)
     rem = np.array(_row_col_from_pdist(len(atoms), dup[0]))
     if delete:
         if rem.size != 0:
@@ -322,7 +325,7 @@ def _row_col_from_pdist(dim, i):
     """
     i = np.array(i)
     b = 1 - 2 * dim
-    x = (np.floor((-b - np.sqrt(b**2 - 8 * i)) / 2)).astype(int)
+    x = (np.floor((-b - np.sqrt(b ** 2 - 8 * i)) / 2)).astype(int)
     y = (i + x * (b + x + 2) / 2 + 1).astype(int)
     if i.shape:
         return list(zip(x, y))

@@ -4,7 +4,7 @@ import numpy as np
 from ase.geometry import cell_to_cellpar, cellpar_to_cell
 from hilde.helpers.numerics import clean_matrix
 
-# no ase
+
 def clean_atoms(input_atoms, align=False, tolerance=1e-9):
     """Put position of atom 0 to origin, align 1. lattice vector with x axis, 2. to xy plane rotation: change lattice via rotations, else: change via cellpars
 

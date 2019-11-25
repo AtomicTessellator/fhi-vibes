@@ -3,6 +3,7 @@
  * SocketIO
  * Yaml Trajectory """
 
+from hilde.helpers import warn
 from hilde.settings import Settings
 from hilde.templates.aims import setup_aims
 from hilde.helpers.converters import input2dict

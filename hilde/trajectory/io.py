@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import numpy as np
 from ase import units
+from ase.calculators.calculator import PropertyNotImplementedError
 from hilde import son
 from hilde import __version__ as version
 from hilde import io
@@ -243,7 +244,7 @@ def to_tdep(trajectory, folder=".", skip=1):
             try:
                 stress = atoms.get_stress(voigt=True) / units.GPa
                 pressure = -1 / 3 * sum(stress[:3])
-            except:
+            except PropertyNotImplementedError:
                 stress = np.zeros(6)
                 pressure = 0.0
             e_tot = atoms.get_total_energy()

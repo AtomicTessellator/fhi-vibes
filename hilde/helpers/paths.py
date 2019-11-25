@@ -28,7 +28,7 @@ def cwd(path, mkdir=False, debug=False):
     """
     CWD = os.getcwd()
 
-    if os.path.exists(path) == False and mkdir:
+    if os.path.exists(path) is False and mkdir:
         os.makedirs(path)
 
     if debug:

@@ -8,9 +8,11 @@ settings = Settings()
 
 atoms, calc = setup_aims(settings=settings)
 
+
 @Rule
 async def relax_kw(kwargs):
     return relax(**kwargs)
+
 
 converged = relax(atoms, calc, **settings.relaxation)
 
