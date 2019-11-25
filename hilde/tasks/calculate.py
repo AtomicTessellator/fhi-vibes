@@ -7,7 +7,7 @@ import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 from hilde.helpers import talk, warn
 from hilde.helpers.utils import Spinner
-from hilde.helpers.compression import backup_folder as backup
+from hilde.helpers.backup import backup_folder as backup
 from hilde.helpers.socketio import get_port
 from hilde.helpers.watchdogs import SlurmWatchdog as Watchdog
 from hilde.helpers.hash import hash_atoms

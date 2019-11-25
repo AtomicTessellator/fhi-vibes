@@ -1,4 +1,4 @@
-""" tools for compression """
+""" tools for backup """
 
 import shutil
 from glob import glob
@@ -8,22 +8,11 @@ from pathlib import Path
 from hilde.helpers import talk
 from hilde.helpers.aims import peek_aims_uuid
 
+_default_files = ("aims.out", "control.in", "geometry.in")
+
 
 def backup_filename(workdir="."):
-    """generate a backup file name
-
-    Parameters
-    ----------
-    workdir: str
-        Path to the working directory
-    zip: bool
-        True if backup folder should be compressed
-
-    Returns
-    -------
-    str
-        The backup file name
-    """
+    """generate a backup file name for the current backup directory"""
 
     counter = 0
 
@@ -40,22 +29,14 @@ def backup_folder(
 ):
     """backup a folder as .tgz
 
-    Parameters
-    ----------
-    source_dir: str
-        path to the source direcotry
-    target_folder: str
-        Path to where the backups should be stored
-    additional_files: list of str
-        Additional files to backup
-    zip: bool
-        True if backup folder should be compressed
-    verbose: bool
-        If True perform more verbose logging
+    Args:
+        source_dir: path to the source direcotry
+        target_folder: Path to where the backups should be stored
+        additional_files: Additional files to backup
+        zip: True if backup folder should be compressed
+        verbose: If True perform more verbose logging
 
-    Returns
-    -------
-    bool
+    Returns:
         True if source_dir exists and is not empty
     """
 
@@ -104,25 +85,34 @@ def backup_folder(
     return True
 
 
-def make_tarfile(output_filename, source_dir, additional_files=None, arcname=None):
+def make_tarfile(
+    output_filename, source_dir, additional_files=None, arcname=None, only_defaults=True
+):
     """create a tgz directory
 
-    Parameters
-    ----------
-    output_filename: str
-        Path to the output file
-    source_dir: str
-        Path to the source directory
-    additional_files: list of str
-        Additional files to include in the tar file
-    arcname: str
-        Path to the archive file
+    Args:
+        output_filename: Path to the output file
+        source_dir: Path to the source directory
+        additional_files: Additional files to include in the tar file
+        arcname: Path to the archive file
+        only_defaults: only use the default file names for backup
     """
 
     outfile = Path(output_filename)
 
+    files = Path(source_dir).glob("*")
+
+    # print([f for f in files])
+    print(arcname)
+
     with tarfile.open(outfile, "w:gz") as tar:
-        tar.add(source_dir, arcname=arcname)
+        for file in files:
+            print(file.name)
+            if only_defaults and file.name not in _default_files:
+                continue
+            print(file)
+            tar.add(file, arcname=Path(arcname) / file.name)
+
         if additional_files is not None:
             for file in additional_files:
                 tar.add(file)
