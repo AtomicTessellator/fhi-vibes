@@ -9,7 +9,11 @@ from ase.io import read
 parent = Path(__file__).parent
 
 
-template = r"""hilde utils create-samples geometry.in.supercell
+base_cmd = "hilde utils create-samples geometry.in.supercell"
+
+template = (
+    base_cmd
+    + r"""
 -fc FORCE_CONSTANTS_remapped
 --zacharias
 -T {{ temperature }}
@@ -17,10 +21,17 @@ template = r"""hilde utils create-samples geometry.in.supercell
 -seed {{ seed }}
 --propagate {{ propagate }}
 """
+)
 
 args = {"temperature": 600, "n_samples": 2, "seed": 4, "propagate": 1}
 
 cmd = Template(template).render(args)
+
+
+def test_base():
+    """test the simplest version of the command"""
+    cmd = f"{base_cmd} -T 300 --seed 4"
+    sp.run(cmd.split(), cwd=parent)
 
 
 def test_run_cmd():
@@ -60,5 +71,6 @@ def test_output():
 
 
 if __name__ == "__main__":
+    test_base()
     test_run_cmd()
     test_output()

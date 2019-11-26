@@ -191,6 +191,7 @@ def create_samples(
     atoms = read(geometry, format=format)
     inform(atoms, verbosity=0)
 
+    fc = None
     if force_constants is not None:
         # if 3Nx3N shaped txt file:
         try:
