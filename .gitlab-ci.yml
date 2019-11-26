@@ -2,8 +2,6 @@ image: registry.gitlab.com/flokno/hilde:default
 
 before_script:
   - cp hilde/templates/config_files/hilderc.template ~/.hilderc
-  - poetry cache:clear pypi --all -n
-    #   - poetry update
   - poetry install
   - cd $CI_PROJECT_DIR/tests
 
