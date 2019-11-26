@@ -25,7 +25,7 @@ def test_output():
 
     for ii, (f1, f2) in enumerate(zip(frequencies, reference)):
         if abs(f1) < 1e-5:
-            assert np.allclose(f1, f2, rtol=0.01), (f"Frequency {ii}: ", f1, f2)
+            assert np.allclose(f1, f2, rtol=1), (f"Frequency {ii}: ", f1, f2)
         else:
             assert np.allclose(f1, f2), (f"Frequency {ii}: ", f1, f2)
 
