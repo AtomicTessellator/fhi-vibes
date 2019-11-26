@@ -109,10 +109,10 @@ class HarmonicAnalysis:
             self.q_points = q_points
 
         # Write as property instead
-        ## solve eigenvalue problem
+        # solve eigenvalue problem
         # self.omegas2, self.eigenvectors = self.diagonalize_dynamical_matrices()
 
-        ## square root respecting the sign
+        # square root respecting the sign
         # self.omegas = np.sign(self.omegas2) * np.sqrt(abs(self.omegas2))
 
         # # find map from supercell to primitive + lattice point
@@ -327,7 +327,7 @@ class HarmonicAnalysis:
         """ return angular frequencies """
         omegas2, _ = self.diagonalize_dynamical_matrices()
 
-        ## square root respecting the sign
+        # square root respecting the sign
         return np.sign(omegas2) * np.sqrt(abs(omegas2))
 
     @property

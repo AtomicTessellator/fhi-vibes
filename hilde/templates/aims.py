@@ -119,7 +119,7 @@ def setup_aims(
 
     default_settings = {"output_level": output_level, **settings.control}
 
-    if not "output_level" in settings.control:
+    if "output_level" not in settings.control:
         talk("output_level MD_light has been set.")
 
     if "relativistic" not in default_settings:

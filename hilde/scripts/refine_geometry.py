@@ -35,7 +35,6 @@ def refine_geometry(
     symprec: float
         Precision for space group/symmetry operation determination
     """
-    ### Greet
     atoms = read(filename, format=format)
 
     talk(f"Perfom geometry refinement for")

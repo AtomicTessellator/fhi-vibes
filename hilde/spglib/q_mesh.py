@@ -124,7 +124,7 @@ def get_ir_reciprocal_mesh(
 
         # kick out irreducible q points that can be mapped back into BZ
         my_ir_grid = []
-        ir_temp_mapping = []
+        # ir_temp_mapping = []
         for ii, ir_q_temp in enumerate(my_ir_grid_temp_cleaned):
             for jj, ir_q in enumerate(my_ir_grid):
                 if np.linalg.norm(ir_q_temp - ir_q) < 1e-12:

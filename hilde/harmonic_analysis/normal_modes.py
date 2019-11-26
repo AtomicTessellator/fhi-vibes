@@ -89,7 +89,7 @@ def projector(q_points, lattice_points, eigenvectors, indeces, flat=True):
     # lattice points for each positions in the supercell, shape [Na, 3]
     RLs = lattice_points[indeces[:, 1]]
 
-    ## define augmented eigenvector that applies the unitary transformation
+    # define augmented eigenvector that applies the unitary transformation
     # i) exponentiated scalar product q . R in shape [Nq, Na, 3]
     qR = (q_points @ RLs.T).repeat(3, axis=1).reshape(nq, na, -1)
     # ii) phases = exp(-2 * \pi * q. R)

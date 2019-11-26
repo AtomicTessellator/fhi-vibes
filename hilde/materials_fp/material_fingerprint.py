@@ -6,9 +6,10 @@ from phonopy import Phonopy
 from collections import namedtuple
 from ase.dft.kpoints import get_cellinfo
 
+
 fp_tup = namedtuple("fp_tup", "frequencies occupancies special_pts nbins")
 
-# Functions to define the energy bins
+
 def get_ener(binning, frequencies, min_e, max_e, nbins):
     """Get the energy bins used for making a fingerprint
 
@@ -291,7 +292,7 @@ def get_phonon_bs_fingerprint_yaml(
     namedtuple(fp_tup)
         The phonon band structure fingerprint
     """
-    bands = get_phonon_bands_yaml(spectra_yaml, bands)
+    bands = get_phonon_bands_yaml(spectra_yaml, q_points)
     if min_e is None:
         min_e = find_min_E(bands)
     if max_e is None:
@@ -539,7 +540,7 @@ class MaterialsFingerprint(object):
             What protocol to be used to store the fingerprint
         """
         if protocol is sqlite3.PrepareProtocol:
-            frmt = "%i;%r;%r" % (self.nbins, is_b, is_elec)
+            frmt = "%i;%r;%r" % (self.nbins, self.is_b, self.is_elec)
             for pt in self.fingerprint:
                 frmt += ";%s" % (pt)
                 for ff in self.fingerprint[pt]:
@@ -679,10 +680,10 @@ class BandStructureFingerprint(MaterialsFingerprint):
         if self.is_elec:
             bands = get_elec_bands(self.spectra_files, self.kpoints)
         else:
-            if phonon == None:
+            if phonon is None:
                 bands = get_phonon_bands_yaml(self.spectra_yaml, self.kpoints)
             else:
-                bands = get_phonon_bands_phonon(self.spectra_yaml, self.kpoints)
+                bands = get_phonon_bands_phonopy(self.spectra_yaml, self.kpoints)
         binning = True if list(bands.values())[0].shape[0] > nbins else False
         # Find energy bins
         self.min_e = find_min_E(bands) if min_e is None else min_e

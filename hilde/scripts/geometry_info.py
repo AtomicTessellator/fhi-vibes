@@ -13,7 +13,6 @@ def main():
     parser.add_argument("-s", "--short", action="store_true", help="Only print name")
     args = parser.parse_args()
 
-    ### Greet
     fname = args.geom
     cell = read(fname, format=args.format)
 

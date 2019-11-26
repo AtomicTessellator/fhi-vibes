@@ -101,7 +101,7 @@ def get_rotation_matrix(phi, axis, radians=False):
         phi = phi / 180 * np.pi
 
     # Norm the rotation axis:
-    axis = axis / la.norm(axis)
+    axis = axis / np.linalg.norm(axis)
 
     cp = np.cos(phi)
     sp = np.sin(phi)

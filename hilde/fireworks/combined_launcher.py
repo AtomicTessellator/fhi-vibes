@@ -289,7 +289,7 @@ def rapidfire(
                                 remote = os.path.expanduser(remote)
                                 with conn.cd(remote):
                                     conn.run("lpad recover_offline")
-                    except:
+                    except Exception:
                         pass
             if remote_host == "localhost":
                 # get number of jobs in queue
@@ -388,5 +388,5 @@ def rapidfire(
             )
             time.sleep(sleep_time)
             l_logger.info("Checking for Rockets to run...")
-    except:
+    except Exception:
         log_exception(l_logger, "Error with queue launcher rapid fire!")

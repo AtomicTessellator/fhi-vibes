@@ -97,7 +97,7 @@ def atoms_calculate_task(
         else:
             outputs = func(atoms, atoms.calc, **func_kwargs)
         func_fw_out_kwargs["run_time"] = func_timer()
-    except:
+    except Exception:
         os.chdir(start_dir)
         raise RuntimeError(
             f"Function calculation failed, moving to {start_dir} to finish Firework."
