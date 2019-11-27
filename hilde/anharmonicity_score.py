@@ -161,9 +161,7 @@ def get_r2_per_direction(f_data, f_model):
     return r2_direction
 
 
-def get_dataframe(
-    dataset, per_sample=False, per_direction=False, positive=False, by_symmetry=False
-):
+def get_dataframe(dataset, per_sample=False, per_direction=False, by_symmetry=False):
     """return anharmonicity dataframe for xarray.Dataset DS"""
     from pandas import DataFrame
     from hilde.helpers.converters import json2atoms
