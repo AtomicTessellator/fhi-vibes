@@ -16,7 +16,7 @@ from . import (
     heat_flux as hf,
     talk,
     Timer,
-    dataarray as xr,
+    dataset as xr,
     analysis as al,
     _prefix,
     _fc_key,
