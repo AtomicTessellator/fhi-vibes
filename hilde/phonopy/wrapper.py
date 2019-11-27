@@ -159,7 +159,7 @@ def get_dos(
     q_mesh=defaults.q_mesh,
     freq_min="auto",
     freq_max="auto",
-    freq_pitch=0.1,
+    freq_pitch=None,
     tetrahedron_method=True,
     write=False,
     filename="total_dos.dat",

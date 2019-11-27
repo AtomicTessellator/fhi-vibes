@@ -221,7 +221,7 @@ def extract_results(
             if write_debye:
                 freq_pitch = 0.01
             else:
-                freq_pitch = 0.1
+                freq_pitch = None
             dos = wrapper.get_dos(
                 phonon, q_mesh=q_mesh, freq_pitch=freq_pitch, write=write_dos
             )
