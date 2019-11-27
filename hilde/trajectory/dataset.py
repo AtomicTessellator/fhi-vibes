@@ -161,12 +161,13 @@ def get_trajectory_data(trajectory):
 
     if trajectory.forces_harmonic is not None:
         epot_ha = trajectory.potential_energy_harmonic
-        dataset.update({"forces_harmonic": (vec_dims, trajectory.forces_harmonic)})
-        dataset.update({"potential_energy_harmonic": (time_dims, epot_ha)})
-        dataset.update({"r2_per_sample": (time_dims, trajectory.r2_per_sample)})
-        attrs.update({"r2": trajectory.r2.mean()})
-        attrs.update({"r2 (avg)": trajectory.r2_per_sample.mean()})
-        attrs.update({"r2 (mean)": trajectory.r2_per_atom.attrs["mean"]})
+        update_dict = {
+            "forces_harmonic": (vec_dims, trajectory.forces_harmonic),
+            "potential_energy_harmonic": (time_dims, epot_ha),
+            "sigma_per_sample": (time_dims, trajectory.sigma_per_sample),
+        }
+        dataset.update(update_dict)
+        attrs.update({"sigma": trajectory.sigma})
 
     return xr.Dataset(dataset, coords=coords, attrs=attrs)
 
