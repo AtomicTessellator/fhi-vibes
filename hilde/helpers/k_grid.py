@@ -22,10 +22,10 @@ def d2k(atoms, kptdensity=3.5, even=True):
         Monkhorst-Pack grid size in all directions
     """
     recipcell = atoms.get_reciprocal_cell()
-    return d2k_cellinfo(recipcell, atoms.pbc, kptdensity, even)
+    return d2k_recipcell(recipcell, atoms.pbc, kptdensity, even)
 
 
-def d2k_cellinfo(recipcell, pbc, kptdensity=3.5, even=True):
+def d2k_recipcell(recipcell, pbc, kptdensity=3.5, even=True):
     """Convert k-point density to Monkhorst-Pack grid size.
 
     Parameters
@@ -126,7 +126,7 @@ def update_k_grid_calc_dict(calc_dict, recipcell, kptdensity, even=True):
     calc_dict: dict
         The dictionary representation of the calculator with an updated kgrid
     """
-    k_grid = d2k_cellinfo(recipcell, [True, True, True], kptdensity, even)
+    k_grid = d2k_recipcell(recipcell, [True, True, True], kptdensity, even)
 
     calc_dict["calculator_parameters"]["k_grid"] = k_grid
     return calc_dict

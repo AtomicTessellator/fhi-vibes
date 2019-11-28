@@ -1,7 +1,6 @@
 """ Provide a full highlevel phonopy workflow """
 from pathlib import Path
 
-from ase.dft.kpoints import get_cellinfo
 from phonopy.file_IO import write_FORCE_CONSTANTS
 
 from hilde.helpers.brillouinzone import get_special_points
@@ -288,7 +287,7 @@ def extract_results(
     timer(f"all files written to {output_dir}")
 
     # check negative frequencies:
-    special_points = get_cellinfo(primitive.cell).special_points
+    special_points = primitive.cell.get_bravais_lattice().get_special_points()
     for k in special_points:
         sp = special_points[k]
         f = phonon.get_frequencies(sp)
