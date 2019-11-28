@@ -8,8 +8,8 @@ xc =               pw-lda
 k_grid =           [2, 2, 2]
 sc_accuracy_rho =  1e-3
 
-[basisset]
-type = light
+[basissets]
+default = light
 
 [socketio]
 port = 12345

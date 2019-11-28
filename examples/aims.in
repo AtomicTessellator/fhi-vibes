@@ -7,8 +7,8 @@ primitive:                     geometry.in
 xc:                            pw-lda
 k_grid:                        [2, 2, 2]
 
-[basisset]
-type:                          light
+[basissets]
+Si:                            light
 
 [socketio]
 port:                          12345

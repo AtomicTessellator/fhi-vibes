@@ -6,8 +6,8 @@ xc =               pw-lda
 k_grid =           [2, 2, 2]
 sc_accuracy_rho =  1e-4
 
-[basisset]
-type = light
+[basissets]
+default = light
 
 [socketio]
 port = 12345
@@ -22,3 +22,6 @@ workdir =     md_test
 
 [restart]
 command = hilde run md
+
+[machine]
+basissetloc = species_defaults

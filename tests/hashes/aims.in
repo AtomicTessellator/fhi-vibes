@@ -10,15 +10,15 @@ compute_analytical_stress = False
 
 output_level =              MD_light
 
-[basisset]
-type = light
+[basissets]
+default = light
 
 [socketio]
 use  = True
 port = 12345
 
 [machine]
-basissetloc = 'test'
+basissetloc = species_defaults
 aims_command = 'aims.x'
 
 [geometry]

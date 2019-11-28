@@ -14,7 +14,7 @@ from ._defaults import (
     defaults,
     mandatory_base,
     mandatory_task,
-    mandatory_basisset,
+    basisset_key,
 )
 
 
@@ -45,7 +45,11 @@ class AimsSettings(TaskSettings):
         )
 
         # basisset
-        if not any(key in self for key in mandatory_basisset):
+        if "basisset" in self:
+            msg = "`basisset.type` is removed in favour of `basissets.default`. Stop"
+            raise RuntimeError(msg)
+
+        if basisset_key not in self:
             msg = f"basisset not specified in {self.settings_file}"
             raise SettingsError(msg)
 

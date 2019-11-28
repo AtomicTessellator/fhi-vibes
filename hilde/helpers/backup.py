@@ -102,15 +102,10 @@ def make_tarfile(
 
     files = Path(source_dir).glob("*")
 
-    # print([f for f in files])
-    print(arcname)
-
     with tarfile.open(outfile, "w:gz") as tar:
         for file in files:
-            print(file.name)
             if only_defaults and file.name not in _default_files:
                 continue
-            print(file)
             tar.add(file, arcname=Path(arcname) / file.name)
 
         if additional_files is not None:
