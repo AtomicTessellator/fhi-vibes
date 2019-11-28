@@ -3,6 +3,7 @@ Utility functions for working with Brillouin zones
 """
 
 from ase.dft import kpoints
+from ase.lattice import FCC
 
 
 def get_paths(atoms):
@@ -19,11 +20,11 @@ def get_paths(atoms):
         Recommended special points as list >>> ['GXL', 'KU']
 
     """
-    cellinfo = kpoints.get_cellinfo(atoms.cell)
-    if cellinfo.lattice == "fcc":
+    lat = atoms.cell.get_bravais_lattice()
+    if isinstance(lat, FCC):
         paths = ["GXU", "KGL"]
     else:
-        paths = kpoints.special_paths[cellinfo.lattice].split(",")
+        paths = lat.special_path.split(",")
     return paths
 
 
@@ -40,7 +41,7 @@ def get_special_points(atoms):
     kpoints: list of np.ndarrays
         The high-symmetry points
     """
-    return kpoints.get_special_points(atoms.cell)
+    return atoms.cell.get_bravais_lattice().get_special_points()
 
 
 def get_bands(atoms, paths=None, npoints=50):
@@ -66,7 +67,7 @@ def get_bands(atoms, paths=None, npoints=50):
     for path in paths:
         for ii, _ in enumerate(kpoints.parse_path_string(path)[0][:-1]):
             bands.append(
-                kpoints.bandpath(path[ii : ii + 2], atoms.cell, npoints=npoints).kpts
+                atoms.cell.bandpath(path[ii : ii + 2], npoints=npoints).kpts
             )
     return bands
 
@@ -127,4 +128,5 @@ def get_bands_and_labels(atoms, paths=None, npoints=50, latex=True):
     """
     if paths is None:
         paths = get_paths(atoms)
+
     return get_bands(atoms, paths, npoints=npoints), get_labels(paths, latex=latex)

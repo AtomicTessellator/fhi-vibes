@@ -4,7 +4,7 @@ import numpy as np
 import yaml
 from phonopy import Phonopy
 from collections import namedtuple
-from ase.dft.kpoints import get_cellinfo
+from hilde.structure.convert import to_Atoms
 
 
 fp_tup = namedtuple("fp_tup", "frequencies occupancies special_pts nbins")
@@ -257,7 +257,7 @@ def get_phonon_bs_fingerprint_phononpy(
         The phonon band structure fingerprint
     """
     if q_points is None:
-        q_points = get_cellinfo(phonon.primitive.cell).special_points
+        q_points = to_Atoms(phonon.primitive).cell.get_bravais_lattice().get_special_points()
 
     bands = get_phonon_bands_phonopy(phonon, q_points)
     return get_fingerprint_bs(
