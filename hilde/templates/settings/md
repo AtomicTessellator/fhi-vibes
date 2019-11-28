@@ -5,8 +5,8 @@ file =             geometry.in
 xc =               pw-lda
 k_grid =           [2, 2, 2]
 
-[basisset]
-type = light
+[basissets]
+default = light
 
 [socketio]
 port = 12345

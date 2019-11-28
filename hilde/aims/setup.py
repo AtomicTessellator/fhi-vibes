@@ -4,12 +4,10 @@ from pathlib import Path
 
 # from ase.calculators.aims import Aims
 from ase.calculators.aims import Aims
-from ._defaults import talk, name
+
 from hilde.helpers.k_grid import d2k
 from hilde.helpers.warnings import warn
-
-
-choices = ("light", "intermediate", "tight")
+from ._defaults import talk, name, basisset_key, basisset_default, basisset_choices
 
 
 class BasissetError(RuntimeError):
@@ -36,18 +34,21 @@ def create_species_dir(ctx, folder="basissets", fallback="light"):
     settings = ctx.settings
 
     # if old section with `basisset.type` is used:
-    if "basisset" in settings and "type" in settings.basisset:
-        default = settings.basisset.type
-        return str(loc / default)
-    if "basissets" in settings and "default" in settings.basissets:
-        default = settings.basissets.default
-        if "fallback" in settings.basissets and settings.basissets.fallback in choices:
-            fallback = settings.basissets.fallback
-    else:
-        warn("basissets not specified in settings.file.", level=2)
+    if basisset_key not in settings:
+        msg = "basissets not specified in settings.file."
+        raise BasissetError(msg)
 
-    if default not in choices:
-        raise BasissetError(f"Species default '{default}' unknown.")
+    default = basisset_default
+    fallback = basisset_default
+
+    if "default" in settings.basissets:
+        default = settings.basissets.default
+    if "fallback" in settings.basissets:
+        fallback = settings.basissets.fallback
+
+    for key in (default, fallback):
+        if key not in basisset_choices:
+            raise BasissetError(f"Species default '{key}' unknown.")
 
     # return default if no atom is given for reference
     ref_atoms = ctx.ref_atoms
@@ -70,11 +71,10 @@ def create_species_dir(ctx, folder="basissets", fallback="light"):
         if key not in ("default", "fallback")
     )
 
-    if len(settings.basissets) > 1:
-        for (key, val) in key_vals:
-            # copy the respective basisset
-            add_basisset(loc, val, key, dct[key], folder, fallback=fallback)
-            del dct[key]
+    for (key, val) in key_vals:
+        # copy the respective basisset
+        add_basisset(loc, val, key, dct[key], folder, fallback=fallback)
+        del dct[key]
 
     # add remaining ones
     for key in dct.keys():
@@ -84,9 +84,12 @@ def create_species_dir(ctx, folder="basissets", fallback="light"):
     return str(folder.absolute())
 
 
-def add_basisset(loc, typ, elem, num, folder, fallback="light"):
+def add_basisset(loc, typ, elem, num, folder, fallback="light", verbose=True):
     """copy basisset from location LOC of type TYP for ELEMENT w/ no. NUM to FOLDER"""
     rep = f"{num:02d}_{elem}_default"
+
+    msg = f"Add basisset `{typ}` for atom `{elem}` to basissets folder."
+    talk(msg, verbose=verbose)
 
     try:
         shutil.copy(loc / typ / rep, folder)

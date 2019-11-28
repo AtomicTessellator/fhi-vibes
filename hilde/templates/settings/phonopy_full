@@ -7,8 +7,8 @@ k_grid:                        [2, 2, 2]
 sc_accuracy_rho:               1e-7
 compute_forces:                true
 
-[basisset]
-type:                          light
+[basissets]
+default:                          light
 
 [phonopy]
 workdir:                       auto

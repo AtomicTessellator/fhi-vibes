@@ -9,8 +9,9 @@ obj_key = "control"
 mandatory_base = ["machine", "control", "geometry"]
 mandatory_task = ["xc"]
 
-# either of
-mandatory_basisset = ("basisset", "basissets")
+basisset_key = "basissets"
+basisset_choices = ("light", "intermediate", "tight", "really_tight")
+basisset_default = "light"
 
 
 defaults = adict(

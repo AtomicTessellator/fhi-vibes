@@ -15,7 +15,10 @@ parent = Path(__file__).parent
 def test_md():
     with cwd(parent):
 
-        ctx = MDContext(Settings(settings_file="md.in"))
+        settings = Settings(settings_file="md.in")
+        settings.machine.basissetloc = parent / settings.machine.basissetloc
+
+        ctx = MDContext(settings)
 
         workdir = ctx.workdir / "calculations"
 
