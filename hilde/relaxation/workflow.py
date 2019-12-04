@@ -20,7 +20,7 @@ _calc_dirname = "calculation"
 _temp_geometry_filename = "geometry.in.next_step"
 
 
-def run_relaxation(ctx, timeout=None):
+def run_relaxation(ctx):
     """ high level function to run relaxation"""
 
     converged = run(ctx)
@@ -73,7 +73,7 @@ def run(ctx, backup_folder="backups"):
         if opt.nsteps == 0:
             metadata2file(ctx.metadata, trajectory)
 
-        for _, converged in enumerate(opt.irun(fmax=fmax)):
+        for ii, converged in enumerate(opt.irun(fmax=fmax)):
             if converged:
                 talk("Relaxation converged.", prefix=_prefix)
                 break
@@ -81,23 +81,24 @@ def run(ctx, backup_folder="backups"):
             forces = opt_atoms.get_forces()
             res_forces = (forces ** 2).sum(axis=1).max() ** 0.5
 
-            # # log
-            talk(f"Step {opt.nsteps} finished, log.", prefix=_prefix)
-            talk("clean atoms before logging", prefix=_prefix)
-            log_atoms = clean_atoms(atoms, decimals=ctx.decimals)
-            log_atoms.info.update({"nsteps": opt.nsteps})
+            # log if it's not the first step from a resumed relaxation
+            if not (ii == 0 and opt.nsteps > 0):
+                talk(f"Step {opt.nsteps} finished, log.", prefix=_prefix)
+                talk("clean atoms before logging", prefix=_prefix)
+                log_atoms = clean_atoms(atoms, decimals=ctx.decimals)
+                log_atoms.info.update({"nsteps": opt.nsteps})
 
-            step2file(log_atoms, atoms.calc, trajectory)
-            log_atoms.write(
-                workdir / _temp_geometry_filename,
-                format="aims",
-                scaled=True,
-                info_str=[
-                    f"Relaxed with BFGS, fmax={fmax} eV/AA",
-                    f"nsteps = {opt.nsteps}",
-                    f"residual force = {res_forces} eV/AA",
-                ],
-            )
+                step2file(log_atoms, atoms.calc, trajectory)
+                log_atoms.write(
+                    workdir / _temp_geometry_filename,
+                    format="aims",
+                    scaled=False,
+                    info_str=[
+                        f"Relaxed with BFGS, fmax={fmax} eV/AA",
+                        f"nsteps = {opt.nsteps}",
+                        f"residual force = {res_forces} eV/AA",
+                    ],
+                )
 
             if watchdog():
                 break

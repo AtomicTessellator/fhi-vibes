@@ -50,7 +50,7 @@ class RelaxationContext:
             self.workdir = Path(name).absolute()
 
         # workdir has to exist
-        Path(self.workdir).mkdir(exist_ok=True)
+        Path(self.workdir).mkdir(exist_ok=True, parents=True)
 
         if trajectory:
             self.trajectory = Path(trajectory)
@@ -69,8 +69,9 @@ class RelaxationContext:
 
     @workdir.setter
     def workdir(self, folder):
-        """set the working directory. Use a standard name if dir='auto'"""
+        """set and create the working directory. Use a standard name if dir='auto'"""
         self.settings.workdir = Path(folder)
+        self.workdir.mkdir(exist_ok=True, parents=True)
 
     @property
     def atoms(self):
@@ -149,12 +150,12 @@ class RelaxationContext:
 
     def resume(self):
         """resume from trajectory"""
-        prepare_from_trajectory(self.atoms, self.opt, self.trajectory)
+        return prepare_from_trajectory(self.atoms, self.opt, self.trajectory)
 
     def run(self, timeout=None):
         """run the context workflow"""
         self.resume()
-        run_relaxation(self, timeout=timeout)
+        run_relaxation(self)
 
 
 def prepare_from_trajectory(atoms, opt, trajectory):
@@ -169,6 +170,7 @@ def prepare_from_trajectory(atoms, opt, trajectory):
         assert "info" in last_atoms["atoms"]
         opt.nsteps = last_atoms["atoms"]["info"]["nsteps"]
 
+        atoms.set_cell(last_atoms["atoms"]["cell"])
         atoms.set_positions(last_atoms["atoms"]["positions"])
         talk(f"Resume relaxation from  {trajectory}", prefix=_prefix)
         return True
