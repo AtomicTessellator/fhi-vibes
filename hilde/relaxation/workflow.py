@@ -58,6 +58,9 @@ def run(ctx, backup_folder="backups"):
     opt.atoms = opt_atoms
     opt.initialize()
 
+    # is a filter used?
+    filter = len(atoms) < len(opt_atoms)
+
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
         calc_dir, mkdir=True
     ):
@@ -68,31 +71,47 @@ def run(ctx, backup_folder="backups"):
         if opt.nsteps == 0:
             metadata2file(ctx.metadata, trajectory)
 
+        talk(f"Start step {opt.nsteps}", prefix=_prefix)
         for ii, converged in enumerate(opt.irun(fmax=fmax)):
             if converged:
                 talk("Relaxation converged.", prefix=_prefix)
                 break
 
             forces = opt_atoms.get_forces()
-            res_forces = (forces ** 2).sum(axis=1).max() ** 0.5
+
+            # residual forces (and stress)
+            na = len(atoms)
+            res_forces = (forces[:na] ** 2).sum(axis=1).max() ** 0.5 * 1000
+            if filter:
+                res_stress = (forces[na:] ** 2).sum(axis=1).max() ** 0.5 * 1000
 
             # log if it's not the first step from a resumed relaxation
             if not (ii == 0 and opt.nsteps > 0):
-                talk(f"Step {opt.nsteps} finished, log.", prefix=_prefix)
+                talk(f"Step {opt.nsteps} finished.", prefix=_prefix)
+                talk(f".. residual force:  {res_forces:.3f} meV/AA", prefix=_prefix)
+                if filter:
+                    talk(f".. residual stress: {res_stress:.3f} meV/AA", prefix=_prefix)
+
                 talk("clean atoms before logging", prefix=_prefix)
                 log_atoms = clean_atoms(atoms, decimals=ctx.decimals)
                 log_atoms.info.update({"nsteps": opt.nsteps})
 
+                talk(f".. log", prefix=_prefix)
                 step2file(log_atoms, atoms.calc, trajectory)
+
+                info_str = [
+                    f"Relaxed with BFGS, fmax={fmax*1000:.3f} meV/AA",
+                    f"nsteps = {opt.nsteps}",
+                    f"residual force  = {res_forces:.6f} meV/AA",
+                ]
+                if filter:
+                    info_str.append(f"residual stress = {res_stress:.6f} meV/AA")
+
                 log_atoms.write(
                     workdir / _temp_geometry_filename,
                     format="aims",
                     scaled=False,
-                    info_str=[
-                        f"Relaxed with BFGS, fmax={fmax} eV/AA",
-                        f"nsteps = {opt.nsteps}",
-                        f"residual force = {res_forces} eV/AA",
-                    ],
+                    info_str=info_str,
                 )
 
             if watchdog():
