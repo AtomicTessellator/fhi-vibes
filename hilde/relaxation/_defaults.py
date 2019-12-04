@@ -13,7 +13,7 @@ defaults = adict(
         "logfile": "relaxation.log",
         "unit_cell": False,
         "fmax": 0.001,
-        "alpha": 25,
+        # "alpha": 25,
         "maxstep": 0.04,
         "decimals": 10,
     }
