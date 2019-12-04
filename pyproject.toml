@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hilde"
-version = "0.4.1.dev1"
+version = "0.4.2.dev1"
 description = "Haber Institute Lattice Dynamics Environment"
 authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>"]
 license = "ISC"

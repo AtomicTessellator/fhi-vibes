@@ -8,7 +8,7 @@ from ase import units
 
 # from hilde.fourier import compute_sed, get_frequencies, get_timestep
 from hilde.helpers.correlation import correlation
-from hilde.trajectory.dataarray import kappa_dims, stress_dims
+from hilde.trajectory.dataset import kappa_dims, stress_dims
 from . import Timer, talk
 
 

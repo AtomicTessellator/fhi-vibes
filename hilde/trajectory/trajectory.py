@@ -10,13 +10,13 @@ from hilde.helpers.hash import hash_atoms
 from hilde.helpers import warn, lazy_property
 from hilde.helpers.utils import progressbar
 from hilde.helpers.displacements import get_dR
-from hilde.anharmonicity_score import get_r2_per_sample, get_r2, get_r2_per_atom
+from hilde.anharmonicity_score import get_sigma
 from . import (
     io,
     heat_flux as hf,
     talk,
     Timer,
-    dataarray as xr,
+    dataset as xr,
     analysis as al,
     _prefix,
     _fc_key,
@@ -359,31 +359,20 @@ class Trajectory(list):
         return self.get_pressure()
 
     @property
-    def r2(self):
-        """return r2 per time step"""
+    def sigma(self):
+        """return sigma_A"""
         if self.forces_harmonic is not None:
             x = self.forces
             y = self.forces_harmonic
-            r2 = get_r2(x, y)
-            return r2
+            return get_sigma(x, y)
 
     @property
-    def r2_per_sample(self):
-        """return r2 per time step"""
+    def sigma_per_sample(self):
+        """return sigma_A per time step"""
         if self.forces_harmonic is not None:
             x = self.forces
             y = self.forces_harmonic
-            r2 = get_r2_per_sample(x, y)
-            return r2
-
-    @property
-    def r2_per_atom(self):
-        """return r2 per time step"""
-        if self.forces_harmonic is not None:
-            x = self.forces
-            y = self.forces_harmonic
-            r2 = get_r2_per_atom(x, y, self.reference_atoms)
-            return r2
+            return get_sigma(x, y, axis=(1, 2))
 
     @lazy_property
     def dataset(self):

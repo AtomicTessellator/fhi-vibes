@@ -4,7 +4,7 @@ import scipy.signal as sl
 import xarray as xr
 
 from hilde.trajectory import reader, Trajectory
-from hilde.trajectory.dataarray import get_velocities_data
+from hilde.trajectory.dataset import get_velocities_data
 from hilde.fourier import compute_sed, get_frequencies
 from hilde.helpers import Timer, talk
 

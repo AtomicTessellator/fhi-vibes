@@ -17,32 +17,27 @@ def _check_shape(f1, f2):
     )
 
 
-def get_r(in_f_data, in_f_model):
-    r"""Calculate Pearson coefficient between f_data and f_model
-
-    Refrence Website
-    https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+def get_sigma(f_data, f_model, assert_vanishing_mean=True, rtol=1e-5, axis=None):
+    """Calculate RMSE / STD
 
     Args:
-        in_f_data: input data
-        in_f_model: input model data
-
-    Returns:
-        float: Pearson coefficient
+        f_data (np.ndarray): input data
+        f_model (np.ndarray): input model data
+        assert_vanishing_mean (bool): make sure that the means vanish
+        rtol (float): assert f.mean() / f.std() < rtol
+        axis (tuple): axis along which mean and std are taken
     """
+    f1 = np.asarray(f_data)
+    f2 = np.asarray(f_model)
+    _check_shape(f1, f2)
 
-    f_data = np.ravel(in_f_data)
-    f_model = np.ravel(in_f_model)
+    if assert_vanishing_mean:
+        assert np.all(f1.mean(axis=axis) < rtol * f1.std(axis=axis)), f1.mean(axis=axis)
 
-    _check_shape(f_data, f_model)
+    rmse = (f1 - f2).std(axis=axis)
+    std = f1.std(axis=axis)
 
-    f_data_mean = np.mean(f_data, axis=0)
-    f_model_mean = np.mean(f_model, axis=0)
-    cov = (f_data - f_data_mean) @ (f_model - f_model_mean)
-    sigma1 = np.sqrt((f_data - f_data_mean) @ (f_data - f_data_mean))
-    sigma2 = np.sqrt((f_model - f_model_mean) @ (f_model - f_model_mean))
-
-    return cov / sigma1 / sigma2
+    return rmse / std
 
 
 def get_r2(in_f_data, in_f_model, mean=True, silent=False):
@@ -155,34 +150,6 @@ def get_r2_per_atom(
     return ret
 
 
-def get_r2_MAE(in_f_data, in_f_model):
-    r"""Calculate  1 - MAE/MA
-
-    "r2 (RMA)": 1 - (1 - r2a) ** 2,
-
-    Args:
-        in_f_data: input data
-        in_f_model: input model data
-
-    Returns:
-        float: Coefficient of Determination
-    """
-
-    f_data = np.ravel(in_f_data)
-    f_model = np.ravel(in_f_model)
-
-    _check_shape(f_data, f_model)
-
-    Sres = np.mean(abs(f_data - f_model))
-    Stot = np.mean(abs(f_data))
-
-    MAE = Sres / Stot
-
-    r2a = 1 - MAE
-
-    return 1 - (1 - r2a) ** 2
-
-
 def get_r2_per_direction(f_data, f_model):
     """compute r2 for each Cartesian direction"""
     assert f_data.shape[-1] == 3
@@ -194,44 +161,7 @@ def get_r2_per_direction(f_data, f_model):
     return r2_direction
 
 
-def get_forces_from_trajectory(trajectory, ref_structure=None, force_constants=None):
-    """get forces from trajectory, consider to use `trajectory.set_forces_harmonic`
-
-    Args:
-        trajectory: list of Atoms objects with forces
-        ref_structure: reference Atoms object
-        force_constants: force constants in [3N, 3N] shape
-
-    Returns:
-        forces_dft: DFT forces in [N_steps, 3N] shape
-        forces_harmonic: harmonic forces in [N_steps, 3N] shape
-    """
-
-    f_ha = get_forces_harmonic
-
-    forces_dft = [a.get_forces().flatten() for a in trajectory]
-    forces_ha = [f_ha(a, ref_structure, force_constants) for a in trajectory]
-
-    return np.array(forces_dft), np.array(forces_ha)
-
-
-def get_forces_harmonic(sc, ref_structure, force_constants):
-    """helper function: compute forces from force_constants
-
-    Args:
-        sc: The distorted supercell
-        ref_structure: The undistorted structure
-        force_constants: The force constant matrix
-
-    Returns:
-        The harmonic forces
-    """
-    return -force_constants @ get_dR(sc, ref_structure).flatten()
-
-
-def get_dataframe(
-    dataset, per_sample=False, per_direction=False, positive=False, by_symmetry=False
-):
+def get_dataframe(dataset, per_sample=False, per_direction=False, by_symmetry=False):
     """return anharmonicity dataframe for xarray.Dataset DS"""
     from pandas import DataFrame
     from hilde.helpers.converters import json2atoms
