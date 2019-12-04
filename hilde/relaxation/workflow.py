@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from ase.constraints import ExpCellFilter
 from ase.calculators.socketio import SocketIOCalculator
 
 from hilde.settings import Settings
@@ -55,11 +54,7 @@ def run(ctx, backup_folder="backups"):
 
     atoms.calc = calculator
 
-    if ctx.unit_cell:
-        opt_atoms = ExpCellFilter(atoms)
-    else:
-        opt_atoms = atoms
-
+    opt_atoms = ctx.opt_atoms
     opt.atoms = opt_atoms
     opt.initialize()
 

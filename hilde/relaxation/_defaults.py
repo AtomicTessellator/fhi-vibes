@@ -15,6 +15,9 @@ defaults = adict(
         "fmax": 0.001,
         # "alpha": 25,
         "maxstep": 0.04,
+        "hydrostatic_strain": False,
+        "constant_volume": False,
+        "scalar_pressure": 0.0,
         "decimals": 10,
     }
 )

@@ -4,3 +4,6 @@ file =             Al.in
 [relaxation]
 driver =      BFGS
 fmax =        0.001
+unit_cell =   True
+scalar_pressure = 0.01
+hydrostatic_strain = True
