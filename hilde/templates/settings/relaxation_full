@@ -1,0 +1,19 @@
+[geometry]
+file =             geometry.in
+
+[control]
+xc =               pw-lda
+k_grid =           [2, 2, 2]
+
+[basissets]
+default = light
+
+[socketio]
+port = 12345
+
+[relaxation]
+driver =      BFGS
+fmax =        0.001
+unit_cell =   True
+maxstep =     0.04
+alpha =       25

@@ -1,0 +1,19 @@
+[geometry]
+file =             geometry.in
+
+[control]
+xc =               pw-lda
+k_grid =           [2, 2, 2]
+sc_accuracy_rho =  1e-5
+use_symmetric_forces = True
+
+[basissets]
+default = light
+
+[socketio]
+port = 12345
+
+[relaxation]
+driver =      BFGS
+fmax =        0.01
+unit_cell =   True

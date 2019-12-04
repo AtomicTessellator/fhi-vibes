@@ -58,6 +58,15 @@ def md_input(obj, filename):
     write_input(obj, "md", filename)
 
 
+@template.command("relaxation")
+@click.argument("filename", default="relaxation.in")
+@click.pass_obj
+def relaxation_input(obj, filename):
+    """provide template relaxation.in for relaxation workflow."""
+
+    write_input(obj, "relaxation", filename)
+
+
 @template.command("configuration")
 @click.argument("filename", default="hilderc")
 @click.pass_obj
