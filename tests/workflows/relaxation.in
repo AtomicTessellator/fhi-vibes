@@ -1,0 +1,6 @@
+[geometry]
+file =             Al.in
+
+[relaxation]
+driver =      BFGS
+fmax =        0.001

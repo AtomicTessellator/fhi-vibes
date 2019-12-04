@@ -4,7 +4,7 @@ from hilde.helpers.attribute_dict import AttributeDict as adict
 
 name = "relaxation"
 
-mandatory_base = ["machine", "control", "geometry", name]
+mandatory_base = ["machine", "geometry", name]
 mandatory_task = ["driver", "fmax"]
 
 defaults = adict(

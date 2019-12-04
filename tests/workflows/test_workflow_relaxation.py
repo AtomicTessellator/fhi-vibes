@@ -13,13 +13,14 @@ from hilde.relaxation.context import RelaxationContext
 parent = Path(__file__).parent
 workdir = parent / "relaxation"
 logfile = workdir / "relaxation.log"
+settings_file = parent / "relaxation.in"
 ref_structure = read(parent / ".Al.in.ref", format="aims")
 
 
 def test_relaxation(workdir=workdir):
     with cwd(parent):
 
-        settings = Settings(settings_file="relaxation.in")
+        settings = Settings(settings_file=settings_file)
 
         if workdir.exists():
             shutil.rmtree(workdir)
