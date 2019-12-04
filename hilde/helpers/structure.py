@@ -13,6 +13,7 @@ def clean_atoms(input_atoms, align=False, decimals=10):
     atoms = input_atoms.copy()
 
     atoms.cell = np.asarray(atoms.cell).round(decimals=decimals)
-    atoms.positions = np.asarray(atoms.positions).round(decimals=decimals)
+    spos = atoms.get_scaled_positions(wrap=False)
+    atoms.set_scaled_positions(np.asarray(spos).round(decimals=decimals))
 
     return atoms
