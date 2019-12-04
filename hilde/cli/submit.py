@@ -53,3 +53,12 @@ def md_run(obj, settings):
     """submit an MD simulation from SETTINS (default: md.in)"""
 
     _start(settings, "md")
+
+
+@submit.command("relaxation")
+@click.argument("settings", default="relaxation.in", type=paths)
+@click.pass_obj
+def relaxation_run(obj, settings):
+    """submit an relaxation from SETTINS (default: relaxation.in)"""
+
+    _start(settings, "relaxation")
