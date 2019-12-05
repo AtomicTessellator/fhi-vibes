@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "vibes"
 version = "0.4.2.dev1"
-description = "Haber Institute Lattice Dynamics Environment"
-authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>"]
+description = "Fritz Haber Institute Vibrational Simulations"
+authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
 license = "ISC"
 readme = "README.md"
-repository = "https://gitlab.com/flokno/vibes"
+repository = "https://gitlab.com/flokno/hilde"
 
 keywords = ['physics']
 

@@ -1,4 +1,4 @@
-image: registry.gitlab.com/flokno/vibes:default
+image: registry.gitlab.com/flokno/hilde:vibes
 
 before_script:
   - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
