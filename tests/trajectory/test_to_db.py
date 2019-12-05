@@ -2,8 +2,8 @@
 # coding: utf-8
 
 from pathlib import Path
-from hilde.trajectory import reader
-from hilde.helpers.hash import hash_atoms, hash_atoms_and_calc
+from vibes.trajectory import reader
+from vibes.helpers.hash import hash_atoms, hash_atoms_and_calc
 from ase.db import connect
 
 parent = Path(__file__).parent

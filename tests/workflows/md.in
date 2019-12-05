@@ -21,7 +21,7 @@ maxsteps =    2
 workdir =     md_test
 
 [restart]
-command = hilde run md
+command = vibes run md
 
 [machine]
 basissetloc = species_defaults

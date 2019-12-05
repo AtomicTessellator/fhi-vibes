@@ -5,7 +5,7 @@ from argparse import ArgumentParser as argpars
 from pathlib import Path
 import numpy as np
 
-from hilde.helpers.write_aims_sym_constraints import AtomInputs, distort_atom_default, write_sym_constraints_geo, write_sym_xyz, get_coord_i_default
+from vibes.helpers.write_aims_sym_constraints import AtomInputs, distort_atom_default, write_sym_constraints_geo, write_sym_xyz, get_coord_i_default
 
 parser = argpars(description='What to do')
 parser.add_argument('--in_file', type=str, default="", help='input geometry file')

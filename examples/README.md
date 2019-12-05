@@ -1,7 +1,7 @@
-hilde run
+vibes run
 ===
 
-type `hilde run aims`, `hilde run phonopy`, or `hilde run md` to run one of the example input files
+type `vibes run aims`, `vibes run phonopy`, or `vibes run md` to run one of the example input files
 
 - `aims.in`
 

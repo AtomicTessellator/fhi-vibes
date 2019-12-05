@@ -1,7 +1,7 @@
 from ase.io import read
 from ase.calculators.lammpsrun import LAMMPS
-from hilde.helpers.paths import cwd
-from hilde.tasks.calculate import calculate
+from vibes.helpers.paths import cwd
+from vibes.tasks.calculate import calculate
 from ase.calculators.socketio import SocketIOCalculator, PySocketIO
 import os
 
@@ -10,7 +10,7 @@ import os
 lmp_path = os.getenv("LAMMPS_PATH")
 
 # Silicon
-# this is what hilde.templates.lammps.setup_si does
+# this is what vibes.templates.lammps.setup_si does
 def setup_si():
     atoms = read('si.in', 0, 'aims')
     potential = os.path.join(lmp_path, "potentials", "Si.tersoff")
@@ -22,7 +22,7 @@ def setup_si():
     return atoms, parameters, files
 
 # GaN
-# this is what hilde.templates.lammps.setup_gan does
+# this is what vibes.templates.lammps.setup_gan does
 def setup_gan():
     atoms = read('gan.in', 0, 'aims')
     potential = os.path.join(lmp_path, "potentials", "GaN.tersoff")

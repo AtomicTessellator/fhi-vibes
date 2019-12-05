@@ -11,8 +11,8 @@
 testcases/
 data/*
 
-# hilde config file
-hilde.cfg
+# vibes config file
+vibes.cfg
 
 # fireworks config file
 fireworks.cfg

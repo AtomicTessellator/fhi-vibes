@@ -3,9 +3,9 @@
 import shutil
 from pathlib import Path
 import pytest
-from hilde.settings import Settings
-from hilde.helpers import cwd
-from hilde.molecular_dynamics.context import MDContext
+from vibes.settings import Settings
+from vibes.helpers import cwd
+from vibes.molecular_dynamics.context import MDContext
 
 
 parent = Path(__file__).parent

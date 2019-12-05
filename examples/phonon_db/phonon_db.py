@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from hilde.phonon_db.database_interface import traj_to_database, from_database
-from hilde.phonon_db.phonon_db import connect
-from hilde.phonopy.postprocess import postprocess
+from vibes.phonon_db.database_interface import traj_to_database, from_database
+from vibes.phonon_db.phonon_db import connect
+from vibes.phonopy.postprocess import postprocess
 
 db_path = "test.db"
 

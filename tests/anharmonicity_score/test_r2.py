@@ -3,9 +3,9 @@
 from pathlib import Path
 import numpy as np
 
-from hilde.trajectory import reader
-from hilde.tdep.wrapper import parse_tdep_remapped_forceconstant
-import hilde.anharmonicity_score as score
+from vibes.trajectory import reader
+from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
+import vibes.anharmonicity_score as score
 
 
 parent = Path(__file__).parent

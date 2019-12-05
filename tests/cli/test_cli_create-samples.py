@@ -9,7 +9,7 @@ from ase.io import read
 parent = Path(__file__).parent
 
 
-base_cmd = "hilde utils create-samples geometry.in.supercell"
+base_cmd = "vibes utils create-samples geometry.in.supercell"
 
 template = (
     base_cmd

@@ -4,7 +4,7 @@ from ase.optimize import BFGS, FIRE
 from ase.optimize.gpmin.gpmin import GPMin
 from ase.build import make_supercell
 from ase.calculators.socketio import SocketIOCalculator
-from hilde.templates.aims import setup_aims
+from vibes.templates.aims import setup_aims
 
 atoms = read("../si.in", 0, "aims")
 

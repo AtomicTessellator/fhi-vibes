@@ -1,9 +1,9 @@
 from pathlib import Path
 import numpy as np
 
-from hilde.helpers.pickle import pread
-from hilde.phonopy.wrapper import get_dos
-from hilde.phonopy.wrapper import get_bandstructure
+from vibes.helpers.pickle import pread
+from vibes.phonopy.wrapper import get_dos
+from vibes.phonopy.wrapper import get_bandstructure
 
 parent = Path(__file__).parent
 

@@ -1,10 +1,10 @@
-""" use the hilde phonopy workflow """
+""" use the vibes phonopy workflow """
 
 
 def main():
     from ase.build import bulk
     from ase.calculators.emt import EMT
-    from hilde.phono3py import run_phono3py
+    from vibes.phono3py import run_phono3py
 
     atoms = bulk("Al")
 

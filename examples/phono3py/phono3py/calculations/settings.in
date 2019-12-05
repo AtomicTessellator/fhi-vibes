@@ -1,7 +1,7 @@
 # configfile written at 2019/01/30 18:54:06
 
 [common]
-home_dir:                      /home/knoop/local/hilde
+home_dir:                      /home/knoop/local/vibes
 email:                         knoop@fhi-berlin.mpg.de
 
 [machine]

@@ -9,7 +9,7 @@ _filename = "frequencies.dat"
 parent = Path(__file__).parent
 
 
-cmd = r"""hilde utils fc frequencies"""
+cmd = r"""vibes utils fc frequencies"""
 
 
 def test_run_cmd():

@@ -4,11 +4,11 @@ from time import time
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from hilde.parsers import read_structure
-from hilde.helpers.supercell import find_cubic_cell, make_supercell
-from hilde.phonopy import wrapper as ph
-from hilde.tasks.calculate import calculate_multiple
-from hilde.templates.lammps import setup_lammps_si
+from vibes.parsers import read_structure
+from vibes.helpers.supercell import find_cubic_cell, make_supercell
+from vibes.phonopy import wrapper as ph
+from vibes.tasks.calculate import calculate_multiple
+from vibes.templates.lammps import setup_lammps_si
 
 def get_smatrix(atoms, n_target=64):
     """ Return the supercell matrix for atoms with target size """

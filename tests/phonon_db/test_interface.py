@@ -6,8 +6,8 @@ def test_phonon_db_interface():
 
     import numpy as np
 
-    from hilde.phonon_db.database_interface import traj_to_database, from_database
-    from hilde.phonopy.postprocess import postprocess
+    from vibes.phonon_db.database_interface import traj_to_database, from_database
+    from vibes.phonopy.postprocess import postprocess
 
     db_path = Path("test.json")
 

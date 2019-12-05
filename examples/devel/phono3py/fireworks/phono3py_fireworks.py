@@ -5,10 +5,10 @@ from fireworks.fw_config import LAUNCHPAD_LOC
 
 from pathlib import Path
 
-from hilde import DEFAULT_CONFIG_FILE
-from hilde.fireworks.launchpad import LaunchPadHilde
-from hilde.settings import Settings
-from hilde.fireworks.workflows.workflow_generator import generate_workflow
+from vibes import DEFAULT_CONFIG_FILE
+from vibes.fireworks.launchpad import LaunchPadHilde
+from vibes.settings import Settings
+from vibes.fireworks.workflows.workflow_generator import generate_workflow
 
 settings = Settings()
 settings.phono3py.workdir = str(Path(settings.phono3py.workdir).absolute())

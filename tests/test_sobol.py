@@ -1,5 +1,5 @@
 import numpy as np
-from hilde.helpers.sobol import RandomState
+from vibes.helpers.sobol import RandomState
 
 
 def test_sobol():

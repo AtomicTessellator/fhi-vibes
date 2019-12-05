@@ -6,11 +6,11 @@ from ase import units
 from ase.calculators.lammpsrun import LAMMPS
 from ase.md.verlet import VelocityVerlet
 
-from hilde.io import read
-from hilde.tdep.wrapper import parse_tdep_forceconstant
-from hilde.helpers import progressbar
+from vibes.io import read
+from vibes.tdep.wrapper import parse_tdep_forceconstant
+from vibes.helpers import progressbar
 
-from hilde.molecular_dynamics.utils import FCCalculator, MDLogger
+from vibes.molecular_dynamics.utils import FCCalculator, MDLogger
 
 
 def lammps_si_tersoff_calculator(tmp_dir="./lammps"):

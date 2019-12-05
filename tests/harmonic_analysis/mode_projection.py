@@ -3,26 +3,26 @@
 import numpy as np
 import scipy.linalg as la
 
-from hilde.io import read
+from vibes.io import read
 
-# from hilde.helpers.supercell import map_indices
-from hilde.helpers.lattice_points import (
+# from vibes.helpers.supercell import map_indices
+from vibes.helpers.lattice_points import (
     map_I_to_iL,
     get_lattice_points,
     get_commensurate_q_points,
 )
-from hilde.harmonic_analysis import HarmonicAnalysis
-from hilde.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
-from hilde.helpers.displacements import get_U, get_dUdt
-from hilde.harmonic_analysis.normal_modes import projector, u_s_to_u_I, get_A_qst2
-from hilde.trajectory import reader
-from hilde.tdep.wrapper import (
+from vibes.harmonic_analysis import HarmonicAnalysis
+from vibes.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
+from vibes.helpers.displacements import get_U, get_dUdt
+from vibes.harmonic_analysis.normal_modes import projector, u_s_to_u_I, get_A_qst2
+from vibes.trajectory import reader
+from vibes.tdep.wrapper import (
     parse_tdep_remapped_forceconstant,
     parse_tdep_forceconstant,
 )
 
-from hilde.konstanten import kB
-from hilde.helpers import Timer
+from vibes.konstanten import kB
+from vibes.helpers import Timer
 
 from harmonic_md import run
 

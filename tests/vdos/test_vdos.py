@@ -5,10 +5,10 @@ import numpy as np
 import scipy.signal as sl
 
 from ase.io import read
-from hilde.trajectory import reader
-from hilde.green_kubo.velocities import get_vdos
-from hilde.tdep.wrapper import parse_tdep_forceconstant
-from hilde.harmonic_analysis import dynamical_matrix as dm
+from vibes.trajectory import reader
+from vibes.green_kubo.velocities import get_vdos
+from vibes.tdep.wrapper import parse_tdep_forceconstant
+from vibes.harmonic_analysis import dynamical_matrix as dm
 
 parent = Path(__file__).parent
 

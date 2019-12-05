@@ -3,18 +3,18 @@ from glob import glob
 from pathlib import Path
 import numpy as np
 
-from hilde.helpers.brillouinzone import get_bands, get_special_points
-from hilde.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
-from hilde.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
-from hilde.materials_fp.material_fingerprint import scalar_product
-from hilde.materials_fp.material_fingerprint import to_dict
-from hilde.materials_fp.material_fingerprint import DOSFingerprint
-from hilde.materials_fp.material_fingerprint import BandStructureFingerprint
-from hilde.parsers import read_structure
-from hilde.phonopy import wrapper as ph
-from hilde.settings import Settings
-from hilde.tasks.calculate import calculate_multiple
-from hilde.templates.aims import setup_aims
+from vibes.helpers.brillouinzone import get_bands, get_special_points
+from vibes.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
+from vibes.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
+from vibes.materials_fp.material_fingerprint import scalar_product
+from vibes.materials_fp.material_fingerprint import to_dict
+from vibes.materials_fp.material_fingerprint import DOSFingerprint
+from vibes.materials_fp.material_fingerprint import BandStructureFingerprint
+from vibes.parsers import read_structure
+from vibes.phonopy import wrapper as ph
+from vibes.settings import Settings
+from vibes.tasks.calculate import calculate_multiple
+from vibes.templates.aims import setup_aims
 
 def make_workdir(smat, volume):
     '''Function that creates a working directory from the smat and cell volume'''
@@ -22,7 +22,7 @@ def make_workdir(smat, volume):
     workdirec.mkdir(exist_ok=True)
     return workdirec
 
-settings = Settings('../../hilde.cfg')
+settings = Settings('../../vibes.cfg')
 aims_settings = {
     'species_dir': str(Path(settings.machine.basissetloc) / 'light'),
     'output_level': 'MD_light',

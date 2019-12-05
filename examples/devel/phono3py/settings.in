@@ -43,4 +43,4 @@ njobs_block:         500
 [launch_params]
 nlaunches:           0
 sleep_time:          60
-tasks2queue:         ['hilde.relaxation.bfgs.relax', 'hilde.phonopy.workflow.phonopy', 'hilde.k_grid.converge_kgrid.converge_kgrid', 'hilde.tasks.calculate.calculate']
+tasks2queue:         ['vibes.relaxation.bfgs.relax', 'vibes.phonopy.workflow.phonopy', 'vibes.k_grid.converge_kgrid.converge_kgrid', 'vibes.tasks.calculate.calculate']
