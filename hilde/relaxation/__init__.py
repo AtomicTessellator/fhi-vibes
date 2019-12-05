@@ -13,7 +13,7 @@ def metadata2dict(atoms, calc, opt):
     """ convert metadata information to plain dict """
     opt_dict = opt.todict()
 
-    return {"geometry_optimization": opt_dict, **input2dict(atoms, calc)}
+    return {"relaxation": opt_dict, **input2dict(atoms, calc)}
 
 
 def run_relaxation(**kwargs):

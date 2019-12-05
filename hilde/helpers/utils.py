@@ -104,7 +104,7 @@ class Timer:
             signal.signal(signal.SIGALRM, self.raise_timeout)
             signal.alarm(timeout)
 
-    def __call__(self, info_str=""):
+    def __call__(self, info_str="", reset=False):
         """print how much time elapsed, optionally print `info_str`"""
         time_str = f"{time.time() - self.time:.3f}s"
 
@@ -116,6 +116,9 @@ class Timer:
         # stop signal alarm if it was initialized
         if self.timeout:
             signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+        if reset:
+            self.time = time.time()
 
         return float(time_str[:-1])
 

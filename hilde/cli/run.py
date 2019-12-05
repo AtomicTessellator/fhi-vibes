@@ -62,7 +62,7 @@ def phonopy_run(obj, settings, workdir, dry):
 @click.option("--timeout", default=None, type=int, hidden=True)
 @click.pass_obj
 def md_run(obj, settings, workdir, timeout):
-    """run an MD simulation from SETTINS (default: md.in)"""
+    """run an MD simulation from SETTINGS (default: md.in)"""
     from hilde.settings import Settings
     from hilde.molecular_dynamics.context import MDContext
 
@@ -70,5 +70,23 @@ def md_run(obj, settings, workdir, timeout):
 
     if obj.verbose > 0:
         talk(f"run MD workflow with settings from {settings}\n", prefix=_prefix)
+
+    ctx.run(timeout=timeout)
+
+
+@run.command("relaxation")
+@click.argument("settings", default="relaxation.in", type=paths)
+@click.option("--workdir", help="working directory")
+@click.option("--timeout", default=None, type=int, hidden=True)
+@click.pass_obj
+def relaxation_run(obj, settings, workdir, timeout):
+    """run an relaxation from SETTINGS (default: relaxation.in)"""
+    from hilde.settings import Settings
+    from hilde.relaxation.context import RelaxationContext
+
+    ctx = RelaxationContext(Settings(settings_file=settings), workdir=workdir)
+
+    if obj.verbose > 0:
+        talk(f"run relaxation workflow with settings from {settings}\n", prefix=_prefix)
 
     ctx.run(timeout=timeout)
