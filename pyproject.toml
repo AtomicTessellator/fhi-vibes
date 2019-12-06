@@ -13,8 +13,8 @@ build = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.6, <4.0"
-numpy = "^1.16"
-scipy = "^1.2.1"
+numpy = "^1.11"
+scipy = "^1.1.1"
 matplotlib = "^3.1"
 son = "^0.3.2"
 spglib = "^1.12"
@@ -32,8 +32,6 @@ fabric = {version = "^2.4",optional = true}
 paramiko = {version = "^2.4",optional = true}
 psycopg2 = {version="^2.8.0", optional=true}
 click_completion = {git = "https://github.com/flokno/click-completion.git", branch="fish_complete_files"}
-seaborn = {version = "^0.9.0",optional = true}
-jupyter = {version = "^1.0",optional = true}
 xarray = "^0.12"
 netCDF4 = "^1.5"
 jinja2 = "^2.10"
@@ -46,7 +44,6 @@ fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
 phono3py = ["phono3py"]
 hiphive = ["hiphive"]
 postgresql = ["psycopg2"]
-tutorial = ["seaborn", "jupyter"]
 
 [tool.poetry.dev-dependencies]
 black = "^18.9b0"
@@ -59,10 +56,6 @@ vibes = 'vibes.cli:cli'
 
 [tool.black]
 target-version = ['py37']
-
-[tool.dephell.main]
-from = {format = "poetry", path = "pyproject.toml"}
-to = {format = "setuppy", path = "setup.py"}
 
 [build-system]
 requires = ["poetry>=0.12", "numpy"]

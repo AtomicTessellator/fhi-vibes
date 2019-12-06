@@ -13,7 +13,12 @@ Logic:
 from vibes.helpers import talk as _talk, Timer
 
 _prefix = "trajectory"
-_fc_key = 'force_constants'
+_fc_key = "force_constants"
+
+key_reference_atoms = "reference atoms"
+key_reference_primitive = "reference primitive atoms"
+key_reference_positions = "reference positions"
+
 
 Timer.prefix = _prefix
 
