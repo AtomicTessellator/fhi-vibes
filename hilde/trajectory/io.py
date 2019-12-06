@@ -5,15 +5,24 @@ import shutil
 import json
 from pathlib import Path
 import numpy as np
-from ase import units
+import xarray as xr
+from ase import units, Atoms
+from ase.calculators.singlepoint import SinglePointCalculator
 from ase.calculators.calculator import PropertyNotImplementedError
 from hilde import son
 from hilde import __version__ as version
 from hilde import io
 from hilde.helpers.converters import dict2atoms, results2dict, dict2json as dumper
-from hilde.helpers import Timer, warn, talk
+from hilde.helpers import warn
 from hilde.helpers.utils import progressbar
 from hilde.trajectory.trajectory import Trajectory
+from . import (
+    talk,
+    Timer,
+    key_reference_atoms,
+    key_reference_positions,
+    key_reference_primitive,
+)
 
 
 def step2file(atoms, calc=None, file="trajectory.son", metadata={}):
@@ -56,15 +65,14 @@ def metadata2file(metadata, file="metadata.son"):
     son.dump({**metadata, "hilde": {"version": version}}, file, is_metadata=True)
 
 
-def write(trajectory, file="trajectory.son", netcdf=False):
+def write(trajectory, file="trajectory.son"):
     """Write to son file
 
     Args:
-        file: path to trajecotry son file
-        netcdf: write dataset to netDCF file instead
+        file: path to trajecotry son or netcdf file
     """
-    if netcdf:
-        file = Path(file).stem + ".nc"
+    if Path(file).suffix == ".nc":
+        netcdf = True
 
     timer = Timer(f"Write trajectory to {file}")
 
@@ -114,6 +122,9 @@ def reader(
         metadata: The metadata for the trajectory
     """
     timer = Timer(f"Parse trajectory")
+
+    if Path(file).suffix == ".nc":
+        return read_netcdf(file)
 
     try:
         metadata, pre_trajectory = son.load(file, verbose=verbose)
@@ -299,3 +310,57 @@ def to_db(trajectory, database):
         db.metadata = trajectory.metadata
 
     timer("done")
+
+
+def read_netcdf(file="trajectory.nc"):
+    """read `trajectory.nc` and return Trajectory"""
+    DS = xr.open_dataset(file)
+    attrs = DS.attrs
+
+    # check mandatory keys
+    assert key_reference_atoms in attrs
+    assert "positions" in DS
+    assert "velocities" in DS
+    assert "forces" in DS
+    assert "potential_energy" in DS
+
+    atoms_dict = json.loads(attrs[key_reference_atoms])
+
+    # popping `velocities` is obsolete if
+    # https://gitlab.com/ase/ase/merge_requests/1563
+    # is accepted
+    velocities = atoms_dict.pop("velocities", None)
+
+    ref_atoms = Atoms(**atoms_dict)
+
+    if velocities is not None:
+        ref_atoms.set_velocities(velocities)
+
+    positions = DS.positions.data
+    velocities = DS.velocities.data
+    forces = DS.forces.data
+    potential_energy = DS.potential_energy.data
+
+    if "stress" in DS:
+        stress = DS.stress.data
+    else:
+        stress = len(positions) * [None]
+
+    traj = []
+    for p, v, f, e, s in zip(positions, velocities, forces, potential_energy, stress):
+        atoms = ref_atoms.copy()
+        atoms.set_positions(p)
+        atoms.set_velocities(v)
+
+        results = {"energy": e, "forces": f}
+        if s is not None:
+            results.update({"stress": s})
+
+        calc = SinglePointCalculator(atoms, **results)
+        atoms.calc = calc
+
+        traj.append(atoms)
+
+    trajectory = Trajectory(traj, metadata=attrs)
+
+    return trajectory

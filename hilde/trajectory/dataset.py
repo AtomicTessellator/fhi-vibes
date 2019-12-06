@@ -6,7 +6,12 @@ from hilde.helpers import warn
 from hilde.helpers.converters import atoms2json
 from hilde.structure.misc import get_sysname
 from .utils import clean_pressure
-from . import Timer
+from . import (
+    Timer,
+    key_reference_atoms,
+    key_reference_positions,
+    key_reference_primitive,
+)
 
 time_dims = "time"
 vec_dims = [time_dims, "I", "a"]
@@ -29,17 +34,22 @@ def _metadata(trajectory, dct=None):
         "time unit": "fs",
         "timestep": trajectory.timestep,
         "nsteps": len(trajectory) - 1,
-        "volume": trajectory.volume,
         "symbols": trajectory.symbols,
         "masses": trajectory.masses,
-        "reference atoms": atoms2json(trajectory.reference_atoms, reduce=False),
+        key_reference_atoms: atoms2json(trajectory.reference_atoms, reduce=False),
         "average atoms": atoms2json(trajectory.average_atoms, reduce=False),
-        "reference positions": trajectory.ref_positions.flatten(),
+        key_reference_positions: trajectory.ref_positions.flatten(),
     }
+
+    # handle non-periodic systems
+    try:
+        attrs.update({"volume": trajectory.volume})
+    except ValueError:
+        pass
 
     if trajectory.primitive:
         rep = atoms2json(trajectory.primitive, reduce=False)
-        prim_attrs = {"reference primitive atoms": rep}
+        prim_attrs = {key_reference_primitive: rep}
         attrs.update(prim_attrs)
 
     if trajectory.force_constants_remapped is not None:

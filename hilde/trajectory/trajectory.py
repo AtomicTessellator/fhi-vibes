@@ -437,14 +437,13 @@ class Trajectory(list):
 
         timer("velocities and positions cleaned from drift")
 
-    def write(self, file="trajectory.son", netcdf=False):
-        """Write to son file
+    def write(self, file="trajectory.son"):
+        """Write to son or nc file
 
         Args:
-            file: path to trajecotry son file
-            netcdf: write dataset to netDCF file instead
+            file: path to trajecotry son or nc file
         """
-        io.write(self, file=file, netcdf=netcdf)
+        io.write(self, file=file)
 
     def to_xyz(self, file="positions.xyz"):
         """Write positions to simple xyz file for e.g. viewing with VMD
