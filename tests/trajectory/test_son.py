@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from pathlib import Path
-from hilde import son
+from vibes import son
 
 parent = Path(__file__).parent
 new_trajectory = parent / "test.son"

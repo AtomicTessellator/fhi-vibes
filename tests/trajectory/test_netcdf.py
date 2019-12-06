@@ -3,7 +3,7 @@
 
 from pathlib import Path
 import numpy as np
-from hilde.trajectory import Trajectory
+from vibes.trajectory import Trajectory
 
 parent = Path(__file__).parent
 

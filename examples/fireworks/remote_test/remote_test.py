@@ -6,14 +6,14 @@ from ase.build import bulk
 
 from fireworks import FWorker, Workflow
 
-from hilde.fireworks.combined_launcher import rapidfire
-from hilde.fireworks.launchpad import LaunchPadHilde
-from hilde.fireworks.workflows.workflow_generator import generate_firework
-from hilde.settings import Settings
-from hilde.templates.aims import setup_aims
-from hilde.tasks.calculate import calculate as hilde_calc
-from hilde.fireworks.tasks.fw_out.general import fireworks_no_mods_gen_function
-from hilde.fireworks.tasks.task_spec import TaskSpec
+from vibes.fireworks.combined_launcher import rapidfire
+from vibes.fireworks.launchpad import LaunchPadHilde
+from vibes.fireworks.workflows.workflow_generator import generate_firework
+from vibes.settings import Settings
+from vibes.templates.aims import setup_aims
+from vibes.tasks.calculate import calculate as vibes_calc
+from vibes.fireworks.tasks.fw_out.general import fireworks_no_mods_gen_function
+from vibes.fireworks.tasks.task_spec import TaskSpec
 
 
 def print_message(message):
@@ -48,7 +48,7 @@ fw = generate_firework(
     atoms=Si,
     calc=Si.calc,
     fw_settings=fw_settings,
-    func=hilde_calc,
+    func=vibes_calc,
     func_fw_out=fireworks_no_mods_gen_function,
     func_kwargs={},
 )

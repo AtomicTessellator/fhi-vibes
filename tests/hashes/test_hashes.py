@@ -1,8 +1,8 @@
 from pathlib import Path
 from ase.build import bulk
-from hilde.settings import Settings
-from hilde.aims.context import AimsContext
-from hilde.helpers.hash import hash_atoms, hash_atoms_and_calc
+from vibes.settings import Settings
+from vibes.aims.context import AimsContext
+from vibes.helpers.hash import hash_atoms, hash_atoms_and_calc
 
 parent = Path(__file__).parent
 

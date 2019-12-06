@@ -2,10 +2,10 @@
 from numpy.distutils.core import setup, Extension
 
 ext = Extension(
-    name="hilde.helpers.supercell.supercell",
+    name="vibes.helpers.supercell.supercell",
     sources=[
-        "hilde/helpers/supercell/linalg.f90",
-        "hilde/helpers/supercell/supercell.f90",
+        "vibes/helpers/supercell/linalg.f90",
+        "vibes/helpers/supercell/supercell.f90",
     ],
     extra_compile_args=["-O3"],
 )

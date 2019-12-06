@@ -1,14 +1,14 @@
 from pathlib import Path
 
-from hilde import Settings
-from hilde.slurm.submit import submit
+from vibes import Settings
+from vibes.slurm.submit import submit
 
 parent = Path(__file__).parent
 
 
 ref_submit_script = """#!/bin/bash -l
 
-#SBATCH -J test|hilde
+#SBATCH -J test|vibes
 #SBATCH -o log/test.%j
 #SBATCH -e log/test.%j
 #SBATCH -D ./
@@ -21,7 +21,7 @@ ref_submit_script = """#!/bin/bash -l
 #SBATCH --partition=express
 
 
-hilde info geometry
+vibes info geometry
 """
 
 

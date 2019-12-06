@@ -5,9 +5,9 @@ from pathlib import Path
 import numpy as np
 from ase.io import read
 from ase.calculators.emt import EMT
-from hilde.settings import Settings
-from hilde.helpers import cwd
-from hilde.relaxation.context import RelaxationContext
+from vibes.settings import Settings
+from vibes.helpers import cwd
+from vibes.relaxation.context import RelaxationContext
 
 
 parent = Path(__file__).parent

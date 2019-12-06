@@ -1,4 +1,4 @@
-hilde
+vibes
 ===
 
 ## Installation
@@ -18,8 +18,8 @@ pip install poetry
 Create a virtual environment with
 
 ```bash
-python3 -m venv hilde_venv
-source hilde_venv/bin/activate
+python3 -m venv vibes_venv
+source vibes_venv/bin/activate
 ```
 
 or make sure that `poetry` will no creat a virtual environment of its own by
@@ -28,7 +28,7 @@ or make sure that `poetry` will no creat a virtual environment of its own by
 poetry config settings.virtualenvs.create false 
 ```
 
-Install `hilde` with `poetry`
+Install `vibes` with `poetry`
 
 ```bash
 poetry install
@@ -36,10 +36,10 @@ poetry install
 
 (On `python3.6`, please also install `importlib_resources` via `pip install importlib_resources`).
 
-Configure Hilde by creating a `~/.hilderc` configuration file in the home directory. To this end, first
+Configure Hilde by creating a `~/.vibesrc` configuration file in the home directory. To this end, first
 
 ```
-hilde template configuration
+vibes template configuration
 ```
 
 and edit according to system. The `aims_command` is a command or script that takes care
@@ -49,25 +49,25 @@ modules etc. and finally calling `srun aims.x` on a cluster.
 Then copy to your home folder with 
 
 ```
-cp hilderc ~/.hilderc
+cp vibesrc ~/.vibesrc
 ```
 
-**You're now good to go!** Just make sure your hilde virtual environment is activated.
+**You're now good to go!** Just make sure your vibes virtual environment is activated.
 
 ### Autocompletion
 
-To activate autocompletion of `hilde` subcommands, add this to your `.bashrc`:
+To activate autocompletion of `vibes` subcommands, add this to your `.bashrc`:
 
 ```bash
-eval "$(_HILDE_COMPLETE=source hilde)"
+eval "$(_HILDE_COMPLETE=source vibes)"
 ```
 
 and source it.
 
-If you use the `fishshell`, add a file `~/.config/fish/completions/hilde.fish` containing
+If you use the `fishshell`, add a file `~/.config/fish/completions/vibes.fish` containing
 
 ```bash
-eval (env _HILDE_COMPLETE=source-fish hilde)
+eval (env _HILDE_COMPLETE=source-fish vibes)
 ```
 
 ### Remarks for Cluster
@@ -104,8 +104,8 @@ Don't forget to activate `py37` with `conda activate py37` before starting to wo
 
 ## Settings Files
 
-`hilde` uses the Python `configparser` module for parsing settings files named
-`settings.in` and the configuration file `.hilderc`. The
+`vibes` uses the Python `configparser` module for parsing settings files named
+`settings.in` and the configuration file `.vibesrc`. The
 parser is augmented by `JSON` so it understands any input on the right hand side that is
 valid `JSON`. The inputs get converted to Python objects according to [this conversion
 table](https://realpython.com/python-json/#serializing-json).
@@ -115,18 +115,18 @@ table](https://realpython.com/python-json/#serializing-json).
 * Simplified Settings Files:
   * Settings files named `settings.in` are automatically parsed when calling
     `Settings()` within Hilde.
-  * The configuration file `hilde.cfg` gets installed to system.
+  * The configuration file `vibes.cfg` gets installed to system.
 * Molecular dynamics workflow with input and output files
-  * see hilde/examples/md
+  * see vibes/examples/md
 * Phonopy workflow with input and output files
-  * see hilde/examples/phonopy
+  * see vibes/examples/phonopy
 * Relaxation workflow with config file and output files
-  * see hilde/examples/relaxation
+  * see vibes/examples/relaxation
 * YAML Trajectories:
-  * save MD trajectories as YAML with tools in `hilde.trajectories`
-  * example in `hilde/examples/trajectory/trajectory.son.ipynb`
+  * save MD trajectories as YAML with tools in `vibes.trajectories`
+  * example in `vibes/examples/trajectory/trajectory.son.ipynb`
 * Emails:
-  * send notifications via email with `hilde.helpers.notifications.send_simple_mail`
+  * send notifications via email with `vibes.helpers.notifications.send_simple_mail`
 * Watchdogs:
   * supervise e.g. an MD to estimate when the walltime will be reached.
     Example in `examples/md/md_with_watchdog.ipynb`
@@ -136,13 +136,13 @@ table](https://realpython.com/python-json/#serializing-json).
 * Wrapper for `phonopy`
   * Preprocess and (some) postprocess, see examples
 * Templates
-  * `from hilde.templates.lammps import setup_lammps_si` to provide lammps calculator
+  * `from vibes.templates.lammps import setup_lammps_si` to provide lammps calculator
 * Brillouin zone helpers
-  * `hilde.helpers.brillouinzone` features `get_paths`, `get_bands`, and
+  * `vibes.helpers.brillouinzone` features `get_paths`, `get_bands`, and
     `get_labels` to provide paths in the BZ that can be fed to `phonopy` via
     `phonon.set_bandstructure(bands)`, and
     `phonon.plot_band_structure(labels=labels)`.
-  * These functions are used by `hilde.phonopy.plot_dos_and_bandstructure` to
+  * These functions are used by `vibes.phonopy.plot_dos_and_bandstructure` to
     plot DOS and bandstructure in the working directory.
 * Scripts:
   * `make_supercell`: create supercell from supercell matrix or
@@ -166,18 +166,18 @@ See also: `doc/README_FHI_FireWorksConnections.md`
   * To pass it functions give it the function_module.function_name as a str
   * Functions that are run on the local machine
     * All functions/files that set up FireWorks
-      * All scripts that initially call hilde.fireworks.tasks.generate_firework
+      * All scripts that initially call vibes.fireworks.tasks.generate_firework
       * .cfg Files that define the steps (if used)
       * All functions used by a Fireworks without a task that calls a function in task2queue list
-    * claunch_hilde and associated functions
+    * claunch_vibes and associated functions
   * Function that are run on the remote machine
     * All functions used by a Firework with a task that calls a function in task2queue
-    * qluanch_hilde and associated functions
+    * qluanch_vibes and associated functions
   * Functions that can run on both machines
     * All FireWorks API functions
     * All database accessors functions
-    * Spec modifying functions (hilde.fireworks.tasks.fw_action_outs)
-    * hilde.fireworks.tasks.generate_firework
+    * Spec modifying functions (vibes.fireworks.tasks.fw_action_outs)
+    * vibes.fireworks.tasks.generate_firework
   * Machine specific settings such as the aims_command is handled dynamically
     * It automatically changes when called on a machine
     * Can always use local settings without an issue

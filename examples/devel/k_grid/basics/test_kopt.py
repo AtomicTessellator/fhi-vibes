@@ -1,7 +1,7 @@
 from ase.io import read
 from ase.calculators.aims import Aims
-from hilde.settings import Settings
-from hilde.helpers.paths import cwd
+from vibes.settings import Settings
+from vibes.helpers.paths import cwd
 from pathlib import Path
 from kpointoptimizer import KPointOptimizer
 import numpy as np
@@ -9,7 +9,7 @@ import numpy as np
 material = 'aln'
 atoms = read('../' + material + '.in', 0, 'aims')
 
-settings = Settings('../../hilde.cfg')
+settings = Settings('../../vibes.cfg')
 species_dir = str(Path(settings.machine.basissetloc) / 'light')
 command = settings.machine.aims_command
 tmp_dir = Path('./' + material)

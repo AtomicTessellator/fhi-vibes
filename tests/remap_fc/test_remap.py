@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from hilde.phonopy.utils import parse_phonopy_force_constants, remap_force_constants
+from vibes.phonopy.utils import parse_phonopy_force_constants, remap_force_constants
 from phonopy.file_IO import parse_FORCE_CONSTANTS
 
 from ase.io import read

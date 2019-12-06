@@ -4,9 +4,9 @@ from concurrent.futures import TimeoutError
 from ase.io import read
 from ase.calculators.aims import Aims
 from ase.calculators.socketio import SocketIOCalculator
-from hilde.helpers.paths import cwd
-from hilde.tasks.calculate import calculate
-from hilde.helpers import Timer
+from vibes.helpers.paths import cwd
+from vibes.tasks.calculate import calculate
+from vibes.helpers import Timer
 
 atoms = read("si.in", 0, "aims")
 
@@ -33,7 +33,7 @@ calc = Aims(**aims_settings, label="test")
 # print(atoms.get_total_energy())
 #
 # # option 2:
-# err = calculate(atoms, calc, 'tmp_hilde')
+# err = calculate(atoms, calc, 'tmp_vibes')
 # if not err:
 #     print(atoms.get_total_energy())
 

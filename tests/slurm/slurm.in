@@ -6,5 +6,5 @@ nodes:        1
 cores:        32
 queue:        express
 timeout:      30
-# pre_command:  source_hilde
-command:      hilde info geometry
+# pre_command:  source_vibes
+command:      vibes info geometry

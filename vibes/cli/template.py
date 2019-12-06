@@ -1,0 +1,104 @@
+"""`vibes input` part of the CLI"""
+
+from pathlib import Path
+
+try:
+    import importlib.resources as pkg_resources
+except ModuleNotFoundError:
+    import importlib_resources as pkg_resources
+
+import click
+from vibes.templates import settings, config_files
+from .misc import AliasedGroup
+
+
+@click.command(cls=AliasedGroup)
+@click.option("--full", is_flag=True, help="list more options", show_default=True)
+@click.option("--allow_overwrite", is_flag=True, show_default=True)
+@click.pass_obj
+def template(obj, full, allow_overwrite):
+    """provide template input files for tasks and workflows"""
+    obj.full_input = full
+    obj.allow_overwrite = allow_overwrite
+
+
+@template.command("modify")
+@click.argument("filename", default="settings.in")
+@click.pass_obj
+def modify_input(obj, filename):
+    """modify an input file"""
+
+    click.echo("please come back later")
+
+
+@template.command("aims")
+@click.argument("filename", default="aims.in")
+@click.pass_obj
+def aims_input(obj, filename):
+    """provide template settings.in for aims calculation"""
+
+    write_input(obj, "aims", filename)
+
+
+@template.command("phonopy")
+@click.argument("filename", default="phonopy.in")
+@click.pass_obj
+def phonopy_input(obj, filename):
+    """provide template phonopy.in for phonopy workflow."""
+
+    write_input(obj, "phonopy", filename)
+
+
+@template.command("md")
+@click.argument("filename", default="md.in")
+@click.pass_obj
+def md_input(obj, filename):
+    """provide template md.in for molecular dynamics workflow."""
+
+    write_input(obj, "md", filename)
+
+
+@template.command("relaxation")
+@click.argument("filename", default="relaxation.in")
+@click.pass_obj
+def relaxation_input(obj, filename):
+    """provide template relaxation.in for relaxation workflow."""
+
+    write_input(obj, "relaxation", filename)
+
+
+@template.command("configuration")
+@click.argument("filename", default="vibesrc")
+@click.pass_obj
+def configuration_input(obj, filename):
+    """provide template vibesrc.template for the configuration"""
+
+    write_input(obj, "vibesrc.template", filename, from_folder=config_files)
+
+
+@template.command("slurm")
+@click.argument("filename", default="slurm.in")
+@click.pass_obj
+def slurm_input(obj, filename):
+    """provide template slurm settings"""
+
+    write_input(obj, "slurm.in", filename, from_folder=config_files)
+
+
+def write_input(obj, name, filename, from_folder=settings):
+    """write the input function"""
+
+    if obj.full_input:
+        name += "_full"
+
+    input_file = pkg_resources.read_text(from_folder, name)
+
+    outfile = Path(filename)
+
+    if not obj.allow_overwrite and outfile.exists():
+        msg = f"{outfile} exists."
+        raise click.ClickException(msg)
+
+    outfile.write_text(input_file)
+
+    click.echo(f"Default {name} settings file written to {filename}.")

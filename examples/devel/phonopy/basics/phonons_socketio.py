@@ -2,13 +2,13 @@ from time import time
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from hilde.parsers import read_structure
-from hilde.helpers.supercell import make_cubic_supercell
-from hilde.helpers import d2k
-from hilde.phonopy import wrapper as ph
-from hilde.tasks.calculate import calculate_multiple_socketio
-from hilde.templates.aims import setup_aims
-import hilde.helpers.brillouinzone as bz
+from vibes.parsers import read_structure
+from vibes.helpers.supercell import make_cubic_supercell
+from vibes.helpers import d2k
+from vibes.phonopy import wrapper as ph
+from vibes.tasks.calculate import calculate_multiple_socketio
+from vibes.templates.aims import setup_aims
+import vibes.helpers.brillouinzone as bz
 
 atoms = read_structure("../si.in")
 vol = atoms.get_volume()

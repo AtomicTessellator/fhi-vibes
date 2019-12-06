@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import xarray as xr
-import hilde.green_kubo.heat_flux as hf
+import vibes.green_kubo.heat_flux as hf
 
 parent = Path(__file__).parent
 

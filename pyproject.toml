@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "hilde"
-version = "0.4.2.dev1"
-description = "Haber Institute Lattice Dynamics Environment"
-authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>"]
+name = "vibes"
+version = "1.0.0a1"
+description = "Fritz Haber Institute Vibrational Simulations"
+authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
 license = "ISC"
 readme = "README.md"
 repository = "https://gitlab.com/flokno/hilde"
@@ -52,7 +52,7 @@ flake8 = "^3.7"
 rope = "^0.14.0"
 
 [tool.poetry.scripts]
-hilde = 'hilde.cli:cli'
+vibes = 'vibes.cli:cli'
 
 [tool.black]
 target-version = ['py37']

@@ -7,13 +7,13 @@ import numpy as np
 from ase.build import bulk
 from ase.calculators.emt import EMT
 
-from hilde.fireworks.launchpad import LaunchPad
-from hilde.fireworks.rocket_launcher import rapidfire
-from hilde.helpers.hash import hash_atoms_and_calc
-from hilde.helpers.paths import cwd
-from hilde.fireworks.workflows.firework_generator import generate_firework
-from hilde.fireworks.workflows.task_spec_generator import gen_phonon_analysis_task_spec
-from hilde.phonopy.postprocess import postprocess
+from vibes.fireworks.launchpad import LaunchPad
+from vibes.fireworks.rocket_launcher import rapidfire
+from vibes.helpers.hash import hash_atoms_and_calc
+from vibes.helpers.paths import cwd
+from vibes.fireworks.workflows.firework_generator import generate_firework
+from vibes.fireworks.workflows.task_spec_generator import gen_phonon_analysis_task_spec
+from vibes.phonopy.postprocess import postprocess
 
 from fireworks import Workflow
 
@@ -45,8 +45,8 @@ def test_fireworks():
     kwargs_init_fw_out = {"workdir": workdir, "serial": True}
 
     init_fw = generate_firework(
-        func="hilde.fireworks.tasks.phonopy_phono3py_functions.bootstrap_phonon",
-        func_fw_out="hilde.fireworks.tasks.fw_out.phonons.post_init_mult_calcs",
+        func="vibes.fireworks.tasks.phonopy_phono3py_functions.bootstrap_phonon",
+        func_fw_out="vibes.fireworks.tasks.fw_out.phonons.post_init_mult_calcs",
         func_kwargs={"ph_settings": kwargs_init},
         atoms=atoms,
         calc=calc,
@@ -58,7 +58,7 @@ def test_fireworks():
 
     kwargs = {"fireworks": True, "workdir": workdir + "/analysis"}
     task_spec_list = gen_phonon_analysis_task_spec(
-        "hilde.phonopy.postprocess.postprocess",
+        "vibes.phonopy.postprocess.postprocess",
         kwargs,
         "ph_metadata",
         "ph_forces",

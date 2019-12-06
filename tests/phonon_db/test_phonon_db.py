@@ -6,12 +6,12 @@ def test_phonon_db():
 
     import numpy as np
 
-    from hilde.helpers.hash import hash_traj
+    from vibes.helpers.hash import hash_traj
 
-    from hilde.phonon_db.phonon_db import connect
-    from hilde.phonopy.postprocess import postprocess
+    from vibes.phonon_db.phonon_db import connect
+    from vibes.phonopy.postprocess import postprocess
 
-    from hilde.trajectory import reader
+    from vibes.trajectory import reader
 
     # Write the initial structure with the phonopy object
     trajectory = Path(__file__).parent / "trajectory.son"

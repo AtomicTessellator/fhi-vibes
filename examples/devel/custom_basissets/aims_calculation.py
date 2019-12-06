@@ -1,6 +1,6 @@
-from hilde import Settings
-from hilde.templates.aims import setup_aims
-from hilde.tasks import calculate_socket
+from vibes import Settings
+from vibes.templates.aims import setup_aims
+from vibes.tasks import calculate_socket
 
 settings = Settings()
 

@@ -8,8 +8,8 @@ from ase.build import bulk
 from ase.calculators.emt import EMT
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 
-from hilde import Settings
-from hilde.molecular_dynamics.context import MDContext
+from vibes import Settings
+from vibes.molecular_dynamics.context import MDContext
 
 parent = Path(__file__).parent
 

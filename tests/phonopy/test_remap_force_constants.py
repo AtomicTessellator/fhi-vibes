@@ -1,10 +1,10 @@
-"""test for hilde.phonopy.utils.parse_phonopy_force_constants"""
+"""test for vibes.phonopy.utils.parse_phonopy_force_constants"""
 from pathlib import Path
 import numpy as np
 
 from ase.io import read
-from hilde.phonopy.utils import parse_phonopy_force_constants
-from hilde.harmonic_analysis.dynamical_matrix import get_frequencies
+from vibes.phonopy.utils import parse_phonopy_force_constants
+from vibes.harmonic_analysis.dynamical_matrix import get_frequencies
 
 parent = Path(__file__).parent
 assets = parent / "assets_remap"

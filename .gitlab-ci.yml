@@ -1,9 +1,9 @@
-image: registry.gitlab.com/flokno/hilde:default
+image: registry.gitlab.com/flokno/hilde:vibes
 
 before_script:
-  - cp hilde/templates/config_files/hilderc.template ~/.hilderc
+  - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
   - poetry install
-  - flake8 hilde
+  - flake8 vibes
   - cd $CI_PROJECT_DIR/tests
 
 default:
