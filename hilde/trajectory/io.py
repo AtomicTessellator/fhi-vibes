@@ -65,15 +65,14 @@ def metadata2file(metadata, file="metadata.son"):
     son.dump({**metadata, "hilde": {"version": version}}, file, is_metadata=True)
 
 
-def write(trajectory, file="trajectory.son", netcdf=False):
+def write(trajectory, file="trajectory.son"):
     """Write to son file
 
     Args:
-        file: path to trajecotry son file
-        netcdf: write dataset to netDCF file instead
+        file: path to trajecotry son or netcdf file
     """
-    if netcdf:
-        file = Path(file).stem + ".nc"
+    if Path(file).suffix == ".nc":
+        netcdf = True
 
     timer = Timer(f"Write trajectory to {file}")
 

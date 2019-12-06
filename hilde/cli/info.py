@@ -57,7 +57,7 @@ def md_info(filename, plot, write, avg, verbose):
         trajectory = reader(filename)
         DS = trajectory.dataset
         if write:
-            trajectory.write(netcdf=True)
+            trajectory.write(file.parent / f"{file.stem}.nc")
     elif file.suffix in (".nc"):
         DS = xr.load_dataset(filename)
     elif file.suffix in (".log"):
