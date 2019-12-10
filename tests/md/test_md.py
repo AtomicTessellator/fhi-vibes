@@ -14,7 +14,7 @@ from vibes.molecular_dynamics.context import MDContext
 parent = Path(__file__).parent
 
 atoms = bulk("Al") * (4, 4, 4)
-settings = Settings(settings_file=parent / "settings.in")
+settings = Settings(settings_file=parent / "md.in")
 
 calc = EMT()
 

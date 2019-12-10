@@ -4,7 +4,7 @@ import numpy as np
 # import pandas as pd
 import xarray as xr
 from ase.units import GPa
-from vibes.helpers import talk
+from vibes.helpers import talk, warn
 from .plotting import plot_summary
 
 
@@ -127,19 +127,8 @@ def energy(series):
 
 def summary(dataset, plot=False, **kwargs):
     """summarize MD data in xarray DATASET"""
-
     symbols = dataset.attrs["symbols"]
     usymbols = np.unique(symbols)
-
-    print()
-    talk("Summarize Temperature", prefix="info")
-    temperature(dataset.temperature)
-    print()
-    talk("Summarize Potential Energy", prefix="info")
-    energy(dataset.potential_energy)
-    print()
-    talk("Summarize Pressure", prefix="info")
-    pressure(dataset.pressure)
 
     # displacements
     dr = np.linalg.norm(dataset.displacements, axis=2)
@@ -166,6 +155,27 @@ def summary(dataset, plot=False, **kwargs):
         mask = np.array(symbols) == sym
         # forces = dataset.forces[:, mask, :].data
         pprint(f"Std. Force [{sym}]:", f"{forces[:, mask].std():.5} eV/AA")
+
+    print()
+    talk("Summarize Temperature", prefix="info")
+    temperature(dataset.temperature)
+    print()
+    talk("Summarize Potential Energy", prefix="info")
+    energy(dataset.potential_energy)
+    print()
+    talk("Summarize Pressure", prefix="info")
+    pressure(dataset.pressure)
+
+    # drift
+    momenta = dataset.momenta.data
+    momenta_time = np.sum(momenta, axis=1)
+    momenta_mean = np.mean(abs(momenta_time), axis=0)
+    rep = np.array2string(momenta_mean, precision=4)
+    print()
+    talk("Drift", prefix="info")
+    pprint(f"Mean abs. Momentum:", f"{rep}")
+    if any(momenta_mean > 1e-12):
+        warn("Is is this drift problematic?", level=1)
 
     if plot:
         df = dataset[
