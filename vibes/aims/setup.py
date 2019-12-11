@@ -98,7 +98,7 @@ def add_basisset(loc, typ, elem, num, folder, fallback="light", verbose=True):
         shutil.copy(loc / fallback / rep, folder)
 
 
-def setup_aims(ctx, verbose=True):
+def setup_aims(ctx, verbose=True, make_species_dir=True):
     """Set up an aims calculator.
 
     Args:
@@ -132,7 +132,11 @@ def setup_aims(ctx, verbose=True):
         )
 
     # create basissetfolder
-    species_dir = create_species_dir(ctx)
+    if make_species_dir:
+        species_dir = create_species_dir(ctx)
+    else:
+        species_dir = str(ctx.basisset_location / settings.basissets.default)
+
     ase_settings["species_dir"] = species_dir
 
     aims_settings = {**aims_settings, **ase_settings}

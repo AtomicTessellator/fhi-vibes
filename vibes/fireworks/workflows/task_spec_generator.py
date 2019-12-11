@@ -321,7 +321,7 @@ def gen_gruniesen_task_spec(settings, trajectory, constraints):
     """
     task_spec_list = [
         TaskSpec(
-            "vibes.fireworks.tasks.phonopy_phono3py_functions.setup_gruniesen",
+            "vibes.fireworks.tasks.phonopy_phono3py_functions.setup_gruneisen",
             "vibes.fireworks.tasks.fw_out.general.add_additions_to_spec",
             False,
             args=[settings, trajectory, constraints],
