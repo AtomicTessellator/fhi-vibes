@@ -77,12 +77,12 @@ def add_wf(workflow, launchpad):
         atoms = wflow.atoms
 
         if "basisset" not in wflow and "basisset" in wflow.general:
-            wflow["basisset"] = AttributeDict({"type": wflow.general.basisset})
+            wflow["basissets"] = AttributeDict({"default": wflow.general.basisset})
         elif "basisset" not in wflow:
-            wflow["basisset"] = AttributeDict({"type": "light"})
+            wflow["basissets"] = AttributeDict({"default": "light"})
 
         talk(f"Generating workflow for {get_sysname(atoms)}", prefix="fireworks")
-        calc = setup_aims(ctx=AimsContext(settings=wflow), verbose=False)
+        calc = setup_aims(ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False)
         atoms.set_calculator(calc)
         generate_workflow(wflow, atoms, launchpad)
 

@@ -11,10 +11,11 @@ import numpy as np
 
 from vibes.aims.setup import setup_aims
 from vibes.aims.context import AimsContext
-from vibes.helpers.converters import input2dict
 from vibes.fireworks.tasks.general_py_task import get_func
 from vibes.fireworks.workflows.workflow_generator import generate_workflow
-from vibes.helpers.converters import dict2atoms
+from vibes.helpers.converters import input2dict, dict2atoms
+from vibes.helpers.numerics import get_3x3_matrix
+from vibes.helpers.supercell import make_supercell
 from vibes.phonopy import displacement_id_str
 from vibes.phonopy.context import PhonopyContext
 from vibes.phonopy.postprocess import postprocess
@@ -52,7 +53,7 @@ def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
         settings["control"] = calc.parameters.copy()
         if "species_dir" in settings.control:
             sd = settings["control"].pop("species_dir")
-            settings["basisset"] = AttributeDict({"type": sd.split("/")[-1]})
+            settings["basissets"] = AttributeDict({"default": sd.split("/")[-1]})
         if use_pimd_wrapper:
             settings["socketio"] = AttributeDict(
                 {"port": settings.pop("use_pimd_wrapper")}
@@ -99,7 +100,12 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
     if calc is not None and calc.name.lower() != "aims":
         ctx.settings.atoms.set_calculator(calc)
     else:
-        ctx.settings.atoms.set_calculator(None)
+        aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.workdir)
+        # set reference structure for aims calculation and make sure forces are computed
+        aims_ctx.ref_atoms = make_supercell(atoms, get_3x3_matrix(ctx.settings.obj.supercell_matrix))
+        aims_ctx.settings.obj["compute_forces"] = True
+        calc = setup_aims(aims_ctx, False, False)
+        ctx.settings.atoms.set_calculator(calc)
 
     # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
     outputs = bootstrap(ctx)
@@ -145,7 +151,7 @@ def bootstrap_phonon(
     outputs = []
     at = atoms.copy()
     at.set_calculator(None)
-    print(ph_settings["supercell_matrix"])
+
     if ph_settings:
         outputs.append(setup_phonon_outputs(ph_settings, settings, "ph", at, calc))
 
@@ -279,7 +285,7 @@ def prepare_gruneisen(settings, primitive, vol_factor):
         "geometry.in.temp", format="aims", geo_constrain=True, scaled=True
     )
     dist_settings.geometry["file"] = "geometry.in.temp"
-    dist_primitive.calc = setup_aims(ctx=AimsContext(settings=dist_settings))
+    dist_primitive.calc = setup_aims(ctx=AimsContext(settings=dist_settings), verbose=False, make_species_dir=False)
     Path("geometry.in.temp").unlink()
     dist_settings.geometry["file"] = file_original
 
