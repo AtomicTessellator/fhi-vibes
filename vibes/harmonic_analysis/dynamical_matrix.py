@@ -7,7 +7,7 @@ from .force_constants import reshape_force_constants
 
 
 def _prefactor(q, r):
-    """Get the prefactor `exp(-2*\pi*i * q @ r)`"""
+    r"""Get the prefactor `exp(-2*\pi*i * q @ r)`"""
     return np.exp(-2j * np.pi * q @ r)
 
 
