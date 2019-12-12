@@ -378,7 +378,7 @@ class HarmonicAnalysis:
         for ii in progressbar(range(len(trajectory))):
             atoms = trajectory[ii]
             if displacements:
-                Uqst[ii] = proj @ get_U(atoms, atoms0=atoms0, masses=masses).flatten()
+                Uqst[ii] = proj @ get_U(atoms, atoms0=atoms0).flatten()
             if velocities:
                 Vqst[ii] = proj @ get_dUdt(atoms, masses=masses).flatten()
 
