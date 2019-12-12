@@ -7,21 +7,22 @@ from .force_constants import reshape_force_constants
 
 
 def _prefactor(q, r):
-    """Get the prefactor for the mode
-
-    Parameters
-    ----------
-    q: np.ndarray
-        The qpoint
-    r: np.ndarray
-        The lattice point
-
-    Returns
-    -------
-    float
-        The prefactor
-    """
+    """Get the prefactor `exp(-2*\pi*i * q @ r)`"""
     return np.exp(-2j * np.pi * q @ r)
+
+
+def fc2dynmat(force_constants, masses):
+    """convert force_constants to dynamical matrix by mass weighting"""
+
+    Na = len(masses)
+    M = (np.asarray(masses)).repeat(3)
+    rminv = M ** -0.5
+
+    assert force_constants.shape == (3 * Na, 3 * Na), force_constants.shape
+
+    dm = force_constants * rminv[:, None] * rminv[None, :]
+
+    return dm
 
 
 def get_frequencies(dyn_matrix, masses=None, factor=omega_to_THz):
@@ -36,9 +37,7 @@ def get_frequencies(dyn_matrix, masses=None, factor=omega_to_THz):
         np.ndarray: The eigenvalues of the dynamical matrix
     """
     if masses is not None:
-        rminv = (np.asarray(masses) ** -0.5).repeat(3)
-        assert rminv.size ** 2 == np.asarray(dyn_matrix).size
-        dyn_matrix = np.asarray(dyn_matrix) * rminv[:, None] * rminv[None, :]
+        dyn_matrix = fc2dynmat(dyn_matrix, masses)
 
     evals = np.linalg.eigh(dyn_matrix)[0]
     return np.sign(evals) * np.sqrt(abs(evals)) * factor
