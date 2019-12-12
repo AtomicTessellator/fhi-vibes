@@ -93,9 +93,15 @@ class SimpleModeProjection:
 
         P = self.mode_projector
 
-        if mass_weight is not None:
+        _supported_mass_weights = (0, 0.5, -0.5)
+        if mass_weight in _supported_mass_weights:
             M = self.masses[None, :, None] ** mass_weight
             array = M * array
+        elif mass_weight is None:
+            pass
+        else:
+            msg = f"`mass_weight` {mass_weight} not in {_supported_mass_weights}"
+            warn(msg, level=2)
 
         result = np.array([P @ (f.flatten()) for f in np.asarray(array)])
         timer()
@@ -458,13 +464,13 @@ class HarmonicAnalysis:
         proj = self.mode_projector
 
         atoms0 = self.supercell
-        masses = trajectory[0].get_masses()
+
         for ii in progressbar(range(len(trajectory))):
             atoms = trajectory[ii]
             if displacements:
                 Uqst[ii] = proj @ get_U(atoms, atoms0=atoms0).flatten()
             if velocities:
-                Vqst[ii] = proj @ get_dUdt(atoms, masses=masses).flatten()
+                Vqst[ii] = proj @ get_dUdt(atoms).flatten()
 
         return Uqst, Vqst
 
