@@ -104,6 +104,11 @@ class Timer:
             signal.signal(signal.SIGALRM, self.raise_timeout)
             signal.alarm(timeout)
 
+    def wrap(self, func, *args, info_str="", **kwargs):
+        result = func(*args, **kwargs)
+        self.__call__(info_str=info_str)
+        return result
+
     def __call__(self, info_str="", reset=False):
         """print how much time elapsed, optionally print `info_str`"""
         time_str = f"{time.time() - self.time:.3f}s"
