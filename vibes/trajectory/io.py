@@ -71,12 +71,9 @@ def write(trajectory, file="trajectory.son"):
     Args:
         file: path to trajecotry son or netcdf file
     """
-    if Path(file).suffix == ".nc":
-        netcdf = True
-
     timer = Timer(f"Write trajectory to {file}")
 
-    if netcdf:
+    if Path(file).suffix == ".nc":
         trajectory.dataset.to_netcdf(file)
         timer()
         return True
