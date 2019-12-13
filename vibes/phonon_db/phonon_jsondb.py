@@ -172,7 +172,7 @@ class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
 
             if limit:
                 rows = rows[offset : offset + limit]
-            for key, row in rows:
+            for _, row in rows:
                 yield row
             return
         try:

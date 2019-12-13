@@ -256,12 +256,13 @@ def get_relaxation_info(filenames):
         + " [meV]   max. force [meV/AA]  Volume [AA^3]  Spacegroup\n"
     )
 
+    converged, abort = False, False
     for infile in filenames:
         with open(infile) as f:
             # Check optimizer
             optimizer = get_optimizer(f)
             ps = parser(f, n_init=n_rel or 0, optimizer=optimizer)
-            for (n_rel, ener, free_ener, fmax, vol, sg, status, converged, abort) in ps:
+            for (n_rel, ener, free_ener, fmax, vol, sg, status, _conv, _abort) in ps:
                 if not init:
                     first_energy, first_free_energy = ener, free_ener
                     init = 1
@@ -276,6 +277,7 @@ def get_relaxation_info(filenames):
                     sg,
                     status_string[status],
                 )
+                converged, abort = _conv, _abort
 
     if converged:
         print("--> converged.")

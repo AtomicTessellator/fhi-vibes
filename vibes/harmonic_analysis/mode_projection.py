@@ -313,7 +313,7 @@ class HarmonicAnalysis:
 
         return fc / np.sqrt(m[:, None] * m[None, :])
 
-    def get_Dq(self, q=np.array([0.0, 0.0, 0.0]), fractional=True):
+    def get_Dq(self, q=None, fractional=True):
         """ return dynamical matrix at q.
 
         Parameters
@@ -333,6 +333,11 @@ class HarmonicAnalysis:
         AssertionError
             If Dq is Not Hermitian
         """
+        if q is None:
+            q = np.array([0.0, 0.0, 0.0])
+        else:
+            q = np.asarray(q)
+
         if fractional:
             phases = np.exp(2j * np.pi * self.lattice_points_frac @ q)
         else:
@@ -349,7 +354,7 @@ class HarmonicAnalysis:
 
         return Dq
 
-    def solve_Dq(self, q=np.array([0.0, 0.0, 0.0]), fractional=True):
+    def solve_Dq(self, q=None, fractional=True):
         """Solve eigenvalue problem for dynamical matrix at q
 
         Parameters
@@ -366,6 +371,10 @@ class HarmonicAnalysis:
         ev: np.ndarray
             The corresponding eigenvectors
         """
+        if q is None:
+            q = np.array([0.0, 0.0, 0.0])
+        else:
+            q = np.asarray(q)
 
         Dq = self.get_Dq(q, fractional=fractional)
 

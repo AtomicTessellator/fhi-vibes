@@ -98,8 +98,10 @@ def converge_kgrid(
             metadata["geometry_optimization"] = opt.todict()
             metadata2file(metadata, trajectory)
 
-        for _, converged in enumerate(opt.irun(steps=maxsteps)):
+        converged = False
+        for _converged in opt.irun(steps=maxsteps):
             step2file(atoms, atoms.calc, trajectory)
+            converged = _converged
             if watchdog():
                 break
 
