@@ -140,7 +140,7 @@ def general_function_task(
         The FWAction func_fw_out outputs
     """
     if fw_settings is None:
-        fw_settings = dict()
+        fw_settings = {}
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 

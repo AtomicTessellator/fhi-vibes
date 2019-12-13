@@ -26,7 +26,7 @@ def bootstrap(atoms, name="statistical_sampling", settings=None, **kwargs):
     if settings is None:
         settings = TaskSettings(name=None, settings=Settings())
 
-    stat_sample_settings = dict()
+    stat_sample_settings = {}
 
     if name not in settings:
         warn(f"Settings do not contain {name} instructions.", level=1)
@@ -92,7 +92,7 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
     Returns: (list(dicts)): A list of thermally displaced supercells to calculate the forces on
     """
     if temperatures is None:
-        temperatures = list()
+        temperatures = ()
 
     # Set up supercell and Force Constants
     phonon = postprocess_ph(

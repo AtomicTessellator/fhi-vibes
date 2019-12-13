@@ -121,9 +121,9 @@ def generate_firework(
     """
     fw_settings = fw_settings.copy()
     if "spec" not in fw_settings:
-        fw_settings["spec"] = dict()
+        fw_settings["spec"] = {}
     if update_calc_settings is None:
-        update_calc_settings = dict()
+        update_calc_settings = {}
 
     if func:
         if task_spec_list:
@@ -381,7 +381,7 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
     if f"{typ}_qadapter" in workflow:
         qadapter = workflow["phonopy_qadapter"]
     else:
-        qadapter = dict()
+        qadapter = {}
 
     update_settings = {}
     if "basisset_type" in workflow[typ]:
@@ -706,7 +706,7 @@ def generate_aims_fw(workflow, atoms, fw_settings):
     fw_settings["fw_name"] = f"aims"
 
     func_kwargs = {"workdir": f"{workflow.general.workdir_cluster}/aims_calculation/"}
-    task_spec = gen_aims_task_spec(func_kwargs, dict(), relax=False)
+    task_spec = gen_aims_task_spec(func_kwargs, {}, relax=False)
 
     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, True)
 

@@ -118,8 +118,8 @@ reserved_keys = set(
     ]
 )
 
-numeric_keys = set(["id", "energy", "magmom", "charge", "natoms", "natoms_in_Sc"])
-numeric_keys = set(["id", "energy", "magmom", "charge", "natoms", "natoms_in_Sc"])
+numeric_keys = ("id", "energy", "magmom", "charge", "natoms", "natoms_in_Sc")
+numeric_keys = ("id", "energy", "magmom", "charge", "natoms", "natoms_in_Sc")
 
 
 def check(key_value_pairs):

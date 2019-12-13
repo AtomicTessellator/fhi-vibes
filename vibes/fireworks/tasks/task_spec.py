@@ -63,17 +63,17 @@ class TaskSpec:
                 )
             self.func_fw_out_kwargs = func_fw_out_kwargs
         else:
-            self.func_fw_out_kwargs = dict()
+            self.func_fw_out_kwargs = {}
 
         if args:
             self.args = args
         else:
-            self.args = list()
+            self.args = ()
 
         if inputs:
             self._inputs = inputs
         else:
-            self._inputs = list()
+            self._inputs = ()
 
         if task_with_atoms_obj:
             self._pt_args = [

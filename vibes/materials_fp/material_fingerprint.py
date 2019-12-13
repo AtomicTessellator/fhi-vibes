@@ -493,7 +493,7 @@ def dict2namedtuple(fp):
         return None
     freqs = [fp[pt][:, 0] for pt in fp]
     n_state = [fp[pt][:, 1] for pt in fp]
-    sp_pts = [pt for pt in fp]
+    sp_pts = list(fp)
     return fp_tup(np.array(freqs), np.array(n_state), sp_pts, len(freqs[0]))
 
 

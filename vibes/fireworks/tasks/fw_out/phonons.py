@@ -48,8 +48,8 @@ def post_init_mult_calcs(
         The action that will run all force calculations
     """
     if fw_settings is None:
-        fw_settings = dict()
-    update_spec = dict()
+        fw_settings = {}
+    update_spec = {}
     detours = []
 
     for out in outputs:
@@ -154,7 +154,7 @@ def get_detours(
                 )
         else:
             if "spec" not in fw_settings:
-                fw_settings["spec"] = dict()
+                fw_settings["spec"] = {}
             fw_settings["spec"]["_queueadapter"] = {
                 "walltime": time2str(calc_kwargs["walltime"] + 120)
             }
@@ -309,7 +309,7 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
         )
     else:
         k_pt_density = None
-    qadapter = dict()
+    qadapter = {}
     if fw_settings and "spec" in fw_settings:
         qadapter = fw_settings["spec"].get("_queueadapter", None)
     if "phono3py" in args[0]:
@@ -360,10 +360,10 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         Increases the supercell size or adds the phonon_dict to the spec
     """
     if not fw_settings:
-        fw_settings = dict()
-        fw_settings["spec"] = dict()
+        fw_settings = {}
+        fw_settings["spec"] = {}
     elif "spec" not in fw_settings:
-        fw_settings["spec"] = dict()
+        fw_settings["spec"] = {}
 
     fw_settings["from_db"] = False
     fw_settings.pop("in_spec_calc", None)

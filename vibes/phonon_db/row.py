@@ -192,7 +192,7 @@ class PhononRow(AtomsRow):
             dct["key_value_pairs"]["has_fc2"] = True
         elif isinstance(dct, Atoms):
             dct = atoms2dict(dct)
-            dct["key_value_pairs"] = dict()
+            dct["key_value_pairs"] = {}
         else:
             try:
                 from phono3py.phonon3 import Phono3py
@@ -225,7 +225,7 @@ class PhononRow(AtomsRow):
             for disp1 in self.displacement_dataset_2["first_atoms"]:
                 disp1["number"] = int(disp1["number"])
         if "displacement_dataset_3" in self and self.displacement_dataset_3 is not None:
-            for ii, disp1 in enumerate(self.displacement_dataset_3["first_atoms"]):
+            for disp1 in self.displacement_dataset_3["first_atoms"]:
                 disp1["number"] = int(disp1["number"])
                 for disp2 in disp1["second_atoms"]:
                     disp2["number"] = int(disp2["number"])
