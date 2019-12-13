@@ -44,7 +44,7 @@ def add_stat_samp_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
         )
     else:
         k_pt_density = None
-    qadapter = dict()
+    qadapter = {}
     if fw_settings and "spec" in fw_settings:
         qadapter = fw_settings["spec"].get("_queueadapter", None)
     update_spec = {

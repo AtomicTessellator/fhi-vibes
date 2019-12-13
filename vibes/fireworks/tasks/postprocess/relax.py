@@ -45,7 +45,7 @@ def check_aims(atoms, calc, outputs, **kwargs):
                 )
         new_atoms = outputs
     new_atoms_dict = atoms2dict(new_atoms)
-    new_atoms_dict[key_constraints] = atoms.get(key_constraints, list())
+    new_atoms_dict[key_constraints] = atoms.get(key_constraints, ())
     for key, val in atoms["info"].items():
         if key not in new_atoms_dict["info"]:
             new_atoms_dict["info"][key] = val

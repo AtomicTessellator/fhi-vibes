@@ -192,7 +192,7 @@ class PhononRow(AtomsRow):
             dct["key_value_pairs"]["has_fc2"] = True
         elif isinstance(dct, Atoms):
             dct = atoms2dict(dct)
-            dct["key_value_pairs"] = dict()
+            dct["key_value_pairs"] = {}
         else:
             try:
                 from phono3py.phonon3 import Phono3py

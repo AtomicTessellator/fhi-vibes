@@ -89,7 +89,7 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
         settings,
         calc,
         ("use_pimd_wrapper" in settings and settings["use_pimd_wrapper"]),
-        dict(),
+        {},
     )
     settings[f"{prefix}onopy"] = ph_settings.copy()
     if "serial" in settings[f"{prefix}onopy"]:
@@ -335,7 +335,7 @@ def setup_gruneisen(settings, trajectory, constraints, _queueadapter, kpt_densit
     settings["phonopy"]["symprec"] = metadata["Phonopy"].get("symprec", 1e-5)
     settings["phonopy"]["displacement"] = metadata["Phonopy"]["displacements"][0][1]
 
-    settings["control"] = dict()
+    settings["control"] = {}
     for key, val in metadata["calculator"]["calculator_parameters"].items():
         settings["control"][key] = val
     settings["control"].pop("kgrid", None)
@@ -357,7 +357,7 @@ def setup_gruneisen(settings, trajectory, constraints, _queueadapter, kpt_densit
 
     settings["general"]["relax_structure"] = True
     if "relaxation" not in settings:
-        settings["relaxation"] = dict()
+        settings["relaxation"] = {}
     settings["control"]["relax_unit_cell"] = "none"
     settings["relaxation"]["relax_unit_cell"] = "none"
 

@@ -47,7 +47,7 @@ def check_aims_complete(
         atoms, calc, outputs, **func_kwargs
     )
 
-    update_spec = dict()
+    update_spec = {}
     if completed:
         update_spec = {}
         if "out_spec_atoms" in fw_settings:

@@ -11,7 +11,7 @@ def get_calc_times(workdir=".", calc_dirs=None):
         workdir = Path(workdir)
         calc_dirs = list(workdir.glob("*/")) + list(workdir.glob("*/*/"))
 
-    calc_times = list()
+    calc_times = ()
 
     for direc in calc_dirs:
         aims_out = Path(direc) / "aims.out"

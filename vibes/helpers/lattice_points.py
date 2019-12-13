@@ -25,7 +25,7 @@ def map_L_to_i(indeces):
         list of masks that single out the atoms in the supercell that belong to specific lattice point
     """
 
-    n_lattice_points = max([i[1] for i in indeces]) + 1
+    n_lattice_points = max(i[1] for i in indeces) + 1
     mappings = []
     for LL in range(n_lattice_points):
         mappings.append([idx[1] == LL for idx in indeces])

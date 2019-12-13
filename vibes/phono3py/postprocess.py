@@ -76,7 +76,7 @@ def postprocess(
     # collect the forces and put zeros where no supercell was created
     force_sets = []
     disp_scells = phonon3.get_supercells_with_displacements()
-    hash_dict = dict()
+    hash_dict = {}
     for nn, scell in enumerate(disp_scells):
         atoms = calculated_atoms[0]
         if scell:
