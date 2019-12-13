@@ -2,6 +2,8 @@
 
 from .misc import click, AliasedGroup, ClickAliasedGroup, complete_filenames
 
+xrange = range
+
 
 @click.group(cls=ClickAliasedGroup)
 def utils():
@@ -385,24 +387,30 @@ def trajectory_update(filename, uc, sc, fc, output_filename, format):
 @trajectory.command("pick_sample")
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-n", "--number", default=0)
+@click.option("-r", "--range", type=click.Tuple(3 * [int]), help="start, stop, step")
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
-def pick_sample(filename, number, cartesian):
+def pick_sample(filename, number, range, cartesian):
     """pick a sample from trajectory and write to geometry input file"""
     from vibes.trajectory import reader
 
-    click.echo(f"Read trajectory from {filename} and extract sample {number}:")
-
+    click.echo(f"Read trajectory from {filename}:")
     traj = reader(filename)
 
     if number < 0:
         number = len(traj) + number
 
-    atoms = traj[number]
+    if range is not None:
+        rge = xrange(*range)
+    else:
+        rge = number
 
-    outfile = f"geometry.in.{number}"
-    atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
-
-    click.echo(f".. sample written to {outfile}")
+    for number in rge:
+        click.echo(f"Extract sample {number}:")
+        outfile = f"geometry.in.{number}"
+        atoms = traj[number]
+        atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
+        atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
+        click.echo(f".. sample written to {outfile}")
 
 
 @utils.group(aliases=["ha"])
