@@ -405,7 +405,7 @@ def reduce_force_constants(fc_full, map2prim):
     fc_full: np.ndarray
         The non-reduced force constant matrix
     map2prim: np.ndarray
-        An array with N_sc elements that maps the index of the supercell to an index in the unitcell
+        map from supercell to unitcell index
 
     Returns
     -------

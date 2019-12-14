@@ -133,18 +133,13 @@ class HarmonicAnalysis:
         force_constants: np.array
             The force constants as obtained from TDEP {inf,out}file.forceconstant
         lattice_points_frac: np.array
-            The lattice points in fractional coordinates as obtained from TDEP {inf,out}file.forceconstant
+            in fractional coordinates as obtained from TDEP {inf,out}file.forceconstant
         force_constants_supercell: np.array
-            The force constants in the shape of the supercell (3N, 3N), e.g. obtained from infile.forceconstant_remapped
+            remapped force constants in the shape of the supercell (3N, 3N)
         q_points: np.ndarray
             The list of q_points
         verbose: bool
             If True be verbose
-
-        Raises
-        ------
-        AssertionError
-            If force constants shape is not (number of lattice points, number of atoms in primitive cell, 3, number of atoms in primitive cell, 3 )
         """
 
         timer = Timer(f"Set up harmonic analysis for {get_sysname(primitive)}:")

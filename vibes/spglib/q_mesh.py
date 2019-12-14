@@ -35,17 +35,10 @@ def get_ir_reciprocal_mesh(
     my_ir_grid: list
         the reduced set of q-points
 
-    Raises
-    ------
-    AssertionError
-        If -1 is in match_list or my_mapping OR
-        If the number of unique items in match_list does not equal number of lattice points in q_mesh OR
-        If my_ir_grid is not all unique values
-
     Example
     -------
-    https://gitlab.com/flokno/vibes/blob/devel/examples/harmonic_analysis/irreducible_q_points/ir_qpoints.ipynb
-
+    https://gitlab.com/flokno/vibes/blob/devel/examples/harmonic_analysis/
+    irreducible_q_points/ir_qpoints.ipynb
 
     """
 

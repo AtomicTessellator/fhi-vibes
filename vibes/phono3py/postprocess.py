@@ -80,7 +80,7 @@ def postprocess(
     for nn, scell in enumerate(disp_scells):
         atoms = calculated_atoms[0]
         if scell:
-            # This is no longer simply pop since phono3py adds the same supercell multiple times
+            # do not simply pop since phono3py adds the same supercell multiple times
             if atoms.info[displacement_id_str] == nn:
                 hash_dict[hash_atoms(to_Atoms(scell))] = len(force_sets)
                 force_sets.append(atoms.get_forces())

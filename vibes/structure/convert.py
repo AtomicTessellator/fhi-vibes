@@ -53,7 +53,9 @@ def to_spglib_cell(structure):
 
 
 def to_Atoms_db(structure, info=None, pbc=True):
-    """Convert structure to ase.atoms.Atoms without masses, and more accurate positions/lattice vectors
+    """Convert structure to ase.atoms.Atoms
+
+    without masses, and more accurate positions/lattice vectors
 
     Parameters
     ----------

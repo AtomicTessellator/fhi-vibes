@@ -44,12 +44,6 @@ def get_lattice_points(
         The list of lattice points in the supercell
     lattice_points_ext_w_multiplicites
         The list of lattice points in the supercell including multiplicities
-
-    Raises
-    ------
-    AssertionErorr
-        If Number of Unique lattice points does not equal the determinant of the supercell matrix
-
     """
 
     timer = Timer()
@@ -234,7 +228,7 @@ def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
 def find_cubic_cell(
     cell, target_size=1, deviation=0.2, lower_limit=-2, upper_limit=2, verbose=False
 ):
-    """Find a supercell matrix that produces a supercell of given size that is as cubic as possible
+    """Find supercell matrix that produces a cubic-as-possible supercell of given size
 
     Parameters
     ----------

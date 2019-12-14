@@ -1,5 +1,6 @@
 """ Copied from hiphive:
-    File: https://gitlab.com/materials-modeling/hiphive/blob/1382b48a6aae530c4cc4e3dd29a0342f3071659a/hiphive/md_tools/spectral_energy_density.py
+    File: https://gitlab.com/materials-modeling/hiphive/blob/
+    1382b48a6aae530c4cc4e3dd29a0342f3071659a/hiphive/md_tools/spectral_energy_density.py
     License: https://gitlab.com/materials-modeling/hiphive/blob/master/LICENSE
 """
 

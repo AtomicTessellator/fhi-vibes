@@ -21,7 +21,8 @@ def _get_decoration_string(cell, symprec=symprec, verbose=True):
         string = "#=====================================================\n"
         string += f"# libflo:  geometry.in \n"
         # string += '#   Material: {:s}\n'.format(cell.get_chemical_formula())
-        string += f"#   Date:    {datetime.datetime.now().isoformat(' ', timespec='seconds')}\n"
+        date = datetime.datetime.now().isoformat(" ", timespec="seconds")
+        string += f"#   Date:    {date}\n"
         string += "#=====================================================\n"
         string += f"#   Material:          {cell.get_chemical_formula()}\n"
         string += f"#   No. atoms:         {cell.n_atoms}\n"

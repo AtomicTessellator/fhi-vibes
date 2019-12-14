@@ -290,7 +290,7 @@ def extract_forceconstants(
     logfile: str or Path
         log file to put tdep std out
     create_symlink: bool
-        If True make a symbolic link between outfile.forceconstant and infile.forceconstant
+        make a symbolic link between outfile.forceconstant and infile.forceconstant
     """
 
     timer = Timer()

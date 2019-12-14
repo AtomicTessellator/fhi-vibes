@@ -7,7 +7,10 @@ from .warnings import warn
 def correlation(f1, f2, normalize=True, window=True):
     """Compute correlation function for signal f1 and signal f2
 
-    See https://gitlab.com/flokno/python_recipes/blob/5adb1b12f228cd7942a50521426850810a67dfea/mathematics/correlation_function/autocorrelation.ipynb for reference
+    Reference:
+        https://gitlab.com/flokno/python_recipes/blob/
+        5adb1b12f228cd7942a50521426850810a67dfea/mathematics/correlation_function/
+        autocorrelation.ipynb
 
     Args:
         f1: signal 1

@@ -16,13 +16,13 @@ def map_L_to_i(indeces):
 
     Parameters
     ----------
-    indeces: np.ndarray
-        map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point i: corresponding atom in primitive cell L: lattice point index
+    indeces: list
+        map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point
 
     Returns
     -------
     np.ndarray
-        list of masks that single out the atoms in the supercell that belong to specific lattice point
+        list of masks that single out the atoms that belong to specific lattice point
     """
 
     n_lattice_points = max(i[1] for i in indeces) + 1

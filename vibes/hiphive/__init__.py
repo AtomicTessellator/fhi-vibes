@@ -29,10 +29,10 @@ def Timer(msg=None):
 def enforce_rotational_sum_rules(phonon, only_project=False):
     """enforce the rotational sum rules on phonopy object
 
-    Reference:
-        - [enfore rotational sum rules](https://hiphive.materialsmodeling.org/advanced_topics/rotational_sum_rules.html)
-        - [ForceConstants from external sources](https://hiphive.materialsmodeling.org/advanced_topics/force_constants_io.html)
-        - [create ClusterSpace](https://hiphive.materialsmodeling.org/moduleref/cluster_space.html)
+    References:
+        - hiphive.materialsmodeling.org/advanced_topics/rotational_sum_rules.html
+        - hiphive.materialsmodeling.org/advanced_topics/force_constants_io.html
+        - hiphive.materialsmodeling.org/moduleref/cluster_space.html
     """
     primitive = to_Atoms(phonon.primitive)
     supercell = to_Atoms(phonon.supercell)
