@@ -85,7 +85,6 @@ def md_output(
 @click.option("--animate_q", nargs=3, multiple=True, type=float, help="animation at q")
 @click.option("--born", type=complete_filenames)
 @click.option("--full", is_flag=True)
-@click.option("--tdep", is_flag=True, hidden=True)
 @click.option("--remap_fc", is_flag=True)
 @click.option("--sum_rules", is_flag=True)
 @click.option("-v", "--verbose", is_flag=True, help="print frequencies at gamma point")
@@ -105,7 +104,6 @@ def phonopy_output(
     animate_q,
     born,
     full,
-    tdep,
     remap_fc,
     sum_rules,
     verbose,
@@ -133,15 +131,12 @@ def phonopy_output(
         output_directory = Path(trajectory).parent / folder
 
     kwargs = {
-        "write_thermal_properties": thermal_properties or full,
-        "write_bandstructure": bandstructure or full,
-        "write_dos": density_of_states or full,
-        "write_debye": debye_temperature or full,
-        "write_pdos": projected_density_of_states,
-        "plot_bandstructure": bandstructure or full,
-        "plot_thermal_properties": thermal_properties or full,
-        "plot_dos": density_of_states or full,
-        "plot_pdos": projected_density_of_states,
+        "minimal_output": True,
+        "thermal_properties": thermal_properties or full,
+        "bandstructure": bandstructure or full,
+        "dos": density_of_states or full,
+        "debye": debye_temperature or full,
+        "pdos": projected_density_of_states,
         "bz_path": bz_path,
         "q_mesh": q_mesh,
         "output_dir": output_directory,
@@ -153,5 +148,5 @@ def phonopy_output(
 
     extract_results(phonon, **kwargs)
 
-    if tdep:
-        convert_phonopy_to_tdep(phonon, workdir=str(output_directory) + "_tdep")
+    # if tdep:
+    #     convert_phonopy_to_tdep(phonon, workdir=str(output_directory) + "_tdep")
