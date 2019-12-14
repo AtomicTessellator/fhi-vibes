@@ -171,9 +171,8 @@ class HarmonicAnalysis:
         self.lattice_points_supercell = lattice_points
 
         # get the map from supercell index I, to (i, L) as index in unit cell + lattice
-        self.I_to_iL = map_I_to_iL(
-            self.primitive, self.supercell, lattice_points=lattice_points
-        )
+        p, s = self.primitive, self.supercell
+        self.I_to_iL, _ = map_I_to_iL(p, s, lattice_points=lattice_points)
 
         # Attach force constants in the shape fc[N_L, N_i, 3, N_j, 3]
         # and check dimensions

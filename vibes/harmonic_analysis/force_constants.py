@@ -47,7 +47,7 @@ def reshape_force_constants(
     if lattice_points is None:
         lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)
 
-    indeces = map_I_to_iL(primitive, supercell, lattice_points=lattice_points)
+    indeces, _ = map_I_to_iL(primitive, supercell, lattice_points=lattice_points)
 
     n_i = len(primitive)
     n_L = len(lattice_points)

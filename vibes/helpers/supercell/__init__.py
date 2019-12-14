@@ -136,15 +136,9 @@ def get_lattice_points(
         lattice_points[:3],
     )
 
-    # assert len(np.unique(lattice_points_extended, axis=0)) == 8 * n_lattice_points, (
-    #     len(np.unique(lattice_points_extended, axis=0)),
-    #     8 * n_lattice_points,
-    #     lattice_points_extended[:3],
-    # )
-
-    timer(
-        f"found {len(lattice_points)} ({len(lattice_points_extended)}) lattice points"
-    )
+    nlp = len(lattice_points)
+    nlpe = len(lattice_points_extended)
+    timer(f"found {nlp} ({nlpe}) lattice points")
 
     if sort:
         lattice_points = np.asarray(sort_lattice_points(lattice_points))
@@ -388,7 +382,7 @@ def map_indices(atoms1, atoms2, tol=1e-5):
 
     from vibes.helpers.lattice_points import map_I_to_iL
 
-    _, index_map = map_I_to_iL(atoms2, atoms1, return_inverse=True)
+    _, index_map = map_I_to_iL(atoms2, atoms1)
 
     assert len(np.unique(index_map)) == len(atoms1)
 

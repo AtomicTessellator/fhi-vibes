@@ -32,45 +32,32 @@ def map_L_to_i(indeces):
     return mappings
 
 
+def _get_lattice_points(atoms, supercell, lattice_points, extended=False):
+    """local wrapper for `get_lattice_points`"""
+    if lattice_points is None:
+        if extended:
+            _, lattice_points = get_lattice_points(atoms.cell, supercell.cell)
+        else:
+            lattice_points, _ = get_lattice_points(atoms.cell, supercell.cell)
+
+    return lattice_points
+
+
 def map_I_to_iL(
-    in_atoms,
-    in_supercell,
-    lattice_points=None,
-    extended=False,
-    return_inverse=False,
-    tolerance=1e-5,
+    in_atoms, in_supercell, lattice_points=None, extended=False, tolerance=1e-5
 ):
-    """Write positions in the supercell as (i, L), where i is the respective index in the primitive cell and L is the lattice point
+    """Map from supercell index I to (i, L), i is the unit cell index and L lattice p.
 
-    Parameters
-    ----------
-    in_atoms: ase.atoms.Atoms
-        The input primitive cell
-    in_supercell: ase.atoms.Atoms
-        The input supercell
-    lattice_points: np.ndarray
-        List of lattice points in the supercell
-    extended: bool
-        If True include lattice point multiplicities
-    return_inverse:bool
-        If true return the inverse map
-    tolerance: float
-        tolerance for position checks
+    Args:
+        in_atoms (ase.atoms.Atoms): primitive cell
+        in_supercell (ase.atoms.Atoms): supercell
+        lattice_points (list, optional): list of pre-computed lattice points L
+        extended (bool, optional): return lattice points at supercell surface
+        tolerance (float, optional): tolerance for wrapping
 
-    Returns
-    -------
-    indices: np.ndarray
-        map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point i: corresponding atom in primitive cell L: lattice point index
-    inv_indiceis: np.ndarray
-        Inverse of the map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point i: corresponding atom in primitive cell L: lattice point index
-
-    Raises
-    ------
-    AssertionError
-        If number of unique indices is not equal to the length of the supercell OR
-        If any of the number in indices is -1
+    Returns:
+        list, list: I_to_iL map, inverse map
     """
-
     timer = Timer()
 
     atoms = in_atoms.copy()
@@ -78,11 +65,9 @@ def map_I_to_iL(
     atoms.wrap()
     supercell.wrap()
 
-    if lattice_points is None:
-        if extended:
-            _, lattice_points = get_lattice_points(atoms.cell, supercell.cell)
-        else:
-            lattice_points, _ = get_lattice_points(atoms.cell, supercell.cell)
+    lattice_points = _get_lattice_points(
+        atoms, supercell, lattice_points, extended=extended
+    )
 
     # create all positions R = r_i + L
     all_positions = []
@@ -139,12 +124,9 @@ def map_I_to_iL(
 
     timer(f"matched {len(matches)} positions in supercell and primitive cell")
 
-    # return inverse?
-    if return_inverse:
-        inv = _map_iL_to_I(indices)
-        return indices, inv
+    inv = _map_iL_to_I(indices)
 
-    return np.array(indices)
+    return np.array(indices), np.array(inv)
 
 
 def _map_iL_to_I(I_to_iL_map):

@@ -43,7 +43,7 @@ def main():
     masses = supercell.get_masses()
 
     lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)
-    indeces = map_I_to_iL(primitive, supercell)
+    indeces, _ = map_I_to_iL(primitive, supercell)
 
     # check if the commensurate q point is correct
     q_points = get_commensurate_q_points(primitive.cell, supercell.cell)

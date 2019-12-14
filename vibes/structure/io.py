@@ -14,34 +14,9 @@ from vibes.structure.misc import get_sysname
 from vibes.spglib.wrapper import get_symmetry_dataset
 
 
-def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=True):
-    """print the string that is geometry.in
-
-    Parameters
-    ----------
-    cell: ase.atoms.Atoms
-        The cell to convert to geometry.in
-    decorated: bool
-        If True add header to the geoemtry.in string
-    scaled: bool
-        If True use scaled positions
-    velocities: bool
-        If True include velocities
-    wrap: bool
-        If True wrap the scaled positions
-
-    Returns
-    -------
-    string: str
-        string representation of geometry.in
-    """
-    if scaled is None:
-        if "supercell" in cell.tags:
-            scaled = False
-        else:
-            scaled = True
-
-    if decorated:
+def _get_decoration_string(cell, symprec=symprec, verbose=True):
+    """return decorating string"""
+    if verbose:
         sds = get_symmetry_dataset(cell, symprec=symprec)
         string = "#=====================================================\n"
         string += f"# libflo:  geometry.in \n"
@@ -51,9 +26,7 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
         string += f"#   Material:          {cell.get_chemical_formula()}\n"
         string += f"#   No. atoms:         {cell.n_atoms}\n"
         string += f"#   Spacegroup:        {sds.number:d}\n"
-        # string += (f'#   Wyckoff positions: ' +
-        #             ', '.join(f'{c}*{w}' for (w, c) in sds.wyckoffs_unique) +
-        #             '\n')
+
         if any(cell.pbc):
             string += f"#   Unit cell volume:  {cell.get_volume():f} AA^3\n"
         if hasattr(cell, "tags"):
@@ -62,22 +35,33 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
         # Supercell
         if hasattr(cell, "smatrix"):
             string += f"#   Supercell matrix:  {cell.smatrix.flatten()}\n"
-
-        # string += '\n'
     else:
         string = ""
-    # Write lattice
-    # if decorated and cell.pbc:
-    #     string += '# Lattice:\n'
-    #
-    # Order lattice by lengths (doesn't do anything right now)
-    if any(cell.pbc):
-        lengths = [norm(lv) for lv in cell.get_cell()]
-    else:
-        lengths = [norm(pos) for pos in cell.get_positions()]
-    lv_args = range(len(lengths))  # np.argsort(lengths)
 
-    # for latvec, constraint in zip(latvecs[lv_args], cell.constraints_lv[lv_args]):
+    return string
+
+
+def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=False):
+    """print the string that is geometry.in
+
+    Args:
+        cell (ase.atoms.Atoms): the structure
+        decorated (bool, optional): add decoration
+        scaled (bool, optional): use scaled positions
+        velocities (bool, optional): write velocities
+        wrap (bool, optional): write wrapped positions
+
+    Returns:
+        str: geometry.in
+    """
+    if scaled is None:
+        if "supercell" in cell.tags:
+            scaled = False
+        else:
+            scaled = True
+
+    string = _get_decoration_string
+
     if any(cell.pbc):
         latvecs = clean_matrix(cell.get_cell())
         for latvec, constraint in zip(latvecs, cell.constraints_lv):
@@ -96,13 +80,10 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
     # if not pbc: direct positions!
     else:
         scaled = False
-    #
+
     # Write (preferably) scaled positions
     symbols = cell.get_chemical_symbols()
     if scaled:
-        # if decorated:
-        #     string += '\n# Scaled positions:\n'
-        #
         positions = clean_matrix(cell.get_scaled_positions(wrap=wrap))
         atompos = "atom_frac"
     else:
@@ -111,19 +92,19 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
         #
         positions = clean_matrix(cell.get_positions())
         atompos = "atom"
-    #
+
     if velocities:
         vels = cell.get_velocities()
-    #
+
     for ii, (pos, sym) in enumerate(zip(positions, symbols)):
         if decorated:
             string += f"  {atompos:9s}  "
         else:
             string += f"{atompos:s}  "
         #
-        string += f"{pos[lv_args[0]]: .{n_geom_digits}e} "
-        string += f"{pos[lv_args[1]]: .{n_geom_digits}e} "
-        string += f"{pos[lv_args[2]]: .{n_geom_digits}e}  "
+        string += f"{pos[0]: .{n_geom_digits}e} "
+        string += f"{pos[1]: .{n_geom_digits}e} "
+        string += f"{pos[2]: .{n_geom_digits}e}  "
         string += f"{sym:3s}\n"
         if velocities:
             vel = vels[ii]
@@ -131,10 +112,10 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Tr
                 string += "    velocity "
             else:
                 string += "velocity "
-            string += f"{vel[lv_args[0]]: .{n_geom_digits}e} "
-            string += f"{vel[lv_args[1]]: .{n_geom_digits}e} "
-            string += f"{vel[lv_args[2]]: .{n_geom_digits}e}\n"
-    #
+            string += f"{vel[0]: .{n_geom_digits}e} "
+            string += f"{vel[1]: .{n_geom_digits}e} "
+            string += f"{vel[2]: .{n_geom_digits}e}\n"
+
     return string
 
 
