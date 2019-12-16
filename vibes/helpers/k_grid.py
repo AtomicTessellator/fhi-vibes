@@ -5,7 +5,9 @@ from vibes.helpers.utils import talk
 
 
 def d2k(atoms, kptdensity=3.5, even=True):
-    """[ase.calculators.calculator.kptdensity2monkhorstpack] Convert k-point density to Monkhorst-Pack grid size.
+    """Convert k-point density to Monkhorst-Pack grid size.
+
+    from [ase.calculators.calculator.kptdensity2monkhorstpack]
 
     Parameters
     ----------
@@ -72,7 +74,7 @@ def k2d(atoms, k_grid=[2, 2, 2]):
     Returns
     -------
     np.ndarray
-        The density of kpoints in each direction. Use result.mean() to compute average kpoint density.
+        density of kpoints in each direction. result.mean() computes average density
     """
     recipcell = atoms.get_reciprocal_cell()
     densities = k_grid / (2 * np.pi * np.sqrt((recipcell ** 2).sum(axis=1)))
@@ -108,7 +110,7 @@ def update_k_grid(atoms, calc, kptdensity, even=True):
 
 
 def update_k_grid_calc_dict(calc_dict, recipcell, kptdensity, even=True):
-    """Update the k_grid in dictionary representation of a calculator with the respective density
+    """Update k_grid in dictionary representation of a calculator w/ respective density
 
     Parameters
     ----------

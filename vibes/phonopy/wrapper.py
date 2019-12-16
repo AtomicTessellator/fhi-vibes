@@ -338,7 +338,7 @@ def plot_bandstructure_and_dos(
     phonon,
     q_mesh=defaults.q_mesh,
     partial=False,
-    file="bands_and_dos.pdf",
+    file="bandstructure_dos.pdf",
     run_mesh=True,
 ):
     """Plot bandstructure and PDOS

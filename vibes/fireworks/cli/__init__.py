@@ -24,7 +24,8 @@ class ListOption(click.Option):
         Returns
         -------
         value: list
-            The comma seperated list as either a list of strs or a list of ints depending on the type of the option
+            The comma seperated list as either a list of strs or a list of ints
+            depending on the type of the option
         """
         if not value:
             return None
@@ -82,7 +83,9 @@ def add_wf(workflow, launchpad):
             wflow["basissets"] = AttributeDict({"default": "light"})
 
         talk(f"Generating workflow for {get_sysname(atoms)}", prefix="fireworks")
-        calc = setup_aims(ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False)
+        calc = setup_aims(
+            ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False
+        )
         atoms.set_calculator(calc)
         generate_workflow(wflow, atoms, launchpad)
 
@@ -94,14 +97,14 @@ def add_wf(workflow, launchpad):
     "--remote_host",
     default=FW_DEFAULTS["remote_host"],
     multiple=True,
-    help="Remote host to exec qlaunch. Right now, only supports running from a config dir.",
+    help="Remote host to exec qlaunch.",
 )
 @click.option(
     "-rc",
     "--remote_config_dir",
     cls=ListOption,
     default=FW_DEFAULTS["remote_config_dir"],
-    help="Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple locations if you have multiple configurations on the same cluster e.g., multiple queues or FireWorkers.",
+    help="Remote config dir location(s). Defaults to ~/.fireworks. ",
 )
 @click.option(
     "-ru",
@@ -113,7 +116,7 @@ def add_wf(workflow, launchpad):
     "-rp",
     "--remote_password",
     default=FW_DEFAULTS["remote_password"],
-    help="Password for remote host (if necessary). For best operation, it is recommended that you do passwordless ssh.",
+    help="Password for remote host (if necessary). Not recommended",
 )
 @click.option(
     "-rsh",
@@ -137,7 +140,7 @@ def add_wf(workflow, launchpad):
 @click.option(
     "-d",
     "--daemon",
-    help="Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode.",
+    help="Daemon mode. Command is repeated every x seconds. Defaults to non-daemon mode.",
     type=int,
     default=0,
 )
@@ -156,7 +159,7 @@ def add_wf(workflow, launchpad):
 @click.option(
     "-c",
     "--config_dir",
-    help="path to a directory containing the config file (used if -l, -w, -q unspecified)",
+    help="path to a directory containing config files (used if -l, -w, -q unspecified)",
     default=CONFIG_FILE_DIR,
 )
 @click.option(
@@ -338,14 +341,14 @@ def claunch(
     "--remote_host",
     default=FW_DEFAULTS["remote_host"],
     multiple=True,
-    help="Remote host to exec qlaunch. Right now, only supports running from a config dir.",
+    help="Remote host to exec qlaunch.",
 )
 @click.option(
     "-rc",
     "--remote_config_dir",
     cls=ListOption,
     default=FW_DEFAULTS["remote_config_dir"],
-    help="Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple locations if you have multiple configurations on the same cluster e.g., multiple queues or FireWorkers.",
+    help="Remote config dir location(s).",
 )
 @click.option(
     "-ru",
@@ -357,7 +360,7 @@ def claunch(
     "-rp",
     "--remote_password",
     default=FW_DEFAULTS["remote_password"],
-    help="Password for remote host (if necessary). For best operation, it is recommended that you do passwordless ssh.",
+    help="Password for remote host (if necessary). Not recommended",
 )
 @click.option(
     "-rsh",
@@ -381,7 +384,7 @@ def claunch(
 @click.option(
     "-d",
     "--daemon",
-    help="Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode.",
+    help="Daemon mode. Command is repeated every x seconds. Defaults to non-daemon mode.",
     type=int,
     default=0,
 )
@@ -400,7 +403,7 @@ def claunch(
 @click.option(
     "-c",
     "--config_dir",
-    help="path to a directory containing the config file (used if -l, -w, -q unspecified)",
+    help="path to a directory containing config files (used if -l, -w, -q unspecified)",
     default=CONFIG_FILE_DIR,
 )
 @click.option(
@@ -637,7 +640,7 @@ def qlaunch_singleshot(ctx, firework_id):
 @click.option(
     "-c",
     "--config_dir",
-    help="path to a directory containing the config file (used if -l, -w, -q unspecified)",
+    help="path to a directory containing config files (used if -l, -w, -q unspecified)",
     default=CONFIG_FILE_DIR,
 )
 def rlaunch(ctx, loglvl, silencer, launchpad_file, fworker_file, config_dir):
@@ -702,7 +705,7 @@ def rlaunch(ctx, loglvl, silencer, launchpad_file, fworker_file, config_dir):
 )
 @click.option(
     "--max_loops",
-    help="after this many sleep loops, quit even in infinite nlaunches mode (default -1 is infinite loops)",
+    help="after this many sleep loops, quit even in infinite nlaunches mode",
     default=-1,
     type=int,
 )
@@ -760,7 +763,7 @@ def rlaunch_singleshot(ctx, fw_id, offline, pdb):
 @click.option("--num_jobs", help="the number of jobs to run in parallel", type=int)
 @click.option(
     "--nlaunches",
-    help='number of FireWorks to run in series per parallel job (int or "infinite"; default 0 is all jobs in DB)',
+    help='number of FireWorks to run in series per parallel job (int or "infinite"',
     default=0,
 )
 @click.option(
@@ -777,7 +780,7 @@ def rlaunch_singleshot(ctx, fw_id, offline, pdb):
 )
 @click.option(
     "--nodefile",
-    help="nodefile name or environment variable name containing the node file name (for populating FWData only)",
+    help="nodefile name or environment variable name containing the node file name",
     default=None,
     type=str,
 )

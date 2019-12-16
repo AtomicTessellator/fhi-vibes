@@ -230,10 +230,12 @@ def gen_stat_samp_analysis_task_spec(
             make_abs_path=make_abs_path,
         )
     )
+    stat_samp_head = "vibes.fireworks.tasks.statistical_sampling_wrappers"
+    fout_head = "vibes.fireworks.tasks.fw_out.statistical_sampling"
     task_spec_list.append(
         TaskSpec(
-            "vibes.fireworks.tasks.statistical_sampling_wrappers.postprocess_statistical_sampling",
-            "vibes.fireworks.tasks.fw_out.statistical_sampling.add_stat_samp_to_spec",
+            f"{stat_samp_head}.postprocess_statistical_sampling",
+            f"{fout_head}.add_stat_samp_to_spec",
             False,
             args=[],
             inputs=[],

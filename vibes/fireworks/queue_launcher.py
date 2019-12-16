@@ -77,7 +77,7 @@ def launch_rocket_to_queue(
     create_launcher_dir: bool
         Whether to create a subfolder launcher+timestamp, if needed
     fill_mode: bool
-        whether to submit jobs even when there is nothing to run (only in non-reservation mode)
+        If True submit jobs even if there are none to run (only in non-reservation mode)
     fw_id: int
         specific fw_id to reserve (reservation mode only)
 
@@ -118,7 +118,7 @@ def launch_rocket_to_queue(
 
     if reserve and "singleshot" not in qadapter.get("rocket_launch", ""):
         raise ValueError(
-            "Reservation mode of queue launcher only works for singleshot Rocket Launcher!"
+            "Reservation mode of queue launcher only works for singleshot Rocket Launcher"
         )
 
     if fill_mode and reserve:
@@ -185,7 +185,7 @@ def launch_rocket_to_queue(
                                 )
                             if queue["max_nodes"] < nodes_needed[queue_ind]:
                                 raise IOError(
-                                    "Requested resource does not have enough memory to complete the job"
+                                    "Requested resource does not have enough memory"
                                 )
                             sc_wt = str2time(fw.spec["_queueadapter"]["walltime"])
                             if nodes * sc_wt < str2time(queue["max_walltime"]):
@@ -209,7 +209,7 @@ def launch_rocket_to_queue(
                                 )
                             if queue["max_nodes"] < nodes_needed[queue_ind]:
                                 raise IOError(
-                                    "Requested resource does not have enough memory to complete the job"
+                                    "Requested resource does not have enough memory"
                                 )
                             if "walltime" not in fw.spec["_queueadapter"]:
                                 fw.spec["_queueadapter"]["walltime"] = queue[
@@ -332,10 +332,9 @@ def launch_rocket_to_queue(
             return False
 
     else:
+        # note: this is a hack (rather than False) to indicate a soft failure to rapidfire
         l_logger.info("No jobs exist in the LaunchPad for submission to queue!")
-        return (
-            None
-        )  # note: this is a hack (rather than False) to indicate a soft failure to rapidfire()
+        return None
 
 
 def rapidfire(
@@ -381,7 +380,7 @@ def rapidfire(
     timeout: int
         # of seconds after which to stop the rapidfire process
     fill_mode: bool
-        whether to submit jobs even when there is nothing to run (only in non-reservation mode)
+        If True submit jobs even if there is nothing to run (only in non-reservation mode)
     firework_ids: list of ints
         a list firework_ids to launch (len(firework_ids) == nlaunches)
     wflow_id: list of ints

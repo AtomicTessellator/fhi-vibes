@@ -33,8 +33,8 @@ class TaskSpec:
            kwargs for func_fw_out
         args: list
             args for func
-        inputs: list
-            args for func stored in the FireWorks database(spec keys that are append to args)
+        inputs: list of str
+            spec_keys for args for func stored in the FireWorks database
         make_abs_path: bool
             If True make all paths absolute
         fw_settings: dict

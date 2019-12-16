@@ -235,7 +235,7 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
     Returns
     -------
     atoms: ase.atoms.Atoms
-        The atoms represented by atoms_dict with the calculator represented by calc_dict attached
+        atoms represented by atoms_dict with calculator represented by calc_dict
     """
 
     if "pbc" not in atoms_dict:
@@ -404,7 +404,10 @@ def json2atoms(rep):
 def atoms_calc2json(
     atoms, ignore_results=False, ignore_keys=["unique_id"], ignore_calc_params=[]
 ):
-    """Return json representation of atoms and calculator objects. possibility to remove certain keys from the atoms dictionary, e.g. for hashing
+    """Return json representation of atoms and calculator objects.
+
+    Includes possibility to remove certain keys from the atoms dictionary,
+    e.g. for hashing
 
     Parameters
     ----------

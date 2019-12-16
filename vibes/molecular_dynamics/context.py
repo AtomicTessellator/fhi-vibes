@@ -213,10 +213,7 @@ class MDContext:
 
         # other stuff
         dct = input2dict(
-            self.atoms,
-            calc=self.calc,
-            primitive=self.primitive,
-            supercell=self.supercell,
+            self.atoms, calc=self.calc, primitive=self.primitive, supercell=self.supercell
         )
 
         return {"MD": md_dict, **dct}

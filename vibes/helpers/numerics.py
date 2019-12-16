@@ -53,9 +53,7 @@ def get_3x3_matrix(matrix, dtype=int):
         supercell_matrix = np.asarray(matrix).reshape((3, 3))
     else:
         raise Exception(
-            "Supercell matrix must have 1, 3, 9 elements, has {}".format(
-                np.size(matrix)
-            )
+            "Supercell matrix must have 1, 3, 9 elements, has {}".format(np.size(matrix))
         )
 
     return supercell_matrix.astype(dtype)

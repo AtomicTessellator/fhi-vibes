@@ -224,10 +224,7 @@ def create_samples(
             filename += f".{ii:03d}"
 
         sample.write(
-            filename,
-            info_str=sample.info.pop("info_str"),
-            velocities=True,
-            format=format,
+            filename, info_str=sample.info.pop("info_str"), velocities=True, format=format
         )
         talk(f".. temperature in sample {ii}:     {sample.get_temperature():9.3f}K")
         talk(f".. written to {filename}")

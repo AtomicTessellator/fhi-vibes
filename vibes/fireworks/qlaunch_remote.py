@@ -71,7 +71,7 @@ def qlaunch_remote(
     remote_shell="/bin/bash -l -c",
     daemon=0,
 ):
-    """ This function adapts the python definition of qlaunch in fireworks to a python function
+    """ This function adapts the fireworks script qlaunch to a python function
 
     Parameters
     ----------
@@ -81,8 +81,8 @@ def qlaunch_remote(
         maximum jobs to keep in queue for this user
     maxjobs_block: int
         maximum jobs to put in a block
-    nlaunches: int
-        maximum number of launches to perform (int or "infinite"; default 0 is all jobs in DB)
+    nlaunches: int or "infinite"
+        maximum number of launches to perform (default 0 is all jobs in DB)
     sleep: int
         sleep time between loops
     firework_ids: list of int
@@ -102,19 +102,19 @@ def qlaunch_remote(
     gss_auth: bool
         Allow GSS-API authorization with Kerberos
     controlpath: str
-        Path to a control path for ssh multiplexing (Only if a modified paramiko that allows ssh multiplexing is used)
+        Path to a control path for ssh multiplexing (Only possible in modified paramiko)
     remote_host: str
         Remote host to exec qlaunch. Right now, only supports running from a config dir.
-    remote_config_dir: list
-        str): Remote config dir location(s). Defaults to ~/.fireworks. You can specify multiple locations if you have multiple configurations on the same cluster e.g., multiple queues or FireWorkers.
+    remote_config_dir: list of str
+        Remote config dir location(s). Defaults to ~/.fireworks.
     remote_user: str
         Username to login to remote host.
     remote_password: str
-        Password for remote host (if necessary). For best operation, it is recommended that you do passwordless ssh.
+        Password for remote host (if necessary and not recommended)
     remote_shell: str
         Shell command to use on remote host for running submission.
     daemon: int
-        Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode.
+        Daemon mode. Command is repeated every x seconds. Defaults to non-daemon mode.
 
     Raises
     ------
@@ -166,7 +166,7 @@ def qlaunch_remote(
                 connect_kwargs["controlpath"] = controlpath
             talk(
                 f"Launching FireWork {fw_id} on {host} with command: \n"
-                + f"\t\tvibes fireworks qlaunch {pre_non_default} {command} {non_default}",
+                + f"\tvibes fireworks qlaunch {pre_non_default} {command} {non_default}",
                 prefix="fireworks",
             )
             with fabric.Connection(

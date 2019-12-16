@@ -80,16 +80,18 @@ def generate_firework(
     args=None,
     inputs=None,
 ):
-    """A function that takes in a set of inputs and returns a Firework to perform that operation
+    """A function that takes in a set of inputs and returns a Firework for them
 
     Parameters
     ----------
     task_spec_list: list of TaskSpecs
         list of task specifications to perform
     atoms: ase.atoms.Atoms, dictionary or str
-        If not atoms_calc_from_spec then this must be an ASE Atoms object or a dictionary describing it If atoms_calc_from_spec then this must be a key str to retrieve the Atoms Object from the MongoDB launchpad
+        If not atoms_calc_from_spec then this must be an ASE Atoms object or a dict
+        If atoms_calc_from_spec then this must be a key str
     calc: ase.calculators.calulator.Calculator, dictionary or str
-        If not atoms_calc_from_spec then this must be an ase.calculators.calulator.Calculator or a dictionary describing it If atoms_calc_from_spec then this must be a key str to retrieve the Calculator from the MongoDB launchpad
+        If not atoms_calc_from_spec then this must be an ASE Calculator or a dict
+        If atoms_calc_from_spec then this must be a key str
     fw_settings: dict
         Settings used by fireworks to place objects in the right part of the MongoDB
     atoms_calc_from_spec: bool
@@ -112,7 +114,7 @@ def generate_firework(
     Returns
     -------
     Firework
-        A Firework that will perform the desired operation on a set of atoms, and process the outputs for Fireworks
+        A Firework that will perform the desired operation on a set of atoms
 
     Raises
     ------
@@ -122,13 +124,14 @@ def generate_firework(
     fw_settings = fw_settings.copy()
     if "spec" not in fw_settings:
         fw_settings["spec"] = {}
+
     if update_calc_settings is None:
         update_calc_settings = {}
 
     if func:
         if task_spec_list:
             raise IOError(
-                "You have defined a task_spec_list and arguments to generate one, please only specify one of these"
+                "You have defined both a task_spec_list and arguments to generate one"
             )
         task_with_atoms_obj = atoms is not None
         task_spec_list = [
@@ -144,13 +147,12 @@ def generate_firework(
         ]
     elif not task_spec_list:
         raise IOError(
-            "You have not defined a task_spec_list or arguments to generate one, please specify one of these"
+            "You have not defined a task_spec_list or arguments to generate one"
         )
     if isinstance(task_spec_list, TaskSpec):
         task_spec_list = [task_spec_list]
 
-    if fw_settings:
-        atoms_calc_from_spec = fw_settings.get("from_db", False)
+    atoms_calc_from_spec = fw_settings.get("from_db", False)
 
     if "fw_name" not in fw_settings:
         fw_settings["fw_base_name"] = ""
@@ -180,8 +182,6 @@ def generate_firework(
                 for key, val in update_calc_settings.items():
                     if key not in ("k_grid_density", "kgrid"):
                         cl = update_calc(cl, key, val)
-                # for key, val in cl.items():
-                #     at[key] = val
                 if cl["calculator"].lower() == "aims":
                     fw_settings["spec"]["kgrid"] = k2d(
                         atoms, cl["calculator_parameters"]["k_grid"]
@@ -207,9 +207,8 @@ def generate_firework(
     else:
         at = None
         cl = None
-    job_tasks = []
-    for task_spec in task_spec_list:
-        job_tasks.append(generate_task(task_spec, fw_settings, at, cl))
+    job_tasks = [generate_task(ts, fw_settings, at, cl) for ts in task_spec_list]
+
     return Firework(
         setup_tasks + job_tasks, name=fw_settings["fw_name"], spec=fw_settings["spec"]
     )
@@ -632,9 +631,10 @@ def generate_stat_samp_fw(workflow, atoms, fw_settings):
         else:
             sc_mat = get_3x3_matrix(workflow.phonopy.supercell_matrix)
             sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
-            workflow.statistical_sampling[
-                "phonon_file"
-            ] = f"{workflow.general.workdir_local}/sc_natoms_{sc_natoms}/phonopy_analysis/trajectory.son"
+            rel_dir = f"/sc_natoms_{sc_natoms}/phonopy_analysis/trajectory.son"
+            workflow.statistical_sampling["phonon_file"] = (
+                workflow.general.workdir_local + rel_dir
+            )
     fw_settings.pop("in_spec_calc", None)
     fw_settings.pop("in_spec_atoms", None)
     fw_settings["from_db"] = False
@@ -732,9 +732,9 @@ def generate_gruniesen_fd_fw(workflow, atoms, trajectory, constraints, fw_settin
     Firework:
         The Gruniesen setup firework
     """
-    fw_settings[
-        "fw_name"
-    ] = f"gruniesen_setup_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    chem_form = atoms.symbols.get_chemical_formula(empirical=True, mode="metal")
+    atoms_hash = hash_atoms_and_calc(atoms)[0]
+    fw_settings["fw_name"] = f"gruniesen_setup_{chem_form}_{atoms_hash}"
 
     task_spec = gen_gruniesen_task_spec(workflow, trajectory, constraints)
     return generate_firework(task_spec, None, None, fw_settings.copy())

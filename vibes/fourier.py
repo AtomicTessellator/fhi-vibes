@@ -18,9 +18,7 @@ def get_timestep(times):
     return timestep
 
 
-def get_frequencies(
-    N=None, dt=None, times=None, fs_factor=1, to_cm=False, verbose=False
-):
+def get_frequencies(N=None, dt=None, times=None, fs_factor=1, to_cm=False, verbose=False):
     """compute the frequency domain in THz for signal with fs resolution
 
     Args:

@@ -141,9 +141,7 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
                     )
         dct["force_3"] = np.array(dct["force_3"])
     else:
-        print(
-            "Warning not storing forces as number of atoms in the supercell are not consistent"
-        )
+        print("Warning not storing forces because of an inconsistent number of atoms")
         dct["force_3"] = np.ndarray(0)
 
     dct["force_3"] = np.array(dct["force_3"])
@@ -158,7 +156,7 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
 
 
 class PhononRow(AtomsRow):
-    """Class that is largely based off of the ASE AtomsRow object but expanded for phonopy"""
+    """ASE AtomsRow object but expanded for phonopy"""
 
     def __init__(self, dct, store_second_order=False):
         """Constructor for the PhononRow.

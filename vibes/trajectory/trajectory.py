@@ -479,8 +479,7 @@ class Trajectory(list):
         if not self.supercell:
             # warn("Supercell not set, let us stop here.", level=2)
             warn(
-                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms",
-                level=1,
+                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms", level=1
             )
 
         atoms_ideal = self.reference_atoms

@@ -61,7 +61,9 @@ def angle(x, y):
 
 
 def cell_to_cellpar(cell, radians=False):
-    """ [ASE] Returns the cell parameters [a, b, c, alpha, beta, gamma] as a numpy array. Helpful because it does not require Atoms object/atomic positions.
+    """ [ASE] Returns cell parameters [a, b, c, alpha, beta, gamma] as a numpy array.
+
+    It does not require Atoms object/atomic positions.
 
     Parameters
     ----------

@@ -40,7 +40,10 @@ def rapidfire(
     firework_ids=None,
     wflow_id=None,
 ):
-    """Keeps running Rockets in m_dir until we reach an error. Automatically creates subdirectories for each Rocket. Usually stops when we run out of FireWorks from the LaunchPad.
+    """Keeps running Rockets in m_dir until we reach an error.
+
+    Automatically creates subdirectories for each Rocket. Usually stops when we
+    run out of FireWorks from the LaunchPad.
 
     Parameters
     ----------
@@ -153,8 +156,7 @@ def rapidfire(
             if launchpad.run_exists(fworker, ids=firework_ids):
                 skip_check = True  # don't wait, pull the next FW right away
             else:
-                # add a small amount of buffer breathing time for DB to refresh in case we have a
-                # dynamic WF
+                # add a small amount of buffer breathing time for DB to refresh
                 time.sleep(0.15)
                 skip_check = False
         if nlaunches == 0:

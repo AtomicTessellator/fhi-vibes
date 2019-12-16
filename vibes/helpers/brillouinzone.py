@@ -66,9 +66,7 @@ def get_bands(atoms, paths=None, npoints=50):
     bands = []
     for path in paths:
         for ii, _ in enumerate(kpoints.parse_path_string(path)[0][:-1]):
-            bands.append(
-                atoms.cell.bandpath(path[ii : ii + 2], npoints=npoints).kpts
-            )
+            bands.append(atoms.cell.bandpath(path[ii : ii + 2], npoints=npoints).kpts)
     return bands
 
 

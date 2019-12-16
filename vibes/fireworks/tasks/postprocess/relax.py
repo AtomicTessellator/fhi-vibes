@@ -19,7 +19,7 @@ def check_aims(atoms, calc, outputs, **kwargs):
         atoms (ASE Atoms object): The original atoms at the start of this job
         calc (ASE Calculator object): The original calculator
         outputs (ASE Atoms Object): The geometry of the final relaxation step
-    Returns (FWAction): The correct action (restart or updated spec) if convergence is reached
+    Returns (FWAction): The correct action if convergence is reached
     """
     calc_number = kwargs.get("calc_number", 0) + 1
     aims_out = np.array(open(kwargs["workdir"] + "/aims.out").readlines())
@@ -41,7 +41,7 @@ def check_aims(atoms, calc, outputs, **kwargs):
                 calc.parameters["walltime"] = walltime
             else:
                 raise IOError(
-                    "There was a problem with the FHI Aims calculation stopping program here"
+                    "There was a problem with the FHI Aims calculation stopping here"
                 )
         new_atoms = outputs
     new_atoms_dict = atoms2dict(new_atoms)

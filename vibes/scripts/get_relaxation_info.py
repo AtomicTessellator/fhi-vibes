@@ -133,7 +133,7 @@ def parser(f, n_init=0, optimizer=2):
     volume: float
         The volume of the step
     status: int
-        The status of the step, 0 is normal, 1 is unproductive step, 2 is optimizer is stuck
+        status of the step, 0 is normal, 1 is unproductive step, 2 is optimizer is stuck
     converged: bool
         If True the relaxation is converged
     abort: int

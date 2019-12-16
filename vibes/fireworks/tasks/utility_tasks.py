@@ -20,7 +20,7 @@ def mod_calc(param_key, calc_spec, calc, val, atoms=None, spec_key=None):
     atoms: dict
         A dict representing an ASE Atoms object
     spec_key: str
-        The key in the MongoDB to update the val (used to pass the param down the Workflow)
+        The key in the MongoDB to update the val
 
     Returns
     -------

@@ -23,11 +23,11 @@ class KPointOptimizer(Dynamics):
         Parameters
         ----------
         atoms: ase.atoms.Atoms
-            geometry of the system you are converging the k-grid on with a calculator attached
+            system you want to get optimized k-grids for
         func: function
-            Function used to get the property the routine is trying to converge relative to the k-grid density
+            Function used to get the property used test if k-grid is converged
         loss_func: function
-            Function used to transform the property obtained in func into a score to compare agsint
+            Function used calculate if convergence is reached
         dfunc_min: float
             Convergence criteria for the loss function
         even: bool

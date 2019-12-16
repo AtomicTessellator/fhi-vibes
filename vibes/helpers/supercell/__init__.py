@@ -44,12 +44,6 @@ def get_lattice_points(
         The list of lattice points in the supercell
     lattice_points_ext_w_multiplicites
         The list of lattice points in the supercell including multiplicities
-
-    Raises
-    ------
-    AssertionErorr
-        If Number of Unique lattice points does not equal the determinant of the supercell matrix
-
     """
 
     timer = Timer()
@@ -107,9 +101,7 @@ def get_lattice_points(
         lattice_points = []
         lattice_points_extended = []
 
-        for (n1, n2, n3) in product(
-            range(-max_iterations, max_iterations + 1), repeat=3
-        ):
+        for (n1, n2, n3) in product(range(-max_iterations, max_iterations + 1), repeat=3):
 
             lp = [n1, n2, n3] @ lattice
 
@@ -136,15 +128,9 @@ def get_lattice_points(
         lattice_points[:3],
     )
 
-    # assert len(np.unique(lattice_points_extended, axis=0)) == 8 * n_lattice_points, (
-    #     len(np.unique(lattice_points_extended, axis=0)),
-    #     8 * n_lattice_points,
-    #     lattice_points_extended[:3],
-    # )
-
-    timer(
-        f"found {len(lattice_points)} ({len(lattice_points_extended)}) lattice points"
-    )
+    nlp = len(lattice_points)
+    nlpe = len(lattice_points_extended)
+    timer(f"found {nlp} ({nlpe}) lattice points")
 
     if sort:
         lattice_points = np.asarray(sort_lattice_points(lattice_points))
@@ -240,7 +226,7 @@ def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
 def find_cubic_cell(
     cell, target_size=1, deviation=0.2, lower_limit=-2, upper_limit=2, verbose=False
 ):
-    """Find a supercell matrix that produces a supercell of given size that is as cubic as possible
+    """Find supercell matrix that produces a cubic-as-possible supercell of given size
 
     Parameters
     ----------
@@ -388,7 +374,7 @@ def map_indices(atoms1, atoms2, tol=1e-5):
 
     from vibes.helpers.lattice_points import map_I_to_iL
 
-    _, index_map = map_I_to_iL(atoms2, atoms1, return_inverse=True)
+    _, index_map = map_I_to_iL(atoms2, atoms1)
 
     assert len(np.unique(index_map)) == len(atoms1)
 
