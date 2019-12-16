@@ -79,12 +79,14 @@ def find_max_E(bands):
 
 # Given a band structure or dos get the finger print
 def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
-    """Creates a dictionary of the band structure fingerprint at all high symmetry points, where the high symmetry point is the key
+    """Creates a dictionary of the band structure
+
+    Fingerprint includes all high symmetry points
 
     Parameters
     ----------
     bands: dict
-        A dictionary storing the phonon/electron mode energies at the high symmetry points, which are the keys for the dict
+        A dictionary storing the phonon/electron mode energies at the high symmetry points
         Keys = Labels, Values = A list of energies at that point
     min_e : float
         The minimum mode energy to include in the fingerprint
@@ -95,7 +97,7 @@ def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
 
     Returns
     -------
-    fingerprint: collection.namedtupele(fp_tup) (frequencies included in fingerprint, the number of states at that energy, names for the key points, number of bins)
+    fingerprint: collection.namedtupele(fp_tup)
         The bandstructure finger print
     """
     freq_list = []
@@ -125,7 +127,7 @@ def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
 
     Returns
     -------
-    fingerprint: collection.namedtupele(fp_tup)(frequencies included in fingerprint, the density of states at that energy, "DOS", number of bins)
+    fingerprint: collection.namedtupele(fp_tup)
         The density of states fingerprint
     """
     if dos.shape[0] < nbins:
@@ -156,7 +158,7 @@ def get_elec_bands(spectra_files, k_points):
     Returns
     -------
     bands: dict
-        A dictionary describing the electronic band structure with the keys being the high symmetry pints
+        A dict describing the electronic band structure
         Key = labels, Values = Energy of the electronic modes
     """
     bands = {}
@@ -209,7 +211,7 @@ def get_phonon_bands_yaml(spectra_yaml, q_points):
     Returns
     -------
     bands: dict
-        A dictionary describing the phonon band structure with the keys being the high symmetry pints
+        A dict describing the phonon band structure
         Key = labels, Values = Energy of the phonon modes
     """
     bands = {}
@@ -230,14 +232,14 @@ def get_phonon_bands_yaml(spectra_yaml, q_points):
 def get_phonon_bs_fingerprint_phononpy(
     phonon, q_points=None, binning=True, min_e=None, max_e=None, nbins=32
 ):
-    """Generates the phonon band structure fingerprint for a bands structure stored in a phonopy object
+    """Generates the phonon band structure fingerprint for a band structure
 
     Parameters
     ----------
     phonon: phonopy Object
         The phonopy generated yaml file describing the band structure
     q_points: dict
-        A dictionary of the high symmetry points Keys=labels, Values= high symmetry point
+        A dict of the high symmetry points Keys=labels, Values= high symmetry point
     min_e: float
         The minimum mode energy to include in the fingerprint
     max_e: float
@@ -268,14 +270,14 @@ def get_phonon_bs_fingerprint_phononpy(
 def get_phonon_bs_fingerprint_yaml(
     spectra_yaml, q_points, binning=True, min_e=None, max_e=None, nbins=32
 ):
-    """Generates the phonon band structure fingerprint for a bands structure stored in a yaml file from a phonopy object
+    """Generates the phonon band structure fingerprint for a bands structure
 
     Parameters
     ----------
     spectra_yaml: str
         The phonopy generated yaml file describing the band structure
     q_points: dict
-        A dictionary of the high symmetry points Keys=labels, Values= high symmetry point
+        A dict of the high symmetry points Keys=labels, Values= high symmetry point
     min_e: float
         The minimum mode energy to include in the fingerprint
     max_e: float
@@ -299,7 +301,7 @@ def get_phonon_bs_fingerprint_yaml(
 def get_elec_bs_fingerprint(
     spectra_files, k_points, binning=True, min_e=None, max_e=None, nbins=32
 ):
-    """Generates the electronic band structure fingerprint for a bands stored in text files
+    """Generates the electronic band structure fingerprint for a bands stored in text file
 
     Parameters
     ----------
@@ -330,14 +332,14 @@ def get_elec_bs_fingerprint(
 
 
 def get_dos_fingerprint(dos_file, binning=True, min_e=None, max_e=None, nbins=256):
-    """Generates the density of states fingerprint from a file describing the density of states
+    """Generates the DOS fingerprint from a file describing the density of states
 
     Parameters
     ----------
     dos_file: str
         The file where the density of states data is stored
     q_points: dict
-        A dictionary of the high symmetry points Keys=labels, Values= high symmetry point
+        A dict of the high symmetry points Keys=labels, Values= high symmetry point
     min_e: float
         The minimum mode energy to include in the fingerprint
     max_e: float
@@ -363,7 +365,7 @@ def get_dos_fingerprint(dos_file, binning=True, min_e=None, max_e=None, nbins=25
 def get_phonon_dos_fingerprint_phononpy(
     phonon, binning=True, min_e=None, max_e=None, nbins=256
 ):
-    """Generates the density of states fingerprint for a bands structure stored in a phonopy object
+    """Generates the DOS fingerprint for a bands structure stored in a phonopy object
 
     Parameters
     ----------
@@ -403,7 +405,7 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
     col: int
         The item in the fingerprints to take the dot product of (either 0 or 1)
     pt: int or 'All'
-        The index of the point that the dot product is to be taken, if 'All' flatten the arrays
+        The index of the point that the dot product is to be taken, 'All' flatten arraies
     normalize: bool
         If True normalize the scalar product to 1
 
@@ -452,7 +454,7 @@ def to_dict(fp, to_mongo=False):
     Returns
     -------
     dict
-        A dictionary of the fingerprint Keys=Point lablels, Values=np.ndarray(frequencies, #of states)
+        A dict of the fingerprint Keys=labels, Values=np.ndarray(frequencies, #of states)
     """
     fp_dict = {}
     if not to_mongo:
@@ -515,7 +517,7 @@ class MaterialsFingerprint(object):
         max_e: float
             Maximum energy to be included in the fingerprint
         fp: dict
-            A dictionary of the fingerprint Keys=Point lablels, Values=np.ndarray(frequencies, #of states)
+            dict of the fingerprint Keys=labels, Values=ndarray(frequencies, #of states)
         """
         self.is_b = is_b
         self.is_elec = is_elec
@@ -595,7 +597,7 @@ class DOSFingerprint(MaterialsFingerprint):
         max_e: float
             Maximum energy to be included in the fingerprint
         fp: dict
-            A dictionary of the fingerprint Keys=Point lablels, Values=np.ndarray(frequencies, #of states)
+            dict of the fingerprint Keys=labels, Values=ndarray(frequencies, #of states)
         spectra_files: list of str size=1
             A list of a file storing the density of states
         """
@@ -656,7 +658,7 @@ class BandStructureFingerprint(MaterialsFingerprint):
         max_e: float
             Maximum energy to be included in the fingerprint
         fp: dict
-            A dictionary of the fingerprint Keys=Point lablels, Values=np.ndarray(frequencies, #of states)
+            dict of the fingerprint Keys=labels, Values=ndarray(frequencies, #of states)
         spectra_files: list of str
             A list of a files storing information of the bands
         spectra_yaml: str

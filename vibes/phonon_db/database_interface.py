@@ -83,8 +83,36 @@ def traj_to_database(db_path, traj, ret_all_hashes=False):
     )
 
 
+def get_atoms(phonon):
+    """Get the atoms object from phonon
+
+    Parameters
+    ----------
+    phonon: dict, ase.atoms.Atoms, phonopy.Phonopy
+        Object to get atoms from
+
+    Returns
+    -------
+    ase.atoms.Atoms
+        The atoms for the object
+
+    Raises
+    ------
+    ValueError
+        If phonon is not of correct type
+    """
+    if isinstance(phonon, dict):
+        return dict2atoms(phonon)
+    elif isinstance(phonon, Atoms):
+        return phonon.copy()
+    elif isinstance(phonon, Phonopy):
+        return to_Atoms_db(phonon.get_primitive())
+    else:
+        raise ValueError("Object is not defined")
+
+
 def to_database(
-    db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=False, traj_hash=None
+    db_path, phonon, calc=None, key_val_pairs=dict(), ret_all_hashes=False, traj_hash=None
 ):
     """Adds a Phonopy, Phono3py or ASE Atoms object to the database
 
@@ -119,18 +147,11 @@ def to_database(
     dct = obj2dict(phonon)
     hashes = {}
 
-    if not key_val_pairs:
-        key_val_pairs = {}
     if traj_hash:
         hashes["traj_hash"] = traj_hash[0]
         hashes["meta_hash"] = traj_hash[1]
-    if isinstance(phonon, dict):
-        atoms = dict2atoms(dct)
-    elif isinstance(phonon, Atoms):
-        atoms = phonon.copy()
-    elif isinstance(phonon, Phonopy):
-        atoms = to_Atoms_db(phonon.get_primitive())
-
+    atoms = get_atoms(phonon)
+    if isinstance(phonon, Phonopy):
         hashes["cell_hash"] = hash_atoms_and_calc(to_Atoms(phonon.get_primitive()))[0]
 
         selection_no_sc.append(("cell_hash", "=", hashes["cell_hash"]))
@@ -139,39 +160,13 @@ def to_database(
         key_val_pairs["displacement"] = phonon._displacement_dataset["first_atoms"][0][
             "displacement"
         ][0]
-    else:
-        # try:
-        #     from phono3py.phonon3 import Phono3py
-        #     from vibes.phonon_db.row import phonon3_to_dict
-
-        #     if isinstance(phonon, Phono3py):
-        #         atoms = to_Atoms_db(phonon.get_primitive())
-
-        #         hashes["cell_hash"] = hash_atoms_and_calc(
-        #             to_Atoms(phonon.get_primitive())
-        #         )[0]
-
-        #         selection_no_sc.append(("cell_hash", "=", hashes["cell_hash"]))
-        #         selection.append(("sc_matrix_3", "=", dct["sc_matrix_3"]))
-
-        #         key_val_pairs["displacement"] = phonon._displacement_dataset[
-        #             "first_atoms"
-        #         ][0]["displacement"][0]
-        #         key_val_pairs["pair_distance_cutoff"] = phonon._displacement_dataset[
-        #             "cutoff_distance"
-        #         ]
-        # except:
-        raise ValueError("Object is not defined")
 
     atoms.set_calculator(calc)
-
-    if "calc_hash" in key_val_pairs or "atoms_hash" in key_val_pairs:
-        warn("Replacing the atoms and calc hashes")
-
     hashes["atoms_hash"], hashes["calc_hash"] = hash_atoms_and_calc(atoms)
 
     for key, val in atoms2dict(atoms).items():
         dct[key] = val
+
     selection_no_sc.append(("atoms_hash", "=", hashes["atoms_hash"]))
     selection_no_sc.append(("calc_hash", "=", hashes["calc_hash"]))
 
@@ -181,11 +176,10 @@ def to_database(
     for sel in selection_no_sc:
         selection.append(sel)
 
-    if "displacement" in key_val_pairs and "pair_distance_cutoff" in key_val_pairs:
-        hashes["ph3_hash"] = hash_dict(dct, ignore_keys=["unique_id"])
-    elif "displacement" in key_val_pairs:
+    if "displacement" in key_val_pairs:
         hashes["ph_hash"] = hash_dict(dct, ignore_keys=["unique_id"])
     key_val_pairs.update(hashes)
+
     db = connect(db_path)
     try:
         try:
@@ -224,8 +218,10 @@ def to_database(
             )
     except ValueError:
         print(f"Error in adding the object to the database {db_path}")
+
     if ret_all_hashes:
         return hashes
+
     return hash_dict(dct)
 
 
@@ -245,8 +241,7 @@ def obj2dict(obj):
     Raises
     ------
     IOError
-        If obj is not a dict, phonopy.Phonopy, ase.atoms.Atoms, or phono3py.phonon3.Phono3py object OR
-        If obj is not a dict, phonopy.Phonopy, or ase.atoms.Atoms and Phono3py is not installed
+        If obj is not a dict, phonopy.Phonopy, or ase.atoms.Atoms object
     """
     if isinstance(obj, dict):
         return obj.copy()
@@ -262,7 +257,7 @@ def obj2dict(obj):
         #         return phonon3_to_dict(obj)
         # except ImportError:
         #     raise IOError(
-        #         "Phono3py is not installed, obj has to be a dict, Phonopy, or Atoms object"
+        #         "Phono3py is not installed"
         #     )
         raise ValueError("obj has to be a dict, Phonopy, or Atoms object")
 
@@ -293,7 +288,8 @@ def from_database(
     get_phonon3: bool
         If True return the Phono3py Object
     kwargs: dict
-        Optional kwargs to add to selection, if "phonopy_hash" or "phono3py_hash" in kwargs, then get_phonon or get_phonon3 is automatically set to True. with the rest set to False
+        Optional kwargs to add to selection, if "phonopy_hash" in kwargs,
+        then get_phonon is automatically set to True. with the rest set to False
 
     Returns
     -------

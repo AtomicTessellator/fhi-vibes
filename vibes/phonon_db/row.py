@@ -136,12 +136,12 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
         for ii, disp1 in enumerate(displacement_dataset["first_atoms"]):
             for disp2 in disp1["second_atoms"]:
                 if "delta_forces" in disp2:
-                    dct["force_3"].append(disp2.pop("delta_forces") + dct["force_3"][ii])
+                    dct["force_3"].append(
+                        disp2.pop("delta_forces") + dct["force_3"][ii]
+                    )
         dct["force_3"] = np.array(dct["force_3"])
     else:
-        print(
-            "Warning not storing forces as number of atoms in the supercell are not consistent"
-        )
+        print("Warning not storing forces because of an inconsistent number of atoms")
         dct["force_3"] = np.ndarray(0)
 
     dct["force_3"] = np.array(dct["force_3"])
@@ -156,7 +156,7 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
 
 
 class PhononRow(AtomsRow):
-    """Class that is largely based off of the ASE AtomsRow object but expanded for phonopy"""
+    """ASE AtomsRow object but expanded for phonopy"""
 
     def __init__(self, dct, store_second_order=False):
         """Constructor for the PhononRow.
@@ -347,7 +347,9 @@ class PhononRow(AtomsRow):
         phonon3 = Phono3py(
             to_phonopy_atoms(self.toatoms()),
             supercell_matrix=np.array(self.sc_matrix_3).reshape(3, 3).transpose(),
-            phonon_supercell_matrix=np.array(self.sc_matrix_2).reshape(3, 3).transpose(),
+            phonon_supercell_matrix=np.array(self.sc_matrix_2)
+            .reshape(3, 3)
+            .transpose(),
             symprec=self.symprec,
             is_symmetry=True,
             frequency_factor_to_THz=const.omega_to_THz,

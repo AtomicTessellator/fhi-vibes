@@ -123,7 +123,7 @@ check_keys = [
 
 
 def hexify(array):
-    """Converts a numpy array into a hex string representing the big endian byte encoding of the array
+    """Converts a np.ndarray into a hex string (big endian byte encoding)
 
     Parameters
     ----------
@@ -144,13 +144,17 @@ def hexify(array):
     if array.dtype is np.int64:
         for val in array.flatten():
             hexstr += (
-                hex(struct.unpack(">Q", struct.pack(">q", val))[0]) if val != 0 else zero
+                hex(struct.unpack(">Q", struct.pack(">q", val))[0])
+                if val != 0
+                else zero
             )
     elif array.dtype is np.int32:
         array = array.astype(np.int64)
         for val in array.flatten():
             hexstr += (
-                hex(struct.unpack(">Q", struct.pack(">q", val))[0]) if val != 0 else zero
+                hex(struct.unpack(">Q", struct.pack(">q", val))[0])
+                if val != 0
+                else zero
             )
     else:
         for val in array.flatten():
@@ -197,7 +201,10 @@ def dehexify(hexstr, dtype=np.float64, shape=None):
 
 
 class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
-    """Modification of the SQLite3 database from ASE to include phonopy objects See ase.db.sqlite3 for missing function definitions"""
+    """Modification of the SQLite3 database from ASE to include phonopy objects
+
+    See ase.db.sqlite3 for missing function definitions
+    """
 
     type = "db"
     initialized = False
@@ -263,7 +270,9 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
         return array
 
     def _write(self, row, key_value_pairs, data, id):
-        """Writes a phonopy object to the database. Modifications from ASE are related to phonopy
+        """Writes a phonopy object to the database.
+
+        Modifications from ASE are related to phonopy
 
         Parameters
         ----------
@@ -601,7 +610,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
             elif key in ["tp_A", "tp_S", "tp_Cv", "tp_kappa"]:
                 if temp is None:
                     raise ValueError(
-                        "If selecting with a thermal property a temperature must also be given."
+                        "If selecting a thermal property a temperature must be given."
                     )
                 op_actual = op
                 if value < 0.0:
@@ -635,9 +644,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 if self.type == "postgresql":
                     for hh in value:
                         where.append(
-                            "POSITION('{}' IN systems.key_value_pairs ->> 'hashes')>?".format(
-                                hh
-                            )
+                            f"POSITION('{hh}' IN systems.key_value_pairs ->> 'hashes')>?"
                         )
                         args.append(0)
                 else:
@@ -671,7 +678,9 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 elif isinstance(value, bool):
                     jsonop = "->>"
                     value = str(value).lower()
-                where.append("systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op))
+                where.append(
+                    "systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op)
+                )
                 args.append(str(value))
             elif isinstance(value, basestring):
                 where.append(

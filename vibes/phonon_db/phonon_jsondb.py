@@ -12,7 +12,9 @@ from vibes.phonon_db.row import PhononRow
 
 class PhononJSONDatabase(PhononDatabase, JSONDatabase, object):
     """
-    A modified ASE JSONDatabase to include phonopy objects, For missing functions see ase.db.jsondb
+    A modified ASE JSONDatabase to include phonopy objects,
+
+    For missing functions see ase.db.jsondb
     """
 
     def _write(self, row, key_value_pairs, data, id):

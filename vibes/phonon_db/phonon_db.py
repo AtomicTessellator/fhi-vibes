@@ -134,7 +134,7 @@ def check(key_value_pairs):
     ------
     ValueError
         If value is not of the right type for the key OR
-        If the value is of a type that can be represented as a different one in the database
+        If the value is of a type that can be represented as another one in the database
     """
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
@@ -195,7 +195,9 @@ def connect(
     append: bool
         Use append=False to start a new database.
     serial: bool
-        If True Let someone else handle parallelization.  Default behavior is to interact with the database on the master only and then distribute results to all slaves.
+        If True Let someone else handle parallelization.
+        Default behavior is to interact with the database on the master only
+        and then distribute results to all slaves.
 
     Returns
     -------
