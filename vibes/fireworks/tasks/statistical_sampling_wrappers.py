@@ -9,10 +9,7 @@ from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.supercell import make_supercell
 from vibes.helpers.warnings import warn
 from vibes.phonopy.postprocess import postprocess as postprocess_ph
-from vibes.phonopy.utils import (
-    get_force_constants_from_trajectory,
-    remap_force_constants,
-)
+from vibes.phonopy.utils import get_force_constants_from_trajectory, remap_force_constants
 from vibes.phonopy.wrapper import preprocess as get_debye_temperature
 from vibes.scripts.create_samples import generate_samples
 from vibes.settings import TaskSettings, Settings
@@ -104,9 +101,7 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
     else:
         sc = to_Atoms(phonon.get_supercell())
 
-    force_constants = get_force_constants_from_trajectory(
-        phonon_file, sc, reduce_fc=True
-    )
+    force_constants = get_force_constants_from_trajectory(phonon_file, sc, reduce_fc=True)
     # If using Debye temperature calculate it
     if debye_temp_fact is not None:
         if phonon is None:
@@ -178,9 +173,7 @@ def bootstrap_stat_sample(
     outputs = []
 
     settings["statistical_sampling"] = stat_samp_settings.copy()
-    stat_samp_out = bootstrap(
-        atoms=atoms, name="statistical_sampling", settings=settings
-    )
+    stat_samp_out = bootstrap(atoms=atoms, name="statistical_sampling", settings=settings)
     stat_samp_out["prefix"] = "stat_samp"
     stat_samp_out["settings"] = stat_samp_settings.copy()
 

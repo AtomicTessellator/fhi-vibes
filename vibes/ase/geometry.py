@@ -35,12 +35,7 @@ def translate_pretty(fractional, pbc):
 
 
 def wrap_positions(
-    positions,
-    cell,
-    pbc=True,
-    center=(0.5, 0.5, 0.5),
-    pretty_translation=False,
-    eps=1e-7,
+    positions, cell, pbc=True, center=(0.5, 0.5, 0.5), pretty_translation=False, eps=1e-7
 ):
     """Wrap positions to unit cell.
 

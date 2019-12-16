@@ -101,9 +101,7 @@ def get_lattice_points(
         lattice_points = []
         lattice_points_extended = []
 
-        for (n1, n2, n3) in product(
-            range(-max_iterations, max_iterations + 1), repeat=3
-        ):
+        for (n1, n2, n3) in product(range(-max_iterations, max_iterations + 1), repeat=3):
 
             lp = [n1, n2, n3] @ lattice
 

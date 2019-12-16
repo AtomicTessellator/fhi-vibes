@@ -190,9 +190,7 @@ def gen_phonon_analysis_task_spec(
     return task_spec_list
 
 
-def gen_stat_samp_analysis_task_spec(
-    func_kwargs, metakey, forcekey, make_abs_path=False
-):
+def gen_stat_samp_analysis_task_spec(func_kwargs, metakey, forcekey, make_abs_path=False):
     """Generate a serial Phononpy or Phono3py calculation task
 
     Parameters
@@ -244,9 +242,7 @@ def gen_stat_samp_analysis_task_spec(
     return task_spec_list
 
 
-def gen_aims_task_spec(
-    func_kwargs, func_fw_out_kwargs, make_abs_path=False, relax=True
-):
+def gen_aims_task_spec(func_kwargs, func_fw_out_kwargs, make_abs_path=False, relax=True):
     """Gets the task spec for an FHI-aims calculations
 
     Parameters

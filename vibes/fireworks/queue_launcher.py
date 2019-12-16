@@ -407,18 +407,14 @@ def rapidfire(
 
     # make sure launch_dir exists:
     if not os.path.exists(launch_dir):
-        raise ValueError(
-            "Desired launch directory {} does not exist!".format(launch_dir)
-        )
+        raise ValueError("Desired launch directory {} does not exist!".format(launch_dir))
 
     num_launched = 0
     start_time = datetime.now()
     try:
         l_logger.info("getting queue adapter")
 
-        prev_blocks = sorted(
-            glob.glob(os.path.join(launch_dir, "block_*")), reverse=True
-        )
+        prev_blocks = sorted(glob.glob(os.path.join(launch_dir, "block_*")), reverse=True)
         if prev_blocks and not ALWAYS_CREATE_NEW_BLOCK:
             block_dir = os.path.abspath(os.path.join(launch_dir, prev_blocks[0]))
             l_logger.info("Found previous block, using {}".format(block_dir))
@@ -426,9 +422,7 @@ def rapidfire(
             block_dir = create_datestamp_dir(launch_dir, l_logger)
         while True:
             # get number of jobs in queue
-            jobs_in_queue = _get_number_of_jobs_in_queue(
-                qadapter, njobs_queue, l_logger
-            )
+            jobs_in_queue = _get_number_of_jobs_in_queue(qadapter, njobs_queue, l_logger)
             job_counter = 0  # this is for QSTAT_FREQUENCY option
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
@@ -511,9 +505,7 @@ def rapidfire(
 
             if (
                 (nlaunches > 0 and num_launched == nlaunches)
-                or (
-                    timeout and (datetime.now() - start_time).total_seconds() >= timeout
-                )
+                or (timeout and (datetime.now() - start_time).total_seconds() >= timeout)
                 or (
                     nlaunches == 0
                     and not launchpad.future_run_exists(fworker, ids=firework_ids)

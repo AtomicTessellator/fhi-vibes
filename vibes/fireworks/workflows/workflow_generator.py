@@ -65,9 +65,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
 
     # Relaxation
     if workflow_settings.general.get("relax_structure", True):
-        fw_steps.append(
-            generate_relax_fw(workflow_settings, atoms, fw_settings, "light")
-        )
+        fw_steps.append(generate_relax_fw(workflow_settings, atoms, fw_settings, "light"))
         # Tighter Basis Set Relaxation
         use_tight_relax = workflow_settings.general.get("use_tight_relax", False)
         if basis != "light" or use_tight_relax:
@@ -120,8 +118,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
         if getattr(workflow_settings.phonopy, "get_gruniesen", False):
             if getattr(workflow_settings.phonopy, "converge_phonons", False):
                 trajectory = (
-                    workflow_settings.general.workdir_local
-                    + "/converged/trajectory.son"
+                    workflow_settings.general.workdir_local + "/converged/trajectory.son"
                 )
             else:
                 sc_mat = get_3x3_matrix(workflow_settings.phonopy.supercell_matrix)
@@ -175,9 +172,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
 
     # Statistical Sampling
     if "statistical_sampling" in workflow_settings:
-        stat_samp_fws.append(
-            generate_stat_samp_fw(workflow_settings, atoms, fw_settings)
-        )
+        stat_samp_fws.append(generate_stat_samp_fw(workflow_settings, atoms, fw_settings))
 
         stat_samp_fws.append(
             generate_stat_samp_postprocess_fw(workflow_settings, atoms, fw_settings)

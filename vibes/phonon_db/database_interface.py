@@ -161,9 +161,7 @@ def to_database(
         #             "cutoff_distance"
         #         ]
         # except:
-        raise ValueError(
-            "Object is not defined"
-        )
+        raise ValueError("Object is not defined")
 
     atoms.set_calculator(calc)
 

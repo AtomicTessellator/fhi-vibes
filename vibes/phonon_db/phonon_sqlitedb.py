@@ -144,17 +144,13 @@ def hexify(array):
     if array.dtype is np.int64:
         for val in array.flatten():
             hexstr += (
-                hex(struct.unpack(">Q", struct.pack(">q", val))[0])
-                if val != 0
-                else zero
+                hex(struct.unpack(">Q", struct.pack(">q", val))[0]) if val != 0 else zero
             )
     elif array.dtype is np.int32:
         array = array.astype(np.int64)
         for val in array.flatten():
             hexstr += (
-                hex(struct.unpack(">Q", struct.pack(">q", val))[0])
-                if val != 0
-                else zero
+                hex(struct.unpack(">Q", struct.pack(">q", val))[0]) if val != 0 else zero
             )
     else:
         for val in array.flatten():
@@ -675,9 +671,7 @@ class PhononSQLite3Database(PhononDatabase, SQLite3Database, object):
                 elif isinstance(value, bool):
                     jsonop = "->>"
                     value = str(value).lower()
-                where.append(
-                    "systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op)
-                )
+                where.append("systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op))
                 args.append(str(value))
             elif isinstance(value, basestring):
                 where.append(

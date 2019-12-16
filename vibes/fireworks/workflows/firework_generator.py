@@ -166,9 +166,7 @@ def generate_firework(
             if not isinstance(calc, str):
                 if "k_grid_density" in update_calc_settings:
                     if not isinstance(calc, dict):
-                        update_k_grid(
-                            atoms, calc, update_calc_settings["k_grid_density"]
-                        )
+                        update_k_grid(atoms, calc, update_calc_settings["k_grid_density"])
                     else:
                         recipcell = np.linalg.pinv(at["cell"]).transpose()
                         calc = update_k_grid_calc_dict(
@@ -190,17 +188,13 @@ def generate_firework(
                     fw_settings["spec"]["kgrid"] = None
             else:
                 cl = calc
-                setup_tasks.append(
-                    generate_update_calc_task(calc, update_calc_settings)
-                )
+                setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
         else:
             # Add tasks to update calculator parameters
             at = atoms
             cl = calc
             if update_calc_settings.keys():
-                setup_tasks.append(
-                    generate_update_calc_task(calc, update_calc_settings)
-                )
+                setup_tasks.append(generate_update_calc_task(calc, update_calc_settings))
 
             setup_tasks.append(generate_mod_calc_task(at, cl, "calculator", "kgrid"))
             cl = "calculator"
@@ -409,9 +403,7 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
         workflow[typ]["walltime"] = 1800
 
     fw_settings["fw_name"] = typ
-    natoms = len(atoms) * np.linalg.det(
-        get_3x3_matrix(workflow[typ]["supercell_matrix"])
-    )
+    natoms = len(atoms) * np.linalg.det(get_3x3_matrix(workflow[typ]["supercell_matrix"]))
     natoms = int(round(natoms))
     workflow[typ][
         "workdir"
@@ -459,9 +451,7 @@ def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
     if "workdir" in func_kwargs:
         func_kwargs.pop("workdir")
 
-    natoms = len(atoms) * np.linalg.det(
-        get_3x3_matrix(workflow[typ]["supercell_matrix"])
-    )
+    natoms = len(atoms) * np.linalg.det(get_3x3_matrix(workflow[typ]["supercell_matrix"]))
     natoms = int(round(natoms))
 
     func_kwargs[

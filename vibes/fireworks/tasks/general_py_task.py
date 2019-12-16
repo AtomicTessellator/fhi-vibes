@@ -116,9 +116,7 @@ def atoms_calculate_task(
     return fw_acts
 
 
-def general_function_task(
-    func_path, func_fw_out_path, *args, fw_settings=None, **kwargs
-):
+def general_function_task(func_path, func_fw_out_path, *args, fw_settings=None, **kwargs):
     """A wrapper function that converts a general python function into a FireWorks style operation
 
     Parameters

@@ -152,9 +152,7 @@ def do_qluanch(ctx, non_default):
                         with conn.cd(r):
                             conn.run(
                                 "qlaunch_vibes {} {} {}".format(
-                                    ctx.obj.pre_non_default,
-                                    ctx.obj.command,
-                                    non_default,
+                                    ctx.obj.pre_non_default, ctx.obj.command, non_default
                                 )
                             )
         else:

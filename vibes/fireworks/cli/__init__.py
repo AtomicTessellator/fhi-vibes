@@ -82,7 +82,9 @@ def add_wf(workflow, launchpad):
             wflow["basissets"] = AttributeDict({"default": "light"})
 
         talk(f"Generating workflow for {get_sysname(atoms)}", prefix="fireworks")
-        calc = setup_aims(ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False)
+        calc = setup_aims(
+            ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False
+        )
         atoms.set_calculator(calc)
         generate_workflow(wflow, atoms, launchpad)
 
@@ -782,10 +784,7 @@ def rlaunch_singleshot(ctx, fw_id, offline, pdb):
     type=str,
 )
 @click.option(
-    "--ppn",
-    help="processors per node (for populating FWData only)",
-    default=1,
-    type=int,
+    "--ppn", help="processors per node (for populating FWData only)", default=1, type=int
 )
 @click.option(
     "--exclude_current_node",

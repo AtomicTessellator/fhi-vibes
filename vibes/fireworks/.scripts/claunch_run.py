@@ -43,9 +43,7 @@ launch_params = settings.launch_params if "launch_params" in settings else {}
 
 fw_defaults = {
     "launch_dir": (remote_setup.launch_dir if "launch_dir" in remote_setup else "."),
-    "remote_host": (
-        remote_setup.remote_host if "remote_host" in remote_setup else None
-    ),
+    "remote_host": (remote_setup.remote_host if "remote_host" in remote_setup else None),
     "remote_config_dir": (
         remote_setup.remote_config_dir
         if "remote_config_dir" in remote_setup
@@ -67,9 +65,7 @@ fw_defaults = {
     ),
     "nlaunches": (launch_params.nlaunches if "nlaunches" in launch_params else 0),
     "sleep_time": (launch_params.sleep_time if "sleep_time" in launch_params else None),
-    "tasks2queue": (
-        launch_params.tasks2queue if "tasks2queue" in launch_params else ""
-    ),
+    "tasks2queue": (launch_params.tasks2queue if "tasks2queue" in launch_params else ""),
 }
 
 
@@ -159,9 +155,7 @@ def claunch():
     parser.add_argument(
         "--launch_dir", help="directory to launch the job / rapid-fire", default="."
     )
-    parser.add_argument(
-        "--logdir", help="path to a directory for logging", default=None
-    )
+    parser.add_argument("--logdir", help="path to a directory for logging", default=None)
     parser.add_argument(
         "--loglvl", help="level to print log messages", default="CRITICAL", type=str
     )

@@ -127,9 +127,7 @@ def setup_aims(ctx, verbose=True, make_species_dir=True):
     ase_settings = {"aims_command": settings.machine.aims_command}
 
     if "socketio" in settings and settings.socketio.port is not None:
-        aims_settings.update(
-            {"use_pimd_wrapper": ("localhost", settings.socketio.port)}
-        )
+        aims_settings.update({"use_pimd_wrapper": ("localhost", settings.socketio.port)})
 
     # create basissetfolder
     if make_species_dir:

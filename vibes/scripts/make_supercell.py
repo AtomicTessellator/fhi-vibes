@@ -66,9 +66,7 @@ def make_supercell(
     if n_target:
         print("\nSettings:")
         print(f"  Target number of atoms: {n_target}")
-        supercell, smatrix = sc.make_cubic_supercell(
-            cell, n_target, deviation=deviation
-        )
+        supercell, smatrix = sc.make_cubic_supercell(cell, n_target, deviation=deviation)
     elif dimension:
         smatrix = get_3x3_matrix(dimension)
         supercell = sc.make_supercell(cell, smatrix, wrap=wrap)
@@ -95,9 +93,7 @@ def make_supercell(
             output_filename = f"{filename}.supercell_{len(supercell)}"
         info_str = get_info_str(supercell, spacegroup)
         info_str += [f"Supercell matrix:    {smatrix.flatten()}"]
-        supercell.write(
-            output_filename, format=format, scaled=scaled, info_str=info_str
-        )
+        supercell.write(output_filename, format=format, scaled=scaled, info_str=info_str)
         print(f"\nSupercell written to {output_filename}")
 
     timer()

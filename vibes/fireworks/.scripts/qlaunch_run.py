@@ -198,9 +198,7 @@ def qlaunch():
     parser.add_argument(
         "--launch_dir", help="directory to launch the job / rapid-fire", default="."
     )
-    parser.add_argument(
-        "--logdir", help="path to a directory for logging", default=None
-    )
+    parser.add_argument("--logdir", help="path to a directory for logging", default=None)
     parser.add_argument(
         "--loglvl", help="level to print log messages", default="CRITICAL", type=str
     )

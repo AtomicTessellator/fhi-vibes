@@ -102,7 +102,9 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
     else:
         aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.workdir)
         # set reference structure for aims calculation and make sure forces are computed
-        aims_ctx.ref_atoms = make_supercell(atoms, get_3x3_matrix(ctx.settings.obj.supercell_matrix))
+        aims_ctx.ref_atoms = make_supercell(
+            atoms, get_3x3_matrix(ctx.settings.obj.supercell_matrix)
+        )
         aims_ctx.settings.obj["compute_forces"] = True
         calc = setup_aims(aims_ctx, False, False)
         ctx.settings.atoms.set_calculator(calc)
@@ -202,9 +204,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
     try:
         calculated_atoms = sorted(
             temp_atoms,
-            key=lambda x: x.info[displacement_id_str]
-            if x
-            else len(calculated_atoms) + 1,
+            key=lambda x: x.info[displacement_id_str] if x else len(calculated_atoms) + 1,
         )
     except KeyError:
         calculated_atoms = sorted(
@@ -285,7 +285,9 @@ def prepare_gruneisen(settings, primitive, vol_factor):
         "geometry.in.temp", format="aims", geo_constrain=True, scaled=True
     )
     dist_settings.geometry["file"] = "geometry.in.temp"
-    dist_primitive.calc = setup_aims(ctx=AimsContext(settings=dist_settings), verbose=False, make_species_dir=False)
+    dist_primitive.calc = setup_aims(
+        ctx=AimsContext(settings=dist_settings), verbose=False, make_species_dir=False
+    )
     Path("geometry.in.temp").unlink()
     dist_settings.geometry["file"] = file_original
 
