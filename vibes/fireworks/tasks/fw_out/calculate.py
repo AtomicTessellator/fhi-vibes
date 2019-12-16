@@ -69,7 +69,8 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
     Returns
     -------
     FWAction
-        Either a new Firework to restart the calculation or an updated spec with the list of atoms
+        Either a new Firework to restart the calculation or
+        an updated spec with the list of atoms
     """
     if "workdir" in kwargs:
         calc_times = get_calc_times(kwargs["workdir"])

@@ -9,7 +9,10 @@ from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.supercell import make_supercell
 from vibes.helpers.warnings import warn
 from vibes.phonopy.postprocess import postprocess as postprocess_ph
-from vibes.phonopy.utils import get_force_constants_from_trajectory, remap_force_constants
+from vibes.phonopy.utils import (
+    get_force_constants_from_trajectory,
+    remap_force_constants,
+)
 from vibes.phonopy.wrapper import preprocess as get_debye_temperature
 from vibes.scripts.create_samples import generate_samples
 from vibes.settings import TaskSettings, Settings
@@ -74,19 +77,36 @@ def bootstrap(atoms, name="statistical_sampling", settings=None, **kwargs):
 def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs):
     """
     Sets ups the statistical sampling
-    Parameters:
-        phonon_file (str): String to the phonopy trajectory
-        temperatures (list (floats)): List of temperatures to excite the phonons to
-        debye_temp_fact (list(floats)): List of factors to multiply the debye temperature by to populate temperatures
-    Additional arguments in kwargs:
-        supercell_matrix (np.ndarray(int)): Supercell matrix used to create the supercell from atoms
-        n_samples (int): number of samples to create (default: 1)
-        mc_rattle (bool): hiphive mc rattle
-        quantum (bool): use Bose-Einstein distribution instead of Maxwell-Boltzmann
-        deterministic (bool): create sample deterministically
-        sobol (bool): Use sobol numbers for the sampling
-        rng_seed (int): seed for random number generator
-    Returns: (list(dicts)): A list of thermally displaced supercells to calculate the forces on
+    Parameters
+    ----------
+    phonon_file: str
+        String to the phonopy trajectory
+    temperatures: list (floats)
+        List of temperatures to excite the phonons to
+    debye_temp_fact: list(floats)
+        List of factors to multiply the debye temperature by to populate temperatures
+
+    Keyword Args
+    ------------
+    supercell_matrix: np.ndarray(int)
+        Supercell matrix used to create the supercell from atoms
+    n_samples: int
+        number of samples to create (default: 1)
+    mc_rattle: bool
+        hiphive mc rattle
+    quantum: bool
+        use Bose-Einstein distribution instead of Maxwell-Boltzmann
+    deterministic: bool
+        create sample deterministically
+    sobol: bool
+        Use sobol numbers for the sampling
+    rng_seed: int
+        seed for random number generator
+
+    Returns
+    -------
+    list(dicts)
+        A list of thermally displaced supercells to calculate the forces on
     """
     if temperatures is None:
         temperatures = ()
@@ -101,12 +121,14 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
     else:
         sc = to_Atoms(phonon.get_supercell())
 
-    force_constants = get_force_constants_from_trajectory(phonon_file, sc, reduce_fc=True)
+    force_constants = get_force_constants_from_trajectory(
+        phonon_file, sc, reduce_fc=True
+    )
     # If using Debye temperature calculate it
     if debye_temp_fact is not None:
         if phonon is None:
             raise IOError(
-                "Debye Temperature must be calculated with phonopy, please add phonon_file"
+                "Debye Temp must be calculated with phonopy, please add phonon_file"
             )
 
         debye_temp = get_debye_temperature(phonon, 5e-3)[0]
@@ -173,7 +195,9 @@ def bootstrap_stat_sample(
     outputs = []
 
     settings["statistical_sampling"] = stat_samp_settings.copy()
-    stat_samp_out = bootstrap(atoms=atoms, name="statistical_sampling", settings=settings)
+    stat_samp_out = bootstrap(
+        atoms=atoms, name="statistical_sampling", settings=settings
+    )
     stat_samp_out["prefix"] = "stat_samp"
     stat_samp_out["settings"] = stat_samp_settings.copy()
 

@@ -12,7 +12,7 @@ class LaunchPad(launchpad.LaunchPad):
         super(LaunchPad, self).__init__(*args, **kwargs)
 
     def run_exists(self, fworker=None, ids=None):
-        """Checks to see if the database contains any FireWorks of a given id set that are ready to run.
+        """Checks to see if the database has any FireWorks ready to run in a given set
 
         Parameters
         ----------
@@ -24,7 +24,7 @@ class LaunchPad(launchpad.LaunchPad):
         Returns
         -------
         bool
-            True if the database contains any FireWorks that are ready to run in a given set.
+            True if the database has any FireWorks that are ready to run in a given set.
         """
         query = fworker.query if fworker else {}
         if ids:

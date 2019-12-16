@@ -5,13 +5,16 @@ from vibes.helpers.converters import dict2atoms
 from vibes.settings import TaskSettings, Settings
 from vibes.tasks.calculate import calculate_socket, calculate
 
-TIME_SUMMARY_LINE = "          Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)\n"
+T_S_LINE = (
+    "          Detailed time accounting                     : "
+    " max(cpu_time)    wall_clock(cpu1)\n"
+)
 E_F_INCONSISTENCY = "  ** Inconsistency of forces<->energy above specified tolerance.\n"
 
 
 def check_if_failure_ok(lines, walltime):
     """Checks if the FHI-aims calculation finished"""
-    line_sum = np.where(lines == TIME_SUMMARY_LINE)[0]
+    line_sum = np.where(lines == T_S_LINE)[0]
     time_used = float(lines[line_sum[0] + 1].split(":")[1].split("s")[1])
     sum_present = line_sum.size > 0
 

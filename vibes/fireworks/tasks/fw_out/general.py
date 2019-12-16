@@ -61,7 +61,9 @@ def fireworks_no_mods(
     return FWAction()
 
 
-def fireworks_no_mods_gen_function(func, func_fw_out, *args, fw_settings=None, **kwargs):
+def fireworks_no_mods_gen_function(
+    func, func_fw_out, *args, fw_settings=None, **kwargs
+):
     """A function that does not change the FireWorks Workflow upon completion
 
     Parameters

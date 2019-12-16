@@ -190,7 +190,9 @@ def gen_phonon_analysis_task_spec(
     return task_spec_list
 
 
-def gen_stat_samp_analysis_task_spec(func_kwargs, metakey, forcekey, make_abs_path=False):
+def gen_stat_samp_analysis_task_spec(
+    func_kwargs, metakey, forcekey, make_abs_path=False
+):
     """Generate a serial Phononpy or Phono3py calculation task
 
     Parameters
@@ -228,10 +230,12 @@ def gen_stat_samp_analysis_task_spec(func_kwargs, metakey, forcekey, make_abs_pa
             make_abs_path=make_abs_path,
         )
     )
+    stat_samp_head = "vibes.fireworks.tasks.statistical_sampling_wrappers"
+    fout_head = "vibes.fireworks.tasks.fw_out.statistical_sampling"
     task_spec_list.append(
         TaskSpec(
-            "vibes.fireworks.tasks.statistical_sampling_wrappers.postprocess_statistical_sampling",
-            "vibes.fireworks.tasks.fw_out.statistical_sampling.add_stat_samp_to_spec",
+            f"{stat_samp_head}.postprocess_statistical_sampling",
+            f"{fout_head}.add_stat_samp_to_spec",
             False,
             args=[],
             inputs=[],
@@ -242,7 +246,9 @@ def gen_stat_samp_analysis_task_spec(func_kwargs, metakey, forcekey, make_abs_pa
     return task_spec_list
 
 
-def gen_aims_task_spec(func_kwargs, func_fw_out_kwargs, make_abs_path=False, relax=True):
+def gen_aims_task_spec(
+    func_kwargs, func_fw_out_kwargs, make_abs_path=False, relax=True
+):
     """Gets the task spec for an FHI-aims calculations
 
     Parameters

@@ -4,7 +4,7 @@ from vibes.helpers.fileformats import last_from_yaml
 
 
 def load_last_step(atoms, calc, workdir, trajectory):
-    """Loads the last step from a trajectory and update the atoms and calculator objects"""
+    """Loads the last step from a trajectory and update returns calculator objects"""
     trajectory = Path(workdir) / trajectory
     last_step_dict = last_from_yaml(trajectory)
 

@@ -1,4 +1,4 @@
-"""Used to combine a queue and rocket launcher based on which FireTasks are in a WorkFlow"""
+"""Used to combine a queue/rocket launcher based on which FireTasks are in a WorkFlow"""
 import os
 import glob
 import time
@@ -141,7 +141,7 @@ def rapidfire(
     timeout: int
         # of seconds after which to stop the rapidfire process
     fill_mode: bool
-        whether to submit jobs even when there is nothing to run (only in non-reservation mode)
+        True if submit jobs with nothing to run (only in non-reservation mode)
     firework_ids: list of ints
         a list firework_ids to launch (len(firework_ids) == nlaunches)
     wflow: WorkFlow
@@ -163,7 +163,7 @@ def rapidfire(
     remote_shell: str
         Type of shell on the remote machine
     daemon: int
-        Daemon mode. Command is repeated every x seconds. Defaults to 0, which means non-daemon mode
+        Daemon mode. Command is repeated every x seconds. Defaults non-daemon mode
 
     Raises
     ------
@@ -246,7 +246,9 @@ def rapidfire(
 
     # make sure launch_dir exists:
     if not os.path.exists(launch_dir):
-        raise ValueError("Desired launch directory {} does not exist!".format(launch_dir))
+        raise ValueError(
+            "Desired launch directory {} does not exist!".format(launch_dir)
+        )
 
     num_launched = 0
     start_time = datetime.now()
@@ -374,7 +376,9 @@ def rapidfire(
                 )
             if (
                 (nlaunches > 0 and num_launched == nlaunches)
-                or (timeout and (datetime.now() - start_time).total_seconds() >= timeout)
+                or (
+                    timeout and (datetime.now() - start_time).total_seconds() >= timeout
+                )
                 or (nlaunches == 0 and not launchpad.future_run_exists(fworker))
             ):
                 break

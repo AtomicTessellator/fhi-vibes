@@ -35,14 +35,17 @@ def atoms_calculate_task(
     fw_settings=None,
     walltime=None,
 ):
-    """A wrapper function that converts a general function that performs some operation on ASE Atoms/Calculators into a FireWorks style operation
+    """A wrapper function for
+
+    Converts a general function that performs some operation on ASE Atoms/Calculators
+    into a FireWorks style operation
 
     Parameters
     ----------
     func_path: str
-        Path to the function describing the desired set operations to be performed on the Atoms/Calculator objects
+        Path to the function describing the desired set operations to be performed
     func_fw_out_path: str
-        Path to the function that describes how the func inputs/outputs should alter the FireWorks Workflow
+        Path to the function that describes how the results should alter the workflow
     func_kwargs: dict
         A dictionary describing the key word arguments to func
     func_fw_out_kwargs: dict
@@ -116,15 +119,17 @@ def atoms_calculate_task(
     return fw_acts
 
 
-def general_function_task(func_path, func_fw_out_path, *args, fw_settings=None, **kwargs):
-    """A wrapper function that converts a general python function into a FireWorks style operation
+def general_function_task(
+    func_path, func_fw_out_path, *args, fw_settings=None, **kwargs
+):
+    """A wrapper function that converts a python function into a FireWork
 
     Parameters
     ----------
     func_path: str
-        Path to the function describing the desired set operations to be performed on the Atoms/Calculator objects
+        Path to the function describing the desired set operations to be performed
     func_fw_out_path: str
-        Path to the function that describes how the func inputs/outputs should alter the FireWorks Workflow
+        Path to the function that describes how the results should alter the Workflow
     args: list
         A list of arguments to pass to func and func_fw_out
     fw_settings: dict

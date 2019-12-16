@@ -55,11 +55,11 @@ def get_fw_files(
     Returns
     -------
     launchpad_file: str
-        The updated LaunchPad yaml file. If None was passed try the default one in config_dir
+        The updated LaunchPad file. If None was passed try the default one in config_dir
     fworker_file: str
-        The updated FWorker yaml file. If None was passed try the default one in config_dir
+        The updated FWorker file. If None was passed try the default one in config_dir
     queueadapter_file: str
-        The updated QueueAdapter yaml file. If None was passed try the default one in config_dir
+        The updated QueueAdapterfile. If None was passed try the default one in config_dir
     """
     if not launchpad_file and os.path.exists(
         os.path.join(config_dir, "my_launchpad.yaml")
@@ -132,7 +132,7 @@ def do_qluanch(ctx, non_default):
     ctx: Context
         Context for the command
     non_default: dict
-        A dict of non-default parameters where the keys are the parameters and the values are the non-default values
+        A dict of non-default parameters
     """
     interval = ctx.obj.daemon
     while True:
@@ -152,7 +152,9 @@ def do_qluanch(ctx, non_default):
                         with conn.cd(r):
                             conn.run(
                                 "qlaunch_vibes {} {} {}".format(
-                                    ctx.obj.pre_non_default, ctx.obj.command, non_default
+                                    ctx.obj.pre_non_default,
+                                    ctx.obj.command,
+                                    non_default,
                                 )
                             )
         else:

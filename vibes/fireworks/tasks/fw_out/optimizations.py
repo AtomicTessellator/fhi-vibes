@@ -13,7 +13,10 @@ from vibes.helpers.converters import calc2dict
 def check_kgrid_opt_completion(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
-    """A function that checks if an MD like calculation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the MD
+    """A function that checks if an MD like calculation is converged (if outputs is True)
+
+    either stores the relaxed structure in the MongoDB or
+    appends another Firework as its child to restart the MD
 
     Parameters
     ----------

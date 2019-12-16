@@ -12,7 +12,10 @@ from vibes.fireworks.tasks.postprocess.relax import check_aims
 def check_aims_complete(
     atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
 ):
-    """A function that checks if a relaxation is converged (if outputs is True) and either stores the relaxed structure in the MongoDB or appends another Firework as its child to restart the relaxation
+    """A function that checks if a relaxation is converged (if outputs is True)
+
+    either stores the relaxed structure in the MongoDB or
+    appends another Firework as its child to restart the relaxation
 
     Parameters
     ----------

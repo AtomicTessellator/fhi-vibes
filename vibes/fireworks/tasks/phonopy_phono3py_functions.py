@@ -204,7 +204,9 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
     try:
         calculated_atoms = sorted(
             temp_atoms,
-            key=lambda x: x.info[displacement_id_str] if x else len(calculated_atoms) + 1,
+            key=lambda x: x.info[displacement_id_str]
+            if x
+            else len(calculated_atoms) + 1,
         )
     except KeyError:
         calculated_atoms = sorted(

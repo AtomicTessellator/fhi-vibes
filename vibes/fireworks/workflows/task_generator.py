@@ -136,9 +136,9 @@ def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     Parameters
     ----------
     at: dict or str
-        Either an Atoms dictionary or a spec key to get the Atoms dictionary for the modified system
+        Either an Atoms dict or a spec key to get the it for the modified system
     cl: dict or str
-        Either a Calculator dictionary or a spec key to get the Calculator dictionary for the modified system
+        Either a Calculator dict or a spec key to get it for the modified system
     calc_spec: str
         Spec for the calculator in the Fireworks database
     kpt_spec: str
