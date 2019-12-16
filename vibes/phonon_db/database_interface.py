@@ -112,7 +112,7 @@ def get_atoms(phonon):
 
 
 def to_database(
-    db_path, phonon, calc=None, key_val_pairs=dict(), ret_all_hashes=False, traj_hash=None
+    db_path, phonon, calc=None, key_val_pairs=None, ret_all_hashes=False, traj_hash=None
 ):
     """Adds a Phonopy, Phono3py or ASE Atoms object to the database
 
@@ -147,10 +147,15 @@ def to_database(
     dct = obj2dict(phonon)
     hashes = {}
 
+    if key_val_pairs is None:
+        key_val_pairs = {}
+
     if traj_hash:
         hashes["traj_hash"] = traj_hash[0]
         hashes["meta_hash"] = traj_hash[1]
+
     atoms = get_atoms(phonon)
+
     if isinstance(phonon, Phonopy):
         hashes["cell_hash"] = hash_atoms_and_calc(to_Atoms(phonon.get_primitive()))[0]
 
@@ -160,6 +165,7 @@ def to_database(
         key_val_pairs["displacement"] = phonon._displacement_dataset["first_atoms"][0][
             "displacement"
         ][0]
+        hashes["ph_hash"] = hash_dict(dct, ignore_keys=["unique_id"])
 
     atoms.set_calculator(calc)
     hashes["atoms_hash"], hashes["calc_hash"] = hash_atoms_and_calc(atoms)
@@ -176,8 +182,6 @@ def to_database(
     for sel in selection_no_sc:
         selection.append(sel)
 
-    if "displacement" in key_val_pairs:
-        hashes["ph_hash"] = hash_dict(dct, ignore_keys=["unique_id"])
     key_val_pairs.update(hashes)
 
     db = connect(db_path)
