@@ -197,19 +197,20 @@ def get_converge_phonon_update(
     calc_dict["calculator"] = calc_dict["calculator"].lower()
 
     # Calculate the phonon DOS
-    ph.set_mesh([51, 51, 51])
+    ph.set_mesh([45,45,45])
     if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-1):
         raise ValueError("Negative frequencies at Gamma, terminating workflow here.")
     if prev_dos_fp:
         de = prev_dos_fp[0][0][1] - prev_dos_fp[0][0][0]
         min_f = prev_dos_fp[0][0][0] - 0.5 * de
         max_f = prev_dos_fp[0][0][-1] + 0.5 * de
-        ph.set_total_DOS(freq_min=min_f, freq_max=max_f, tetrahedron_method=True)
+        ph.run_total_dos(freq_min=min_f, freq_max=max_f, freq_pitch=0.01)
     else:
-        ph.set_total_DOS(tetrahedron_method=True)
+        ph.run_total_dos(freq_pitch=0.01)
 
     # Get a phonon DOS Finger print to compare against the previous one
-    dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
+    n_bins = len(ph.get_total_dos_dict()["frequency_points"])
+    dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=n_bins)
 
     # Get the base working directory
     init_workdir = get_base_work_dir(init_workdir)
