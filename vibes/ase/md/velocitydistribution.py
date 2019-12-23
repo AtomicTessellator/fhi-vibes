@@ -248,11 +248,14 @@ def phonon_harmonics(
         else:
             warn(msg)
 
-        zeros = w2_s[last_ignore_mode - 3 : last_ignore_mode]
-        worst_zero = np.abs(zeros).max()
-        if worst_zero > 1e-2:
-            msg = "Translational deviate from 0 significantly: "
-            raise ValueError(msg + "{}".format(w2_s[:3]))
+    zeros = w2_s[last_ignore_mode - 3 : last_ignore_mode]
+    worst_zero = np.abs(zeros).max()
+    if worst_zero > 1e-3:
+        msg = "Translational deviate from 0 significantly: {}".format(w2_s[:3])
+        if failfast:
+            raise ValueError(msg)
+        else:
+            warn(msg)
 
     nw = len(w2_s) - last_ignore_mode
     n_atoms = len(masses)
