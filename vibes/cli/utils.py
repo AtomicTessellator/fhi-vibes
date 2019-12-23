@@ -137,42 +137,12 @@ def get_relaxation_info(filenames):
 @click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
 @click.option("--propagate", type=float, help="propagate this many fs")
 @click.option("--format", default="aims")
-def create_samples(
-    filename,
-    temperature,
-    n_samples,
-    force_constants,
-    rattle,
-    quantum,
-    deterministic,
-    zacharias,
-    gauge_eigenvectors,
-    ignore_negative,
-    sobol,
-    random_seed,
-    propagate,
-    format,
-):
+def create_samples(**kwargs):
     """create samples from geometry in FILENAME"""
     from vibes.scripts.create_samples import create_samples
 
     click.echo("vibes CLI: create_samples")
-    create_samples(
-        filename,
-        temperature,
-        n_samples,
-        force_constants,
-        rattle,
-        quantum,
-        deterministic,
-        zacharias,
-        gauge_eigenvectors,
-        ignore_negative,
-        sobol,
-        random_seed,
-        propagate,
-        format,
-    )
+    create_samples(**kwargs)
 
 
 @utils.command("suggest_k_grid")

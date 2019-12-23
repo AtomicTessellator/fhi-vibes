@@ -20,6 +20,7 @@ template = (
 -n {{ n_samples }}
 -seed {{ seed }}
 --propagate {{ propagate }}
+--ignore_negative
 """
 )
 
@@ -30,13 +31,13 @@ cmd = Template(template).render(args)
 
 def test_base():
     """test the simplest version of the command"""
-    cmd = f"{base_cmd} -T 300 --seed 4"
-    sp.run(cmd.split(), cwd=parent)
+    cmd = f"{base_cmd} -T 300 -seed 4"
+    sp.run(cmd.split(), cwd=parent, check=True)
 
 
 def test_run_cmd():
     """create samples with the cli tool"""
-    sp.run(cmd.split(), cwd=parent)
+    sp.run(cmd.split(), cwd=parent, check=True)
 
 
 def test_output():
