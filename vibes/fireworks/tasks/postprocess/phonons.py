@@ -197,7 +197,7 @@ def get_converge_phonon_update(
     calc_dict["calculator"] = calc_dict["calculator"].lower()
 
     # Calculate the phonon DOS
-    ph.set_mesh([45,45,45])
+    ph.set_mesh([45, 45, 45])
     if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-1):
         raise ValueError("Negative frequencies at Gamma, terminating workflow here.")
     if prev_dos_fp:
