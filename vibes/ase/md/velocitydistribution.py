@@ -250,7 +250,7 @@ def phonon_harmonics(
 
         zeros = w2_s[last_ignore_mode - 3 : last_ignore_mode]
         worst_zero = np.abs(zeros).max()
-        if worst_zero > 1e-3:
+        if worst_zero > 1e-2:
             msg = "Translational deviate from 0 significantly: "
             raise ValueError(msg + "{}".format(w2_s[:3]))
 
