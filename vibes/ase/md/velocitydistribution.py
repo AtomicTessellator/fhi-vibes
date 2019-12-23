@@ -15,6 +15,7 @@ license
 import numpy as np
 from ase.parallel import world
 from ase import units
+from vibes.helpers import warn
 
 # define a ``zero'' temperature to avoid divisions by zero
 eps_temp = 1e-12
@@ -151,7 +152,7 @@ def phonon_harmonics(
     plus_minus=False,
     gauge_eigenvectors=False,
     return_eigensolution=False,
-    failfast=True,
+    failfast=False,
     ignore_negative=True,
 ):
     r"""Return displacements and velocities that produce a given temperature.
@@ -178,8 +179,7 @@ def phonon_harmonics(
     return_eigensolution: bool
         return eigenvalues and eigenvectors of the dynamical matrix
     failfast: bool
-        True for sanity checking the phonon spectrum for negative
-        frequencies at Gamma
+        If True, raise Error when phonon spectrum is not positive
     ignore_negative: bool
         If True freeze out the imaginary modes
 
@@ -240,11 +240,13 @@ def phonon_harmonics(
         last_ignore_mode = len(np.where(w2_s < 1e-3)[0])
 
     # Check for soft modes
-    if failfast:
-        w2min = w2_s[last_ignore_mode:].min()
-        if w2min < 0:
-            msg = "Dynamical matrix has negative eigenvalues such as "
-            raise ValueError(msg + "{}".format(w2min))
+    w2min = w2_s[last_ignore_mode:].min()
+    if w2min < 0:
+        msg = "Dynamical matrix has negative eigenvalues such as {}".format(w2min)
+        if failfast:
+            raise ValueError(msg)
+        else:
+            warn(msg)
 
         zeros = w2_s[last_ignore_mode - 3 : last_ignore_mode]
         worst_zero = np.abs(zeros).max()
