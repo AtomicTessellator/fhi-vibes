@@ -87,7 +87,7 @@ def generate_samples(
             "force_constants": force_constants,
             "quantum": quantum,
             "temp": temp * u.kB,
-            "failfast": True,
+            "failfast": False,
             "rng": rng,
             "deterministic": deterministic,
             "plus_minus": plus_minus,

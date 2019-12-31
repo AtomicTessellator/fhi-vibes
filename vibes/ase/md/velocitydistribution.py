@@ -246,7 +246,7 @@ def phonon_harmonics(
         if failfast:
             raise ValueError(msg)
         else:
-            warn(msg)
+            warn(msg, level=1)
 
     zeros = w2_s[last_ignore_mode - 3 : last_ignore_mode]
     worst_zero = np.abs(zeros).max()
@@ -255,7 +255,7 @@ def phonon_harmonics(
         if failfast:
             raise ValueError(msg)
         else:
-            warn(msg)
+            warn(msg, level=1)
 
     nw = len(w2_s) - last_ignore_mode
     n_atoms = len(masses)
