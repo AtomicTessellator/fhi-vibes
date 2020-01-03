@@ -28,9 +28,9 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
         PyTask kwargs
     """
     pt_func = "vibes.fireworks.tasks.general_py_task.atoms_calculate_task"
-    pt_args = task_spec.pt_args[:4]
-    args = task_spec.pt_args[4:]
-    pt_inputs = task_spec.pt_inputs
+    pt_args = list(task_spec.pt_args[:4])
+    args = list(task_spec.pt_args[4:])
+    pt_inputs = list(task_spec.pt_inputs)
     task_spec.fw_settings = fw_settings
     pt_kwargs = task_spec.pt_kwargs
     if isinstance(atoms, str):

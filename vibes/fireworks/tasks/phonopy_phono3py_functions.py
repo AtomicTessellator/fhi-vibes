@@ -198,7 +198,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
         temp_atoms = []
         for atoms_dict in calculated_atoms:
             calc_dict = atoms_dict.pop("calculator_dict")
-        temp_atoms.append(dict2atoms(atoms_dict, calc_dict))
+            temp_atoms.append(dict2atoms(atoms_dict, calc_dict))
     else:
         temp_atoms = calculated_atoms.copy()
     try:
