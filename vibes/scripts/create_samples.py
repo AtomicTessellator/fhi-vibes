@@ -42,6 +42,7 @@ def generate_samples(
         deterministic: create sample deterministically
         plus_minus: use +/-
         gauge_eigenvectors: make largest entry positive
+        ignore_negative: don't check for negative modes
         sobol: Use sobol numbers for the sampling
         random_seed: seed for random number generator
         propagate: propagate atoms according to velocities for this many fs
@@ -86,7 +87,7 @@ def generate_samples(
             "force_constants": force_constants,
             "quantum": quantum,
             "temp": temp * u.kB,
-            "failfast": True,
+            "failfast": False,
             "rng": rng,
             "deterministic": deterministic,
             "plus_minus": plus_minus,
@@ -157,14 +158,14 @@ def generate_samples(
 
 
 def create_samples(
-    geometry,
+    filename,
     temperature,
     n_samples,
     force_constants,
     rattle,
     quantum,
     deterministic,
-    plus_minus,
+    zacharias,
     gauge_eigenvectors,
     ignore_negative,
     sobol,
@@ -175,7 +176,7 @@ def create_samples(
     """create samples for Monte Carlo sampling
 
     Args:
-        geometry: input geometry file
+        filename: input geometry file
         temperature: temperature in Kelvin
         n_samples: number of samples to create (default: 1)
         force_constants: filename of the file holding force constants for phonon rattle
@@ -188,7 +189,7 @@ def create_samples(
         return_samples (bool): If True do not write the samples, but return them
     """
 
-    atoms = read(geometry, format=format)
+    atoms = read(filename, format=format)
     inform(atoms, verbosity=0)
 
     fc = None
@@ -208,7 +209,7 @@ def create_samples(
         rattle,
         quantum,
         deterministic,
-        plus_minus,
+        zacharias,
         gauge_eigenvectors,
         ignore_negative,
         sobol,
@@ -219,15 +220,14 @@ def create_samples(
 
     for ii, sample in enumerate(sample_list):
         talk(f"Sample {ii:3d}:")
-        filename = f"{geometry}.{int(temperature):04d}K"
+        file = f"{filename}.{int(temperature):04d}K"
         if n_samples > 1:
-            filename += f".{ii:03d}"
+            file += f".{ii:03d}"
 
-        sample.write(
-            filename, info_str=sample.info.pop("info_str"), velocities=True, format=format
-        )
+        info_str = sample.info.pop("info_str")
+        sample.write(file, info_str=info_str, velocities=True, format=format)
         talk(f".. temperature in sample {ii}:     {sample.get_temperature():9.3f}K")
-        talk(f".. written to {filename}")
+        talk(f".. written to {file}")
 
 
 def main():
