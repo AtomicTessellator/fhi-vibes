@@ -80,7 +80,7 @@ def process_phonons(workflow_settings, atoms, fw_settings, basis):
         generate_phonon_postprocess_fw(workflow_settings, atoms, fw_settings, "phonopy")
     )
     if getattr(workflow_settings.phonopy, "get_gruniesen", False):
-        phonon_fws += process_grun(workflow_settings, atoms)
+        phonon_fws += process_grun(workflow_settings, atoms, fw_settings)
     return phonon_fws
 
 
