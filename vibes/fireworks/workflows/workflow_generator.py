@@ -80,7 +80,7 @@ def process_phonons(workflow_settings, atoms, fw_settings, basis):
         generate_phonon_postprocess_fw(workflow_settings, atoms, fw_settings, "phonopy")
     )
     if getattr(workflow_settings.phonopy, "get_gruniesen", False):
-        phonon_fws += process_grun(workflow_settings, atoms)
+        phonon_fws += process_grun(workflow_settings, atoms, fw_settings)
     return phonon_fws
 
 
@@ -184,7 +184,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
 
     # Relaxation
     if workflow_settings.general.get("relax_structure", True):
-        fw_steps += process_relaxation(workflow_settings, atoms, basis)
+        fw_steps += process_relaxation(workflow_settings, atoms, fw_settings, basis)
 
     # Setup workflow branching point
     for ii in range(len(fw_steps) - 1):
@@ -198,7 +198,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
 
     # Phonon Calculations
     if "phonopy" in workflow_settings:
-        phonon_fws = process_phonons(workflow_settings, atoms, basis)
+        phonon_fws = process_phonons(workflow_settings, atoms, fw_settings, basis)
         fw_dep[phonon_fws[0]] = phonon_fws[1]
         if final_initialize_fw:
             fw_dep[final_initialize_fw].append(phonon_fws[0])
@@ -211,7 +211,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
 
     # Statistical Sampling
     if "statistical_sampling" in workflow_settings:
-        stat_samp_fws = process_stat_samp(workflow_settings, atoms)
+        stat_samp_fws = process_stat_samp(workflow_settings, atoms, fw_settings)
 
         if "phonopy" in workflow_settings:
             fw_dep[phonon_fws[1]].append(stat_samp_fws[0])
