@@ -12,6 +12,8 @@ default:                       light
 
 [socketio]
 port:                          12345
+# Uncomment if you want to use a unix socket
+# unixsocket:                    vibes_test_socket
 
 [phonopy]
 supercell_matrix:              [1, 2, 1]

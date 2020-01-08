@@ -8,7 +8,7 @@ from ase.calculators.socketio import SocketIOCalculator
 from vibes.helpers import talk, warn
 from vibes.helpers.utils import Spinner
 from vibes.helpers.backup import backup_folder as backup
-from vibes.helpers.socketio import get_port
+from vibes.helpers.socketio import get_port, get_unixsocket
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.helpers.hash import hash_atoms
 from vibes.helpers.lists import expand_list
@@ -133,10 +133,14 @@ def calculate_socket(
 
     # handle the socketio
     socketio_port = get_port(calculator)
-    if socketio_port is None:
-        socket_calc = None
-    else:
+    socketio_unixsocket = get_unixsocket(calculator)
+    # is the socket used?
+    socketio = socketio_port or socketio_unixsocket
+
+    if socketio:
         socket_calc = calculator
+    else:
+        socket_calc = None
 
     # perform backup if calculation folder exists
     backup(calc_dir, target_folder=backup_folder)
@@ -173,9 +177,11 @@ def calculate_socket(
             sys.exit()
 
         # launch socket
-        with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc:
+        with SocketIOCalculator(
+            socket_calc, port=socketio_port, unixsocket=socketio_unixsocket
+        ) as iocalc:
 
-            if socketio_port is not None:
+            if socketio:
                 calc = iocalc
             else:
                 calc = calculator
@@ -203,7 +209,7 @@ def calculate_socket(
 
                 # when socketio is used: calculate here, backup was already performed
                 # else: calculate in subfolder and backup if necessary
-                if socketio_port is None and len(atoms_to_calculate) > 1:
+                if not socketio and len(atoms_to_calculate) > 1:
                     wd = f"{n_cell:05d}"
                     # perform backup if calculation folder exists
                     backup(wd, target_folder=f"{backup_folder}")

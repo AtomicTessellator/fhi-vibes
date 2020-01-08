@@ -2,6 +2,7 @@
 import numpy as np
 
 from vibes.helpers.converters import dict2atoms
+from vibes.helpers.hash import hash_dict
 from vibes.settings import TaskSettings, Settings
 from vibes.tasks.calculate import calculate_socket, calculate
 
@@ -89,6 +90,13 @@ def wrap_calc_socket(
     for at_dict in atoms_dict_to_calculate:
         atoms_to_calculate.append(dict2atoms(at_dict, calc_dict, False))
     calculator = dict2atoms(atoms_dict_to_calculate[0], calc_dict, False).calc
+    if "use_pimd_wrapper" in calculator.parameters:
+        if calculator.parameters["use_pimd_wrapper"][0][:5] == "UNIX:":
+            atoms_hash = hash_dict({"to_calc": atoms_dict_to_calculate})
+            name = atoms_to_calculate[0].get_chemical_formula()
+            calculator.parameters["use_pimd_wrapper"][
+                0
+            ] += f"cm_{name}_{atoms_hash[:15]}"
     try:
         return calculate_socket(
             atoms_to_calculate,
@@ -137,6 +145,7 @@ def wrap_calculate(atoms, calc, workdir=".", walltime=1800):
         If the calculation fails
 """
     calc.parameters["walltime"] = walltime
+    calc.parameters.pop("use_pimd_wrapper", None)
     try:
         return calculate(atoms, calc, workdir)
     except RuntimeError:
