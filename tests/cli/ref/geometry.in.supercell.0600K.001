@@ -1,7 +1,7 @@
 #=======================================================
 # FHI-aims file: geometry.in.supercell.0600K.001
 # Created using the Atomic Simulation Environment (ASE)
-# Mon Dec 23 20:14:34 2019
+# Thu Jan 16 15:26:49 2020
 
 # Additional information:
 #  created from force constants
@@ -9,7 +9,7 @@
 #  quantum:             False
 #  deterministic:       False
 #  plus_minus:          True
-#  gauge_eigenvectors:  False
+#  gauge_eigenvectors:  True
 #  Sobol numbers:       False
 #  Random seed:         4
 #  Sample number:       2
