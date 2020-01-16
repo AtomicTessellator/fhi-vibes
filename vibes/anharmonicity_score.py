@@ -208,6 +208,50 @@ def get_dataframe(dataset, per_sample=False, per_direction=False, by_symmetry=Fa
     return df.T
 
 
+def get_sigma_per_mode(dataset, absolute=False):
+    """return frequencies and sigma per mode from trajectory.dataset
+
+    sigma_s = sigma(F^a_s) / sigma(F_s)
+
+    Args:
+        dataset (xarray.Dataset): the trajectory dataset including force_constants
+        absolute (bool, optional): Don't weight with the force. Defaults to False.
+
+    Returns:
+        pandas.Series: omega_s with frequencies as index
+    """
+    import pandas as pd
+    from vibes.helpers.converters import json2atoms
+    from vibes.harmonic_analysis.mode_projection import SimpleModeProjection
+
+    ds = dataset
+
+    fc = ds.attrs["flattened force_constants"]
+    supercell = json2atoms(ds.attrs["reference atoms"])
+
+    proj = SimpleModeProjection(supercell, fc)
+
+    x = proj.project(ds.forces, mass_weight=-0.5, info="forces")
+    y = proj.project(ds.forces_harmonic, mass_weight=-0.5, info="harmonic forces")
+    f = proj.omegas
+
+    std = x.std()
+
+    sigmas = []
+    for n in range(x.shape[1]):
+        X = pd.Series((x / std)[:, n].flatten())
+        Y = pd.Series(((x - y) / std)[:, n].flatten())
+
+        if absolute:
+            sigmas.append(Y.std())
+        else:
+            sigmas.append(Y.std() / X.std())
+
+    series = pd.Series(sigmas, index=f)
+
+    return series
+
+
 def _key(sym, d):
     key = f"sigma [{sym}]"
     if key in d:
