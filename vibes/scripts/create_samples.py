@@ -106,7 +106,7 @@ def generate_samples(
         f"quantum:             {quantum}",
         f"deterministic:       {deterministic}",
         f"plus_minus:          {plus_minus}",
-        f"gauge_eigenvectors:  {gauge_eigenvectors}",
+        f"gauge_eigenvectors:  {gauge_eigenvectors or plus_minus}",
         f"Sobol numbers:       {sobol}",
         f"Random seed:         {seed}",
     ]
@@ -165,8 +165,8 @@ def create_samples(
     rattle,
     quantum,
     deterministic,
-    zacharias,
     gauge_eigenvectors,
+    zacharias,
     ignore_negative,
     sobol,
     random_seed,
@@ -183,6 +183,8 @@ def create_samples(
         mc_rattle: hiphive mc rattle
         quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
         deterministic: create sample deterministically
+        gauge_eigenvectors: gauge eigenvectors
+        zacharias: create sample deterministically and gauge eigenvectors
         sobol: Use sobol numbers for the sampling
         random_seed: seed for random number generator
         format: The ASE file format for geometry files
