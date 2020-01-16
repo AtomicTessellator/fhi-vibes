@@ -4,21 +4,19 @@ from vibes.konstanten.einheiten import THz_to_cm
 from vibes.helpers import talk
 
 
-def get_timestep(times):
-    """get time step from a time series"""
+def get_timestep(times, tol=1e-9):
+    """get time step from a time series and check for glitches"""
     d_times = (times - np.roll(times, 1))[1:]
     timestep = np.mean(d_times)
 
-    for ii, dt in enumerate(d_times[1:]):
-        if abs(dt - d_times[ii]) > 1e-9:
-            msg = f"\ndelta times[{ii}] = {d_times[ii]}\n"
-            msg += f"delta times[{ii+1}] = {dt}\n"
-            raise ValueError(msg)
+    assert np.all(np.abs(d_times - timestep) < tol)
 
     return timestep
 
 
-def get_frequencies(N=None, dt=None, times=None, fs_factor=1, to_cm=False, verbose=False):
+def get_frequencies(
+    N=None, dt=None, times=None, fs_factor=1, to_cm=False, verbose=False
+):
     """compute the frequency domain in THz for signal with fs resolution
 
     Args:
