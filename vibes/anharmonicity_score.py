@@ -197,6 +197,9 @@ def get_dataframe(dataset, per_sample=False, per_direction=False, by_symmetry=Fa
     key = f"{name}"
     dct[key] = get_sigma_dict(fs, fhs, ref_atoms, by_symmetry, per_direction)
 
+    # per mode
+    dct[key]["sigma_mode"] = get_sigma_mode(dataset)
+
     # add information per sample
     if per_sample:
         for ii, (f, fh) in enumerate(zip(progressbar(fs), fhs)):
@@ -206,6 +209,20 @@ def get_dataframe(dataset, per_sample=False, per_direction=False, by_symmetry=Fa
     df = pd.DataFrame(dct)
 
     return df.T
+
+
+def get_sigma_mode(dataset):
+    """return sigma computed for mode resolved forces
+
+    Args:
+        dataset (xarray.Dataset): the trajectory dataset including force_constants
+
+    Returns:
+        float: sigma
+    """
+    x, y, f = _get_forces_per_mode(dataset)
+
+    return get_sigma(x[3:], y[3:])
 
 
 def get_sigma_per_mode(dataset, absolute=False):
@@ -221,19 +238,8 @@ def get_sigma_per_mode(dataset, absolute=False):
         pandas.Series: omega_s with frequencies as index
     """
     import pandas as pd
-    from vibes.helpers.converters import json2atoms
-    from vibes.harmonic_analysis.mode_projection import SimpleModeProjection
 
-    ds = dataset
-
-    fc = ds.attrs["flattened force_constants"]
-    supercell = json2atoms(ds.attrs["reference atoms"])
-
-    proj = SimpleModeProjection(supercell, fc)
-
-    x = proj.project(ds.forces, mass_weight=-0.5, info="forces")
-    y = proj.project(ds.forces_harmonic, mass_weight=-0.5, info="harmonic forces")
-    f = proj.omegas
+    x, y, f = _get_forces_per_mode(dataset)
 
     std = x.std()
 
@@ -250,6 +256,33 @@ def get_sigma_per_mode(dataset, absolute=False):
     series = pd.Series(sigmas, index=f)
 
     return series
+
+
+def _get_forces_per_mode(dataset):
+    """return forces and frequencies per mode from trajectory.dataset
+
+    Args:
+        dataset (xarray.Dataset): the trajectory dataset including force_constants
+
+    Returns:
+        (x, y, f): forces_mode, harmonic_forces_mode, frequencies
+    """
+    from vibes.helpers.converters import json2atoms
+    from vibes.harmonic_analysis.mode_projection import SimpleModeProjection
+
+    ds = dataset
+
+    fc = ds.attrs["flattened force_constants"]
+    supercell = json2atoms(ds.attrs["reference atoms"])
+
+    proj = SimpleModeProjection(supercell, fc)
+
+    pref = -0.5
+    x = proj.project(ds.forces, mass_weight=pref, info="forces")
+    y = proj.project(ds.forces_harmonic, mass_weight=pref, info="harmonic forces")
+    f = proj.omegas
+
+    return x, y, f
 
 
 def _key(sym, d):
