@@ -225,8 +225,8 @@ def calculate_socket(
                     atoms.calc.calculate(atoms, system_changes=["positions"])
                     meta = get_aims_uuid_dict()
 
-                # log the step
-                step2file(atoms, atoms.calc, trajectory, metadata=meta)
+                    # log the step
+                    step2file(atoms, atoms.calc, trajectory, metadata=meta)
 
                 if watchdog():
                     break

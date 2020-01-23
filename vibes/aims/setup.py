@@ -134,7 +134,8 @@ def setup_aims(ctx, verbose=True, make_species_dir=True):
             host = f"UNIX:{settings.socketio.unixsocket}"
             port = settings.socketio.get("port", 31415)
 
-        aims_settings.update({"use_pimd_wrapper": (host, port)})
+        if port is not None:
+            aims_settings.update({"use_pimd_wrapper": (host, port)})
 
     # create basissetfolder
     if make_species_dir:

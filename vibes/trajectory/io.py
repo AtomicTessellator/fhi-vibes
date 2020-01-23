@@ -146,10 +146,10 @@ def reader(
 
     if not pre_trajectory:
         if get_metadata:
-            talk(".. trajectory empty, return ([], metadata)")
-            return [], metadata
-        talk(".. trajectory empty, return []")
-        return []
+            talk(".. trajectory empty, return (Trajectory([]), metadata)")
+            return Trajectory([]), metadata
+        talk(".. trajectory empty, return Trajectory([])")
+        return Trajectory([])
 
     trajectory = Trajectory(metadata=metadata)
     prefix = ".. create atoms: "
