@@ -15,14 +15,7 @@ Make sure `poetry` is installed:
 pip install poetry
 ```
 
-Create a virtual environment with
-
-```bash
-python3 -m venv vibes_venv
-source vibes_venv/bin/activate
-```
-
-or make sure that `poetry` will no creat a virtual environment of its own by
+Make sure that `poetry` will no creat a virtual environment of its own by
 
 ```bash
 poetry config settings.virtualenvs.create false 
@@ -34,7 +27,7 @@ Install `vibes` with `poetry`
 poetry install
 ```
 
-(On `python3.6`, please also install `importlib_resources` via `pip install importlib_resources`).
+**(Important: If you run in to version conflicts that you cannot solve, use a virtual environment created with `python -m venv` or `conda create`.)**
 
 Configure Hilde by creating a `~/.vibesrc` configuration file in the home directory. To this end, first
 
@@ -53,6 +46,8 @@ cp vibesrc ~/.vibesrc
 ```
 
 **You're now good to go!** Just make sure your vibes virtual environment is activated.
+
+(On `python3.6`, please also install `importlib_resources` via `pip install importlib_resources` in addition).
 
 ### Autocompletion
 
