@@ -3,56 +3,58 @@ vibes
 
 ## Installation
 
-External dependencies:
+### Prerequisites
+
+- A working `python3.7+` or `python3.6` (see remarks below) environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html)
+
+- A working `fortran` compiler, e.g., obtained by
+  
+  - `apt-get install gfortran` in Debian-derived systems, or
+  - `conda install -c conda-forge fortran-compiler` when `conda` is used.
+
+- `poetry` needs to be installed
+  
+  - `pip install poetry`
+    - Make sure that `poetry` will no creat a virtual environment of its own by
+      - `poetry config virtualenvs.create false`
+      - or create a [virtual environment]([https://docs.python.org/3/library/venv.html](https://docs.python.org/3/library/venv.html)
+
+### Install `vibes`
+
+Go to the `vibes` folder and install `vibes` with `poetry`
 
 ```bash
-apt-get install gfortran
-```
-
-Make sure `poetry` is installed:
-
-```
-pip install poetry
-```
-
-Create a virtual environment with
-
-```bash
-python3 -m venv vibes_venv
-source vibes_venv/bin/activate
-```
-
-or make sure that `poetry` will no creat a virtual environment of its own by
-
-```bash
-poetry config settings.virtualenvs.create false 
-```
-
-Install `vibes` with `poetry`
-
-```bash
+cd /path/to/vibes
 poetry install
 ```
 
-(On `python3.6`, please also install `importlib_resources` via `pip install importlib_resources`).
+**(Important: If you run in to version conflicts that you cannot solve, use a virtual environment created with `python -m venv` or `conda create`.)**
 
-Configure Hilde by creating a `~/.vibesrc` configuration file in the home directory. To this end, first
+### Configuration
+
+Configure Hilde by creating a `~/.vibesrc` configuration file in the home directory. To this end, first run
 
 ```
 vibes template configuration
 ```
 
-and edit according to system. The `aims_command` is a command or script that takes care
-of running aims. This can be either just `mpirun aims.x`, or a script loading necessary
-modules etc. and finally calling `srun aims.x` on a cluster.
+and edit according to system. The `aims_command` is a command or script that takes care of running aims. This can be either just `mpirun aims.x`, or a script loading necessary modules etc. and finally calling `srun aims.x` on a cluster.
 
-Then copy to your home folder with 
+Then copy this file to your home folder with 
 
 ```
 cp vibesrc ~/.vibesrc
 ```
 
 **You're now good to go!** Just make sure your vibes virtual environment is activated.
+
+## Remarks for `python3.6`
+
+On `python3.6`, please install `importlib_resources` via 
+
+```bash
+pip install importlib_resources
+```
 
 ### Autocompletion
 
@@ -72,10 +74,10 @@ eval (env _HILDE_COMPLETE=source-fish vibes)
 
 ### Remarks for Cluster
 
-First make sure that `poetry` doesn't creat virtual environments on its own:
+First make sure that `poetry` doesn't create virtual environments on its own:
 
 ```bash
-poetry config settings.virtualenvs.create false 
+poetry config virtualenvs.create false 
 ```
 
 On clusters with `conda` environment, it is typically best to have a minimal base
