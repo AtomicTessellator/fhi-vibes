@@ -8,7 +8,6 @@ from vibes.trajectory import Trajectory
 parent = Path(__file__).parent
 
 traj0 = Trajectory.read(parent / "trajectory.son")
-traj0.write(parent / "trajectory.nc")
 traj1 = Trajectory.read(parent / "trajectory.nc")
 
 
