@@ -80,3 +80,5 @@ doc/
 *.ignore
 
 my_pyproject.toml
+
+vibes.md

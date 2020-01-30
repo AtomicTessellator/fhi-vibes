@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from vibes import Settings
 from vibes.helpers import Timer
 
-new_addr = "http://repository.nomad-coe.eu/uploads/api/uploads/?curl=True"
+new_addr = "http://repository.nomad-coe.eu/app/api/uploads/?token="
 old_addr = "http://nomad-repository.eu:8000"
 
 
@@ -33,7 +33,7 @@ def upload_command(folder, token, tar=False, legacy=False):
         if tar:
             cmd += f"tar czf - {folder} | "
 
-        cmd += f'curl -H "X-Token:{token}" "{new_addr}" -T {folder}' "| xargs echo"
+        cmd += f'curl "{new_addr}{token}" -T {folder}' " | xargs echo"
 
     return cmd
 
