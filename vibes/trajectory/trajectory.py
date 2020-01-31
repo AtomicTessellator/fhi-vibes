@@ -381,7 +381,7 @@ class Trajectory(list):
         Contains:
             positions, velocities, forces, stress, pressure, temperature
         """
-        return xr.get_trajectory_data(self)
+        return xr.get_trajectory_dataset(self)
 
     def get_heat_flux_data(self, only_flux=False):
         """return heat flux and other data as xarray.Dataset
@@ -391,7 +391,7 @@ class Trajectory(list):
         Metadata:
             volume, symbols, masses, flattend reference positions
         """
-        return xr.get_heat_flux_data(self, only_flux=only_flux)
+        return xr.get_heat_flux_dataset(self, only_flux=only_flux)
 
     @property
     def heat_flux_dataset(self):

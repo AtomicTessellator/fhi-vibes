@@ -16,6 +16,7 @@ from vibes.helpers.converters import dict2atoms, results2dict, dict2json as dump
 from vibes.helpers import warn
 from vibes.helpers.utils import progressbar
 from vibes.trajectory.trajectory import Trajectory
+from vibes.trajectory.dataset import get_trajectory_dataset
 from . import (
     talk,
     Timer,
@@ -75,7 +76,8 @@ def write(trajectory, file="trajectory.son"):
     timer = Timer(f"Write trajectory to {file}")
 
     if Path(file).suffix == ".nc":
-        trajectory.dataset.to_netcdf(file)
+        dataset = get_trajectory_dataset(trajectory, metadata=True)
+        dataset.to_netcdf(file)
         timer()
         return True
 
