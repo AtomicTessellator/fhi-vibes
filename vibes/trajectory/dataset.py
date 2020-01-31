@@ -29,6 +29,7 @@ from . import (
     vec_dims,
     atoms_vec_dims,
     stress_dims,
+    stresses_dims,
     kappa_dims,
 )
 
@@ -184,6 +185,26 @@ def get_trajectory_dataset(trajectory, metadata=False):
         "pressure": pressure,
         "temperature": (time_dims, trajectory.temperatures),
     }
+
+    # heat_flux
+    flux = trajectory.get_heat_flux()
+    if flux is not None:
+        dataset.update({key_heat_flux: (vec_dims, flux)})
+
+    # heat_flux_aux
+    flux = trajectory.get_heat_flux(aux=True)
+    if flux is not None:
+        dataset.update({key_heat_flux_aux: (vec_dims, flux)})
+
+    # heat_fluxes
+    flux = trajectory.get_heat_fluxes()
+    if flux is not None:
+        dataset.update({key_heat_fluxes: (atoms_vec_dims, flux)})
+
+    # heat_fluxes_aux
+    flux = trajectory.get_heat_fluxes(aux=True)
+    if flux is not None:
+        dataset.update({key_heat_fluxes_aux: (atoms_vec_dims, flux)})
 
     coords = _time_coords(trajectory)
     attrs = _attrs(trajectory, metadata=metadata)

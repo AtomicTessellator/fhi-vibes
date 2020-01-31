@@ -43,7 +43,7 @@ def md_output(
     from vibes.io import parse_force_constants
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
-    traj = reader(file=trajectory, with_stresses=heat_flux, fc_file=force_constants)
+    traj = reader(file=trajectory, fc_file=force_constants)
 
     if discard:
         traj = traj.discard(discard)
@@ -59,18 +59,13 @@ def md_output(
     if "auto" in outfile.lower():
         outfile = Path(trajectory).stem + ".nc"
 
+    if heat_flux:
+        outfile = "heat_flux.nc"
+        traj.compute_heat_fluxes_from_stresses()
+
     DS = traj.dataset
     DS.to_netcdf(outfile)
     click.echo(f"Trajectory dataset written to {outfile}")
-
-    if heat_flux:
-        from vibes.trajectory.dataset import get_heat_flux_dataset
-
-        outfile = "heat_flux.nc"
-        traj_w_heat_flux = traj.trajectory_with_heat_fluxes_from_stresses
-        DS = get_heat_flux_dataset(traj_w_heat_flux, only_flux=minimal)
-        DS.to_netcdf(outfile)
-        click.echo(f"Heat flux dataset written to {outfile}")
 
 
 @output.command("phonopy")

@@ -11,16 +11,13 @@ from vibes.helpers import warn, lazy_property
 from vibes.helpers.utils import progressbar
 from vibes.helpers.displacements import get_dR
 from vibes.anharmonicity_score import get_sigma
-from . import (
-    io,
-    heat_flux as hf,
-    talk,
-    Timer,
-    dataset as xr,
-    analysis as al,
-    _prefix,
-    _fc_key,
+from vibes.green_kubo.heat_flux import (
+    key_heat_flux,
+    key_heat_flux_aux,
+    key_heat_fluxes,
+    key_heat_fluxes_aux,
 )
+from . import io, talk, Timer, dataset as xr, analysis as al, _prefix, _fc_key
 
 
 class Trajectory(list):
@@ -189,6 +186,9 @@ class Trajectory(list):
                 warn("no time steps found, return time as index", level=1)
                 times = np.arange(len(self))
             self._times = times
+        else:
+            assert len(self._times) == len(self)
+
         return self._times
 
     @times.setter
@@ -315,12 +315,14 @@ class Trajectory(list):
     @lazy_property
     def stress(self):
         """return the stress as [N_t, 3, 3] array"""
+        zeros = np.zeros((3, 3))
         stresses = []
         for a in self:
             if "stress" in a.calc.results:
-                stresses.append(a.get_stress(voigt=False))
+                stress = a.get_stress(voigt=False)
             else:
-                stresses.append(None)
+                stress = np.full_like(zeros, np.nan)
+            stresses.append(stress)
 
         return np.array(stresses, dtype=float)
 
@@ -329,12 +331,14 @@ class Trajectory(list):
         """return the atomic stress as [N_t, N_a, 3, 3] array"""
         atomic_stresses = []
 
+        zeros = np.zeros((len(self.reference_atoms), 3, 3))
+
         for a in self:
             V = a.get_volume()
             try:
                 atomic_stress = a.get_stresses() / V
             except PropertyNotImplementedError:
-                atomic_stress = None
+                atomic_stress = np.full_like(zeros, np.nan)
             atomic_stresses.append(atomic_stress)
 
         return np.array(atomic_stresses, dtype=float)
@@ -377,18 +381,6 @@ class Trajectory(list):
             positions, velocities, forces, stress, pressure, temperature
         """
         return xr.get_trajectory_dataset(self)
-
-    def with_result(self, result="stresses"):
-        """return new trajectory with atoms object that have specific result computed"""
-        atoms_w_result = [a for a in self if result in a.calc.results]
-        new_traj = Trajectory(atoms_w_result, metadata=self.metadata)
-        new_traj.times = new_traj.times - min(new_traj.times)
-        return new_traj
-
-    @property
-    def with_stresses(self):
-        """return new trajectory with atoms that have stresses computed"""
-        return self.with_result("stresses")
 
     def discard(self, first=0, last=0):
         """discard atoms before FIRST and after LAST and return as new Trajectory"""
@@ -554,9 +546,8 @@ class Trajectory(list):
 
         al.pressure(DS.pressure)
 
-    @lazy_property
-    def trajectory_with_heat_fluxes_from_stresses(self):
-        """return trajectory with `heat_flux` attached to each `atoms`
+    def compute_heat_fluxes_from_stresses(self):
+        """attach `heat_flux` to each `atoms`
 
         Args:
             trajectory: list of atoms objects
@@ -566,23 +557,21 @@ class Trajectory(list):
             # flux ([N_t, N_a, 3]): the time resolved heat flux in eV/AA**3/ps
             # avg_flux ([N_t, N_a, 3]): high frequency part of heat flux
         """
-        from vibes.green_kubo.heat_flux import (
-            key_heat_flux,
-            key_heat_flux_aux,
-            key_heat_fluxes,
-            key_heat_fluxes_aux,
-        )
+        trajectory = self  # self.with_stresses
 
-        trajectory = self.with_stresses
+        stresses = [s for s in trajectory.stresses if not np.isnan(s).any()]
 
         # 1) compute average stresses
-        avg_stresses = trajectory.stresses.mean(axis=0)
+        avg_stresses = np.mean(stresses, axis=0)
 
         # 2) compute J_avg from average stresses
         timer = Timer("Compute heat flux:")
         for a in progressbar(trajectory):
             V = a.get_volume()
-            stresses = a.get_stresses() / V
+            try:
+                stresses = a.get_stresses() / V
+            except PropertyNotImplementedError:
+                continue
 
             ds = stresses - avg_stresses
 
@@ -606,4 +595,48 @@ class Trajectory(list):
 
         timer()
 
-        return trajectory
+    def get_heat_flux(self, aux=False):
+        """return the heat flux as [N_t, 3] array"""
+        flux = []
+
+        nan = np.full_like(np.zeros(3), np.nan)
+
+        if aux:
+            key = key_heat_flux_aux
+        else:
+            key = key_heat_flux
+
+        for a in self:
+            try:
+                f = a.calc.results[key]
+            except KeyError:
+                f = nan
+            flux.append(f)
+
+        if np.isnan(flux).all():
+            return None
+        else:
+            return np.array(flux, dtype=float)
+
+    def get_heat_fluxes(self, aux=False):
+        """return the heat fluxes as [N_t, N_a, 3] array"""
+        flux = []
+
+        nan = np.full_like(np.zeros((len(self.reference_atoms), 3)), np.nan)
+
+        if aux:
+            key = key_heat_fluxes_aux
+        else:
+            key = key_heat_fluxes
+
+        for a in self:
+            try:
+                f = a.calc.results[key]
+            except KeyError:
+                f = nan
+            flux.append(f)
+
+        if np.isnan(flux).all():
+            return None
+        else:
+            return np.array(flux, dtype=float)

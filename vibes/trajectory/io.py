@@ -367,5 +367,7 @@ def read_netcdf(file="trajectory.nc"):
         traj.append(atoms)
 
     trajectory = Trajectory(traj, metadata=metadata)
+    trajectory.displacements = DS.displacements.data
+    trajectory.times = DS.time.data
 
     return trajectory

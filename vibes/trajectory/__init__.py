@@ -36,6 +36,7 @@ atoms_dims = [time_dims, "I"]
 vec_dims = [time_dims, "a"]
 atoms_vec_dims = [time_dims, "I", "a"]
 stress_dims = [time_dims, "a", "b"]
+stresses_dims = [time_dims, "I", "a", "b"]
 kappa_dims = [time_dims, "I", "J", "a", "b"]
 
 
