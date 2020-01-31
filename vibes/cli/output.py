@@ -64,8 +64,11 @@ def md_output(
     click.echo(f"Trajectory dataset written to {outfile}")
 
     if heat_flux:
+        from vibes.trajectory.dataset import get_heat_flux_dataset
+
         outfile = "heat_flux.nc"
-        DS = traj.get_heat_flux_data(only_flux=minimal)
+        traj_w_heat_flux = traj.trajectory_with_heat_fluxes_from_stresses
+        DS = get_heat_flux_dataset(traj_w_heat_flux, only_flux=minimal)
         DS.to_netcdf(outfile)
         click.echo(f"Heat flux dataset written to {outfile}")
 
