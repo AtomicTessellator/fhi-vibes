@@ -22,6 +22,7 @@ from . import (
     key_reference_atoms,
     key_reference_positions,
     key_reference_primitive,
+    key_metadata,
 )
 
 
@@ -323,6 +324,11 @@ def read_netcdf(file="trajectory.nc"):
 
     atoms_dict = json.loads(attrs[key_reference_atoms])
 
+    # metadata
+    metadata = None
+    if key_metadata in attrs:
+        metadata = json.loads(attrs[key_metadata])
+
     # popping `velocities` is obsolete if
     # https://gitlab.com/ase/ase/merge_requests/1563
     # is accepted
@@ -358,6 +364,6 @@ def read_netcdf(file="trajectory.nc"):
 
         traj.append(atoms)
 
-    trajectory = Trajectory(traj, metadata=attrs)
+    trajectory = Trajectory(traj, metadata=metadata)
 
     return trajectory

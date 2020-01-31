@@ -107,7 +107,7 @@ class Trajectory(list):
 
     @property
     def primitive(self):
-        """ Return the primitive cell if it is there """
+        """ Return the primitive atoms if it is there """
         if "primitive" in self.metadata:
             dct = self.metadata["primitive"]
             if "atoms" in dct:
@@ -478,9 +478,7 @@ class Trajectory(list):
         """calculate the displacements for `reference_atoms`"""
         if not self.supercell:
             # warn("Supercell not set, let us stop here.", level=2)
-            warn(
-                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms", level=1
-            )
+            warn("SUPERCELL NOT SET, compute w.r.t to reference atoms", level=1)
 
         atoms_ideal = self.reference_atoms
 

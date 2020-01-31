@@ -1,4 +1,5 @@
 """compute and analyze heat fluxes"""
+import json
 import xarray as xr
 
 from ase import units
@@ -6,7 +7,13 @@ from vibes.helpers import warn
 from vibes.helpers.converters import atoms2json
 from vibes.structure.misc import get_sysname
 from .utils import clean_pressure
-from . import Timer, key_reference_atoms, key_reference_positions, key_reference_primitive
+from . import (
+    Timer,
+    key_reference_atoms,
+    key_reference_positions,
+    key_reference_primitive,
+    key_metadata
+)
 
 time_dims = "time"
 vec_dims = [time_dims, "I", "a"]
@@ -23,6 +30,8 @@ def _time_coords(trajectory):
 def _metadata(trajectory, dct=None):
     """return metadata dictionary with defaults + custom dct"""
 
+    raw_metadata = json.dumps(trajectory.metadata)
+
     attrs = {
         "System Name": get_sysname(trajectory.ref_atoms),
         "natoms": len(trajectory.ref_atoms),
@@ -34,6 +43,7 @@ def _metadata(trajectory, dct=None):
         key_reference_atoms: atoms2json(trajectory.reference_atoms, reduce=False),
         "average atoms": atoms2json(trajectory.average_atoms, reduce=False),
         key_reference_positions: trajectory.ref_positions.flatten(),
+        key_metadata: raw_metadata,
     }
 
     # handle non-periodic systems

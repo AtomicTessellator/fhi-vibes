@@ -18,6 +18,7 @@ _fc_key = "force_constants"
 key_reference_atoms = "reference atoms"
 key_reference_primitive = "reference primitive atoms"
 key_reference_positions = "reference positions"
+key_metadata = "raw_metadata"
 
 
 Timer.prefix = _prefix
