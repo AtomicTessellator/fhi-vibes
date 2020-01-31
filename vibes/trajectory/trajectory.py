@@ -42,6 +42,7 @@ class Trajectory(list):
             self._metadata = {}
 
         # lazy eval where @lazy_eval is not applicable
+        self._times = None
         self._supercell = None
         self._reference_atoms = None
         self._average_atoms = None
@@ -172,20 +173,30 @@ class Trajectory(list):
             self._volume = np.mean(volumes).squeeze()
         return self._volume
 
-    @lazy_property
+    @property
     def times(self):
         """ return the times as numpy array in fs"""
-        try:
-            fs = self.metadata["MD"]["fs"]
-        except KeyError:
-            warn("time unit not found in trajectory metadata, use ase.units.fs")
-            fs = units.fs
+        if self._times is None:
+            try:
+                fs = self.metadata["MD"]["fs"]
+            except KeyError:
+                warn("time unit not found in trajectory metadata, use ase.units.fs")
+                fs = units.fs
 
-        try:
-            return np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
-        except KeyError:
-            warn("no time steps found, return time as index", level=1)
-            return np.arange(len(self))
+            try:
+                times = np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
+            except KeyError:
+                warn("no time steps found, return time as index", level=1)
+                times = np.arange(len(self))
+            self._times = times
+        return self._times
+
+    @times.setter
+    def times(self, new_times):
+        """set `trajectory.times`"""
+        assert np.size(new_times) == len(self)
+
+        self._times = new_times
 
     @property
     def timestep(self):
@@ -304,45 +315,29 @@ class Trajectory(list):
     @lazy_property
     def stress(self):
         """return the stress as [N_t, 3, 3] array"""
-        zeros = np.zeros([3, 3])
         stresses = []
         for a in self:
             if "stress" in a.calc.results:
                 stresses.append(a.get_stress(voigt=False))
             else:
-                stresses.append(zeros)
+                stresses.append(None)
 
-        return np.array(stresses)
+        return np.array(stresses, dtype=float)
 
     @lazy_property
     def stresses(self):
         """return the atomic stress as [N_t, N_a, 3, 3] array"""
         atomic_stresses = []
+
         for a in self:
             V = a.get_volume()
             try:
                 atomic_stress = a.get_stresses() / V
             except PropertyNotImplementedError:
-                msg = "Trajectory contains atoms without stresses computed. "
-                msg += "Use `trajectory.with_stresses`"
-                warn(msg, level=2)
+                atomic_stress = None
             atomic_stresses.append(atomic_stress)
 
-        return atomic_stresses
-
-    @property
-    def heat_flux(self):
-        """return heat flux as [N_t, N_a, 3] array"""
-        if self._heat_flux is None:
-            self._heat_flux, self._avg_heat_flux = hf.get_heat_flux(self)
-        return self._heat_flux
-
-    @property
-    def avg_heat_flux(self):
-        """return heat flux FROM AVERAGED STRESS as [N_t, N_a, 3] array"""
-        if self._avg_heat_flux is None:
-            self._heat_flux, self._avg_heat_flux = hf.get_heat_flux(self)
-        return self._avg_heat_flux
+        return np.array(atomic_stresses, dtype=float)
 
     def get_pressure(self, GPa=False):
         """return the pressure as [N_t] array"""
@@ -383,25 +378,11 @@ class Trajectory(list):
         """
         return xr.get_trajectory_dataset(self)
 
-    def get_heat_flux_data(self, only_flux=False):
-        """return heat flux and other data as xarray.Dataset
-
-        Contains:
-            heat_flux, avg_heat_flux, velocities, forces, pressure, temperature
-        Metadata:
-            volume, symbols, masses, flattend reference positions
-        """
-        return xr.get_heat_flux_dataset(self, only_flux=only_flux)
-
-    @property
-    def heat_flux_dataset(self):
-        """== self.get_heat_flux_data()"""
-        return self.get_heat_flux_data()
-
     def with_result(self, result="stresses"):
         """return new trajectory with atoms object that have specific result computed"""
         atoms_w_result = [a for a in self if result in a.calc.results]
         new_traj = Trajectory(atoms_w_result, metadata=self.metadata)
+        new_traj.times = new_traj.times - min(new_traj.times)
         return new_traj
 
     @property
@@ -572,3 +553,57 @@ class Trajectory(list):
         DS = self.dataset
 
         al.pressure(DS.pressure)
+
+    @lazy_property
+    def trajectory_with_heat_fluxes_from_stresses(self):
+        """return trajectory with `heat_flux` attached to each `atoms`
+
+        Args:
+            trajectory: list of atoms objects
+
+        Returns:
+            trajectory: with heat flux attached to atoms
+            # flux ([N_t, N_a, 3]): the time resolved heat flux in eV/AA**3/ps
+            # avg_flux ([N_t, N_a, 3]): high frequency part of heat flux
+        """
+        from vibes.green_kubo.heat_flux import (
+            key_heat_flux,
+            key_heat_flux_aux,
+            key_heat_fluxes,
+            key_heat_fluxes_aux,
+        )
+
+        trajectory = self.with_stresses
+
+        # 1) compute average stresses
+        avg_stresses = trajectory.stresses.mean(axis=0)
+
+        # 2) compute J_avg from average stresses
+        timer = Timer("Compute heat flux:")
+        for a in progressbar(trajectory):
+            V = a.get_volume()
+            stresses = a.get_stresses() / V
+
+            ds = stresses - avg_stresses
+
+            # velocity in \AA / ps
+            vs = a.get_velocities() * units.fs * 1000
+
+            fluxes = np.squeeze(ds @ vs[:, :, None])
+            fluxes_aux = np.squeeze(avg_stresses @ vs[:, :, None])
+
+            flux = fluxes.sum(axis=0)
+            flux_aux = fluxes_aux.sum(axis=0)
+
+            d = {
+                key_heat_flux: flux,
+                key_heat_fluxes: fluxes,
+                key_heat_flux_aux: flux_aux,
+                key_heat_fluxes_aux: fluxes_aux,
+            }
+
+            a.calc.results.update(d)
+
+        timer()
+
+        return trajectory

@@ -20,6 +20,24 @@ key_reference_primitive = "reference primitive atoms"
 key_reference_positions = "reference positions"
 key_metadata = "raw_metadata"
 
+key_positions = "positions"
+key_velocities = "velocities"
+
+key_forces = "forces"
+key_forces_harmonic = "forces_harmonic"
+key_energy_kinetic = "kinetic_energy"
+key_energy_potential = "potential_energy"
+key_energy_potential_harmonic = "potential_energy_harmonic"
+key_pressure = "pressure"
+key_temperature = "temperature"
+
+time_dims = "time"
+atoms_dims = [time_dims, "I"]
+vec_dims = [time_dims, "a"]
+atoms_vec_dims = [time_dims, "I", "a"]
+stress_dims = [time_dims, "a", "b"]
+kappa_dims = [time_dims, "I", "J", "a", "b"]
+
 
 Timer.prefix = _prefix
 

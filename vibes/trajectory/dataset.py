@@ -1,5 +1,6 @@
 """compute and analyze heat fluxes"""
 import json
+import numpy as np
 import xarray as xr
 
 from ase import units
@@ -7,18 +8,29 @@ from vibes.helpers import warn
 from vibes.helpers.converters import atoms2json
 from vibes.structure.misc import get_sysname
 from .utils import clean_pressure
+from vibes.green_kubo.heat_flux import (
+    key_heat_flux,
+    key_heat_flux_aux,
+    key_heat_fluxes,
+    key_heat_fluxes_aux,
+)
 from . import (
     Timer,
     key_reference_atoms,
     key_reference_positions,
     key_reference_primitive,
     key_metadata,
+    key_forces,
+    key_forces_harmonic,
+    key_energy_kinetic,
+    key_energy_potential,
+    key_energy_potential_harmonic,
+    time_dims,
+    vec_dims,
+    atoms_vec_dims,
+    stress_dims,
+    kappa_dims,
 )
-
-time_dims = "time"
-vec_dims = [time_dims, "I", "a"]
-stress_dims = [time_dims, "a", "b"]
-kappa_dims = [time_dims, "I", "J", "a", "b"]
 
 
 def _time_coords(trajectory):
@@ -81,7 +93,7 @@ def get_positions_dataarray(trajectory, verbose=True):
 
     df = xr.DataArray(
         trajectory.positions,
-        dims=vec_dims,
+        dims=atoms_vec_dims,
         coords=_time_coords(trajectory),
         name="positions",
         attrs=_attrs(trajectory),
@@ -104,7 +116,7 @@ def get_velocities_dataarray(trajectory, verbose=True):
 
     df = xr.DataArray(
         trajectory.velocities,
-        dims=vec_dims,
+        dims=atoms_vec_dims,
         coords=_time_coords(trajectory),
         name="velocities",
         attrs=_attrs(trajectory),
@@ -162,12 +174,12 @@ def get_trajectory_dataset(trajectory, metadata=False):
 
     dataset = {
         "positions": positions,
-        "displacements": (vec_dims, trajectory.displacements),
+        "displacements": (atoms_vec_dims, trajectory.displacements),
         "velocities": velocities,
-        "momenta": (vec_dims, trajectory.momenta),
-        "forces": (vec_dims, trajectory.forces),
-        "kinetic_energy": (time_dims, trajectory.kinetic_energy),
-        "potential_energy": (time_dims, trajectory.potential_energy),
+        "momenta": (atoms_vec_dims, trajectory.momenta),
+        key_forces: (atoms_vec_dims, trajectory.forces),
+        key_energy_kinetic: (time_dims, trajectory.kinetic_energy),
+        key_energy_potential: (time_dims, trajectory.potential_energy),
         "stress": (stress_dims, trajectory.stress),
         "pressure": pressure,
         "temperature": (time_dims, trajectory.temperatures),
@@ -179,8 +191,8 @@ def get_trajectory_dataset(trajectory, metadata=False):
     if trajectory.forces_harmonic is not None:
         epot_ha = trajectory.potential_energy_harmonic
         update_dict = {
-            "forces_harmonic": (vec_dims, trajectory.forces_harmonic),
-            "potential_energy_harmonic": (time_dims, epot_ha),
+            key_forces_harmonic: (atoms_vec_dims, trajectory.forces_harmonic),
+            key_energy_potential_harmonic: (time_dims, epot_ha),
             "sigma_per_sample": (time_dims, trajectory.sigma_per_sample),
         }
         dataset.update(update_dict)
@@ -189,12 +201,11 @@ def get_trajectory_dataset(trajectory, metadata=False):
     return xr.Dataset(dataset, coords=coords, attrs=attrs)
 
 
-def get_heat_flux_dataset(trajectory, return_avg=False, only_flux=False):
+def get_heat_flux_dataset(trajectory, only_flux=False):
     """compute heat fluxes from TRAJECTORY and return as xarray
 
     Args:
         trajectory: list of atoms objects WITH ATOMIC STRESS computed
-        return_avg (bool): return flux per atom
         only_flux (bool): only return heat flux and attrs
 
     Returns:
@@ -202,27 +213,30 @@ def get_heat_flux_dataset(trajectory, return_avg=False, only_flux=False):
             heat_flux
             avg_heat_flux
     """
-    traj_w_stresses = trajectory.with_stresses
-    if not len(trajectory) == len(traj_w_stresses):
-        warn("remove atoms from trajectory without stresses", level=1)
-        trajectory = traj_w_stresses
-
     # add velocities and pressure
     data = get_trajectory_dataset(trajectory)
 
+    flux = [a.calc.results[key_heat_flux] for a in trajectory]
+
     dataset = {
-        "heat_flux": (vec_dims, trajectory.heat_flux),
+        key_heat_flux: (vec_dims, np.array(flux)),
         "pressure": data.pressure,
         "temperature": data.temperature,
     }
 
     if not only_flux:
+        fluxes = [a.calc.results[key_heat_fluxes] for a in trajectory]
+        flux_aux = [a.calc.results[key_heat_flux_aux] for a in trajectory]
+        fluxes_aux = [a.calc.results[key_heat_fluxes_aux] for a in trajectory]
+
         dataset.update(
             {
-                "avg_heat_flux": (vec_dims, trajectory.avg_heat_flux),
+                key_heat_fluxes: (atoms_vec_dims, np.array(fluxes)),
+                key_heat_flux_aux: (vec_dims, np.array(flux_aux)),
+                key_heat_fluxes_aux: (atoms_vec_dims, np.array(fluxes_aux)),
                 "positions": data.positions,
                 "velocities": data.velocities,
-                "forces": data.forces,
+                key_forces: data.forces,
             }
         )
     coords = _time_coords(trajectory)

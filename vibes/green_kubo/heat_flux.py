@@ -8,8 +8,13 @@ from ase import units
 
 # from vibes.fourier import compute_sed, get_frequencies, get_timestep
 from vibes.helpers.correlation import correlation
-from vibes.trajectory.dataset import kappa_dims, stress_dims
+from vibes.trajectory import kappa_dims, stress_dims
 from . import Timer, talk
+
+key_heat_flux = "heat_flux"
+key_heat_fluxes = "heat_fluxes"
+key_heat_flux_aux = "heat_flux_aux"
+key_heat_fluxes_aux = "heat_fluxes_aux"
 
 
 def gk_prefactor(volume, temperature, verbose=True):
