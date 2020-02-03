@@ -9,8 +9,13 @@ def test_vibes_help():
     sp.run(cmd.split(), cwd=parent, check=True)
 
 
-def test_vibes_output():
-    cmd = "vibes output phon trajectory.son --full --q_mesh 5 5 5"
+def test_vibes_md_output():
+    cmd = "vibes output md md.son"
+    sp.run(cmd.split(), cwd=parent, check=True)
+
+
+def test_vibes_phonopy_output():
+    cmd = "vibes output phon phonopy.son --full --q_mesh 5 5 5"
     sp.run(cmd.split(), cwd=parent, check=True)
 
 
@@ -21,5 +26,6 @@ def test_vibes_template():
 
 if __name__ == "__main__":
     test_vibes_help()
-    test_vibes_output()
+    test_vibes_md_output()
+    test_vibes_phonopy_output()
     test_vibes_template()
