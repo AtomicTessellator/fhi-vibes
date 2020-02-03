@@ -2,7 +2,6 @@
 
 from .misc import AliasedGroup, ClickAliasedGroup, click, complete_filenames
 
-
 xrange = range
 
 
@@ -358,7 +357,7 @@ def trajectory_update(filename, uc, sc, fc, output_filename, format):
 @trajectory.command("pick_sample")
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-n", "--number", default=0)
-@click.option("-r", "--range", type=click.Tuple(3 * [int]), help="start, stop, step")
+@click.option("-r", "--range", type=int, nargs=3, help="start, stop, step")
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
 def pick_sample(filename, number, range, cartesian):
     """pick a sample from trajectory and write to geometry input file"""
@@ -370,10 +369,10 @@ def pick_sample(filename, number, range, cartesian):
     if number < 0:
         number = len(traj) + number
 
-    if range is not None:
+    if len(range) == 3:
         rge = xrange(*range)
     else:
-        rge = number
+        rge = [number]
 
     for number in rge:
         click.echo(f"Extract sample {number}:")
