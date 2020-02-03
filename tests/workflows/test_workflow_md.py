@@ -2,11 +2,12 @@
 
 import shutil
 from pathlib import Path
+
 import pytest
-from vibes.settings import Settings
+
 from vibes.helpers import cwd
 from vibes.molecular_dynamics.context import MDContext
-
+from vibes.settings import Settings
 
 parent = Path(__file__).parent
 

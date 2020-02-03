@@ -1,41 +1,44 @@
 """ test the harmonic analysis, i.e., mode projection etc. """
+from pathlib import Path
 
 import numpy as np
 import scipy.linalg as la
+from ase import units
+from ase.md.verlet import VelocityVerlet
 
-from vibes.io import read
+from vibes.harmonic_analysis import HarmonicAnalysis
+from vibes.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
+from vibes.harmonic_analysis.normal_modes import get_A_qst2, projector, u_s_to_u_I
+from vibes.helpers import Timer, progressbar
+from vibes.helpers.displacements import get_dUdt, get_U
 
 # from vibes.helpers.supercell import map_indices
 from vibes.helpers.lattice_points import (
-    map_I_to_iL,
-    get_lattice_points,
     get_commensurate_q_points,
+    get_lattice_points,
+    map_I_to_iL,
 )
-from vibes.harmonic_analysis import HarmonicAnalysis
-from vibes.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
-from vibes.helpers.displacements import get_U, get_dUdt
-from vibes.harmonic_analysis.normal_modes import projector, u_s_to_u_I, get_A_qst2
-from vibes.trajectory import reader
-from vibes.tdep.wrapper import (
-    parse_tdep_remapped_forceconstant,
-    parse_tdep_forceconstant,
-)
-
+from vibes.io import read
 from vibes.konstanten import kB
-from vibes.helpers import Timer
+from vibes.molecular_dynamics.utils import FCCalculator, MDLogger
+from vibes.tdep.wrapper import (
+    parse_tdep_forceconstant,
+    parse_tdep_remapped_forceconstant,
+)
+from vibes.trajectory import reader
 
-from harmonic_md import run
+parent = Path(__file__).parent
 
 
-def main():
+def test_all():
     timer = Timer()
 
-    primitive = read("geometry.in.primitive")
-    supercell = read("geometry.in.supercell")
+    primitive = read(parent / "geometry.in.primitive")
+    supercell = read(parent / "geometry.in.supercell")
     force_constants = parse_tdep_forceconstant(
-        fc_filename="infile.forceconstant",
-        primitive="geometry.in.primitive",
-        supercell="geometry.in.supercell",
+        fc_filename=parent / "infile.forceconstant",
+        primitive=parent / "geometry.in.primitive",
+        supercell=parent / "geometry.in.supercell",
         two_dim=True,
         format="aims",
     )
@@ -118,10 +121,10 @@ def main():
     # write prepared cell as input for MD and run
     prepared_cell.write("geometry.in", format="aims", velocities=True)
 
-    run(harmonic=True, maxsteps=501, dt=2, sample="geometry.in")
+    _run_md(harmonic=True, maxsteps=501, dt=2, sample="geometry.in")
 
     # read the obtained trajectory and check the average temperature
-    traj = reader("trajectory.son", verbose=False)
+    traj = reader(parent / "trajectory.son", verbose=False)
 
     temperatures = np.array([a.get_temperature() for a in traj])
 
@@ -158,7 +161,7 @@ def main():
     assert E[:, 3:, :].std() / E.mean() < 0.01, E[:, 3:, :].std() / E.mean()
 
     # compare the high level access via HarmonicAnalysis
-    fcs, lps = parse_tdep_remapped_forceconstant("infile.forceconstant")
+    fcs, lps = parse_tdep_remapped_forceconstant(parent / "infile.forceconstant")
 
     ha = HarmonicAnalysis(primitive, supercell, fcs, lps)
     _, _, E = ha.project(traj)
@@ -176,10 +179,53 @@ def main():
     timer("ran mode projection test successfully")
 
 
+def _run_md(
+    maxsteps=1001,
+    dt=1,
+    harmonic=True,
+    sample=parent / "geometry.in.supercell.300K",
+    primitive=parent / "geometry.in.primitive",
+    supercell=parent / "geometry.in.supercell",
+    fc_file=parent / "infile.forceconstant",
+    trajectory=parent / "trajectory.son",
+):
+    """ run Verlet MD, harmonic or force field """
+    trajectory = trajectory
+    atoms = read(sample)
+
+    force_constants = parse_tdep_forceconstant(
+        fc_filename=fc_file,
+        primitive=primitive,
+        supercell=supercell,
+        two_dim=True,
+        format="aims",
+    )
+    # force_constants.resize(2 * (3 * len(supercell),))
+
+    supercell = read(supercell)
+    if harmonic is True:
+        calc = FCCalculator(supercell, force_constants)
+    else:
+        calc = lammps_si_tersoff_calculator()
+
+    # generic md settings
+    settings = {"atoms": atoms, "timestep": dt * units.fs}
+    metadata = {"MD": {"fs": units.fs, "dt": dt}}
+
+    md = VelocityVerlet(**settings)
+
+    logger = MDLogger(atoms, trajectory, metadata=metadata, overwrite=True)
+
+    atoms.calc = calc
+    for _ in progressbar(range(maxsteps)):
+        logger(atoms, info={"nsteps": md.nsteps, "dt": md.dt})
+        md.run(1)
+
+
 if __name__ == "__main__":
     import ase
 
     if ase.__version__ >= "3.18":
-        main()
+        test_all()
     else:
         print(f"ase version: {ase.__version__}, skip for now")

@@ -1,5 +1,4 @@
 [geometry]
-file: geometry.in
 
 [phonopy]
 supercell_matrix = [-1, 1, 1,  1, -1, 1,  1, 1, -1]
