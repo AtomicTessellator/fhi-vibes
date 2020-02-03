@@ -6,13 +6,12 @@ from vibes.helpers import warn
 from vibes.helpers.converters import atoms2json
 from vibes.structure.misc import get_sysname
 
-from . import (
-    Timer,
+from .trajectory import (
     key_reference_atoms,
     key_reference_positions,
     key_reference_primitive,
 )
-from .utils import clean_pressure
+from .utils import Timer, clean_pressure
 
 time_dims = "time"
 vec_dims = [time_dims, "I", "a"]

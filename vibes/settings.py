@@ -6,7 +6,6 @@ from pathlib import Path
 
 import numpy as np
 
-from vibes import __version__ as version
 from vibes._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
@@ -196,6 +195,8 @@ class Configuration(ConfigDict):
         config_file: str
             Path to the configure file
         """
+        from vibes import __version__ as version
+
         super().__init__(config_files=config_file)
 
         # include the vibes version tag

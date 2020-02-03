@@ -14,19 +14,15 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from vibes import __version__ as version
 from vibes import io, son
 from vibes.helpers import warn
-from vibes.helpers.converters import dict2atoms
-from vibes.helpers.converters import dict2json as dumper
-from vibes.helpers.converters import results2dict
+from vibes.helpers.converters import dict2atoms, dict2json, results2dict
 from vibes.helpers.utils import progressbar
-from vibes.trajectory.trajectory import Trajectory
 
-from . import (
-    Timer,
+from .trajectory import (
     key_reference_atoms,
     key_reference_positions,
     key_reference_primitive,
-    talk,
 )
+from .utils import Timer, talk
 
 
 def step2file(atoms, calc=None, file="trajectory.son", metadata={}):
@@ -52,7 +48,7 @@ def step2file(atoms, calc=None, file="trajectory.son", metadata={}):
 
     dct.update(results2dict(atoms, calc))
 
-    son.dump(dct, file, dumper=dumper)
+    son.dump(dct, file, dumper=dict2json)
 
 
 def metadata2file(metadata, file="metadata.son"):
@@ -122,6 +118,8 @@ def reader(
         trajectory: The trajectory from the file
         metadata: The metadata for the trajectory
     """
+    from vibes.trajectory.trajectory import Trajectory
+
     timer = Timer(f"Parse trajectory")
 
     if Path(file).suffix == ".nc":
@@ -315,6 +313,8 @@ def to_db(trajectory, database):
 
 def read_netcdf(file="trajectory.nc"):
     """read `trajectory.nc` and return Trajectory"""
+    from vibes.trajectory.trajectory import Trajectory
+
     DS = xr.open_dataset(file)
     attrs = DS.attrs
 
