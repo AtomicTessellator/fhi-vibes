@@ -1,19 +1,17 @@
 """ Settings class for holding settings, based on configparser.ConfigParser """
+import configparser
 import json
 import time
-import configparser
 from pathlib import Path
 
 import numpy as np
 
-
 from vibes._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
-    DEFAULT_SETTINGS_FILE,
     DEFAULT_GEOMETRY_FILE,
+    DEFAULT_SETTINGS_FILE,
 )
-from vibes import __version__ as version
 from vibes.helpers.attribute_dict import AttributeDict, MultiOrderedDict
 from vibes.helpers.warnings import warn
 
@@ -197,6 +195,8 @@ class Configuration(ConfigDict):
         config_file: str
             Path to the configure file
         """
+        from vibes import __version__ as version
+
         super().__init__(config_files=config_file)
 
         # include the vibes version tag

@@ -2,16 +2,22 @@
 
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
+
 from vibes import son
-from vibes.trajectory import step2file, metadata2file
-from vibes.helpers.aims import get_aims_uuid_dict
-from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
-from vibes.helpers.paths import cwd
-from vibes.helpers.socketio import get_port, get_stresses
-from vibes.helpers.socketio import socket_stress_on, socket_stress_off
-from vibes.helpers.backup import backup_folder as backup
-from vibes.helpers.restarts import restart
 from vibes.helpers import talk, warn
+from vibes.helpers.aims import get_aims_uuid_dict
+from vibes.helpers.backup import backup_folder as backup
+from vibes.helpers.paths import cwd
+from vibes.helpers.restarts import restart
+from vibes.helpers.socketio import (
+    get_port,
+    get_stresses,
+    socket_stress_off,
+    socket_stress_on,
+)
+from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
+from vibes.trajectory import metadata2file, step2file
+
 from ._defaults import name
 
 

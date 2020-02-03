@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
-from vibes.settings import Settings
 from vibes.phonon_db.database_interface import traj_to_database
+from vibes.settings import Settings
 
 
 def main():

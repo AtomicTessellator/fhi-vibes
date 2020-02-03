@@ -1,6 +1,7 @@
 """ prepare molecular dynamics simulations using the ASE classes """
 
 from pathlib import Path
+
 import numpy as np
 from ase import units as u
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics

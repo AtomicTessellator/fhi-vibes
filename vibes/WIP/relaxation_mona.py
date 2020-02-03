@@ -1,8 +1,9 @@
+from mona import Rule
+
+from vibes.relaxation.bfgs import relax
 from vibes.settings import Settings
 from vibes.templates.aims import setup_aims
-from vibes.relaxation.bfgs import relax
 
-from mona import Rule
 
 settings = Settings()
 

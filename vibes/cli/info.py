@@ -1,6 +1,7 @@
 """`vibes info` backend"""
 
 from pathlib import Path
+
 from .misc import AliasedGroup, click, complete_filenames
 
 

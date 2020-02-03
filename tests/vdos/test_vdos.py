@@ -1,14 +1,15 @@
 """test VDOS functionality"""
 
 from pathlib import Path
+
 import numpy as np
 import scipy.signal as sl
-
 from ase.io import read
-from vibes.trajectory import reader
+
 from vibes.green_kubo.velocities import get_vdos
-from vibes.tdep.wrapper import parse_tdep_forceconstant
 from vibes.harmonic_analysis import dynamical_matrix as dm
+from vibes.tdep.wrapper import parse_tdep_forceconstant
+from vibes.trajectory import reader
 
 parent = Path(__file__).parent
 

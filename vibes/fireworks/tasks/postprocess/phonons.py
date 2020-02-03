@@ -8,8 +8,8 @@ from vibes.helpers.converters import atoms2dict
 from vibes.helpers.k_grid import update_k_grid
 from vibes.helpers.paths import cwd
 from vibes.materials_fp.material_fingerprint import (
-    get_phonon_dos_fingerprint_phononpy,
     fp_tup,
+    get_phonon_dos_fingerprint_phononpy,
     scalar_product,
 )
 from vibes.phonon_db.row import phonon_to_dict

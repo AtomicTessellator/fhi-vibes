@@ -1,6 +1,5 @@
-from pathlib import Path
 import subprocess as sp
-
+from pathlib import Path
 
 import numpy as np
 from ase.io import read

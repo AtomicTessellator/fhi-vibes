@@ -1,7 +1,9 @@
 """ Functions related to creation of dynamical matrices """
 
 import numpy as np
+
 from vibes.konstanten import omega_to_THz
+
 from . import get_lattice_points
 from .force_constants import reshape_force_constants
 

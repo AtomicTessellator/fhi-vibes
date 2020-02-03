@@ -1,20 +1,17 @@
 """compute and analyze heat fluxes"""
 import numpy as np
-from scipy.optimize import curve_fit
-from scipy.integrate import cumtrapz
 import xarray as xr
-
 from ase import units
+from scipy.integrate import cumtrapz
+from scipy.optimize import curve_fit
+
+from vibes import dimensions as dims
+from vibes import keys
 
 # from vibes.fourier import compute_sed, get_frequencies, get_timestep
 from vibes.helpers.correlation import correlation
-from vibes.trajectory import kappa_dims, stress_dims
-from . import Timer, talk
 
-key_heat_flux = "heat_flux"
-key_heat_fluxes = "heat_fluxes"
-key_heat_flux_aux = "heat_flux_aux"
-key_heat_fluxes_aux = "heat_fluxes_aux"
+from . import Timer, talk
 
 
 def gk_prefactor(volume, temperature, verbose=True):
@@ -111,7 +108,7 @@ def get_kappa(dataset, full=False, delta="auto", verbose=True):
 
         J_corr = xr.DataArray(
             flux_corr * prefactor,
-            dims=stress_dims,
+            dims=dims.stress,
             coords=flux.coords,
             attrs={"gk_prefactor": prefactor},
             name="Jcorr",
@@ -167,7 +164,7 @@ def get_heat_flux_aurocorrelation(dataset, full_tensor=False, verbose=True):
                     for bb in range(3):
                         corr = correlation(J_I[:, aa], J_J[:, bb])
                         flux_corr[:, II, JJ, aa, bb] = corr
-        dims = kappa_dims
+        _dims = dims.kappa
     else:
         flux_corr = np.zeros([Nt, Na, 3, 3])
         for atom in flux.I:
@@ -177,11 +174,11 @@ def get_heat_flux_aurocorrelation(dataset, full_tensor=False, verbose=True):
                 for bb in range(3):
                     corr = correlation(J_atom[:, aa], J_atom[:, bb])
                     flux_corr[:, atom, aa, bb] = corr
-        dims = flux.dims + (kappa_dims[-1],)
+        _dims = flux.dims + (dims.kappa[-1],)
 
     df_corr = xr.DataArray(
         flux_corr * prefactor,
-        dims=dims,
+        dims=_dims,
         coords=flux.coords,
         attrs={"gk_prefactor": prefactor},
         name="heat flux autocorrelation",

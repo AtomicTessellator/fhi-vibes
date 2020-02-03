@@ -1,23 +1,20 @@
 """the vibes.Trajectory class"""
 
 import numpy as np
-
-from ase import units, Atoms
+from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
-from vibes.fourier import get_timestep
-from vibes.helpers.converters import dict2atoms, atoms2dict
-from vibes.helpers.hash import hash_atoms
-from vibes.helpers import warn, lazy_property
-from vibes.helpers.utils import progressbar
-from vibes.helpers.displacements import get_dR
+
+from vibes import keys
 from vibes.anharmonicity_score import get_sigma
-from vibes.green_kubo.heat_flux import (
-    key_heat_flux,
-    key_heat_flux_aux,
-    key_heat_fluxes,
-    key_heat_fluxes_aux,
-)
-from . import io, talk, Timer, dataset as xr, analysis as al, _prefix, _fc_key
+from vibes.fourier import get_timestep
+from vibes.helpers import lazy_property, warn
+from vibes.helpers.converters import atoms2dict, dict2atoms
+from vibes.helpers.displacements import get_dR
+from vibes.helpers.hash import hash_atoms
+from vibes.helpers.utils import progressbar
+
+from . import analysis as al
+from .utils import Timer, _prefix, talk
 
 
 class Trajectory(list):
@@ -49,13 +46,15 @@ class Trajectory(list):
         self._forces_harmonic = None
         self._displacements = None
         self._force_constants_remapped = None
-        if _fc_key not in self._metadata:
-            self._metadata[_fc_key] = None
+        if keys.fc not in self._metadata:
+            self._metadata[keys.fc] = None
 
     @classmethod
     def read(cls, file="trajectory.son", **kwargs):
         """ Read trajectory from file """
-        trajectory = io.reader(file, **kwargs)
+        from .io import reader
+
+        trajectory = reader(file, **kwargs)
         return trajectory
 
     def __getitem__(self, key):
@@ -236,7 +235,7 @@ class Trajectory(list):
     @property
     def force_constants(self):
         """return (reduced) force constants or warn if not set"""
-        fc = self.metadata[_fc_key]
+        fc = self.metadata[keys.fc]
         if any(x is None for x in (fc, self.primitive, self.supercell)):
             warn("`trajectory.force_constants` not set, return None")
         else:
@@ -251,7 +250,7 @@ class Trajectory(list):
         Np, Na = len(self.primitive), len(self.supercell)
         # assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
         assert fc.shape == (Np, Na, 3, 3), fc.shape
-        self.metadata[_fc_key] = fc
+        self.metadata[keys.fc] = fc
 
     @property
     def force_constants_remapped(self):
@@ -380,7 +379,9 @@ class Trajectory(list):
         Contains:
             positions, velocities, forces, stress, pressure, temperature
         """
-        return xr.get_trajectory_dataset(self)
+        from .dataset import get_trajectory_dataset
+
+        return get_trajectory_dataset(self)
 
     def discard(self, first=0, last=0):
         """discard atoms before FIRST and after LAST and return as new Trajectory"""
@@ -416,7 +417,9 @@ class Trajectory(list):
         Args:
             file: path to trajecotry son or nc file
         """
-        io.write(self, file=file)
+        from .io import write
+
+        write(self, file=file)
 
     def to_xyz(self, file="positions.xyz"):
         """Write positions to simple xyz file for e.g. viewing with VMD
@@ -436,7 +439,9 @@ class Trajectory(list):
             folder: Directory to store tdep files
             skip: Number of structures to skip
         """
-        io.to_tdep(self, folder, skip)
+        from .io import to_tdep
+
+        to_tdep(self, folder, skip)
 
     def to_db(self, database):
         """Convert to ase database
@@ -445,7 +450,9 @@ class Trajectory(list):
             database: Filename or address of database
 
         """
-        io.to_db(self, database)
+        from .io import to_db
+
+        to_db(self, database)
 
     def set_displacements(self):
         """calculate the displacements for `reference_atoms`"""
@@ -585,10 +592,10 @@ class Trajectory(list):
             flux_aux = fluxes_aux.sum(axis=0)
 
             d = {
-                key_heat_flux: flux,
-                key_heat_fluxes: fluxes,
-                key_heat_flux_aux: flux_aux,
-                key_heat_fluxes_aux: fluxes_aux,
+                keys.heat_flux: flux,
+                keys.heat_fluxes: fluxes,
+                keys.heat_flux_aux: flux_aux,
+                keys.heat_fluxes_aux: fluxes_aux,
             }
 
             a.calc.results.update(d)
@@ -602,9 +609,9 @@ class Trajectory(list):
         nan = np.full_like(np.zeros(3), np.nan)
 
         if aux:
-            key = key_heat_flux_aux
+            key = keys.heat_flux_aux
         else:
-            key = key_heat_flux
+            key = keys.heat_flux
 
         for a in self:
             try:
@@ -625,9 +632,9 @@ class Trajectory(list):
         nan = np.full_like(np.zeros((len(self.reference_atoms), 3)), np.nan)
 
         if aux:
-            key = key_heat_fluxes_aux
+            key = keys.heat_fluxes_aux
         else:
-            key = key_heat_fluxes
+            key = keys.heat_fluxes
 
         for a in self:
             try:

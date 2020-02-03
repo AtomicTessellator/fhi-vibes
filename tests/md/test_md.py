@@ -2,7 +2,6 @@ import shutil
 from pathlib import Path
 
 import numpy as np
-
 from ase import units as u
 from ase.build import bulk
 from ase.calculators.emt import EMT

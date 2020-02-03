@@ -39,8 +39,11 @@
 import sys
 
 import numpy as np
-from .directions import directions
+
 from vibes.helpers.utils import talk
+
+from .directions import directions
+
 
 if sys.version_info[0] > 2:
     long = int

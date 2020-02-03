@@ -1,7 +1,8 @@
 """ Provide highlevel access to calculator.calculate """
-from .calculate import calculate_socket, calc_dirname
-from vibes.settings import Settings
 from vibes.helpers.utils import talk
+from vibes.settings import Settings
+
+from .calculate import calc_dirname, calculate_socket
 
 
 def run():

@@ -2,9 +2,9 @@
 
 from argparse import ArgumentParser as argpars
 
-from vibes.io import read, inform
 from vibes.helpers import talk
 from vibes.helpers.k_grid import d2k, k2d
+from vibes.io import inform, read
 
 
 def suggest_k_grid(filename, density, uneven, format):

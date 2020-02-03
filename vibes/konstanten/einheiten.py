@@ -1,7 +1,9 @@
 """ Physical constants and atomic units """
-from numpy import pi
 from ase import units as ase_units
+from numpy import pi
+
 from vibes.helpers import AttributeDict
+
 
 # physical constants
 AMU = ase_units._amu  # = 1.66053904e-27  # [kg]

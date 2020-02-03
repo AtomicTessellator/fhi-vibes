@@ -1,12 +1,12 @@
 """test the anharmonicity quantification"""
 
 from pathlib import Path
+
 import numpy as np
 
-from vibes.trajectory import reader
-from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
 import vibes.anharmonicity_score as score
-
+from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
+from vibes.trajectory import reader
 
 parent = Path(__file__).parent
 

@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 
-from vibes import run, Settings
+from vibes import Settings, run
 
 
 def main():

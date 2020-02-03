@@ -16,7 +16,9 @@ def send_simple_mail(message, to_addr, extra_message=""):
     import os
 
     log = os.system(
-        'echo "{}" | mailx -s "[vibes] {:s}" {:s}'.format(extra_message, message, to_addr)
+        'echo "{}" | mailx -s "[vibes] {:s}" {:s}'.format(
+            extra_message, message, to_addr
+        )
     )
 
     if log:

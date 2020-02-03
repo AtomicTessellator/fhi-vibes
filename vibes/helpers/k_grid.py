@@ -1,6 +1,7 @@
 """ Helpers for working with kpoint densites """
 
 import numpy as np
+
 from vibes.helpers.utils import talk
 
 

@@ -1,7 +1,7 @@
 """`vibes fireworks part of the CLI"""
 import click
-
 from fireworks.fw_config import CONFIG_FILE_DIR, LAUNCHPAD_LOC
+
 from vibes.cli.misc import AliasedGroup
 from vibes.fireworks._defaults import FW_DEFAULTS
 from vibes.helpers import talk

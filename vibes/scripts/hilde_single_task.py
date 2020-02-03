@@ -3,9 +3,14 @@
 import shutil
 from argparse import ArgumentParser
 from pathlib import Path
-from vibes import Settings, Configuration, DEFAULT_SETTINGS_FILE
-from vibes import DEFAULT_GEOMETRY_FILE
-from vibes import supported_tasks
+
+from vibes import (
+    DEFAULT_GEOMETRY_FILE,
+    DEFAULT_SETTINGS_FILE,
+    Configuration,
+    Settings,
+    supported_tasks,
+)
 
 
 def main():

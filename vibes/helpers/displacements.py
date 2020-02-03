@@ -1,6 +1,7 @@
 """ deal with displacements in supercells """
 
 import numpy as np
+
 from .numerics import clean_matrix
 
 

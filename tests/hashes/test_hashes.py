@@ -1,8 +1,10 @@
 from pathlib import Path
+
 from ase.build import bulk
-from vibes.settings import Settings
+
 from vibes.aims.context import AimsContext
 from vibes.helpers.hash import hash_atoms, hash_atoms_and_calc
+from vibes.settings import Settings
 
 parent = Path(__file__).parent
 

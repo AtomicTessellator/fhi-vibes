@@ -1,7 +1,7 @@
 """ Pickle a python object and save it as a compressed file """
 
-import pickle
 import gzip
+import pickle
 from pathlib import Path
 
 

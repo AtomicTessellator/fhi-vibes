@@ -2,9 +2,9 @@
 import os
 
 from vibes import DEFAULT_CONFIG_FILE
-from vibes.helpers.converters import dict2atoms
 from vibes.helpers import Timer
-from vibes.settings import TaskSettings, Settings
+from vibes.helpers.converters import dict2atoms
+from vibes.settings import Settings, TaskSettings
 
 
 def get_func(func_path):

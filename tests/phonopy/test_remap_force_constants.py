@@ -1,10 +1,11 @@
 """test for vibes.phonopy.utils.parse_phonopy_force_constants"""
 from pathlib import Path
-import numpy as np
 
+import numpy as np
 from ase.io import read
-from vibes.phonopy.utils import parse_phonopy_force_constants
+
 from vibes.harmonic_analysis.dynamical_matrix import get_frequencies
+from vibes.phonopy.utils import parse_phonopy_force_constants
 
 parent = Path(__file__).parent
 assets = parent / "assets_remap"
@@ -30,7 +31,9 @@ def test_remap():
 
     freqs = get_frequencies(fc, masses=atoms.get_masses())
 
-    assert np.linalg.norm(freqs - frequencies) < 1e-10, np.linalg.norm(freqs - frequencies)
+    assert np.linalg.norm(freqs - frequencies) < 1e-10, np.linalg.norm(
+        freqs - frequencies
+    )
 
 
 if __name__ == "__main__":

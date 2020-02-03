@@ -1,17 +1,19 @@
 """ helpers for working with supercell """
 
 from itertools import product
+
 import numpy as np
 import scipy.linalg as la
-
 from ase import Atoms
 from ase.spacegroup import get_spacegroup
-from vibes.structure.misc import get_sysname
-from vibes.helpers.utils import Timer
+
 from vibes.helpers.geometry import get_cubicness
 from vibes.helpers.lattice import fractional
 from vibes.helpers.numerics import clean_matrix
+from vibes.helpers.utils import Timer
 from vibes.helpers.warnings import warn
+from vibes.structure.misc import get_sysname
+
 from . import supercell as sc
 
 
@@ -101,7 +103,9 @@ def get_lattice_points(
         lattice_points = []
         lattice_points_extended = []
 
-        for (n1, n2, n3) in product(range(-max_iterations, max_iterations + 1), repeat=3):
+        for (n1, n2, n3) in product(
+            range(-max_iterations, max_iterations + 1), repeat=3
+        ):
 
             lp = [n1, n2, n3] @ lattice
 

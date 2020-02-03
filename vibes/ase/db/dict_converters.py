@@ -1,8 +1,7 @@
 """Functions to convert ASE Objects to dicts and getting them from dicts"""
 import numpy as np
-
-from ase.db.row import atoms2dict as ase_atoms2dict
 from ase.db.row import AtomsRow
+from ase.db.row import atoms2dict as ase_atoms2dict
 
 
 def atoms2dict(atoms):

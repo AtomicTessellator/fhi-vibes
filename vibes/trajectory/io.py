@@ -1,30 +1,23 @@
 """Trajectory File I/O"""
 
+import json
 import os
 import shutil
-import json
 from pathlib import Path
+
 import numpy as np
 import xarray as xr
-from ase import units, Atoms
-from ase.calculators.singlepoint import SinglePointCalculator
+from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
-from vibes import son
+from ase.calculators.singlepoint import SinglePointCalculator
+
 from vibes import __version__ as version
-from vibes import io
-from vibes.helpers.converters import dict2atoms, results2dict, dict2json as dumper
+from vibes import io, keys, son
 from vibes.helpers import warn
+from vibes.helpers.converters import dict2atoms, dict2json, results2dict
 from vibes.helpers.utils import progressbar
-from vibes.trajectory.trajectory import Trajectory
-from vibes.trajectory.dataset import get_trajectory_dataset
-from . import (
-    talk,
-    Timer,
-    key_reference_atoms,
-    key_reference_positions,
-    key_reference_primitive,
-    key_metadata,
-)
+
+from .utils import Timer, talk
 
 
 def step2file(atoms, calc=None, file="trajectory.son", metadata={}):
@@ -50,7 +43,7 @@ def step2file(atoms, calc=None, file="trajectory.son", metadata={}):
 
     dct.update(results2dict(atoms, calc))
 
-    son.dump(dct, file, dumper=dumper)
+    son.dump(dct, file, dumper=dict2json)
 
 
 def metadata2file(metadata, file="metadata.son"):
@@ -121,6 +114,8 @@ def reader(
         trajectory: The trajectory from the file
         metadata: The metadata for the trajectory
     """
+    from vibes.trajectory.trajectory import Trajectory
+
     timer = Timer(f"Parse trajectory")
 
     if Path(file).suffix == ".nc":
@@ -314,22 +309,24 @@ def to_db(trajectory, database):
 
 def read_netcdf(file="trajectory.nc"):
     """read `trajectory.nc` and return Trajectory"""
+    from vibes.trajectory.trajectory import Trajectory
+
     DS = xr.open_dataset(file)
     attrs = DS.attrs
 
     # check mandatory keys
-    assert key_reference_atoms in attrs
+    assert keys.reference_atoms in attrs
     assert "positions" in DS
     assert "velocities" in DS
     assert "forces" in DS
     assert "potential_energy" in DS
 
-    atoms_dict = json.loads(attrs[key_reference_atoms])
+    atoms_dict = json.loads(attrs[keys.reference_atoms])
 
     # metadata
     metadata = None
-    if key_metadata in attrs:
-        metadata = json.loads(attrs[key_metadata])
+    if keys.metadata in attrs:
+        metadata = json.loads(attrs[keys.metadata])
 
     # popping `velocities` is obsolete if
     # https://gitlab.com/ase/ase/merge_requests/1563

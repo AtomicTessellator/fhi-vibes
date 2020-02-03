@@ -2,19 +2,21 @@
 
 from pathlib import Path
 
-from ase import Atoms, units as u, optimize
-from ase.io import read
-from ase.constraints import ExpCellFilter
+from ase import Atoms, optimize
+from ase import units as u
 from ase.calculators.calculator import Calculator
+from ase.constraints import ExpCellFilter
+from ase.io import read
 from ase.md.md import MolecularDynamics
 
 from vibes import son
 from vibes.aims.context import AimsContext
-from vibes.settings import TaskSettings
-from vibes.helpers import warn, talk
+from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict
-from ._defaults import defaults, name, mandatory_base, mandatory_task
-from .workflow import run_relaxation, _prefix
+from vibes.settings import TaskSettings
+
+from ._defaults import defaults, mandatory_base, mandatory_task, name
+from .workflow import _prefix, run_relaxation
 
 
 class RelaxationSettings(TaskSettings):

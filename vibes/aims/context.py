@@ -1,21 +1,22 @@
 """Aims workflow context managing"""
 
 from pathlib import Path
-import click
 
+import click
 from ase import Atoms
 from ase.io import read
 
-from vibes.settings import TaskSettings, SettingsError
-from .setup import setup_aims
+from vibes.settings import SettingsError, TaskSettings
+
 from ._defaults import (
-    name,
-    obj_key,
+    basisset_key,
     defaults,
     mandatory_base,
     mandatory_task,
-    basisset_key,
+    name,
+    obj_key,
 )
+from .setup import setup_aims
 
 
 class AimsSettings(TaskSettings):

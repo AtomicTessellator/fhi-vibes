@@ -1,8 +1,10 @@
 """ socket io helpers """
 import numpy as np
 from ase import units
+
 from vibes.helpers import talk
 from vibes.helpers.warnings import warn
+
 
 _prefix = "socketio"
 

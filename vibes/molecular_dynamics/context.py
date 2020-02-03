@@ -2,18 +2,21 @@
 
 from pathlib import Path
 
-from ase import Atoms, units as u, md as ase_md
-from ase.io import read
+from ase import Atoms
+from ase import md as ase_md
+from ase import units as u
 from ase.calculators.calculator import Calculator
+from ase.io import read
 from ase.md.md import MolecularDynamics
 
 from vibes import son
 from vibes.aims.context import AimsContext
-from vibes.settings import TaskSettings
-from vibes.helpers import warn, talk
+from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict
-from ._defaults import defaults, name, mandatory_base, mandatory_task
-from .workflow import run_md, _prefix
+from vibes.settings import TaskSettings
+
+from ._defaults import defaults, mandatory_base, mandatory_task, name
+from .workflow import _prefix, run_md
 
 
 class MDSettings(TaskSettings):
@@ -213,7 +216,10 @@ class MDContext:
 
         # other stuff
         dct = input2dict(
-            self.atoms, calc=self.calc, primitive=self.primitive, supercell=self.supercell
+            self.atoms,
+            calc=self.calc,
+            primitive=self.primitive,
+            supercell=self.supercell,
         )
 
         return {"MD": md_dict, **dct}

@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+
 supported_tasks = ["phonopy", "phono3py", "md"]
 
 HOME = Path().home()

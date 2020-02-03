@@ -1,5 +1,6 @@
 """Postprocess steps for k-grid optimizations"""
 from pathlib import Path
+
 from vibes.helpers.fileformats import last_from_yaml
 
 
