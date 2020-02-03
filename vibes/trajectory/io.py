@@ -118,10 +118,13 @@ def reader(
     """
     from vibes.trajectory.trajectory import Trajectory
 
-    timer = Timer(f"Parse trajectory")
+    timer = Timer(f"Parse `{file}`")
 
     if Path(file).suffix == ".nc":
-        return read_netcdf(file)
+        trajectory = read_netcdf(file)
+        timer()
+
+        return trajectory
 
     try:
         metadata, pre_trajectory = son.load(file, verbose=verbose)

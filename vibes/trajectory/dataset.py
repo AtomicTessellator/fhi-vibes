@@ -8,7 +8,7 @@ from ase import units
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.helpers import warn
-from vibes.helpers.converters import atoms2json
+from vibes.helpers.converters import atoms2json, dict2json
 from vibes.structure.misc import get_sysname
 
 from .utils import Timer, clean_pressure
@@ -56,7 +56,7 @@ def _attrs(trajectory, dct=None, metadata=False):
         attrs.update(dct)
 
     if metadata:
-        raw_metadata = json.dumps(trajectory.metadata)
+        raw_metadata = dict2json(trajectory.metadata)
         attrs.update({keys.metadata: raw_metadata})
 
     return attrs
@@ -202,12 +202,13 @@ def get_trajectory_dataset(trajectory, metadata=False):
     return xr.Dataset(dataset, coords=coords, attrs=attrs)
 
 
-def get_heat_flux_dataset(trajectory, only_flux=False):
+def get_heat_flux_dataset(trajectory, only_flux=False, metadata=False):
     """compute heat fluxes from TRAJECTORY and return as xarray
 
     Args:
         trajectory: list of atoms objects WITH ATOMIC STRESS computed
         only_flux (bool): only return heat flux and attrs
+        metadata (bool): include `raw_metadata` in `attrs`
 
     Returns:
         xarray.Dataset:
@@ -215,7 +216,7 @@ def get_heat_flux_dataset(trajectory, only_flux=False):
             avg_heat_flux
     """
     # add velocities and pressure
-    data = get_trajectory_dataset(trajectory)
+    data = get_trajectory_dataset(trajectory, metadata=metadata)
 
     flux = [a.calc.results[keys.heat_flux] for a in trajectory]
 

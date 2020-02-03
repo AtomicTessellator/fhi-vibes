@@ -6,15 +6,6 @@ import click
 from .misc import AliasedGroup, complete_filenames
 
 
-# import numpy as np
-
-
-# from vibes.trajectory import reader
-# from vibes.phonopy._defaults import defaults
-# from vibes.tdep.wrapper import convert_phonopy_to_tdep
-# from vibes.io import parse_force_constants
-
-
 @click.command(cls=AliasedGroup)
 def output():
     """produce output of vibes workfow"""
@@ -43,6 +34,7 @@ def md_output(
     import numpy as np
     from vibes.trajectory import reader
     from vibes.io import parse_force_constants
+    from vibes.trajectory.dataset import get_trajectory_dataset
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
     traj = reader(file=trajectory, fc_file=force_constants)
@@ -65,7 +57,7 @@ def md_output(
         outfile = "heat_flux.nc"
         traj.compute_heat_fluxes_from_stresses()
 
-    DS = traj.dataset
+    DS = get_trajectory_dataset(traj, metadata=True)
     DS.to_netcdf(outfile)
     click.echo(f"Trajectory dataset written to {outfile}")
 
