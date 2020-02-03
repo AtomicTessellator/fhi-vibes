@@ -2,9 +2,9 @@
 
 from argparse import ArgumentParser as argpars
 
-from vibes.io import read, write
 from vibes.helpers import talk
 from vibes.helpers.structure import clean_atoms
+from vibes.io import read, write
 from vibes.structure.io import inform
 
 

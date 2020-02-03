@@ -2,6 +2,7 @@
 
 from vibes.helpers.attribute_dict import AttributeDict as adict
 
+
 displacement_id_str = "displacement_id"
 name = "phonopy"
 

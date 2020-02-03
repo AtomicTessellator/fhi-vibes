@@ -1,11 +1,12 @@
 """ Summarize output from ASE.md class (in md.log) """
 
+from argparse import ArgumentParser
 from pathlib import Path
 from warnings import warn
-from argparse import ArgumentParser
-import numpy as np
 
+import numpy as np
 from ase import units
+
 from vibes.trajectory import reader
 
 

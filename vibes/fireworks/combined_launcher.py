@@ -1,9 +1,8 @@
 """Used to combine a queue/rocket launcher based on which FireTasks are in a WorkFlow"""
-import os
 import glob
+import os
 import time
 from datetime import datetime
-
 from pathlib import Path
 
 from fireworks.core.rocket_launcher import launch_rocket
@@ -13,19 +12,20 @@ from fireworks.fw_config import (
     RAPIDFIRE_SLEEP_SECS,
 )
 from fireworks.queue.queue_launcher import (
-    launch_rocket_to_queue,
-    _njobs_in_dir,
     _get_number_of_jobs_in_queue,
+    _njobs_in_dir,
+    launch_rocket_to_queue,
 )
 from fireworks.utilities.fw_utilities import (
+    create_datestamp_dir,
     get_fw_logger,
     log_exception,
-    create_datestamp_dir,
 )
 
-from vibes.fireworks.qlaunch_remote import qlaunch_remote
 from vibes.fireworks._defaults import FW_DEFAULTS
+from vibes.fireworks.qlaunch_remote import qlaunch_remote
 from vibes.helpers import talk
+
 
 # See if Fabric2 is installed
 try:

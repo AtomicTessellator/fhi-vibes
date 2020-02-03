@@ -3,12 +3,12 @@ from pathlib import Path
 
 from ase.calculators.socketio import SocketIOCalculator
 
-from vibes.k_grid.kpointoptimizer import KPointOptimizer
 from vibes.helpers.converters import input2dict
-from vibes.helpers.paths import cwd
-from vibes.trajectory import metadata2file, step2file
-from vibes.helpers.watchdogs import WallTimeWatchdog as Watchdog
 from vibes.helpers.k_grid import k2d
+from vibes.helpers.paths import cwd
+from vibes.helpers.watchdogs import WallTimeWatchdog as Watchdog
+from vibes.k_grid.kpointoptimizer import KPointOptimizer
+from vibes.trajectory import metadata2file, step2file
 
 
 def converge_kgrid(

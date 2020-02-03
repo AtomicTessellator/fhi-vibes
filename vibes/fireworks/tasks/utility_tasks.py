@@ -1,6 +1,7 @@
 """Utility functions used in for HiLDe"""
-from fireworks import FWAction
 import numpy as np
+from fireworks import FWAction
+
 from vibes.helpers.k_grid import update_k_grid_calc_dict
 
 

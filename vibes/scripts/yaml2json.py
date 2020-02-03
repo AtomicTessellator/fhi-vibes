@@ -2,8 +2,9 @@
 
 import json
 from argparse import ArgumentParser
-from vibes.helpers.fileformats import from_yaml, to_json
+
 from vibes.helpers import Timer
+from vibes.helpers.fileformats import from_yaml, to_json
 
 
 def main():

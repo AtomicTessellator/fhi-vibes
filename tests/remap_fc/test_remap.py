@@ -1,9 +1,10 @@
 from pathlib import Path
+
 import numpy as np
-from vibes.phonopy.utils import parse_phonopy_force_constants, remap_force_constants
+from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS
 
-from ase.io import read
+from vibes.phonopy.utils import parse_phonopy_force_constants, remap_force_constants
 
 parent = Path(__file__).parent
 
@@ -41,6 +42,7 @@ def _parse_phonopy(file):
 
     return fc_out
 
+
 def _remap_fc(folder, fortran):
     force_constants = parse_FORCE_CONSTANTS(parent / folder / "FORCE_CONSTANTS")
     primitive = read(parent / folder / "geometry.in.primitive", format="aims")
@@ -55,6 +57,7 @@ def _remap_fc(folder, fortran):
         reduce_fc=True,
         fortran=fortran,
     )
+
 
 def _test_folder(folder="."):
     fc_fortran = _parse(folder, fortran=True)

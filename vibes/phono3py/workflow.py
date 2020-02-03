@@ -1,8 +1,8 @@
 """ Provide a highlevel phono3py workflow for computing 3rd order force constants """
 
-from vibes.tasks import calculate_socket
 from vibes.helpers.restarts import restart
 from vibes.phonopy.workflow import bootstrap
+from vibes.tasks import calculate_socket
 
 from .postprocess import postprocess
 

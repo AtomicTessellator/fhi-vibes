@@ -4,6 +4,7 @@ import time
 
 from vibes.helpers import talk
 
+
 try:
     import fabric
 

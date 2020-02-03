@@ -2,9 +2,10 @@
 
 import numpy as np
 import spglib as spg
-from vibes.structure.convert import to_spglib_cell
+
 from vibes.helpers import Timer
 from vibes.helpers.numerics import clean_matrix
+from vibes.structure.convert import to_spglib_cell
 
 
 def get_ir_reciprocal_mesh(

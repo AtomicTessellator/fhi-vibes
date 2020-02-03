@@ -3,14 +3,16 @@ Script to compute supercells from inputself.
 Similar to generate_structure from TDEP.
 """
 from argparse import ArgumentParser as argpars
+
 import numpy as np
-from vibes.io import read, get_info_str
-from vibes.structure.io import inform
+
+from vibes.helpers import Timer
 from vibes.helpers import supercell as sc
 from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
 from vibes.helpers.numerics import get_3x3_matrix
+from vibes.io import get_info_str, read
 from vibes.spglib.wrapper import get_spacegroup
-from vibes.helpers import Timer
+from vibes.structure.io import inform
 
 
 def print_matrix(matrix, indent=2):
@@ -66,7 +68,9 @@ def make_supercell(
     if n_target:
         print("\nSettings:")
         print(f"  Target number of atoms: {n_target}")
-        supercell, smatrix = sc.make_cubic_supercell(cell, n_target, deviation=deviation)
+        supercell, smatrix = sc.make_cubic_supercell(
+            cell, n_target, deviation=deviation
+        )
     elif dimension:
         smatrix = get_3x3_matrix(dimension)
         supercell = sc.make_supercell(cell, smatrix, wrap=wrap)
@@ -93,7 +97,9 @@ def make_supercell(
             output_filename = f"{filename}.supercell_{len(supercell)}"
         info_str = get_info_str(supercell, spacegroup)
         info_str += [f"Supercell matrix:    {smatrix.flatten()}"]
-        supercell.write(output_filename, format=format, scaled=scaled, info_str=info_str)
+        supercell.write(
+            output_filename, format=format, scaled=scaled, info_str=info_str
+        )
         print(f"\nSupercell written to {output_filename}")
 
     timer()

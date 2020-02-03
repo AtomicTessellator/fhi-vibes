@@ -1,18 +1,17 @@
 """Functions used to generate a FireWorks Workflow"""
 import numpy as np
-
 from fireworks import Workflow
 
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.fireworks.workflows.firework_generator import (
-    generate_kgrid_fw,
-    generate_relax_fw,
-    generate_phonon_fw,
-    generate_phonon_postprocess_fw,
-    generate_stat_samp_fw,
-    generate_stat_samp_postprocess_fw,
     generate_aims_fw,
     generate_gruniesen_fd_fw,
+    generate_kgrid_fw,
+    generate_phonon_fw,
+    generate_phonon_postprocess_fw,
+    generate_relax_fw,
+    generate_stat_samp_fw,
+    generate_stat_samp_postprocess_fw,
 )
 from vibes.helpers.hash import hash_atoms_and_calc
 from vibes.helpers.numerics import get_3x3_matrix

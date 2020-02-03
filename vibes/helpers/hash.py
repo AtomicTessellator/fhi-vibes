@@ -1,9 +1,9 @@
 """ Tools for hashing atoms objects """
 
-from json import dumps
-from pathlib import Path
 from configparser import ConfigParser
 from hashlib import sha1 as hash_sha
+from json import dumps
+from pathlib import Path
 
 
 def hashfunc(string, empty_str="", digest=True):

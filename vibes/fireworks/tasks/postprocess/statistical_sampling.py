@@ -3,8 +3,8 @@ from pathlib import Path
 
 import numpy as np
 
-from vibes.trajectory import reader
 from vibes import anharmonicity_score
+from vibes.trajectory import reader
 
 
 def get_sigma(trajectory_file):

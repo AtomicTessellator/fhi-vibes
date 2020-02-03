@@ -1,5 +1,5 @@
-from ase.atoms import Atoms
 import numpy as np
+from ase.atoms import Atoms
 
 
 def to_phonopy_atoms(structure, wrap=False):

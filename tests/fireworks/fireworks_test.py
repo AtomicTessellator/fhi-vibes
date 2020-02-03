@@ -3,19 +3,17 @@ import os
 from pathlib import Path
 
 import numpy as np
-
 from ase.build import bulk
 from ase.calculators.emt import EMT
+from fireworks import Workflow
 
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.fireworks.rocket_launcher import rapidfire
-from vibes.helpers.hash import hash_atoms_and_calc
-from vibes.helpers.paths import cwd
 from vibes.fireworks.workflows.firework_generator import generate_firework
 from vibes.fireworks.workflows.task_spec_generator import gen_phonon_analysis_task_spec
+from vibes.helpers.hash import hash_atoms_and_calc
+from vibes.helpers.paths import cwd
 from vibes.phonopy.postprocess import postprocess
-
-from fireworks import Workflow
 
 
 def test_fireworks():

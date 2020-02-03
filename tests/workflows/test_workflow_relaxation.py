@@ -2,13 +2,14 @@
 
 import shutil
 from pathlib import Path
+
 import numpy as np
-from ase.io import read
 from ase.calculators.emt import EMT
-from vibes.settings import Settings
+from ase.io import read
+
 from vibes.helpers import cwd
 from vibes.relaxation.context import RelaxationContext
-
+from vibes.settings import Settings
 
 parent = Path(__file__).parent
 workdir = parent / "relaxation"

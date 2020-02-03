@@ -1,14 +1,14 @@
 """compute and analyze heat fluxes"""
 import numpy as np
-from scipy.optimize import curve_fit
-from scipy.integrate import cumtrapz
 import xarray as xr
-
 from ase import units
+from scipy.integrate import cumtrapz
+from scipy.optimize import curve_fit
 
 # from vibes.fourier import compute_sed, get_frequencies, get_timestep
 from vibes.helpers.correlation import correlation
 from vibes.trajectory.dataset import kappa_dims, stress_dims
+
 from . import Timer, talk
 
 

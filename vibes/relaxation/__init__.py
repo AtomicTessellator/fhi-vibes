@@ -4,9 +4,9 @@
  * Yaml Trajectory """
 
 from vibes.helpers import warn
+from vibes.helpers.converters import input2dict
 from vibes.settings import Settings
 from vibes.templates.aims import setup_aims
-from vibes.helpers.converters import input2dict
 
 
 def metadata2dict(atoms, calc, opt):

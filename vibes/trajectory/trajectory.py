@@ -1,26 +1,26 @@
 """the vibes.Trajectory class"""
 
 import numpy as np
-
-from ase import units, Atoms
+from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
-from vibes.fourier import get_timestep
-from vibes.helpers.converters import dict2atoms, atoms2dict
-from vibes.helpers.hash import hash_atoms
-from vibes.helpers import warn, lazy_property
-from vibes.helpers.utils import progressbar
-from vibes.helpers.displacements import get_dR
+
 from vibes.anharmonicity_score import get_sigma
-from . import (
-    io,
-    heat_flux as hf,
-    talk,
-    Timer,
-    dataset as xr,
-    analysis as al,
-    _prefix,
-    _fc_key,
-)
+from vibes.fourier import get_timestep
+from vibes.helpers import lazy_property, warn
+from vibes.helpers.converters import atoms2dict, dict2atoms
+from vibes.helpers.displacements import get_dR
+from vibes.helpers.hash import hash_atoms
+from vibes.helpers.utils import progressbar
+
+from . import analysis as al
+from .utils import Timer, _prefix, talk
+
+
+_fc_key = "force_constants"
+
+key_reference_atoms = "reference atoms"
+key_reference_primitive = "reference primitive atoms"
+key_reference_positions = "reference positions"
 
 
 class Trajectory(list):
@@ -57,7 +57,9 @@ class Trajectory(list):
     @classmethod
     def read(cls, file="trajectory.son", **kwargs):
         """ Read trajectory from file """
-        trajectory = io.reader(file, **kwargs)
+        from .io import reader
+
+        trajectory = reader(file, **kwargs)
         return trajectory
 
     def __getitem__(self, key):
@@ -333,15 +335,19 @@ class Trajectory(list):
     @property
     def heat_flux(self):
         """return heat flux as [N_t, N_a, 3] array"""
+        from .heat_flux import get_heat_flux
+
         if self._heat_flux is None:
-            self._heat_flux, self._avg_heat_flux = hf.get_heat_flux(self)
+            self._heat_flux, self._avg_heat_flux = get_heat_flux(self)
         return self._heat_flux
 
     @property
     def avg_heat_flux(self):
         """return heat flux FROM AVERAGED STRESS as [N_t, N_a, 3] array"""
+        from .heat_flux import get_heat_flux
+
         if self._avg_heat_flux is None:
-            self._heat_flux, self._avg_heat_flux = hf.get_heat_flux(self)
+            self._heat_flux, self._avg_heat_flux = get_heat_flux(self)
         return self._avg_heat_flux
 
     def get_pressure(self, GPa=False):
@@ -381,7 +387,9 @@ class Trajectory(list):
         Contains:
             positions, velocities, forces, stress, pressure, temperature
         """
-        return xr.get_trajectory_data(self)
+        from .dataset import get_trajectory_data
+
+        return get_trajectory_data(self)
 
     def get_heat_flux_data(self, only_flux=False):
         """return heat flux and other data as xarray.Dataset
@@ -391,7 +399,9 @@ class Trajectory(list):
         Metadata:
             volume, symbols, masses, flattend reference positions
         """
-        return xr.get_heat_flux_data(self, only_flux=only_flux)
+        from .dataset import get_heat_flux_data
+
+        return get_heat_flux_data(self, only_flux=only_flux)
 
     @property
     def heat_flux_dataset(self):
@@ -443,7 +453,9 @@ class Trajectory(list):
         Args:
             file: path to trajecotry son or nc file
         """
-        io.write(self, file=file)
+        from .io import write
+
+        write(self, file=file)
 
     def to_xyz(self, file="positions.xyz"):
         """Write positions to simple xyz file for e.g. viewing with VMD
@@ -463,7 +475,9 @@ class Trajectory(list):
             folder: Directory to store tdep files
             skip: Number of structures to skip
         """
-        io.to_tdep(self, folder, skip)
+        from .io import to_tdep
+
+        to_tdep(self, folder, skip)
 
     def to_db(self, database):
         """Convert to ase database
@@ -472,14 +486,17 @@ class Trajectory(list):
             database: Filename or address of database
 
         """
-        io.to_db(self, database)
+        from .io import to_db
+
+        to_db(self, database)
 
     def set_displacements(self):
         """calculate the displacements for `reference_atoms`"""
         if not self.supercell:
             # warn("Supercell not set, let us stop here.", level=2)
             warn(
-                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms", level=1
+                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms",
+                level=1,
             )
 
         atoms_ideal = self.reference_atoms

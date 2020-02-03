@@ -1,6 +1,7 @@
 """Wrap son to provide pretty formatted json"""
 
 import son
+
 from vibes.helpers.converters import dict2json
 
 

@@ -2,14 +2,15 @@ from pathlib import Path
 
 from ase.calculators.socketio import SocketIOCalculator
 
-from vibes.settings import Settings
-from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
-from vibes.helpers.paths import cwd
-from vibes.helpers.socketio import get_port
-from vibes.trajectory import step2file, metadata2file
-from vibes.helpers.structure import clean_atoms
 from vibes.helpers import talk, warn
+from vibes.helpers.paths import cwd
 from vibes.helpers.restarts import restart
+from vibes.helpers.socketio import get_port
+from vibes.helpers.structure import clean_atoms
+from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
+from vibes.settings import Settings
+from vibes.trajectory import metadata2file, step2file
+
 from . import metadata2dict
 from ._defaults import name
 

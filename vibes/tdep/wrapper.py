@@ -1,9 +1,8 @@
 """a wrapper for TDEP"""
-from subprocess import run
 from pathlib import Path
+from subprocess import run
 
 import numpy as np
-
 from ase import Atoms
 from ase.io import read
 

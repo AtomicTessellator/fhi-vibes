@@ -2,22 +2,23 @@
 
 import numpy as np
 import scipy.linalg as la
-
 from ase import Atoms
 
+from vibes.helpers import Timer, lazy_property, progressbar, warn
+from vibes.helpers.displacements import get_dUdt, get_U
 from vibes.helpers.lattice_points import (
-    map_I_to_iL,
-    get_lattice_points,
     get_commensurate_q_points,
+    get_lattice_points,
+    map_I_to_iL,
 )
-from vibes.helpers import Timer, progressbar, lazy_property, warn
 from vibes.helpers.numerics import clean_matrix
-from vibes.helpers.displacements import get_U, get_dUdt
-from vibes.structure.misc import get_sysname
 from vibes.spglib.q_mesh import get_ir_reciprocal_mesh
+from vibes.structure.misc import get_sysname
 
-from .normal_modes import get_A_qst2, get_phi_qst, get_Zqst, projector as mode_projector
 from .dynamical_matrix import fc2dynmat, get_frequencies
+from .normal_modes import get_A_qst2, get_phi_qst, get_Zqst
+from .normal_modes import projector as mode_projector
+
 
 Timer.prefix = "mode"
 

@@ -3,16 +3,16 @@
 from ase.atoms import Atoms
 from phonopy import Phonopy
 
+from vibes.ase.db.dict_converters import atoms2dict, dict2atoms
+from vibes.helpers.converters import dict2atoms as traj_dict2atoms
 from vibes.helpers.hash import hash_atoms_and_calc, hash_dict, hash_traj
 from vibes.helpers.warnings import warn
-from vibes.helpers.converters import dict2atoms as traj_dict2atoms
-from vibes.ase.db.dict_converters import dict2atoms, atoms2dict
 from vibes.phonon_db.phonon_db import connect
 from vibes.phonon_db.row import phonon_to_dict
 from vibes.phonopy.postprocess import postprocess as ph_postprocess
-from vibes.structure.convert import to_Atoms_db, to_Atoms
-
+from vibes.structure.convert import to_Atoms, to_Atoms_db
 from vibes.trajectory import reader
+
 
 results_keys = [
     "force_2",

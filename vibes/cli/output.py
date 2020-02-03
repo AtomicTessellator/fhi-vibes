@@ -1,16 +1,18 @@
 """`vibes output` part of the CLI"""
 from pathlib import Path
 
+import click
+
+from .misc import AliasedGroup, complete_filenames
+
+
 # import numpy as np
 
-import click
 
 # from vibes.trajectory import reader
 # from vibes.phonopy._defaults import defaults
 # from vibes.tdep.wrapper import convert_phonopy_to_tdep
 # from vibes.io import parse_force_constants
-
-from .misc import AliasedGroup, complete_filenames
 
 
 @click.command(cls=AliasedGroup)

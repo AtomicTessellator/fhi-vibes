@@ -5,11 +5,12 @@ from pathlib import Path
 
 # from ase.calculators.aims import Aims
 from ase.calculators.aims import Aims
-from vibes.settings import Settings
+
 from vibes import DEFAULT_CONFIG_FILE
 from vibes.helpers import talk
 from vibes.helpers.k_grid import update_k_grid
 from vibes.helpers.warnings import warn
+from vibes.settings import Settings
 
 
 def create_species_dir(atoms, settings, tmp_folder="basissets"):

@@ -1,5 +1,11 @@
 from __future__ import print_function
 
+from math import pi
+
+import numpy as np
+from ase.geometry import complete_cell
+
+
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 # copied from ASE commit 94475ea6a54541b816bf00912551c0959ec73548 on
@@ -10,12 +16,6 @@ from __future__ import print_function
 different orientations.
    - detection of duplicate atoms / atoms within cutoff radius
 """
-
-from math import pi
-
-import numpy as np
-
-from ase.geometry import complete_cell
 
 
 def translate_pretty(fractional, pbc):
@@ -35,7 +35,12 @@ def translate_pretty(fractional, pbc):
 
 
 def wrap_positions(
-    positions, cell, pbc=True, center=(0.5, 0.5, 0.5), pretty_translation=False, eps=1e-7
+    positions,
+    cell,
+    pbc=True,
+    center=(0.5, 0.5, 0.5),
+    pretty_translation=False,
+    eps=1e-7,
 ):
     """Wrap positions to unit cell.
 

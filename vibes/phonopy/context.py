@@ -3,10 +3,12 @@
 from pathlib import Path
 
 from ase import Atoms
-from vibes.settings import TaskSettings
+
 from vibes.helpers.numerics import get_3x3_matrix
+from vibes.settings import TaskSettings
 from vibes.structure.misc import get_sysname
-from ._defaults import defaults, name, mandatory_base, mandatory_task
+
+from ._defaults import defaults, mandatory_base, mandatory_task, name
 
 
 class PhonopySettings(TaskSettings):

@@ -1,8 +1,10 @@
 """ test green kubo cumulative kappa"""
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 import vibes.green_kubo.heat_flux as hf
 
 parent = Path(__file__).parent

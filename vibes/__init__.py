@@ -2,8 +2,6 @@
 
 import pkg_resources
 
-__version__ = str(pkg_resources.require("vibes")[0].version)
-
 from ._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
@@ -11,8 +9,11 @@ from ._defaults import (
     DEFAULT_SETTINGS_FILE,
     supported_tasks,
 )
+from .settings import Configuration, Settings
 
-from .settings import Settings, Configuration
+
+__version__ = str(pkg_resources.require("vibes")[0].version)
+
 
 # from .templates.aims import setup_aims
 # from .helpers.restarts import restart

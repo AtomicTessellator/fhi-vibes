@@ -4,19 +4,22 @@ overrides from PhononSQLite3Database persist
 """
 import json
 
-import numpy as np
-from psycopg2 import connect
-
 import ase.io.jsonio
-from ase.db.postgresql import jsonb_indices
-from ase.db.postgresql import remove_nan_and_inf
-from ase.db.postgresql import insert_nan_and_inf
-from ase.db.postgresql import Connection
+import numpy as np
+from ase.db.postgresql import (
+    Connection,
+    insert_nan_and_inf,
+    jsonb_indices,
+    remove_nan_and_inf,
+)
 
-from vibes.phonon_db.phonon_sqlitedb import init_statements
-from vibes.phonon_db.phonon_sqlitedb import index_statements
-from vibes.phonon_db.phonon_sqlitedb import VERSION
-from vibes.phonon_db.phonon_sqlitedb import PhononSQLite3Database
+from psycopg2 import connect
+from vibes.phonon_db.phonon_sqlitedb import (
+    VERSION,
+    PhononSQLite3Database,
+    index_statements,
+    init_statements,
+)
 
 
 class PhononPostgreSQLDatabase(PhononSQLite3Database):

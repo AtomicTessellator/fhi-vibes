@@ -1,8 +1,9 @@
 """compute and analyze heat fluxes"""
 import numpy as np
-
 from ase import units
+
 from vibes.helpers import progressbar
+
 from . import Timer
 
 
