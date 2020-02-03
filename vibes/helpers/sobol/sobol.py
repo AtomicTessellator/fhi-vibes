@@ -44,6 +44,7 @@ from vibes.helpers.utils import talk
 
 from .directions import directions
 
+
 if sys.version_info[0] > 2:
     long = int
 

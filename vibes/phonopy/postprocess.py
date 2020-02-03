@@ -16,6 +16,7 @@ from vibes.trajectory import reader
 
 from . import displacement_id_str
 
+
 _prefix = "phonopy.postprocess"
 _tdep_fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
 

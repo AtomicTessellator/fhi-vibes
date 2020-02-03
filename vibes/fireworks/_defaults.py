@@ -3,6 +3,7 @@ from vibes._defaults import DEFAULT_FIREWORKS_FILE
 from vibes.helpers.attribute_dict import AttributeDict as adict
 from vibes.settings import ConfigDict
 
+
 SETTINGS = ConfigDict(config_files=[DEFAULT_FIREWORKS_FILE])
 
 REMOTE_SETUP = SETTINGS.pop("remote_setup", {})

@@ -3,6 +3,7 @@
 from vibes.helpers import talk as _talk
 from vibes.helpers.attribute_dict import AttributeDict as adict
 
+
 name = "aims"
 
 obj_key = "control"

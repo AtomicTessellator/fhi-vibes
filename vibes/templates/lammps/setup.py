@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ase.calculators.lammpsrun import LAMMPS
 
+
 lmp_path = Path(os.getenv("LAMMPS_PATH"))
 
 

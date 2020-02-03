@@ -1,5 +1,6 @@
 from numpy.distutils.core import Extension
 
+
 ext = Extension(name="supercell", sources=["linalg.f90", "supercell.f90"])
 
 if __name__ == "__main__":

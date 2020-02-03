@@ -13,6 +13,7 @@ from .trajectory import (
 )
 from .utils import Timer, clean_pressure
 
+
 time_dims = "time"
 vec_dims = [time_dims, "I", "a"]
 stress_dims = [time_dims, "a", "b"]

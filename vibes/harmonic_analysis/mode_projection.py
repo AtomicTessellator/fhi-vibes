@@ -19,6 +19,7 @@ from .dynamical_matrix import fc2dynmat, get_frequencies
 from .normal_modes import get_A_qst2, get_phi_qst, get_Zqst
 from .normal_modes import projector as mode_projector
 
+
 Timer.prefix = "mode"
 
 

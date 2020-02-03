@@ -20,6 +20,7 @@ from vibes.trajectory import metadata2file, step2file
 
 from ._defaults import name
 
+
 _calc_dirname = "calculations"
 # _socket_timeout = 60
 # _calculation_timeout = 30

@@ -9,6 +9,7 @@ from vibes.helpers.geometry import inscribed_sphere_in_box
 from vibes.phonopy.utils import remap_force_constants
 from vibes.structure.convert import to_Atoms
 
+
 try:
     from hiphive import ForceConstants, ForceConstantPotential, ClusterSpace
     from hiphive import enforce_rotational_sum_rules as _enfore_sum_rules

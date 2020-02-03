@@ -26,6 +26,7 @@ from vibes.fireworks._defaults import FW_DEFAULTS
 from vibes.fireworks.qlaunch_remote import qlaunch_remote
 from vibes.helpers import talk
 
+
 # See if Fabric2 is installed
 try:
     import fabric

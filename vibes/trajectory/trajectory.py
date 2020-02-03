@@ -15,6 +15,7 @@ from vibes.helpers.utils import progressbar
 from . import analysis as al
 from .utils import Timer, _prefix, talk
 
+
 _fc_key = "force_constants"
 
 key_reference_atoms = "reference atoms"

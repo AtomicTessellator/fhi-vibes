@@ -10,6 +10,7 @@ from vibes.helpers import talk
 
 from .misc import AliasedGroup, complete_filenames
 
+
 # paths = click.Path(exists=True)
 paths = complete_filenames
 _prefix = "vibes.run"

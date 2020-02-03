@@ -17,6 +17,7 @@ from ase.utils import basestring
 from vibes.phonon_db.phonon_db import PhononDatabase
 from vibes.phonon_db.row import PhononRow
 
+
 # Preamble modified from the sqlite database from ASE
 if sys.version >= "3":
     buffer = memoryview

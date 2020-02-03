@@ -19,6 +19,7 @@ from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.son import son
 from vibes.trajectory import get_hashes_from_trajectory_file, metadata2file, step2file
 
+
 calc_dirname = "calculations"
 
 

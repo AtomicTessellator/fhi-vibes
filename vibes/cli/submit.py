@@ -4,6 +4,7 @@ import click
 
 from .misc import AliasedGroup, complete_filenames
 
+
 paths = complete_filenames
 _prefix = "vibes.submit"
 _command = lambda c, s: f"vibes run {c} {s}"

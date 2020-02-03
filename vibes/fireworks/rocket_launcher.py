@@ -19,6 +19,7 @@ from vibes.helpers import talk
 
 from .combined_launcher import get_ordred_firework_ids
 
+
 __author__ = "Anubhav Jain, Modified by Thomas Purcell Nov 2, 2018"
 __copyright__ = "Copyright 2013, The Materials Project"
 __version__ = "0.1"

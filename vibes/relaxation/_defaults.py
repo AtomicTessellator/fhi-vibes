@@ -2,6 +2,7 @@
 
 from vibes.helpers.attribute_dict import AttributeDict as adict
 
+
 name = "relaxation"
 
 mandatory_base = ["machine", "geometry", name]

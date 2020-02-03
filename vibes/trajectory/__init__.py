@@ -10,7 +10,6 @@ Logic:
 # from vibes.helpers.converters import results2dict
 # from vibes.helpers.converters import dict2json as dumper
 from vibes.helpers.hash import hash_atoms
-
 # from vibes import __version__ as version
 # from vibes import son
 from vibes.trajectory.io import metadata2file, reader, results2dict, step2file

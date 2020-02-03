@@ -10,12 +10,12 @@ from ase.calculators.calculator import all_changes, all_properties
 from ase.data import atomic_numbers
 from ase.db.core import Database, lock, now, parse_selection, str_represents
 from ase.parallel import DummyMPI, parallel_function, parallel_generator, world
-
 # Import ase
 from ase.utils import Lock, basestring
 
 # Import Hilde
 from vibes.phonon_db.row import PhononRow
+
 
 try:
     from ase.symbols import string2symbols

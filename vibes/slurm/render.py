@@ -2,6 +2,7 @@
 
 from jinja2 import Template
 
+
 template = r"""#!/bin/bash -l
 
 #SBATCH -J {{ name }}|{{ tag }}

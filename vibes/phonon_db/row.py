@@ -8,7 +8,6 @@ from ase.db.row import AtomsRow
 
 from vibes import konstanten as const
 from vibes.ase.db.dict_converters import atoms2dict
-
 # from vibes.phonon_db.ase_converters import dict2atoms
 from vibes.materials_fp.material_fingerprint import (
     get_phonon_bs_fingerprint_phononpy,

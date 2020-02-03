@@ -4,6 +4,7 @@ import numpy as np
 from vibes.helpers import Timer
 from vibes.helpers import talk as _talk
 
+
 _prefix = "trajectory"
 
 Timer.prefix = _prefix

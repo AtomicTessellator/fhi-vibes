@@ -8,6 +8,7 @@ from phonopy import Phonopy
 
 from vibes.structure.convert import to_Atoms
 
+
 fp_tup = namedtuple("fp_tup", "frequencies occupancies special_pts nbins")
 
 

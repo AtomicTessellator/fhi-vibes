@@ -18,6 +18,7 @@ from ase.parallel import world
 
 from vibes.helpers import warn
 
+
 # define a ``zero'' temperature to avoid divisions by zero
 eps_temp = 1e-12
 

@@ -4,6 +4,7 @@ from numpy import pi
 
 from vibes.helpers import AttributeDict
 
+
 # physical constants
 AMU = ase_units._amu  # = 1.66053904e-27  # [kg]
 LIGHT = ase_units._c  # = 299792458  # [m / s]

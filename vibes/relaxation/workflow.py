@@ -14,6 +14,7 @@ from vibes.trajectory import metadata2file, step2file
 from . import metadata2dict
 from ._defaults import name
 
+
 _prefix = name
 _calc_dirname = "calculation"
 _temp_geometry_filename = "geometry.in.next_step"

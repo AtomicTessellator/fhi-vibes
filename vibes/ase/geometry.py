@@ -5,6 +5,7 @@ from math import pi
 import numpy as np
 from ase.geometry import complete_cell
 
+
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 # copied from ASE commit 94475ea6a54541b816bf00912551c0959ec73548 on
