@@ -7,8 +7,6 @@ from scipy.optimize import curve_fit
 
 from vibes import dimensions as dims
 from vibes import keys
-
-# from vibes.fourier import compute_sed, get_frequencies, get_timestep
 from vibes.helpers.correlation import correlation
 
 from . import Timer, talk
