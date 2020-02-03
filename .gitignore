@@ -82,3 +82,5 @@ doc/
 my_pyproject.toml
 
 vibes.md
+
+.coverage
