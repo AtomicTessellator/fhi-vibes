@@ -6,8 +6,8 @@ from pathlib import Path
 from ase.calculators.calculator import Calculator
 
 from vibes import son
-from vibes.helpers.displacements import get_dR
 from vibes.helpers.converters import input2dict
+from vibes.helpers.displacements import get_dR
 
 
 def get_F(dR, force_constants):

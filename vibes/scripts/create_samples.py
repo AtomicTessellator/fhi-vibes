@@ -3,15 +3,15 @@ Script to initialize positions and velocities with force constants.
 Similar to canonical_sampling from TDEP.
 """
 from argparse import ArgumentParser as argpars
+
 import numpy as np
-
-from ase.io import read
 from ase import units as u
-import vibes.ase.md.velocitydistribution as vd
+from ase.io import read
 
-from vibes.structure.io import inform
-from vibes.helpers import talk
+import vibes.ase.md.velocitydistribution as vd
 from vibes.harmonic_analysis.dynamical_matrix import get_frequencies
+from vibes.helpers import talk
+from vibes.structure.io import inform
 
 
 def generate_samples(

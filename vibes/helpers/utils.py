@@ -1,13 +1,14 @@
 """A simple timer"""
-import sys
-import time
-import threading
-import itertools
-
-import signal
 import inspect
+import itertools
+import signal
+import sys
+import threading
+import time
+
 import click
 from son.progressbar import progressbar
+
 from vibes.helpers.warnings import warn
 
 

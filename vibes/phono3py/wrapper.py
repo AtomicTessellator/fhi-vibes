@@ -2,10 +2,12 @@
 
 import numpy as np
 from phono3py.phonon3 import Phono3py
+
 from vibes import konstanten as const
+from vibes.helpers.numerics import get_3x3_matrix
 from vibes.phonopy import get_supercells_with_displacements
 from vibes.structure.convert import to_phonopy_atoms
-from vibes.helpers.numerics import get_3x3_matrix
+
 from ._defaults import defaults
 
 

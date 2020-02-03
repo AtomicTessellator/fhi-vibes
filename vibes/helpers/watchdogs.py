@@ -2,9 +2,10 @@
 
 import os
 import subprocess as sp
-from time import time, strftime
 from pathlib import Path
-from vibes.helpers import warn, talk
+from time import strftime, time
+
+from vibes.helpers import talk, warn
 
 _prefix = "watchdog"
 

@@ -2,12 +2,11 @@
 
 from shutil import copyfile
 
+import numpy as np
 from ase.io.aims import read_aims
 
-import numpy as np
-
 from vibes.fireworks.tasks.calculate_wrapper import check_if_failure_ok
-from vibes.helpers.converters import atoms2dict, dict2atoms, calc2dict, key_constraints
+from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms, key_constraints
 
 
 def check_aims(atoms, calc, outputs, **kwargs):

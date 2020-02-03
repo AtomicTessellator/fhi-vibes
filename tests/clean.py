@@ -2,12 +2,14 @@
 """clean all files that are not under git control"""
 
 import os
-from pathlib import Path
 import subprocess as sp
+from pathlib import Path
 
 parent = Path(__file__).parent
 
-all_files = sorted([file for file in parent.glob("**/*") if file != parent], reverse=True)
+all_files = sorted(
+    [file for file in parent.glob("**/*") if file != parent], reverse=True
+)
 
 git_files = sp.check_output(f"git ls-files {parent}".split(), encoding="utf-8")
 

@@ -1,8 +1,7 @@
 import os
 
 import numpy as np
-
-from ase.db.core import ops, now
+from ase.db.core import now, ops
 from ase.db.jsondb import JSONDatabase
 from ase.utils import basestring
 

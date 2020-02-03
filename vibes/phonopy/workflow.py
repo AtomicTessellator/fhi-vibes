@@ -3,15 +3,14 @@
     Input: geometry.in and settings.in
     Output: geometry.in.supercell and trajectory.son """
 
-from vibes.tasks import calculate_socket
-from vibes.helpers.restarts import restart
-
 from vibes.aims.context import AimsContext
 from vibes.aims.setup import setup_aims
 from vibes.helpers import talk
+from vibes.helpers.restarts import restart
+from vibes.tasks import calculate_socket
 
-from .postprocess import postprocess
 from . import metadata2dict
+from .postprocess import postprocess
 
 
 def run_phonopy(**kwargs):

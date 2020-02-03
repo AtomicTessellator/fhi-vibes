@@ -1,43 +1,37 @@
 """A modified version of queue launcher to allow for a rapidfire over a single Workflow"""
-import os
 import glob
+import os
 import time
-
-
 from datetime import datetime
 
 import numpy as np
-
-from monty.os import cd, makedirs_p
-
 from fireworks import FWorker
 from fireworks.fw_config import (
-    SUBMIT_SCRIPT_NAME,
     ALWAYS_CREATE_NEW_BLOCK,
-    QUEUE_UPDATE_INTERVAL,
     QSTAT_FREQUENCY,
-    RAPIDFIRE_SLEEP_SECS,
     QUEUE_JOBNAME_MAXLEN,
+    QUEUE_UPDATE_INTERVAL,
+    RAPIDFIRE_SLEEP_SECS,
+    SUBMIT_SCRIPT_NAME,
 )
-from fireworks.queue.queue_launcher import (
-    # launch_rocket_to_queue,
-    _njobs_in_dir,
+from fireworks.queue.queue_launcher import (  # launch_rocket_to_queue,
     _get_number_of_jobs_in_queue,
+    _njobs_in_dir,
     setup_offline_job,
 )
 from fireworks.utilities.fw_serializers import load_object
 from fireworks.utilities.fw_utilities import (
+    create_datestamp_dir,
     get_fw_logger,
     get_slug,
     log_exception,
-    create_datestamp_dir,
 )
+from monty.os import cd, makedirs_p
 
-from vibes.fireworks.combined_launcher import get_ordred_firework_ids
 from vibes.fireworks._defaults import FW_DEFAULTS
-
-from vibes.helpers.watchdogs import str2time
+from vibes.fireworks.combined_launcher import get_ordred_firework_ids
 from vibes.helpers import talk
+from vibes.helpers.watchdogs import str2time
 
 __author__ = "Anubhav Jain, Michael Kocher, Modified by Thomas Purcell"
 __copyright__ = "Copyright 2012, The Materials Project, Modified 2.11.2018"

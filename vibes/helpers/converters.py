@@ -3,16 +3,17 @@
 
 import json
 from pathlib import Path
+
 import numpy as np
+from ase.atoms import Atoms
+from ase.calculators.calculator import all_properties, get_calculator_class
+from ase.calculators.singlepoint import SinglePointCalculator
+from ase.constraints import dict2constraint, voigt_6_to_full_3x3_stress
 from ase.db.row import atoms2dict as ase_atoms2dict
 from ase.io.jsonio import MyEncoder
-from ase.calculators.calculator import all_properties, get_calculator_class
-from ase.atoms import Atoms
-from ase.calculators.singlepoint import SinglePointCalculator
-from ase.constraints import voigt_6_to_full_3x3_stress, dict2constraint
 
+from vibes.helpers.lists import expand_list, list_dim, reduce_list
 from vibes.konstanten.io import n_yaml_digits
-from vibes.helpers.lists import list_dim, expand_list, reduce_list
 
 key_symbols = "symbols"
 key_masses = "masses"

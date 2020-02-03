@@ -1,26 +1,22 @@
 """the vibes.Trajectory class"""
 
 import numpy as np
-
-from ase import units, Atoms
+from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
-from vibes.fourier import get_timestep
-from vibes.helpers.converters import dict2atoms, atoms2dict
-from vibes.helpers.hash import hash_atoms
-from vibes.helpers import warn, lazy_property
-from vibes.helpers.utils import progressbar
-from vibes.helpers.displacements import get_dR
+
 from vibes.anharmonicity_score import get_sigma
-from . import (
-    io,
-    heat_flux as hf,
-    talk,
-    Timer,
-    dataset as xr,
-    analysis as al,
-    _prefix,
-    _fc_key,
-)
+from vibes.fourier import get_timestep
+from vibes.helpers import lazy_property, warn
+from vibes.helpers.converters import atoms2dict, dict2atoms
+from vibes.helpers.displacements import get_dR
+from vibes.helpers.hash import hash_atoms
+from vibes.helpers.utils import progressbar
+
+from . import Timer, _fc_key, _prefix
+from . import analysis as al
+from . import dataset as xr
+from . import heat_flux as hf
+from . import io, talk
 
 
 class Trajectory(list):
@@ -479,7 +475,8 @@ class Trajectory(list):
         if not self.supercell:
             # warn("Supercell not set, let us stop here.", level=2)
             warn(
-                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms", level=1
+                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms",
+                level=1,
             )
 
         atoms_ideal = self.reference_atoms

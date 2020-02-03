@@ -3,10 +3,10 @@ import numpy as np
 import scipy.signal as sl
 import xarray as xr
 
-from vibes.trajectory import reader, Trajectory
-from vibes.trajectory.dataset import get_velocities_data
 from vibes.fourier import compute_sed, get_frequencies
 from vibes.helpers import Timer, talk
+from vibes.trajectory import Trajectory, reader
+from vibes.trajectory.dataset import get_velocities_data
 
 
 def get_velocity_aurocorrelation(velocities=None, trajectory=None, verbose=True):

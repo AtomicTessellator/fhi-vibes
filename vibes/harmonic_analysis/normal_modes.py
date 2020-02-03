@@ -2,8 +2,9 @@
     back """
 
 import numpy as np
-from vibes.helpers.lattice_points import map_L_to_i
+
 from vibes.helpers import warn
+from vibes.helpers.lattice_points import map_L_to_i
 
 
 def u_s_to_u_I(u_q, q_points, lattice_points, eigenvectors, indeces):

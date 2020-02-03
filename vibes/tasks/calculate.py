@@ -3,21 +3,21 @@
 """
 import sys
 from pathlib import Path
+
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
+
 from vibes.helpers import talk, warn
-from vibes.helpers.utils import Spinner
+from vibes.helpers.aims import get_aims_uuid_dict
 from vibes.helpers.backup import backup_folder as backup
-from vibes.helpers.socketio import get_port, get_unixsocket
-from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.helpers.hash import hash_atoms
 from vibes.helpers.lists import expand_list
-from vibes.trajectory import metadata2file, step2file, get_hashes_from_trajectory_file
-
-from vibes.son import son
-
 from vibes.helpers.paths import cwd
-from vibes.helpers.aims import get_aims_uuid_dict
+from vibes.helpers.socketio import get_port, get_unixsocket
+from vibes.helpers.utils import Spinner
+from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
+from vibes.son import son
+from vibes.trajectory import get_hashes_from_trajectory_file, metadata2file, step2file
 
 calc_dirname = "calculations"
 

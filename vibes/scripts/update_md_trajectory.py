@@ -1,11 +1,11 @@
 """ Update trajectory files of old format """
 
-from argparse import ArgumentParser
 import shutil
+from argparse import ArgumentParser
 
+from vibes.helpers import talk
 from vibes.io import read
 from vibes.trajectory import reader
-from vibes.helpers import talk
 
 
 def update_trajectory(trajectory, uc=None, sc=None, format="aims"):

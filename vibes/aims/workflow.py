@@ -3,10 +3,10 @@
     Input: geometry.in and settings.in
     Output: geometry.in.supercell and trajectory.son """
 
-from vibes.tasks import calculate_socket
 from vibes.helpers import talk
-from vibes.helpers.converters import input2dict, atoms2dict
+from vibes.helpers.converters import atoms2dict, input2dict
 from vibes.helpers.restarts import restart
+from vibes.tasks import calculate_socket
 
 
 def run_aims(ctx):

@@ -1,5 +1,6 @@
 """ Defines the phonon SQLite 3 Database """
 from __future__ import absolute_import, print_function
+
 import json
 import numbers
 import sqlite3
@@ -7,10 +8,9 @@ import struct
 import sys
 
 import numpy as np
-
 from ase.data import atomic_numbers
-from ase.db.core import ops, now, invop
-from ase.db.sqlite import SQLite3Database, index_statements, float_if_not_none
+from ase.db.core import invop, now, ops
+from ase.db.sqlite import SQLite3Database, float_if_not_none, index_statements
 from ase.io import jsonio
 from ase.utils import basestring
 

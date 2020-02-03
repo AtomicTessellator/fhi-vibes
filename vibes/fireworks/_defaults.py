@@ -1,7 +1,7 @@
 """Default definitions for FireWorks"""
-from vibes.settings import ConfigDict
-from vibes.helpers.attribute_dict import AttributeDict as adict
 from vibes._defaults import DEFAULT_FIREWORKS_FILE
+from vibes.helpers.attribute_dict import AttributeDict as adict
+from vibes.settings import ConfigDict
 
 SETTINGS = ConfigDict(config_files=[DEFAULT_FIREWORKS_FILE])
 

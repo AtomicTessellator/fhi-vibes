@@ -3,8 +3,9 @@
 from argparse import ArgumentParser
 
 from ase.io import read
-from vibes.trajectory import Trajectory
+
 from vibes.helpers.converters import input2dict
+from vibes.trajectory import Trajectory
 
 
 def main():

@@ -2,9 +2,10 @@
 # (see accompanying license files for details).
 
 import numpy as np
-from .numerics import clean_matrix
-from numpy import pi, sin, cos, arccos, sqrt, dot
+from numpy import arccos, cos, dot, pi, sin, sqrt
 from numpy.linalg import norm
+
+from .numerics import clean_matrix
 
 
 def reciprocal_lattice(cell):

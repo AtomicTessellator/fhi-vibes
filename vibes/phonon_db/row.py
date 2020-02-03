@@ -4,18 +4,18 @@ A file defining a row object for the phonon database
 import copy
 
 import numpy as np
-
 from ase.db.row import AtomsRow
-
-from vibes.spglib.wrapper import get_spacegroup
 
 from vibes import konstanten as const
 from vibes.ase.db.dict_converters import atoms2dict
 
 # from vibes.phonon_db.ase_converters import dict2atoms
-from vibes.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
-from vibes.materials_fp.material_fingerprint import get_phonon_dos_fingerprint_phononpy
-from vibes.materials_fp.material_fingerprint import to_dict
+from vibes.materials_fp.material_fingerprint import (
+    get_phonon_bs_fingerprint_phononpy,
+    get_phonon_dos_fingerprint_phononpy,
+    to_dict,
+)
+from vibes.spglib.wrapper import get_spacegroup
 from vibes.structure.convert import to_Atoms, to_phonopy_atoms
 
 

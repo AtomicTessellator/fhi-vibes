@@ -2,8 +2,8 @@
 from fireworks import FWAction
 
 from vibes.fireworks.tasks.postprocess.statistical_sampling import get_sigma
-from vibes.helpers.k_grid import k2d
 from vibes.helpers.converters import dict2atoms
+from vibes.helpers.k_grid import k2d
 from vibes.trajectory.io import reader
 
 

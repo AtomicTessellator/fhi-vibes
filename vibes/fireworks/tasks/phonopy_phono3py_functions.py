@@ -1,19 +1,18 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
+import numpy as np
 from ase.constraints import (
-    FixScaledParametricRelations,
     FixCartesianParametricRelations,
+    FixScaledParametricRelations,
     dict2constraint,
 )
 
-import numpy as np
-
-from vibes.aims.setup import setup_aims
 from vibes.aims.context import AimsContext
+from vibes.aims.setup import setup_aims
 from vibes.fireworks.tasks.general_py_task import get_func
 from vibes.fireworks.workflows.workflow_generator import generate_workflow
-from vibes.helpers.converters import input2dict, dict2atoms
+from vibes.helpers.converters import dict2atoms, input2dict
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.helpers.supercell import make_supercell
 from vibes.phonopy import displacement_id_str
@@ -21,8 +20,8 @@ from vibes.phonopy.context import PhonopyContext
 from vibes.phonopy.postprocess import postprocess
 from vibes.phonopy.workflow import bootstrap
 from vibes.settings import AttributeDict, Settings, TaskSettings
-from vibes.trajectory import step2file, metadata2file, reader
 from vibes.structure.convert import to_Atoms
+from vibes.trajectory import metadata2file, reader, step2file
 
 
 def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):

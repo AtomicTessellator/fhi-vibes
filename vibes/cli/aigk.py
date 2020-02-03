@@ -3,7 +3,7 @@
 # import scipy.signal as sl
 # import xarray as xr
 # from vibes.trajectory import reader
-from .misc import click, AliasedGroup, complete_filenames
+from .misc import AliasedGroup, click, complete_filenames
 
 
 @click.command(cls=AliasedGroup)

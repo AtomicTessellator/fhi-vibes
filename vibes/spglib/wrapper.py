@@ -3,9 +3,10 @@
 import numpy as np
 import spglib as spg
 from ase.atoms import Atoms
-from vibes.structure.convert import to_spglib_cell
-from vibes.konstanten.symmetry import symprec as default_symprec
+
 from vibes.helpers.attribute_dict import AttributeDict
+from vibes.konstanten.symmetry import symprec as default_symprec
+from vibes.structure.convert import to_spglib_cell
 
 
 def cell_to_Atoms(lattice, scaled_positions, numbers, info=None):

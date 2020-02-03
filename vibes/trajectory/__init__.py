@@ -10,7 +10,11 @@ Logic:
 # from vibes import son
 # from vibes.helpers.converters import results2dict
 # from vibes.helpers.converters import dict2json as dumper
-from vibes.helpers import talk as _talk, Timer
+from vibes.helpers import Timer
+from vibes.helpers import talk as _talk
+from vibes.helpers.hash import hash_atoms
+from vibes.trajectory.io import metadata2file, reader, results2dict, step2file
+from vibes.trajectory.trajectory import Trajectory
 
 _prefix = "trajectory"
 _fc_key = "force_constants"
@@ -37,8 +41,3 @@ def get_hashes_from_trajectory_file(trajectory, verbose=False):
         return []
 
     return traj.get_hashes()
-
-
-from vibes.helpers.hash import hash_atoms
-from vibes.trajectory.io import reader, metadata2file, step2file, results2dict
-from vibes.trajectory.trajectory import Trajectory

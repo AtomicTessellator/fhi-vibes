@@ -1,6 +1,7 @@
 """`vibes run` part of the CLI"""
 
 import click
+
 from .misc import AliasedGroup, complete_filenames
 
 paths = complete_filenames

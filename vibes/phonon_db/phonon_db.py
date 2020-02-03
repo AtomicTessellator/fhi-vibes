@@ -4,22 +4,24 @@ import operator
 import os
 import re
 import warnings
+
 import numpy as np
+from ase.calculators.calculator import all_changes, all_properties
+from ase.data import atomic_numbers
+from ase.db.core import Database, lock, now, parse_selection, str_represents
+from ase.parallel import DummyMPI, parallel_function, parallel_generator, world
 
 # Import ase
 from ase.utils import Lock, basestring
-from ase.db.core import Database, lock, parse_selection, str_represents, now
-from ase.calculators.calculator import all_properties, all_changes
-from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
-from ase.data import atomic_numbers
+
+# Import Hilde
+from vibes.phonon_db.row import PhononRow
 
 try:
     from ase.symbols import string2symbols
 except ModuleNotFoundError:
     from ase.atoms import string2symbols
 
-# Import Hilde
-from vibes.phonon_db.row import PhononRow
 
 # File largely copied from ase.db.core modified to use PhononRows over AtomsRow
 

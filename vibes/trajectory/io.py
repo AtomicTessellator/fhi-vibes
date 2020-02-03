@@ -1,27 +1,31 @@
 """Trajectory File I/O"""
 
+import json
 import os
 import shutil
-import json
 from pathlib import Path
+
 import numpy as np
 import xarray as xr
-from ase import units, Atoms
-from ase.calculators.singlepoint import SinglePointCalculator
+from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
-from vibes import son
+from ase.calculators.singlepoint import SinglePointCalculator
+
 from vibes import __version__ as version
-from vibes import io
-from vibes.helpers.converters import dict2atoms, results2dict, dict2json as dumper
+from vibes import io, son
 from vibes.helpers import warn
+from vibes.helpers.converters import dict2atoms
+from vibes.helpers.converters import dict2json as dumper
+from vibes.helpers.converters import results2dict
 from vibes.helpers.utils import progressbar
 from vibes.trajectory.trajectory import Trajectory
+
 from . import (
-    talk,
     Timer,
     key_reference_atoms,
     key_reference_positions,
     key_reference_primitive,
+    talk,
 )
 
 

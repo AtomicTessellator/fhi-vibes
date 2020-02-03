@@ -1,22 +1,23 @@
 """This module contains a modified rapid-fire mode."""
 # coding: utf-8
 from __future__ import unicode_literals
-from datetime import datetime
+
 import os
 import time
+from datetime import datetime
 
-
+from fireworks.core.rocket_launcher import get_fworker, launch_rocket
 from fireworks.fw_config import RAPIDFIRE_SLEEP_SECS
-from fireworks.core.rocket_launcher import launch_rocket, get_fworker
 from fireworks.utilities.fw_utilities import (
-    get_fw_logger,
     create_datestamp_dir,
+    get_fw_logger,
     log_multi,
     redirect_local,
 )
 
-from .combined_launcher import get_ordred_firework_ids
 from vibes.helpers import talk
+
+from .combined_launcher import get_ordred_firework_ids
 
 __author__ = "Anubhav Jain, Modified by Thomas Purcell Nov 2, 2018"
 __copyright__ = "Copyright 2013, The Materials Project"

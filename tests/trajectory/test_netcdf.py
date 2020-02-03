@@ -2,7 +2,9 @@
 # coding: utf-8
 
 from pathlib import Path
+
 import numpy as np
+
 from vibes.trajectory import Trajectory
 
 parent = Path(__file__).parent

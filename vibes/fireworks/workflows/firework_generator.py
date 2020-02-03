@@ -1,30 +1,29 @@
 """Generates Task Specific FireWorks"""
 import numpy as np
-
 from fireworks import Firework
 
-from vibes.fireworks.workflows.task_generator import (
-    generate_task,
-    generate_update_calc_task,
-    generate_mod_calc_task,
-)
 from vibes.fireworks.tasks.postprocess.phonons import time2str
 from vibes.fireworks.tasks.task_spec import TaskSpec
 from vibes.fireworks.tasks.utility_tasks import update_calc
-from vibes.fireworks.workflows.task_spec_generator import (
-    gen_phonon_task_spec,
-    gen_phonon_analysis_task_spec,
-    gen_aims_task_spec,
-    gen_kgrid_task_spec,
-    gen_gruniesen_task_spec,
-    gen_stat_samp_task_spec,
-    gen_stat_samp_analysis_task_spec,
+from vibes.fireworks.workflows.task_generator import (
+    generate_mod_calc_task,
+    generate_task,
+    generate_update_calc_task,
 )
+from vibes.fireworks.workflows.task_spec_generator import (
+    gen_aims_task_spec,
+    gen_gruniesen_task_spec,
+    gen_kgrid_task_spec,
+    gen_phonon_analysis_task_spec,
+    gen_phonon_task_spec,
+    gen_stat_samp_analysis_task_spec,
+    gen_stat_samp_task_spec,
+)
+from vibes.helpers.converters import atoms2dict, calc2dict
 from vibes.helpers.hash import hash_atoms_and_calc
-from vibes.helpers.k_grid import update_k_grid, update_k_grid_calc_dict, k2d
+from vibes.helpers.k_grid import k2d, update_k_grid, update_k_grid_calc_dict
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.helpers.watchdogs import str2time
-from vibes.helpers.converters import atoms2dict, calc2dict
 from vibes.phonopy.wrapper import preprocess
 
 

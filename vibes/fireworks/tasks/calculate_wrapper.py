@@ -3,8 +3,8 @@ import numpy as np
 
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.hash import hash_dict
-from vibes.settings import TaskSettings, Settings
-from vibes.tasks.calculate import calculate_socket, calculate
+from vibes.settings import Settings, TaskSettings
+from vibes.tasks.calculate import calculate, calculate_socket
 
 T_S_LINE = (
     "          Detailed time accounting                     : "

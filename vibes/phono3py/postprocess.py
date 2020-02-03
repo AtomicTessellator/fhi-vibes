@@ -1,17 +1,18 @@
 """ Provide a full highlevel phonopy workflow """
 
 from pathlib import Path
+
 import numpy as np
+
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.hash import hash_atoms
 from vibes.helpers.pickle import psave
+from vibes.io import write
+from vibes.phono3py.wrapper import prepare_phono3py
 from vibes.phonopy import displacement_id_str
+from vibes.phonopy.postprocess import postprocess as postprocess2
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader as traj_reader
-
-from vibes.phono3py.wrapper import prepare_phono3py
-from vibes.phonopy.postprocess import postprocess as postprocess2
-from vibes.io import write
 
 
 def postprocess(

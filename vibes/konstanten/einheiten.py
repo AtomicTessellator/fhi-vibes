@@ -1,6 +1,7 @@
 """ Physical constants and atomic units """
-from numpy import pi
 from ase import units as ase_units
+from numpy import pi
+
 from vibes.helpers import AttributeDict
 
 # physical constants

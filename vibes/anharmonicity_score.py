@@ -2,7 +2,8 @@
     (future reference)"""
 import numpy as np
 import xarray as xr
-from vibes.helpers import warn, progressbar
+
+from vibes.helpers import progressbar, warn
 from vibes.helpers.displacements import get_dR
 from vibes.spglib.wrapper import get_symmetry_dataset
 

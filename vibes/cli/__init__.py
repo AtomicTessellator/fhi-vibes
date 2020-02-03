@@ -7,8 +7,9 @@ import click_completion
 
 from vibes import __version__ as vibes_version
 from vibes._defaults import DEFAULT_CONFIG_FILE
+
+from . import aigk, info, output, run, submit, template, utils
 from .cli_tracker import CliTracker
-from . import info, template, run, utils, output, aigk, submit
 from .misc import AliasedGroup, check_path
 
 click_completion.init()

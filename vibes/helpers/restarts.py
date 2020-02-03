@@ -1,8 +1,9 @@
 """ handling restarts of tasks and workflows """
-from os import path
 import subprocess as sp
-from vibes.settings import Settings
+from os import path
+
 from vibes.helpers import talk, warn
+from vibes.settings import Settings
 
 
 def restart(settings=None, trajectory=None, verbose=True):

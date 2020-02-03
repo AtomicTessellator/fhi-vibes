@@ -2,14 +2,16 @@
 
 from pathlib import Path
 
+import click
+
+from vibes.templates import config_files, settings
+
+from .misc import AliasedGroup
+
 try:
     import importlib.resources as pkg_resources
 except ModuleNotFoundError:
     import importlib_resources as pkg_resources
-
-import click
-from vibes.templates import settings, config_files
-from .misc import AliasedGroup
 
 
 @click.command(cls=AliasedGroup)

@@ -7,7 +7,8 @@ from ase.calculators.aims import Aims
 
 from vibes.helpers.k_grid import d2k
 from vibes.helpers.warnings import warn
-from ._defaults import talk, name, basisset_key, basisset_default, basisset_choices
+
+from ._defaults import basisset_choices, basisset_default, basisset_key, name, talk
 
 
 class BasissetError(RuntimeError):

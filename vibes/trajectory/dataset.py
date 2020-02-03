@@ -1,12 +1,18 @@
 """compute and analyze heat fluxes"""
 import xarray as xr
-
 from ase import units
+
 from vibes.helpers import warn
 from vibes.helpers.converters import atoms2json
 from vibes.structure.misc import get_sysname
+
+from . import (
+    Timer,
+    key_reference_atoms,
+    key_reference_positions,
+    key_reference_primitive,
+)
 from .utils import clean_pressure
-from . import Timer, key_reference_atoms, key_reference_positions, key_reference_primitive
 
 time_dims = "time"
 vec_dims = [time_dims, "I", "a"]

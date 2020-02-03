@@ -1,11 +1,12 @@
 import re
 import sqlite3
+from collections import namedtuple
+
 import numpy as np
 import yaml
 from phonopy import Phonopy
-from collections import namedtuple
-from vibes.structure.convert import to_Atoms
 
+from vibes.structure.convert import to_Atoms
 
 fp_tup = namedtuple("fp_tup", "frequencies occupancies special_pts nbins")
 
@@ -108,7 +109,9 @@ def get_fingerprint_bs(bands, binning, min_e, max_e, nbins):
         ener, enerBounds = get_ener(binning, bands[pt], min_e, max_e, nbins)
         freq_list.append(ener)
         n_bands.append(np.histogram(bands[pt], enerBounds)[0])
-    return fp_tup(np.array(freq_list), np.array(n_bands), special_pts, len(freq_list[0]))
+    return fp_tup(
+        np.array(freq_list), np.array(n_bands), special_pts, len(freq_list[0])
+    )
 
 
 def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
@@ -140,7 +143,9 @@ def get_fingerprint_dos(dos, binning, min_e, max_e, nbins):
     ener, enerBounds = get_ener(binning, dos[:, 0], min_e, max_e, nbins)
     dos_rebin = np.zeros(ener.shape)
     for ii, e1, e2 in zip(range(len(ener)), enerBounds[0:-1], enerBounds[1:]):
-        dos_rebin[ii] = np.sum(dos[np.where((dos[:, 0] >= e1) & (dos[:, 0] < e2))[0], 1])
+        dos_rebin[ii] = np.sum(
+            dos[np.where((dos[:, 0] >= e1) & (dos[:, 0] < e2))[0], 1]
+        )
     return fp_tup(np.array([ener]), dos_rebin, ["DOS"], nbins)
 
 
@@ -168,7 +173,9 @@ def get_elec_bands(spectra_files, k_points):
                 filter(lambda x: x != "", open(sFile).readline().rstrip().split(" "))
             )
             lastLine = list(
-                filter(lambda x: x != "", open(sFile).readlines()[-1].rstrip().split(" "))
+                filter(
+                    lambda x: x != "", open(sFile).readlines()[-1].rstrip().split(" ")
+                )
             )
             if np.all(np.array(firstLine[1:4], dtype="float_") == k_points[pt]):
                 bands[pt] = np.array(firstLine[5::2], dtype="float_")
@@ -499,7 +506,9 @@ def dict2namedtuple(fp):
 class MaterialsFingerprint(object):
     """Base class describing material fingerprints"""
 
-    def __init__(self, is_elec, is_b, nbins=None, de=None, min_e=None, max_e=None, fp={}):
+    def __init__(
+        self, is_elec, is_b, nbins=None, de=None, min_e=None, max_e=None, fp={}
+    ):
         """Initialize the fingerprint
 
         Parameters

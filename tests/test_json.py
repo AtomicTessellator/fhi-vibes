@@ -4,6 +4,7 @@ from pathlib import Path
 
 from ase import Atoms
 from ase.build import bulk
+
 from vibes.helpers.converters import atoms2json, json2atoms
 
 parent = Path(__file__).parent

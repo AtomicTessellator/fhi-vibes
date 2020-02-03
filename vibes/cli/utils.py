@@ -1,6 +1,6 @@
 """vibes CLI utils"""
 
-from .misc import click, AliasedGroup, ClickAliasedGroup, complete_filenames
+from .misc import AliasedGroup, ClickAliasedGroup, click, complete_filenames
 
 xrange = range
 
