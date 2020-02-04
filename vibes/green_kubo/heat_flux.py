@@ -9,7 +9,7 @@ from vibes import dimensions as dims
 from vibes import keys
 from vibes.helpers.correlation import correlation
 
-from . import Timer, talk
+from .utils import Timer, talk
 
 
 def gk_prefactor(volume, temperature, verbose=True):

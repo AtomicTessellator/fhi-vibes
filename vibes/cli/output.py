@@ -51,11 +51,11 @@ def md_output(
         traj.set_forces_harmonic(average_reference=average_reference)
 
     if "auto" in outfile.lower():
-        outfile = Path(trajectory).stem + ".nc"
-
-    if heat_flux:
-        outfile = "heat_flux.nc"
-        traj.compute_heat_fluxes_from_stresses()
+        file = Path(trajectory).stem
+        if heat_flux:
+            file = "heat_flux"
+            traj.compute_heat_fluxes_from_stresses()
+        outfile = file + ".nc"
 
     DS = get_trajectory_dataset(traj, metadata=True)
     DS.to_netcdf(outfile)

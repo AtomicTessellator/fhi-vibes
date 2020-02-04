@@ -9,7 +9,7 @@ from vibes.trajectory import Trajectory, reader
 from vibes.trajectory.dataset import get_velocities_dataarray
 
 
-def get_velocity_aurocorrelation(velocities=None, trajectory=None, verbose=True):
+def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True):
     """compute velocity autocorrelation function from xarray
 
     Args:
@@ -59,7 +59,7 @@ def get_vdos(velocities=None, trajectory=None, verbose=True):
     if velocities is None and trajectory is not None:
         velocities = get_velocities_dataarray(trajectory, verbose=verbose)
 
-    v_corr = get_velocity_aurocorrelation(velocities)
+    v_corr = get_velocity_autocorrelation(velocities)
 
     timer = Timer("Get VDOS", verbose=verbose)
 
