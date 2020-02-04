@@ -383,13 +383,13 @@ def pick_sample(filename, number, range, cartesian):
         click.echo(f".. sample written to {outfile}")
 
 
-@utils.group(aliases=["ha"])
-def harmonicity():
-    """utils for quantifying harmonicity"""
+@utils.group(aliases=["a"])
+def anharmonicity():
+    """utils for quantifying anharmonicity"""
     ...
 
 
-@harmonicity.command("r2")
+@anharmonicity.command("sigma")
 @click.argument("filenames", type=complete_filenames, nargs=-1)
 @click.option("-csv", "--store_csv", is_flag=True, help="store dataframes to csv")
 @click.option("-h5", "--store_hdf5", is_flag=True, help="store dataframes to hdf5")
@@ -400,7 +400,7 @@ def harmonicity():
 @click.option("--per_direction", is_flag=True)
 @click.option("--by_symmetry", is_flag=True)
 @click.option("--describe", is_flag=True)
-def compute_r2(
+def compute_sigma(
     filenames,
     store_csv,
     store_hdf5,
@@ -412,7 +412,7 @@ def compute_r2(
     by_symmetry,
     describe,
 ):
-    """Compute r2 and some statistics"""
+    """Compute sigma and some statistics"""
     import pandas as pd
     import xarray as xr
     from vibes import keys
@@ -446,7 +446,7 @@ def compute_r2(
             click.echo(f"\n.. Dataframe for {name} written to {outfile}")
 
         if store_hdf5:
-            outfile = f"r2_data.h5"
+            outfile = f"sigma_data.h5"
             with pd.HDFStore(outfile) as store:
                 click.echo(f".. append dataframe for {name} to {outfile}")
                 store[name] = df
