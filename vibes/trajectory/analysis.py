@@ -1,9 +1,11 @@
 """gather statistics about trajectory data"""
 import numpy as np
+
 # import pandas as pd
 import xarray as xr
 from ase.units import GPa
 
+from vibes import keys
 from vibes.helpers import talk, warn
 
 from .plotting import plot_summary
@@ -162,7 +164,7 @@ def summary(dataset, plot=False, **kwargs):
     temperature(dataset.temperature)
     print()
     talk("Summarize Potential Energy", prefix="info")
-    energy(dataset.potential_energy)
+    energy(dataset[keys.energy_potential])
     print()
     talk("Summarize Pressure", prefix="info")
     pressure(dataset.pressure)
@@ -179,9 +181,13 @@ def summary(dataset, plot=False, **kwargs):
         warn("Is is this drift problematic?", level=1)
 
     if plot:
-        df = dataset[
-            ["temperature", "kinetic_energy", "potential_energy", "pressure"]
-        ].to_dataframe()
+        _keys = [
+            keys.temperature,
+            keys.energy_kinetic,
+            keys.energy_potential,
+            keys.pressure,
+        ]
+        df = dataset[_keys].to_dataframe()
         df.index /= 1000
 
         df["dr_mean"] = dr_mean
