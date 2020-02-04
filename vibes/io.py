@@ -93,12 +93,17 @@ def parse_force_constants(fc_file, **kwargs):
         from vibes.phonopy.utils import parse_phonopy_force_constants
 
         return parse_phonopy_force_constants(file, **kwargs)
-    elif ".forceconstant" in name:
+    elif name.endswith(".forceconstant"):
         from vibes.tdep.wrapper import parse_tdep_forceconstant
 
         return parse_tdep_forceconstant(file, **kwargs)
 
-    elif ".dat" in name:
+    elif name.endswith(".forceconstant_remapped"):
+        from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
+
+        return parse_tdep_remapped_forceconstant(file, **kwargs)
+
+    elif ".dat" in name or name == "FORCE_CONSTANTS_remapped":
         import numpy as np
 
         return np.loadtxt(fc_file)

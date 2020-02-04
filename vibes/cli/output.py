@@ -46,7 +46,7 @@ def md_output(
     if force_constants:
         traj.set_forces_harmonic(average_reference=average_reference)
     elif remapped_force_constants:
-        fc = np.loadtxt(remapped_force_constants)
+        fc = parse_force_constants(remapped_force_constants)
         traj.set_force_constants_remapped(fc)
         traj.set_forces_harmonic(average_reference=average_reference)
 
