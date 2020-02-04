@@ -415,6 +415,7 @@ def compute_r2(
     """Compute r2 and some statistics"""
     import pandas as pd
     import xarray as xr
+    from vibes import keys
     from vibes.anharmonicity_score import get_dataframe
 
     click.echo(f"Compute harmonicity score for {len(filenames)} materials:")
@@ -424,7 +425,7 @@ def compute_r2(
 
         DS = xr.open_dataset(filename)
 
-        name = DS.attrs["System Name"]
+        name = DS.attrs[keys.system_name]
         df = get_dataframe(
             DS,
             per_sample=per_sample,

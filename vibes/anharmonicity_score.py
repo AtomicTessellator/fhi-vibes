@@ -3,6 +3,7 @@
 import numpy as np
 import xarray as xr
 
+from vibes import keys
 from vibes.helpers import progressbar, warn
 from vibes.helpers.displacements import get_dR
 from vibes.spglib.wrapper import get_symmetry_dataset
@@ -187,12 +188,12 @@ def get_dataframe(dataset, per_sample=False, per_direction=False, by_symmetry=Fa
 
     DS = dataset
 
-    ref_atoms = json2atoms(DS.attrs["reference atoms"])
+    ref_atoms = json2atoms(DS.attrs[keys.reference_atoms])
 
     fs = DS.forces
     fhs = DS.forces_harmonic
 
-    name = DS.attrs["System Name"]
+    name = DS.attrs[keys.system_name]
 
     dct = {}
     key = f"{name}"
@@ -273,8 +274,9 @@ def _get_forces_per_mode(dataset):
 
     ds = dataset
 
-    fc = ds.attrs["flattened force_constants"]
-    supercell = json2atoms(ds.attrs["reference atoms"])
+    assert keys.fc_remapped in ds
+    fc = ds[keys.fc_remapped].data
+    supercell = json2atoms(ds.attrs[keys.reference_atoms])
 
     proj = SimpleModeProjection(supercell, fc)
 

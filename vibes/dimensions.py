@@ -1,5 +1,12 @@
-"""Naming the dimensions"""
+"""Naming the dimensions
+
+    Atom labels: I, J
+    Cartesian coordinates: a, b
+"""
 I, J, a, b = "I", "J", "a", "b"
+
+# composite
+Ia, Jb = "Ia", "Jb"
 
 time = "time"
 atoms = [time, I]
@@ -11,3 +18,5 @@ kappa = [time, I, J, a, b]
 
 lattice = [a, b]
 positions = [I, a]
+
+fc_remapped = [Ia, Jb]

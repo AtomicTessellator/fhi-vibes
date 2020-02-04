@@ -24,10 +24,10 @@ def _attrs(trajectory, dct=None, metadata=False):
     """return metadata dictionary with defaults + custom dct"""
 
     attrs = {
-        "System Name": get_sysname(trajectory.ref_atoms),
+        keys.system_name: get_sysname(trajectory.ref_atoms),
         "natoms": len(trajectory.ref_atoms),
-        "time unit": "fs",
-        "timestep": trajectory.timestep,
+        keys.time_unit: "fs",
+        keys.timestep: trajectory.timestep,
         "nsteps": len(trajectory) - 1,
         "symbols": trajectory.symbols,
         "masses": trajectory.masses,
@@ -49,11 +49,6 @@ def _attrs(trajectory, dct=None, metadata=False):
         attrs.update({"volume": trajectory.volume})
     except ValueError:
         pass
-
-    if trajectory.force_constants_remapped is not None:
-        fc = trajectory.force_constants_remapped.flatten()
-        fc_attrs = {"flattened force_constants": fc}
-        attrs.update(fc_attrs)
 
     if dct and isinstance(dct, dict):
         attrs.update(dct)
@@ -199,12 +194,16 @@ def get_trajectory_dataset(trajectory, metadata=False):
     coords = _time_coords(trajectory)
     attrs = _attrs(trajectory, metadata=metadata)
 
+    if trajectory.force_constants_remapped is not None:
+        fc = trajectory.force_constants_remapped
+        dataset.update({keys.fc_remapped: (dims.fc_remapped, fc)})
+
     if trajectory.forces_harmonic is not None:
         epot_ha = trajectory.potential_energy_harmonic
         update_dict = {
             keys.forces_harmonic: (dims.atoms_vec, trajectory.forces_harmonic),
             keys.energy_potential_harmonic: (dims.time, epot_ha),
-            "sigma_per_sample": (dims.time, trajectory.sigma_per_sample),
+            keys.sigma_per_sample: (dims.time, trajectory.sigma_per_sample),
         }
         dataset.update(update_dict)
         attrs.update({"sigma": trajectory.sigma})

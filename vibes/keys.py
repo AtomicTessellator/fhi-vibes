@@ -1,4 +1,10 @@
 fc = "force_constants"
+fc_remapped = "force_constants_remapped"
+fc_flattened = "force_constants_flattened"
+
+system_name = "system_name"
+time_unit = "time_unit"
+timestep = "timestep"
 
 reference_atoms = "atoms_reference"
 reference_primitive = "atoms_primitive"
@@ -22,3 +28,6 @@ heat_flux = "heat_flux"
 heat_fluxes = "heat_fluxes"
 heat_flux_aux = "heat_flux_aux"
 heat_fluxes_aux = "heat_fluxes_aux"
+
+sigma = "sigma"
+sigma_per_sample = "sigma_per_sample"
