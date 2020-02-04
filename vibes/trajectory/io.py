@@ -324,7 +324,7 @@ def read_netcdf(file="trajectory.nc"):
     assert "positions" in DS
     assert "velocities" in DS
     assert "forces" in DS
-    assert "potential_energy" in DS
+    assert keys.energy_potential in DS
 
     atoms_dict = json.loads(attrs[keys.reference_atoms])
 
@@ -346,7 +346,7 @@ def read_netcdf(file="trajectory.nc"):
     positions = DS.positions.data
     velocities = DS.velocities.data
     forces = DS.forces.data
-    potential_energy = DS.potential_energy.data
+    potential_energy = DS[keys.energy_potential].data
 
     if "stress" in DS:
         stress = DS.stress.data

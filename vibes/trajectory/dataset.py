@@ -32,20 +32,23 @@ def _attrs(trajectory, dct=None, metadata=False):
         "symbols": trajectory.symbols,
         "masses": trajectory.masses,
         keys.reference_atoms: atoms2json(trajectory.reference_atoms, reduce=False),
-        "average atoms": atoms2json(trajectory.average_atoms, reduce=False),
-        keys.reference_positions: trajectory.ref_positions.flatten(),
     }
+
+    if trajectory.primitive:
+        rep = atoms2json(trajectory.primitive, reduce=False)
+        prim_attrs = {keys.reference_primitive: rep}
+        attrs.update(prim_attrs)
+
+    if trajectory.supercell:
+        rep = atoms2json(trajectory.supercell, reduce=False)
+        prim_attrs = {keys.reference_supercell: rep}
+        attrs.update(prim_attrs)
 
     # handle non-periodic systems
     try:
         attrs.update({"volume": trajectory.volume})
     except ValueError:
         pass
-
-    if trajectory.primitive:
-        rep = atoms2json(trajectory.primitive, reduce=False)
-        prim_attrs = {keys.reference_primitive: rep}
-        attrs.update(prim_attrs)
 
     if trajectory.force_constants_remapped is not None:
         fc = trajectory.force_constants_remapped.flatten()
@@ -153,6 +156,11 @@ def get_trajectory_dataset(trajectory, metadata=False):
     velocities = get_velocities_dataarray(trajectory)
     pressure = get_pressure_dataarray(trajectory)
 
+    # reference positions
+    positions_reference = (dims.positions, trajectory.reference_atoms.positions)
+    lat = np.asarray(trajectory.reference_atoms.cell)
+    lattice_reference = (dims.lattice, lat)
+
     dataset = {
         "positions": positions,
         "displacements": (dims.atoms_vec, trajectory.displacements),
@@ -164,6 +172,8 @@ def get_trajectory_dataset(trajectory, metadata=False):
         "stress": (dims.stress, trajectory.stress),
         "pressure": pressure,
         "temperature": (dims.time, trajectory.temperatures),
+        keys.reference_positions: positions_reference,
+        keys.reference_lattice: lattice_reference,
     }
 
     # heat_flux
