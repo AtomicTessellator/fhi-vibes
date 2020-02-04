@@ -63,21 +63,23 @@ def get_frequencies(
     return w
 
 
-def compute_sed(series):
-    """ Computes spectral density for a time series
+def get_fft(series):
+    """run `np.fft.fft` on time series
+
+    https://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.hfft.html
 
     Args:
         series (np.ndarray [N_t, ...]): time series, first dimension is the time axis
 
     Returns:
-        np.ndarray: Fourier transform of series
+        np.ndarray ([N_t, ...]): Fourier transform of series ([: N_t // 2])
     """
 
-    velocities = np.asarray(series)
+    velocities = np.asarray(series).copy()
 
     N = series.shape[0]
 
-    velocities = velocities.swapaxes(-1, 0).copy()
+    velocities = velocities.swapaxes(-1, 0)
     velocities = np.fft.fft(velocities, axis=-1)
 
     return velocities.swapaxes(-1, 0)[: N // 2]
@@ -101,7 +103,7 @@ def get_fourier_transformed(series, verbose=True):
 
     omegas = get_frequencies(times=index, verbose=verbose)
 
-    ft = compute_sed(series)
+    ft = get_fft(series)
 
     # fmt: off
     da = xr.DataArray(

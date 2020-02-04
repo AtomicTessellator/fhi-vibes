@@ -3,7 +3,7 @@ import numpy as np
 import scipy.signal as sl
 import xarray as xr
 
-from vibes.fourier import compute_sed, get_frequencies
+from vibes.fourier import get_fft, get_frequencies
 from vibes.helpers import Timer, talk
 from vibes.trajectory import Trajectory, reader
 from vibes.trajectory.dataset import get_velocities_dataarray
@@ -65,7 +65,7 @@ def get_vdos(velocities=None, trajectory=None, verbose=True):
 
     omegas = get_frequencies(times=v_corr.time, verbose=verbose)
 
-    v_spec = compute_sed(v_corr.data)
+    v_spec = get_fft(v_corr.data)
 
     # fmt: off
     df_vdos = xr.DataArray(

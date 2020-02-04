@@ -1,16 +1,15 @@
 import numpy as np
 import scipy.signal as sl
 
-from .warnings import warn
+from vibes.helpers.warnings import warn
 
 
-def correlation(f1, f2, normalize=True, window=True):
+def get_correlation(f1, f2, normalize=True, window=True):
     """Compute correlation function for signal f1 and signal f2
 
     Reference:
-        https://gitlab.com/flokno/python_recipes/blob/
-        5adb1b12f228cd7942a50521426850810a67dfea/mathematics/correlation_function/
-        autocorrelation.ipynb
+        https://gitlab.com/flokno/python_recipes/-/blob/master/mathematics/
+        correlation_function/autocorrelation.ipynb
 
     Args:
         f1: signal 1
@@ -38,10 +37,10 @@ def correlation(f1, f2, normalize=True, window=True):
     return corr
 
 
-def autocorrelation(f, **kwargs):
+def get_autocorrelation(f, **kwargs):
     """compute autocorrelation function for signal f
 
     Frontend to `vibes.helpers.correlation.correlation`
     """
 
-    return correlation(f, f, **kwargs)
+    return get_correlation(f, f, **kwargs)

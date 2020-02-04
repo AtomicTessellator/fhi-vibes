@@ -7,7 +7,7 @@ from scipy.optimize import curve_fit
 
 from vibes import dimensions as dims
 from vibes import keys
-from vibes.helpers.correlation import correlation
+from vibes.correlation import get_correlation
 
 from .utils import Timer, talk
 
@@ -99,7 +99,7 @@ def get_kappa(dataset, full=False, delta="auto", verbose=True):
         flux_corr = np.zeros([Nt, 3, 3])
         for aa in range(3):
             for bb in range(3):
-                corr = correlation(flux[:, aa], flux[:, bb])
+                corr = get_correlation(flux[:, aa], flux[:, bb])
                 flux_corr[:, aa, bb] = corr
 
         J_corr = xr.DataArray(
@@ -158,7 +158,7 @@ def get_heat_flux_aurocorrelation(dataset, full_tensor=False, verbose=True):
 
                 for aa in range(3):
                     for bb in range(3):
-                        corr = correlation(J_I[:, aa], J_J[:, bb])
+                        corr = get_correlation(J_I[:, aa], J_J[:, bb])
                         flux_corr[:, II, JJ, aa, bb] = corr
         _dims = dims.kappa
     else:
@@ -168,7 +168,7 @@ def get_heat_flux_aurocorrelation(dataset, full_tensor=False, verbose=True):
 
             for aa in range(3):
                 for bb in range(3):
-                    corr = correlation(J_atom[:, aa], J_atom[:, bb])
+                    corr = get_correlation(J_atom[:, aa], J_atom[:, bb])
                     flux_corr[:, atom, aa, bb] = corr
         _dims = flux.dims + (dims.kappa[-1],)
 
