@@ -4,38 +4,72 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import xarray as xr
+from scipy import integrate as si
+from scipy import signal as sl
 
-import vibes.green_kubo.heat_flux as hf
+from vibes.correlation import get_autocorrelation
+from vibes.integrate import get_cumtrapz
+from vibes.settings import ConfigDict
 
 parent = Path(__file__).parent
+folder = parent / "lammps"
+
+# read info
+info = ConfigDict(folder / "info.cfg").info
+
+# read reference
+flux_df = pd.read_csv(folder / "flux.csv.bz2", index_col=info.index_col)
+kappa_df = pd.read_csv(folder / "kappa.csv.bz2", index_col=info.index_col)
 
 
-def test_kappa(datafile=parent / "heat_flux.nc"):
-    # read the heat flux dataset
-    DS = xr.load_dataset(datafile)
+def _ref_corr(series, step=10, nmax=100000, window=True):
+    """return correlation function as pd.Series"""
+    J = series.iloc[:nmax:step]
+    time = J.index
 
-    # compute cumulative kappa
-    kappa = hf.get_kappa(DS).kappa
+    Nt = len(J)
 
-    k = np.trace(kappa, axis1=1, axis2=2) / 3
-    k = pd.Series(k, index=DS.time)
+    corr = sl.correlate(J, J)[Nt - 1 :]
 
-    assert abs(k.iloc[10] - 0.3401563148255578) < 1e-5, k.iloc[10]
+    # Normalize
+    corr /= np.arange(Nt, 0, -1)
+    if window:  # window
+        corr *= sl.windows.hann(2 * Nt)[Nt:]
+
+    return pd.Series(corr, index=time)
 
 
-def test_j_corr(datafile=parent / "heat_flux.nc"):
-    # read the heat flux dataset
-    DS = xr.load_dataset(datafile)
+def test_j_corr(flux=flux_df.flux):
+    c1 = _ref_corr(flux)
+    c2 = get_autocorrelation(flux)
 
-    # Compute heat flux autoccorrelation function
-    jcorr = hf.get_kappa(DS).Jcorr
+    assert (c1 - c2).std() < 1e-5
 
-    # x component
-    jx = jcorr[:, 0, 0].to_series() * 1000
 
-    assert abs(jx[0] - 10.560280496761488) < 1e-5, jx[0]
+def test_kappa(flux=flux_df.flux, ref_kappa=kappa_df.kappa):
+    time = np.arange(2000, 100000, 2000)
+
+    step = info.step
+    tmax = info.tmax
+    scale = info.scale
+
+    k = []
+    for nmax in time:
+        # corr = get_corr(flux_df.flux, step=step, nmax=nmax, window=False)[:]
+        J = flux.iloc[:nmax:step]
+        corr = get_autocorrelation(J, window=False, verbose=False)
+        k.append(si.trapz(corr[:tmax]) * scale * step)
+
+    df = pd.DataFrame({"kappa": k}, index=time)
+
+    assert (df.kappa - ref_kappa).std() < 0.1
+
+    c = get_autocorrelation(flux, verbose=False) * scale
+    k2 = get_cumtrapz(c)
+
+    assert (kappa_df.kappa.iloc[-1] - k2.iloc[tmax]) < 0.001
 
 
 if __name__ == "__main__":
-    test_kappa()
     test_j_corr()
+    test_kappa()
