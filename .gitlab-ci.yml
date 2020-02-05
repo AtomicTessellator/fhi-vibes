@@ -1,10 +1,9 @@
 image: registry.gitlab.com/flokno/hilde:vibes
 
 before_script:
+  - flake8
   - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
   - poetry install
-  - flake8 vibes
-  - flake8 tests
 
 default:
   script:
