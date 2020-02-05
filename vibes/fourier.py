@@ -92,7 +92,7 @@ def get_fourier_transformed(series, verbose=True):
         series ([N_t, ...]): pandas.Series/xarray.DataArray with `time` axis in fs
         verbose (bool): be verbose
     Return:
-        series ([N_t, ...]): FT(series) with `omega` axis in THz
+        DataArray ([N_t, ...]): FT(series) with `omega` axis in THz
     """
     timer = Timer("Compute FFT", verbose=verbose)
 

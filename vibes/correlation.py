@@ -1,7 +1,14 @@
 import numpy as np
+import pandas as pd
 import scipy.signal as sl
+import xarray as xr
 
+from vibes import keys
+from vibes.helpers import Timer, talk
 from vibes.helpers.warnings import warn
+
+_prefix = "Correlation"
+Timer.prefix = _prefix
 
 
 def get_correlation(f1, f2, normalize=True, window=True):
@@ -19,14 +26,15 @@ def get_correlation(f1, f2, normalize=True, window=True):
     Returns:
         the correlation function
     """
-    Nt = min(len(f1), len(f2))
+    a1, a2 = (np.asarray(f) for f in (f1, f2))
+    Nt = min(len(a1), len(a2))
 
-    if Nt != max(len(f1), len(f2)):
+    if Nt != max(len(a1), len(a2)):
         msg = "The two signals are not equally long: "
-        msg += f"len(f1), len(f2) = {len(f1)}, {len(f2)}"
+        msg += f"len(a1), len(a2) = {len(a1)}, {len(a2)}"
         warn(msg)
 
-    corr = sl.correlate(f1[:Nt], f2[:Nt])[Nt - 1 :]
+    corr = sl.correlate(a1[:Nt], a2[:Nt])[Nt - 1 :]
 
     if normalize:
         corr /= np.arange(Nt, 0, -1)
@@ -37,10 +45,38 @@ def get_correlation(f1, f2, normalize=True, window=True):
     return corr
 
 
-def get_autocorrelation(f, **kwargs):
-    """compute autocorrelation function for signal f
+def get_autocorrelation(series, verbose=True, **kwargs):
+    """Compute autocorrelation function of Series/DataArray
 
-    Frontend to `vibes.helpers.correlation.correlation`
+    Args:
+        series ([N_t]): pandas.Series/xarray.DataArray with `time` axis in fs
+        verbose (bool): be verbose
+        kwargs: further arguments for `get_correlation`
+    Return:
+        DataArray ([N_t]): Autocorrelation function
     """
+    timer = Timer("Compute autocorrelation function", verbose=verbose)
 
-    return get_correlation(f, f, **kwargs)
+    xarray = True
+    try:
+        index = series[keys.time]
+    except KeyError:
+        xarray = False
+        index = series.index
+
+    autocorr = get_correlation(series, series, **kwargs)
+
+    # fmt: off
+    da = xr.DataArray(
+        autocorr,
+        dims=[keys.time],
+        coords={keys.time: index}, name=keys.autocorrelation,
+    )
+    # fmt: on
+
+    timer()
+
+    if not xarray:
+        return da.to_series()
+
+    return da

@@ -35,6 +35,8 @@ sigma_per_sample = "sigma_per_sample"
 # time
 time = "time"
 omega = "omega"
+cumtrapz = "cumtrapz"
+autocorrelation = "autocorrelation"
 fourier_transform = "fourier_transform"
 
 # file management
