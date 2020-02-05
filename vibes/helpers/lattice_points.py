@@ -4,10 +4,8 @@ unit cell etc. """
 import numpy as np
 import scipy.linalg as la
 
-from vibes.helpers import warn
 from vibes.helpers.lattice import fractional
-from vibes.helpers.numerics import clean_matrix
-from vibes.helpers.supercell import get_commensurate_q_points, get_lattice_points
+from vibes.helpers.supercell import get_lattice_points
 from vibes.helpers.utils import Timer
 
 

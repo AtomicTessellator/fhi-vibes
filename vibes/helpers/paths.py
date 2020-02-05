@@ -1,8 +1,6 @@
 import contextlib
-import functools
 import os
 import shutil
-import sys
 from pathlib import Path
 from warnings import warn
 

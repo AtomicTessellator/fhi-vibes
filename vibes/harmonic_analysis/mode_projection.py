@@ -6,19 +6,15 @@ from ase import Atoms
 
 from vibes.helpers import Timer, lazy_property, progressbar, warn
 from vibes.helpers.displacements import get_dUdt, get_U
-from vibes.helpers.lattice_points import (
-    get_commensurate_q_points,
-    get_lattice_points,
-    map_I_to_iL,
-)
+from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
 from vibes.helpers.numerics import clean_matrix
+from vibes.helpers.supercell import get_commensurate_q_points
 from vibes.spglib.q_mesh import get_ir_reciprocal_mesh
 from vibes.structure.misc import get_sysname
 
 from .dynamical_matrix import fc2dynmat, get_frequencies
 from .normal_modes import get_A_qst2, get_phi_qst, get_Zqst
 from .normal_modes import projector as mode_projector
-
 
 Timer.prefix = "mode"
 

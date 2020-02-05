@@ -5,7 +5,7 @@ Logic:
 * append each md step afterwards
 
 """
-
+# flake8: noqa
 
 from vibes.helpers.hash import hash_atoms
 from vibes.trajectory.io import metadata2file, reader, results2dict, step2file

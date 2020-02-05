@@ -6,7 +6,6 @@ from scipy.integrate import cumtrapz
 from scipy.optimize import curve_fit
 
 from vibes import dimensions as dims
-from vibes import keys
 from vibes.correlation import get_correlation
 
 from .utils import Timer, talk

@@ -1,10 +1,9 @@
 import numpy as np
-import pandas as pd
 import scipy.signal as sl
 import xarray as xr
 
 from vibes import keys
-from vibes.helpers import Timer, talk
+from vibes.helpers import Timer
 from vibes.helpers.warnings import warn
 
 _prefix = "Correlation"

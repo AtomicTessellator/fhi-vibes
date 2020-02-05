@@ -5,7 +5,6 @@ import xarray as xr
 
 from vibes.fourier import get_fft, get_frequencies
 from vibes.helpers import Timer, talk
-from vibes.trajectory import Trajectory, reader
 from vibes.trajectory.dataset import get_velocities_dataarray
 
 

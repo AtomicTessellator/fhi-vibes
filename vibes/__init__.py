@@ -1,4 +1,5 @@
 """ useful things to import """
+# flake8: noqa
 
 import pkg_resources
 
@@ -10,7 +11,6 @@ from ._defaults import (
     supported_tasks,
 )
 from .settings import Configuration, Settings
-
 
 __version__ = str(pkg_resources.require("vibes")[0].version)
 

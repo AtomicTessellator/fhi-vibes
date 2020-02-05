@@ -7,7 +7,7 @@ import threading
 import time
 
 import click
-from son.progressbar import progressbar
+from son.progressbar import progressbar  # noqa: F401
 
 from vibes.helpers.warnings import warn
 

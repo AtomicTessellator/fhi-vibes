@@ -1,13 +1,10 @@
 """compute and analyze heat fluxes"""
-import json
-
 import numpy as np
 import xarray as xr
 from ase import units
 
 from vibes import dimensions as dims
 from vibes import keys
-from vibes.helpers import warn
 from vibes.helpers.converters import atoms2json, dict2json
 from vibes.structure.misc import get_sysname
 

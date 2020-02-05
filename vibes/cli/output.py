@@ -31,7 +31,6 @@ def md_output(
     average_reference,
 ):
     """write data in trajectory as xarray.Dataset"""
-    import numpy as np
     from vibes.trajectory import reader
     from vibes.io import parse_force_constants
     from vibes.trajectory.dataset import get_trajectory_dataset
@@ -103,7 +102,6 @@ def phonopy_output(
     """perform phonopy postprocess for TRAJECTORY"""
     from vibes.phonopy._defaults import defaults
     from vibes.phonopy.postprocess import postprocess, extract_results
-    from vibes.tdep.wrapper import convert_phonopy_to_tdep
 
     if not q_mesh:
         q_mesh = defaults.q_mesh.copy()
