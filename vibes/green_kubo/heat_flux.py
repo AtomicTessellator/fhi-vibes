@@ -5,9 +5,9 @@ from ase import units
 from scipy.integrate import cumtrapz
 from scipy.optimize import curve_fit
 
-# from vibes.fourier import compute_sed, get_frequencies, get_timestep
+from vibes import dimensions as dims
+from vibes import keys
 from vibes.helpers.correlation import correlation
-from vibes.trajectory.dataset import kappa_dims, stress_dims
 
 from . import Timer, talk
 
@@ -106,7 +106,7 @@ def get_kappa(dataset, full=False, delta="auto", verbose=True):
 
         J_corr = xr.DataArray(
             flux_corr * prefactor,
-            dims=stress_dims,
+            dims=dims.stress,
             coords=flux.coords,
             attrs={"gk_prefactor": prefactor},
             name="Jcorr",
@@ -162,7 +162,7 @@ def get_heat_flux_aurocorrelation(dataset, full_tensor=False, verbose=True):
                     for bb in range(3):
                         corr = correlation(J_I[:, aa], J_J[:, bb])
                         flux_corr[:, II, JJ, aa, bb] = corr
-        dims = kappa_dims
+        _dims = dims.kappa
     else:
         flux_corr = np.zeros([Nt, Na, 3, 3])
         for atom in flux.I:
@@ -172,11 +172,11 @@ def get_heat_flux_aurocorrelation(dataset, full_tensor=False, verbose=True):
                 for bb in range(3):
                     corr = correlation(J_atom[:, aa], J_atom[:, bb])
                     flux_corr[:, atom, aa, bb] = corr
-        dims = flux.dims + (kappa_dims[-1],)
+        _dims = flux.dims + (dims.kappa[-1],)
 
     df_corr = xr.DataArray(
         flux_corr * prefactor,
-        dims=dims,
+        dims=_dims,
         coords=flux.coords,
         attrs={"gk_prefactor": prefactor},
         name="heat flux autocorrelation",

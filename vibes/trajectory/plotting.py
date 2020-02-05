@@ -1,6 +1,8 @@
 """plot trajectory data"""
 from ase import units
 
+from vibes import keys
+
 
 def plot_summary(dataframe, avg=50, natoms=None):
 
@@ -23,9 +25,9 @@ def plot_summary(dataframe, avg=50, natoms=None):
     from vibes.helpers.plotting import tableau_colors as tc
 
     # plot temperatures
-    temp = dataframe.temperature
-    e_kin = dataframe.kinetic_energy
-    e_pot = dataframe.potential_energy
+    temp = dataframe[keys.temperature]
+    e_kin = dataframe[keys.energy_kinetic]
+    e_pot = dataframe[keys.energy_potential]
 
     e_pot -= e_pot.min()
 

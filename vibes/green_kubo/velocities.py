@@ -6,7 +6,7 @@ import xarray as xr
 from vibes.fourier import compute_sed, get_frequencies
 from vibes.helpers import Timer, talk
 from vibes.trajectory import Trajectory, reader
-from vibes.trajectory.dataset import get_velocities_data
+from vibes.trajectory.dataset import get_velocities_dataarray
 
 
 def get_velocity_aurocorrelation(velocities=None, trajectory=None, verbose=True):
@@ -19,7 +19,7 @@ def get_velocity_aurocorrelation(velocities=None, trajectory=None, verbose=True)
         velocity_autocorrelation (xarray.DataArray [N_t, N_a, 3])
     """
     if velocities is None and trajectory is not None:
-        velocities = get_velocities_data(trajectory, verbose=verbose)
+        velocities = get_velocities_dataarray(trajectory, verbose=verbose)
 
     timer = Timer("Get velocity autocorrelation", verbose=verbose)
 
@@ -57,7 +57,7 @@ def get_vdos(velocities=None, trajectory=None, verbose=True):
         vdos (xarray.DataArray [N_t, N_a, 3])
     """
     if velocities is None and trajectory is not None:
-        velocities = get_velocities_data(trajectory, verbose=verbose)
+        velocities = get_velocities_dataarray(trajectory, verbose=verbose)
 
     v_corr = get_velocity_aurocorrelation(velocities)
 

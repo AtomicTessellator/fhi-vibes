@@ -12,16 +12,11 @@ from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.singlepoint import SinglePointCalculator
 
 from vibes import __version__ as version
-from vibes import io, son
+from vibes import io, keys, son
 from vibes.helpers import warn
 from vibes.helpers.converters import dict2atoms, dict2json, results2dict
 from vibes.helpers.utils import progressbar
 
-from .trajectory import (
-    key_reference_atoms,
-    key_reference_positions,
-    key_reference_primitive,
-)
 from .utils import Timer, talk
 
 
@@ -71,10 +66,13 @@ def write(trajectory, file="trajectory.son"):
     Args:
         file: path to trajecotry son or netcdf file
     """
+    from .dataset import get_trajectory_dataset
+
     timer = Timer(f"Write trajectory to {file}")
 
     if Path(file).suffix == ".nc":
-        trajectory.dataset.to_netcdf(file)
+        dataset = get_trajectory_dataset(trajectory, metadata=True)
+        dataset.to_netcdf(file)
         timer()
         return True
 
@@ -120,10 +118,13 @@ def reader(
     """
     from vibes.trajectory.trajectory import Trajectory
 
-    timer = Timer(f"Parse trajectory")
+    timer = Timer(f"Parse `{file}`")
 
     if Path(file).suffix == ".nc":
-        return read_netcdf(file)
+        trajectory = read_netcdf(file)
+        timer()
+
+        return trajectory
 
     try:
         metadata, pre_trajectory = son.load(file, verbose=verbose)
@@ -319,13 +320,18 @@ def read_netcdf(file="trajectory.nc"):
     attrs = DS.attrs
 
     # check mandatory keys
-    assert key_reference_atoms in attrs
+    assert keys.reference_atoms in attrs
     assert "positions" in DS
     assert "velocities" in DS
     assert "forces" in DS
-    assert "potential_energy" in DS
+    assert keys.energy_potential in DS
 
-    atoms_dict = json.loads(attrs[key_reference_atoms])
+    atoms_dict = json.loads(attrs[keys.reference_atoms])
+
+    # metadata
+    metadata = None
+    if keys.metadata in attrs:
+        metadata = json.loads(attrs[keys.metadata])
 
     # popping `velocities` is obsolete if
     # https://gitlab.com/ase/ase/merge_requests/1563
@@ -340,7 +346,7 @@ def read_netcdf(file="trajectory.nc"):
     positions = DS.positions.data
     velocities = DS.velocities.data
     forces = DS.forces.data
-    potential_energy = DS.potential_energy.data
+    potential_energy = DS[keys.energy_potential].data
 
     if "stress" in DS:
         stress = DS.stress.data
@@ -362,6 +368,8 @@ def read_netcdf(file="trajectory.nc"):
 
         traj.append(atoms)
 
-    trajectory = Trajectory(traj, metadata=attrs)
+    trajectory = Trajectory(traj, metadata=metadata)
+    trajectory.displacements = DS.displacements.data
+    trajectory.times = DS.time.data
 
     return trajectory

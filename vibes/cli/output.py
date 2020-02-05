@@ -6,15 +6,6 @@ import click
 from .misc import AliasedGroup, complete_filenames
 
 
-# import numpy as np
-
-
-# from vibes.trajectory import reader
-# from vibes.phonopy._defaults import defaults
-# from vibes.tdep.wrapper import convert_phonopy_to_tdep
-# from vibes.io import parse_force_constants
-
-
 @click.command(cls=AliasedGroup)
 def output():
     """produce output of vibes workfow"""
@@ -43,9 +34,10 @@ def md_output(
     import numpy as np
     from vibes.trajectory import reader
     from vibes.io import parse_force_constants
+    from vibes.trajectory.dataset import get_trajectory_dataset
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
-    traj = reader(file=trajectory, with_stresses=heat_flux, fc_file=force_constants)
+    traj = reader(file=trajectory, fc_file=force_constants)
 
     if discard:
         traj = traj.discard(discard)
@@ -54,22 +46,20 @@ def md_output(
     if force_constants:
         traj.set_forces_harmonic(average_reference=average_reference)
     elif remapped_force_constants:
-        fc = np.loadtxt(remapped_force_constants)
+        fc = parse_force_constants(remapped_force_constants)
         traj.set_force_constants_remapped(fc)
         traj.set_forces_harmonic(average_reference=average_reference)
 
     if "auto" in outfile.lower():
         outfile = Path(trajectory).stem + ".nc"
 
-    DS = traj.dataset
-    DS.to_netcdf(outfile)
-    click.echo(f"Trajectory dataset written to {outfile}")
-
     if heat_flux:
         outfile = "heat_flux.nc"
-        DS = traj.get_heat_flux_data(only_flux=minimal)
-        DS.to_netcdf(outfile)
-        click.echo(f"Heat flux dataset written to {outfile}")
+        traj.compute_heat_fluxes_from_stresses()
+
+    DS = get_trajectory_dataset(traj, metadata=True)
+    DS.to_netcdf(outfile)
+    click.echo(f"Trajectory dataset written to {outfile}")
 
 
 @output.command("phonopy")

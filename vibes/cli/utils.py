@@ -2,7 +2,6 @@
 
 from .misc import AliasedGroup, ClickAliasedGroup, click, complete_filenames
 
-
 xrange = range
 
 
@@ -358,7 +357,7 @@ def trajectory_update(filename, uc, sc, fc, output_filename, format):
 @trajectory.command("pick_sample")
 @click.argument("filename", default="trajectory.son", type=complete_filenames)
 @click.option("-n", "--number", default=0)
-@click.option("-r", "--range", type=click.Tuple(3 * [int]), help="start, stop, step")
+@click.option("-r", "--range", type=int, nargs=3, help="start, stop, step")
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
 def pick_sample(filename, number, range, cartesian):
     """pick a sample from trajectory and write to geometry input file"""
@@ -370,10 +369,10 @@ def pick_sample(filename, number, range, cartesian):
     if number < 0:
         number = len(traj) + number
 
-    if range is not None:
+    if len(range) == 3:
         rge = xrange(*range)
     else:
-        rge = number
+        rge = [number]
 
     for number in rge:
         click.echo(f"Extract sample {number}:")
@@ -384,13 +383,13 @@ def pick_sample(filename, number, range, cartesian):
         click.echo(f".. sample written to {outfile}")
 
 
-@utils.group(aliases=["ha"])
-def harmonicity():
-    """utils for quantifying harmonicity"""
+@utils.group(aliases=["a"])
+def anharmonicity():
+    """utils for quantifying anharmonicity"""
     ...
 
 
-@harmonicity.command("r2")
+@anharmonicity.command("sigma")
 @click.argument("filenames", type=complete_filenames, nargs=-1)
 @click.option("-csv", "--store_csv", is_flag=True, help="store dataframes to csv")
 @click.option("-h5", "--store_hdf5", is_flag=True, help="store dataframes to hdf5")
@@ -401,7 +400,7 @@ def harmonicity():
 @click.option("--per_direction", is_flag=True)
 @click.option("--by_symmetry", is_flag=True)
 @click.option("--describe", is_flag=True)
-def compute_r2(
+def compute_sigma(
     filenames,
     store_csv,
     store_hdf5,
@@ -413,9 +412,10 @@ def compute_r2(
     by_symmetry,
     describe,
 ):
-    """Compute r2 and some statistics"""
+    """Compute sigma and some statistics"""
     import pandas as pd
     import xarray as xr
+    from vibes import keys
     from vibes.anharmonicity_score import get_dataframe
 
     click.echo(f"Compute harmonicity score for {len(filenames)} materials:")
@@ -425,7 +425,7 @@ def compute_r2(
 
         DS = xr.open_dataset(filename)
 
-        name = DS.attrs["System Name"]
+        name = DS.attrs[keys.system_name]
         df = get_dataframe(
             DS,
             per_sample=per_sample,
@@ -446,7 +446,7 @@ def compute_r2(
             click.echo(f"\n.. Dataframe for {name} written to {outfile}")
 
         if store_hdf5:
-            outfile = f"r2_data.h5"
+            outfile = f"sigma_data.h5"
             with pd.HDFStore(outfile) as store:
                 click.echo(f".. append dataframe for {name} to {outfile}")
                 store[name] = df

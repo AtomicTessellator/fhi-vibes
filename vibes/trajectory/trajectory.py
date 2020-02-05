@@ -4,6 +4,7 @@ import numpy as np
 from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
 
+from vibes import keys
 from vibes.anharmonicity_score import get_sigma
 from vibes.fourier import get_timestep
 from vibes.helpers import lazy_property, warn
@@ -14,13 +15,6 @@ from vibes.helpers.utils import progressbar
 
 from . import analysis as al
 from .utils import Timer, _prefix, talk
-
-
-_fc_key = "force_constants"
-
-key_reference_atoms = "reference atoms"
-key_reference_primitive = "reference primitive atoms"
-key_reference_positions = "reference positions"
 
 
 class Trajectory(list):
@@ -42,6 +36,7 @@ class Trajectory(list):
             self._metadata = {}
 
         # lazy eval where @lazy_eval is not applicable
+        self._times = None
         self._supercell = None
         self._reference_atoms = None
         self._average_atoms = None
@@ -51,8 +46,8 @@ class Trajectory(list):
         self._forces_harmonic = None
         self._displacements = None
         self._force_constants_remapped = None
-        if _fc_key not in self._metadata:
-            self._metadata[_fc_key] = None
+        if keys.fc not in self._metadata:
+            self._metadata[keys.fc] = None
 
     @classmethod
     def read(cls, file="trajectory.son", **kwargs):
@@ -109,7 +104,7 @@ class Trajectory(list):
 
     @property
     def primitive(self):
-        """ Return the primitive cell if it is there """
+        """ Return the primitive atoms if it is there """
         if "primitive" in self.metadata:
             dct = self.metadata["primitive"]
             if "atoms" in dct:
@@ -174,20 +169,33 @@ class Trajectory(list):
             self._volume = np.mean(volumes).squeeze()
         return self._volume
 
-    @lazy_property
+    @property
     def times(self):
         """ return the times as numpy array in fs"""
-        try:
-            fs = self.metadata["MD"]["fs"]
-        except KeyError:
-            warn("time unit not found in trajectory metadata, use ase.units.fs")
-            fs = units.fs
+        if self._times is None:
+            try:
+                fs = self.metadata["MD"]["fs"]
+            except KeyError:
+                warn("time unit not found in trajectory metadata, use ase.units.fs")
+                fs = units.fs
 
-        try:
-            return np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
-        except KeyError:
-            warn("no time steps found, return time as index", level=1)
-            return np.arange(len(self))
+            try:
+                times = np.array([a.info["nsteps"] * a.info["dt"] / fs for a in self])
+            except KeyError:
+                warn("no time steps found, return time as index", level=1)
+                times = np.arange(len(self))
+            self._times = times
+        else:
+            assert len(self._times) == len(self)
+
+        return self._times
+
+    @times.setter
+    def times(self, new_times):
+        """set `trajectory.times`"""
+        assert np.size(new_times) == len(self)
+
+        self._times = new_times
 
     @property
     def timestep(self):
@@ -227,7 +235,7 @@ class Trajectory(list):
     @property
     def force_constants(self):
         """return (reduced) force constants or warn if not set"""
-        fc = self.metadata[_fc_key]
+        fc = self.metadata[keys.fc]
         if any(x is None for x in (fc, self.primitive, self.supercell)):
             warn("`trajectory.force_constants` not set, return None")
         else:
@@ -242,7 +250,7 @@ class Trajectory(list):
         Np, Na = len(self.primitive), len(self.supercell)
         # assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
         assert fc.shape == (Np, Na, 3, 3), fc.shape
-        self.metadata[_fc_key] = fc
+        self.metadata[keys.fc] = fc
 
     @property
     def force_constants_remapped(self):
@@ -306,49 +314,33 @@ class Trajectory(list):
     @lazy_property
     def stress(self):
         """return the stress as [N_t, 3, 3] array"""
-        zeros = np.zeros([3, 3])
+        zeros = np.zeros((3, 3))
         stresses = []
         for a in self:
             if "stress" in a.calc.results:
-                stresses.append(a.get_stress(voigt=False))
+                stress = a.get_stress(voigt=False)
             else:
-                stresses.append(zeros)
+                stress = np.full_like(zeros, np.nan)
+            stresses.append(stress)
 
-        return np.array(stresses)
+        return np.array(stresses, dtype=float)
 
     @lazy_property
     def stresses(self):
         """return the atomic stress as [N_t, N_a, 3, 3] array"""
         atomic_stresses = []
+
+        zeros = np.zeros((len(self.reference_atoms), 3, 3))
+
         for a in self:
             V = a.get_volume()
             try:
                 atomic_stress = a.get_stresses() / V
             except PropertyNotImplementedError:
-                msg = "Trajectory contains atoms without stresses computed. "
-                msg += "Use `trajectory.with_stresses`"
-                warn(msg, level=2)
+                atomic_stress = np.full_like(zeros, np.nan)
             atomic_stresses.append(atomic_stress)
 
-        return atomic_stresses
-
-    @property
-    def heat_flux(self):
-        """return heat flux as [N_t, N_a, 3] array"""
-        from .heat_flux import get_heat_flux
-
-        if self._heat_flux is None:
-            self._heat_flux, self._avg_heat_flux = get_heat_flux(self)
-        return self._heat_flux
-
-    @property
-    def avg_heat_flux(self):
-        """return heat flux FROM AVERAGED STRESS as [N_t, N_a, 3] array"""
-        from .heat_flux import get_heat_flux
-
-        if self._avg_heat_flux is None:
-            self._heat_flux, self._avg_heat_flux = get_heat_flux(self)
-        return self._avg_heat_flux
+        return np.array(atomic_stresses, dtype=float)
 
     def get_pressure(self, GPa=False):
         """return the pressure as [N_t] array"""
@@ -387,37 +379,9 @@ class Trajectory(list):
         Contains:
             positions, velocities, forces, stress, pressure, temperature
         """
-        from .dataset import get_trajectory_data
+        from .dataset import get_trajectory_dataset
 
-        return get_trajectory_data(self)
-
-    def get_heat_flux_data(self, only_flux=False):
-        """return heat flux and other data as xarray.Dataset
-
-        Contains:
-            heat_flux, avg_heat_flux, velocities, forces, pressure, temperature
-        Metadata:
-            volume, symbols, masses, flattend reference positions
-        """
-        from .dataset import get_heat_flux_data
-
-        return get_heat_flux_data(self, only_flux=only_flux)
-
-    @property
-    def heat_flux_dataset(self):
-        """== self.get_heat_flux_data()"""
-        return self.get_heat_flux_data()
-
-    def with_result(self, result="stresses"):
-        """return new trajectory with atoms object that have specific result computed"""
-        atoms_w_result = [a for a in self if result in a.calc.results]
-        new_traj = Trajectory(atoms_w_result, metadata=self.metadata)
-        return new_traj
-
-    @property
-    def with_stresses(self):
-        """return new trajectory with atoms that have stresses computed"""
-        return self.with_result("stresses")
+        return get_trajectory_dataset(self)
 
     def discard(self, first=0, last=0):
         """discard atoms before FIRST and after LAST and return as new Trajectory"""
@@ -494,10 +458,7 @@ class Trajectory(list):
         """calculate the displacements for `reference_atoms`"""
         if not self.supercell:
             # warn("Supercell not set, let us stop here.", level=2)
-            warn(
-                "SUPERCELL NOT SET, compute displacements w.r.t to initial atoms",
-                level=1,
-            )
+            warn("SUPERCELL NOT SET, compute w.r.t to reference atoms", level=1)
 
         atoms_ideal = self.reference_atoms
 
@@ -591,3 +552,98 @@ class Trajectory(list):
         DS = self.dataset
 
         al.pressure(DS.pressure)
+
+    def compute_heat_fluxes_from_stresses(self):
+        """attach `heat_flux` to each `atoms`
+
+        Args:
+            trajectory: list of atoms objects
+
+        Returns:
+            trajectory: with heat flux attached to atoms
+            # flux ([N_t, N_a, 3]): the time resolved heat flux in eV/AA**3/ps
+            # avg_flux ([N_t, N_a, 3]): high frequency part of heat flux
+        """
+        trajectory = self  # self.with_stresses
+
+        stresses = [s for s in trajectory.stresses if not np.isnan(s).any()]
+
+        # 1) compute average stresses
+        avg_stresses = np.mean(stresses, axis=0)
+
+        # 2) compute J_avg from average stresses
+        timer = Timer("Compute heat flux:")
+        for a in progressbar(trajectory):
+            V = a.get_volume()
+            try:
+                stresses = a.get_stresses() / V
+            except PropertyNotImplementedError:
+                continue
+
+            ds = stresses - avg_stresses
+
+            # velocity in \AA / ps
+            vs = a.get_velocities() * units.fs * 1000
+
+            fluxes = np.squeeze(ds @ vs[:, :, None])
+            fluxes_aux = np.squeeze(avg_stresses @ vs[:, :, None])
+
+            flux = fluxes.sum(axis=0)
+            flux_aux = fluxes_aux.sum(axis=0)
+
+            d = {
+                keys.heat_flux: flux,
+                keys.heat_fluxes: fluxes,
+                keys.heat_flux_aux: flux_aux,
+                keys.heat_fluxes_aux: fluxes_aux,
+            }
+
+            a.calc.results.update(d)
+
+        timer()
+
+    def get_heat_flux(self, aux=False):
+        """return the heat flux as [N_t, 3] array"""
+        flux = []
+
+        nan = np.full_like(np.zeros(3), np.nan)
+
+        if aux:
+            key = keys.heat_flux_aux
+        else:
+            key = keys.heat_flux
+
+        for a in self:
+            try:
+                f = a.calc.results[key]
+            except KeyError:
+                f = nan
+            flux.append(f)
+
+        if np.isnan(flux).all():
+            return None
+        else:
+            return np.array(flux, dtype=float)
+
+    def get_heat_fluxes(self, aux=False):
+        """return the heat fluxes as [N_t, N_a, 3] array"""
+        flux = []
+
+        nan = np.full_like(np.zeros((len(self.reference_atoms), 3)), np.nan)
+
+        if aux:
+            key = keys.heat_fluxes_aux
+        else:
+            key = keys.heat_fluxes
+
+        for a in self:
+            try:
+                f = a.calc.results[key]
+            except KeyError:
+                f = nan
+            flux.append(f)
+
+        if np.isnan(flux).all():
+            return None
+        else:
+            return np.array(flux, dtype=float)
