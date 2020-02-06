@@ -103,7 +103,7 @@ def get_kappa(dataset, full=False, delta="auto", verbose=True):
 
         J_corr = xr.DataArray(
             flux_corr * prefactor,
-            dims=dims.stress,
+            dims=dims.time_tensor,
             coords=flux.coords,
             attrs={"gk_prefactor": prefactor},
             name="Jcorr",
@@ -159,7 +159,7 @@ def get_heat_flux_aurocorrelation(dataset, full_tensor=False, verbose=True):
                     for bb in range(3):
                         corr = _correlate(J_I[:, aa], J_J[:, bb])
                         flux_corr[:, II, JJ, aa, bb] = corr
-        _dims = dims.kappa
+        _dims = dims.time_atom_atom_tensor
     else:
         flux_corr = np.zeros([Nt, Na, 3, 3])
         for atom in flux.I:
@@ -169,7 +169,7 @@ def get_heat_flux_aurocorrelation(dataset, full_tensor=False, verbose=True):
                 for bb in range(3):
                     corr = _correlate(J_atom[:, aa], J_atom[:, bb])
                     flux_corr[:, atom, aa, bb] = corr
-        _dims = flux.dims + (dims.kappa[-1],)
+        _dims = flux.dims + (dims.time_atom_atom_tensor[-1],)
 
     df_corr = xr.DataArray(
         flux_corr * prefactor,
