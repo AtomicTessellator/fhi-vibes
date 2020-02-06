@@ -38,7 +38,13 @@ def get_cumtrapz(series, **kwargs):
         ctrapz = _cumtrapz(series, index=series.index, **kwargs)
         return pd.Series(ctrapz, index=series.index)
     elif isinstance(series, xr.DataArray):
-        ctrapz = _cumtrapz(series, index=series.coords, **kwargs)
+        try:
+            index = np.asarray(series[keys.time])
+        except (KeyError, IndexError):
+            warn(f"time coordinate not found, use `coords=arange`", level=1)
+            index = None
+
+        ctrapz = _cumtrapz(series, index=index, **kwargs)
         da = xr.DataArray(
             ctrapz, dims=series.dims, coords=series.coords, name=keys.cumtrapz
         )

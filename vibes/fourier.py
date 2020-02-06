@@ -110,6 +110,7 @@ def get_fourier_transformed(series, verbose=True):
             times = np.asarray(series[keys.time])
             omegas = get_frequencies(times=times, verbose=verbose)
         except (KeyError, IndexError):
+            warn(f"time coordinate not found, use `coords=arange`", level=1)
             omegas = get_frequencies(times=np.arange(len(series)), verbose=verbose)
         da = xr.DataArray(
             fft,
