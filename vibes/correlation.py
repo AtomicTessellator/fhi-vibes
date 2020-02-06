@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import scipy.signal as sl
 import xarray as xr
 
@@ -10,7 +11,7 @@ _prefix = "Correlation"
 Timer.prefix = _prefix
 
 
-def get_correlation(f1, f2, normalize=True, window=True):
+def _correlate(f1, f2, normalize=True, window=True):
     """Compute correlation function for signal f1 and signal f2
 
     Reference:
@@ -56,26 +57,19 @@ def get_autocorrelation(series, verbose=True, **kwargs):
     """
     timer = Timer("Compute autocorrelation function", verbose=verbose)
 
-    xarray = True
-    try:
-        index = series[keys.time]
-    except KeyError:
-        xarray = False
-        index = series.index
-
-    autocorr = get_correlation(series, series, **kwargs)
-
-    # fmt: off
-    da = xr.DataArray(
-        autocorr,
-        dims=[keys.time],
-        coords={keys.time: index}, name=keys.autocorrelation,
-    )
-    # fmt: on
+    autocorr = _correlate(series, series, **kwargs)
+    if isinstance(series, np.ndarray):
+        result = autocorr
+    elif isinstance(series, pd.Series):
+        result = pd.Series(autocorr, index=series.index)
+    elif isinstance(series, xr.DataArray):
+        da = xr.DataArray(
+            autocorr, dims=series.dims, coords=series.coords, name=keys.autocorrelation
+        )
+        result = da
+    else:
+        raise TypeError("`series` not of type ndarray, Series, or DataArray?")
 
     timer()
 
-    if not xarray:
-        return da.to_series()
-
-    return da
+    return result
