@@ -1,11 +1,9 @@
 """compute and analyze heat fluxes"""
 import scipy.signal as sl
-import xarray as xr
 
 from vibes.correlation import get_autocorrelationNd
-from vibes.fourier import get_fft, get_frequencies
+from vibes.fourier import get_fourier_transformed
 from vibes.helpers import Timer, talk
-from vibes.trajectory.dataset import get_velocities_dataarray
 
 
 def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True):
@@ -13,36 +11,19 @@ def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True)
     return get_autocorrelationNd(velocities, normalize=True, window=False)
 
 
-def get_vdos(velocities=None, trajectory=None, verbose=True):
+def get_vdos(velocities=None, verbose=True):
     r"""compute vibrational DOS for trajectory
 
     vdos(w) = FT{\sum_i corr(v_i, v_i)(t)}(w)
 
     Args:
         velocities (xarray.DataArray [N_t, N_a, 3]): the velocities
-        trajectory: list of atoms objects
     Returns:
         vdos (xarray.DataArray [N_t, N_a, 3])
     """
-    if velocities is None and trajectory is not None:
-        velocities = get_velocities_dataarray(trajectory, verbose=verbose)
-
-    v_corr = get_autocorrelationNd(velocities, normalize=True, window=False)
-
     timer = Timer("Get VDOS", verbose=verbose)
-
-    omegas = get_frequencies(times=v_corr.time, verbose=verbose)
-
-    v_spec = get_fft(v_corr.data)
-
-    # fmt: off
-    df_vdos = xr.DataArray(
-        v_spec,
-        dims=["omega", *v_corr.dims[1:]],
-        coords={"omega": omegas}, name="vdos",
-    )
-    # fmt: on
-
+    v_corr = get_autocorrelationNd(velocities, normalize=True, window=False)
+    df_vdos = get_fourier_transformed(v_corr)
     timer()
 
     return df_vdos

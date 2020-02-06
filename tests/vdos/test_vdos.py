@@ -43,7 +43,7 @@ def test_vdos(
 ):
     traj = reader(parent / traj_file)
 
-    df_vdos = get_vdos(trajectory=traj)
+    df_vdos = get_vdos(traj.dataset.velocities)
 
     # get analytical frequencies
     freqs = test_frequencies_from_force_constants()
