@@ -1,5 +1,6 @@
 """Fourier Transforms"""
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from vibes import keys
@@ -12,7 +13,7 @@ Timer.prefix = _prefix
 
 def get_timestep(times, tol=1e-9):
     """get time step from a time series and check for glitches"""
-    d_times = (times - np.roll(times, 1))[1:]
+    d_times = np.asarray((times - np.roll(times, 1))[1:])
     timestep = np.mean(d_times)
 
     assert np.all(np.abs(d_times - timestep) < tol)
@@ -96,23 +97,30 @@ def get_fourier_transformed(series, verbose=True):
     """
     timer = Timer("Compute FFT", verbose=verbose)
 
-    try:
-        index = series[keys.time]
-    except KeyError:
-        index = series.index
+    fft = get_fft(series)
 
-    omegas = get_frequencies(times=index, verbose=verbose)
-
-    ft = get_fft(series)
-
-    # fmt: off
-    da = xr.DataArray(
-        ft,
-        dims=[keys.omega],
-        coords={keys.omega: omegas}, name=keys.fourier_transform,
-    )
-    # fmt: on
+    if isinstance(series, np.ndarray):
+        result = fft
+    elif isinstance(series, pd.Series):
+        omegas = get_frequencies(times=series.index, verbose=verbose)
+        result = pd.Series(fft, index=omegas)
+        result.index.name = keys.omega
+    elif isinstance(series, xr.DataArray):
+        try:
+            times = np.asarray(series[keys.time])
+            omegas = get_frequencies(times=times, verbose=verbose)
+        except (KeyError, IndexError):
+            omegas = get_frequencies(times=np.arange(len(series)), verbose=verbose)
+        da = xr.DataArray(
+            fft,
+            dims=(keys.omega, *series.dims[1:]),
+            coords={keys.omega: omegas},
+            name=keys.fourier_transform,
+        )
+        result = da
+    else:
+        raise TypeError("`series` not of type ndarray, Series, or DataArray?")
 
     timer()
 
-    return da
+    return result
