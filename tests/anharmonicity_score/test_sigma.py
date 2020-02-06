@@ -48,7 +48,7 @@ def test_sigma():
 
 
 def test_sigma_mode():
-    series = score.get_sigma_per_mode(trajectory.dataset)
+    _ = score.get_sigma_per_mode(trajectory.dataset)
 
     # numerically not stable!!!
     # assert np.allclose(series.iloc[3:].mean(), 1.099467483), series.mean()

@@ -7,9 +7,8 @@ import pandas as pd
 import scipy.signal as sl
 import xarray as xr
 from ase.io import read
-from matplotlib import pyplot as plt
 
-from vibes.green_kubo.velocities import get_vdos, get_velocity_autocorrelation
+from vibes.green_kubo.velocities import get_vdos
 from vibes.harmonic_analysis import dynamical_matrix as dm
 from vibes.tdep.wrapper import parse_tdep_forceconstant
 from vibes.trajectory import reader

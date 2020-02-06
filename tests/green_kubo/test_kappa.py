@@ -3,7 +3,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import xarray as xr
 from scipy import integrate as si
 from scipy import signal as sl
 

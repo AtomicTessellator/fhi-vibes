@@ -201,7 +201,7 @@ def _run_md(
     if harmonic is True:
         calc = FCCalculator(supercell, force_constants)
     else:
-        calc = lammps_si_tersoff_calculator()
+        raise RuntimeError("FIXME")
 
     # generic md settings
     settings = {"atoms": atoms, "timestep": dt * units.fs}

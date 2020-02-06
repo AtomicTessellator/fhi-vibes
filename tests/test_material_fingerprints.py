@@ -1,7 +1,5 @@
 """ Compute the phonon fingerprints for supercells of different size """
 
-from pathlib import Path
-
 import numpy as np
 from ase.build import bulk
 from ase.calculators.emt import EMT

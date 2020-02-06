@@ -2,7 +2,6 @@ import subprocess as sp
 from pathlib import Path
 
 import numpy as np
-from ase.io import read
 
 _filename = "frequencies.dat"
 parent = Path(__file__).parent
