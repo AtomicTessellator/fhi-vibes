@@ -60,14 +60,14 @@ def test_kappa(flux=flux_df.flux, ref_kappa=kappa_df.kappa):
         corr = get_autocorrelation(J, window=False, verbose=False)
         k.append(si.trapz(corr[:tmax]) * scale * step)
 
-    df = pd.DataFrame({"kappa": k}, index=time)
+    kappa = pd.Series(k, index=time)
 
-    assert (df.kappa - ref_kappa).std() < 0.1
+    assert (kappa - ref_kappa).std() < 0.1
 
     c = get_autocorrelation(flux, verbose=False) * scale
     k2 = get_cumtrapz(c)
 
-    assert (kappa_df.kappa.iloc[-1] - k2.iloc[tmax]) < 0.001
+    assert (ref_kappa.iloc[-1] - k2[tmax]) < 0.001
 
 
 if __name__ == "__main__":

@@ -32,15 +32,15 @@ def get_cumtrapz(series, **kwargs):
         ndarray/Series/DataArray: cumulative trapezoid rule applied
     """
     if isinstance(series, np.ndarray):
-        ct = _cumtrapz(series, **kwargs)
-        return ct
+        ctrapz = _cumtrapz(series, **kwargs)
+        return ctrapz
     elif isinstance(series, pd.Series):
-        ct = _cumtrapz(series, index=series.index, **kwargs)
-        return pd.Series(xr, index=series.index)
+        ctrapz = _cumtrapz(series, index=series.index, **kwargs)
+        return pd.Series(ctrapz, index=series.index)
     elif isinstance(series, xr.DataArray):
-        ct = _cumtrapz(series, index=series.coords, **kwargs)
+        ctrapz = _cumtrapz(series, index=series.coords, **kwargs)
         da = xr.DataArray(
-            ct, dims=series.dims, coords=series.coords, name=keys.cumtrapz
+            ctrapz, dims=series.dims, coords=series.coords, name=keys.cumtrapz
         )
         return da
 
