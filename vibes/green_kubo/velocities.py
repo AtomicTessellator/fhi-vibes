@@ -1,47 +1,16 @@
 """compute and analyze heat fluxes"""
-import numpy as np
 import scipy.signal as sl
 import xarray as xr
 
+from vibes.correlation import get_autocorrelationNd
 from vibes.fourier import get_fft, get_frequencies
 from vibes.helpers import Timer, talk
 from vibes.trajectory.dataset import get_velocities_dataarray
 
 
 def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True):
-    """compute velocity autocorrelation function from xarray
-
-    Args:
-        velocities (xarray.DataArray [N_t, N_a, 3]): the velocities
-        trajectory: list of atoms objects
-    Returns:
-        velocity_autocorrelation (xarray.DataArray [N_t, N_a, 3])
-    """
-    if velocities is None and trajectory is not None:
-        velocities = get_velocities_dataarray(trajectory, verbose=verbose)
-
-    timer = Timer("Get velocity autocorrelation", verbose=verbose)
-
-    Nt = len(velocities.time)
-
-    v_atom_corr = np.zeros_like(velocities)
-    for atom in velocities.I:
-        v_atom = velocities[:, atom]
-
-        for xx in range(3):
-            corr = sl.correlate(v_atom[:, xx], v_atom[:, xx])[Nt - 1 :] / Nt
-            v_atom_corr[:, atom, xx] = corr
-
-    df_corr = xr.DataArray(
-        v_atom_corr,
-        dims=velocities.dims,
-        coords=velocities.coords,
-        name="velocity_autocorrelation",
-    )
-
-    timer()
-
-    return df_corr
+    """LEGACY: compute velocity autocorrelation function from xarray"""
+    return get_autocorrelationNd(velocities, normalize=True, window=False)
 
 
 def get_vdos(velocities=None, trajectory=None, verbose=True):
@@ -58,7 +27,7 @@ def get_vdos(velocities=None, trajectory=None, verbose=True):
     if velocities is None and trajectory is not None:
         velocities = get_velocities_dataarray(trajectory, verbose=verbose)
 
-    v_corr = get_velocity_autocorrelation(velocities)
+    v_corr = get_autocorrelationNd(velocities, normalize=True, window=False)
 
     timer = Timer("Get VDOS", verbose=verbose)
 
