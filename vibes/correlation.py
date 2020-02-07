@@ -80,53 +80,81 @@ def get_autocorrelation(series, verbose=True, **kwargs):
 
 
 def get_autocorrelationNd(
-    array: xr.DataArray, off_diagonal: bool = False, verbose: bool = True, **kwargs
+    array: xr.DataArray,
+    off_diagonal_coords: bool = False,
+    off_diagonal_atoms: bool = False,
+    verbose: bool = True,
+    **kwargs,
 ) -> xr.DataArray:
     """compute velocity autocorrelation function for multi-dimensional xarray
 
+    Default: Compute diagonal terms only (I, a, I, a)
+
     Args:
         array (xarray.DataArray [N_t, N_a, 3]): data
-        off_diagonal (bool): return off-diagonal term (cross-correlations)
+        off_diagonal_coords (bool): return off-diagonal coordinates (I, a, b)
+        off_diagonal_atoms (bool): return off-diagonal atoms (I, J, a, b)
         kwargs: go to _correlate
     Returns:
         xarray.DataArray [N_t, N_a, 3]: autocorrelation along axis=0, or
+        xarray.DataArray [N_t, N_a, 3, 3]: autocorrelation along axis=0, or
         xarray.DataArray [N_t, N_a, N_a, 3, 3]: autocorrelation along axis=0
     """
     msg = "Get Nd autocorrelation"
-    if off_diagonal:
-        msg += " including off-diagonal terms"
+    if off_diagonal_atoms:
+        off_diagonal_coords = True
+        msg += " including off-diagonal terms and coordinates"
     timer = Timer(msg, verbose=verbose)
 
     Nt, *shape = np.shape(array)
+
     dims = array.dims
 
-    corr = np.zeros([*np.repeat(shape, 2), Nt])
     if dims == dimensions.time_vec:
         new_dims = dimensions.time_tensor
     elif dims == dimensions.time_atom_vec:
-        new_dims = dimensions.time_atom_atom_tensor
+        new_dims = dimensions.time_atom_tensor
     else:
-        new_dims = np.repeat(dims, 2)
+        raise TypeError(f"FIXME: Dimensions not implemented: {dims}")
 
-    if not off_diagonal:
-        corr = np.zeros([*shape, Nt])
-        new_dims = dims
-
+    # move time axis to end
     data = np.moveaxis(np.asarray(array), 0, -1)
-    if not off_diagonal:
-        for Ia in np.ndindex(*shape):
-            tmp = _correlate(data[Ia], data[Ia], **kwargs)
-            corr[Ia] = tmp
-    else:
-        # corr = _autocorrelationNd(data, corr, Nt, shape)
+
+    # expand fake atoms axis?
+    if len(data.shape) < 3:
+        if off_diagonal_atoms:
+            raise ValueError(f"Presumably not atoms given, inspect! Array dims:", dims)
+        shape = (1, *shape)
+        data = data[np.newaxis, :]
+
+    # compute autocorrelation
+    if off_diagonal_atoms and off_diagonal_coords:
+        new_dims = dimensions.time_atom_atom_tensor
+        corr = np.zeros([*np.repeat(shape, 2), Nt])
         for Ia in np.ndindex(*shape):
             for Jb in np.ndindex(*shape):
                 tmp = _correlate(data[Ia], data[Jb], **kwargs)
                 idx = tuple(chain.from_iterable(zip(Ia, Jb)))  # flatten
                 corr[idx] = tmp
+    elif off_diagonal_coords:
+        corr = np.zeros([*shape, shape[-1], Nt])
+        for Ia in np.ndindex(*shape):
+            for b in range(shape[-1]):
+                Jb = (Ia[0], b)
+                tmp = _correlate(data[Ia], data[Jb], **kwargs)
+                corr[(*Ia, b)] = tmp
+    else:
+        new_dims = new_dims[:-1]
+        corr = np.zeros([*shape, Nt])
+        for Ia in np.ndindex(*shape):
+            tmp = _correlate(data[Ia], data[Ia], **kwargs)
+            corr[Ia] = tmp
+
+    # move time axis back to 0 and remove aux. axis
+    corr = np.moveaxis(corr, -1, 0).squeeze()
 
     df_corr = xr.DataArray(
-        np.moveaxis(corr, -1, 0),
+        corr,
         dims=new_dims,
         coords=array.coords,
         name=f"{array.name}_{keys.autocorrelation}",
