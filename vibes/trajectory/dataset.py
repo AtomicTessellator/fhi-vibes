@@ -43,7 +43,7 @@ def _attrs(trajectory, dct=None, metadata=False):
 
     # handle non-periodic systems
     try:
-        attrs.update({"volume": trajectory.volume})
+        attrs.update({keys.volume: trajectory.volume})
     except ValueError:
         pass
 

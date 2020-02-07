@@ -13,6 +13,7 @@ reference_positions = "positions_reference"
 reference_lattice = "lattice_reference"
 metadata = "raw_metadata"
 
+volume = "volume"
 positions = "positions"
 velocities = "velocities"
 
@@ -28,6 +29,12 @@ heat_flux = "heat_flux"
 heat_fluxes = "heat_fluxes"
 heat_flux_aux = "heat_flux_aux"
 heat_fluxes_aux = "heat_fluxes_aux"
+
+gk_prefactor = "gk_prefactor"
+hfacf = "hfacf"
+hfacf_scalar = "hfacf_scalar"
+kappa_cumulative = "kappa_cumulative"
+kappa_cumulative_scalar = "kappa_cumulative_scalar"
 
 sigma = "sigma"
 sigma_per_sample = "sigma_per_sample"
