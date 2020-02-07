@@ -5,6 +5,7 @@ from ase import units
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.correlation import get_autocorrelationNd
+from vibes.fourier import get_fourier_transformed
 from vibes.helpers import xtrace
 from vibes.integrate import get_cumtrapz
 
@@ -38,6 +39,13 @@ def gk_prefactor(
     return float(prefactor)
 
 
+def get_gk_prefactor_from_dataset(dataset: xr.Dataset, verbose: bool = True) -> float:
+    """get the GK prefactor for the dataset, wraps `gk_prefactor`"""
+    volume = dataset.attrs[keys.volume]
+    temperature = dataset[keys.temperature].mean()
+    return gk_prefactor(volume=volume, temperature=temperature, verbose=verbose)
+
+
 def get_kappa_cumulative_dataset(
     dataset: xr.Dataset,
     full: bool = False,
@@ -56,19 +64,17 @@ def get_kappa_cumulative_dataset(
         dataset containing
             hfacf, hfacf_scalar, kappa_cumulative, kappa_cumulative_scalar
     """
-    volume = dataset.attrs[keys.volume]
-    temperature = dataset[keys.temperature].mean()
-    pref = gk_prefactor(volume=volume, temperature=temperature, verbose=verbose)
+    pref = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
 
     kw = {"prefactor": pref, "verbose": verbose}
 
     if full:
-        fluxes = dataset[keys.heat_fluxes]
+        fluxes = dataset[keys.heat_fluxes].copy()
         if aux:
             fluxes += dataset[keys.heat_fluxes_aux]
         J_corr = get_heat_flux_aurocorrelation(fluxes=fluxes, **kw)
     else:
-        flux = dataset[keys.heat_flux]
+        flux = dataset[keys.heat_flux].copy()
         if aux:
             flux += dataset[keys.heat_flux_aux]
         J_corr = get_heat_flux_aurocorrelation(flux=flux, **kw)
@@ -126,3 +132,27 @@ def get_heat_flux_aurocorrelation(
     timer()
 
     return da
+
+
+def get_heat_flux_power_spectrum(
+    flux: xr.DataArray = None, prefactor: float = 1.0, verbose: bool = True
+) -> xr.DataArray:
+    """compute heat flux power spectrum
+
+    Args:
+        flux (xr.DataArray, optional): heat flux [Nt, 3. Defaults to xr.DataArray.
+        prefactor (float, optional): prefactor to convert to W/mK/fs
+        verbose (bool, optional): be verbose
+
+    Returns:
+        xr.DataArray: heat_flux_power_spectrum
+    """
+    timer = Timer("Get heat flux power spectrum from heat flux", verbose=verbose)
+
+    Jw = get_fourier_transformed(flux.dropna(dims.time))
+
+    Jspec = abs(Jw)
+
+    timer()
+
+    return Jspec

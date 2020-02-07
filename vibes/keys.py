@@ -35,6 +35,7 @@ hfacf = "hfacf"
 hfacf_scalar = "hfacf_scalar"
 kappa_cumulative = "kappa_cumulative"
 kappa_cumulative_scalar = "kappa_cumulative_scalar"
+heat_flux_power_spectrum = "heat_flux_power_spectrum "
 
 sigma = "sigma"
 sigma_per_sample = "sigma_per_sample"
