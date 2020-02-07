@@ -2,17 +2,16 @@
 import numpy as np
 from scipy.optimize import curve_fit
 
-from vibes.helpers import Timer
-from vibes.helpers import talk as _talk
+from vibes.helpers import Timer, talk
 
 _prefix = "GreenKubo"
 
 Timer.prefix = _prefix
 
 
-def talk(msg, **kw):
+def _talk(msg, **kw):
     """wrapper for `utils.talk` with prefix"""
-    return _talk(msg, prefix=_prefix, **kw)
+    return talk(msg, prefix=_prefix, **kw)
 
 
 def F_avalanche(series, delta="auto", verbose=True):
@@ -50,10 +49,10 @@ def F_avalanche(series, delta="auto", verbose=True):
         delta = len(series[series.index < tau])
 
         if verbose:
-            talk(f"Pre-est. correlation time (drop below 1/e): {idx:10.2f} fs")
-            talk(f".. use {len(x)} data points to fit exponential")
-            talk(f".. estimated correlation time:              {tau:10.2f} fs")
-            talk(f"-> choose delta of size: {delta:20d} data points")
+            _talk(f"est. corr. time (drop below 1/e): {idx:10.2f} fs")
+            _talk(f".. use {len(x)} data points to fit exponential")
+            _talk(f".. estimated correlation time:              {tau:10.2f} fs")
+            _talk(f"-> choose delta of size: {delta:20d} data points")
 
         assert 0.5 < idx / tau < 2, (idx, tau)
 
@@ -76,6 +75,6 @@ def t_avalanche(series, Fmax=1, verbose=True, **kwargs):
     tmax = F[F > Fmax].index[0]
 
     if verbose:
-        talk(f"-> avalanche time with max. F of {Fmax:2d}: {tmax:17.2f} fs")
+        _talk(f"-> avalanche time with max. F of {Fmax:2d}: {tmax:17.2f} fs")
 
     return tmax

@@ -6,7 +6,6 @@ from ase.calculators.calculator import PropertyNotImplementedError
 
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
-from vibes.fourier import get_timestep
 from vibes.helpers import lazy_property, warn
 from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.helpers.displacements import get_dR
@@ -200,6 +199,8 @@ class Trajectory(list):
     @property
     def timestep(self):
         """ return the timestep in fs"""
+        from vibes.fourier import get_timestep
+
         return get_timestep(self.times)
 
     @lazy_property

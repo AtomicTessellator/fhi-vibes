@@ -8,7 +8,6 @@ from vibes.helpers import Timer, talk, warn
 from vibes.konstanten.einheiten import THz_to_cm
 
 _prefix = "Fourier"
-Timer.prefix = _prefix
 
 
 def get_timestep(times, tol=1e-9):
@@ -56,7 +55,7 @@ def get_frequencies(
         msg += f"-> maximum frequency:      {np.max(w):.5} THz\n"
         msg += f".. Number of steps:        {N}\n"
         msg += f"-> frequency resolution:   {dw:.5f} THz\n"
-        talk(msg)
+        talk(msg, prefix=_prefix)
 
     if to_cm:
         w *= THz_to_cm
@@ -95,7 +94,7 @@ def get_fourier_transformed(series, verbose=True):
     Return:
         DataArray ([N_t, ...]): FT(series) with `omega` axis in THz
     """
-    timer = Timer("Compute FFT", verbose=verbose)
+    timer = Timer("Compute FFT", verbose=verbose, prefix=_prefix)
 
     fft = get_fft(series)
 
