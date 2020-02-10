@@ -1,5 +1,6 @@
 """vibes CLI utils"""
 
+from vibes.helpers.utils import talk
 from vibes.keys import default_backup_folder
 
 from .misc import AliasedGroup, ClickAliasedGroup, click, complete_filenames
@@ -16,6 +17,27 @@ def utils():
 def geometry():
     """utils for working with structures"""
     ...
+
+
+@utils.command(aliases=["hash"])
+@click.argument("file", type=complete_filenames)
+@click.option("--dry", is_flag=True, help="Only print hash to stdout")
+@click.option("-o", "--outfile", default="hash.toml", show_default=True)
+def hash_file(file, dry, outfile):
+    """create sha hash for FILE"""
+    import time
+    from vibes.helpers.hash import hashfunc
+
+    timestr = time.strftime("%Y/%m/%d_%H:%M:%S")
+
+    hash = hashfunc(open(file).read())
+    talk(f'Hash for "{file}":\n  {hash}')
+
+    if not dry:
+        with open(outfile, "a") as f:
+            f.write(f"\n# {timestr}")
+            f.write(f'\n"{file}": "{hash}"')
+        talk(f".. written to {outfile}")
 
 
 @geometry.command("2frac")
@@ -265,16 +287,36 @@ def nomad():
 
 
 @nomad.command("upload")
-@click.argument("folders", nargs=-1, type=complete_filenames)
+@click.argument("files", nargs=-1, type=complete_filenames)
 @click.option("--token", help="nomad token, otherwise read from .vibesrc")
-@click.option("--tar", is_flag=True, help="tar folders before upload")
+@click.option("--name", help="nomad upload name")
 @click.option("--legacy", is_flag=True, help="use old Nomad")
 @click.option("--dry", is_flag=True, help="only show the commands")
-def tool_nomad_upload(folders, token, tar, legacy, dry):
-    """upload the calculations in FOLDERS to NOMAD"""
+def tool_nomad_upload(files, token, name, legacy, dry):
+    """upload FILES to NOMAD"""
     from vibes.scripts.nomad_upload import nomad_upload
 
-    nomad_upload(folders, token, tar, legacy, dry)
+    nomad_upload(files, token, legacy, dry, name=name)
+
+
+@nomad.command("unzip")
+@click.argument("files", nargs=-1, type=complete_filenames)
+@click.option("--suffix", default="_tmp", show_default=True)
+def unzip(files, suffix):
+    """unzip all backup FILES"""
+    from pathlib import Path
+    import tarfile
+
+    for file in files:
+        cwd = Path(file).stem + suffix
+
+        talk(f'Exctract "{file}" into "{cwd}"')
+
+        try:
+            with tarfile.open(file) as f:
+                f.extractall(path=cwd)
+        except tarfile.ReadError:
+            talk(f'** Read error for file "{file}"')
 
 
 @utils.group()

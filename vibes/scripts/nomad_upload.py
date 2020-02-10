@@ -6,49 +6,48 @@ from argparse import ArgumentParser
 from vibes import Settings
 from vibes.helpers import Timer
 
-
 new_addr = "http://repository.nomad-coe.eu/app/api/uploads/?token="
 old_addr = "http://nomad-repository.eu:8000"
 
 
-def upload_command(folder, token, tar=False, legacy=False):
+def upload_command(files: list, token: str, legacy: bool = False, name: str = None):
     """Generate the NOMAD upload command
 
     Args:
         folder: The folder to upload
         token: The NOMAD token
-        tar: tar folder before upload
         legacy: use old NOMAD
+        name: nomad upload name
 
     Returns:
         str: The upload command
     """
-    cmd = ""
+    name_str = ""
+    if name is not None:
+        name_str = f"&name={name}"
+
+    file_str = " ".join((str(f) for f in sorted(files)))
+    cmd = f"tar czf - {file_str} | "
 
     if legacy:
-        if tar:
-            cmd += f"tar cf - {folder} | "
-        cmd = +(
-            f"curl -XPUT -# -HX-Token:{token} " f"-N -F file=@- {old_addr} | xargs echo"
-        )
+        cmd = +(f"curl -XPUT -# -HX-Token:{token} " f"-N -F file=@- {old_addr}")
     else:
-        if tar:
-            cmd += f"tar czf - {folder} | "
+        cmd += f'curl "{new_addr}{token}{name_str}" -T'
 
-        cmd += f'curl "{new_addr}{token}" -T {folder}' " | xargs echo"
+    cmd += " - | xargs echo"
 
     return cmd
 
 
-def nomad_upload(folders, token=None, tar=False, legacy=False, dry=False):
+def nomad_upload(files=None, token=None, legacy=False, dry=False, name: str = None):
     """upload folders with calculations to NOMAD
 
     Args:
-        folders: The folders to upload
+        files: The files to upload
         token: The NOMAD token
-        tar: tar folder before upload
         legacy: use old NOMAD
         dry: only show upload command
+        name: nomad upload name
     """
     timer = Timer()
 
@@ -61,22 +60,15 @@ def nomad_upload(folders, token=None, tar=False, legacy=False, dry=False):
         exit("** Token is missing, chech your .vibesrc or provide manually")
 
     # from ASE
-    if not folders:
+    if files is None:
         exit("No folders specified -- another job well done!")
 
-    for ii, folder in enumerate(folders):
+    cmd = upload_command(files, token, legacy, name=name)
 
-        cmd = upload_command(folder, token, tar, legacy)
-
-        if dry:
-            print(f"Upload command {ii+1}:\n{cmd}")
-        else:
-            print(f"Upload folder {folder:30} ({ii+1} of {len(folders)})")
-            print(f"  with command  {cmd}")
-
-            subprocess.check_call(cmd, shell=True)
+    print(f"Upload command:\n{cmd}")
 
     if not dry:
+        subprocess.check_call(cmd, shell=True)
         timer(f"Nomad upload finished")
 
 
