@@ -299,26 +299,6 @@ def tool_nomad_upload(files, token, name, legacy, dry):
     nomad_upload(files, token, legacy, dry, name=name)
 
 
-@nomad.command("unzip")
-@click.argument("files", nargs=-1, type=complete_filenames)
-@click.option("--suffix", default="_tmp", show_default=True)
-def unzip(files, suffix):
-    """unzip all backup FILES"""
-    from pathlib import Path
-    import tarfile
-
-    for file in files:
-        cwd = Path(file).stem + suffix
-
-        talk(f'Exctract "{file}" into "{cwd}"')
-
-        try:
-            with tarfile.open(file) as f:
-                f.extractall(path=cwd)
-        except tarfile.ReadError:
-            talk(f'** Read error for file "{file}"')
-
-
 @utils.group()
 def trajectory():
     """trajectory utils"""

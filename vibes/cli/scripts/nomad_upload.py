@@ -1,16 +1,23 @@
 """ Summarize output from ASE.md class (in md.log) """
 
+import shutil
 import subprocess
+import tarfile
+import tempfile
 from argparse import ArgumentParser
+from pathlib import Path
 
 from vibes import Settings
-from vibes.helpers import Timer
+from vibes.helpers import Timer, talk
 
 new_addr = "http://repository.nomad-coe.eu/app/api/uploads/?token="
 old_addr = "http://nomad-repository.eu:8000"
+upload_folder_dry = "nomad_upload_dry"
 
 
-def upload_command(files: list, token: str, legacy: bool = False, name: str = None):
+def upload_command(
+    files: list, token: str, legacy: bool = False, name: str = None
+) -> str:
     """Generate the NOMAD upload command
 
     Args:
@@ -27,7 +34,7 @@ def upload_command(files: list, token: str, legacy: bool = False, name: str = No
         name_str = f"&name={name}"
 
     file_str = " ".join((str(f) for f in sorted(files)))
-    cmd = f"tar czf - {file_str} | "
+    cmd = f"tar cf - {file_str} | "
 
     if legacy:
         cmd = +(f"curl -XPUT -# -HX-Token:{token} " f"-N -F file=@- {old_addr}")
@@ -39,7 +46,14 @@ def upload_command(files: list, token: str, legacy: bool = False, name: str = No
     return cmd
 
 
-def nomad_upload(files=None, token=None, legacy=False, dry=False, name: str = None):
+def nomad_upload(
+    files: list = None,
+    token: str = None,
+    legacy: bool = False,
+    dry: bool = False,
+    name: str = None,
+    tmp_prefix: str = "nomad_upload_",
+) -> None:
     """upload folders with calculations to NOMAD
 
     Args:
@@ -48,6 +62,7 @@ def nomad_upload(files=None, token=None, legacy=False, dry=False, name: str = No
         legacy: use old NOMAD
         dry: only show upload command
         name: nomad upload name
+        tmp_prefix: name of the tmpdir prefix to be used to upload from
     """
     timer = Timer()
 
@@ -63,12 +78,34 @@ def nomad_upload(files=None, token=None, legacy=False, dry=False, name: str = No
     if files is None:
         exit("No folders specified -- another job well done!")
 
-    cmd = upload_command(files, token, legacy, name=name)
+    # copy files to tmpdir, unzip if necessary
+    tmp_files = []
+    if dry:
+        tmp_dir = Path(upload_folder_dry)
+    else:
+        tmp_dir = Path(tempfile.mkdtemp(prefix=tmp_prefix, dir="."))
+    for file in files:
+        path = tmp_dir / file
+        if path.suffix == ".tgz":
+            path = tmp_dir / path.stem
 
+        talk(f'Exctract "{file}" into "{path}"')
+        try:
+            with tarfile.open(file) as f:
+                f.extractall(path=path)
+            tmp_files.append(path)
+        except IsADirectoryError:
+            shutil.copytree(file, path)
+            tmp_files.append(path)
+        except tarfile.ReadError:
+            talk(f'** Read error for file "{file}"')
+
+    # upload
+    cmd = upload_command(tmp_files, token, legacy, name=name)
     print(f"Upload command:\n{cmd}")
-
     if not dry:
         subprocess.check_call(cmd, shell=True)
+        shutil.rmtree(tmp_dir)
         timer(f"Nomad upload finished")
 
 
