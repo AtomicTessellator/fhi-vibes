@@ -2,6 +2,7 @@
 import ase
 import numpy as np
 
+from vibes.cli.scripts.create_samples import generate_samples
 from vibes.helpers.attribute_dict import AttributeDict
 from vibes.helpers.converters import calc2dict, dict2atoms, input2dict
 from vibes.helpers.k_grid import k2d, update_k_grid
@@ -13,7 +14,6 @@ from vibes.phonopy.utils import (
     remap_force_constants,
 )
 from vibes.phonopy.wrapper import preprocess as get_debye_temperature
-from vibes.scripts.create_samples import generate_samples
 from vibes.settings import Settings, TaskSettings
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader

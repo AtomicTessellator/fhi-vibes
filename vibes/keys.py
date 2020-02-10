@@ -31,3 +31,6 @@ heat_fluxes_aux = "heat_fluxes_aux"
 
 sigma = "sigma"
 sigma_per_sample = "sigma_per_sample"
+
+# file management
+default_backup_folder = "backups"

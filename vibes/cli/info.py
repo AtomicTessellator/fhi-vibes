@@ -49,7 +49,7 @@ def geometry_info(obj, filename, format, symprec, verbose):
 def md_info(filename, plot, write, avg, verbose):
     """inform about content of a settings.in file"""
     import xarray as xr
-    from vibes.scripts.md_sum import md_sum
+    from .scripts.md_sum import md_sum
     from vibes.trajectory import analysis as al, reader
 
     file = Path(filename)
@@ -76,7 +76,7 @@ def md_info(filename, plot, write, avg, verbose):
 @click.option("--format", default="aims", show_default=True)
 def phonopy_info(filename, write_supercell, format):
     """inform about a phonopy calculation before it is started"""
-    from vibes.scripts.vibes_phonopy import preprocess
+    from .scripts.vibes_phonopy import preprocess
 
     preprocess(
         filename=None,

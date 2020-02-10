@@ -7,6 +7,7 @@ from vibes import son
 from vibes.helpers import talk, warn
 from vibes.helpers.aims import get_aims_uuid_dict
 from vibes.helpers.backup import backup_folder as backup
+from vibes.helpers.backup import default_backup_folder
 from vibes.helpers.paths import cwd
 from vibes.helpers.restarts import restart
 from vibes.helpers.socketio import (
@@ -19,7 +20,6 @@ from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.trajectory import metadata2file, step2file
 
 from ._defaults import name
-
 
 _calc_dirname = "calculations"
 # _socket_timeout = 60
@@ -39,7 +39,7 @@ def run_md(ctx, timeout=None):
         talk("done.", prefix=_prefix)
 
 
-def run(ctx, backup_folder="backups"):
+def run(ctx, backup_folder=default_backup_folder):
     """run and MD for a specific time
 
     Args:
