@@ -84,3 +84,4 @@ my_pyproject.toml
 vibes.md
 
 .coverage
+coverage.xml

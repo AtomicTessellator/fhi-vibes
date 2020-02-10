@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pytest
 
+from vibes.cli.scripts.nomad_upload import upload_folder_dry as nomad_upload_folder
+
 parent = Path(__file__).parent
 
 
@@ -19,6 +21,7 @@ commands_files = [
     ["vibes utils trajectory 2db", "trajectory.db"],
     ["vibes utils trajectory 2tdep", "tdep"],
     ["vibes utils trajectory pick_sample -n 1", "geometry.in.1"],
+    ["vibes utils nomad upload calculations --dry", nomad_upload_folder],
 ]
 
 commands_tmpdir = ["vibes template aims"]

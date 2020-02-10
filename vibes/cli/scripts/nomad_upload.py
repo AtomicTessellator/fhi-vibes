@@ -64,7 +64,7 @@ def nomad_upload(
         name: nomad upload name
         tmp_prefix: name of the tmpdir prefix to be used to upload from
     """
-    timer = Timer()
+    timer = Timer("Perform Nomad upload")
 
     settings = Settings()
 
@@ -88,6 +88,10 @@ def nomad_upload(
         path = tmp_dir / file
         if path.suffix == ".tgz":
             path = tmp_dir / path.stem
+
+        if path.exists():
+            talk(f'Clean up "{path}"')
+            shutil.rmtree(path)
 
         talk(f'Exctract "{file}" into "{path}"')
         try:
