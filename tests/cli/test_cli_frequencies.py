@@ -11,13 +11,9 @@ parent = Path(__file__).parent
 cmd = r"""vibes utils fc frequencies"""
 
 
-def test_run_cmd():
-    """create samples with the cli tool"""
-    sp.run(cmd.split(), cwd=parent)
-
-
 def test_output():
     """check created frequencies vs reference"""
+    sp.run(cmd.split(), cwd=parent)
     file = parent / _filename
     frequencies = np.loadtxt(file)
     reference = np.loadtxt(parent / "ref" / _filename)
@@ -32,5 +28,4 @@ def test_output():
 
 
 if __name__ == "__main__":
-    test_run_cmd()
     test_output()

@@ -22,6 +22,8 @@ commands_files = [
     ["vibes utils trajectory 2tdep", "tdep"],
     ["vibes utils trajectory pick_sample -n 1", "geometry.in.1"],
     ["vibes utils nomad upload calculations --token test --dry", nomad_upload_folder],
+    ["vibes utils hash trajectory.son", "hash.toml"],
+    ["vibes utils fc frequencies", "frequencies.dat"],
 ]
 
 commands_tmpdir = ["vibes template aims"]
