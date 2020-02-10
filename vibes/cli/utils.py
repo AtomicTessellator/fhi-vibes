@@ -85,7 +85,7 @@ def to_cartesian(filename, output_filename, format):
 @click.option("-t", "--symprec", default=1e-5)
 def geometry_refine(*args, **kwargs):
     """vibes.scripts.refine_geometry"""
-    from vibes.scripts.refine_geometry import refine_geometry
+    from .scripts.refine_geometry import refine_geometry
 
     refine_geometry(*args, **kwargs)
 
@@ -114,7 +114,7 @@ def tool_make_supercell(
     wrap,
 ):
     """create a supercell of desired shape or size"""
-    from vibes.scripts.make_supercell import make_supercell
+    from .scripts.make_supercell import make_supercell
 
     if diagonal_dimension:
         dimension = diagonal_dimension
@@ -141,7 +141,7 @@ def tool_make_supercell(
 @click.argument("filenames", nargs=-1, type=complete_filenames)
 def get_relaxation_info(filenames):
     """analyze aims relaxation"""
-    from vibes.scripts.get_relaxation_info import get_relaxation_info
+    from .scripts.get_relaxation_info import get_relaxation_info
 
     get_relaxation_info(filenames)
 
@@ -163,7 +163,7 @@ def get_relaxation_info(filenames):
 @click.option("--format", default="aims")
 def create_samples(**kwargs):
     """create samples from geometry in FILENAME"""
-    from vibes.scripts.create_samples import create_samples
+    from .scripts.create_samples import create_samples
 
     click.echo("vibes CLI: create_samples")
     create_samples(**kwargs)
@@ -176,7 +176,7 @@ def create_samples(**kwargs):
 @click.option("--format", default="aims")
 def tool_suggest_k_grid(filename, density, uneven, format):
     """suggest a k_grid for geometry in FILENAME based on density"""
-    from vibes.scripts.suggest_k_grid import suggest_k_grid
+    from .scripts.suggest_k_grid import suggest_k_grid
 
     click.echo("vibes CLI: suggest_k_grid")
     suggest_k_grid(filename, density, uneven, format)
@@ -294,7 +294,7 @@ def nomad():
 @click.option("--dry", is_flag=True, help="only show the commands")
 def tool_nomad_upload(files, token, name, legacy, dry):
     """upload FILES to NOMAD"""
-    from vibes.scripts.nomad_upload import nomad_upload
+    from .scripts.nomad_upload import nomad_upload
 
     nomad_upload(files, token, legacy, dry, name=name)
 
