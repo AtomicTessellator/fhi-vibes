@@ -32,5 +32,10 @@ heat_fluxes_aux = "heat_fluxes_aux"
 sigma = "sigma"
 sigma_per_sample = "sigma_per_sample"
 
+# time
+time = "time"
+omega = "omega"
+fourier_transform = "fourier_transform"
+
 # file management
 default_backup_folder = "backups"

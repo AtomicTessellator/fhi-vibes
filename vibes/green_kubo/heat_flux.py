@@ -25,15 +25,13 @@ def gk_prefactor(volume, temperature, verbose=True):
     V = float(volume)
     T = float(temperature)
     prefactor = 1 / units.kB / T ** 2 * 1602 * V / 1000  # / 3  # * 1000
-    talk(
-        [
-            f"Compute Prefactor:",
-            f".. Volume:       {V:10.2f}  AA^3",
-            f".. Temperature:  {T:10.2f}  K",
-            f"-> Prefactor:    {prefactor:10.2f}  W/mK / (eV/AA^/ps)",
-        ],
-        verbose=verbose,
-    )
+    msg = [
+        f"Compute Prefactor:",
+        f".. Volume:       {V:10.2f}  AA^3",
+        f".. Temperature:  {T:10.2f}  K",
+        f"-> Prefactor:    {prefactor:10.2f}  W/mK / (eV/AA^/ps)",
+    ]
+    talk(msg, verbose=verbose)
     return float(prefactor)
 
 

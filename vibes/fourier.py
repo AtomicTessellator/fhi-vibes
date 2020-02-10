@@ -1,8 +1,13 @@
 """Fourier Transforms"""
 import numpy as np
+import xarray as xr
 
-from vibes.helpers import talk
+from vibes import keys
+from vibes.helpers import Timer, talk
 from vibes.konstanten.einheiten import THz_to_cm
+
+_prefix = "Fourier"
+Timer.prefix = _prefix
 
 
 def get_timestep(times, tol=1e-9):
@@ -65,10 +70,10 @@ def compute_sed(series):
         series (np.ndarray [N_t, ...]): time series, first dimension is the time axis
 
     Returns:
-        Fourier transform of series
+        np.ndarray: Fourier transform of series
     """
 
-    velocities = series.copy()
+    velocities = np.asarray(series)
 
     N = series.shape[0]
 
@@ -76,3 +81,36 @@ def compute_sed(series):
     velocities = np.fft.fft(velocities, axis=-1)
 
     return velocities.swapaxes(-1, 0)[: N // 2]
+
+
+def get_fourier_transformed(series, verbose=True):
+    """Perform Fourier Transformation of Series/DataArray
+
+    Args:
+        series ([N_t, ...]): pandas.Series/xarray.DataArray with `time` axis in fs
+        verbose (bool): be verbose
+    Return:
+        series ([N_t, ...]): FT(series) with `omega` axis in THz
+    """
+    timer = Timer("Compute FFT", verbose=verbose)
+
+    try:
+        index = series[keys.time]
+    except KeyError:
+        index = series.index
+
+    omegas = get_frequencies(times=index, verbose=verbose)
+
+    ft = compute_sed(series)
+
+    # fmt: off
+    da = xr.DataArray(
+        ft,
+        dims=[keys.omega],
+        coords={keys.omega: omegas}, name=keys.fourier_transform,
+    )
+    # fmt: on
+
+    timer()
+
+    return da
