@@ -1,5 +1,7 @@
 """vibes CLI utils"""
 
+from vibes.keys import default_backup_folder
+
 from .misc import AliasedGroup, ClickAliasedGroup, click, complete_filenames
 
 xrange = range
@@ -467,3 +469,14 @@ def describe(filename):
 
     click.echo(f"Describe {type(df)} from {filename}:")
     click.echo(df.describe())
+
+
+@utils.command("backup")
+@click.argument("folder", type=complete_filenames)
+@click.option("--target", default=default_backup_folder, show_default=True)
+@click.option("--nozip", is_flag=True)
+def perform_backup(folder, target, nozip):
+    """backup FOLDER to TARGET"""
+    from vibes.helpers.backup import backup_folder
+
+    backup_folder(folder, target_folder=target, zip=not nozip)
