@@ -8,7 +8,7 @@ from vibes.helpers import Timer, talk
 
 def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True):
     """LEGACY: compute velocity autocorrelation function from xarray"""
-    return get_autocorrelationNd(velocities, normalize=True, window=False)
+    return get_autocorrelationNd(velocities, normalize=True, hann=False)
 
 
 def get_vdos(velocities=None, verbose=True):
@@ -22,7 +22,7 @@ def get_vdos(velocities=None, verbose=True):
         vdos (xarray.DataArray [N_t, N_a, 3])
     """
     timer = Timer("Get VDOS", verbose=verbose)
-    v_corr = get_autocorrelationNd(velocities, normalize=True, window=False)
+    v_corr = get_autocorrelationNd(velocities, normalize=True, hann=False)
     df_vdos = get_fourier_transformed(v_corr)
     timer()
 

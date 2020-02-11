@@ -59,7 +59,7 @@ def test_kappa(flux=flux_df.flux, ref_kappa=kappa_df.kappa):
     for nmax in time:
         # corr = get_corr(flux_df.flux, step=step, nmax=nmax, window=False)[:]
         J = flux.iloc[:nmax:step]
-        corr = get_autocorrelation(J, window=False, verbose=False)
+        corr = get_autocorrelation(J, hann=False, verbose=False)
         k.append(si.trapz(corr[:tmax]) * scale * step)
 
     kappa = pd.Series(k, index=time)
