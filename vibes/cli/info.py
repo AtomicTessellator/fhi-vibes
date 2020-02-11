@@ -1,11 +1,10 @@
 """`vibes info` backend"""
-
 from pathlib import Path
 
-from .misc import AliasedGroup, click, complete_filenames
+from .misc import ClickAliasedGroup, click, complete_filenames
 
 
-@click.command(cls=AliasedGroup)
+@click.command(cls=ClickAliasedGroup)
 def info():
     """inform about content of a file"""
 
@@ -28,16 +27,6 @@ def geometry_info(obj, filename, format, symprec, verbose):
         verbosity = 2
 
     inform(atoms, symprec=symprec, verbosity=verbosity)
-
-
-# @info.command("settings")
-# @click.argument("filename", default="settings.in")
-# @click.pass_obj
-# def settings_info(obj, filename):
-#     """inform about content of a settings.in file"""
-#
-#     settings = Settings(filename)
-#     settings.print()
 
 
 @info.command("md")
@@ -134,3 +123,25 @@ def show_hdf5_file(file, verbose):
             for k in store:
                 click.echo(f"Describe {k}")
                 click.echo(store[k].describe())
+
+
+@info.command(aliases=["hf"])
+@click.argument("dataset", default="trajectory.nc")
+@click.option("-p", "--plot", is_flag=True, help="plot summary")
+@click.option("--no_hann", is_flag=True)
+@click.option("--logx", is_flag=True)
+@click.option("--xlim", type=float, help="xlim range in ps")
+def heatflux(dataset, plot, no_hann, logx, xlim):
+    import xarray as xr
+    from vibes.green_kubo.analysis import summary, plot_summary
+
+    DS = xr.load_dataset(dataset)
+
+    (df_time, df_freq) = summary(DS, hann=not no_hann)
+
+    if plot:
+        fig = plot_summary(df_time, df_freq, logx=logx, xlim=xlim)
+
+        fname = Path(dataset).stem + "_hf_summary.pdf"
+        fig.savefig(fname, bbox_inches="tight")
+        click.echo(f".. summary plotted to {fname}")

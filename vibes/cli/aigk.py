@@ -1,12 +1,8 @@
 """vibes CLI utils"""
-
-# import scipy.signal as sl
-# import xarray as xr
-# from vibes.trajectory import reader
-from .misc import AliasedGroup, click, complete_filenames
+from .misc import ClickAliasedGroup, click, complete_filenames
 
 
-@click.command(cls=AliasedGroup)
+@click.command(cls=ClickAliasedGroup)
 def aiGK():
     """tools for (ab initio) Green Kubo, WORK IN PROGRESS"""
 
@@ -41,31 +37,3 @@ def velocity_autocorrelation(filename, output_filename, plot, peak, max_frequenc
 
     if plot:
         simple_plot(df, height=peak, max_frequency=max_frequency)
-
-
-# @click.argument("filename", type=complete_filenames)
-# @click.option("-o", "--output_filename", default="velocities.csv")
-# def velocity_autocorrelation(filename, output_filename):
-#     """write velocity autocorrelation function to output file"""
-#
-#     traj = reader(filename)
-#
-#     times = traj.times
-#     e_kin = []
-#     velocities = []
-#     for atoms in traj:
-#         v = atoms.get_velocities()
-#         velocities.append(v)
-#         e = atoms.get_kinetic_energy()
-#         e_kin.append(e)
-#
-#     assert len(times) == len(velocities)
-#     assert len(times) == len(e_kin)
-#
-#     df = pd.DataFrame({"e_kin": e_kin}, index=times)
-#     C_e = sl.correlate(e_kin, e_kin)[len(e_kin) - 1 :] / len(e_kin)
-#     df["e_kin_corr"] = C_e
-#
-#     # vv(\tau) = \sum_i v_i (tau) v_i (0)
-#
-#     df.to_csv(output_filename, index_label="time")
