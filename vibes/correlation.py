@@ -13,7 +13,7 @@ _prefix = "Correlation"
 Timer.prefix = _prefix
 
 
-def _correlate(f1, f2, normalize=1, window=True):
+def _correlate(f1, f2, normalize=1, hann=True):
     """Compute correlation function for signal f1 and signal f2
 
     Reference:
@@ -43,7 +43,7 @@ def _correlate(f1, f2, normalize=1, window=True):
     elif normalize == 2:
         corr /= np.arange(Nt, 0, -1)
 
-    if window:
+    if hann:
         corr *= sl.windows.hann(2 * Nt)[Nt:]
 
     return corr

@@ -29,11 +29,12 @@ def talk(message, prefix=None, verbose=True):
         verbosity (int): verbosity level (0, 1, 2)
     """
     # see if we are in a CLI context
-    try:
-        ctx = click.get_current_context()
-        verbose = ctx.obj.verbose
-    except (RuntimeError, AttributeError):
-        pass
+    if verbose is not False:
+        try:
+            ctx = click.get_current_context()
+            verbose = ctx.obj.verbose
+        except (RuntimeError, AttributeError):
+            pass
 
     if verbose == 1:
         print_msg(message, prefix=prefix)

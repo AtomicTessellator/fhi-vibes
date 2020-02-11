@@ -52,6 +52,7 @@ def get_kappa_cumulative_dataset(
     aux: bool = False,
     delta: str = "auto",
     verbose: bool = True,
+    **kw_correlate,
 ) -> xr.Dataset:
     """compute heat flux autocorrelation and cumulative kappa from heat_flux_dataset
 
@@ -60,13 +61,14 @@ def get_kappa_cumulative_dataset(
         full (bool): return correlation function per atom
         aux (bool): add auxiliary heat flux
         delta: compute mode for avalanche time
+        kw_correlate (dict): kwargs for `correlate`
     Returns:
         dataset containing
             hfacf, hfacf_scalar, kappa_cumulative, kappa_cumulative_scalar
     """
     pref = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
 
-    kw = {"prefactor": pref, "verbose": verbose}
+    kw = {"prefactor": pref, "verbose": verbose, **kw_correlate}
 
     if full:
         fluxes = dataset[keys.heat_fluxes].copy()
@@ -103,6 +105,7 @@ def get_heat_flux_aurocorrelation(
     fluxes: xr.DataArray = None,
     prefactor: float = 1.0,
     verbose: bool = True,
+    **kw_correlate,
 ) -> xr.DataArray:
     """compute heat flux autocorrelation function from heat flux Dataset
 
@@ -111,19 +114,22 @@ def get_heat_flux_aurocorrelation(
         fluxes (xr.DataArray, optional): atomic heat flux [Nt, Na, 3]
         prefactor (float, optional): prefactor to convert to W/mK/fs
         verbose (bool, optional): be verbose
+        kw_correlate (dict): kwargs for `correlate`
 
     Returns:
         xr.DataArray: heat_flux_autocorrelation in W/mK/fs
     """
     timer = Timer("Get heat flux autocorrelation from heat flux", verbose=verbose)
 
+    kw = {"verbose": False, **kw_correlate}
+
     if fluxes is not None:
         talk(".. return full tensor [N_t, N_a, N_a, 3, 3]", verbose=verbose)
         ff = fluxes.dropna(dims.time)
-        da = get_autocorrelationNd(ff, off_diagonal_atoms=True, verbose=False)
+        da = get_autocorrelationNd(ff, off_diagonal_atoms=True, **kw)
     else:
         ff = flux.dropna(dims.time)
-        da = get_autocorrelationNd(ff, off_diagonal_coords=True, verbose=False)
+        da = get_autocorrelationNd(ff, off_diagonal_coords=True, **kw)
 
     # prefactor
     da *= prefactor
@@ -147,9 +153,10 @@ def get_heat_flux_power_spectrum(
     Returns:
         xr.DataArray: heat_flux_power_spectrum
     """
-    timer = Timer("Get heat flux power spectrum from heat flux", verbose=verbose)
+    kw = {"verbose": verbose}
+    timer = Timer("Get heat flux power spectrum from heat flux", **kw)
 
-    Jw = get_fourier_transformed(flux.dropna(dims.time))
+    Jw = get_fourier_transformed(flux.dropna(dims.time), **kw)
 
     Jspec = abs(Jw)
 
