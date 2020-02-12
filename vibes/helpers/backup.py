@@ -2,25 +2,27 @@
 
 import shutil
 import tarfile
-from glob import glob
 from pathlib import Path
 
 from vibes.helpers import talk
 from vibes.helpers.aims import peek_aims_uuid
 from vibes.keys import default_backup_folder  # noqa: F401
 
+_prefix = "backup"
 _default_files = ("aims.out", "control.in", "geometry.in")
 
 
-def backup_filename(workdir="."):
+def backup_filename(workdir=".", prefix=_prefix):
     """generate a backup file name for the current backup directory"""
 
-    counter = 0
+    file = lambda counter: Path(workdir) / f"{prefix}.{counter:05d}"
 
-    file = lambda counter: Path(workdir) / f"backup.{counter:05d}"
-
-    while glob(f"{file(counter)}*"):
-        counter += 1
+    # get starting counter:
+    files = sorted(int(p.stem.split(".")[1]) for p in Path(workdir).glob(f"{prefix}.*"))
+    if files:
+        counter = files[-1] + 1
+    else:
+        counter = 0
 
     return file(counter)
 
@@ -44,12 +46,12 @@ def backup_folder(
     output_filename = backup_filename(target_folder)
 
     if not Path(source_dir).exists():
-        talk(f"{source_dir} does not exists, nothing to back up.", prefix="backup")
+        talk(f"{source_dir} does not exists, nothing to back up.", prefix=_prefix)
         return False
 
     try:
         Path(source_dir).rmdir()
-        talk(f"{source_dir} is empty, do not backup and remove.", prefix="backup")
+        talk(f"{source_dir} is empty, do not backup and remove.", prefix=_prefix)
         return False
     except OSError:
         pass
@@ -81,7 +83,7 @@ def backup_folder(
     message += [info_str]
 
     if verbose:
-        talk(message, prefix="backup")
+        talk(message, prefix=_prefix)
 
     return True
 
