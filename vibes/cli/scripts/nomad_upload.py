@@ -1,5 +1,6 @@
 """ Summarize output from ASE.md class (in md.log) """
 
+import json
 import shutil
 import subprocess
 import tarfile
@@ -16,7 +17,11 @@ upload_folder_dry = "nomad_upload_dry"
 
 
 def upload_command(
-    files: list, token: str, legacy: bool = False, name: str = None
+    files: list,
+    token: str,
+    legacy: bool = False,
+    name: str = None,
+    nojson: bool = False,
 ) -> str:
     """Generate the NOMAD upload command
 
@@ -25,6 +30,7 @@ def upload_command(
         token: The NOMAD token
         legacy: use old NOMAD
         name: nomad upload name
+        nojson: don't retrieve json summary
 
     Returns:
         str: The upload command
@@ -33,15 +39,19 @@ def upload_command(
     if name is not None:
         name_str = f"&name={name}"
 
+    json_str = " -H 'Accept: application/json'"
+    if nojson:
+        json_str = ""
+
     file_str = " ".join((str(f) for f in sorted(files)))
     cmd = f"tar cf - {file_str} | "
 
     if legacy:
         cmd = +(f"curl -XPUT -# -HX-Token:{token} " f"-N -F file=@- {old_addr}")
     else:
-        cmd += f'curl "{new_addr}{token}{name_str}" -T'
+        cmd += f'curl "{new_addr}{token}{name_str}" {json_str} -T'
 
-    cmd += " - | xargs echo"
+    cmd += " - | xargs -0 echo"
 
     return cmd
 
@@ -53,6 +63,7 @@ def nomad_upload(
     dry: bool = False,
     name: str = None,
     tmp_prefix: str = "nomad_upload_",
+    summary_file: str = "nomad.json",
 ) -> None:
     """upload folders with calculations to NOMAD
 
@@ -63,6 +74,7 @@ def nomad_upload(
         dry: only show upload command
         name: nomad upload name
         tmp_prefix: name of the tmpdir prefix to be used to upload from
+        summary_file: if given, write nomad summary json file
     """
     timer = Timer("Perform Nomad upload")
 
@@ -107,10 +119,21 @@ def nomad_upload(
     # upload
     cmd = upload_command(tmp_files, token, legacy, name=name)
     print(f"Upload command:\n{cmd}")
-    if not dry:
-        subprocess.check_call(cmd, shell=True)
-        shutil.rmtree(tmp_dir)
-        timer(f"Nomad upload finished")
+
+    if dry:
+        return
+
+    outp = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+    shutil.rmtree(tmp_dir)
+    timer(f"Nomad upload finished")
+
+    summary = json.dumps(json.loads(outp.stdout), indent=2)
+    if summary_file is not None:
+        Path(summary_file).write_text(summary)
+        talk(f"JSON summary written to {summary_file}")
+    else:
+        print("# json summary")
+        print(summary)
 
 
 def main():
