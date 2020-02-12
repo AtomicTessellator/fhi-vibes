@@ -12,6 +12,7 @@ commands = (
     "vibes --help",
     "vibes info geometry geometry.in.primitive",
     "vibes utils suggest_k_grid geometry.in.primitive",
+    "vibes info phonopy",
 )
 
 commands_files = [
