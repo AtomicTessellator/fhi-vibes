@@ -12,7 +12,20 @@ _prefix = "Integration"
 Timer.prefix = _prefix
 
 
-def _cumtrapz(series, index=None, axis=0, initial=0):
+def trapz(series, index=None, axis=0, initial=0):
+    """wrap `scipy.integrate.trapz`"""
+    array = np.asarray(series)
+    if index is not None and len(index) > 1:
+        x = np.asarray(index)
+    else:
+        warn(f"index = {index}, use `x=None`", level=1)
+        x = None
+    tp = si.trapz(array, x=x, axis=axis)
+
+    return tp
+
+
+def cumtrapz(series, index=None, axis=0, initial=0):
     """wrap `scipy.integrate.cumtrapz`"""
     array = np.asarray(series)
     if index is not None and len(index) > 1:
@@ -32,10 +45,10 @@ def get_cumtrapz(series, **kwargs):
         ndarray/Series/DataArray: cumulative trapezoid rule applied
     """
     if isinstance(series, np.ndarray):
-        ctrapz = _cumtrapz(series, **kwargs)
+        ctrapz = cumtrapz(series, **kwargs)
         return ctrapz
     elif isinstance(series, pd.Series):
-        ctrapz = _cumtrapz(series, index=series.index, **kwargs)
+        ctrapz = cumtrapz(series, index=series.index, **kwargs)
         return pd.Series(ctrapz, index=series.index)
     elif isinstance(series, xr.DataArray):
         try:
@@ -44,7 +57,7 @@ def get_cumtrapz(series, **kwargs):
             warn(f"time coordinate not found, use `coords=arange`", level=1)
             index = None
 
-        ctrapz = _cumtrapz(series, index=index, **kwargs)
+        ctrapz = cumtrapz(series, index=index, **kwargs)
         da = xr.DataArray(
             ctrapz, dims=series.dims, coords=series.coords, name=keys.cumtrapz
         )
