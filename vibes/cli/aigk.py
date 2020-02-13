@@ -27,13 +27,13 @@ def velocity_autocorrelation(filename, output_filename, plot, peak, max_frequenc
     click.echo(f"Read {filename} and extract velocities")
     velocities = xr.open_dataset(filename).velocities
 
-    vdos = get_vdos(velocities=velocities, verbose=True)
+    vdos = get_vdos(velocities=velocities, hann=False, verbose=True)
 
     # sum atoms and coordinates
     df = vdos.real.sum(axis=(1, 2)).to_series()
 
-    click.echo(f".. write VDOS to {output_filename}")
-    df.to_csv(output_filename, index_label="omega", header=True)
-
     if plot:
         simple_plot(df, height=peak, max_frequency=max_frequency)
+
+    click.echo(f".. write VDOS to {output_filename}")
+    df.to_csv(output_filename, index_label="omega", header=True)
