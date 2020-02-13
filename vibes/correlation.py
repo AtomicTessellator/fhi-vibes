@@ -2,15 +2,28 @@ from itertools import chain
 
 import numpy as np
 import pandas as pd
+import scipy.optimize as so
 import scipy.signal as sl
 import xarray as xr
 
 from vibes import dimensions, keys
-from vibes.helpers import Timer
+from vibes.helpers import Timer, talk
 from vibes.helpers.warnings import warn
 
 _prefix = "Correlation"
 Timer.prefix = _prefix
+
+
+def _hann(nsamples: int):
+    """Return one-side Hann function
+
+    Args:
+        nsamples (int): number of samples
+    """
+    return sl.windows.hann(2 * nsamples)[nsamples:]
+
+
+hann = _hann
 
 
 def _correlate(f1, f2, normalize=1, hann=True):
@@ -24,7 +37,7 @@ def _correlate(f1, f2, normalize=1, hann=True):
         f1: signal 1
         f2: signal 2
         normalize: no (0), by length (1), by lag (2)
-        window: apply Hann window
+        hann: apply Hann window
     Returns:
         the correlation function
     """
@@ -44,9 +57,12 @@ def _correlate(f1, f2, normalize=1, hann=True):
         corr /= np.arange(Nt, 0, -1)
 
     if hann:
-        corr *= sl.windows.hann(2 * Nt)[Nt:]
+        corr *= _hann(Nt)
 
     return corr
+
+
+correlate = _correlate
 
 
 def get_autocorrelation(series, verbose=True, **kwargs):
@@ -61,7 +77,7 @@ def get_autocorrelation(series, verbose=True, **kwargs):
     """
     timer = Timer("Compute autocorrelation function", verbose=verbose)
 
-    autocorr = _correlate(series, series, **kwargs)
+    autocorr = correlate(series, series, **kwargs)
     if isinstance(series, np.ndarray):
         result = autocorr
     elif isinstance(series, pd.Series):
@@ -133,7 +149,7 @@ def get_autocorrelationNd(
         corr = np.zeros([*np.repeat(shape, 2), Nt])
         for Ia in np.ndindex(*shape):
             for Jb in np.ndindex(*shape):
-                tmp = _correlate(data[Ia], data[Jb], **kwargs)
+                tmp = correlate(data[Ia], data[Jb], **kwargs)
                 idx = tuple(chain.from_iterable(zip(Ia, Jb)))  # flatten
                 corr[idx] = tmp
     elif off_diagonal_coords:
@@ -141,13 +157,13 @@ def get_autocorrelationNd(
         for Ia in np.ndindex(*shape):
             for b in range(shape[-1]):
                 Jb = (Ia[0], b)
-                tmp = _correlate(data[Ia], data[Jb], **kwargs)
+                tmp = correlate(data[Ia], data[Jb], **kwargs)
                 corr[(*Ia, b)] = tmp
     else:
         new_dims = new_dims[:-1]
         corr = np.zeros([*shape, Nt])
         for Ia in np.ndindex(*shape):
-            tmp = _correlate(data[Ia], data[Ia], **kwargs)
+            tmp = correlate(data[Ia], data[Ia], **kwargs)
             corr[Ia] = tmp
 
     # move time axis back to 0 and remove aux. axis
@@ -163,6 +179,96 @@ def get_autocorrelationNd(
     timer()
 
     return df_corr
+
+
+def _exp(x, tau, y0):
+    """compute exponential decay
+        y = y0 * exp(-x / tau)
+    """
+    return y0 * np.exp(-x / tau)
+
+
+def get_correlation_time_estimate(
+    series: pd.Series,
+    tmin: float = 0.1,
+    tmax: float = 5,
+    tau0: float = 1,
+    # pre_smoothen_window: int = 10,
+    ps: bool = False,
+    return_series: bool = False,
+    verbose: bool = True,
+) -> (float, float):
+    """estimate correlation time of series by fitting an exponential its head to
+
+        y = y0 * exp(-x / tau)
+
+    Args:
+        series (pd.Series): the time series
+        tmin (float, optional): Start fit (ps). Defaults to 0.1.
+        tmax (float, optional): End fit (ps). Defaults to 5.
+        tau0 (float, optional): Guess for correlation time. Defaults to 1.
+        # pre_smoothen_window (int): use a window to pre-smoothen the data
+        ps (bool): series.index given in ps (default: fs)
+        return_series (bool): Return the corresponding exp. function as pd.Series
+        verbose (bool): Be verbose.
+
+    Returns:
+        (float, float): tau (IN FS!!!), y0
+    """
+    kw = {"verbose": verbose, "prefix": _prefix}
+    talk("Estimate correlation time from fitting exponential to normalized data", **kw)
+
+    # smoothen the bare series
+    # series = series.rolling(pre_smoothen_window, min_periods=0).mean()
+    series = series.copy().dropna()
+
+    if not ps:
+        series.index /= 1000
+
+    y = series[tmin:tmax] / series.iloc[0]
+
+    if len(y) < 10:
+        warn("Not enough data to produce estimate, return default values")
+        return tau0, 1
+
+    # to ps
+    x = y.index
+    bounds = ([0, 0], [20 * tau0, 0.5])
+
+    (tau, y0), _ = so.curve_fit(_exp, x, y, bounds=bounds)
+
+    talk(f"Correlation time tau:       {tau:7.3f} ps", **kw)
+    talk(f"Intersection y0:            {y0:7.3f}", **kw)
+    talk(f"90% integral (2.30 * tau):  {2.3 * tau:7.3f} ps", **kw)
+    talk(f"95% integral (3.00 * tau):  {3.0 * tau:7.3f} ps", **kw)
+    talk(f"99% integral (4.61 * tau):  {4.605 * tau:7.3f} ps", **kw)
+
+    if not ps:
+        tau *= 1000
+
+    return tau, y0
+
+
+def get_autocorrelation_exponential(
+    series: pd.Series, ps: bool = False, verbose: bool = True, **kwargs
+) -> pd.Series:
+    """Return exponential fit to time series assuming an exp. decay
+
+    Args:
+        series (pd.Series): the time series (time in fs)
+        ps (bool): series.index given in ps instead of fs
+        verbose (bool, optional): Be verbose. Defaults to True.
+        kwargs (dict): kwargs for get_correlation_time_estimate
+
+    Returns:
+        pd.Series
+    """
+    tau, y0 = get_correlation_time_estimate(series, ps=ps, verbose=verbose)
+
+    if ps:
+        return pd.Series(_exp(series.index, tau, y0), index=series.index)
+    else:
+        return pd.Series(_exp(series.index, tau * 1000, y0), index=series.index)
 
 
 # @numba.jit(parallel=True)
