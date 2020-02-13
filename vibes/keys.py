@@ -46,6 +46,10 @@ omega = "omega"
 cumtrapz = "cumtrapz"
 autocorrelation = "autocorrelation"
 fourier_transform = "fourier_transform"
+avalanche_data = "avalanche_function"
+time_avalanche = "avalanche_time"
+avalanche_function = "avalanche_function"
+avalanche_index = "avalanche_index"
 
 # file management
 default_backup_folder = "backups"
