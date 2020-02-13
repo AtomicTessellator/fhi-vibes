@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from vibes import dimensions as dims
 from vibes import keys
 from vibes.helpers import Timer, talk, warn
 from vibes.konstanten.einheiten import THz_to_cm
@@ -124,3 +125,28 @@ def get_fourier_transformed(series, verbose=True):
     timer()
 
     return result
+
+
+def get_power_spectrum(
+    flux: xr.DataArray = None, prefactor: float = 1.0, verbose: bool = True
+) -> xr.DataArray:
+    """compute power spectrum for given flux
+
+    Args:
+        flux (xr.DataArray, optional): flux [Nt, 3]. Defaults to xr.DataArray.
+        prefactor (float, optional): prefactor
+        verbose (bool, optional): be verbose
+
+    Returns:
+        xr.DataArray: heat_flux_power_spectrum
+    """
+    kw = {"verbose": verbose}
+    timer = Timer("Get power spectrum from flux", **kw)
+
+    Jw = get_fourier_transformed(flux.dropna(dims.time), **kw)
+
+    Jspec = abs(Jw)
+
+    timer()
+
+    return Jspec
