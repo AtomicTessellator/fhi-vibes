@@ -1,8 +1,9 @@
 """Green-Kubo stuff"""
-import numpy as np
-from scipy.optimize import curve_fit
+import pandas as pd
 
-from vibes.helpers import Timer, talk
+from vibes import defaults, keys
+from vibes.correlation import get_correlation_time_estimate
+from vibes.helpers import Timer, talk, warn
 
 _prefix = "GreenKubo"
 
@@ -14,7 +15,30 @@ def _talk(msg, **kw):
     return talk(msg, prefix=_prefix, **kw)
 
 
-def F_avalanche(series, delta="auto", verbose=True):
+def get_avalanche_data(
+    series: pd.Series, Fmax: float = defaults.Fmax, verbose: bool = True, **kwargs
+) -> (pd.Series, float, int):
+    """Return (avalanche_function, avalanche_time in fs, avalanche_index) as dict
+
+    Args:
+        series: time series
+        Fmax: max value of avalanche function to determine tmax
+        verbose: be verbose
+        kwargs: for F_avalanche
+
+    Returns:
+        dict
+    """
+    F = F_avalanche(series, verbose=verbose, **kwargs)
+    t = t_avalanche(F, Fmax=Fmax, verbose=verbose)
+    n = len(F[:t])
+
+    return {keys.avalanche_function: F, keys.time_avalanche: t, keys.avalanche_index: n}
+
+
+def F_avalanche(
+    series, delta="auto", min_delta: int = 10, ps: bool = False, verbose: bool = True
+):
     """Compute Avalanche Function (windowed noise/signal ratio)
 
     as defined in J. Chen et al. / Phys. Lett. A 374 (2010) 2392
@@ -23,6 +47,8 @@ def F_avalanche(series, delta="auto", verbose=True):
     Args:
         series (pandas.Series): some time resolved data series
         delta (int): no. of time steps for windowing, or `auto`
+        min_delta (int): minimal window size
+        ps (bool): series.index given in ps (default: fs)
         verbose (bool): be verbose
 
     Returns:
@@ -33,46 +59,47 @@ def F_avalanche(series, delta="auto", verbose=True):
     When `delta='auto'`, estimate the correlation time and use that size for binning
     the time steps for estimating std/E
     """
+    series.copy().dropna()
+
+    if ps:
+        series.index *= 1000
+
     if delta == "auto":
         # estimate correlation time
-
-        exp = lambda x, y0, tau: y0 * np.exp(-x / tau)
-
-        # where is jc drops below 0 the first time
-        idx = series[series < series.max() / np.e].index[0]
-        x = series[:idx]
-        y0 = x.iloc[0]
-        tau = idx
-        bounds = ([0.75 * y0, 1.5 * y0], [0.5 * idx, 2 * idx])
-        (y0, tau), _ = curve_fit(exp, x.index, x, bounds=bounds)
+        tau, y0 = get_correlation_time_estimate(series, verbose=True)
 
         delta = len(series[series.index < tau])
 
         if verbose:
-            _talk(f"est. corr. time (drop below 1/e): {idx:10.2f} fs")
-            _talk(f".. use {len(x)} data points to fit exponential")
-            _talk(f".. estimated correlation time:              {tau:10.2f} fs")
-            _talk(f"-> choose delta of size: {delta:20d} data points")
+            _talk(f"estimated correlation time: {tau/1000:7.3f} ps")
+            _talk(f"-> choose delta of size:    {delta:5d} data points")
 
-        assert 0.5 < idx / tau < 2, (idx, tau)
+    delta = max(delta, min_delta)
 
     sigma = series.rolling(window=delta, min_periods=0).std()
     E = series.rolling(window=delta, min_periods=0).mean()
 
     F = (sigma / E).abs().dropna()
 
+    F.name = keys.avalanche_function
+
+    if ps:
+        F.index /= 1000
+
     return F
 
 
-def t_avalanche(series, Fmax=1, verbose=True, **kwargs):
+def t_avalanche(series, Fmax=defaults.Fmax, verbose=True):
     """get avalanche time for series from F_avalanche
 
     Args:
         Fmax (float): max. allowed value for avalanche function
     """
-    F = F_avalanche(series, verbose=verbose, **kwargs)
-
-    tmax = F[F > Fmax].index[0]
+    try:
+        tmax = series[series > Fmax].index[0]
+    except IndexError:
+        warn("Avalanche time could not be determinded, return max. index")
+        tmax = series.index.max()
 
     if verbose:
         _talk(f"-> avalanche time with max. F of {Fmax:2d}: {tmax:17.2f} fs")
