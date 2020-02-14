@@ -1,4 +1,5 @@
 from itertools import chain
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -7,7 +8,7 @@ import scipy.signal as sl
 import xarray as xr
 
 from vibes import dimensions, keys
-from vibes.helpers import Timer, talk
+from vibes.helpers import Timer, progressbar, talk
 from vibes.helpers.warnings import warn
 
 _prefix = "Correlation"
@@ -99,6 +100,7 @@ def get_autocorrelationNd(
     array: xr.DataArray,
     off_diagonal_coords: bool = False,
     off_diagonal_atoms: bool = False,
+    cache: bool = True,
     verbose: bool = True,
     **kwargs,
 ) -> xr.DataArray:
@@ -110,6 +112,7 @@ def get_autocorrelationNd(
         array (xarray.DataArray [N_t, N_a, 3]): data
         off_diagonal_coords (bool): return off-diagonal coordinates (I, a, b)
         off_diagonal_atoms (bool): return off-diagonal atoms (I, J, a, b)
+        cache: cache
         kwargs: go to _correlate
     Returns:
         xarray.DataArray [N_t, N_a, 3]: autocorrelation along axis=0, or
@@ -147,7 +150,7 @@ def get_autocorrelationNd(
     if off_diagonal_atoms and off_diagonal_coords:
         new_dims = dimensions.time_atom_atom_tensor
         corr = np.zeros([*np.repeat(shape, 2), Nt])
-        for Ia in np.ndindex(*shape):
+        for Ia in progressbar([*np.ndindex(*shape)]):
             for Jb in np.ndindex(*shape):
                 tmp = correlate(data[Ia], data[Jb], **kwargs)
                 idx = tuple(chain.from_iterable(zip(Ia, Jb)))  # flatten
@@ -175,6 +178,12 @@ def get_autocorrelationNd(
         coords=array.coords,
         name=f"{array.name}_{keys.autocorrelation}",
     )
+
+    if cache:
+        outfile = Path(f"{keys.cache}") / f"{get_autocorrelationNd.__name__}.nc"
+        outfile.parent.mkdir(exist_ok=True)
+        df_corr.to_netcdf(outfile)
+        talk(f".. cache to {outfile}")
 
     timer()
 
