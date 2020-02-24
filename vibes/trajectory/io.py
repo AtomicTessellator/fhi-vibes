@@ -7,10 +7,10 @@ from pathlib import Path
 
 import numpy as np
 import xarray as xr
+
 from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.singlepoint import SinglePointCalculator
-
 from vibes import __version__ as version
 from vibes import io, keys, son
 from vibes.helpers import warn
@@ -86,8 +86,8 @@ def write(trajectory, file="trajectory.son"):
 
     metadata2file(trajectory.metadata, temp_file)
 
-    prefix = f"Write to {temp_file}:"
-    for elem in progressbar(trajectory, prefix=prefix):
+    talk(f"Write to {temp_file}")
+    for elem in progressbar(trajectory):
         son.dump(results2dict(elem), temp_file)
 
     shutil.move(temp_file, file)
@@ -155,8 +155,8 @@ def reader(
         return Trajectory([])
 
     trajectory = Trajectory(metadata=metadata)
-    prefix = ".. create atoms: "
-    for obj in progressbar(pre_trajectory, prefix=prefix):
+    talk(".. create atoms")
+    for obj in progressbar(pre_trajectory):
 
         atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
 
@@ -302,7 +302,8 @@ def to_db(trajectory, database):
     timer = Timer(f"Save as ase database {database}")
 
     with connect(database, append=False) as db:
-        for atoms in progressbar(trajectory, prefix=".. writing db: "):
+        talk("write db")
+        for atoms in progressbar(trajectory):
             db.write(atoms, data={"info": atoms.info})
 
     # metadata can only be written *after* the database exists

@@ -21,6 +21,7 @@ def _attrs(trajectory, dct=None, metadata=False):
     """return metadata dictionary with defaults + custom dct"""
 
     attrs = {
+        keys.name: keys.trajectory,
         keys.system_name: get_sysname(trajectory.ref_atoms),
         "natoms": len(trajectory.ref_atoms),
         keys.time_unit: "fs",
@@ -53,6 +54,8 @@ def _attrs(trajectory, dct=None, metadata=False):
     if metadata:
         raw_metadata = dict2json(trajectory.metadata)
         attrs.update({keys.metadata: raw_metadata})
+
+    attrs.update({keys.hash: trajectory.hash})  # add hash
 
     return attrs
 
