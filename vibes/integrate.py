@@ -59,7 +59,10 @@ def get_cumtrapz(series, **kwargs):
 
         ctrapz = cumtrapz(series, index=index, **kwargs)
         da = xr.DataArray(
-            ctrapz, dims=series.dims, coords=series.coords, name=keys.cumtrapz
+            ctrapz,
+            dims=series.dims,
+            coords=series.coords,
+            name=keys._join(series.name, keys.cumtrapz),
         )
         return da
 
