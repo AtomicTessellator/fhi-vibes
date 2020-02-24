@@ -3,7 +3,8 @@ from pathlib import Path
 
 import click
 
-from .misc import AliasedGroup, complete_filenames
+from .misc import ClickAliasedGroup as AliasedGroup
+from .misc import complete_filenames
 
 
 @click.command(cls=AliasedGroup)
@@ -11,7 +12,7 @@ def output():
     """produce output of vibes workfow"""
 
 
-@output.command("md")
+@output.command(aliases=["md"])
 @click.argument("trajectory", default="trajectory.son", type=complete_filenames)
 @click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
 @click.option("-d", "--discard", type=int, help="discard this many steps")
@@ -20,7 +21,7 @@ def output():
 @click.option("-rfc", "--remapped_force_constants", help="use remapped FC")
 @click.option("-o", "--outfile", default="auto", show_default=True)
 @click.option("-avg", "--average_reference", is_flag=True)
-def md_output(
+def molecular_dynamics(
     trajectory,
     heat_flux,
     discard,
@@ -140,5 +141,24 @@ def phonopy_output(
 
     extract_results(phonon, **kwargs)
 
-    # if tdep:
-    #     convert_phonopy_to_tdep(phonon, workdir=str(output_directory) + "_tdep")
+
+@output.command(aliases=["gk"])
+@click.argument("dataset", default="trajectory_hf.nc")
+@click.option("-avg", "--average", default=100, help="average window")
+@click.option("--full", is_flag=True)
+@click.option("--aux", is_flag=True)
+@click.option("-o", "--outfile", default="greenkubo.nc", show_default=True, type=Path)
+def greenkubo(dataset, average, full, aux, outfile):
+    """perform greenkubo analysis"""
+    import xarray as xr
+    import vibes.green_kubo.heat_flux as hf
+
+    ds = xr.load_dataset(dataset)
+
+    ds_kappa = hf.get_kappa_cumulative_dataset(ds, full=full, aux=aux, cache=False)
+
+    if full:
+        outfile = outfile.parent / f"{outfile.stem}_full.nc"
+
+    click.echo(f".. write to {outfile}")
+    ds_kappa.to_netcdf(outfile)
