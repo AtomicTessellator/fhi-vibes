@@ -1,3 +1,12 @@
+"""Keys and names for arrays. Composite keys are concatenated by `_`"""
+
+
+def _join(*keys):
+    """join two or more keys"""
+    keys = (k for k in keys if k)
+    return "_".join(keys)
+
+
 fc = "force_constants"
 fc_remapped = "force_constants_remapped"
 fc_flattened = "force_constants_flattened"
@@ -31,9 +40,7 @@ heat_flux_aux = "heat_flux_aux"
 heat_fluxes_aux = "heat_fluxes_aux"
 
 gk_prefactor = "gk_prefactor"
-hfacf = "hfacf"
 hfacf_scalar = "hfacf_scalar"
-kappa_cumulative = "kappa_cumulative"
 kappa_cumulative_scalar = "kappa_cumulative_scalar"
 heat_flux_power_spectrum = "heat_flux_power_spectrum "
 
@@ -53,3 +60,14 @@ avalanche_index = "avalanche_index"
 
 # file management
 default_backup_folder = "backups"
+cache = "cache.vibes"
+
+# hash
+name = "name"
+hash = "hash"
+trajectory = "trajectory"
+
+
+# composite keys
+hfacf = _join(heat_flux, autocorrelation)
+kappa_cumulative = _join(heat_flux, autocorrelation, cumtrapz)

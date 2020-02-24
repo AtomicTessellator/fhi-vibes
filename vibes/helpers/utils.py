@@ -7,7 +7,6 @@ import threading
 import time
 
 import click
-from son.progressbar import progressbar  # noqa: F401
 
 from vibes.helpers.warnings import warn
 
@@ -212,3 +211,46 @@ class Spinner:
 
         if exception is not None:
             return exception
+
+
+def progressbar(
+    it, prefix="progress", size=35, file=sys.stdout, len_it=None, n_bars=200
+):
+    """a simple progress bar to decorate an iterator
+
+    Args:
+        it (iterator): show progressbar for this iterator
+        prefix (str): prefix for the progressbar
+        size (int): size of the progress bar
+        file (file): file to write to
+        start_count (int): length of iterable
+        n_bars (int): show this many bars
+    """
+    count = len_it or max(1, len(it))
+    n = len(str(count)) + 1
+
+    def show(jj):
+        """show the progressbar"""
+        x = int(size * jj / count)
+        counter = "{:{}d}/{}".format(jj, n, count)
+        bar = "{:17s} |{}{}| {}\r".format(
+            f"[{prefix}]", "|" * x, " " * (size - x), counter
+        )
+        file.write(bar)
+        file.flush()
+
+    show(0)
+
+    divider = max(1, count // n_bars)
+
+    ii = 0
+    for ii, item in enumerate(it):
+        yield item
+        if not ii % divider:
+            if hasattr(file, "isatty") and file.isatty():
+                show(ii)
+
+    show(ii + 1)
+    if hasattr(file, "isatty") and file.isatty():
+        file.write("\n")
+        file.flush()
