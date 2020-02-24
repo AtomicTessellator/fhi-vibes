@@ -31,21 +31,18 @@ def test_autocorrelationNd():
     x = xr.DataArray(a, dims=dims.time_vec)
 
     c = get_autocorrelationNd(x)
-    assert x.shape == c.shape
+    assert c.shape == (Nt, Nx)
     assert c.dims == dims.time_vec
 
-    c = get_autocorrelationNd(x, off_diagonal_coords=True)
-    assert c.shape == (*x.shape, x.shape[-1])
-    assert c.dims == dims.time_tensor
+    c1 = get_autocorrelationNd(x, off_diagonal=True, distribute=False)
+    assert c1.shape == (Nt, Nx, Nx)
 
-    try:
-        c = get_autocorrelationNd(x, off_diagonal_atoms=True)
-    except ValueError:
-        pass
+    c2 = get_autocorrelationNd(x, off_diagonal=True, distribute=False)
+    assert np.allclose(c1, c2)
 
     # test if `off_diagonal_coords` works
     c1 = get_autocorrelationNd(x).sum(axis=-1)
-    c2 = xtrace(get_autocorrelationNd(x, off_diagonal_coords=True))
+    c2 = xtrace(get_autocorrelationNd(x, off_diagonal=True))
 
     assert np.allclose(c1, c2)
 
@@ -56,22 +53,6 @@ def test_autocorrelationNd():
     c = get_autocorrelationNd(x)
     assert c.shape == x.shape
     assert c.dims == dims.time_atom_vec
-
-    c = get_autocorrelationNd(x, off_diagonal_coords=True)
-    assert c.shape == (*x.shape, x.shape[-1])
-    assert c.dims == dims.time_atom_tensor
-
-    c = get_autocorrelationNd(x, off_diagonal_atoms=True)
-    assert c.shape == (Nt, Na, Na, Nx, Nx)
-    assert c.dims == dims.time_atom_atom_tensor
-
-    # test if `off_diagonal_coords` works
-    c1 = get_autocorrelationNd(x).sum(axis=-1)
-    c2 = xtrace(get_autocorrelationNd(x, off_diagonal_coords=True))
-    c3 = xtrace(get_autocorrelationNd(x, off_diagonal_atoms=True), axis1=1, axis2=2)
-
-    assert np.allclose(c1, c2)
-    assert np.allclose(c1.sum(axis=-1), xtrace(c3))
 
 
 if __name__ == "__main__":

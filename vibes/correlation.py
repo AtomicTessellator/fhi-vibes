@@ -1,5 +1,5 @@
-from itertools import chain
-from pathlib import Path
+import multiprocessing
+from itertools import product
 
 import numpy as np
 import pandas as pd
@@ -7,7 +7,7 @@ import scipy.optimize as so
 import scipy.signal as sl
 import xarray as xr
 
-from vibes import dimensions, keys
+from vibes import keys
 from vibes.helpers import Timer, progressbar, talk
 from vibes.helpers.warnings import warn
 
@@ -63,7 +63,13 @@ def _correlate(f1, f2, normalize=1, hann=True):
     return corr
 
 
+# Frontends for _correlate
 correlate = _correlate
+
+
+def c1(X):
+    """run `_correlate` with default parameters"""
+    return correlate(X[0], X[1])
 
 
 def get_autocorrelation(series, verbose=True, **kwargs):
@@ -98,9 +104,9 @@ def get_autocorrelation(series, verbose=True, **kwargs):
 
 def get_autocorrelationNd(
     array: xr.DataArray,
-    off_diagonal_coords: bool = False,
-    off_diagonal_atoms: bool = False,
+    off_diagonal: bool = False,
     cache: bool = True,
+    distribute: bool = True,
     verbose: bool = True,
     **kwargs,
 ) -> xr.DataArray:
@@ -116,61 +122,53 @@ def get_autocorrelationNd(
         kwargs: go to _correlate
     Returns:
         xarray.DataArray [N_t, N_a, 3]: autocorrelation along axis=0, or
-        xarray.DataArray [N_t, N_a, 3, 3]: autocorrelation along axis=0, or
-        xarray.DataArray [N_t, N_a, N_a, 3, 3]: autocorrelation along axis=0
+        xarray.DataArray [N_t, N_a, 3, N_a, 3]: autocorrelation along axis=0
     """
     msg = "Get Nd autocorrelation"
-    if off_diagonal_atoms:
-        off_diagonal_coords = True
-        msg += " including off-diagonal terms and coordinates"
+    if off_diagonal:
+        msg += " including off-diagonal terms"
     timer = Timer(msg, verbose=verbose)
 
+    # memorize dimensions and shape of input array
+    dims = array.dims
     Nt, *shape = np.shape(array)
 
-    dims = array.dims
-
-    if dims == dimensions.time_vec:
-        new_dims = dimensions.time_tensor
-    elif dims == dimensions.time_atom_vec:
-        new_dims = dimensions.time_atom_tensor
-    else:
-        raise TypeError(f"FIXME: Dimensions not implemented: {dims}")
-
-    # move time axis to end
-    data = np.moveaxis(np.asarray(array), 0, -1)
-
-    # expand fake atoms axis?
-    if len(data.shape) < 3:
-        if off_diagonal_atoms:
-            raise ValueError(f"Presumably not atoms given, inspect! Array dims:", dims)
-        shape = (1, *shape)
-        data = data[np.newaxis, :]
-
     # compute autocorrelation
-    if off_diagonal_atoms and off_diagonal_coords:
-        new_dims = dimensions.time_atom_atom_tensor
-        corr = np.zeros([*np.repeat(shape, 2), Nt])
-        for Ia in progressbar([*np.ndindex(*shape)]):
-            for Jb in np.ndindex(*shape):
-                tmp = correlate(data[Ia], data[Jb], **kwargs)
-                idx = tuple(chain.from_iterable(zip(Ia, Jb)))  # flatten
-                corr[idx] = tmp
-    elif off_diagonal_coords:
-        corr = np.zeros([*shape, shape[-1], Nt])
-        for Ia in np.ndindex(*shape):
-            for b in range(shape[-1]):
-                Jb = (Ia[0], b)
-                tmp = correlate(data[Ia], data[Jb], **kwargs)
-                corr[(*Ia, b)] = tmp
+    if off_diagonal:
+        # reshape to (X, Nt)
+        data = np.asarray(array).reshape(Nt, -1).swapaxes(0, 1)
+
+        # compute correlation function
+        if distribute:  # use multiprocessing
+            Nd = len(data)
+            with multiprocessing.Pool() as p:
+                # corr = np.array(p.map(c1, product(data, data), chunksize=len(data)))
+                res = [
+                    *progressbar(
+                        p.imap(c1, product(data, data), chunksize=Nd), len_it=Nd ** 2,
+                    )
+                ]
+                corr = np.asarray(res)
+        else:
+            corr = np.zeros([data.shape[0] ** 2, Nt])
+            for ii, X in enumerate(progressbar([*product(data, data)])):
+                corr[ii] = c1(X)
+
+        # shape back and move time axis to the front
+        corr = np.moveaxis(corr.reshape((*shape, *shape, Nt)), -1, 0)
+        # create the respective dimensions
+        new_dims = (dims[0], *dims[1:], *dims[1:])
+
     else:
-        new_dims = new_dims[:-1]
-        corr = np.zeros([*shape, Nt])
+        # move time axis to last index
+        data = np.moveaxis(np.asarray(array), 0, -1)
+        corr = np.zeros((*shape, Nt))
         for Ia in np.ndindex(*shape):
             tmp = correlate(data[Ia], data[Ia], **kwargs)
             corr[Ia] = tmp
-
-    # move time axis back to 0 and remove aux. axis
-    corr = np.moveaxis(corr, -1, 0).squeeze()
+        # move time axis back to front
+        corr = np.moveaxis(corr, -1, 0)
+        new_dims = dims
 
     df_corr = xr.DataArray(
         corr,
@@ -178,13 +176,6 @@ def get_autocorrelationNd(
         coords=array.coords,
         name=f"{array.name}_{keys.autocorrelation}",
     )
-
-    if cache:
-        outfile = Path(f"{keys.cache}") / f"{get_autocorrelationNd.__name__}.nc"
-        outfile.parent.mkdir(exist_ok=True)
-        df_corr.to_netcdf(outfile)
-        talk(f".. cache to {outfile}")
-
     timer()
 
     return df_corr
@@ -202,7 +193,7 @@ def get_correlation_time_estimate(
     tmin: float = 0.1,
     tmax: float = 5,
     tau0: float = 1,
-    # pre_smoothen_window: int = 10,
+    pre_smoothen_window: int = 100,
     ps: bool = False,
     return_series: bool = False,
     verbose: bool = True,
@@ -228,7 +219,7 @@ def get_correlation_time_estimate(
     talk("Estimate correlation time from fitting exponential to normalized data", **kw)
 
     # smoothen the bare series
-    # series = series.rolling(pre_smoothen_window, min_periods=0).mean()
+    series = series.rolling(pre_smoothen_window, min_periods=1).mean()
     series = series.copy().dropna()
 
     if not ps:
@@ -278,17 +269,3 @@ def get_autocorrelation_exponential(
         return pd.Series(_exp(series.index, tau, y0), index=series.index)
     else:
         return pd.Series(_exp(series.index, tau * 1000, y0), index=series.index)
-
-
-# @numba.jit(parallel=True)
-# def _autocorrelationNd(
-#     data: np.ndarray, corr: np.ndarray, Nt: int, shape: list
-# ) -> np.ndarray:
-#     for Ia, d1 in np.ndenumerate(data):
-#         for Jb, d2 in np.ndenumerate(data):
-#             tmp = sl.correlate(d1, d2)[Nt - 1 :]
-#             # tmp = _correlate(d1, d2)
-#             idx = tuple(chain.from_iterable(zip(Ia, Jb)))  # flatten
-#             corr[idx] = tmp
-#
-#     return corr
