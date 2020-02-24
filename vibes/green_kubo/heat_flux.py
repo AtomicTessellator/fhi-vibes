@@ -1,8 +1,9 @@
 """compute and analyze heat fluxes"""
 import numpy as np
 import xarray as xr
-from ase import units
 
+# import xrcache as xc
+from ase import units
 from vibes import defaults
 from vibes import dimensions as dims
 from vibes import keys
@@ -50,8 +51,9 @@ def get_gk_prefactor_from_dataset(dataset: xr.Dataset, verbose: bool = True) -> 
     return gk_prefactor(volume=volume, temperature=temperature, verbose=verbose)
 
 
+# @xc.stored(verbose=True)
 def get_kappa_cumulative_dataset(
-    dataset: xr.Dataset,
+    array: xr.Dataset,
     full: bool = False,
     aux: bool = False,
     delta: str = "auto",
@@ -74,72 +76,81 @@ def get_kappa_cumulative_dataset(
         dataset containing
             hfacf, hfacf_scalar, kappa_cumulative, kappa_cumulative_scalar
     """
+    dataset = array.copy()
     pref = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
 
     kw = {"prefactor": pref, "verbose": verbose, **kw_correlate}
 
-    fluxes = dataset[keys.heat_fluxes].dropna(dims.time)[discard:]
-    if aux:
-        fluxes += dataset[keys.heat_fluxes_aux].dropna(dims.time)[discard:]
+    def get_jcorr(da, avg=True, discard=discard, cache=False):
+        """local heper function to compute hfacf"""
+        flux = da.dropna(dims.time)[discard:]
+        avg_flux = flux.mean(axis=0)
+        if avg:
+            return get_heat_flux_aurocorrelation(flux - avg_flux, **kw)
+        return get_heat_flux_aurocorrelation(flux, **kw)
 
-    # avg
-    avg_fluxes = fluxes.mean(axis=0)
-    if verbose:
-        talk(f"Avg. flux:         {pref * np.asarray(avg_fluxes.sum(axis=0))}")
-        talk(f"Avg. summed flux:  {pref * np.asarray(fluxes.sum(axis=(1, 2)).mean())}")
-
-    fluxes -= avg_fluxes
+    # compute hfacf
     if full:
-        J_corr = get_heat_flux_aurocorrelation(fluxes=fluxes, **kw)
+        talk("** not yet fully implemented, return partially summed heat flux")
+        fluxes = dataset[keys.heat_fluxes]
+        J_corr = get_jcorr(fluxes).sum(axis=3)
+        if aux:
+            fluxes = dataset[keys.heat_fluxes] + dataset[keys.heat_fluxes_aux]
+            J_corr_aux = get_jcorr(fluxes)
+
     else:
-        flux = fluxes.sum(axis=1)
-        J_corr = get_heat_flux_aurocorrelation(flux=flux, **kw)
+        J_corr = get_jcorr(dataset[keys.heat_flux])
+        if aux:
+            flux = dataset[keys.heat_flux] + dataset[keys.heat_flux_aux]
+            J_corr_aux = get_jcorr(flux)
 
-    J_corr.name = keys.hfacf
-
+    # compute cumulative kappa
     kappa = get_cumtrapz(J_corr)
-    # kappa = get_cumtrapz(J_corr.rolling({"time": 2}, min_periods=1, center=True).mean())
-    kappa.name = keys.kappa_cumulative
+    dataarrays = [J_corr, kappa]
 
-    # scalars
-    Js = xtrace(J_corr) / 3
-    Js.name = keys.hfacf_scalar
-    Ks = xtrace(kappa) / 3
-    Ks.name = keys.kappa_cumulative_scalar
+    # add aux. heat flux if requested
+    if aux:
+        dataarrays += [J_corr_aux]
 
-    datasets = (J_corr, Js, kappa, Ks)
-    dct = {da.name: da for da in datasets}
+    # create dataset
+    dct = {da.name: da for da in dataarrays}
     coords = J_corr.coords
     attrs = J_corr.attrs
 
-    # avalanche function
-    if not aux:
-        f_data = get_avalanche_data(Js.to_series(), Fmax=Fmax, verbose=verbose)
-        F = f_data[keys.avalanche_function]
-        t_avalanche = f_data[keys.time_avalanche]
+    # (scalar) avalanche function
+    if full:
+        Js = xtrace(J_corr.sum(axis=(1))) / 3
+        Ks = xtrace(kappa.sum(axis=(1))) / 3
+        kappa = kappa.sum(axis=(1, 3))
+    else:
+        Js = xtrace(J_corr) / 3
+        Ks = xtrace(kappa) / 3
+
+    f_data = get_avalanche_data(Js.to_series(), Fmax=Fmax, verbose=verbose)
+    dct.update({keys.avalanche_function: f_data.pop(keys.avalanche_function)})
+    attrs.update(f_data)
+
+    # report
+    if verbose:
+        t_ps = f_data[keys.time_avalanche] / 1000
         n_avalanche = f_data[keys.avalanche_index]
-        dct.update({F.name: F})
-        attrs.update({keys.time_avalanche: t_avalanche})
+        talk(f"Avalanche time: {t_ps:.3f} ps ({n_avalanche} datapoints)")
+        talk(f"Kappa is:       {np.asarray(Ks[n_avalanche])}")
+        talk(f"Kappa^ab is: \n{np.asarray(kappa[n_avalanche])}")
 
-        # report
-        if verbose:
-            t_ps = t_avalanche / 1000
-            talk(f"Avalanche time: {t_ps:.3f} ps ({n_avalanche} datapoints)")
-            talk(f"Kappa is:       {np.asarray(Ks[n_avalanche])}")
-            talk(f"Kappa^ab is: \n{np.asarray(kappa[n_avalanche])}")
+    DS = xr.Dataset(dct, coords=coords, attrs=attrs)
 
-    return xr.Dataset(dct, coords=coords, attrs=attrs)
+    return DS
 
 
 def get_heat_flux_aurocorrelation(
-    flux: xr.DataArray = None,
-    fluxes: xr.DataArray = None,
+    array: xr.DataArray,
     prefactor: float = 1.0,
     verbose: bool = True,
     assert_vanishing_mean: bool = False,
     **kw_correlate,
 ) -> xr.DataArray:
-    """/1000compute heat flux autocorrelation function from heat flux Dataset
+    """compute heat flux autocorrelation function from heat flux Dataset
 
     Args:
         flux (xr.DataArray, optional): heat flux [Nt, 3. Defaults to xr.DataArray.
@@ -156,15 +167,10 @@ def get_heat_flux_aurocorrelation(
 
     kw = {"verbose": False, **kw_correlate}
 
-    if fluxes is not None:
-        talk(".. return full tensor [N_t, N_a, N_a, 3, 3]", verbose=verbose)
-        ff = fluxes.dropna(dims.time)
-        drift = prefactor * fluxes.mean(axis=0).sum(axis=0)
-        da = get_autocorrelationNd(ff, off_diagonal_atoms=True, **kw)
-    else:
-        ff = flux.dropna(dims.time)
-        drift = prefactor * flux.mean(axis=0)
-        da = get_autocorrelationNd(ff, off_diagonal_coords=True, **kw)
+    flux = array
+    ff = flux.dropna(dims.time)
+    drift = prefactor * flux.mean(axis=0)
+    da = get_autocorrelationNd(ff, off_diagonal=True, **kw)
 
     if assert_vanishing_mean:
         assert np.mean(drift) < 1e-12, drift

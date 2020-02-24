@@ -75,9 +75,7 @@ def test_kappa(flux=flux_df.flux, ref_kappa=kappa_df.kappa):
 def test_kappa_dataset(file="test.nc"):
     _keys = (
         keys.hfacf,
-        keys.hfacf_scalar,
         keys.kappa_cumulative,
-        keys.kappa_cumulative_scalar,
     )
     DS = xr.load_dataset(parent / file)
 

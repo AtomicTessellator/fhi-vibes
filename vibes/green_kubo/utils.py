@@ -37,7 +37,7 @@ def get_avalanche_data(
 
 
 def F_avalanche(
-    series, delta="auto", min_delta: int = 10, ps: bool = False, verbose: bool = True
+    series, delta="auto", min_delta: int = 100, ps: bool = False, verbose: bool = True
 ):
     """Compute Avalanche Function (windowed noise/signal ratio)
 
