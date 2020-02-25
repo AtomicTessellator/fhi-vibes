@@ -102,6 +102,18 @@ def get_autocorrelation(series, verbose=True, **kwargs):
     return result
 
 
+def _map_correlate(data):
+    """compute autocorrelation with multiprocessing"""
+    Nd = len(data)
+
+    with multiprocessing.Pool() as p:
+        res = [
+            *progressbar(p.imap(c1, product(data, data), chunksize=Nd), len_it=Nd ** 2,)
+        ]
+
+    return np.asarray(res)
+
+
 def get_autocorrelationNd(
     array: xr.DataArray,
     off_diagonal: bool = False,
@@ -140,15 +152,7 @@ def get_autocorrelationNd(
 
         # compute correlation function
         if distribute:  # use multiprocessing
-            Nd = len(data)
-            with multiprocessing.Pool() as p:
-                # corr = np.array(p.map(c1, product(data, data), chunksize=len(data)))
-                res = [
-                    *progressbar(
-                        p.imap(c1, product(data, data), chunksize=Nd), len_it=Nd ** 2,
-                    )
-                ]
-                corr = np.asarray(res)
+            corr = _map_correlate(data)
         else:
             corr = np.zeros([data.shape[0] ** 2, Nt])
             for ii, X in enumerate(progressbar([*product(data, data)])):

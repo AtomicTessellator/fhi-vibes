@@ -47,9 +47,11 @@ def get_cumtrapz(series, **kwargs):
     if isinstance(series, np.ndarray):
         ctrapz = cumtrapz(series, **kwargs)
         return ctrapz
+
     elif isinstance(series, pd.Series):
         ctrapz = cumtrapz(series, index=series.index, **kwargs)
         return pd.Series(ctrapz, index=series.index)
+
     elif isinstance(series, xr.DataArray):
         try:
             index = np.asarray(series[keys.time])
