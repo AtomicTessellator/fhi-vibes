@@ -13,7 +13,7 @@ from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.utils import progressbar
 
 from . import analysis as al
-from .utils import Timer, _prefix, talk
+from .utils import Timer, talk
 
 
 class Trajectory(list):
