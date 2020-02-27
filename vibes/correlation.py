@@ -211,7 +211,7 @@ def get_correlation_time_estimate(
         tmin (float, optional): Start fit (ps). Defaults to 0.1.
         tmax (float, optional): End fit (ps). Defaults to 5.
         tau0 (float, optional): Guess for correlation time. Defaults to 1.
-        # pre_smoothen_window (int): use a window to pre-smoothen the data
+        pre_smoothen_window (int): use a window to pre-smoothen the data
         ps (bool): series.index given in ps (default: fs)
         return_series (bool): Return the corresponding exp. function as pd.Series
         verbose (bool): Be verbose.

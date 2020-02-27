@@ -112,11 +112,12 @@ def get_fourier_transformed(series, verbose=True):
         except (KeyError, IndexError):
             warn(f"time coordinate not found, use `coords=arange`", level=1)
             omegas = get_frequencies(times=np.arange(len(series)), verbose=verbose)
+
         da = xr.DataArray(
             fft,
             dims=(keys.omega, *series.dims[1:]),
             coords={keys.omega: omegas},
-            name=keys.fourier_transform,
+            name=keys._join(series.name, keys.fourier_transform),
         )
         result = da
     else:

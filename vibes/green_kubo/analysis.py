@@ -1,49 +1,57 @@
 """gather statistics about trajectory data"""
-
 import pandas as pd
 
 from vibes import keys
-from vibes.green_kubo.heat_flux import (
-    get_heat_flux_power_spectrum,
-    get_kappa_cumulative_dataset,
-)
+from vibes.correlation import get_autocorrelation_exponential
+from vibes.fourier import get_fourier_transformed
+from vibes.helpers import xtrace
 
 
-def summary(dataset, plot=True, hann=True, **kwargs):
+def summary(dataset, **kwargs):
     """summarize heat_flux data in xarray DATASET
 
     Args:
         dataset(xarray.Dataset): the trajectory.dataset
 
+    Returns:
+        (pd.Dataframe, pd.Dataframe): One dataframe each for time resolved
+              hf_acf, cumulative kappa, and frequency resolved spectra
     """
-    assert keys.heat_flux in dataset
-    assert keys.heat_flux_aux in dataset
 
-    # total fluxes
-    J1 = dataset.heat_flux.dropna(keys.time)
-    J2 = dataset.heat_flux_aux.dropna(keys.time)
+    assert keys.hf_acf in dataset
+    assert keys.k_cum in dataset
 
-    # fourier transforms
-    Jw1 = get_heat_flux_power_spectrum(J1, verbose=True)
-    Jw2 = get_heat_flux_power_spectrum(J2, verbose=False)
+    J1 = dataset[keys.hf_acf]
+    Jw1 = get_fourier_transformed(J1).real
 
-    # autocorrelation
-    ds = get_kappa_cumulative_dataset(dataset, hann=hann)
-    ds_aux = get_kappa_cumulative_dataset(dataset, hann=hann, aux=True, verbose=False)
+    js1 = Jw1.sum(axis=(1, 2))
+    dct_freq = {keys.hf_power: js1}
+
+    # get auxiliary heat_flux
+    J2 = None
+    if keys.hf_aux_acf in dataset:
+        J2 = dataset[keys.hf_aux_acf]
+        Jw2 = get_fourier_transformed(J2).real
+        js2 = Jw2.sum(axis=(1, 2))
+        dct_freq.update({keys.hf_aux_power: js2})
+
+    # scalar
+    kappa = dataset[keys.kappa_cumulative]
+    kappa_scalar = xtrace(kappa) / 3
+    J = xtrace(J1) / 3
 
     # time resolved
     d = {
-        "Jcorr": ds[keys.hfacf_scalar],
-        "kappa": ds[keys.kappa_cumulative_scalar],
-        "kappa_aux": ds_aux[keys.kappa_cumulative_scalar],
+        keys.hf_acf: J,
+        keys.kappa_cumulative_scalar: kappa_scalar,
+        keys.avalanche_function: dataset[keys.avalanche_function],
     }
-    df_time = pd.DataFrame(d, index=ds.time)
+    df_time = pd.DataFrame(d, index=dataset.time)
 
     # freq resolved
-    d = {"Jspec": Jw1.sum(axis=1), "Jspec_aux": Jw2.sum(axis=1)}
-    df_freq = pd.DataFrame(d, index=Jw1.omega)
+    df_freq = pd.DataFrame(dct_freq, index=Jw1.omega)
 
-    return (df_time, df_freq)
+    return (df_time, df_freq)  #
 
 
 def plot_summary(df_time, df_freq, avg=50, logx=True, xlim=None):
