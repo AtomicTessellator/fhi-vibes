@@ -2,8 +2,8 @@
 
 import numpy as np
 import scipy.linalg as la
-from ase import Atoms
 
+from ase import Atoms
 from vibes.helpers import Timer, lazy_property, progressbar, warn
 from vibes.helpers.displacements import get_dUdt, get_U
 from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
@@ -69,7 +69,7 @@ class SimpleModeProjection:
         """ return angular frequencies """
         return get_frequencies(self.dynamical_matrix)
 
-    def project(self, array, mass_weight=None, info=None):
+    def project(self, array, mass_weight=0.0, info=None):
         """perform mode projection on [Nt, Na, 3] shaped array
 
         mass_weight: Exponent for mass weighting when applying the projector

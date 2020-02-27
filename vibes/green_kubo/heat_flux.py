@@ -96,12 +96,14 @@ def get_kappa_cumulative_dataset(
         J_corr = get_jcorr(fluxes).sum(axis=3)
         if aux:
             fluxes = dataset[keys.heat_fluxes] + dataset[keys.heat_fluxes_aux]
+            fluxes.name = keys.heat_fluxes_aux
             J_corr_aux = get_jcorr(fluxes)
 
     else:
         J_corr = get_jcorr(dataset[keys.heat_flux])
         if aux:
             flux = dataset[keys.heat_flux] + dataset[keys.heat_flux_aux]
+            flux.name = keys.heat_flux_aux
             J_corr_aux = get_jcorr(flux)
 
     # compute cumulative kappa
