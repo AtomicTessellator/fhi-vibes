@@ -148,14 +148,15 @@ def phonopy_output(
 @click.option("--full", is_flag=True)
 @click.option("--aux", is_flag=True)
 @click.option("-o", "--outfile", default="greenkubo.nc", show_default=True, type=Path)
-def greenkubo(dataset, average, full, aux, outfile):
+@click.option("-d", "--discard", default=0)
+def greenkubo(dataset, average, full, aux, outfile, discard):
     """perform greenkubo analysis"""
     import xarray as xr
     import vibes.green_kubo.heat_flux as hf
 
     ds = xr.load_dataset(dataset)
 
-    ds_kappa = hf.get_kappa_cumulative_dataset(ds, full=full, aux=aux, cache=False)
+    ds_kappa = hf.get_kappa_cumulative_dataset(ds, full=full, aux=aux, discard=discard)
 
     if full:
         outfile = outfile.parent / f"{outfile.stem}_full.nc"

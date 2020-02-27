@@ -125,23 +125,32 @@ def show_hdf5_file(file, verbose):
                 click.echo(store[k].describe())
 
 
-@info.command(aliases=["hf"])
-@click.argument("dataset", default="trajectory.nc")
+@info.command(aliases=["gk"])
+@click.argument("dataset", default="greenkubo.nc")
 @click.option("-p", "--plot", is_flag=True, help="plot summary")
 @click.option("--no_hann", is_flag=True)
 @click.option("--logx", is_flag=True)
 @click.option("--xlim", type=float, help="xlim range in ps")
-def heatflux(dataset, plot, no_hann, logx, xlim):
+@click.option("-avg", "--average", default=100, help="average window")
+def greenkubo(dataset, plot, no_hann, logx, xlim, average):
     import xarray as xr
+    from vibes import keys
     from vibes.green_kubo.analysis import summary, plot_summary
 
     DS = xr.load_dataset(dataset)
 
-    (df_time, df_freq) = summary(DS, hann=not no_hann)
+    (df_time, df_freq) = summary(DS)
 
     if plot:
-        fig = plot_summary(df_time, df_freq, logx=logx, xlim=xlim)
+        fig = plot_summary(
+            df_time,
+            df_freq,
+            t_avalanche=DS.attrs[keys.time_avalanche],
+            logx=logx,
+            xlim=xlim,
+            avg=average,
+        )
 
-        fname = Path(dataset).stem + "_hf_summary.pdf"
+        fname = Path(dataset).stem + "_summary.pdf"
         fig.savefig(fname, bbox_inches="tight")
         click.echo(f".. summary plotted to {fname}")

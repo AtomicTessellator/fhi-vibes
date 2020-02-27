@@ -54,7 +54,7 @@ def summary(dataset, **kwargs):
     return (df_time, df_freq)  #
 
 
-def plot_summary(df_time, df_freq, avg=50, logx=True, xlim=None):
+def plot_summary(df_time, df_freq, t_avalanche=None, avg=50, logx=True, xlim=None):
     """plot a summary of the data in DATAFRAME"""
     import matplotlib
     from matplotlib import pyplot as plt
@@ -66,6 +66,7 @@ def plot_summary(df_time, df_freq, avg=50, logx=True, xlim=None):
         import seaborn as sns
 
         sns.set_style("whitegrid")
+        sns.set_palette("colorblind")
     except ModuleNotFoundError:
         pass
 
@@ -79,6 +80,7 @@ def plot_summary(df_time, df_freq, avg=50, logx=True, xlim=None):
         "color": color,
         "marker": ".",
     }
+    kw_avalanche = {"color": tc[0], "linestyle": "--", "linewidth": 2}
     avg_kw = {"linewidth": 3, "color": "k"}
     fig_kw = {
         "figsize": (11.69, 8.27),
@@ -86,54 +88,74 @@ def plot_summary(df_time, df_freq, avg=50, logx=True, xlim=None):
         "sharex": "col",
     }
     kw_roll = {"window": avg, "min_periods": 0, "center": True}
+    # kw_exp1 = {"min_periods": 0, "center": False}
+    # kw_exp2 = {"min_periods": 0}  # "center": True}
 
     df_time.index /= 1000
 
-    jc = df_time.Jcorr / df_time.Jcorr.iloc[0]
-    kc = df_time.kappa
-    kc_aux = df_time.kappa_aux
-    js = df_freq.Jspec
-    js_aux = df_freq.Jspec_aux
+    jc = df_time[keys.hf_acf] / df_time[keys.hf_acf].iloc[0]
+    kc = df_time[keys.kappa_cumulative_scalar]
+    js = df_freq[keys.hf_power]
 
-    fig, ((ax1, ax3), (ax2, ax4)) = plt.subplots(nrows=2, ncols=2, **fig_kw)
+    # estimate correlation time
+    e = get_autocorrelation_exponential(jc, ps=True, verbose=False)
+
+    fig, ((ax11, ax12), (ax21, ax22)) = plt.subplots(nrows=2, ncols=2, **fig_kw)
+
+    jc.rolling(5, min_periods=0).mean().plot(ax=ax11)
+
+    e.plot(ax=ax11, zorder=10)
 
     # plot
     # HFACF
-    jc.plot(ax=ax1, **plot_kw)
-    jc.rolling(**kw_roll).mean().plot(ax=ax1, **avg_kw)
+    jc.plot(ax=ax11, **plot_kw)
+    jc.rolling(**kw_roll).mean().plot(ax=ax11, **avg_kw)
+
+    # avalanche
+    twin = ax11.twinx()
+    fig.align_ylabels()
+    # twin.set_yticks([]), twin.set_yticklabels([])
+    f = df_time[keys.avalanche_function]
+    f.plot(ax=twin)
+    twin.grid(False)
+    if t_avalanche is not None:
+        ax11.axvline(t_avalanche / 1000, **kw_avalanche)
 
     # Kappa
-    kc_aux.plot(ax=ax2, **plot_kw)
-    kc_aux.rolling(**kw_roll).mean().plot(ax=ax2, **avg_kw)
-    kc.plot(ax=ax2, **{**avg_kw, "color": tc[1], "linewidth": 2})
+    kc.plot(ax=ax21, **{**avg_kw, "color": tc[1], "linewidth": 2})
+    ax21.axvline(t_avalanche, **kw_avalanche)
 
     # plot spectra
-    js.plot(ax=ax3, **plot_kw)
-    js_aux.plot(ax=ax4, **plot_kw)
-    js.rolling(**kw_roll).mean().plot(ax=ax3, **avg_kw)
-    js_aux.rolling(**kw_roll).mean().plot(ax=ax4, **avg_kw)
+    js.plot(ax=ax12, **plot_kw)
+    js.rolling(**kw_roll).mean().plot(ax=ax12, **avg_kw)
 
     if xlim:
-        ax2.set_xlim((-1, xlim))
+        ax21.set_xlim((-1, xlim))
     else:
-        ax2.set_xlim((-1, kc.index.max()))
-    ax2.set_ylim((0, 1.1 * kc.max()))
+        ax21.set_xlim((-1, kc.index.max()))
+    ax21.set_ylim((0, 1.1 * kc.max()))
     if logx:
-        ax2.set_xscale("log")
-        ax2.set_xlim(kc.index[2], kc.index.max())
+        ax21.set_xscale("log")
+        ax21.set_xlim(kc.index[2], kc.index.max())
 
-    linthreshy = 0.1 * js_aux.max()
-    ax4.set_yscale("symlog", linthreshy=linthreshy)
-    ax4.axhline(linthreshy, ls="--", color="purple")
-    ax4.set_xlim((-1, js_aux.index.max()))
+    # aux flux
+    if keys.hf_aux_power in df_freq:
+        js_aux = df_freq[keys.hf_aux_power]
+        js_aux.plot(ax=ax22, **plot_kw)
+        js_aux.rolling(**kw_roll).mean().plot(ax=ax22, **avg_kw)
+        linthreshy = 0.1 * max(1, js_aux.max())
+        ax22.set_yscale("symlog", linthreshy=linthreshy)
+        ax22.axhline(linthreshy, ls="--", color="purple")
+        ax22.set_xlim((-1, js_aux.index.max()))
+        ax22.set_xlabel("Omega (THz)")
+        ax22.set_title(r"$\vert J_\mathrm{aux} (\omega)\vert^2$")
+    else:
+        ax22.set_title(r"$J_\mathrm{aux} (\omega)$ missing.")
 
     # titles and labels
     fig.suptitle(f"Heat Flux Overview (window: {avg})")
-    ax1.set_title(r"$\langle J (t) J(0) \rangle ~/~ \langle J (0) J(0) \rangle$")
-    ax2.set_title(r"$\kappa (t)$ (W/mK)")
-    ax2.set_xlabel("Time $t$ (ps)")
-    ax3.set_title(r"$\vert J (\omega)\vert^2$")
-    ax4.set_xlabel("Omega (THz)")
-    ax4.set_title(r"$\vert J_\mathrm{aux} (\omega)\vert^2$")
-
+    ax11.set_title(r"$\langle J (t) J(0) \rangle ~/~ \langle J (0) J(0) \rangle$")
+    ax21.set_title(r"$\kappa (t)$ (W/mK)")
+    ax21.set_xlabel("Time $t$ (ps)")
+    ax12.set_title(r"$\vert J (\omega)\vert^2$")
     return fig
