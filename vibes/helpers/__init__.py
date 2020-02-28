@@ -10,4 +10,3 @@ from .paths import cwd
 from .properties import lazy_property
 from .utils import Timer, bold, progressbar, talk
 from .warnings import warn
-from .xarray import xtrace

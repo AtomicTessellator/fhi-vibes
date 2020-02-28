@@ -19,7 +19,7 @@ git_files = [Path(file) for file in git_files.split()]
 @click.option("--ignore", default=".coverage", show_default=True)
 def cleanup(all_files=all_files, git_files=git_files, ignore=None):
     for file in all_files:
-        if file not in git_files and ignore not in file.name:
+        if file not in git_files and file.name != ignore:
             try:
                 os.remove(file)
                 print(f"{file} removed")

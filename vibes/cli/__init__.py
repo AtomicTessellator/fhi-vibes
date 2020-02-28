@@ -3,15 +3,14 @@
 import shutil
 
 import click
-import click_completion
 
+import click_completion
 from vibes import __version__ as vibes_version
 from vibes._defaults import DEFAULT_CONFIG_FILE
 
-from . import aigk, info, output, run, submit, template, utils
+from . import info, output, run, submit, template, utils
 from .cli_tracker import CliTracker
 from .misc import AliasedGroup, check_path
-
 
 click_completion.init()
 
@@ -42,7 +41,6 @@ cli.add_command(template.template)
 cli.add_command(run.run)
 cli.add_command(utils.utils)
 cli.add_command(output.output)
-cli.add_command(aigk.aiGK)
 cli.add_command(submit.submit)
 
 try:

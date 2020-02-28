@@ -5,7 +5,7 @@ import xarray as xr
 
 from vibes import dimensions as dims
 from vibes.correlation import get_autocorrelation, get_autocorrelationNd
-from vibes.helpers import xtrace
+from vibes.helpers.xarray import xtrace
 
 np.random.seed(4)
 

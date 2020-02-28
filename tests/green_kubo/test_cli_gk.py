@@ -6,7 +6,7 @@ import pytest
 parent = Path(__file__).parent
 
 
-commands = ["vibes aigk vdos test.nc -p", "vibes output gk test.nc"]
+commands = ["vibes info vdos test.nc -p", "vibes output gk test.nc", "vibes info gk"]
 
 
 @pytest.mark.parametrize("cmd", commands)

@@ -9,7 +9,7 @@ from vibes import dimensions as dims
 from vibes import keys
 from vibes.correlation import get_autocorrelationNd
 from vibes.fourier import get_power_spectrum
-from vibes.helpers import xtrace
+from vibes.helpers.xarray import xtrace
 from vibes.integrate import get_cumtrapz
 
 from .utils import Timer

@@ -4,7 +4,7 @@ import pandas as pd
 from vibes import keys
 from vibes.correlation import get_autocorrelation_exponential
 from vibes.fourier import get_fourier_transformed
-from vibes.helpers import xtrace
+from vibes.helpers.xarray import xtrace
 
 
 def summary(dataset, **kwargs):
