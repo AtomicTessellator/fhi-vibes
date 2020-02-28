@@ -18,7 +18,7 @@ commands = (
 commands_files = [
     ["vibes utils backup calculations", "backups/backup.00002.19636B4A.tgz"],
     ["vibes output md", "trajectory.nc"],
-    ["vibes output phon phonopy.son --full --q_mesh 5 5 5", "output"],
+    ["vibes output phonopy phonopy.son --full --q_mesh 5 5 5", "output"],
     ["vibes utils trajectory 2db", "trajectory.db"],
     ["vibes utils trajectory 2tdep", "tdep"],
     ["vibes utils trajectory pick_sample -n 1", "geometry.in.1"],
