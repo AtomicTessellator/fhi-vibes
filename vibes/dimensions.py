@@ -13,9 +13,9 @@ time_atom = (time, I)
 time_vec = (time, a)
 time_atom_vec = (time, I, a)
 time_tensor = (time, a, b)
-time_atom_tensor = (time, I, a, b)
-time_atom_atom_tensor = (time, I, J, a, b)
-taat = time_atom_atom_tensor
+# time_atom_tensor = (time, I, a, b)
+# time_atom_atom_tensor = (time, I, J, a, b)
+# taat = time_atom_atom_tensor
 
 lattice = (a, b)
 positions = (I, a)
