@@ -2,12 +2,13 @@
 
 from vibes.helpers.attribute_dict import AttributeDict as adict
 
-
 displacement_id_str = "displacement_id"
 name = "phonopy"
 
-mandatory_base = ["machine", "control", "geometry", name]
-mandatory_task = ["supercell_matrix"]
+mandatory = {
+    "mandatory_keys": ["machine", "control", "geometry"],
+    "mandatory_obj_keys": ["supercell_matrix"],
+}
 
 defaults = adict(
     {

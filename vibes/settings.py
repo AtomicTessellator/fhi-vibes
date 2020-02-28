@@ -379,6 +379,9 @@ class TaskSettings(Settings):
 
         self._name = name
 
+        # verify name
+        self.verify_key(name)
+
         if not obj_key:
             obj_key = name
 

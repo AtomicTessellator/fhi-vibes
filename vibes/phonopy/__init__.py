@@ -10,4 +10,3 @@ from vibes.phonopy.utils import (
     metadata2dict,
     to_phonopy_atoms,
 )
-from vibes.phonopy.workflow import run_phonopy

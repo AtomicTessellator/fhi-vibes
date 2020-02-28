@@ -3,18 +3,20 @@
 from pathlib import Path
 
 from ase import Atoms
-
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.settings import TaskSettings
 from vibes.structure.misc import get_sysname
 
-from ._defaults import defaults, mandatory_base, mandatory_task, name
+from . import metadata2dict
+from . import postprocess as postprocess
+from . import wrapper as backend
+from ._defaults import defaults, mandatory, name
 
 
 class PhonopySettings(TaskSettings):
     """Phonopy settings. Ensures that settings.phonopy is set up sensibly"""
 
-    def __init__(self, settings):
+    def __init__(self, settings, name=name, defaults_kw=None, mandatory_kw=None):
         """Settings in the context of a phonopy workflow
 
         Parameters
@@ -22,12 +24,13 @@ class PhonopySettings(TaskSettings):
         settings: Settings
             Settings object with settings for phonopy
         """
+        if defaults_kw is None:
+            defaults_kw = defaults
+        if mandatory_kw is None:
+            mandatory_kw = mandatory
+
         super().__init__(
-            name,
-            settings=settings,
-            defaults=defaults,
-            mandatory_keys=mandatory_base,
-            mandatory_obj_keys=mandatory_task,
+            name=name, settings=settings, defaults=defaults_kw, **mandatory_kw
         )
 
         # validate
@@ -42,7 +45,14 @@ class PhonopySettings(TaskSettings):
 class PhonopyContext:
     """context for phonopy calculation"""
 
-    def __init__(self, settings, workdir=None):
+    def __init__(
+        self,
+        settings,
+        workdir=None,
+        name=name,
+        defaults_kw: dict = None,
+        mandatory_kw: dict = None,
+    ):
         """Intializer
 
         Parameters
@@ -52,7 +62,9 @@ class PhonopyContext:
         workdir: str or Path
             The working directory for the workflow
         """
-        self.settings = PhonopySettings(settings)
+        self.settings = PhonopySettings(
+            settings, name=name, defaults_kw=defaults_kw, mandatory_kw=mandatory_kw
+        )
         self._ref_atoms = None
 
         if workdir:
@@ -61,6 +73,9 @@ class PhonopyContext:
             self.workdir = name
         else:
             self.workdir = self.workdir
+
+        self.backend = backend
+        self.postprocess = postprocess
 
     @property
     def workdir(self):
@@ -103,3 +118,66 @@ class PhonopyContext:
     def name(self):
         """return name of the workflow"""
         return self.settings.name
+
+    def preprocess(self):
+        return self.backend.preprocess(atoms=self.ref_atoms, **self.settings.obj)
+
+    def bootstrap(self, dry=False):
+        """load settings, prepare atoms, calculator, and phonopy object"""
+
+        # Phonopy preprocess
+        phonon, supercell, scs = self.preprocess()
+
+        # if calculator not given, create an aims context for this calculation
+        if self.settings.atoms and self.settings.atoms.calc:
+            calc = self.settings.atoms.calc
+        else:
+            from vibes import aims
+
+            aims_ctx = aims.AimsContext(settings=self.settings, workdir=self.workdir)
+            # set reference structure for aims calculation
+            # and make sure forces are computed
+            aims_ctx.ref_atoms = supercell
+            aims_ctx.settings.obj["compute_forces"] = True
+
+            calc = aims.setup.setup_aims(aims_ctx)
+
+        # save metadata
+        metadata = metadata2dict(phonon, calc)
+
+        return {
+            "atoms_to_calculate": scs,
+            "calculator": calc,
+            "metadata": metadata,
+            "workdir": self.workdir,
+            "settings": self.settings,
+            "save_input": True,
+            "backup_after_calculation": False,
+            "dry": dry,
+            **self.settings.obj,
+        }
+
+    def run(self, dry=False):
+        """run phonopy workflow """
+        from vibes.helpers import talk
+        from vibes.helpers.restarts import restart
+        from vibes.tasks import calculate_socket
+
+        args = self.bootstrap(dry=dry)
+
+        talk(f"Run phonopy workflow in working directory\n  {self.workdir}")
+
+        try:
+            self.postprocess(workdir=self.workdir)
+            msg = "** Postprocess could be performed from previous calculations. Check"
+            msg += f"\n**  {self.workdir}"
+            exit(msg)
+        except (FileNotFoundError, RuntimeError):
+            completed = calculate_socket(**args)
+
+        if not completed:
+            restart(args["settings"])
+        else:
+            talk("Start postprocess.")
+            self.postprocess(**args)
+            talk("done.")
