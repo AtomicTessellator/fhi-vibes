@@ -1,7 +1,7 @@
 """ A leightweight wrapper for Phono3py """
 
 import numpy as np
-from phono3py.phonon3 import Phono3py
+from phono3py import Phono3py
 
 from vibes import konstanten as const
 from vibes.helpers.numerics import get_3x3_matrix
@@ -14,9 +14,8 @@ from ._defaults import defaults
 def prepare_phono3py(
     atoms,
     supercell_matrix,
-    fc3=None,
-    phonon_supercell_matrix=None,
     fc2=None,
+    fc3=None,
     cutoff_pair_distance=defaults.cutoff_pair_distance,
     displacement_dataset=None,
     is_diagonal=defaults.is_diagonal,
@@ -29,54 +28,31 @@ def prepare_phono3py(
 ):
     """Prepare a Phono3py object
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        primitive cell for the calculation
-    supercell_matrix: np.ndarray
-        supercell matrix for the third order phonons
-    fc3: np.ndarray
-        Third order force constant matrix
-    phonon_supercell_matrix: np.ndarray
-        supercell matrix for the second order phonons
-    fc2: np.ndarray
-        second order force constant matrix
-    cutoff_pair_distance: float
-        All pairs further apart than this cutoff are ignored
-    displacement_dataset: dict
-        The displacement_dataset for the third order phonons
-    is_diagonal: bool
-        Whether allow diagonal displacements of Atom 2 or not
-    q_mesh: np.ndarray
-        q-point interpolation mesh postprocessing
-    displacement: float
-        magnitude of the displacement
-    symmetrize_fc3q: bool
-        If True symmetrize the third order interactions
-    symprec: float
-        distance tolerance for determining the sapce group/symmetry
-    log_level: int
-        How much information should be streamed to the console
+    Args:
+        atoms: ase.atoms.Atoms
+        supercell_matrix: np.ndarray
+        fc2: np.ndarray
+        fc3: np.ndarray
+        cutoff_pair_distance: float
+        displacement_dataset: dict
+        is_diagonal: bool
+        mesh: np.ndarray
+        displacement: float
+        symmetrize_fc3q: bool
+        symprec: float
+        log_level: int
 
-    Returns
-    -------
-    phonon3: phono3py.phonon3.Phono3py
-        The Phono3py object for the calculation
+    Returns:
+        phono3py.Phono3py
     """
 
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
     supercell_matrix = get_3x3_matrix(supercell_matrix)
 
-    if phonon_supercell_matrix is None:
-        phonon_supercell_matrix = supercell_matrix
-    else:
-        phonon_supercell_matrix = get_3x3_matrix(phonon_supercell_matrix)
-
     phonon3 = Phono3py(
         ph_atoms,
         supercell_matrix=np.transpose(supercell_matrix),
-        phonon_supercell_matrix=np.transpose(phonon_supercell_matrix),
         mesh=q_mesh,
         symprec=symprec,
         is_symmetry=True,
@@ -85,7 +61,7 @@ def prepare_phono3py(
         log_level=log_level,
     )
 
-    if displacement_dataset:
+    if displacement_dataset is not None:
         phonon3.set_displacement_dataset(displacement_dataset)
 
     phonon3.generate_displacements(
@@ -115,33 +91,20 @@ def preprocess(
 ):
     """Set up a Phono3py object and generate all the supercells necessary for the 3rd order
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        primitive cell for the calculation
-    supercell_matrix: np.ndarray
-        supercell matrix for the third order phonons
-    cutoff_pair_distance: float
-        All pairs further apart than this cutoff are ignored
-    is_diagonal: bool
-        Whether allow diagonal displacements of Atom 2 or not
-    q_mesh: np.ndarray
-        q-point interpolation mesh postprocessing
-    displacement: float
-        magnitude of the displacement
-    symprec: float
-        distance tolerance for determining the sapce group/symmetry
-    log_level: int
-        How much information should be streamed to the console
+    Args:
+        atoms: ase.atoms.Atoms
+        supercell_matrix: np.ndarray
+        cutoff_pair_distance: float
+        is_diagonal: bool
+        q_mesh: np.ndarray
+        displacement: float
+        symprec: float
+        log_level: int
 
-    Returns
-    -------
-    phonon3: phono3py.phonon3.Phono3py
-        The Phono3py object with displacement_dataset, and displaced supercells
-    supercell: ase.atoms.Atoms
-        The undisplaced supercell
-    supercells_with_disps: list of ase.atoms.Atoms
-        All of the supercells with displacements
+    Returns:
+        phonon3: phono3py.Phono3py
+        supercell: ase.atoms.Atoms
+        supercells_with_disps: list of ase.atoms.Atoms
     """
 
     phonon3 = prepare_phono3py(

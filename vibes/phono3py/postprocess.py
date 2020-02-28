@@ -4,107 +4,112 @@ from pathlib import Path
 
 import numpy as np
 
+from vibes.helpers import Timer, warn
 from vibes.helpers.converters import dict2atoms
-from vibes.helpers.hash import hash_atoms
-from vibes.helpers.pickle import psave
+from vibes.helpers.paths import cwd
 from vibes.io import write
 from vibes.phono3py.wrapper import prepare_phono3py
 from vibes.phonopy import displacement_id_str
-from vibes.phonopy.postprocess import postprocess as postprocess2
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader as traj_reader
 
 
 def postprocess(
-    trajectory="phono3py/trajectory.son",
-    trajectory_fc2="phonopy/trajectory.son",
-    pickle_file="phonon3.pick",
-    write_files=True,
-    verbose=True,
-    **kwargs,
+    trajectory="trajectory.son", workdir=".", verbose=True, **kwargs,
 ):
-    """Phono3py postprocess
+    """Phonopy postprocess
 
     Parameters
     ----------
-    trajectory: str
-        Trajectory file for third order phonon force calculations
-    trajectoryfc2: str
-        Trajectory file for second order phonon force calculations
-    pickle_file: str
-        Pickle archive file for the Phono3py object
-    write_files: bool
-        If True write output files
+    trajectory: str or Path
+        The trajectory file to process
+    workdir: str or Path
+        The working directory where trajectory is stored
     verbose: bool
-        If True print more logging information
+        If True be verbose
 
     Returns
     -------
-    phono3py.phonon3.Phono3py
-        The Phono3py Object of the calculation
+    phono3py.Phono3py
+        The Phono3py object with the force constants calculated
     """
 
-    trajectory3 = Path(trajectory)
+    timer = Timer("Start phonopy postprocess:")
 
-    # first run phonopy postprocess
-    try:
-        phonon = postprocess2(trajectory=trajectory_fc2)
-    except FileNotFoundError:
-        phonon = None
+    trajectory = Path(workdir) / trajectory
 
-    # read the third order trajectory
-    calculated_atoms, metadata_full = traj_reader(trajectory3, True)
-    metadata = metadata_full["Phono3py"]
-    primitive = dict2atoms(metadata["primitive"])
-    supercell = dict2atoms(metadata_full["atoms"])
-    supercell_matrix = metadata["supercell_matrix"]
+    calculated_atoms, metadata = traj_reader(trajectory, get_metadata=True)
+
+    # make sure the calculated atoms are in order
+    for nn, atoms in enumerate(calculated_atoms):
+        atoms_id = atoms.info[displacement_id_str]
+        if atoms_id == nn:
+            continue
+        warn(f"Displacement ids are not in order. Inspect {trajectory}!", level=2)
+
+    if "duplicates" in metadata["Phono3py"]["displacement_dataset"]:
+        d = metadata["Phono3py"]["displacement_dataset"]["duplicates"]
+        metadata["Phono3py"]["displacement_dataset"]["duplicates"] = {
+            int(k): int(v) for (k, v) in d.items()
+        }
+
+    for disp in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
+        disp["number"] = int(disp["number"])
+        for d in disp["second_atoms"]:
+            d["number"] = int(d["number"])
+
+    primitive = dict2atoms(metadata["Phono3py"]["primitive"])
+    supercell = dict2atoms(metadata["atoms"])
+    supercell_matrix = metadata["Phono3py"]["supercell_matrix"]
     supercell.info = {"supercell_matrix": str(supercell_matrix)}
+    symprec = metadata["Phono3py"]["symprec"]
 
-    phono3py_settings = {
-        "atoms": primitive,
-        "supercell_matrix": supercell_matrix,
-        "phonon_supercell_matrix": phonon.get_supercell_matrix() if phonon else None,
-        "fc2": phonon.get_force_constants() if phonon else None,
-        "cutoff_pair_distance": metadata["displacement_dataset"]["cutoff_distance"],
-        "symprec": metadata["symprec"],
-        "displacement_dataset": metadata["displacement_dataset"],
-        **kwargs,
-    }
+    phonon = prepare_phono3py(primitive, supercell_matrix, symprec=symprec)
+    phonon.set_displacement_dataset(metadata["Phono3py"]["displacement_dataset"].copy())
 
-    phonon3 = prepare_phono3py(**phono3py_settings)
-    zero_force = np.zeros([len(calculated_atoms[0]), 3])
+    scs = phonon.get_supercells_with_displacements()
 
-    # collect the forces and put zeros where no supercell was created
+    counter = 0
     force_sets = []
-    disp_scells = phonon3.get_supercells_with_displacements()
-    hash_dict = {}
-    for nn, scell in enumerate(disp_scells):
-        atoms = calculated_atoms[0]
-        if scell:
-            # do not simply pop since phono3py adds the same supercell multiple times
-            if atoms.info[displacement_id_str] == nn:
-                hash_dict[hash_atoms(to_Atoms(scell))] = len(force_sets)
-                force_sets.append(atoms.get_forces())
-                calculated_atoms.pop(0)
-            else:
-                # This is a repeated supercell, find it using the hash and add the forces
-                force_sets.append(force_sets[hash_dict[hash_atoms(to_Atoms(scell))]])
-        else:
-            # in case the trajectory contains data from higher cutoff calculations
-            if atoms.info[displacement_id_str] == nn:
-                calculated_atoms.pop(0)
-            force_sets.append(zero_force)
+    for pa in scs:
+        if pa is None:
+            force_sets.append(np.zeros([len(supercell), 3]))
+            continue
+        a = calculated_atoms[counter]
+        force_sets.append(a.get_forces())
+        counter += 1
 
-    phonon3.produce_fc3(force_sets)
+    phonon.forces = np.array(force_sets)
 
-    if pickle_file and write_files:
-        psave(phonon3, trajectory3.parent / pickle_file)
+    phonon.produce_fc2()
+    phonon.produce_fc3()
 
-    if write_files:
-        # Save the supercell
-        fname = "geometry.in.supercell3"
-        write(supercell, fname)
-        if verbose:
-            print(f".. Third order supercell written to {fname}")
+    if verbose:
+        timer("done")
 
-    return phonon3
+    return phonon
+
+
+def extract_results(phonon, output_dir="output"):
+    from phono3py import file_IO as io
+
+    primitive = phonon.get_unitcell()
+    supercell = phonon.get_supercell()
+    p2s_map = phonon.primitive.get_primitive_to_supercell_map()
+
+    dds = phonon.get_displacement_dataset()
+
+    fc2 = phonon.fc2
+    fc3 = phonon.fc3
+
+    with cwd(output_dir, mkdir=True):
+
+        p = to_Atoms(primitive)
+        write(p, "geometry.in.primitive")
+        s = to_Atoms(supercell)
+        write(s, "geometry.in.supercell")
+
+        io.write_disp_fc3_yaml(dds, supercell)
+
+        io.write_fc2_to_hdf5(fc2, p2s_map=p2s_map)
+        io.write_fc3_to_hdf5(fc3, p2s_map=p2s_map)
