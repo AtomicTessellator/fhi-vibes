@@ -3,7 +3,9 @@
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import scipy.signal as sl
+import xarray as xr
 from ase.io import read
 
 from vibes.green_kubo.velocities import get_vdos
@@ -36,10 +38,12 @@ def test_frequencies_from_force_constants():
     return freqs
 
 
-def test_vdos():
-    traj = reader(parent / "trajectory.son.bz2")
+def test_vdos(
+    traj_file="trajectory.son.bz2", vdos_file="v.nc", ref_file="ref_vdos.csv"
+):
+    traj = reader(parent / traj_file)
 
-    df_vdos = get_vdos(trajectory=traj)
+    df_vdos = get_vdos(traj.dataset.velocities)
 
     # get analytical frequencies
     freqs = test_frequencies_from_force_constants()
@@ -54,3 +58,18 @@ def test_vdos():
 
     for peak, freq in zip(peaks, unique_freqs):
         assert abs(peak - freq) / peak < 0.1, (peak, freq)
+
+    # compare to ref
+    velocities = xr.load_dataarray(parent / vdos_file)
+
+    vdos = get_vdos(velocities=velocities).sum(axis=(1, 2)).to_series().abs()
+
+    vdos_ref = pd.read_csv(parent / ref_file, index_col=vdos.index.name, squeeze=True)
+
+    assert (vdos - vdos_ref).std() < 1e-12
+
+
+if __name__ == "__main__":
+    test_frequencies_from_force_constants()
+    test_parse_force_constants()
+    test_vdos()

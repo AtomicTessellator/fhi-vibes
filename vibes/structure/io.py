@@ -3,7 +3,6 @@
 import datetime
 
 import numpy as np
-from scipy.linalg import norm
 
 from vibes.helpers.brillouinzone import get_special_points
 from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box

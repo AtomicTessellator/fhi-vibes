@@ -2,7 +2,7 @@
 from vibes.helpers.utils import talk
 from vibes.settings import Settings
 
-from .calculate import calc_dirname, calculate_socket
+from .calculate import calc_dirname, calculate_socket  # noqa: F401
 
 
 def run():

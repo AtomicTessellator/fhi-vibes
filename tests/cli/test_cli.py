@@ -12,10 +12,11 @@ commands = (
     "vibes --help",
     "vibes info geometry geometry.in.primitive",
     "vibes utils suggest_k_grid geometry.in.primitive",
+    "vibes info phonopy",
 )
 
 commands_files = [
-    ["vibes utils backup calculations", "backups/backup.00000.19636B4A.tgz"],
+    ["vibes utils backup calculations", "backups/backup.00002.19636B4A.tgz"],
     ["vibes output md", "trajectory.nc"],
     ["vibes output phon phonopy.son --full --q_mesh 5 5 5", "output"],
     ["vibes utils trajectory 2db", "trajectory.db"],

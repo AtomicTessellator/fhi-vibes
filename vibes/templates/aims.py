@@ -1,6 +1,5 @@
 """ Provide an aims calculator without much ado """
 import shutil
-from os import path
 from pathlib import Path
 
 # from ase.calculators.aims import Aims

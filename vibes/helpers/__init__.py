@@ -1,4 +1,5 @@
 """various helpers"""
+# flake8: noqa
 
 from .attribute_dict import AttributeDict
 from .geometry import get_cubicness

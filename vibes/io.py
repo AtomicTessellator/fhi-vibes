@@ -3,7 +3,7 @@ from pathlib import Path
 from ase.io import read as ase_read
 
 from vibes.spglib.wrapper import get_symmetry_dataset
-from vibes.structure.io import inform
+from vibes.structure.io import inform  # noqa: F401
 
 
 def get_info_str(atoms, spacegroup=False):

@@ -1,5 +1,5 @@
 """provide numpy extension to compile fortran routines"""
-from numpy.distutils.core import setup, Extension
+from numpy.distutils.core import setup, Extension  # noqa: F401
 
 ext = Extension(
     name="vibes.helpers.supercell.supercell",

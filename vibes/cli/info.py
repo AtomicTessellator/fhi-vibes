@@ -1,11 +1,10 @@
 """`vibes info` backend"""
-
 from pathlib import Path
 
-from .misc import AliasedGroup, click, complete_filenames
+from .misc import ClickAliasedGroup, click, complete_filenames
 
 
-@click.command(cls=AliasedGroup)
+@click.command(cls=ClickAliasedGroup)
 def info():
     """inform about content of a file"""
 
@@ -28,16 +27,6 @@ def geometry_info(obj, filename, format, symprec, verbose):
         verbosity = 2
 
     inform(atoms, symprec=symprec, verbosity=verbosity)
-
-
-# @info.command("settings")
-# @click.argument("filename", default="settings.in")
-# @click.pass_obj
-# def settings_info(obj, filename):
-#     """inform about content of a settings.in file"""
-#
-#     settings = Settings(filename)
-#     settings.print()
 
 
 @info.command("md")
@@ -134,3 +123,60 @@ def show_hdf5_file(file, verbose):
             for k in store:
                 click.echo(f"Describe {k}")
                 click.echo(store[k].describe())
+
+
+@info.command(aliases=["gk"])
+@click.argument("dataset", default="greenkubo.nc")
+@click.option("-p", "--plot", is_flag=True, help="plot summary")
+@click.option("--no_hann", is_flag=True)
+@click.option("--logx", is_flag=True)
+@click.option("--xlim", type=float, help="xlim range in ps")
+@click.option("-avg", "--average", default=100, help="average window")
+def greenkubo(dataset, plot, no_hann, logx, xlim, average):
+    import xarray as xr
+    from vibes import keys
+    from vibes.green_kubo.analysis import summary, plot_summary
+
+    DS = xr.load_dataset(dataset)
+
+    (df_time, df_freq) = summary(DS)
+
+    if plot:
+        fig = plot_summary(
+            df_time,
+            df_freq,
+            t_avalanche=DS.attrs[keys.time_avalanche],
+            logx=logx,
+            xlim=xlim,
+            avg=average,
+        )
+
+        fname = Path(dataset).stem + "_summary.pdf"
+        fig.savefig(fname, bbox_inches="tight")
+        click.echo(f".. summary plotted to {fname}")
+
+
+@info.command("vdos")
+@click.argument("filename", default="trajectory.nc", type=complete_filenames)
+@click.option("-o", "--output_filename", default="vdos.csv")
+@click.option("-p", "--plot", is_flag=True, help="plot the DOS")
+@click.option("--peak", type=float, help="height for peak detection", show_default=1)
+@click.option("-mf", "--max_frequency", default=30.0, help="max. freq. in THz")
+def velocity_autocorrelation(filename, output_filename, plot, peak, max_frequency):
+    """write velocity autocorrelation function to output file"""
+    import xarray as xr
+    from vibes.green_kubo.velocities import get_vdos, simple_plot
+
+    click.echo(f"Read {filename} and extract velocities")
+    velocities = xr.open_dataset(filename).velocities
+
+    vdos = get_vdos(velocities=velocities, hann=False, verbose=True)
+
+    # sum atoms and coordinates
+    df = vdos.real.sum(axis=(1, 2)).to_series()
+
+    if plot:
+        simple_plot(df, height=peak, max_frequency=max_frequency)
+
+    click.echo(f".. write VDOS to {output_filename}")
+    df.to_csv(output_filename, index_label="omega", header=True)

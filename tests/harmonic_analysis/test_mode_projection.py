@@ -11,13 +11,8 @@ from vibes.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
 from vibes.harmonic_analysis.normal_modes import get_A_qst2, projector, u_s_to_u_I
 from vibes.helpers import Timer, progressbar
 from vibes.helpers.displacements import get_dUdt, get_U
-
-# from vibes.helpers.supercell import map_indices
-from vibes.helpers.lattice_points import (
-    get_commensurate_q_points,
-    get_lattice_points,
-    map_I_to_iL,
-)
+from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
+from vibes.helpers.supercell import get_commensurate_q_points
 from vibes.io import read
 from vibes.konstanten import kB
 from vibes.molecular_dynamics.utils import FCCalculator, MDLogger
@@ -206,7 +201,7 @@ def _run_md(
     if harmonic is True:
         calc = FCCalculator(supercell, force_constants)
     else:
-        calc = lammps_si_tersoff_calculator()
+        raise RuntimeError("FIXME")
 
     # generic md settings
     settings = {"atoms": atoms, "timestep": dt * units.fs}

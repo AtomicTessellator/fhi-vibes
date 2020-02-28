@@ -5,7 +5,6 @@ import xarray as xr
 
 from vibes import keys
 from vibes.helpers import progressbar, warn
-from vibes.helpers.displacements import get_dR
 from vibes.spglib.wrapper import get_symmetry_dataset
 
 

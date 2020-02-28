@@ -39,6 +39,7 @@ def plot_summary(dataframe, avg=50, natoms=None):
         "gridspec_kw": {"height_ratios": [1, 1, 0.5, 0.5]},
         "sharex": True,
     }
+    kw_roll = {"window": avg, "min_periods": 0, "center": True}
 
     # pressure: make sure there is enough data, otherwise don't bother plotting
     p = dataframe.pressure / units.GPa
@@ -72,11 +73,11 @@ def plot_summary(dataframe, avg=50, natoms=None):
     if natoms:
         e_temp = (e_kin + e_pot) / natoms / 3 / units.kB
         e_temp.plot(color=tc[1], ax=ax, **plot_kw)
-        e_temp.rolling(window=avg, min_periods=0).mean().plot(
+        e_temp.rolling(**kw_roll).mean().plot(
             color=tc[1], label=f"E_tot", ax=ax, **avg_kw
         )
 
-    roll = temp.rolling(window=avg, min_periods=0).mean()
+    roll = temp.rolling(**kw_roll).mean()
     roll.plot(color=tc[3], label=f"T_nucl", ax=ax, **avg_kw)
     ax.axhline(temp.mean(), linewidth=0.75)
 
@@ -96,16 +97,16 @@ def plot_summary(dataframe, avg=50, natoms=None):
     # e_dif = e_pot #e_kin - e_pot
 
     e_tot.plot(color=tc[0], title="Energy", ax=ax2, **plot_kw)
-    roll = e_tot.rolling(window=avg, min_periods=0).mean()
+    roll = e_tot.rolling(**kw_roll).mean()
     roll.plot(color=tc[0], ax=ax2, label="E_tot", **avg_kw)
 
     e_kin.plot(color=tc[3], ax=ax2, **plot_kw)
-    roll = e_kin.rolling(window=avg, min_periods=0).mean()
+    roll = e_kin.rolling(**kw_roll).mean()
     roll.plot(color=tc[3], ax=ax2, label="E_kin", **avg_kw)
 
     ax2.axhline(0, linewidth=0.75)
     e_pot.plot(color=tc[1], ax=ax2, **plot_kw)
-    exp = e_pot.rolling(min_periods=0, window=avg).mean()
+    exp = e_pot.rolling(**kw_roll).mean()
     exp.plot(color=tc[1], ax=ax2, label="E_pot", **avg_kw)
 
     ax2.legend(loc=4)
@@ -115,11 +116,11 @@ def plot_summary(dataframe, avg=50, natoms=None):
     dr = dataframe.dr_mean
     dr_std = dataframe.dr_std
     dr.plot(color=tc[4], ax=ax4, **plot_kw)
-    roll = dr.rolling(window=avg, min_periods=0).mean()
+    roll = dr.rolling(**kw_roll).mean()
     roll.plot(color=tc[4], ax=ax4, label="mean(|dR|)", **avg_kw)
 
     dr_std.plot(color=tc[5], ax=ax4, **plot_kw)
-    roll = dr_std.rolling(window=avg, min_periods=0).mean()
+    roll = dr_std.rolling(**kw_roll).mean()
     roll.plot(color=tc[5], ax=ax4, label="std(|dR|)", **avg_kw)
     # ax4.fill_between(dr.index, dr + dr_std, dr - dr_std, color=tc[4], alpha=0.3)
     ax4.set_ylabel("Displacement [Å]")

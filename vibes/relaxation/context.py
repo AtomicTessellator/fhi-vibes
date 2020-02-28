@@ -3,11 +3,8 @@
 from pathlib import Path
 
 from ase import Atoms, optimize
-from ase import units as u
 from ase.calculators.calculator import Calculator
 from ase.constraints import ExpCellFilter
-from ase.io import read
-from ase.md.md import MolecularDynamics
 
 from vibes import son
 from vibes.aims.context import AimsContext

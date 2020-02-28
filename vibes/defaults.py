@@ -1,0 +1,2 @@
+# Avalanche
+Fmax = 100

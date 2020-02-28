@@ -1,20 +1,19 @@
 """the vibes.Trajectory class"""
 
 import numpy as np
+
 from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
-
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
-from vibes.fourier import get_timestep
 from vibes.helpers import lazy_property, warn
 from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.helpers.displacements import get_dR
-from vibes.helpers.hash import hash_atoms
+from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.utils import progressbar
 
 from . import analysis as al
-from .utils import Timer, _prefix, talk
+from .utils import Timer, talk
 
 
 class Trajectory(list):
@@ -200,6 +199,8 @@ class Trajectory(list):
     @property
     def timestep(self):
         """ return the timestep in fs"""
+        from vibes.fourier import get_timestep
+
         return get_timestep(self.times)
 
     @lazy_property
@@ -464,8 +465,8 @@ class Trajectory(list):
 
         # use get_dR
         list1 = []
-        msg = f"[{_prefix}]   compute displacements: "
-        for atoms in progressbar(self, prefix=msg):
+        talk("compute displacements")
+        for atoms in progressbar(self):
             list1.append(get_dR(atoms, atoms_ideal))
         list1 = np.asarray(list1)
 
@@ -647,3 +648,10 @@ class Trajectory(list):
             return None
         else:
             return np.array(flux, dtype=float)
+
+    @lazy_property
+    def hash(self):
+        """hash the atoms and metadata"""
+        hashes = self.get_hashes()
+
+        return hashfunc("".join(hashes))

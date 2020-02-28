@@ -1,86 +1,46 @@
 """compute and analyze heat fluxes"""
-import numpy as np
 import scipy.signal as sl
-import xarray as xr
 
-from vibes.fourier import compute_sed, get_frequencies
-from vibes.helpers import Timer, talk
-from vibes.trajectory import Trajectory, reader
-from vibes.trajectory.dataset import get_velocities_dataarray
+from vibes.correlation import get_autocorrelationNd
+from vibes.fourier import get_fourier_transformed
+from vibes.integrate import trapz
 
-
-def get_velocity_aurocorrelation(velocities=None, trajectory=None, verbose=True):
-    """compute velocity autocorrelation function from xarray
-
-    Args:
-        velocities (xarray.DataArray [N_t, N_a, 3]): the velocities
-        trajectory: list of atoms objects
-    Returns:
-        velocity_autocorrelation (xarray.DataArray [N_t, N_a, 3])
-    """
-    if velocities is None and trajectory is not None:
-        velocities = get_velocities_dataarray(trajectory, verbose=verbose)
-
-    timer = Timer("Get velocity autocorrelation", verbose=verbose)
-
-    Nt = len(velocities.time)
-
-    v_atom_corr = np.zeros_like(velocities)
-    for atom in velocities.I:
-        v_atom = velocities[:, atom]
-
-        for xx in range(3):
-            corr = sl.correlate(v_atom[:, xx], v_atom[:, xx])[Nt - 1 :] / Nt
-            v_atom_corr[:, atom, xx] = corr
-
-    df_corr = xr.DataArray(
-        v_atom_corr,
-        dims=velocities.dims,
-        coords=velocities.coords,
-        name="velocity_autocorrelation",
-    )
-
-    timer()
-
-    return df_corr
+from .utils import Timer
+from .utils import _talk as talk
 
 
-def get_vdos(velocities=None, trajectory=None, verbose=True):
+def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True):
+    """LEGACY: compute velocity autocorrelation function from xarray"""
+    return get_autocorrelationNd(velocities, normalize=True, hann=False)
+
+
+def get_vdos(velocities=None, hann=False, normalize=False, verbose=True):
     r"""compute vibrational DOS for trajectory
 
     vdos(w) = FT{\sum_i corr(v_i, v_i)(t)}(w)
 
     Args:
         velocities (xarray.DataArray [N_t, N_a, 3]): the velocities
-        trajectory: list of atoms objects
+        hann: use Hann window when computing the autocorrelation
+        normalize: normalize VDOS to 1
     Returns:
         vdos (xarray.DataArray [N_t, N_a, 3])
     """
-    if velocities is None and trajectory is not None:
-        velocities = get_velocities_dataarray(trajectory, verbose=verbose)
-
-    v_corr = get_velocity_aurocorrelation(velocities)
-
     timer = Timer("Get VDOS", verbose=verbose)
+    v_corr = get_autocorrelationNd(velocities, normalize=True, hann=hann)
+    df_vdos = get_fourier_transformed(v_corr)
 
-    omegas = get_frequencies(times=v_corr.time, verbose=verbose)
-
-    v_spec = compute_sed(v_corr.data)
-
-    # fmt: off
-    df_vdos = xr.DataArray(
-        v_spec,
-        dims=["omega", *v_corr.dims[1:]],
-        coords={"omega": omegas}, name="vdos",
-    )
-    # fmt: on
+    if normalize:
+        norm = trapz(df_vdos)
+        talk(f"Normalize with {norm}")
+        df_vdos /= norm
 
     timer()
 
     return df_vdos
 
 
-def simple_plot(series, file="vdos.pdf", height=-1, max_frequency=30.0):
+def simple_plot(series, file="vdos.pdf", height=-1, max_frequency=30.0, logy=False):
     """simple plot of VDOS for overview purpose
 
     Args:
@@ -88,6 +48,7 @@ def simple_plot(series, file="vdos.pdf", height=-1, max_frequency=30.0):
         file (str): file to store the plot to
         height (float): minimal height to detect peaks
         max_frequency (float): max. frequency in THz
+        logy (bool): use semilogy
     """
     # normalize peaks
     series /= series.max()
@@ -100,6 +61,8 @@ def simple_plot(series, file="vdos.pdf", height=-1, max_frequency=30.0):
     else:
         high_freq = max_frequency
     ax = series.plot()
+    if logy:
+        ax.set_yscale("log")
     ax.set_xlim([0, 1.2 * high_freq])
     ax.set_xlabel("Omega [THz]")
     fig = ax.get_figure()

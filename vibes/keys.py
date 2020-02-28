@@ -1,3 +1,22 @@
+"""Keys and names for arrays. Composite keys are concatenated by `_`"""
+
+
+def _join(*keys):
+    """join two or more keys"""
+    keys = (k for k in keys if k)
+    return "_".join(keys)
+
+
+# generic suffixes
+aux = "aux"
+scalar = "scalar"
+cumulative = "cumulative"
+remapped = "remapped"
+flattened = "flattened"
+reference = "reference"
+cumtrapz = "cumtrapz"
+
+# force constants
 fc = "force_constants"
 fc_remapped = "force_constants_remapped"
 fc_flattened = "force_constants_flattened"
@@ -13,6 +32,7 @@ reference_positions = "positions_reference"
 reference_lattice = "lattice_reference"
 metadata = "raw_metadata"
 
+volume = "volume"
 positions = "positions"
 velocities = "velocities"
 
@@ -26,11 +46,52 @@ temperature = "temperature"
 
 heat_flux = "heat_flux"
 heat_fluxes = "heat_fluxes"
-heat_flux_aux = "heat_flux_aux"
-heat_fluxes_aux = "heat_fluxes_aux"
+heat_flux_aux = _join(heat_flux, aux)
+heat_fluxes_aux = _join(heat_fluxes, aux)
+
+gk_prefactor = "gk_prefactor"
 
 sigma = "sigma"
 sigma_per_sample = "sigma_per_sample"
 
+# time
+time = "time"
+omega = "omega"
+autocorrelation = "autocorrelation"
+fourier_transform = "fourier_transform"
+avalanche_data = "avalanche_function"
+time_avalanche = "avalanche_time"
+avalanche_function = "avalanche_function"
+avalanche_index = "avalanche_index"
+
 # file management
 default_backup_folder = "backups"
+cache = "cache.vibes"
+
+# hash
+name = "name"
+hash = "hash"
+trajectory = "trajectory"
+
+
+# composite keys
+heat_flux_autocorrelation = _join(heat_flux, autocorrelation)
+heat_flux_aux_autocorrelation = _join(heat_flux_aux, autocorrelation)
+heat_flux_autocorrelation_scalar = _join(heat_flux_autocorrelation, scalar)
+kappa_cumulative = _join(heat_flux_autocorrelation, cumtrapz)
+kappa_cumulative_scalar = _join(kappa_cumulative, scalar)
+heat_flux_power_spectrum = _join(heat_flux_autocorrelation, fourier_transform)
+heat_flux_power_spectrum_scalar = _join(heat_flux_power_spectrum, scalar)
+heat_flux_aux_power_spectrum = _join(heat_flux_aux_autocorrelation, fourier_transform)
+heat_flux_aux_power_spectrum_scalar = _join(heat_flux_aux_power_spectrum, scalar)
+
+# abbreviations
+hf = heat_flux
+hf_aux = heat_flux_aux
+hf_acf = heat_flux_autocorrelation
+hf_aux_acf = heat_flux_aux_autocorrelation
+hf_acf_scalar = heat_flux_autocorrelation_scalar
+hf_power = heat_flux_power_spectrum
+hf_aux_power = heat_flux_aux_power_spectrum
+k_cum = kappa_cumulative
+k_cum_scalar = kappa_cumulative_scalar

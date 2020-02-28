@@ -1,9 +1,6 @@
 """ helpers to deal with structures (as represented by ase.atoms.Atoms) """
 
 import numpy as np
-from ase.geometry import cell_to_cellpar, cellpar_to_cell
-
-from vibes.helpers.numerics import clean_matrix
 
 
 def clean_atoms(input_atoms, align=False, decimals=10):

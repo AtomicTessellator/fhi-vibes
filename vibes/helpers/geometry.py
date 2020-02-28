@@ -1,7 +1,6 @@
 import numpy as np
 
 from vibes.helpers.numerics import clean_matrix
-from vibes.konstanten.maths import perfect_fill, vol_sphere
 
 
 def inscribed_sphere_in_box(cell):

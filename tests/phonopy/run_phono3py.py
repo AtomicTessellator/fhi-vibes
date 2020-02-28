@@ -14,7 +14,7 @@ def main():
 
 
 try:
-    import phono3py
+    import phono3py  # noqa: F401
 
     main()
 
