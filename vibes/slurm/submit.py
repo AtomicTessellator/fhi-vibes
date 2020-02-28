@@ -12,10 +12,9 @@ def submit(
     file="submit.sh",
     submit_log=".submit.log",
     log_folder="log",
+    dry=False,
 ):
     """submit the job described in dct"""
-
-    Path(log_folder).mkdir(exist_ok=True)
 
     if command:
         dct.update({"command": command})
@@ -24,6 +23,12 @@ def submit(
 
     # write jobscribt to file
     generate_jobscript(dct, file=file)
+
+    if dry:
+        print(f"DRY RUN requested: Jobscript written to {file}. STOP")
+        return
+
+    Path(log_folder).mkdir(exist_ok=True)
 
     cmd = [submit_command, file]
 
