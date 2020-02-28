@@ -4,13 +4,12 @@ import click
 
 from .misc import AliasedGroup, complete_filenames
 
-
 paths = complete_filenames
 _prefix = "vibes.submit"
 _command = lambda c, s: f"vibes run {c} {s}"
 
 
-def _start(settings_file, name):
+def _start(settings_file, name, dry=False):
     """check if settings contain [slurm] and submit"""
     from vibes.settings import Settings
     from vibes.slurm.submit import submit as _submit
@@ -22,12 +21,15 @@ def _start(settings_file, name):
     dct = settings["slurm"]
     dct["name"] = name
 
-    _submit(dct, command=_command(name, settings_file))
+    _submit(dct, command=_command(name, settings_file), dry=dry)
 
 
 @click.command(cls=AliasedGroup)
-def submit():
+@click.option("--dry", is_flag=True)
+@click.pass_obj
+def submit(obj, dry):
     """submit a vibes workflow to slurm"""
+    obj.dry = dry
 
 
 @submit.command("aims")
@@ -36,7 +38,7 @@ def submit():
 def aims_submit(obj, settings):
     """submit one or several aims calculations from SETTINGS (default: aims.in)"""
 
-    _start(settings, "aims")
+    _start(settings, "aims", dry=obj.dry)
 
 
 @submit.command("phonopy")
@@ -45,7 +47,16 @@ def aims_submit(obj, settings):
 def phonopy_run(obj, settings):
     """submit a phonopy calculation for SETTINGS (default: phonopy.in)"""
 
-    _start(settings, "phonopy")
+    _start(settings, "phonopy", dry=obj.dry)
+
+
+@submit.command("phono3py")
+@click.argument("settings", default="phono3py.in", type=paths)
+@click.pass_obj
+def phono3py_run(obj, settings):
+    """submit a phonopy calculation for SETTINGS (default: phonopy.in)"""
+
+    _start(settings, "phono3py", dry=obj.dry)
 
 
 @submit.command("md")
@@ -54,7 +65,7 @@ def phonopy_run(obj, settings):
 def md_run(obj, settings):
     """submit an MD simulation from SETTINS (default: md.in)"""
 
-    _start(settings, "md")
+    _start(settings, "md", dry=obj.dry)
 
 
 @submit.command("relaxation")
@@ -63,4 +74,4 @@ def md_run(obj, settings):
 def relaxation_run(obj, settings):
     """submit an relaxation from SETTINS (default: relaxation.in)"""
 
-    _start(settings, "relaxation")
+    _start(settings, "relaxation", dry=obj.dry)

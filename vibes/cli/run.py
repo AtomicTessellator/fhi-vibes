@@ -10,7 +10,6 @@ from vibes.helpers import talk
 
 from .misc import AliasedGroup, complete_filenames
 
-
 # paths = click.Path(exists=True)
 paths = complete_filenames
 _prefix = "vibes.run"
@@ -47,14 +46,31 @@ def phonopy_run(obj, settings, workdir, dry):
     """run a phonopy calculation for SETTINGS (default: phonopy.in)"""
     from vibes.settings import Settings
     from vibes.phonopy.context import PhonopyContext
-    from vibes.phonopy.workflow import run_phonopy
 
     ctx = PhonopyContext(Settings(settings_file=settings), workdir=workdir)
 
     if obj.verbose > 0:
-        talk(f"run phonpoy workflow with settings from {settings}\n", prefix=_prefix)
+        talk(f"run phonopy workflow with settings from {settings}\n", prefix=_prefix)
 
-    run_phonopy(ctx=ctx, dry=dry)
+    ctx.run(dry=dry)
+
+
+@run.command("phono3py")
+@click.argument("settings", default="phono3py.in", type=paths)
+@click.option("--workdir", help="work directory")
+@click.option("--dry", is_flag=True, help="just prepare inputs in the workdir")
+@click.pass_obj
+def phono3py_run(obj, settings, workdir, dry):
+    """run a phonopy calculation for SETTINGS (default: phonopy.in)"""
+    from vibes.settings import Settings
+    from vibes.phono3py.context import Phono3pyContext
+
+    ctx = Phono3pyContext(Settings(settings_file=settings), workdir=workdir)
+
+    if obj.verbose > 0:
+        talk(f"run phono3py workflow with settings from {settings}\n", prefix=_prefix)
+
+    ctx.run(dry=dry)
 
 
 @run.command("md")
