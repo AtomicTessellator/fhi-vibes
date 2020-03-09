@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="Layer_1"
+   data-name="Layer 1"
+   viewBox="0 0 5.2851613 63.999999"
+   version="1.1"
+   sodipodi:docname="Monogram_white_FV_small.svg"
+   inkscape:export-filename="/home/knoop/local/hilde/doc/source/_static/Monogram_black_FV.png"
+   inkscape:export-xdpi="300"
+   inkscape:export-ydpi="300"
+   inkscape:version="0.92.4 (unknown)"
+   width="64"
+   height="64">
+  <metadata
+     id="metadata23">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Monogram black</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs21">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath820">
+      <rect
+         style="opacity:1;fill:#ff5555;fill-opacity:0;fill-rule:evenodd;stroke:#ffffff;stroke-width:5.90108299;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect822"
+         width="1202.8318"
+         height="340.76981"
+         x="-1355.063"
+         y="-108.12265"
+         ry="1.0585321"
+         transform="rotate(-135)" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath824">
+      <rect
+         style="opacity:1;fill:#ff5555;fill-opacity:0;fill-rule:evenodd;stroke:#ffffff;stroke-width:5.90108299;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect826"
+         width="1202.8318"
+         height="340.76981"
+         x="-436.81396"
+         y="-108.12244"
+         ry="1.0585321"
+         transform="matrix(0.70710678,0.70710678,0.70710678,-0.70710678,0,0)" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1852"
+     inkscape:window-height="1051"
+     id="namedview19"
+     showgrid="false"
+     inkscape:zoom="11.222206"
+     inkscape:cx="40.532453"
+     inkscape:cy="27.464845"
+     inkscape:window-x="68"
+     inkscape:window-y="648"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1"
+     fit-margin-bottom="25"
+     scale-x="0.4"
+     fit-margin-top="25"
+     fit-margin-left="25"
+     fit-margin-right="25"
+     inkscape:pagecheckerboard="true" />
+  <title
+     id="title2">Monogram black</title>
+  <polygon
+     points="123.51,525.75 324.56,525.75 324.56,575.65 273.9,626.27 123.51,626.27 "
+     id="polygon6"
+     inkscape:export-xdpi="300"
+     inkscape:export-ydpi="300"
+     transform="matrix(0.08067866,0,0,0.08067866,-34.113213,-0.03153632)"
+     style="fill:#ffffff" />
+  <polygon
+     points="173.72,123.73 525.57,123.73 525.57,224.22 123.51,224.22 123.51,173.91 "
+     id="polygon8"
+     inkscape:export-xdpi="300"
+     inkscape:export-ydpi="300"
+     transform="matrix(0.08067866,0,0,0.08067866,-34.113213,-0.03153632)"
+     style="fill:#ffffff" />
+  <rect
+     x="-24.147785"
+     y="26.168058"
+     width="24.327845"
+     height="8.1090126"
+     id="rect10"
+     inkscape:export-xdpi="300"
+     inkscape:export-ydpi="300"
+     style="fill:#ffffff;stroke-width:0.08067866" />
+  <polygon
+     transform="matrix(0.03567261,0.06025285,0.03567261,-0.06025285,-4.3717712,30.585626)"
+     points="173.72,123.73 525.57,123.73 525.57,224.22 123.51,224.22 123.51,173.91 "
+     id="polygon8-2"
+     inkscape:export-xdpi="300"
+     inkscape:export-ydpi="300"
+     clip-path="url(#clipPath824)"
+     style="fill:#ffffff" />
+  <polygon
+     transform="matrix(-0.03567261,0.06025285,-0.03567261,-0.06025285,41.952681,30.585644)"
+     points="525.57,123.73 525.57,224.22 123.51,224.22 123.51,173.91 173.72,123.73 "
+     id="polygon8-2-9"
+     inkscape:export-xdpi="300"
+     inkscape:export-ydpi="300"
+     clip-path="url(#clipPath820)"
+     style="fill:#ffffff" />
+</svg>
