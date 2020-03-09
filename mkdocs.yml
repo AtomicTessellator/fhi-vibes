@@ -1,0 +1,40 @@
+site_name: FHI-vibes
+
+repo_url: https://gitlab.com/flokno/hilde
+
+copyright: 'Copyright &copy; 2020 Florian Knoop'
+
+theme:
+    name: 'material'
+    palette:
+        primary: 'Blue Grey'
+    logo: 'images/Monogram_white_FV.svg'
+    favicon: 'images/Monogram_white_FV_small.svg'
+    include_search_page: false
+    
+
+extra:
+  social:
+    - type: gitlab
+      link: https://gitlab.com/flokno/hilde
+
+nav:
+    - Installation: README.md
+    - Tutorial: 
+        - Tutorial/0_intro.md
+        - Tutorial/acknowledgments.md
+        - Tutorial/references.md
+    - License: license.md
+    
+    
+extra_javascript:
+  - 'javascripts/mathjax.js'
+  - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'
+  
+  
+markdown_extensions:
+    - toc:
+        permalink: "#"
+    - pymdownx.arithmatex
+    - footnotes
+    - admonition
