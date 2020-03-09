@@ -4,14 +4,14 @@
 files = Si*/geometry.in
 
 [general]
-workdir_cluster = "test_run/"
-workdir_local   = "test_run/"
+workdir_cluster = "/home/purcell/git/vibes/examples/fireworks/test_run/"
+workdir_local   = "/home/purcell/git/vibes/examples/fireworks/test_run/"
 use_third = False
 basisset = light
 use_tight_relax = False
 kgrid_dfunc_min = 1e13
 opt_kgrid = False
-relax_structure = True
+relax_structure = False
 
 [control]
 xc =                 pw-lda
@@ -19,6 +19,9 @@ sc_accuracy_rho =    1e-4
 sc_accuracy_forces = 5E-3
 output_level =       MD_light
 relativistic =       "atomic_zora scalar"
+
+[socketio]
+port = 12345
 
 [control_kpt]
 density = 1.00
@@ -39,7 +42,20 @@ supercell_matrix = [-1,1,1,1,-1,1,1,1,-1]
 n_samples = 1
 deterministic = True
 
+[md]
+driver:                        Langevin
+timestep:                      1
+temperature:                   300
+friction:                      0.02
+maxsteps:                      11
+compute_stresses:              5
+logfile:                       md.log
+
 [phonopy_qadapter]
+walltime = 1:00:00
+nodes = 1
+
+[md_qadapter]
 walltime = 1:00:00
 nodes = 1
 

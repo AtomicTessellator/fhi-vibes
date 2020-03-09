@@ -14,6 +14,7 @@ from vibes.fireworks.workflows.task_spec_generator import (
     gen_aims_task_spec,
     gen_gruniesen_task_spec,
     gen_kgrid_task_spec,
+    gen_md_task_spec,
     gen_phonon_analysis_task_spec,
     gen_phonon_task_spec,
     gen_stat_samp_analysis_task_spec,
@@ -602,7 +603,7 @@ def generate_stat_samp_fw(workflow, atoms, fw_settings):
     Returns:
         (Firework): Firework for the harmonic analysis initialization
     """
-    fw_settings["fw_name"] = f"stat_samp"
+    fw_settings["fw_name"] = "stat_samp"
 
     if "statistical_sampling_qadapter" in workflow:
         qadapter = workflow["statistical_sampling_qadapter"]
@@ -615,6 +616,10 @@ def generate_stat_samp_fw(workflow, atoms, fw_settings):
         workflow.statistical_sampling["walltime"] = str2time(qadapter["walltime"])
     else:
         workflow.statistical_sampling["walltime"] = 1800
+
+    add_qadapter = False
+    if "phonopy" in workflow:
+        add_qadapter = workflow.phonopy.get("converge_phonons", False)
 
     workflow.statistical_sampling[
         "workdir"
@@ -638,7 +643,9 @@ def generate_stat_samp_fw(workflow, atoms, fw_settings):
     fw_settings.pop("in_spec_atoms", None)
     fw_settings["from_db"] = False
 
-    task_spec = gen_stat_samp_task_spec(workflow.statistical_sampling, fw_settings)
+    task_spec = gen_stat_samp_task_spec(
+        workflow.statistical_sampling, fw_settings, add_qadapter
+    )
     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, False)
 
 
@@ -737,3 +744,67 @@ def generate_gruniesen_fd_fw(workflow, atoms, trajectory, constraints, fw_settin
 
     task_spec = gen_gruniesen_task_spec(workflow, trajectory, constraints)
     return generate_firework(task_spec, None, None, fw_settings.copy())
+
+
+def generate_md_fw(workflow, atoms, fw_settings, qadapter=None, workdir=None):
+    """Generate a FireWork to run a Molecular Dynamics calculation
+
+    Parameters
+    ----------
+    workflow: Settings
+        The Workflow Settings
+    atoms: ase.atoms.Atoms
+        The initial ASE Atoms object of the primitive cell
+    fw_settings: dict
+        The FireWork Settings for the current job
+    qadapter: dict
+        The queueadapter for the step
+    workdir: str
+        The working directory for the calculation
+
+    Returns
+    -------
+    Firework:
+        The Molecular Dynamics setup firework
+    """
+    fw_settings = fw_settings.copy()
+    fw_settings.pop("in_spec_atoms", None)
+    fw_settings.pop("in_spec_calc", None)
+    fw_settings["from_db"] = False
+
+    if qadapter is None:
+        qadapter = workflow.pop("md_qadapter", None)
+
+    md_settings = workflow["md"].copy()
+
+    if "phonon_file" not in workflow.md and "phonopy" in workflow:
+        if workflow.phonopy.get("converge_phonons", False):
+            md_settings[
+                "phonon_file"
+            ] = f"{workflow.general.workdir_cluster}/converged/trajectory.son"
+        else:
+            sc_mat = get_3x3_matrix(workflow.phonopy.supercell_matrix)
+            sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
+            rel_dir = f"/sc_natoms_{sc_natoms}/phonopy/trajectory.son"
+            md_settings["phonon_file"] = workflow.general.workdir_cluster + rel_dir
+
+    temps = md_settings.pop("temperatures", None)
+    if temps is None:
+        temps = [md_settings.pop("temperature")]
+
+    fireworks = []
+    for temp in temps:
+        fw_settings["fw_name"] = f"md_{temp}"
+        md_set = md_settings.copy()
+        if workdir is None:
+            md_set[
+                "workdir"
+            ] = f"{workflow.general.workdir_cluster}/{fw_settings['fw_name']}/"
+        else:
+            md_set["workdir"] = workdir
+        md_set["temperature"] = temp
+        task_spec = gen_md_task_spec(md_set, fw_settings)
+        fireworks.append(
+            generate_fw(atoms, task_spec, fw_settings, qadapter, None, False)
+        )
+    return fireworks
