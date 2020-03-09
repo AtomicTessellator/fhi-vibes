@@ -38,6 +38,7 @@ jinja2 = "^2.10"
 hiphive = {version = "^0.5.0", optional = true}
 tables = "^3.5"
 click_aliases = "^1.0"
+mkdocs = "^1.1"
 
 [tool.poetry.extras]
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
@@ -55,6 +56,9 @@ flake8-comprehensions = "^3.1"
 pytest-xdist = "^1.31"
 pytest-cov = "^2.8"
 isort = "^4.3"
+mkdocs = "^1.1"
+mkdocs-material = "^4.6"
+pymdown-extensions = "^6.3"
 
 [tool.poetry.scripts]
 vibes = 'vibes.cli:cli'
