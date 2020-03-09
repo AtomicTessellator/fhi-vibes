@@ -243,6 +243,8 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
     if "pbc" not in atoms_dict:
         atoms_dict.update({"pbc": "cell" in atoms_dict})
 
+    uuid = atoms_dict.pop("unique_id", None)
+
     try:
         velocities = atoms_dict.pop("velocities")
     except KeyError:
@@ -287,6 +289,9 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
     atoms.calc = calc
     if "info" in atoms_dict:
         atoms.info = atoms_dict["info"]
+    else:
+        atoms.info = {}
+    atoms.info["unique_id"] = uuid
     return atoms
 
 

@@ -1,5 +1,6 @@
 """ An example of how to use FireWorks in conjunction with HilDe"""
 import os
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -24,7 +25,8 @@ def test_fireworks():
     atoms = bulk("Ni", "fcc", a=3.5)
     atoms.set_calculator(EMT())
     calc = atoms.calc
-    workdir = str(Path("Ni_ex").absolute())
+    ex_dir = Path("Ni_ex")
+    workdir = str(ex_dir.absolute())
 
     smatrix = np.array([[-2, 2, 2], [2, -2, 2], [2, 2, -2]])
     atoms_hash, calc_hash = hash_atoms_and_calc(atoms)
@@ -79,6 +81,7 @@ def test_fireworks():
     frequencies = phonon.get_mesh_dict()["frequencies"]
     print(f"Highest frequency: {frequencies.max():.3f} THz (Target: [8,10] THz)")
     assert 8 < frequencies.max() < 10
+    shutil.rmtree(ex_dir)
 
 
 if __name__ == "__main__":

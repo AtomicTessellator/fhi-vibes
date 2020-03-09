@@ -29,6 +29,7 @@ def generate_samples(
     random_seed,
     propagate,
     format,
+    failfast=False,
 ):
     """create samples for Monte Carlo sampling
 
@@ -87,7 +88,7 @@ def generate_samples(
             "force_constants": force_constants,
             "quantum": quantum,
             "temp": temp * u.kB,
-            "failfast": False,
+            "failfast": failfast,
             "rng": rng,
             "deterministic": deterministic,
             "plus_minus": plus_minus,

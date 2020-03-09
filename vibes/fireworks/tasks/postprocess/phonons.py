@@ -200,6 +200,7 @@ def get_converge_phonon_update(
     ph.set_mesh([45, 45, 45])
     if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-1):
         raise ValueError("Negative frequencies at Gamma, terminating workflow here.")
+
     if prev_dos_fp:
         de = prev_dos_fp[0][0][1] - prev_dos_fp[0][0][0]
         min_f = prev_dos_fp[0][0][0] - 0.5 * de
@@ -238,8 +239,9 @@ def get_converge_phonon_update(
 
     # Reset dos_fp to include full Energy Range for the material
     if prev_dos_fp:
-        ph.set_total_DOS(tetrahedron_method=True)
-        dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
+        ph.set_total_DOS(tetrahedron_method=True, freq_pitch=0.01)
+        n_bins = len(ph.get_total_dos_dict()["frequency_points"])
+        dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=n_bins)
 
     # If Not Converged update phonons
 
@@ -273,7 +275,7 @@ def get_converge_phonon_update(
 
     expected_walltime = calc_time * time_scaling
 
-    ntasks = int(np.ceil(ph.supercell.get_number_of_atoms() * 1.25))
+    ntasks = int(np.ceil(ph.supercell.get_number_of_atoms() * 0.75))
 
     init_workdir += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
     analysis_wd += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"

@@ -223,7 +223,7 @@ def extract_results(
         if debye:
             talk("Extract Debye Temperatur")
             dos = wrapper.get_dos(phonon, q_mesh=q_mesh, freq_pitch=0.01, write=dos)
-            debye_temp = wrapper.get_debye_temperature(dos=dos)
+            debye_temp = wrapper.get_debye_temperature(phonon)
             with open("debye.dat", "w") as f:
                 f.write(str(debye_temp[0]))
             talk(f".. Debye temperature: {debye_temp[0]:.2f}K written to file.")

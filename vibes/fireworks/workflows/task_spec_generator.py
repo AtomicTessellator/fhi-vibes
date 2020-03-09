@@ -54,7 +54,7 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
     )
 
 
-def gen_stat_samp_task_spec(func_kwargs, fw_settings=None):
+def gen_stat_samp_task_spec(func_kwargs, fw_settings=None, add_qadapter=False):
     """Generate a Harmonic Analysis task
 
     Parameters
@@ -76,8 +76,14 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None):
         "temperatures",
         "debye_temp_fact",
         "n_samples",
+        "rattle",
+        "quantum",
         "deterministic",
-        "rng_seed",
+        "plus_minus",
+        "gauge_eigenvectors",
+        "ignore_negative",
+        "sobol",
+        "random_seed",
     ]
 
     out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
@@ -107,11 +113,13 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None):
         if "kpt_density" in func_kwargs:
             del func_kwargs["kpt_density"]
     elif "kpt_density" in func_kwargs:
-        inputs = []
         args = [func_kwargs.pop("kpt_density")]
     else:
         inputs = []
         args = [None]
+
+    if add_qadapter:
+        inputs.append("_queueadapter")
 
     return TaskSpec(
         "vibes.fireworks.tasks.statistical_sampling_wrappers.bootstrap_stat_sample",
@@ -328,6 +336,41 @@ def gen_gruniesen_task_spec(settings, trajectory, constraints):
             False,
             args=[settings, trajectory, constraints],
             inputs=["_queueadapter", "kgrid"],
+            make_abs_path=False,
+        )
+    ]
+    return task_spec_list
+
+
+def gen_md_task_spec(md_settings, fw_settings=None):
+    """Generate a TaskSpec for setting up a Gruniesen parameter calculation
+
+    Returns
+    -------
+    TaskSpec
+        The specification object of the MD task
+    """
+
+    if fw_settings and "kpoint_density_spec" in fw_settings:
+        inputs = [fw_settings["kpoint_density_spec"]]
+        args = []
+        if "kpt_density" in md_settings:
+            del md_settings["kpt_density"]
+    elif "kpt_density" in md_settings:
+        inputs = []
+        args = [md_settings.pop("kpt_density")]
+    else:
+        inputs = []
+        args = [None]
+
+    task_spec_list = [
+        TaskSpec(
+            "vibes.fireworks.tasks.md.run",
+            "vibes.fireworks.tasks.fw_out.md.check_md_finish",
+            True,
+            {"md_settings": md_settings},
+            args=args,
+            inputs=inputs,
             make_abs_path=False,
         )
     ]

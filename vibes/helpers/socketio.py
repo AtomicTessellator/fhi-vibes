@@ -83,6 +83,8 @@ def get_stresses(atoms):
     AssertionError
         If STRESSREADY is not sent in response to GETSTRESSES message
     """
+    if "socketio" not in atoms.calc.name.lower():
+        return atoms.calc.get_stresses()
     atoms.calc.server.protocol.sendmsg("GETSTRESSES")
     msg = atoms.calc.server.protocol.recvmsg()
     assert msg == "STRESSREADY"
@@ -103,6 +105,8 @@ def socket_stress_off(calc):
         calc.server.protocol.sendmsg("STRESSES_OFF")
     else:
         talk(f"Calculator {calc.name} is not a socket calculator.")
+        calc.parameters["compute_heat_flux"] = False
+        calc.parameters["compute_analytical_stress"] = True
 
 
 def socket_stress_on(calc):
@@ -117,3 +121,5 @@ def socket_stress_on(calc):
         calc.server.protocol.sendmsg("STRESSES_ON")
     else:
         talk(f"Calculator {calc.name} is not a socket calculator.")
+        calc.parameters["compute_heat_flux"] = True
+        del calc.parameters["compute_analytical_stress"]

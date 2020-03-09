@@ -39,6 +39,7 @@ def wrap_calc_socket(
     workdir=".",
     backup_folder="backups",
     walltime=None,
+    fw_settings=None,
     **kwargs,
 ):
     """Wrapper for the clalculate_socket function
@@ -121,7 +122,7 @@ def wrap_calc_socket(
         raise RuntimeError("The calculation failed")
 
 
-def wrap_calculate(atoms, calc, workdir=".", walltime=1800):
+def wrap_calculate(atoms, calc, workdir=".", walltime=1800, fw_settings=None):
     """Wrapper for the clalculate_socket function
 
     Parameters

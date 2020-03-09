@@ -101,7 +101,10 @@ class AimsContext:
         s = self.settings
         if "file" in s.geometry:
             try:
-                path = next(Path().glob(s.geometry.file))
+                try:
+                    path = next(Path().glob(s.geometry.file))
+                except NotImplementedError:
+                    path = Path(s.geometry.file)
                 assert path.exists()
             except (AssertionError, StopIteration):
                 msg = f"Please inspect [geometry] in {self.settings.settings_file}"
