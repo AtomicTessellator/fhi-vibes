@@ -6,8 +6,13 @@ from ase.calculators.emt import EMT
 from ase.dft.kpoints import get_special_points
 
 from vibes.helpers.supercell import make_cubic_supercell
-from vibes.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
+from vibes.materials_fp.material_fingerprint import (
+    get_phonon_bs_fp,
+    get_phonon_dos_fp,
+    scalar_product,
+)
 from vibes.phonopy import wrapper as ph
+
 
 atoms = bulk("Al")
 
@@ -22,10 +27,10 @@ cmatrix = np.array([[-1, 1, 1], [1, -1, 1], [1, 1, -1]])
 
 def test_all():
     # run phonon calculation for several supercell sizes and compute fingerprints
-    fps = []
+    fps_bs = []
+    fps_dos = []
     n_atoms = []
     for nn in [4, 32, 108]:
-
         # smatrix = a * cmatrix
         supercell, smatrix = make_cubic_supercell(atoms, nn)
 
@@ -41,23 +46,37 @@ def test_all():
             force_sets.append(cell.get_forces())
 
         phonon.produce_force_constants(force_sets)
+        phonon.run_mesh([15, 15, 15])
+        phonon.run_total_dos(freq_min=0.0, freq_max=10.0, freq_pitch=0.01)
 
-        # REM: binning=False is optional
-        fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points, binning=False)[
-            0
-        ]
-        fps.append(fp)
-    fps = np.asarray(fps)
+        fp_bs = get_phonon_bs_fp(phonon, special_points, binning=False)[0]
+        fps_bs.append(fp_bs)
 
-    # Compute difference to largest supercell and choose largest deviation at each
-    # q point
-    fp_diffs = abs(fps - fps[-1]).max(axis=2)
+        fp_dos = get_phonon_dos_fp(phonon, nbins=1001)
+        fps_dos.append(fp_dos)
 
-    print("n_atoms   " + " ".join([f"{k:9s}" for k in special_points.keys()]))
-    for nn, fp in zip(n_atoms, fp_diffs):
-        print(f"{nn:4d}: " + " ".join([f"{f:9.3e}" for f in fp]))
+    fps_bs = np.asarray(fps_bs)
 
-    assert all(3 < fp < 9 for fp in fps[-1][1])
+    fp_diffs = abs(fps_bs - fps_bs[-1]).max(axis=2)
+
+    sps = [
+        0.0,
+        scalar_product(
+            fps_dos[1], fps_dos[0], col=1, pt=0, normalize=False, tanimoto=True
+        ),
+        scalar_product(
+            fps_dos[2], fps_dos[1], col=1, pt=0, normalize=False, tanimoto=True
+        ),
+    ]
+    print(
+        "n_atoms   "
+        + " ".join([f"{k:9s}" for k in special_points.keys()])
+        + "similarity_score"
+    )
+    for nn, fp, sp in zip(n_atoms, fp_diffs, sps):
+        print(f"{nn:4d}: " + " ".join([f"{f:9.3e}" for f in fp]) + f"    {sp:9.3e}")
+
+    assert all(3 < fp < 9 for fp in fps_bs[-1][1])
 
 
 if __name__ == "__main__":

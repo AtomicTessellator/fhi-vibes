@@ -3,13 +3,12 @@ from pathlib import Path
 from shutil import copyfile, rmtree
 
 import numpy as np
-
 from vibes.helpers.converters import atoms2dict
 from vibes.helpers.k_grid import update_k_grid
 from vibes.helpers.paths import cwd
 from vibes.materials_fp.material_fingerprint import (
     fp_tup,
-    get_phonon_dos_fingerprint_phononpy,
+    get_phonon_dos_fp,
     scalar_product,
 )
 from vibes.phonon_db.row import phonon_to_dict
@@ -211,7 +210,7 @@ def get_converge_phonon_update(
 
     # Get a phonon DOS Finger print to compare against the previous one
     n_bins = len(ph.get_total_dos_dict()["frequency_points"])
-    dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=n_bins)
+    dos_fp = get_phonon_dos_fp(ph, nbins=n_bins)
 
     # Get the base working directory
     init_workdir = get_base_work_dir(init_workdir)
@@ -241,7 +240,7 @@ def get_converge_phonon_update(
     if prev_dos_fp:
         ph.set_total_DOS(tetrahedron_method=True, freq_pitch=0.01)
         n_bins = len(ph.get_total_dos_dict()["frequency_points"])
-        dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=n_bins)
+        dos_fp = get_phonon_dos_fp(ph, nbins=n_bins)
 
     # If Not Converged update phonons
 
