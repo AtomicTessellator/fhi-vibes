@@ -69,6 +69,12 @@ def postprocess(
 
     scs = phonon.get_supercells_with_displacements()
 
+    n_sc = len(scs)
+    n_calc = len(calculated_atoms)
+    if n_sc != n_calc:
+        msg = f"No. of supercells {n_sc} != no. of calculated atoms: {n_calc}"
+        raise RuntimeError(msg)
+
     counter = 0
     force_sets = []
     for pa in scs:
