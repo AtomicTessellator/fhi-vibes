@@ -4,8 +4,8 @@
 files = Si*/geometry.in
 
 [general]
-workdir_cluster = "/home/purcell/git/vibes/examples/fireworks/test_run/"
-workdir_local   = "/home/purcell/git/vibes/examples/fireworks/test_run/"
+workdir_cluster = "test_run/"
+workdir_local   = "test_run/"
 use_third = False
 basisset = light
 use_tight_relax = False
@@ -32,7 +32,7 @@ conv_crit = 0.05
 walltime = 3500
 serial = True
 displacement = 0.01
-converge_phonons = False
+converge_phonons = True
 get_gruniesen = True
 
 [statistical_sampling]

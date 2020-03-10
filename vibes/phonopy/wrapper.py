@@ -7,15 +7,11 @@ from pathlib import Path
 
 import numpy as np
 from phonopy import Phonopy
-
 from vibes import konstanten as const
 from vibes.helpers import brillouinzone as bz
 from vibes.helpers import talk, warn
 from vibes.helpers.numerics import get_3x3_matrix
-from vibes.materials_fp.material_fingerprint import (
-    get_phonon_bs_fingerprint_phononpy,
-    to_dict,
-)
+from vibes.materials_fp.material_fingerprint import get_phonon_bs_fp, to_dict
 from vibes.phonopy.utils import get_supercells_with_displacements
 from vibes.spglib.wrapper import map_unique_to_atoms
 from vibes.structure.convert import to_Atoms, to_phonopy_atoms
@@ -410,7 +406,7 @@ def summarize_bandstructure(phonon, fp_file=None):
 
     if fp_file:
         talk(f"Saving the fingerprint to {fp_file}")
-        fp = get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
+        fp = get_phonon_bs_fp(phonon, binning=False)
         fp_dict = to_dict(fp)
         for key, val in fp_dict.items():
             fp_dict[key] = val.tolist()

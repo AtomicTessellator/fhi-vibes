@@ -7,10 +7,10 @@ from ase.build import bulk
 from ase.dft.kpoints import get_special_points
 from ase.calculators.emt import EMT
 from vibes.phonopy import wrapper as ph
-from vibes.materials_fp.material_fingerprint import get_phonon_bs_fingerprint_phononpy
+from vibes.materials_fp.material_fingerprint import get_phonon_bs_fp
 from vibes.helpers.supercell import make_cubic_supercell
 
-atoms = bulk('Al')
+atoms = bulk("Al")
 
 # Space group information
 special_points = get_special_points(atoms.cell)
@@ -42,7 +42,7 @@ for nn in [4, 32, 108]:
     phonon.produce_force_constants(force_sets)
 
     # REM: binning=False is optional
-    fp = get_phonon_bs_fingerprint_phononpy(phonon, special_points, binning=False)[0]
+    fp = get_phonon_bs_fp(phonon, special_points, binning=False)[0]
     fps.append(fp)
 fps = np.asarray(fps)
 
@@ -54,4 +54,4 @@ print("n_atoms   " + " ".join([f"{k:9s}" for k in special_points.keys()]))
 for nn, fp in zip(n_atoms, fp_diffs):
     print(f"{nn:4d}: " + " ".join([f"{f:9.3e}" for f in fp]))
 
-assert all( 3 < fp < 9 for fp in fps[-1][1])
+assert all(3 < fp < 9 for fp in fps[-1][1])
