@@ -1,5 +1,7 @@
 # Introduction
 
+## Outline
+
 During the course of this workshop, we have used periodic boundary conditions 
 in first-principles calculations to efficiently describe macroscopic, crystalline materials. It is important
 to realize that the application of periodic boundary conditions relies on the 
@@ -14,12 +16,12 @@ transport.
 To introduce you to these effects, this tutorial consists of two parts:
 
 1. **Phonons: Harmonic Vibrations in Solids**
-    - Using `phonopy` via `vibes`
-    - Supercell size convergence
-    - Lattice Expansion: The Quasi-Harmonic Approximation
+   - Using `phonopy` via `vibes`
+   - Supercell size convergence
+   - Lattice Expansion: The Quasi-Harmonic Approximation
 2. **Electron-Phonon Coupling: Band Gap Renormalization**
-    - The Role of the Lattice Expansion
-    - The Role of the Atomic Motion
+   - The Role of the Lattice Expansion
+   - The Role of the Atomic Motion
 
 In part I, we will compute the vibrational properties
 of a solid using the {\it harmonic approximation}. In particular, we will discuss and 
@@ -37,8 +39,9 @@ of the lattice expansion and of the atomic motion will be discussed and analyzed
 To determine the vibrations in a solid, we approximate the potential energy surface
 for the nuclei by performing a Taylor expansion of the total energy $E$ around the equilibrium positions:
 
-\begin{align*}
+$$
 \require{cancel}
+\begin{aligned}
 \def\vec#1{{\bf #1}}
 \def\t#1{\text{#1}}
 E \left(\{\vec{R}^0 + \Delta \vec{R}\}\right) 
@@ -47,7 +50,8 @@ E\left(\{\vec{R}^0\}\right) \\
 & + \cancel{ \sum\limits_{I} \left.\frac{\partial E}{\partial \vec{R}_I}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I} } \\
 & + \frac{1}{2} \sum\limits_{I,J} \left.\frac{\partial^2 E}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I}\Delta\vec{R}_{J} \\
 & + \mathcal{O}(\Delta\vec{R}^3)
-\end{align*}
+\end{aligned}
+$$
 
 The linear term vanishes, since no forces $\vec{F} = - \nabla E$ are acting on the system in equilibrium $\vec{R}^0$. 
 Assessing the Hessian $\Phi_{IJ} = \frac{\partial^2 E}{\partial \vec{R}_I\partial \vec{R}_J}$ involves some additional
@@ -69,7 +73,7 @@ The definition in Eq.$~\eqref{eq:FinDiff}$ is helpful to realize that the Hessia
 if we displace atom $\vec{R}_I$, as you have already learned in tutorial 1. However, an additional complexity arises in the case of _periodic boundary conditions_,
 since beside the atoms in the unit cell $\vec{R}_J$ we also need to account for the periodic images $\vec{R}_{J'}$. Accordingly, the Hessian is in principle a matrix 
 of infinite size. In non-ionic crystals, however, the interaction between two atoms$~I$ and $J$ quickly decays with their distance$~\vec{R}_{IJ}$, so that we can compute the Hessian from
-finite supercells, the size convergence of which must be accurately inspected~(cf.~Exercise~\hyperref[ex2]{2}).
+finite supercells, the size convergence of which must be accurately inspected (cf. Exercise \hyperref[ex2]{2}).
 
 Once the real-space representation of the Hessian is computed, we can determine the _dynamical matrix_ by adding up the contributions
 from all periodic images$~J'$ in the mass-scaled Fourier transform of the Hessian:
@@ -84,7 +88,7 @@ D_{IJ}({\vec{q}}) = \sum\limits_{J'}
 
 In reciprocal space [[AshcroftMermin](references.md#AshcroftMermin)],
 this _dynamical matrix_ determines the equation of motion for such a periodic array of harmonic 
-atoms for each reciprocal vector~$\vec{q}$:
+atoms for each reciprocal vector$~\vec{q}$:
 
 \begin{align}
 D(\vec{q}) \, \vec e_s (\vec{q}) = \omega_s^2(\vec{q}) \, \vec e_s (\vec{q})
@@ -106,7 +110,7 @@ with more than one atom in the primitive unit cell, the remaining $(3N_\t{A} -
 The eigenvalues$~\omega_s^2(\vec{q})$ and eigenvectors$~\vec e_s(\vec{q})$ of the 
 dynamical matrix$~D(\vec{q})$
 completely describe the dynamics of the system (in the harmonic approximation), which is nothing else than a superposition
-of harmonic oscillators, one for each ~mode~, i.e., for each 
+of harmonic oscillators, one for each mode, i.e., for each 
 eigenvalue$~\omega_s (\vec{q})$. 
 
 From the set of eigenvalues $\{ \omega_s (\vec{q}) \}$, also denoted as 
@@ -148,7 +152,7 @@ For a comprehensive introduction to the field of lattice dynamics and its
 foundations, we refer to [[BornHuang](references.md#BornHuang)].
 
 To compute the quantities introduced above, we will use 
-`FHI-vibes`, which uses the package _phonopy_ [[Togo](references.md#Togo2015)] as a backend to compute vibrational properties via the finite-displacements method as outlined above. Please note that 
+`FHI-vibes`, which uses the package _phonopy_ [[Togo2015](references.md#Togo2015)] as a backend to compute vibrational properties via the finite-displacements method as outlined above. Please note that 
 _phonopy_ makes extensive use of symmetry 
 analysis [[Parlinski1997](references.md#Parlinski1997)], which allows to reduce numerical noise and to speed up the calculations considerably.
 

@@ -7,34 +7,49 @@ copyright: 'Copyright &copy; 2020 Florian Knoop'
 theme:
     name: 'material'
     palette:
-        primary: 'Blue Grey'
-    logo: 'images/Monogram_white_FV.svg'
-    favicon: 'images/Monogram_white_FV_small.svg'
+        primary: 'Teal'
+        accent: 'Blue Grey'
+    logo: 'images/FV.svg'
+    favicon: 'images/FV.svg'
     include_search_page: false
-    
+    feature:
+        tabs: true
 
-extra:
-  social:
-    - type: gitlab
-      link: https://gitlab.com/flokno/hilde
+    font:
+        text: 'Open Sans'
+        code: 'Droid Sans Mono'
 
 nav:
-    - Installation: README.md
+    - FHI-vibes: 
+        - Getting Started: README.md
+        - License: license.md
     - Tutorial: 
         - Tutorial/0_intro.md
         - Tutorial/acknowledgments.md
         - Tutorial/references.md
-    - License: license.md
-    
-    
-extra_javascript:
-  - 'javascripts/mathjax.js'
-  - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'
-  
-  
+
+        
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
 markdown_extensions:
     - toc:
         permalink: "#"
     - pymdownx.arithmatex
     - footnotes
     - admonition
+    
+extra_javascript:
+  - 'javascripts/mathjax.js'
+  - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'
+  
+
+extra:
+  social:
+    - type: gitlab
+      link: https://gitlab.com/flokno/hilde
+    - type: twitter
+      link: https://twitter.com/floknoo
+      
