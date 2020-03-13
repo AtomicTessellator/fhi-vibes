@@ -3,6 +3,13 @@ FHI-vibes
 
 Welcome to `FHI-vibes`, a `python` package for _ab initio_ modeling of vibrational properties in anharmonic solids.
 
+## Overview
+
+- If you are here to learn how to run `phonopy` calculations with forces obtained from `FHI-aims`, please have a look at our [Tutorial](Tutorial/0_intro.md).
+- If you are interested in scientific work that was performed using `FHI-vibes`, please have a look at [References](References.md)
+
+`FHI-vibes` is submitted to [JOSS](https://joss.theoj.org/).
+
 ## Installation
 
 ### Prerequisites
@@ -14,27 +21,20 @@ Welcome to `FHI-vibes`, a `python` package for _ab initio_ modeling of vibration
   - `apt-get install gfortran` in Debian-derived systems, or
   - `conda install -c conda-forge fortran-compiler` when `conda` is used.
 
-- `poetry` needs to be installed
-  
-  - `pip install poetry`
-  - Make sure that `poetry` will no creat a virtual environment of its own by
-    - `poetry config virtualenvs.create false`
-    - or create a [virtual environment]([https://docs.python.org/3/library/venv.html](https://docs.python.org/3/library/venv.html)
 
 ### Install `vibes`
 
-Go to the `vibes` folder and install `vibes` with `poetry`
+`FHI-vibes` can be installed simply via pip:
 
 ```bash
-cd /path/to/vibes
-poetry install
+pip install fhi-vibes
 ```
 
 **(Important: If you run in to version conflicts that you cannot solve, use a virtual environment created with `python -m venv` or `conda create`.)**
 
 ### Configuration
 
-Configure Hilde by creating a `~/.vibesrc` configuration file in the home directory. To this end, first run
+Configure `vibes` by creating a `~/.vibesrc` configuration file in the home directory. To this end, first run
 
 ```
 vibes template configuration
@@ -63,7 +63,7 @@ pip install importlib_resources
 To activate autocompletion of `vibes` subcommands, add this to your `.bashrc`:
 
 ```bash
-eval "$(_HILDE_COMPLETE=source vibes)"
+eval "$(_VIBES_COMPLETE=source vibes)"
 ```
 
 and source it.
@@ -71,40 +71,8 @@ and source it.
 If you use the `fishshell`, add a file `~/.config/fish/completions/vibes.fish` containing
 
 ```bash
-eval (env _HILDE_COMPLETE=source-fish vibes)
+eval (env _VIBES_COMPLETE=source-fish vibes)
 ```
-
-### Remarks for Cluster
-
-First make sure that `poetry` doesn't create virtual environments on its own:
-
-```bash
-poetry config virtualenvs.create false 
-```
-
-On clusters with `conda` environment, it is typically best to have a minimal base
-environment that holds nothing but `python`, `numpy`, and `scipy` to benefit from `mkl`
-speedup:
-
-```bash
-conda create -n py37 python=3.7 numpy scipy mkl
-```
-
-From within the conda environment (`conda activate py37`), you can install just like above. To enforce using the `mkl` `numpy`, you can find out the version with
-
-```bash
-conda list | grep numpy
-```
-
- or
-
-```bash
-pip list | grep numpy
-```
-
-and adjust the `pyproject.toml` file to match the exact version number.
-
-Don't forget to activate `py37` with `conda activate py37` before starting to work!
 
 ## Settings Files
 

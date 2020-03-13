@@ -21,18 +21,22 @@ theme:
 
 nav:
     - FHI-vibes: 
-        - Getting Started: README.md
+        - Welcome!: README.md
+        - References: References.md
         - License: license.md
     - Tutorial: 
-        - Tutorial/0_intro.md
+        - "Introduction: Phonons": Tutorial/0_intro.md
+        - "1: Geometry Optimization": Tutorial/1_geometry_optimization.md
         - Tutorial/acknowledgments.md
         - Tutorial/references.md
+
 
         
 plugins:
   - search
   - minify:
       minify_html: true
+  - search
 
 markdown_extensions:
     - toc:
