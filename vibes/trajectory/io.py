@@ -7,7 +7,6 @@ from pathlib import Path
 
 import numpy as np
 import xarray as xr
-
 from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -297,7 +296,7 @@ def to_db(trajectory, database):
         database: Filename or address of database
 
     """
-    from vibes.phonon_db import connect
+    from ase.db import connect
 
     timer = Timer(f"Save as ase database {database}")
 
