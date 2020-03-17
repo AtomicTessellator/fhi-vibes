@@ -1,8 +1,10 @@
 """Phonopy workflow context managing"""
 
+import sys
 from pathlib import Path
 
 from ase import Atoms
+
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.settings import TaskSettings
 from vibes.structure.misc import get_sysname
@@ -171,7 +173,7 @@ class PhonopyContext:
             self.postprocess(workdir=self.workdir)
             msg = "** Postprocess could be performed from previous calculations. Check"
             msg += f"\n**  {self.workdir}"
-            exit(msg)
+            sys.exit(msg)
         except (FileNotFoundError, RuntimeError):
             completed = calculate_socket(**args)
 

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from vibes.helpers import Timer, warn
+from vibes.helpers import Timer, talk, warn
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.paths import cwd
 from vibes.io import write
@@ -13,25 +13,26 @@ from vibes.phonopy import displacement_id_str
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader as traj_reader
 
+from ._defaults import name
+
 
 def postprocess(
-    trajectory="trajectory.son", workdir=".", verbose=True, **kwargs,
+    trajectory="trajectory.son",
+    workdir=".",
+    output_dir="output",
+    verbose=True,
+    **kwargs,
 ):
     """Phonopy postprocess
 
-    Parameters
-    ----------
-    trajectory: str or Path
-        The trajectory file to process
-    workdir: str or Path
-        The working directory where trajectory is stored
-    verbose: bool
-        If True be verbose
+    Args:
+        trajectory: The trajectory file to process
+        workdir: The working directory where trajectory is stored
+        output_dir: write postprocessing results to this folder
+        verbose: be verbose
 
-    Returns
-    -------
-    phono3py.Phono3py
-        The Phono3py object with the force constants calculated
+    Returns:
+        phono3py.Phono3py: The Phono3py object with the force constants calculated
     """
 
     timer = Timer("Start phonopy postprocess:")
@@ -89,6 +90,13 @@ def postprocess(
 
     phonon.produce_fc2()
     phonon.produce_fc3()
+
+    if output_dir is not None:
+        outfile = Path(workdir) / output_dir
+        msg = f"Write postprocessing results to {outfile}"
+        talk(msg, prefix=name)
+
+        extract_results(phonon, output_dir=outfile)
 
     if verbose:
         timer("done")
