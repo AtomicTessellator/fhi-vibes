@@ -3,6 +3,7 @@ from pathlib import Path
 from shutil import copyfile, rmtree
 
 import numpy as np
+from vibes.fireworks.utils.converters import phonon_to_dict
 from vibes.helpers.converters import atoms2dict
 from vibes.helpers.k_grid import update_k_grid
 from vibes.helpers.paths import cwd
@@ -11,7 +12,6 @@ from vibes.materials_fp.material_fingerprint import (
     get_phonon_dos_fp,
     scalar_product,
 )
-from vibes.phonon_db.row import phonon_to_dict
 from vibes.phonopy.wrapper import preprocess as ph_preprocess
 from vibes.settings import Settings
 from vibes.structure.convert import to_Atoms_db
