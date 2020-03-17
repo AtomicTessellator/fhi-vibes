@@ -1,8 +1,8 @@
-import attr
+from dataclasses import dataclass
 
 
-@attr.s
+@dataclass
 class CliTracker:
     """click context object"""
 
-    verbose = attr.ib(default=1)
+    verbose: int = 1

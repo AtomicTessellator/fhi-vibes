@@ -52,10 +52,10 @@ cp vibesrc ~/.vibesrc
 
 ## Remarks for `python3.6`
 
-On `python3.6`, please install `importlib_resources` via 
+On `python3.6`, please install `importlib_resources` and `dataclasses` via 
 
 ```bash
-pip install importlib_resources
+pip install importlib_resources dataclasses
 ```
 
 ### Autocompletion
