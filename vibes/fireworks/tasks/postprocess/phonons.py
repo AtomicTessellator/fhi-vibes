@@ -3,6 +3,7 @@ from pathlib import Path
 from shutil import copyfile, rmtree
 
 import numpy as np
+
 from vibes.fireworks.utils.converters import phonon_to_dict
 from vibes.helpers.converters import atoms2dict
 from vibes.helpers.k_grid import update_k_grid
@@ -14,7 +15,7 @@ from vibes.materials_fp.material_fingerprint import (
 )
 from vibes.phonopy.wrapper import preprocess as ph_preprocess
 from vibes.settings import Settings
-from vibes.structure.convert import to_Atoms_db
+from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
 
@@ -231,7 +232,7 @@ def get_converge_phonon_update(
         update_job = {
             "ph_dict": phonon_to_dict(ph),
             "ph_calculator": calc_dict,
-            "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
+            "ph_primitive": atoms2dict(to_Atoms(ph.get_primitive(), db=True)),
             "ph_time": calc_time / len(ph.get_supercells_with_displacements()),
         }
         return True, update_job
@@ -264,7 +265,7 @@ def get_converge_phonon_update(
 
     ratio = np.linalg.det(sc_mat) / np.linalg.det(ph.get_supercell_matrix())
     ph, _, _ = ph_preprocess(
-        to_Atoms_db(ph.get_primitive()), sc_mat, displacement=displacement
+        to_Atoms(ph.get_primitive(), db=True), sc_mat, displacement=displacement
     )
 
     if ph.get_supercell().get_number_of_atoms() > 500:
@@ -291,8 +292,8 @@ def get_converge_phonon_update(
         "expected_walltime": expected_walltime,
         # "expected_mem": expected_mem,
         "ph_calculator": calc_dict,
-        "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
-        "ph_supercell": atoms2dict(to_Atoms_db(ph.get_supercell())),
+        "ph_primitive": atoms2dict(to_Atoms(ph.get_primitive(), db=True)),
+        "ph_supercell": atoms2dict(to_Atoms(ph.get_supercell(), db=True)),
         "prev_dos_fp": dos_fp,
         "prev_wd": workdir,
         "displacement": disp_mag,

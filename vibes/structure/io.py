@@ -13,58 +13,69 @@ from vibes.spglib.wrapper import get_symmetry_dataset
 from vibes.structure.misc import get_sysname
 
 
-def _get_decoration_string(cell, symprec=symprec, verbose=True):
-    """return decorating string"""
+def _get_decoration_string(atoms, symprec=symprec, verbose=True):
+    """Decoration for geometry.in files
+
+    Args:
+      atoms: the structure
+      symprec: symmetry precision
+      verbose: be verbose
+
+    Returns:
+        str: decoration
+
+    """
     if verbose:
-        sds = get_symmetry_dataset(cell, symprec=symprec)
+        sds = get_symmetry_dataset(atoms, symprec=symprec)
         string = "#=====================================================\n"
         string += f"# libflo:  geometry.in \n"
         # string += '#   Material: {:s}\n'.format(cell.get_chemical_formula())
         date = datetime.datetime.now().isoformat(" ", timespec="seconds")
         string += f"#   Date:    {date}\n"
         string += "#=====================================================\n"
-        string += f"#   Material:          {cell.get_chemical_formula()}\n"
-        string += f"#   No. atoms:         {cell.n_atoms}\n"
+        string += f"#   Material:          {atoms.get_chemical_formula()}\n"
+        string += f"#   No. atoms:         {atoms.n_atoms}\n"
         string += f"#   Spacegroup:        {sds.number:d}\n"
 
-        if any(cell.pbc):
-            string += f"#   Unit cell volume:  {cell.get_volume():f} AA^3\n"
-        if hasattr(cell, "tags"):
-            for ii, tag in enumerate(cell.tags):
+        if any(atoms.pbc):
+            string += f"#   Unit cell volume:  {atoms.get_volume():f} AA^3\n"
+        if hasattr(atoms, "tags"):
+            for ii, tag in enumerate(atoms.tags):
                 string += f"#   Tag {ii+1:2d}:            {tag}\n"
         # Supercell
-        if hasattr(cell, "smatrix"):
-            string += f"#   Supercell matrix:  {cell.smatrix.flatten()}\n"
+        if hasattr(atoms, "smatrix"):
+            string += f"#   Supercell matrix:  {atoms.smatrix.flatten()}\n"
     else:
         string = ""
 
     return string
 
 
-def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=False):
+def get_aims_string(atoms, decorated=True, scaled=None, velocities=False, wrap=False):
     """print the string that is geometry.in
 
     Args:
-        cell (ase.atoms.Atoms): the structure
-        decorated (bool, optional): add decoration
-        scaled (bool, optional): use scaled positions
-        velocities (bool, optional): write velocities
-        wrap (bool, optional): write wrapped positions
+      atoms(ase.atoms.Atoms): the structure
+      decorated(bool, optional): add decoration (Default value = True)
+      scaled(bool, optional): use scaled positions (Default value = None)
+      velocities(bool, optional): write velocities (Default value = False)
+      wrap(bool, optional): write wrapped positions (Default value = False)
 
     Returns:
-        str: geometry.in
+      str: geometry.in
+
     """
     if scaled is None:
-        if "supercell" in cell.tags:
+        if "supercell" in atoms.tags:
             scaled = False
         else:
             scaled = True
 
     string = _get_decoration_string
 
-    if any(cell.pbc):
-        latvecs = clean_matrix(cell.get_cell())
-        for latvec, constraint in zip(latvecs, cell.constraints_lv):
+    if any(atoms.pbc):
+        latvecs = clean_matrix(atoms.get_cell())
+        for latvec, constraint in zip(latvecs, atoms.constraints_lv):
 
             if decorated:
                 string += f"  lattice_vector "
@@ -82,19 +93,19 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Fa
         scaled = False
 
     # Write (preferably) scaled positions
-    symbols = cell.get_chemical_symbols()
+    symbols = atoms.get_chemical_symbols()
     if scaled:
-        positions = clean_matrix(cell.get_scaled_positions(wrap=wrap))
+        positions = clean_matrix(atoms.get_scaled_positions(wrap=wrap))
         atompos = "atom_frac"
     else:
         # if decorated:
         #     string += '\n# Cartesian positions:\n'
         #
-        positions = clean_matrix(cell.get_positions())
+        positions = clean_matrix(atoms.get_positions())
         atompos = "atom"
 
     if velocities:
-        vels = cell.get_velocities()
+        vels = atoms.get_velocities()
 
     for ii, (pos, sym) in enumerate(zip(positions, symbols)):
         if decorated:
@@ -119,45 +130,41 @@ def get_aims_string(cell, decorated=True, scaled=None, velocities=False, wrap=Fa
     return string
 
 
-def inform(cell, fname=None, verbosity=1, symprec=symprec):
-    """geometry information
+def inform(atoms, fname=None, verbosity=1, symprec=symprec):
+    """print geometry information to screen
 
-    Parameters
-    ----------
-    cell: ase.atoms.Atoms
-        The cell to convert to geometry.in
-    fname: str
-        Path to the geometry.in file
-    verbosity: int
-        How much information to print to the screen
-    symprec: float
-        Tolerance for determining the symmetry and space group of a material
+    Args:
+      atoms: the structure
+      fname:  (Default value = None)
+      verbosity:  (Default value = 1)
+      symprec:  (Default value = symprec)
+
     """
-    unique_symbols, multiplicity = np.unique(cell.symbols, return_counts=True)
+    unique_symbols, multiplicity = np.unique(atoms.symbols, return_counts=True)
     # Structure info:
     talk(f"Geometry info")
-    print(f"  input geometry:    {get_sysname(cell)}")
+    print(f"  input geometry:    {get_sysname(atoms)}")
     if fname:
         print(f"  from:              {fname}")
     print(f"  Symmetry prec.:    {symprec}")
-    print(f"  Number of atoms:   {len(cell)}")
+    print(f"  Number of atoms:   {len(atoms)}")
 
     msg = ", ".join([f"{s} ({m})" for (s, m) in zip(unique_symbols, multiplicity)])
     print(f"  Species:           {msg}")
-    print(f"  Periodicity:       {cell.pbc}")
-    if verbosity > 0 and any(cell.pbc):
+    print(f"  Periodicity:       {atoms.pbc}")
+    if verbosity > 0 and any(atoms.pbc):
         print(f"  Lattice:  ")
-        for vec in cell.cell:
+        for vec in atoms.cell:
             print(f"    {vec}")
-        cub = get_cubicness(cell.cell)
+        cub = get_cubicness(atoms.cell)
         print(f"  Cubicness:         {cub:.3f} ({cub**3:.3f})")
-        sh = inscribed_sphere_in_box(cell.cell)
+        sh = inscribed_sphere_in_box(atoms.cell)
         print(f"  Largest Cutoff:    {sh:.3f} AA")
 
     print("")
 
     if symprec is not None:
-        sds = get_symmetry_dataset(cell, symprec=symprec)
+        sds = get_symmetry_dataset(atoms, symprec=symprec)
 
         print(f"  Spacegroup:          {sds.international} ({sds.number})")
         if sds.number > 1:
@@ -173,24 +180,24 @@ def inform(cell, fname=None, verbosity=1, symprec=symprec):
 
         if verbosity > 1:
             print(f"  Special k points:")
-            for key, val in get_special_points(cell).items():
+            for key, val in get_special_points(atoms).items():
                 print(f"    {key}: {val}")
 
     # Info
-    for (key, val) in cell.info.items():
+    for (key, val) in atoms.info.items():
         print(f"  {key:10s}: {val}")
 
     # lengths and angles
     if verbosity > 0:
-        la = cell.get_cell_lengths_and_angles()
+        la = atoms.get_cell_lengths_and_angles()
         print("\nCell lengths and angles [\u212B, °]:")
         print("  a, b, c: {}".format(" ".join([f"{l:11.4f}" for l in la[:3]])))
         angles = "  \u03B1, \u03B2, \u03B3: "
         values = "{}".format(" ".join([f"{l:11.4f}" for l in la[3:]]))
         print(angles + values)
-        print(f"  Volume:           {cell.get_volume():11.4f} \u212B**3")
-        print(f"  Volume per atom:  {cell.get_volume() / len(cell):11.4f} \u212B**3")
+        print(f"  Volume:           {atoms.get_volume():11.4f} \u212B**3")
+        print(f"  Volume per atom:  {atoms.get_volume() / len(atoms):11.4f} \u212B**3")
 
-        if cell.get_velocities() is not None:
-            v = cell.get_momenta().sum(axis=0) / v_unit / cell.get_masses().sum()
+        if atoms.get_velocities() is not None:
+            v = atoms.get_momenta().sum(axis=0) / v_unit / atoms.get_masses().sum()
             print(f"\n Net velocity: {v} \u212B/ps")

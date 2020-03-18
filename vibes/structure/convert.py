@@ -1,128 +1,84 @@
 import numpy as np
 from ase.atoms import Atoms
 
+from vibes.konstanten import n_db_digits
 
-def to_phonopy_atoms(structure, wrap=False):
+
+def to_phonopy_atoms(atoms, wrap=False):
     """Convert ase.atoms.Atoms to PhonopyAtoms
 
-    Parameters
-    ----------
-    structure: ase.atoms.Atoms
-        Atoms to convert
-    wrap: bool
-        If True wrap the scaled positions
+    Args:
+      atoms(ase.atoms.Atoms): Atoms to convert
+      wrap(bool, optional): If True wrap the scaled positions (Default value = False)
 
-    Returns
-    -------
-    phonopy_atoms: PhonopyAtoms
-        The PhonopyAtoms for the same structure as atoms
+    Returns:
+        phonopy.PhonopyAtoms
+
     """
     from phonopy.structure.atoms import PhonopyAtoms
 
     phonopy_atoms = PhonopyAtoms(
-        symbols=structure.get_chemical_symbols(),
-        cell=structure.get_cell(),
-        masses=structure.get_masses(),
-        positions=structure.get_positions(wrap=wrap),
+        symbols=atoms.get_chemical_symbols(),
+        cell=atoms.get_cell(),
+        masses=atoms.get_masses(),
+        positions=atoms.get_positions(wrap=wrap),
     )
 
     return phonopy_atoms
 
 
-def to_spglib_cell(structure):
+def to_spglib_cell(atoms):
     """Convert ase.atoms.Atoms to spglib cell
 
-    Parameters
-    ----------
-    structure: ase.atoms.Atoms
-        Atoms to convert
+    Args:
+      atoms(ase.atoms.Atoms): Atoms to convert
 
-    Returns
-    -------
-    lattice: np.ndarray
-        The lattice vectors of the cell
-    positions: np.ndarray
-        The scaled positions of the cell
-    number: np.ndarray
-        The atomic number of all atoms in the cell
+    Returns:
+        tuple
+
     """
-    lattice = structure.cell
-    positions = structure.get_scaled_positions()
-    number = structure.get_atomic_numbers()
+    lattice = atoms.cell
+    positions = atoms.get_scaled_positions()
+    number = atoms.get_atomic_numbers()
     return (lattice, positions, number)
 
 
-def to_Atoms_db(structure, info=None, pbc=True):
+def to_Atoms(atoms, info=None, pbc=True, db=False):
     """Convert structure to ase.atoms.Atoms
 
-    without masses, and more accurate positions/lattice vectors
+    Args:
+      structure(PhonopyAtoms): The structure to convert
+      info(dict): Additional information to include in atoms.info (Default value = None)
+      pbc(bool): True if the structure is periodic (Default value = True)
+      db(bool): remove masses and round positions to 14 digits
 
-    Parameters
-    ----------
-    structure: PhonopyAtoms
-        The structure to convert
-    info: dict
-        Additional information to include in atoms.info
-    pbc: bool
-        True if the structure is periodic
+    Returns:
+        Atoms: structure as atoms object
 
-    Returns
-    -------
-    atoms: ase.atoms.Atoms
-        The ASE representation of the material
     """
 
     if info is None:
         info = {}
 
-    if structure is None:
+    if atoms is None:
         return None
 
     atoms_dict = {
-        "symbols": structure.get_chemical_symbols(),
-        "cell": np.round(structure.get_cell(), 14),
-        "positions": np.round(structure.get_positions(), 14),
+        "symbols": atoms.get_chemical_symbols(),
+        "cell": atoms.get_cell(),
+        "masses": atoms.get_masses(),
+        "positions": atoms.get_positions(),
         "pbc": pbc,
         "info": info,
     }
 
-    atoms = Atoms(**atoms_dict)
-
-    return atoms
-
-
-def to_Atoms(structure, info=None, pbc=True):
-    """Convert structure to ase.atoms.Atoms
-
-    Parameters
-    ----------
-    structure: PhonopyAtoms
-        The structure to convert
-    info: dict
-        Additional information to include in atoms.info
-    pbc: bool
-        True if the structure is periodic
-
-    Returns
-    -------
-    atoms: ase.atoms.Atoms
-        The ASE representation of the material
-    """
-
-    if info is None:
-        info = {}
-
-    if structure is None:
-        return None
-
-    atoms_dict = {
-        "symbols": structure.get_chemical_symbols(),
-        "cell": structure.get_cell(),
-        "masses": structure.get_masses(),
-        "positions": structure.get_positions(),
-        "pbc": pbc,
-        "info": info,
-    }
+    if db:
+        del atoms_dict["masses"]
+        db_dict = {
+            "cell": np.round(atoms.get_cell(), n_db_digits),
+            "positions": np.round(atoms.get_positions(), n_db_digits),
+        }
+        atoms_dict.update(db_dict)
 
     atoms = Atoms(**atoms_dict)
 

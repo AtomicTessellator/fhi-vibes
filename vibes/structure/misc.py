@@ -3,16 +3,17 @@ from numpy import cos, sin
 
 
 def get_sysname(atoms, spacegroup=None, empirical=True, metal=True):
-    """ Get name of the system
+    """Get name of the system
 
     Args:
-        atoms (ase.atoms.Atoms): The structure to name
-        spacegroup (int): The space group of atoms to attach to the name
-        empirical (bool): return empirical name (remove duplicitiy)
-        metal (bool): use `mode='metal'` instead of `'hill'` to put metal elements first
+      atoms(ase.atoms.Atoms): The structure to name
+      spacegroup(int): space group of atoms to attach to the name (Default value = None)
+      empirical(bool): return empirical name (remove duplicitiy) (Default value = True)
+      metal(bool): use `mode='metal'` instead of `'hill'` to put metal elements first
 
     Returns:
-        str: The name of atoms
+      str: The name of atoms
+
     """
 
     if metal:
@@ -40,27 +41,19 @@ def get_sysname(atoms, spacegroup=None, empirical=True, metal=True):
 def generate_lattice(a, b=None, c=None, alpha=90, beta=90, gamma=90, lattice_type=None):
     """Create a Lattice using unit cell lengths (Angstrom) and angles (in degrees).
 
-    Parameters
-    ----------
-    a: float
-        *a* lattice parameter.
-    b: float
-        *b* lattice parameter.
-    c: float
-        *c* lattice parameter.
-    alpha: float
-        *alpha* angle in degrees.
-    beta: float
-        *beta* angle in degrees.
-    gamma: float
-        *gamma* angle in degrees.
-    lattice_type (str):
-        The lattice type
+    Args:
+      a(float): *a* lattice parameter.
+      b(float, optional): *b* lattice parameter. (Default value = None)
+      c(float, optional): *c* lattice parameter. (Default value = None)
+      alpha(float, optional): *alpha* angle in degrees. (Default value = 90)
+      beta(float, optional): *beta* angle in degrees. (Default value = 90)
+      gamma(float, optional): *gamma* angle in degrees. (Default value = 90)
+      lattice_type (str): The lattice type
+      lattice_type:  (Default value = None)
 
-    Returns
-    -------
-    np.ndarray
-        Lattice vectors of from the cellpars
+    Returns:
+        np.ndarray: lattice
+
     """
     if lattice_type == "cubic":
         return np.array([[a, 0.0, 0.0], [0.0, a, 0.0], [0.0, 0.0, a]])
