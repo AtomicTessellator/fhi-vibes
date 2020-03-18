@@ -2,7 +2,6 @@
 
 from vibes.helpers.attribute_dict import AttributeDict as adict
 
-
 name = "relaxation"
 
 mandatory_base = ["machine", "geometry", name]
@@ -15,7 +14,7 @@ defaults = adict(
         "unit_cell": False,
         "fmax": 0.001,
         # "alpha": 25,
-        "maxstep": 0.04,
+        "maxstep": 0.2,
         "hydrostatic_strain": False,
         "constant_volume": False,
         "scalar_pressure": 0.0,

@@ -19,7 +19,7 @@ matplotlib = "^3.1"
 son = "^0.3.2"
 spglib = "^1.12"
 phonopy = "^2.1"
-ase = {git = "https://gitlab.com/ase/ase.git", branch="master"}
+ase = "^3.19.0"
 click = "^7.0"
 attrs = "^19.1"
 pandas = "^0.25.0"
@@ -31,13 +31,14 @@ pymongo = {version = "^3.8",optional = true}
 fabric = {version = "^2.4",optional = true}
 paramiko = {version = "^2.4",optional = true}
 psycopg2 = {version="^2.8.0", optional=true}
-click_completion = {git = "https://github.com/flokno/click-completion.git", branch="fish_complete_files"}
 xarray = "^0.12"
 netCDF4 = "^1.5"
 jinja2 = "^2.10"
 hiphive = {version = "^0.5.0", optional = true}
 tables = "^3.5"
 click_aliases = "^1.0"
+mkdocs = "^1.1"
+click_completion = "^0.5.2"
 
 [tool.poetry.extras]
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
@@ -55,6 +56,10 @@ flake8-comprehensions = "^3.1"
 pytest-xdist = "^1.31"
 pytest-cov = "^2.8"
 isort = "^4.3"
+mkdocs = "^1.1"
+mkdocs-material = "^4.6"
+pymdown-extensions = "^6.3"
+mkdocs-minify-plugin = "^0.2.3"
 
 [tool.poetry.scripts]
 vibes = 'vibes.cli:cli'

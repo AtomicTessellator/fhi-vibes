@@ -15,3 +15,13 @@ fireworks:
     - service mongodb start --ipv6
     - pip install fireworks
     - pytest tests/fireworks
+
+pages:
+  script:
+  - mkdocs build
+  - mv site public
+  artifacts:
+    paths:
+    - public
+  only:
+  - release

@@ -46,6 +46,7 @@ bin
 dist
 docker
 *.egg-info
+site
 
 # vscode
 .vscode
@@ -78,6 +79,7 @@ doc/
 
 # ignore
 *.ignore
+ignore/
 
 my_pyproject.toml
 
