@@ -232,7 +232,7 @@ def get_converge_phonon_update(
         update_job = {
             "ph_dict": phonon_to_dict(ph),
             "ph_calculator": calc_dict,
-            "ph_primitive": atoms2dict(to_Atoms(ph.get_primitive(), db=True)),
+            "ph_primitive": atoms2dict(to_Atoms(ph.get_unitcell(), db=True)),
             "ph_time": calc_time / len(ph.get_supercells_with_displacements()),
         }
         return True, update_job
@@ -265,7 +265,7 @@ def get_converge_phonon_update(
 
     ratio = np.linalg.det(sc_mat) / np.linalg.det(ph.get_supercell_matrix())
     ph, _, _ = ph_preprocess(
-        to_Atoms(ph.get_primitive(), db=True), sc_mat, displacement=displacement
+        to_Atoms(ph.get_unitcell(), db=True), sc_mat, displacement=displacement
     )
 
     if ph.get_supercell().get_number_of_atoms() > 500:
@@ -292,7 +292,7 @@ def get_converge_phonon_update(
         "expected_walltime": expected_walltime,
         # "expected_mem": expected_mem,
         "ph_calculator": calc_dict,
-        "ph_primitive": atoms2dict(to_Atoms(ph.get_primitive(), db=True)),
+        "ph_primitive": atoms2dict(to_Atoms(ph.get_unitcell(), db=True)),
         "ph_supercell": atoms2dict(to_Atoms(ph.get_supercell(), db=True)),
         "prev_dos_fp": dos_fp,
         "prev_wd": workdir,
