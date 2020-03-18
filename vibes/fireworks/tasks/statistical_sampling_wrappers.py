@@ -4,15 +4,12 @@ import numpy as np
 
 from vibes.cli.scripts.create_samples import generate_samples
 from vibes.helpers.attribute_dict import AttributeDict
-from vibes.helpers.converters import calc2dict, dict2atoms, input2dict
+from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms
 from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.supercell import make_supercell
 from vibes.helpers.warnings import warn
 from vibes.phonopy.postprocess import postprocess as postprocess_ph
-from vibes.phonopy.utils import (
-    get_force_constants_from_trajectory,
-    remap_force_constants,
-)
+from vibes.phonopy.utils import get_force_constants_from_trajectory
 from vibes.phonopy.wrapper import preprocess as get_debye_temperature
 from vibes.settings import Settings, TaskSettings
 from vibes.structure.convert import to_Atoms
@@ -33,9 +30,7 @@ def bootstrap(atoms, name="statistical_sampling", settings=None, **kwargs):
         stat_sample_settings.update(settings[name])
 
     _, ph_metadata = reader(stat_sample_settings["phonon_file"], get_metadata=True)
-
-    atoms_dict = ph_metadata["atoms"].copy()
-    ph_atoms = dict2atoms(atoms_dict, ph_metadata["calculator"], False)
+    ph_atoms = dict2atoms(ph_metadata["atoms"], ph_metadata["calculator"], False)
     calc = ph_atoms.calc
     kpt_density = k2d(ph_atoms, calc.parameters["k_grid"])
 
@@ -43,15 +38,9 @@ def bootstrap(atoms, name="statistical_sampling", settings=None, **kwargs):
     stat_sample_settings.update(kwargs)
     metadata = get_metadata(**stat_sample_settings)
 
-    # Generate Samples
     sc = dict2atoms(metadata["supercell"])
-    fc = remap_force_constants(
-        metadata["force_constants"],
-        dict2atoms(metadata["primitive"]),
-        sc,
-        sc,
-        two_dim=True,
-    )
+    # Generate Samples
+    fc = metadata.pop("force_constants_2D")
 
     td_cells = []
     for temp in metadata["temperatures"]:
@@ -114,7 +103,9 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
     phonon = postprocess_ph(
         phonon_file, write_files=False, calculate_full_force_constants=False
     )
-    atoms = to_Atoms(phonon.get_primitive())
+
+    atoms = to_Atoms(phonon.get_unitcell())
+
     if "supercell_matrix" in kwargs:
         sc = make_supercell(atoms, np.array(kwargs["supercell_matrix"]).reshape(3, 3))
     else:
@@ -123,6 +114,8 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
     force_constants = get_force_constants_from_trajectory(
         phonon_file, sc, reduce_fc=True
     )
+    fc_two_dim = get_force_constants_from_trajectory(phonon_file, sc, two_dim=True)
+
     # If using Debye temperature calculate it
     if debye_temp_fact is not None:
         if phonon is None:
@@ -141,9 +134,11 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
         "n_samples_per_temperature": kwargs.get("n_samples", 1),
         "temperatures": temperatures,
         "force_constants": force_constants,
-        "supercell": input2dict(sc)["atoms"],
-        "primitive": input2dict(atoms)["atoms"],
-        "atoms": input2dict(sc)["atoms"],
+        "force_constants_2D": fc_two_dim,
+        "supercell": atoms2dict(sc, reduce=True),
+        "primitive": atoms2dict(atoms, reduce=True),
+        "ph_supercell": atoms2dict(to_Atoms(phonon.get_supercell()), reduce=True),
+        "atoms": atoms2dict(sc, reduce=True),
     }
 
     if not kwargs.get("deterministic", True):
@@ -161,7 +156,8 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
         "deterministic": kwargs.get("deterministic", True),
         "plus_minus": kwargs.get("plus_minus", True),
         "gauge_eigenvectors": kwargs.get("gauge_eigenvectors", True),
-        "ignore_negative": kwargs.get("ignore_negative", True),
+        "ignore_negative": kwargs.get("ignore_negative", False),
+        "failfast": kwargs.get("failfast", True),
         "sobol": kwargs.get("sobol", False),
         "random_seed": rng_seed,
         "propagate": False,
@@ -172,7 +168,12 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
 
 
 def bootstrap_stat_sample(
-    atoms, calc, kpt_density=None, stat_samp_settings=None, fw_settings=None
+    atoms,
+    calc,
+    kpt_density=None,
+    qadapter=None,
+    stat_samp_settings=None,
+    fw_settings=None,
 ):
     """
     Initializes the statistical sampling task
@@ -186,12 +187,13 @@ def bootstrap_stat_sample(
     Returns:
         (dict): The output of vibes.statistical_sampling.workflow.bootstrap
     """
+    if qadapter:
+        fw_settings["spec"]["_queueadapter"] = qadapter
+
     settings = Settings(settings_file=None)
     settings.atoms = atoms
     if kpt_density:
         settings["control_kpt"] = AttributeDict({"density": kpt_density})
-
-    outputs = []
 
     settings["statistical_sampling"] = stat_samp_settings.copy()
     stat_samp_out = bootstrap(
@@ -200,7 +202,7 @@ def bootstrap_stat_sample(
     stat_samp_out["prefix"] = "stat_samp"
     stat_samp_out["settings"] = stat_samp_settings.copy()
 
-    outputs.append(stat_samp_out)
+    outputs = [stat_samp_out]
     return outputs
 
 

@@ -2,8 +2,8 @@ import subprocess as sp
 from pathlib import Path
 
 import pytest
-
 from vibes.cli.scripts.nomad_upload import upload_folder_dry as nomad_upload_folder
+
 
 parent = Path(__file__).parent
 

@@ -7,22 +7,18 @@ from time import strftime, time
 
 from vibes.helpers import talk, warn
 
-
 _prefix = "watchdog"
 
 
-def str2time(string):
+def str2time(string: str) -> int:
     """Convert string of the shape D-HH:MM:SS to seconds
 
-    Parameters
-    ----------
-    string: str
-        string representing time
+    Args:
+      string(str): string representing time
 
-    Returns
-    -------
-    float
-        time in seconds
+    Returns:
+      int: time in second
+
     """
 
     d, h, m, s = 0, 0, 0, 0
@@ -50,18 +46,15 @@ def str2time(string):
     return s + 60 * m + 3600 * h + 86400 * d
 
 
-def get_time(jobid):
+def get_time(jobid: int) -> int:
     """get current job time
 
-    Parameters
-    ----------
-    jobid: int
-        Job ID for the job watchdog is acting on
+    Args:
+      jobid(int): Job ID for the job watchdog is acting on
 
-    Returns
-    -------
-    float
-        the remaining time
+    Returns:
+      int: time in seconds
+
     """
     try:
         squeue = sp.check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
@@ -73,18 +66,15 @@ def get_time(jobid):
         return 0
 
 
-def get_timelimit(jobid):
+def get_timelimit(jobid: int) -> int:
     """get job time limit
 
-    Parameters
-    ----------
-    jobid: int
-        Job ID for the job watchdog is acting on
+    Args:
+      jobid(int): Job ID for the job watchdog is acting on
 
-    Returns
-    -------
-    float
-        the time limit in seconds
+    Returns:
+      int: time in seconds
+
     """
     squeue = sp.check_output(["squeue", "-l", "-j", jobid]).decode("utf-8")
     line = squeue.split("\n")[2]
@@ -93,7 +83,7 @@ def get_timelimit(jobid):
 
 
 class WallTimeWatchdog:
-    """ Watches the walltime """
+    """Watches the walltime"""
 
     def __init__(
         self,
@@ -182,7 +172,7 @@ class WallTimeWatchdog:
 
     @property
     def increment_per_step(self):
-        """ compute increment per step based on history """
+        """compute increment per step based on history"""
         hist = self.history
 
         if len(hist) < 2:
@@ -192,27 +182,21 @@ class WallTimeWatchdog:
 
     @property
     def time_left(self):
-        """ how much time is left? """
+        """how much time is left?"""
         return self.walltime - time()
 
     @property
     def buffer_time(self):
-        """ approximate additional time the number of buffer steps would need """
+        """approximate additional time the number of buffer steps would need"""
         return self.increment_per_step * self.buffer
 
     @property
     def elapsed(self):
-        """ Return elapsed time since start """
+        """ """
         return time() - self.start_time
 
     def log(self, mode="a"):
-        """Log some timings
-
-        Parameters
-        ----------
-        mode: str
-            "a" appends to log, "w" overwrites
-        """
+        """Log some timings"""
 
         if self.logfile is None:
             return
@@ -279,5 +263,5 @@ class SlurmWatchdog(WallTimeWatchdog):
 
     @property
     def elapsed(self):
-        """ Return elapsed time since start """
+        """ """
         return get_time(self.jobid)

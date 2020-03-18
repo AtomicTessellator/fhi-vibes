@@ -239,7 +239,7 @@ def phonon_harmonics(
     last_ignore_mode = 3
     # if ignore_negative ignore all modes with frequency < 0.0 threshold (1e-3)
     if ignore_negative:
-        last_ignore_mode = len(np.where(w2_s < 1e-3)[0])
+        last_ignore_mode = max(len(np.where(w2_s <= 0)[0]), 3)
 
     # Check for soft modes
     w2min = w2_s[last_ignore_mode:].min()

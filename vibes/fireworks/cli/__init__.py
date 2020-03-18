@@ -77,10 +77,10 @@ def add_wf(workflow, launchpad):
         wflow = TaskSettings(name=None, settings=settings)
         atoms = wflow.atoms
 
-        if "basisset" not in wflow and "basisset" in wflow.general:
+        if "basissets" not in wflow and "basisset" in wflow.general:
             wflow["basissets"] = AttributeDict({"default": wflow.general.basisset})
-        elif "basisset" not in wflow:
-            wflow["basissets"] = AttributeDict({"default": "light"})
+        elif "basissets" not in wflow:
+            wflow["basisset"] = AttributeDict({"default": "light"})
 
         talk(f"Generating workflow for {get_sysname(atoms)}", prefix="fireworks")
         calc = setup_aims(
@@ -220,7 +220,7 @@ def add_wf(workflow, launchpad):
     "--tasks_to_queue",
     cls=ListOption,
     type=str,
-    default=FW_DEFAULTS["tasks2queue"],
+    default=",".join(FW_DEFAULTS["tasks2queue"]),
     help="list of tasks to be sent to the queue",
 )
 def claunch(

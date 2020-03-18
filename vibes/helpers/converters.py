@@ -13,8 +13,7 @@ from ase.db.row import atoms2dict as ase_atoms2dict
 from ase.io.jsonio import MyEncoder
 
 from vibes.helpers.lists import expand_list, list_dim, reduce_list
-from vibes.konstanten.io import n_yaml_digits
-
+from vibes.konstanten import n_yaml_digits
 
 key_symbols = "symbols"
 key_masses = "masses"
@@ -243,6 +242,8 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
     if "pbc" not in atoms_dict:
         atoms_dict.update({"pbc": "cell" in atoms_dict})
 
+    uuid = atoms_dict.pop("unique_id", None)
+
     try:
         velocities = atoms_dict.pop("velocities")
     except KeyError:
@@ -287,6 +288,9 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
     atoms.calc = calc
     if "info" in atoms_dict:
         atoms.info = atoms_dict["info"]
+    else:
+        atoms.info = {}
+    atoms.info["unique_id"] = uuid
     return atoms
 
 

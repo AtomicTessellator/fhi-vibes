@@ -8,16 +8,12 @@ from pathlib import Path
 def psave(obj, oname="test.pick", compressed=True, verbose=False):
     """save as (compressed) pickled file
 
-    Parameters
-    ----------
-    obj: any
-        Object to save as a pick fiel
-    oname: str
-        pickle file name
-    compressed: bool
-        If True compress the pickle file
-    verbose: bool
-        If True print logging information
+    Args:
+      obj: python object
+      oname:  (Default value = "test.pick")
+      compressed:  (Default value = True)
+      verbose:  (Default value = False)
+
     """
     if compressed:
         oname = str(oname) + ".gz"
@@ -34,15 +30,12 @@ def psave(obj, oname="test.pick", compressed=True, verbose=False):
 def pread(fname):
     """read (compressed) pickled file
 
-    Parameters
-    ----------
-    fname: Path or str
-        path to pickle file
+    Args:
+      fname(Path or str): path to pickle file
 
-    Returns
-    -------
-    any
-        The unpickled object
+    Returns:
+        python object
+
     """
     if "gz" in Path(fname).suffix:
         with gzip.open(fname, "rb") as f:

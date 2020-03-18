@@ -4,18 +4,18 @@ from shutil import copyfile, rmtree
 
 import numpy as np
 
+from vibes.fireworks.utils.converters import phonon_to_dict
 from vibes.helpers.converters import atoms2dict
 from vibes.helpers.k_grid import update_k_grid
 from vibes.helpers.paths import cwd
 from vibes.materials_fp.material_fingerprint import (
     fp_tup,
-    get_phonon_dos_fingerprint_phononpy,
+    get_phonon_dos_fp,
     scalar_product,
 )
-from vibes.phonon_db.row import phonon_to_dict
 from vibes.phonopy.wrapper import preprocess as ph_preprocess
 from vibes.settings import Settings
-from vibes.structure.convert import to_Atoms_db
+from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
 
@@ -200,6 +200,7 @@ def get_converge_phonon_update(
     ph.set_mesh([45, 45, 45])
     if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-1):
         raise ValueError("Negative frequencies at Gamma, terminating workflow here.")
+
     if prev_dos_fp:
         de = prev_dos_fp[0][0][1] - prev_dos_fp[0][0][0]
         min_f = prev_dos_fp[0][0][0] - 0.5 * de
@@ -210,7 +211,7 @@ def get_converge_phonon_update(
 
     # Get a phonon DOS Finger print to compare against the previous one
     n_bins = len(ph.get_total_dos_dict()["frequency_points"])
-    dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=n_bins)
+    dos_fp = get_phonon_dos_fp(ph, nbins=n_bins)
 
     # Get the base working directory
     init_workdir = get_base_work_dir(init_workdir)
@@ -231,15 +232,16 @@ def get_converge_phonon_update(
         update_job = {
             "ph_dict": phonon_to_dict(ph),
             "ph_calculator": calc_dict,
-            "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
+            "ph_primitive": atoms2dict(to_Atoms(ph.get_unitcell(), db=True)),
             "ph_time": calc_time / len(ph.get_supercells_with_displacements()),
         }
         return True, update_job
 
     # Reset dos_fp to include full Energy Range for the material
     if prev_dos_fp:
-        ph.set_total_DOS(tetrahedron_method=True)
-        dos_fp = get_phonon_dos_fingerprint_phononpy(ph, nbins=201)
+        ph.set_total_DOS(tetrahedron_method=True, freq_pitch=0.01)
+        n_bins = len(ph.get_total_dos_dict()["frequency_points"])
+        dos_fp = get_phonon_dos_fp(ph, nbins=n_bins)
 
     # If Not Converged update phonons
 
@@ -263,7 +265,7 @@ def get_converge_phonon_update(
 
     ratio = np.linalg.det(sc_mat) / np.linalg.det(ph.get_supercell_matrix())
     ph, _, _ = ph_preprocess(
-        to_Atoms_db(ph.get_primitive()), sc_mat, displacement=displacement
+        to_Atoms(ph.get_unitcell(), db=True), sc_mat, displacement=displacement
     )
 
     if ph.get_supercell().get_number_of_atoms() > 500:
@@ -273,7 +275,7 @@ def get_converge_phonon_update(
 
     expected_walltime = calc_time * time_scaling
 
-    ntasks = int(np.ceil(ph.supercell.get_number_of_atoms() * 1.25))
+    ntasks = int(np.ceil(ph.supercell.get_number_of_atoms() * 0.75))
 
     init_workdir += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
     analysis_wd += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
@@ -290,8 +292,8 @@ def get_converge_phonon_update(
         "expected_walltime": expected_walltime,
         # "expected_mem": expected_mem,
         "ph_calculator": calc_dict,
-        "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
-        "ph_supercell": atoms2dict(to_Atoms_db(ph.get_supercell())),
+        "ph_primitive": atoms2dict(to_Atoms(ph.get_unitcell(), db=True)),
+        "ph_supercell": atoms2dict(to_Atoms(ph.get_supercell(), db=True)),
         "prev_dos_fp": dos_fp,
         "prev_wd": workdir,
         "displacement": disp_mag,
