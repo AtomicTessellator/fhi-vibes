@@ -8,9 +8,7 @@ from vibes.helpers.brillouinzone import get_special_points
 from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.utils import talk
-from vibes.konstanten import v_unit
-from vibes.konstanten.io import n_geom_digits
-from vibes.konstanten.symmetry import symprec
+from vibes.konstanten import n_geom_digits, symprec, v_unit
 from vibes.spglib.wrapper import get_symmetry_dataset
 from vibes.structure.misc import get_sysname
 

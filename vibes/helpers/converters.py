@@ -13,8 +13,7 @@ from ase.db.row import atoms2dict as ase_atoms2dict
 from ase.io.jsonio import MyEncoder
 
 from vibes.helpers.lists import expand_list, list_dim, reduce_list
-from vibes.konstanten.io import n_yaml_digits
-
+from vibes.konstanten import n_yaml_digits
 
 key_symbols = "symbols"
 key_masses = "masses"
