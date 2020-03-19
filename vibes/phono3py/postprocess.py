@@ -13,7 +13,7 @@ from vibes.phonopy import displacement_id_str
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader as traj_reader
 
-from ._defaults import name
+from . import _defaults as defaults
 
 
 def postprocess(
@@ -94,7 +94,7 @@ def postprocess(
     if output_dir is not None:
         outfile = Path(workdir) / output_dir
         msg = f"Write postprocessing results to {outfile}"
-        talk(msg, prefix=name)
+        talk(msg, prefix=defaults.name)
 
         extract_results(phonon, output_dir=outfile)
 

@@ -8,7 +8,7 @@ from vibes.helpers.numerics import get_3x3_matrix
 from vibes.phonopy import get_supercells_with_displacements
 from vibes.structure.convert import to_phonopy_atoms
 
-from ._defaults import defaults
+from . import _defaults as defaults
 
 
 def prepare_phono3py(
@@ -16,14 +16,14 @@ def prepare_phono3py(
     supercell_matrix,
     fc2=None,
     fc3=None,
-    cutoff_pair_distance=defaults.cutoff_pair_distance,
+    cutoff_pair_distance=defaults.kwargs.cutoff_pair_distance,
     displacement_dataset=None,
-    is_diagonal=defaults.is_diagonal,
-    q_mesh=defaults.q_mesh,
-    displacement=defaults.displacement,
+    is_diagonal=defaults.kwargs.is_diagonal,
+    q_mesh=defaults.kwargs.q_mesh,
+    displacement=defaults.kwargs.displacement,
     symmetrize_fc3q=False,
-    symprec=defaults.symprec,
-    log_level=defaults.log_level,
+    symprec=defaults.kwargs.symprec,
+    log_level=defaults.kwargs.log_level,
     **kwargs,
 ):
     """Prepare a Phono3py object
@@ -81,12 +81,12 @@ def prepare_phono3py(
 def preprocess(
     atoms,
     supercell_matrix,
-    cutoff_pair_distance=defaults.cutoff_pair_distance,
-    is_diagonal=defaults.is_diagonal,
-    q_mesh=defaults.q_mesh,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-    log_level=defaults.log_level,
+    cutoff_pair_distance=defaults.kwargs.cutoff_pair_distance,
+    is_diagonal=defaults.kwargs.is_diagonal,
+    q_mesh=defaults.kwargs.q_mesh,
+    displacement=defaults.kwargs.displacement,
+    symprec=defaults.kwargs.symprec,
+    log_level=defaults.kwargs.log_level,
     **kwargs,
 ):
     """Set up a Phono3py object and generate all the supercells necessary for the 3rd order

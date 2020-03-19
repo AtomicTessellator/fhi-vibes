@@ -9,16 +9,18 @@ from vibes.helpers.numerics import get_3x3_matrix
 from vibes.settings import TaskSettings
 from vibes.structure.misc import get_sysname
 
+from . import _defaults as defaults
 from . import metadata2dict
 from . import postprocess as postprocess
 from . import wrapper as backend
-from ._defaults import defaults, mandatory, name
 
 
 class PhonopySettings(TaskSettings):
     """Phonopy settings. Ensures that settings.phonopy is set up sensibly"""
 
-    def __init__(self, settings, name=name, defaults_kw=None, mandatory_kw=None):
+    def __init__(
+        self, settings, name=defaults.name, defaults_kw=None, mandatory_kw=None
+    ):
         """Settings in the context of a phonopy workflow
 
         Parameters
@@ -27,12 +29,12 @@ class PhonopySettings(TaskSettings):
             Settings object with settings for phonopy
         """
         if defaults_kw is None:
-            defaults_kw = defaults
+            defaults_kw = defaults.kwargs
         if mandatory_kw is None:
-            mandatory_kw = mandatory
+            mandatory_kw = defaults.mandatory
 
         super().__init__(
-            name=name, settings=settings, defaults=defaults_kw, **mandatory_kw
+            name=name, settings=settings, default_kwargs=defaults_kw, **mandatory_kw
         )
 
         # validate
@@ -51,7 +53,7 @@ class PhonopyContext:
         self,
         settings,
         workdir=None,
-        name=name,
+        name=defaults.name,
         defaults_kw: dict = None,
         mandatory_kw: dict = None,
     ):
@@ -92,7 +94,7 @@ class PhonopyContext:
             vol = self.ref_atoms.get_volume()
             sysname = get_sysname(self.ref_atoms)
             rep = "_{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}".format(sysname, *smatrix, vol)
-            dirname = name + rep
+            dirname = self.name + rep
             self.settings.workdir = Path(dirname)
         else:
             self.settings.workdir = Path(folder)

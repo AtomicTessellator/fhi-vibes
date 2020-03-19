@@ -10,12 +10,12 @@ from vibes.helpers.brillouinzone import get_special_points
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.paths import cwd
 from vibes.io import write
-from vibes.phonopy import defaults, wrapper
+from vibes.phonopy import _defaults as defaults
+from vibes.phonopy import wrapper
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
 from . import displacement_id_str
-
 
 _prefix = "phonopy.postprocess"
 _tdep_fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
@@ -173,7 +173,7 @@ def extract_results(
     """
     timer = Timer("\nExtract phonopy results:")
     if q_mesh is None:
-        q_mesh = defaults.q_mesh.copy()
+        q_mesh = defaults.kwargs.q_mesh.copy()
     talk(f".. q_mesh:   {q_mesh}")
 
     primitive = to_Atoms(phonon.get_unitcell())

@@ -103,11 +103,11 @@ def phonopy_output(
     verbose,
 ):
     """perform phonopy postprocess for TRAJECTORY"""
-    from vibes.phonopy._defaults import defaults
+    from vibes.phonopy import _defaults as defaults
     from vibes.phonopy.postprocess import postprocess, extract_results
 
     if not q_mesh:
-        q_mesh = defaults.q_mesh.copy()
+        q_mesh = defaults.kwargs.q_mesh.copy()
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
     phonon = postprocess(
@@ -151,11 +151,11 @@ def phono3py_output(
     obj, trajectory, q_mesh,
 ):
     """perform phono3py postprocess for TRAJECTORY"""
-    from vibes.phono3py._defaults import defaults
+    from vibes.phono3py._defaults import kwargs
     from vibes.phono3py.postprocess import postprocess, extract_results
 
     if not q_mesh:
-        q_mesh = defaults.q_mesh.copy()
+        q_mesh = kwargs.q_mesh.copy()
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
     phonon = postprocess(trajectory=trajectory)

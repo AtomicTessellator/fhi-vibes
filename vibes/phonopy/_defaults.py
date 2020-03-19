@@ -10,7 +10,7 @@ mandatory = {
     "mandatory_obj_keys": ["supercell_matrix"],
 }
 
-defaults = adict(
+kwargs = adict(
     {
         # for phono3py compatibility
         "displacement": 0.01,

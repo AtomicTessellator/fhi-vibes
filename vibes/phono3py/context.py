@@ -2,17 +2,20 @@
 
 from vibes.phonopy.context import PhonopyContext
 
+from . import _defaults as defaults
 from . import postprocess, wrapper
-from ._defaults import defaults, mandatory, name
 
 
 class Phono3pyContext(PhonopyContext):
     """PhonopyContext with changed name"""
 
     def __init__(self, *args, **kwargs):
-        kwargs.update(
-            {"name": name, "defaults_kw": defaults, "mandatory_kw": mandatory}
-        )
+        kw = {
+            "name": defaults.name,
+            "defaults_kw": defaults.kwargs,
+            "mandatory_kw": defaults.mandatory,
+        }
+        kwargs.update(kw)
         super().__init__(*args, **kwargs)
 
         self.backend = wrapper

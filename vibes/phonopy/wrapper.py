@@ -20,18 +20,18 @@ from vibes.phonopy.utils import get_supercells_with_displacements
 from vibes.spglib.wrapper import map_unique_to_atoms
 from vibes.structure.convert import to_Atoms, to_phonopy_atoms
 
-from ._defaults import defaults
+from . import _defaults as defaults
 
 
 def prepare_phonopy(
     atoms,
     supercell_matrix,
     fc2=None,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-    trigonal=defaults.is_trigonal,
-    is_diagonal=defaults.is_diagonal,
-    is_plusminus=defaults.is_plusminus,
+    displacement=defaults.kwargs.displacement,
+    symprec=defaults.kwargs.symprec,
+    trigonal=defaults.kwargs.is_trigonal,
+    is_diagonal=defaults.kwargs.is_diagonal,
+    is_plusminus=defaults.kwargs.is_plusminus,
     wrap=False,
 ):
     """Create a Phonopy object
@@ -89,10 +89,10 @@ def prepare_phonopy(
 def preprocess(
     atoms,
     supercell_matrix,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-    trigonal=defaults.is_trigonal,
-    is_plusminus=defaults.is_plusminus,
+    displacement=defaults.kwargs.displacement,
+    symprec=defaults.kwargs.symprec,
+    trigonal=defaults.kwargs.is_trigonal,
+    is_plusminus=defaults.kwargs.is_plusminus,
     **kwargs,
 ):
     """Generate phonopy objects and return displacements as Atoms objects
@@ -160,7 +160,7 @@ def preprocess(
 def get_dos(
     phonon,
     total=True,
-    q_mesh=defaults.q_mesh,
+    q_mesh=defaults.kwargs.q_mesh,
     freq_min="auto",
     freq_max="auto",
     freq_pitch=None,
@@ -340,7 +340,7 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
 
 def plot_bandstructure_and_dos(
     phonon,
-    q_mesh=defaults.q_mesh,
+    q_mesh=defaults.kwargs.q_mesh,
     partial=False,
     file="bandstructure_dos.pdf",
     run_mesh=True,
@@ -451,7 +451,7 @@ def get_debye_temperature(
     phonon=None,
     dos=None,
     freq_pitch=5e-3,
-    q_mesh=defaults.q_mesh,
+    q_mesh=defaults.kwargs.q_mesh,
     tetrahedron_method=True,
 ):
     """Calculate the Debye Temperature from the Phonon Density of States
