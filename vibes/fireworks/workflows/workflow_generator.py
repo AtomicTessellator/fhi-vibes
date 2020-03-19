@@ -7,6 +7,7 @@ from vibes.fireworks.workflows.firework_generator import (
     generate_aims_fw,
     generate_gruniesen_fd_fw,
     generate_kgrid_fw,
+    generate_md_fw,
     generate_phonon_fw,
     generate_phonon_postprocess_fw,
     generate_relax_fw,
@@ -219,6 +220,14 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
 
         fw_dep[stat_samp_fws[0]] = stat_samp_fws[1]
         fw_steps += stat_samp_fws
+
+    if "md" in workflow_settings:
+        md_fws = generate_md_fw(workflow_settings, atoms, fw_settings)
+        if "phonopy" in workflow_settings:
+            fw_dep[phonon_fws[1]] += md_fws
+        elif final_initialize_fw:
+            fw_dep[final_initialize_fw] += md_fws
+        fw_steps += md_fws
 
     # Aims Calculations if no other term is present
     if not fw_steps:

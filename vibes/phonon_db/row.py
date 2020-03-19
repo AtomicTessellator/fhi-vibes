@@ -8,10 +8,11 @@ from ase.db.row import AtomsRow
 
 from vibes import konstanten as const
 from vibes.ase.db.dict_converters import atoms2dict
+
 # from vibes.phonon_db.ase_converters import dict2atoms
 from vibes.materials_fp.material_fingerprint import (
-    get_phonon_bs_fingerprint_phononpy,
-    get_phonon_dos_fingerprint_phononpy,
+    get_phonon_bs_fp,
+    get_phonon_dos_fp,
     to_dict,
 )
 from vibes.spglib.wrapper import get_spacegroup
@@ -61,7 +62,7 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
     if phonon.mesh is not None:
         dct["qmesh"] = phonon.mesh.mesh_numbers
     if phonon._total_dos is not None:
-        dct["phonon_dos_fp"] = to_dict(get_phonon_dos_fingerprint_phononpy(phonon))
+        dct["phonon_dos_fp"] = to_dict(get_phonon_dos_fp(phonon))
 
     if phonon.band_structure is not None:
         dct["qpoints"] = {}
@@ -71,7 +72,7 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
             if list(q_pt[-1]) not in dct["qpoints"].values():
                 dct["qpoints"][phonon.band_structure.distances[ii][-1]] = list(q_pt[-1])
         dct["phonon_bs_fp"] = to_dict(
-            get_phonon_bs_fingerprint_phononpy(phonon, dct["qpoints"]), to_mongo
+            get_phonon_bs_fp(phonon, dct["qpoints"]), to_mongo
         )
         if to_mongo:
             q_pt = {}

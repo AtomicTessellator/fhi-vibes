@@ -12,10 +12,7 @@ from vibes import konstanten as const
 from vibes.helpers import brillouinzone as bz
 from vibes.helpers import talk, warn
 from vibes.helpers.numerics import get_3x3_matrix
-from vibes.materials_fp.material_fingerprint import (
-    get_phonon_bs_fingerprint_phononpy,
-    to_dict,
-)
+from vibes.materials_fp.material_fingerprint import get_phonon_bs_fp, to_dict
 from vibes.phonopy.utils import get_supercells_with_displacements
 from vibes.spglib.wrapper import map_unique_to_atoms
 from vibes.structure.convert import to_Atoms, to_phonopy_atoms
@@ -410,7 +407,7 @@ def summarize_bandstructure(phonon, fp_file=None):
 
     if fp_file:
         talk(f"Saving the fingerprint to {fp_file}")
-        fp = get_phonon_bs_fingerprint_phononpy(phonon, binning=False)
+        fp = get_phonon_bs_fp(phonon, binning=False)
         fp_dict = to_dict(fp)
         for key, val in fp_dict.items():
             fp_dict[key] = val.tolist()
@@ -448,11 +445,7 @@ def get_animation(phonon, q_point, filename):
 
 
 def get_debye_temperature(
-    phonon=None,
-    dos=None,
-    freq_pitch=5e-3,
-    q_mesh=defaults.kwargs.q_mesh,
-    tetrahedron_method=True,
+    phonon=None, freq_pitch=5e-3, q_mesh=defaults.kwargs.q_mesh, tetrahedron_method=True
 ):
     """Calculate the Debye Temperature from the Phonon Density of States
 
@@ -460,25 +453,34 @@ def get_debye_temperature(
 
     Args:
         phonon (phonopy.Phonopy): The phonon calculation
-        dos (dict): Dictionary from get_dos()
         freq_pitch (double): Energy spacing for calculating the total DOS
         q_mesh (np.ndarray): size of the interpolated q-point mesh
         tetrahedron_method (bool): If True use the tetrahedron method to calculate the DOS
     Returns:
-        $\\Theta$_P (float):
+        $\\Theta_P$ (float):
             Average phonon temperature
-        $\\Theta$_D (float):
+        $\\Theta_{D\\infty} (float):
             T -> $\\infty$ limiting magnitude of the Debye Temperature
+        $\\Theta_D$ (float):
+            The phonopy debye temperature as fitting the phonon DOS to Debye Model
     """
-    if dos is None:
-        dos = get_dos(
-            phonon,
-            q_mesh=q_mesh,
-            freq_pitch=freq_pitch,
-            tetrahedron_method=tetrahedron_method,
-        )
+    dos = get_dos(
+        phonon,
+        q_mesh=q_mesh,
+        freq_min=0.0,
+        freq_pitch=freq_pitch,
+        tetrahedron_method=tetrahedron_method,
+    )
     ener = dos["frequency_points"] * const.THzToEv
     gp = dos["total_dos"]
     eps_p_1 = np.trapz(gp * ener, ener) / np.trapz(gp, ener)
     eps_p_2 = np.trapz(gp * ener ** 2.0, ener) / np.trapz(gp, ener)
-    return eps_p_1 / const.kB, np.sqrt(5.0 / 3.0 * eps_p_2) / const.kB
+
+    phonon.set_Debye_frequency()
+    omgea_d = phonon.get_Debye_frequency() * 1e12 * np.pi * 2.0
+
+    theta_p = eps_p_1 / const.kB
+    theta_d_infty = np.sqrt(5.0 / 3.0 * eps_p_2) / const.kB
+    theta_d = omgea_d * const.HBAR / (const.kB * const.EV)
+
+    return theta_p, theta_d_infty, theta_d

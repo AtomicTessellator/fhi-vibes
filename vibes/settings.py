@@ -428,7 +428,6 @@ class TaskSettings(Settings):
         """ Return the settings.atoms object """
         if not self._atoms:
             self._atoms = self.get_atoms()
-
         return self._atoms
 
     @atoms.setter

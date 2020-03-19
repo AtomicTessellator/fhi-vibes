@@ -69,10 +69,11 @@ def atoms_calculate_task(
     RuntimeError
         If the Task fails
     """
-
     if walltime:
         func_kwargs["walltime"] = walltime
         func_fw_out_kwargs["walltime"] = walltime
+
+    func_kwargs["fw_settings"] = fw_settings
 
     start_dir = os.getcwd()
     if fw_settings is None:
@@ -82,6 +83,7 @@ def atoms_calculate_task(
     func_fw_out = get_func(func_fw_out_path)
 
     default_settings = TaskSettings(name=None, settings=Settings(DEFAULT_CONFIG_FILE))
+
     calc_dict["command"] = default_settings.machine.aims_command
     if "species_dir" in calc_dict["calculator_parameters"]:
         calc_dict["calculator_parameters"]["species_dir"] = (
@@ -92,7 +94,9 @@ def atoms_calculate_task(
 
     if "results" in calc_dict:
         del calc_dict["results"]
+
     atoms = dict2atoms(atoms_dict.copy(), calc_dict, False)
+
     try:
         func_timer = Timer()
         if args:
@@ -105,6 +109,7 @@ def atoms_calculate_task(
         raise RuntimeError(
             f"Function calculation failed, moving to {start_dir} to finish Firework."
         )
+
     os.chdir(start_dir)
     fw_acts = func_fw_out(
         atoms_dict,

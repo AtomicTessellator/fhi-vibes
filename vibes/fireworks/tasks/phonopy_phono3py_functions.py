@@ -151,7 +151,6 @@ def bootstrap_phonon(
     outputs = []
     at = atoms.copy()
     at.set_calculator(None)
-
     if ph_settings:
         outputs.append(setup_phonon_outputs(ph_settings, settings, "ph", at, calc))
 
@@ -191,7 +190,6 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
                 el2["number"] = int(el2["number"])
 
     metadata2file(metadata, str(traj))
-
     if isinstance(calculated_atoms[0], dict):
         temp_atoms = []
         for atoms_dict in calculated_atoms:
@@ -199,6 +197,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
             temp_atoms.append(dict2atoms(atoms_dict, calc_dict))
     else:
         temp_atoms = calculated_atoms.copy()
+
     try:
         calculated_atoms = sorted(
             temp_atoms,
@@ -325,6 +324,7 @@ def setup_gruneisen(settings, trajectory, constraints, _queueadapter, kpt_densit
     settings["phonopy"]["converge_phonons"] = False
 
     settings.pop("statistical_sampling", None)
+    settings.pop("md", None)
 
     if _queueadapter:
         settings["phonopy_qadapter"] = _queueadapter

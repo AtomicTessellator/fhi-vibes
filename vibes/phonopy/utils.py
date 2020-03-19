@@ -218,7 +218,7 @@ def get_force_constants_from_trajectory(
 
     return remap_force_constants(
         phonon.get_force_constants(),
-        to_Atoms(phonon.get_primitive()),
+        to_Atoms(phonon.get_unitcell()),
         to_Atoms(phonon.get_supercell()),
         supercell,
         reduce_fc,

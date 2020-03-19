@@ -101,7 +101,6 @@ def run(ctx, backup_folder=default_backup_folder):
     with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
         calc_dir, mkdir=True
     ):
-
         # make sure the socket is entered
         if socket_calc is not None:
             atoms.calc = iocalc
@@ -141,12 +140,10 @@ def run(ctx, backup_folder=default_backup_folder):
             if compute_stresses:
                 if compute_stresses_next(compute_stresses, md.nsteps):
                     talk("switch stresses computation on", prefix=_prefix)
-                    socket_stress_on(iocalc)
+                    socket_stress_on(atoms.calc)
                 else:
                     talk("switch stresses computation off", prefix=_prefix)
-                    socket_stress_off(iocalc)
-
-                continue
+                    socket_stress_off(atoms.calc)
 
         talk("Stop.\n", prefix=_prefix)
 
