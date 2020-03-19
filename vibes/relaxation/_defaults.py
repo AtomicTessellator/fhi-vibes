@@ -7,7 +7,7 @@ name = "relaxation"
 mandatory_base = ["machine", "geometry", name]
 mandatory_task = ["driver", "fmax"]
 
-kwargs= adict(
+kwargs = adict(
     {
         "driver": "BFGS",
         "logfile": "relaxation.log",

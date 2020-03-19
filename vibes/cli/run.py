@@ -58,6 +58,7 @@ def phonopy_run(obj, settings, workdir, dry):
 @run.command("phono3py")
 @click.argument("settings", default="phono3py.in", type=paths)
 @click.option("--workdir", help="work directory")
+@click.option("--kappa", help="")
 @click.option("--dry", is_flag=True, help="just prepare inputs in the workdir")
 @click.pass_obj
 def phono3py_run(obj, settings, workdir, dry):

@@ -106,6 +106,7 @@ def postprocess(
 
 def extract_results(phonon, output_dir="output"):
     from phono3py import file_IO as io
+    from .wrapper import phono3py_save
 
     primitive = phonon.get_unitcell()
     supercell = phonon.get_supercell()
@@ -127,3 +128,6 @@ def extract_results(phonon, output_dir="output"):
 
         io.write_fc2_to_hdf5(fc2, p2s_map=p2s_map)
         io.write_fc3_to_hdf5(fc3, p2s_map=p2s_map)
+
+        # save yaml
+        phono3py_save(phonon)

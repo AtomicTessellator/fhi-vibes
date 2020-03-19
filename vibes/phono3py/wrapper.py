@@ -1,7 +1,8 @@
 """ A leightweight wrapper for Phono3py """
 
 import numpy as np
-from phono3py import Phono3py
+from phono3py import Phono3py, load
+from phono3py.api_phono3py import Phono3pyYaml
 
 from vibes import konstanten as const
 from vibes.helpers.numerics import get_3x3_matrix
@@ -119,3 +120,33 @@ def preprocess(
     )
 
     return get_supercells_with_displacements(phonon3)
+
+
+def phono3py_save(phonon: Phono3py, file=defaults.phono3py_params_yaml_file):
+    """adapted form Phono3py.save"""
+    ph3py_yaml = Phono3pyYaml()
+    ph3py_yaml.set_phonon_info(phonon)
+    with open(file, "w") as w:
+        w.write(str(ph3py_yaml))
+
+
+def phono3py_load(
+    file=defaults.phono3py_params_yaml_file,
+    mesh=defaults.kwargs.q_mesh,
+    log_level=defaults.kwargs.log_level,
+    **kwargs,
+):
+    """load phono3py object from file
+
+    Args:
+      mesh: the q mesh
+      log_level: log level
+      kwargs: kwargs for `Phono3py.load`
+
+    Returns:
+      Phono3py
+
+    """
+    phonon = load(file, **kwargs)
+
+    return phonon

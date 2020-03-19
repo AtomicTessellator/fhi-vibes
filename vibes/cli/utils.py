@@ -1,6 +1,5 @@
 """vibes CLI utils"""
 
-from vibes.helpers.utils import talk
 from vibes.keys import default_backup_folder
 
 from .misc import AliasedGroup, ClickAliasedGroup, click, complete_filenames
@@ -26,6 +25,7 @@ def geometry():
 def hash_file(file, dry, outfile):
     """create sha hash for FILE"""
     import time
+    from vibes.helpers.utils import talk
     from vibes.helpers.hash import hashfunc
 
     timestr = time.strftime("%Y/%m/%d_%H:%M:%S")
@@ -502,3 +502,34 @@ def perform_backup(folder, target, nozip):
     from vibes.helpers.backup import backup_folder
 
     backup_folder(folder, target_folder=target, zip=not nozip)
+
+
+@utils.group(aliases=["ph3"])
+def phono3py():
+    """utils for working with phono3py"""
+    ...
+
+
+@phono3py.command("run_thermal_conductivity")
+@click.argument("folder", default="output", type=complete_filenames)
+@click.option("--q_mesh", nargs=3, help="q_mesh")
+@click.option("--outfile", default="kappa_QMESH.log")
+@click.pass_obj
+def run_thermal_conductivity(obj, folder, q_mesh, outfile):
+    """run a phono3py thermal conductivity calculation in FOLDER"""
+    import sys
+    from vibes.helpers.utils import talk
+    from vibes.phono3py._defaults import kwargs
+    from vibes.cli.scripts import run_thermal_conductivity as rtc
+
+    if q_mesh is None:
+        q_mesh = kwargs.q_mesh
+
+    outfile = outfile.replace("QMESH", ".".join((str(q) for q in q_mesh)))
+
+    talk("Run thermal conductivity")
+    talk(f"Log will be written to {outfile}")
+
+    sys.stdout = open(outfile, "w")
+
+    rtc.run_thermal_conductivity_in_folder(folder, mesh=q_mesh)
