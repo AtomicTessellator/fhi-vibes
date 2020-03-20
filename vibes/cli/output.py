@@ -145,7 +145,7 @@ def phonopy_output(
 
 
 @output.command("phono3py")
-@click.argument("trajectory", default="trajectory.son", type=complete_filenames)
+@click.argument("trajectory", default="trajectory.son", type=complete_files)
 # necessary?
 @click.option("--q_mesh", nargs=3, default=None)
 @click.pass_obj

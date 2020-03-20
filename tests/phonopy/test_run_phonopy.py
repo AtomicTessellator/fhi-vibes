@@ -22,7 +22,7 @@ parent = Path(__file__).parent
 
 atoms = bulk("Al")
 
-calculator = EMT()
+calc = EMT()
 
 settings = Settings(parent / "phonopy.in")
 ctx = PhonopyContext(settings=settings)

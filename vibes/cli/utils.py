@@ -510,7 +510,7 @@ def phono3py():
 
 
 @phono3py.command("run_thermal_conductivity")
-@click.argument("folder", default="output", type=complete_filenames)
+@click.argument("folder", default="output", type=complete_files)
 @click.option("--q_mesh", nargs=3, help="q_mesh")
 @click.option("--outfile", default="kappa_QMESH.log")
 @click.pass_obj
