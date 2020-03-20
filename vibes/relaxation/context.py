@@ -12,7 +12,7 @@ from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict
 from vibes.settings import TaskSettings
 
-from ._defaults import defaults, mandatory_base, mandatory_task, name
+from . import _defaults as defaults
 from .workflow import _prefix, run_relaxation
 
 
@@ -23,11 +23,11 @@ class RelaxationSettings(TaskSettings):
         """Settings in the context of an md workflow"""
 
         super().__init__(
-            name,
+            defaults.name,
             settings=settings,
-            defaults=defaults,
-            mandatory_keys=mandatory_base,
-            mandatory_obj_keys=mandatory_task,
+            default_kwargs=defaults.kwargs,
+            mandatory_keys=defaults.mandatory_base,
+            mandatory_obj_keys=defaults.mandatory_task,
         )
 
 
@@ -47,7 +47,7 @@ class RelaxationContext:
         if workdir:
             self.workdir = Path(workdir).absolute()
         if not self.workdir:
-            self.workdir = Path(name).absolute()
+            self.workdir = Path(defaults.name).absolute()
 
         # workdir has to exist
         Path(self.workdir).mkdir(exist_ok=True, parents=True)

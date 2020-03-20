@@ -328,7 +328,7 @@ class TaskSettings(Settings):
         name=None,
         settings=None,
         read_config=True,
-        defaults=None,
+        default_kwargs=None,
         mandatory_keys=None,
         obj_key=None,
         mandatory_obj_keys=None,
@@ -357,8 +357,8 @@ class TaskSettings(Settings):
             this holds the sub dict with name `name`
 
         """
-        if defaults is None:
-            defaults = {}
+        if default_kwargs is None:
+            default_kwargs = {}
         if mandatory_keys is None:
             mandatory_keys = []
         if mandatory_obj_keys is None:
@@ -379,6 +379,9 @@ class TaskSettings(Settings):
 
         self._name = name
 
+        # verify name
+        self.verify_key(name)
+
         if not obj_key:
             obj_key = name
 
@@ -387,7 +390,7 @@ class TaskSettings(Settings):
             self.verify_key(key)
 
         if obj_key:
-            s = SettingsSection(obj_key, settings, defaults, mandatory_obj_keys)
+            s = SettingsSection(obj_key, settings, default_kwargs, mandatory_obj_keys)
             self[obj_key] = s
             self._obj = self[obj_key]
 

@@ -103,11 +103,11 @@ def phonopy_output(
     verbose,
 ):
     """perform phonopy postprocess for TRAJECTORY"""
-    from vibes.phonopy._defaults import defaults
+    from vibes.phonopy import _defaults as defaults
     from vibes.phonopy.postprocess import postprocess, extract_results
 
     if not q_mesh:
-        q_mesh = defaults.q_mesh.copy()
+        q_mesh = defaults.kwargs.q_mesh.copy()
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
     phonon = postprocess(
@@ -140,6 +140,29 @@ def phonopy_output(
     }
 
     extract_results(phonon, **kwargs)
+
+
+@output.command("phono3py")
+@click.argument("trajectory", default="trajectory.son", type=complete_filenames)
+# necessary?
+@click.option("--q_mesh", nargs=3, default=None)
+@click.pass_obj
+def phono3py_output(
+    obj, trajectory, q_mesh,
+):
+    """perform phono3py postprocess for TRAJECTORY"""
+    from vibes.phono3py._defaults import kwargs
+    from vibes.phono3py.postprocess import postprocess, extract_results
+
+    if not q_mesh:
+        q_mesh = kwargs.q_mesh.copy()
+        click.echo(f"q_mesh not given, use default {q_mesh}")
+
+    phonon = postprocess(trajectory=trajectory)
+
+    output_directory = Path(trajectory).parent / "output"
+
+    extract_results(phonon, output_dir=output_directory)
 
 
 @output.command(aliases=["gk"])

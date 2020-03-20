@@ -18,7 +18,6 @@ from vibes.helpers.supercell import make_supercell
 from vibes.phonopy import displacement_id_str
 from vibes.phonopy.context import PhonopyContext
 from vibes.phonopy.postprocess import postprocess
-from vibes.phonopy.workflow import bootstrap
 from vibes.settings import AttributeDict, Settings, TaskSettings
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import metadata2file, reader, step2file
@@ -109,7 +108,7 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
         ctx.settings.atoms.set_calculator(calc)
 
     # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
-    outputs = bootstrap(ctx)
+    outputs = ctx.bootstrap()
 
     outputs["metadata"]["supercell"] = {"atoms": outputs["metadata"]["atoms"]}
     outputs["metadata"]["primitive"] = input2dict(atoms)
