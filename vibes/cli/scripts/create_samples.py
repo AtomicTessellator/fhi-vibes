@@ -2,8 +2,6 @@
 Script to initialize positions and velocities with force constants.
 Similar to canonical_sampling from TDEP.
 """
-from argparse import ArgumentParser as argpars
-
 import numpy as np
 from ase import units as u
 from ase.io import read
@@ -16,19 +14,19 @@ from vibes.structure.io import inform
 
 def generate_samples(
     atoms,
-    temperature,
-    n_samples,
-    force_constants,
-    rattle,
-    quantum,
-    deterministic,
-    plus_minus,
-    gauge_eigenvectors,
-    ignore_negative,
-    sobol,
-    random_seed,
-    propagate,
-    format,
+    temperature=None,
+    n_samples=None,
+    force_constants=None,
+    rattle=False,
+    quantum=False,
+    deterministic=False,
+    plus_minus=False,
+    gauge_eigenvectors=False,
+    ignore_negative=False,
+    sobol=False,
+    random_seed=None,
+    propagate=None,
+    format=None,
     failfast=False,
 ):
     """create samples for Monte Carlo sampling
@@ -231,42 +229,6 @@ def create_samples(
         sample.write(out_file, info_str=info_str, velocities=True, format=format)
         talk(f".. temperature in sample {ii}:     {sample.get_temperature():9.3f}K")
         talk(f".. written to {out_file}")
-
-
-def main():
-    """ main function """
-    parser = argpars(description="Read geometry create supercell")
-    parser.add_argument("geom", type=str, help="geometry input file")
-    parser.add_argument("-T", "--temperature", type=int)
-    parser.add_argument("-fc", "--force_constants")
-    parser.add_argument("--mc_rattle", nargs="?", type=float, const=0.01, default=None)
-    parser.add_argument("-n", "--n_samples", type=int, default=1, help="no. of samples")
-    parser.add_argument("--quantum", action="store_true")
-    parser.add_argument("--sobol", action="store_true")
-    parser.add_argument("--deterministic", action="store_true")
-    parser.add_argument("--ignore_negative", action="store_false")
-    parser.add_argument("--format", default="aims")
-    parser.add_argument("--non_enforced_temp", action="store_true")
-    parser.add_argument("--non_stationary", action="store_true")
-    parser.add_argument("--random_seed", type=int, default=None)
-    args = parser.parse_args()
-
-    create_samples(
-        args.geom,
-        args.temperature,
-        args.n_samples,
-        args.force_constants,
-        args.mc_rattle,
-        args.quantum,
-        args.deterministic,
-        args.sobol,
-        args.random_seed,
-        args.format,
-    )
-
-
-if __name__ == "__main__":
-    main()
 
 
 def check_frequencies(atoms, force_constants):
