@@ -1,7 +1,0 @@
-[control]
-xc: pw-lda
-k_grid: [2, 2, 2]
-
-[basissets]
-default: light
-Pb: intermediate
