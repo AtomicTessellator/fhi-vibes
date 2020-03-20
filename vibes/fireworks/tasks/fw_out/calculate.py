@@ -3,14 +3,22 @@ from pathlib import Path
 
 from fireworks import FWAction
 
+from vibes.filenames import filenames
 from vibes.fireworks.tasks.postprocess.calculate import get_calc_times
 from vibes.fireworks.workflows.firework_generator import generate_firework
 from vibes.helpers.converters import atoms2dict, calc2dict
-from vibes.trajectory import reader as traj_reader
+from vibes.trajectory import reader
 
 
 def mod_spec_add(
-    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+    atoms,
+    calculator,
+    outputs,
+    func,
+    func_fw_out,
+    func_kwargs,
+    func_fw_kwargs,
+    fw_settings,
 ):
     """A function that appends the current results to a specified spec in the MongoDB
 
@@ -18,7 +26,7 @@ def mod_spec_add(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The original calculator
     outputs: dict
         The outputs from the function (assumes to be a single bool output)
@@ -39,8 +47,8 @@ def mod_spec_add(
         Modifies the spec to add the current atoms list to it
     """
     atoms_dict = atoms2dict(outputs)
-    calc_dict = calc2dict(outputs.calc)
-    calc_dict["results"] = calc.results
+    calc_dict = calc2dict(outputs.calculator)
+    calc_dict["results"] = calculator.results
     atoms_dict["calculator_dict"] = calc_dict
     mod_spec = [{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}]
     if "time_spec_add" in fw_settings:
@@ -92,9 +100,9 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     if kwargs["outputs"]:
         wd = Path(kwargs.get("workdir", "."))
-        traj = kwargs.get("trajectory", "trajectory.son")
+        trajectory_file = kwargs.get("trajectory", filenames.trajectory)
 
-        ca = traj_reader(str((wd / traj).absolute()), False)
+        ca = reader(str((wd / trajectory_file).absolute()), False)
 
         update_spec[fw_settings["mod_spec_add"]] = []
         for atoms in ca:

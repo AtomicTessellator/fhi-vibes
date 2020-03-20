@@ -31,31 +31,31 @@ def bootstrap(atoms, name="statistical_sampling", settings=None, **kwargs):
 
     _, ph_metadata = reader(stat_sample_settings["phonon_file"], get_metadata=True)
     ph_atoms = dict2atoms(ph_metadata["atoms"], ph_metadata["calculator"], False)
-    calc = ph_atoms.calc
-    kpt_density = k2d(ph_atoms, calc.parameters["k_grid"])
+    calculator = ph_atoms.calc
+    kpt_density = k2d(ph_atoms, calculator.parameters["k_grid"])
 
     # Get sampling metadata
     stat_sample_settings.update(kwargs)
     metadata = get_metadata(**stat_sample_settings)
 
-    sc = dict2atoms(metadata["supercell"])
+    supercell = dict2atoms(metadata["supercell"])
     # Generate Samples
     fc = metadata.pop("force_constants_2D")
 
     td_cells = []
     for temp in metadata["temperatures"]:
         td_cells += generate_samples(
-            sc, temp, force_constants=fc, **metadata["generate_sample_args"]
+            supercell, temp, force_constants=fc, **metadata["generate_sample_args"]
         )
 
-    calc = update_k_grid(td_cells[0], calc, kpt_density)
-    calc.parameters.pop("scaled", False)
+    calculator = update_k_grid(td_cells[0], calculator, kpt_density)
+    calculator.parameters.pop("scaled", False)
     # save metadata
-    metadata["calculator"] = calc2dict(calc)
+    metadata["calculator"] = calc2dict(calculator)
 
     return {
         "atoms_to_calculate": td_cells,
-        "calculator": calc,
+        "calculator": calculator,
         "metadata": metadata,
         "workdir": name,
         "settings": stat_sample_settings,
@@ -107,14 +107,18 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
     atoms = to_Atoms(phonon.get_unitcell())
 
     if "supercell_matrix" in kwargs:
-        sc = make_supercell(atoms, np.array(kwargs["supercell_matrix"]).reshape(3, 3))
+        supercell = make_supercell(
+            atoms, np.array(kwargs["supercell_matrix"]).reshape(3, 3)
+        )
     else:
-        sc = to_Atoms(phonon.get_supercell())
+        supercell = to_Atoms(phonon.get_supercell())
 
     force_constants = get_force_constants_from_trajectory(
-        phonon_file, sc, reduce_fc=True
+        phonon_file, supercell, reduce_fc=True
     )
-    fc_two_dim = get_force_constants_from_trajectory(phonon_file, sc, two_dim=True)
+    fc_two_dim = get_force_constants_from_trajectory(
+        phonon_file, supercell, two_dim=True
+    )
 
     # If using Debye temperature calculate it
     if debye_temp_fact is not None:
@@ -135,10 +139,10 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
         "temperatures": temperatures,
         "force_constants": force_constants,
         "force_constants_2D": fc_two_dim,
-        "supercell": atoms2dict(sc, reduce=True),
+        "supercell": atoms2dict(supercell, reduce=True),
         "primitive": atoms2dict(atoms, reduce=True),
         "ph_supercell": atoms2dict(to_Atoms(phonon.get_supercell()), reduce=True),
-        "atoms": atoms2dict(sc, reduce=True),
+        "atoms": atoms2dict(supercell, reduce=True),
     }
 
     if not kwargs.get("deterministic", True):
@@ -169,7 +173,7 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
 
 def bootstrap_stat_sample(
     atoms,
-    calc,
+    calculator,
     kpt_density=None,
     qadapter=None,
     stat_samp_settings=None,
@@ -179,7 +183,7 @@ def bootstrap_stat_sample(
     Initializes the statistical sampling task
     Args:
         atoms (ASE Atoms Object): Atoms object of the primitive cell
-        calc (ASE Calculator): Calculator for the force calculations
+        calculator (ASE Calculator): Calculator for the force calculations
         kpt_density (float): k-point density for the MP-Grid
         stat_samp_settings (dict): kwargs for statistical sampling setup
         fw_settings (dict): FireWork specific settings

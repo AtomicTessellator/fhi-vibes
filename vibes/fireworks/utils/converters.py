@@ -60,19 +60,23 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
 
     if phonon.band_structure is not None:
         dct["qpoints"] = {}
-        for ii, q_pt in enumerate(phonon.band_structure.qpoints):
-            if list(q_pt[0]) not in dct["qpoints"].values():
-                dct["qpoints"][phonon.band_structure.distances[ii][0]] = list(q_pt[0])
-            if list(q_pt[-1]) not in dct["qpoints"].values():
-                dct["qpoints"][phonon.band_structure.distances[ii][-1]] = list(q_pt[-1])
+        for ii, q_point in enumerate(phonon.band_structure.qpoints):
+            if list(q_point[0]) not in dct["qpoints"].values():
+                dct["qpoints"][phonon.band_structure.distances[ii][0]] = list(
+                    q_point[0]
+                )
+            if list(q_point[-1]) not in dct["qpoints"].values():
+                dct["qpoints"][phonon.band_structure.distances[ii][-1]] = list(
+                    q_point[-1]
+                )
         dct["phonon_bs_fp"] = to_dict(
             get_phonon_bs_fp(phonon, dct["qpoints"]), to_mongo
         )
         if to_mongo:
-            q_pt = {}
+            q_point = {}
             for pt in dct["qpoints"]:
-                q_pt[str(pt).replace(".", "_")] = dct["qpoints"][pt]
-            dct["qpoints"] = q_pt
+                q_point[str(pt).replace(".", "_")] = dct["qpoints"][pt]
+            dct["qpoints"] = q_point
     if phonon.thermal_properties is not None:
         dct["tp_ZPE"] = phonon.thermal_properties.zero_point_energy
         dct["tp_high_T_S"] = phonon.thermal_properties.high_T_entropy

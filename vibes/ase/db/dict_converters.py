@@ -75,12 +75,12 @@ def dict2atoms(atoms_dict):
     return atoms
 
 
-def calc2dict(calc):
+def calc2dict(calculator):
     """Converts an ASE Calculator into a dict
 
     Parameters
     ----------
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The calculator to convert to a dictionary
 
     Returns
@@ -88,16 +88,16 @@ def calc2dict(calc):
     calc_dict: dict
         The corresponding dictionary
     """
-    if calc is None:
+    if calculator is None:
         return {}
-    if isinstance(calc, dict):
-        return calc
+    if isinstance(calculator, dict):
+        return calculator
     calc_dict = {}
-    calc_dict["calculator"] = calc.name.lower()
-    calc_dict["calculator_parameters"] = calc.todict()
+    calc_dict["calculator"] = calculator.name.lower()
+    calc_dict["calculator_parameters"] = calculator.todict()
     try:
-        calc_dict["command"] = calc.command
+        calc_dict["command"] = calculator.command
     except AttributeError:
         pass
-    calc_dict["results"] = calc.results
+    calc_dict["results"] = calculator.results
     return calc_dict

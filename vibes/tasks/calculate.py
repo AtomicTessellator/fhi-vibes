@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 
+from vibes.filenames import filenames
 from vibes.helpers import talk, warn
 from vibes.helpers.aims import get_aims_uuid_dict
 from vibes.helpers.backup import backup_folder as backup
@@ -18,7 +19,6 @@ from vibes.helpers.utils import Spinner
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.son import son
 from vibes.trajectory import get_hashes_from_trajectory_file, metadata2file, step2file
-
 
 calc_dirname = "calculations"
 
@@ -77,7 +77,7 @@ def calculate_socket(
     calculator,
     metadata=None,
     settings=None,
-    trajectory="trajectory.son",
+    trajectory_file=filenames.trajectory,
     workdir="calculations",
     save_input=False,
     backup_folder="backups",
@@ -98,7 +98,7 @@ def calculate_socket(
         metadata information to store to trajectory
     settings: dict
         the settings used to set up the calculation
-    trajectory: str or Path
+    trajectory_file: str or Path
         path to write trajectory to
     workdir: str or Path
         working directory
@@ -125,7 +125,7 @@ def calculate_socket(
 
     # create working directories
     workdir = Path(workdir).absolute()
-    trajectory = workdir / trajectory
+    trajectory_file = workdir / trajectory_file
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
 
@@ -159,7 +159,7 @@ def calculate_socket(
                 settings.write()
 
     # fetch list of hashes from trajectory
-    precomputed_hashes = get_hashes_from_trajectory_file(trajectory)
+    precomputed_hashes = get_hashes_from_trajectory_file(trajectory_file)
 
     # perform calculation
     n_cell = -1
@@ -167,11 +167,11 @@ def calculate_socket(
         # log metadata and sanity check
         if check_settings_before_resume:
             try:
-                old_metadata, _ = son.load(trajectory)
+                old_metadata, _ = son.load(trajectory_file)
                 check_metadata(metadata, old_metadata)
-                talk(f"resume from {trajectory}")
+                talk(f"resume from {trajectory_file}")
             except FileNotFoundError:
-                metadata2file(metadata, trajectory)
+                metadata2file(metadata, trajectory_file)
 
         if dry:
             talk("dry run requested, stop.")
@@ -227,7 +227,7 @@ def calculate_socket(
                     meta = get_aims_uuid_dict()
 
                     # log the step
-                    step2file(atoms, atoms.calc, trajectory, metadata=meta)
+                    step2file(atoms, atoms.calc, trajectory_file, metadata=meta)
 
                 if watchdog():
                     break
@@ -281,10 +281,10 @@ def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
             warn(msg, level=1)
 
 
-def fix_emt(atoms, calc):
+def fix_emt(atoms, calculator):
     """necessary to use EMT with socket"""
     try:
-        calc.initialize(atoms)
+        calculator.initialize(atoms)
         talk("calculator initialized.")
     except AttributeError:
         pass

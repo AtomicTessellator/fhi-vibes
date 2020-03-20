@@ -83,10 +83,10 @@ def add_wf(workflow, launchpad):
             wflow["basisset"] = AttributeDict({"default": "light"})
 
         talk(f"Generating workflow for {get_sysname(atoms)}", prefix="fireworks")
-        calc = setup_aims(
+        calculator = setup_aims(
             ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False
         )
-        atoms.set_calculator(calc)
+        atoms.set_calculator(calculator)
         generate_workflow(wflow, atoms, launchpad)
 
 

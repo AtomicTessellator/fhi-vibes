@@ -45,12 +45,12 @@ def get_frequencies(dyn_matrix, masses=None, factor=omega_to_THz):
     return np.sign(evals) * np.sqrt(abs(evals)) * factor
 
 
-def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
+def get_dynamical_matrix(q_point, primitive, supercell, force_constants, eps=1e-12):
     """build the dynamical matrix for one q_point
 
     Parameters
     ----------
-    q: np.ndarray
+    q_point: np.ndarray
         The q-point to build they dynamical matrix at
     primitive: ase.atoms.Atoms
         The primitive cell structure
@@ -67,12 +67,14 @@ def get_dynamical_matrix(q, primitive, supercell, force_constants, eps=1e-12):
         They dynamical matrix
     """
 
-    if np.size(q) == 1:
-        q = q * np.ones(3)
-    if isinstance(q, list) and len(q) == 3:
-        q = np.asarray(q)
+    if np.size(q_point) == 1:
+        q_point = q_point * np.ones(3)
+    if isinstance(q_point, list) and len(q_point) == 3:
+        q_point = np.asarray(q_point)
 
-    return get_dynamical_matrices([q], primitive, supercell, force_constants, eps)[0]
+    return get_dynamical_matrices(
+        [q_point], primitive, supercell, force_constants, eps
+    )[0]
 
 
 def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=1e-12):

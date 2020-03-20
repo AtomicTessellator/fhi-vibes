@@ -1,11 +1,12 @@
 """the vibes.Trajectory class"""
 
 import numpy as np
-
 from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
+
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
+from vibes.filenames import filenames
 from vibes.helpers import lazy_property, warn
 from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.helpers.displacements import get_dR
@@ -49,7 +50,7 @@ class Trajectory(list):
             self._metadata[keys.fc] = None
 
     @classmethod
-    def read(cls, file="trajectory.son", **kwargs):
+    def read(cls, file=filenames.trajectory, **kwargs):
         """ Read trajectory from file """
         from .io import reader
 
@@ -412,7 +413,7 @@ class Trajectory(list):
 
         timer("velocities and positions cleaned from drift")
 
-    def write(self, file="trajectory.son"):
+    def write(self, file=filenames.trajectory):
         """Write to son or nc file
 
         Args:

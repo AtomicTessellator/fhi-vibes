@@ -1,7 +1,9 @@
 """`vibes info` backend"""
 from pathlib import Path
 
-from .misc import ClickAliasedGroup, click, complete_filenames
+from vibes.filenames import filenames
+
+from .misc import ClickAliasedGroup, click, complete_files
 
 
 @click.command(cls=ClickAliasedGroup)
@@ -10,17 +12,17 @@ def info():
 
 
 @info.command("geometry")
-@click.argument("filename", default="geometry.in", type=complete_filenames)
+@click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("--format", default="aims", show_default=True)
 @click.option("-t", "--symprec", default=1e-5, show_default=True)
 @click.option("-v", "--verbose", is_flag=True)
 @click.pass_obj
-def geometry_info(obj, filename, format, symprec, verbose):
+def geometry_info(obj, file, format, symprec, verbose):
     """inform about a structure in a geometry input file"""
     from ase.io import read
     from vibes.structure.io import inform
 
-    atoms = read(filename, format=format)
+    atoms = read(file, format=format)
 
     verbosity = 1
     if verbose:
@@ -30,46 +32,46 @@ def geometry_info(obj, filename, format, symprec, verbose):
 
 
 @info.command("md")
-@click.argument("filename", default="trajectory.son", type=complete_filenames)
+@click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-p", "--plot", is_flag=True, help="plot a summary")
 @click.option("-w", "--write", is_flag=True, help="write Dataset to nc file")
 @click.option("--avg", default=100, help="window size for running avg")
 @click.option("-v", "--verbose", is_flag=True, help="be verbose")
-def md_info(filename, plot, write, avg, verbose):
+def md_info(file, plot, write, avg, verbose):
     """inform about content of a settings.in file"""
     import xarray as xr
     from .scripts.md_sum import md_sum
     from vibes.trajectory import analysis as al, reader
 
-    file = Path(filename)
+    file = Path(file)
 
     if file.suffix in (".son", ".yaml", ".bz", ".gz"):
-        trajectory = reader(filename)
+        trajectory = reader(file)
         DS = trajectory.dataset
         if write:
             trajectory.write(file.parent / f"{file.stem}.nc")
     elif file.suffix in (".nc"):
-        DS = xr.load_dataset(filename)
+        DS = xr.load_dataset(file)
     elif file.suffix in (".log"):
-        md_sum(filename, plot, avg, verbose)
+        md_sum(file, plot, avg, verbose)
     else:
-        raise click.FileError(f"File format of {filename} not known.")
+        raise click.FileError(f"File format of {file} not known.")
 
-    click.echo(f"Dataset summary for {filename}:")
+    click.echo(f"Dataset summary for {file}:")
     al.summary(DS, plot=plot, avg=avg)
 
 
 @info.command("phonopy")
-@click.argument("filename", default="phonopy.in", type=complete_filenames)
+@click.argument("file", default="phonopy.in", type=complete_files)
 @click.option("--write_supercell", is_flag=True, help="write the supercell to file")
 @click.option("--format", default="aims", show_default=True)
-def phonopy_info(filename, write_supercell, format):
+def phonopy_info(file, write_supercell, format):
     """inform about a phonopy calculation before it is started"""
     from .scripts.vibes_phonopy import preprocess
 
     preprocess(
-        filename=None,
-        settings_file=filename,
+        file=None,
+        settings_file=file,
         dimension=None,
         format=format,
         write_supercell=write_supercell,
@@ -77,15 +79,15 @@ def phonopy_info(filename, write_supercell, format):
 
 
 @info.command("trajectory")
-@click.argument("filename", default="trajectory.son", type=complete_filenames)
-def trajectory_info(filename):
+@click.argument("file", default=filenames.trajectory, type=complete_files)
+def trajectory_info(file):
     """inform about content of trajectory file"""
     from vibes import son
     from vibes.settings import Settings
 
-    metadata, _ = son.load(filename)
+    metadata, _ = son.load(file)
 
-    click.echo(f"Summary of metadata in {filename}:\n")
+    click.echo(f"Summary of metadata in {file}:\n")
     click.echo("Keys:")
     click.echo(f"  {list(metadata.keys())}\n")
     if "settings" in metadata:
@@ -95,7 +97,7 @@ def trajectory_info(filename):
 
 
 @info.command("netcdf")
-@click.argument("file", type=complete_filenames)
+@click.argument("file", type=complete_files)
 def show_netcdf_file(file):
     """show contents of netCDF FILE"""
     import xarray as xr
@@ -106,7 +108,7 @@ def show_netcdf_file(file):
 
 
 @info.command("hdf5")
-@click.argument("file", type=complete_filenames)
+@click.argument("file", type=complete_files)
 @click.option("-v", "--verbose", is_flag=True)
 def show_hdf5_file(file, verbose):
     """show contents of HDF5 FILE"""
@@ -151,24 +153,24 @@ def greenkubo(dataset, plot, no_hann, logx, xlim, average):
             avg=average,
         )
 
-        fname = Path(dataset).stem + "_summary.pdf"
-        fig.savefig(fname, bbox_inches="tight")
-        click.echo(f".. summary plotted to {fname}")
+        file = Path(dataset).stem + "_summary.pdf"
+        fig.savefig(file, bbox_inches="tight")
+        click.echo(f".. summary plotted to {file}")
 
 
 @info.command("vdos")
-@click.argument("filename", default="trajectory.nc", type=complete_filenames)
-@click.option("-o", "--output_filename", default="vdos.csv")
+@click.argument("file", default=filenames.trajectory_dataset, type=complete_files)
+@click.option("-o", "--output_file", default="vdos.csv")
 @click.option("-p", "--plot", is_flag=True, help="plot the DOS")
 @click.option("--peak", type=float, help="height for peak detection", show_default=1)
 @click.option("-mf", "--max_frequency", default=30.0, help="max. freq. in THz")
-def velocity_autocorrelation(filename, output_filename, plot, peak, max_frequency):
+def velocity_autocorrelation(file, output_file, plot, peak, max_frequency):
     """write velocity autocorrelation function to output file"""
     import xarray as xr
     from vibes.green_kubo.velocities import get_vdos, simple_plot
 
-    click.echo(f"Read {filename} and extract velocities")
-    velocities = xr.open_dataset(filename).velocities
+    click.echo(f"Read {file} and extract velocities")
+    velocities = xr.open_dataset(file).velocities
 
     vdos = get_vdos(velocities=velocities, hann=False, verbose=True)
 
@@ -178,5 +180,5 @@ def velocity_autocorrelation(filename, output_filename, plot, peak, max_frequenc
     if plot:
         simple_plot(df, height=peak, max_frequency=max_frequency)
 
-    click.echo(f".. write VDOS to {output_filename}")
-    df.to_csv(output_filename, index_label="omega", header=True)
+    click.echo(f".. write VDOS to {output_file}")
+    df.to_csv(output_file, index_label="omega", header=True)

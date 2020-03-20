@@ -2,7 +2,7 @@
 from fireworks import PyTask
 
 
-def setup_atoms_task(task_spec, atoms, calc, fw_settings):
+def setup_atoms_task(task_spec, atoms, calculator, fw_settings):
     """Setups an ASE Atoms task
 
     Parameters
@@ -11,7 +11,7 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
         Specification of the Firetask
     atoms: dict
         Dictionary representation of the ase.atoms.Atoms
-    calc: dict
+    calculator: dict
         Dictionary representation of the ASE Calculator
     fw_settings: dict
         FireWorks specific parameters
@@ -34,12 +34,12 @@ def setup_atoms_task(task_spec, atoms, calc, fw_settings):
     task_spec.fw_settings = fw_settings
     pt_kwargs = task_spec.pt_kwargs
     if isinstance(atoms, str):
-        pt_inputs = [atoms, calc] + pt_inputs
-    elif isinstance(calc, str):
-        pt_inputs = [calc] + pt_inputs
+        pt_inputs = [atoms, calculator] + pt_inputs
+    elif isinstance(calculator, str):
+        pt_inputs = [calculator] + pt_inputs
         pt_args += [atoms]
     else:
-        pt_args += [atoms, calc, *args]
+        pt_args += [atoms, calculator, *args]
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
 
 
@@ -72,7 +72,7 @@ def setup_general_task(task_spec, fw_settings):
     return (pt_func, pt_args, pt_inputs, pt_kwargs)
 
 
-def generate_task(task_spec, fw_settings, atoms, calc):
+def generate_task(task_spec, fw_settings, atoms, calculator):
     """Generates a PyTask for a Firework
 
     Parameters
@@ -83,7 +83,7 @@ def generate_task(task_spec, fw_settings, atoms, calc):
         FireWorks specific parameters
     atoms: dict
         Dictionary representation of the ase.atoms.Atoms
-    calc: dict
+    calculator: dict
         Dictionary representation of the ASE Calculator
 
     Returns
@@ -92,7 +92,7 @@ def generate_task(task_spec, fw_settings, atoms, calc):
         Task for the given TaskSpec
     """
     if task_spec.task_with_atoms_obj:
-        pt_params = setup_atoms_task(task_spec, atoms, calc, fw_settings)
+        pt_params = setup_atoms_task(task_spec, atoms, calculator, fw_settings)
     else:
         pt_params = setup_general_task(task_spec, fw_settings)
 
@@ -130,14 +130,14 @@ def generate_update_calc_task(calc_spec, updated_settings):
     )
 
 
-def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
+def generate_mod_calc_task(atoms, calculator, calc_spec, kpt_spec):
     """Generate a calculator modifier task
 
     Parameters
     ----------
-    at: dict or str
+    atoms: dict or str
         Either an Atoms dict or a spec key to get the it for the modified system
-    cl: dict or str
+    calculator: dict or str
         Either a Calculator dict or a spec key to get it for the modified system
     calc_spec: str
         Spec for the calculator in the Fireworks database
@@ -151,15 +151,15 @@ def generate_mod_calc_task(at, cl, calc_spec, kpt_spec):
     """
     args = ["k_grid_density", calc_spec]
     kwargs = {"spec_key": kpt_spec}
-    if isinstance(cl, str):
-        inputs = [cl, kpt_spec]
+    if isinstance(calculator, str):
+        inputs = [calculator, kpt_spec]
     else:
-        args.append(cl)
+        args.append(calculator)
         inputs = [kpt_spec]
-    if isinstance(at, dict):
-        kwargs["atoms"] = at
+    if isinstance(atoms, dict):
+        kwargs["atoms"] = atoms
     else:
-        inputs.append(at)
+        inputs.append(atoms)
     return PyTask(
         {
             "func": "vibes.fireworks.tasks.utility_tasks.mod_calc",

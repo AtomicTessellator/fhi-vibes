@@ -304,12 +304,12 @@ class HarmonicAnalysis:
 
         return fc / np.sqrt(m[:, None] * m[None, :])
 
-    def get_Dq(self, q=None, fractional=True):
+    def get_Dq(self, q_point=None, fractional=True):
         """ return dynamical matrix at q.
 
         Parameters
         ----------
-        q: np.ndarray
+        q_point: np.ndarray
             The q_point to get the dynamical matrix from
         fractional: bool
             If True use fractional coordinates
@@ -324,15 +324,15 @@ class HarmonicAnalysis:
         AssertionError
             If Dq is Not Hermitian
         """
-        if q is None:
-            q = np.array([0.0, 0.0, 0.0])
+        if q_point is None:
+            q_point = np.array([0.0, 0.0, 0.0])
         else:
-            q = np.asarray(q)
+            q_point = np.asarray(q_point)
 
         if fractional:
-            phases = np.exp(2j * np.pi * self.lattice_points_frac @ q)
+            phases = np.exp(2j * np.pi * self.lattice_points_frac @ q_point)
         else:
-            phases = np.exp(2j * np.pi * self.lattice_points @ q)
+            phases = np.exp(2j * np.pi * self.lattice_points @ q_point)
         Dx = self.get_Dx()
 
         Dq = (phases[:, None, None] * Dx).sum(axis=0)
@@ -345,12 +345,12 @@ class HarmonicAnalysis:
 
         return Dq
 
-    def solve_Dq(self, q=None, fractional=True):
+    def solve_Dq(self, q_point=None, fractional=True):
         """Solve eigenvalue problem for dynamical matrix at q
 
         Parameters
         ----------
-        q: np.ndarray
+        q_point: np.ndarray
             The q_point to get the dynamical matrix from
         fractional: bool
             If True use fractional coordinates
@@ -362,12 +362,12 @@ class HarmonicAnalysis:
         ev: np.ndarray
             The corresponding eigenvectors
         """
-        if q is None:
-            q = np.array([0.0, 0.0, 0.0])
+        if q_point is None:
+            q_point = np.array([0.0, 0.0, 0.0])
         else:
-            q = np.asarray(q)
+            q_point = np.asarray(q_point)
 
-        Dq = self.get_Dq(q, fractional=fractional)
+        Dq = self.get_Dq(q_point, fractional=fractional)
 
         w_2, ev = la.eigh(Dq)
 
@@ -378,8 +378,8 @@ class HarmonicAnalysis:
 
         Parameters
         ----------
-        q: np.ndarray
-            The q_point to get the dynamical matrix from
+        q_points: list of np.ndarray
+            The q_points to get the dynamical matrix from
         fractional: bool
             If True use fractional coordinates
 
@@ -397,7 +397,7 @@ class HarmonicAnalysis:
         omegas2, eigenvectors = [], []
 
         for q in q_points:
-            w_2, ev = self.solve_Dq(q=q)
+            w_2, ev = self.solve_Dq(q_point=q)
             omegas2.append(w_2)
             eigenvectors.append(ev)
 

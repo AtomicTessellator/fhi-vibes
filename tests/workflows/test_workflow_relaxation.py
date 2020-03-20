@@ -28,7 +28,7 @@ def test_relaxation(workdir=workdir):
 
         ctx = RelaxationContext(settings, workdir=workdir)
         ctx.atoms.rattle(0.01, seed=4)
-        ctx.calc = EMT()
+        ctx.calculator = EMT()
 
         ctx.run()
         ctx.run()

@@ -91,45 +91,48 @@ def atoms2dict(atoms, reduce=True, add_constraints=False):
     return atoms_dict
 
 
-def calc2dict(calc):
-    """Converts an ase calculator calc into a dict
+def calc2dict(calculator):
+    """Converts an ase calculator calculator into a dict
 
     Parameters
     ----------
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The calculator to be converted to a dict
 
     Returns
     -------
-    calc_dict: dict
-        The dict representation of calc
+    calculator_dict: dict
+        The dict representation of calculator
     """
 
-    if calc is None:
+    if calculator is None:
         return {}
-    if isinstance(calc, dict):
-        return calc
+    if isinstance(calculator, dict):
+        return calculator
 
-    params = calc.todict()
+    params = calculator.todict()
     for key, val in params.items():
         if isinstance(val, tuple):
             params[key] = list(val)
 
-    calc_dict = {"calculator": calc.__class__.__name__, "calculator_parameters": params}
-    if hasattr(calc_dict, "command"):
-        calc_dict.update({"command": calc.command})
+    calculator_dict = {
+        "calculator": calculator.__class__.__name__,
+        "calculator_parameters": params,
+    }
+    if hasattr(calculator_dict, "command"):
+        calculator_dict.update({"command": calculator.command})
 
-    return calc_dict
+    return calculator_dict
 
 
-def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
+def input2dict(atoms, calculator=None, primitive=None, supercell=None, settings=None):
     """Convert metadata information to plain dict
 
     Parameters
     ----------
     atoms: ase.atoms.Atoms
         The structure to be converted to a dict
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The calculator to be converted to a dict
     primitive: ase.atoms.Atoms
         The primitive cell structure
@@ -144,7 +147,7 @@ def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
         The dictionary representation of the inputs with the following items
 
         calculator: dict
-            The calc_dict of the inputs
+            The calculator_dict of the inputs
         atoms: dict
             The atoms_dict of the inputs
         primitive: dict
@@ -159,12 +162,12 @@ def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
     atoms_dict = atoms2dict(atoms)
 
     # calculator
-    if calc is None:
-        calc = atoms.calc
+    if calculator is None:
+        calculator = atoms.calc
 
-    calc_dict = calc2dict(calc)
+    calculator_dict = calc2dict(calculator)
 
-    input_dict = {"calculator": calc_dict, "atoms": atoms_dict}
+    input_dict = {"calculator": calculator_dict, "atoms": atoms_dict}
 
     if primitive:
         input_dict.update({"primitive": atoms2dict(primitive)})
@@ -181,62 +184,62 @@ def input2dict(atoms, calc=None, primitive=None, supercell=None, settings=None):
     return input_dict
 
 
-def results2dict(atoms, calc=None):
+def results2dict(atoms, calculator=None):
     """extract information from atoms and calculator and convert to plain dict
 
     Args:
         atoms: The structure to be converted to a dict
-        calc: The calculator to be converted to a dict
+        calculator: The calculator to be converted to a dict
 
     Returns:
         dict: dictionary with items
-            calculator: calc_dict of the inputs
+            calculator: calculator_dict of the inputs
             atoms: atoms_dict of the inputs
     """
 
     atoms_dict = atoms2dict(atoms)
 
     # calculated values
-    calc_dict = {}
+    calculator_dict = {}
 
-    if calc is None:
-        calc = atoms.calc
+    if calculator is None:
+        calculator = atoms.calc
 
     # convert stress to 3x3 if present
-    if "stress" in calc.results:
-        stress = calc.results["stress"]
+    if "stress" in calculator.results:
+        stress = calculator.results["stress"]
         if len(stress) == 6:
-            calc.results["stress"] = voigt_6_to_full_3x3_stress(stress)
+            calculator.results["stress"] = voigt_6_to_full_3x3_stress(stress)
 
     # convert numpy arrays into ordinary lists
-    for key, val in calc.results.items():
+    for key, val in calculator.results.items():
         if isinstance(val, np.ndarray):
-            calc_dict[key] = val.tolist()
+            calculator_dict[key] = val.tolist()
         elif isinstance(val, np.float):
-            calc_dict[key] = float(val)
+            calculator_dict[key] = float(val)
         else:
-            calc_dict[key] = val
+            calculator_dict[key] = val
 
-    if not calc_dict:
-        raise RuntimeError("calc_dict is empty, was the calculation successful?")
+    if not calculator_dict:
+        raise RuntimeError("calculator_dict is empty, was the calculation successful?")
 
-    return {"atoms": atoms_dict, "calculator": calc_dict}
+    return {"atoms": atoms_dict, "calculator": calculator_dict}
 
 
-def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
+def dict2atoms(atoms_dict, calculator_dict=None, single_point_calc=True):
     """Convert dictionaries into atoms and calculator objects
 
     Parameters
     ----------
     atoms_dict: dict
         The dict representation of atoms
-    calc_dict: dict
+    calculator_dict: dict
         The dict representation of calc
 
     Returns
     -------
     atoms: ase.atoms.Atoms
-        atoms represented by atoms_dict with calculator represented by calc_dict
+        atoms represented by atoms_dict with calculator represented by calculator_dict
     """
 
     if "pbc" not in atoms_dict:
@@ -265,27 +268,27 @@ def dict2atoms(atoms_dict, calc_dict=None, single_point_calc=True):
         atoms.set_velocities(velocities)
 
     # Calculator
-    if calc_dict is not None:
+    if calculator_dict is not None:
         results = {}
-        if "results" in calc_dict:
-            results = calc_dict.pop("results")
+        if "results" in calculator_dict:
+            results = calculator_dict.pop("results")
         if single_point_calc:
-            calc = SinglePointCalculator(atoms, **results)
-            if "calculator" in calc_dict:
-                calc.name = calc_dict["calculator"].lower()
-            if "calculator_parameters" in calc_dict:
-                calc.parameters.update(calc_dict["calculator_parameters"])
+            calculator = SinglePointCalculator(atoms, **results)
+            if "calculator" in calculator_dict:
+                calculator.name = calculator_dict["calculator"].lower()
+            if "calculator_parameters" in calculator_dict:
+                calculator.parameters.update(calculator_dict["calculator_parameters"])
         else:
-            calc = get_calculator_class(calc_dict["calculator"].lower())(
-                **calc_dict["calculator_parameters"]
+            calculator = get_calculator_class(calculator_dict["calculator"].lower())(
+                **calculator_dict["calculator_parameters"]
             )
-            calc.results = results
-        if "command" in calc_dict:
-            calc.command = calc_dict["command"]
+            calculator.results = results
+        if "command" in calculator_dict:
+            calculator.command = calculator_dict["command"]
     else:
-        calc = None
+        calculator = None
 
-    atoms.calc = calc
+    atoms.calc = calculator
     if "info" in atoms_dict:
         atoms.info = atoms_dict["info"]
     else:

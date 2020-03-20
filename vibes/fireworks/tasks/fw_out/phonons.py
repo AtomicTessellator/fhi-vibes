@@ -17,7 +17,14 @@ from vibes.trajectory import reader
 
 
 def post_init_mult_calcs(
-    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+    atoms,
+    calculator,
+    outputs,
+    func,
+    func_fw_out,
+    func_kwargs,
+    func_fw_kwargs,
+    fw_settings,
 ):
     """postprocessing for initializing parallel force calculaitons
 
@@ -25,7 +32,7 @@ def post_init_mult_calcs(
     ----------
     atoms: ase.atoms.Atoms
         atoms reference structure for the calculation
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The claculator of the claulation
     outputs: dict
         The outputs after setting up claculations
@@ -74,9 +81,9 @@ def post_init_mult_calcs(
         fw_set["metadata_spec"] = prefix + "_metadata"
 
         if "calculator" in out:
-            calc_dict = calc2dict(out["calculator"])
+            calculator_dict = calc2dict(out["calculator"])
         else:
-            calc_dict = calc.copy()
+            calculator_dict = calculator.copy()
 
         if (
             "prev_dos_fp" in fw_set
@@ -90,7 +97,7 @@ def post_init_mult_calcs(
 
         detours = get_detours(
             out["atoms_to_calculate"],
-            calc_dict,
+            calculator_dict,
             prefix,
             func_set,
             fw_set,
@@ -103,7 +110,7 @@ def post_init_mult_calcs(
 
 def get_detours(
     atoms_to_calculate,
-    calc_dict,
+    calculator_dict,
     prefix,
     calc_kwargs,
     fw_settings,
@@ -117,7 +124,7 @@ def get_detours(
     ----------
     atoms_to_calculate: list of ase.atoms.Atoms
         List of structures to calculate forces for
-    calc_dict: dict
+    calculator_dict: dict
         Dictionary representation of the ase.calculators.calulator.Calculator
     prefix: str
         prefix to add to force calculations
@@ -161,7 +168,7 @@ def get_detours(
         update_spec[prefix + "_calculated_atoms"] = [
             atoms2dict(at) for at in atoms_to_calculate
         ]
-        update_spec[prefix + "_calculator"] = calc_dict
+        update_spec[prefix + "_calculator"] = calculator_dict
         fw_settings["spec"].update(update_spec)
         fw_settings["calc_atoms_spec"] = prefix + "_calculated_atoms"
         fw_settings["calc_spec"] = prefix + "_calculator"
@@ -169,7 +176,13 @@ def get_detours(
             detours, atoms, calc_kwargs, fw_settings, prefix
         )
     return add_single_calc_to_detours(
-        detours, calc_kwargs, atoms, atoms_to_calculate, calc_dict, fw_settings, prefix
+        detours,
+        calc_kwargs,
+        atoms,
+        atoms_to_calculate,
+        calculator_dict,
+        fw_settings,
+        prefix,
     )
 
 
@@ -195,7 +208,7 @@ def add_socket_calc_to_detours(detours, atoms, func_kwargs, fw_settings, prefix)
         an updated detours list
     """
     calc_kwargs = {}
-    calc_keys = ["trajectory", "workdir", "backup_folder", "walltime"]
+    calc_keys = ["trajectory_file", "workdir", "backup_folder", "walltime"]
     for key in calc_keys:
         if key in func_kwargs:
             calc_kwargs[key] = func_kwargs[key]
@@ -219,7 +232,7 @@ def add_socket_calc_to_detours(detours, atoms, func_kwargs, fw_settings, prefix)
 
 
 def add_single_calc_to_detours(
-    detours, func_fw_kwargs, atoms, atoms_list, calc_dict, fw_settings, prefix
+    detours, func_fw_kwargs, atoms, atoms_list, calculator_dict, fw_settings, prefix
 ):
     """Adds a group of Fireworks to run as single calculations
 
@@ -233,7 +246,7 @@ def add_single_calc_to_detours(
         Dictionary representing the ASE Atoms object of theprimitive cell
     atoms_list: list of Atoms
         List of supercells to perform force calculations on
-    calc_dict: dict
+    calculator_dict: dict
         Dictionary representing the ASE Calculator for the force calculations
     fw_settings: dict
         FireWorks settings
@@ -253,7 +266,7 @@ def add_single_calc_to_detours(
         fw_settings.pop("kpoint_density_spec", None)
         sc.info["displacement_id"] = i
         sc_dict = atoms2dict(sc)
-        for key, val in calc_dict.items():
+        for key, val in calculator_dict.items():
             sc_dict[key] = val
         calc_kwargs = {"workdir": func_fw_kwargs["workdir"] + f"/{i:05d}"}
         formula = dict2atoms(sc_dict).get_chemical_formula(mode="metal", empirical=True)
@@ -265,7 +278,7 @@ def add_single_calc_to_detours(
                 func_fw_out="vibes.fireworks.tasks.fw_out.calculate.mod_spec_add",
                 func_kwargs=calc_kwargs,
                 atoms=sc_dict,
-                calc=calc_dict,
+                calculator=calculator_dict,
                 atoms_calc_from_spec=False,
                 fw_settings=fw_settings,
             )
@@ -295,15 +308,15 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     FWAction
         FWAction that adds the phonon_dict to the spec
     """
-    traj = f"{kwargs['workdir']}/{kwargs['trajectory']}"
-    _, metadata = reader(traj, True)
-    calc_dict = metadata["calculator"]
-    calc_dict["calculator"] = calc_dict["calculator"].lower()
-    calc_dict["calculator"] == "aims"
-    if calc_dict["calculator"] == "aims":
+    trajectory_file = f"{kwargs['workdir']}/{kwargs['trajectory_file']}"
+    _, metadata = reader(trajectory_file, True)
+    calculator_dict = metadata["calculator"]
+    calculator_dict["calculator"] = calculator_dict["calculator"].lower()
+    calculator_dict["calculator"] == "aims"
+    if calculator_dict["calculator"] == "aims":
         k_pt_density = k2d(
             dict2atoms(metadata["supercell"]["atoms"]),
-            calc_dict["calculator_parameters"]["k_grid"],
+            calculator_dict["calculator_parameters"]["k_grid"],
         )
     else:
         k_pt_density = None
@@ -313,13 +326,13 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     if "phono3py" in args[0]:
         update_spec = {
             "ph3_dict": phonon3_to_dict(kwargs["outputs"]),
-            "ph3_calculator": calc_dict,
+            "ph3_calculator": calculator_dict,
             "ph3_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_primitive())),
         }
     else:
         update_spec = {
             "ph_dict": phonon_to_dict(kwargs["outputs"]),
-            "ph_calculator": calc_dict,
+            "ph_calculator": calculator_dict,
             "ph_supercell": atoms2dict(to_Atoms(kwargs["outputs"].get_supercell())),
             "_queueadapter": qadapter,
         }
@@ -349,8 +362,8 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
             If True use a serial calculation
         init_workdir: str
             Path to the base phonon force calculations
-        trajectory: str
-            trajectory file name
+        trajectory_file: str
+            trajectory_file file name
 
     Returns
     -------
@@ -369,15 +382,17 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     fw_settings["spec"]["kgrid"] = args[-1]
 
-    ph = kwargs.pop("outputs")
+    phonon = kwargs.pop("outputs")
     workdir = kwargs.pop("workdir")
-    trajectory = kwargs.pop("trajectory")
+    trajectory_file = kwargs.pop("trajectory_file")
     conv, update_job = get_converge_phonon_update(
-        workdir, trajectory, args[1], ph, **kwargs
+        workdir, trajectory_file, args[1], phonon, **kwargs
     )
 
     if not kwargs.get("serial", True):
-        update_job["expected_walltime"] /= len(ph.get_supercells_with_displacements())
+        update_job["expected_walltime"] /= len(
+            phonon.get_supercells_with_displacements()
+        )
 
     if conv:
         qadapter = None
@@ -418,9 +433,9 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     else:
         qadapter = None
 
-    pc = to_Atoms(ph.get_primitive())
+    primitive = to_Atoms(phonon.get_primitive())
     init_fw = generate_phonon_fw_in_wf(
-        pc,
+        primitive,
         update_job["init_workdir"],
         fw_settings,
         qadapter,
@@ -429,10 +444,10 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     )
 
     kwargs["prev_dos_fp"] = update_job["prev_dos_fp"]
-    kwargs["trajectory"] = trajectory.split("/")[-1]
+    kwargs["trajectory_file"] = trajectory_file.split("/")[-1]
     kwargs["sc_matrix_original"] = update_job["sc_matrix_original"]
     analysis_fw = generate_phonon_postprocess_fw_in_wf(
-        pc,
+        primitive,
         update_job["analysis_wd"],
         fw_settings,
         kwargs,

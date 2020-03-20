@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
+from vibes.filenames import filenames
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.hash import hash_atoms
 from vibes.helpers.pickle import psave
@@ -12,12 +13,12 @@ from vibes.phono3py.wrapper import prepare_phono3py
 from vibes.phonopy import displacement_id_str
 from vibes.phonopy.postprocess import postprocess as postprocess2
 from vibes.structure.convert import to_Atoms
-from vibes.trajectory import reader as traj_reader
+from vibes.trajectory import reader
 
 
 def postprocess(
-    trajectory="phono3py/trajectory.son",
-    trajectory_fc2="phonopy/trajectory.son",
+    trajectory_file="phono3py/trajectory.son",
+    trajectory_file_fc2="phonopy/trajectory.son",
     pickle_file="phonon3.pick",
     write_files=True,
     verbose=True,
@@ -27,9 +28,9 @@ def postprocess(
 
     Parameters
     ----------
-    trajectory: str
+    trajectory_file: str
         Trajectory file for third order phonon force calculations
-    trajectoryfc2: str
+    trajectory_file_fc2: str
         Trajectory file for second order phonon force calculations
     pickle_file: str
         Pickle archive file for the Phono3py object
@@ -44,16 +45,16 @@ def postprocess(
         The Phono3py Object of the calculation
     """
 
-    trajectory3 = Path(trajectory)
+    trajectory_file_fc3 = Path(trajectory_file)
 
     # first run phonopy postprocess
     try:
-        phonon = postprocess2(trajectory=trajectory_fc2)
+        phonon = postprocess2(trajectory_file=trajectory_file_fc2)
     except FileNotFoundError:
         phonon = None
 
     # read the third order trajectory
-    calculated_atoms, metadata_full = traj_reader(trajectory3, True)
+    calculated_atoms, metadata_full = reader(trajectory_file_fc3, True)
     metadata = metadata_full["Phono3py"]
     primitive = dict2atoms(metadata["primitive"])
     supercell = dict2atoms(metadata_full["atoms"])
@@ -98,13 +99,13 @@ def postprocess(
     phonon3.produce_fc3(force_sets)
 
     if pickle_file and write_files:
-        psave(phonon3, trajectory3.parent / pickle_file)
+        psave(phonon3, trajectory_file_fc3.parent / pickle_file)
 
     if write_files:
         # Save the supercell
-        fname = "geometry.in.supercell3"
-        write(supercell, fname)
+        file = filenames.supercell
+        write(supercell, file)
         if verbose:
-            print(f".. Third order supercell written to {fname}")
+            print(f".. Third order supercell written to {file}")
 
     return phonon3

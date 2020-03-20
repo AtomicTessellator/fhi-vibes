@@ -37,14 +37,14 @@ def run(
     primitive="geometry.in.primitive",
     supercell="geometry.in.supercell",
     fc_file="infile.forceconstant",
-    trajectory="trajectory.son",
+    trajectory_file="trajectory.son",
 ):
     """ run Verlet MD, harmonic or force field """
-    trajectory = trajectory
+    trajectory_file = trajectory_file
     atoms = read(sample)
 
     force_constants = parse_tdep_forceconstant(
-        fc_filename=fc_file,
+        fc_file=fc_file,
         primitive=primitive,
         supercell=supercell,
         two_dim=True,
@@ -54,9 +54,9 @@ def run(
 
     supercell = read(supercell)
     if harmonic is True:
-        calc = FCCalculator(supercell, force_constants)
+        calculator = FCCalculator(supercell, force_constants)
     else:
-        calc = lammps_si_tersoff_calculator()
+        calculator = lammps_si_tersoff_calculator()
 
     # generic md settings
     settings = {"atoms": atoms, "timestep": dt * units.fs}
@@ -64,9 +64,9 @@ def run(
 
     md = VelocityVerlet(**settings)
 
-    logger = MDLogger(atoms, trajectory, metadata=metadata, overwrite=True)
+    logger = MDLogger(atoms, trajectory_file, metadata=metadata, overwrite=True)
 
-    atoms.calc = calc
+    atoms.calc = calculator
     for _ in progressbar(range(maxsteps)):
         logger(atoms, info={"nsteps": md.nsteps, "dt": md.dt})
         md.run(1)

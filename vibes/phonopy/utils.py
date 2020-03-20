@@ -19,12 +19,12 @@ from vibes.structure.convert import to_Atoms
 _prefix = "phonopy.utils"
 
 
-def last_calculation_id(trajectory):
+def last_calculation_id(trajectory_file):
     """Return the id of the last computed supercell
 
     Parameters
     ----------
-    trajectory: str or Path
+    trajectory_file: str or Path
         Path to the trajectory file with calculated supercells
 
     Returns
@@ -35,7 +35,7 @@ def last_calculation_id(trajectory):
     disp_id = -1
 
     try:
-        dct = last_from_yaml(trajectory)
+        dct = last_from_yaml(trajectory_file)
         disp_id = dct["info"][displacement_id_str]
     except (FileNotFoundError, KeyError):
         pass
@@ -180,13 +180,13 @@ def metadata2dict(phonon, calculator):
 
 
 def get_force_constants_from_trajectory(
-    trajectory, supercell=None, reduce_fc=False, two_dim=False
+    trajectory_file, supercell=None, reduce_fc=False, two_dim=False
 ):
     """Remaps the phonopy force constants into an fc matrix for a new structure
 
     Parameters
     ----------
-    trajectory: vibes.Trajectory
+    trajectory_file: vibes.Trajectory
         phonopy trajectory
     supercell: ase.atoms.Atoms
         Atoms Object to map force constants onto
@@ -210,7 +210,7 @@ def get_force_constants_from_trajectory(
     if reduce_fc and two_dim:
         raise IOError("Only one of reduce_fc and two_dim can be True")
 
-    phonon = postprocess(trajectory)
+    phonon = postprocess(trajectory_file)
 
     if supercell is None:
         supercell = to_Atoms(phonon.get_supercell())
@@ -422,7 +422,7 @@ def reduce_force_constants(fc_full, map2prim):
 
 
 def parse_phonopy_force_constants(
-    fc_filename="FORCE_CONSTANTS",
+    fc_file="FORCE_CONSTANTS",
     primitive="geometry.primitive",
     supercell="geometry.supercell",
     fortran=True,
@@ -435,7 +435,7 @@ def parse_phonopy_force_constants(
     """parse phonopy FORCE_CONSTANTS file and return as 2D array
 
     Args:
-        fc_filename (Pathlike): phonopy forceconstant file to parse
+        fc_file (Pathlike): phonopy forceconstant file to parse
         primitive (Atoms or Pathlike): either unitcell as Atoms or where to find it
         supercell (Atoms or Pathlike): either supercell as Atoms or where to find it
         symmetrize (bool): make force constants symmetric
@@ -447,10 +447,10 @@ def parse_phonopy_force_constants(
     Returns:
         Force constants in (3*N_sc, 3*N_sc) shape
     """
-    if "hdf5" in str(fc_filename):
-        fc = read_force_constants_hdf5(fc_filename)
+    if "hdf5" in str(fc_file):
+        fc = read_force_constants_hdf5(fc_file)
     else:
-        fc = parse_FORCE_CONSTANTS(fc_filename)
+        fc = parse_FORCE_CONSTANTS(fc_file)
 
     if fc.shape[0] == fc.shape[1]:
         if two_dim:

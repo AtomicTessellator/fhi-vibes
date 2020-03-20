@@ -6,6 +6,7 @@ import numpy as np
 from ase import units as u
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, PhononHarmonics
 
+from vibes.filenames import filenames
 from vibes.helpers.fileformats import last_from_yaml
 from vibes.helpers.warnings import warn
 
@@ -18,7 +19,7 @@ def setup_md(
     friction=None,
     logfile=None,
     workdir=".",
-    trajectory=None,
+    trajectory_file=None,
     **kwargs,
 ):
     """Create and ase.md object with respective settings
@@ -39,7 +40,7 @@ def setup_md(
         file to log in
     workdir: str or Path
         The working directory
-    trajectory: str or Path
+    trajectory_file: str or Path
         The output trajectory file
 
     Returns
@@ -57,10 +58,10 @@ def setup_md(
         If driver is not supported
     """
 
-    if trajectory is None:
-        trajectory = (Path(workdir) / "trajectory.son").absolute()
+    if trajectory_file is None:
+        trajectory_file = (Path(workdir) / filenames.trajectory).absolute()
     else:
-        trajectory = Path(trajectory).absolute()
+        trajectory_file = Path(trajectory_file).absolute()
 
     if not Path(workdir).is_dir():
         Path(workdir).mkdir()
@@ -93,7 +94,7 @@ def setup_md(
     else:
         raise RuntimeError(f"Molecular dynamics mode {driver} is not suppported.")
 
-    prepared = prepare_from_trajectory(atoms, md, trajectory)
+    prepared = prepare_from_trajectory(atoms, md, trajectory_file)
 
     if md is None:
         raise RuntimeError("ASE MD algorithm has to be given")
@@ -101,7 +102,7 @@ def setup_md(
     return atoms, md, prepared
 
 
-def prepare_from_trajectory(atoms, md, trajectory="trajectory.son", **kwargs):
+def prepare_from_trajectory(atoms, md, trajectory_file=filenames.trajectory, **kwargs):
     """ Take the last step from trajectory and initialize atoms + md accordingly
 
     Parameters
@@ -110,7 +111,7 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.son", **kwargs):
         Reference structure for molecular dynamics
     md: ase.md.MolecularDynamics
         The MD propagator
-    trajectory: str or Path
+    trajectory_file: str or Path
         The output trajectory file
 
     Returns
@@ -119,18 +120,18 @@ def prepare_from_trajectory(atoms, md, trajectory="trajectory.son", **kwargs):
         True if prepared from the last step in a trajectory
     """
 
-    trajectory = Path(trajectory).absolute()
-    if trajectory.exists():
-        last_atoms = last_from_yaml(trajectory)
+    trajectory_file = Path(trajectory_file).absolute()
+    if trajectory_file.exists():
+        last_atoms = last_from_yaml(trajectory_file)
         if "info" in last_atoms["atoms"]:
             md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
 
             atoms.set_positions(last_atoms["atoms"]["positions"])
             atoms.set_velocities(last_atoms["atoms"]["velocities"])
-            print(f"Resume MD from last step in\n  {trajectory}\n")
+            print(f"Resume MD from last step in\n  {trajectory_file}\n")
             return True
 
-    print(f"** {trajectory} does not exist, nothing to prepare")
+    print(f"** {trajectory_file} does not exist, nothing to prepare")
     return False
 
 

@@ -120,12 +120,12 @@ def extract_forceconstants_from_trajectory(
     extract_forceconstants(workdir, rc2, logfile, **kwargs)
 
 
-def parse_tdep_remapped_forceconstant(fname="infile.forceconstant", force_remap=False):
+def parse_tdep_remapped_forceconstant(file="infile.forceconstant", force_remap=False):
     """parse the remapped forceconstants from TDEP
 
     Parameters
     ----------
-    fname: str or Path
+    file: str or Path
         tdep force constants file
     force_remap: bool
         If True the force constants are remapped
@@ -140,13 +140,13 @@ def parse_tdep_remapped_forceconstant(fname="infile.forceconstant", force_remap=
     timer = Timer()
 
     remapped = force_remap
-    if "remap" in str(fname):
+    if "remap" in str(file):
         remapped = True
 
-    print(f"Parse force constants from\n  {fname}")
+    print(f"Parse force constants from\n  {file}")
     print(f".. remap representation for supercell: ", remapped)
 
-    with open(fname) as fo:
+    with open(file) as fo:
         n_atoms = int(next(fo).split()[0])
         cutoff = float(next(fo).split()[0])
 
@@ -190,7 +190,7 @@ def parse_tdep_remapped_forceconstant(fname="infile.forceconstant", force_remap=
 
 
 def parse_tdep_forceconstant(
-    fc_filename="infile.forceconstants",
+    fc_file="infile.forceconstants",
     primitive="infile.ucposcar",
     supercell="infile.ssposcar",
     fortran=True,
@@ -204,7 +204,7 @@ def parse_tdep_forceconstant(
     """Parse the the TDEP force constants into the phonopy format
 
     Args:
-        fc_filename (Pathlike): phonopy forceconstant file to parse
+        fc_file (Pathlike): phonopy forceconstant file to parse
         primitive (Atoms or Pathlike): either unitcell as Atoms or where to find it
         supercell (Atoms or Pathlike): either supercell as Atoms or where to find it
         two_dim (bool): return in [3*N_sc, 3*N_sc] shape
@@ -237,7 +237,7 @@ def parse_tdep_forceconstant(
 
     force_constants = np.zeros((len(uc), len(sc), 3, 3))
 
-    with open(fc_filename) as fo:
+    with open(fc_file) as fo:
         n_atoms = int(next(fo).split()[0])
         cutoff = float(next(fo).split()[0])
 

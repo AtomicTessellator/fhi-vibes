@@ -10,8 +10,10 @@ import xarray as xr
 from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.singlepoint import SinglePointCalculator
+
 from vibes import __version__ as version
 from vibes import io, keys, son
+from vibes.filenames import filenames
 from vibes.helpers import warn
 from vibes.helpers.converters import dict2atoms, dict2json, results2dict
 from vibes.helpers.utils import progressbar
@@ -19,12 +21,12 @@ from vibes.helpers.utils import progressbar
 from .utils import Timer, talk
 
 
-def step2file(atoms, calc=None, file="trajectory.son", metadata={}):
+def step2file(atoms, calculator=None, file=filenames.trajectory, metadata={}):
     """Save the current step
 
     Args:
         atoms: The structure at the current step
-        calc: The ASE Calculator for the current run
+        calculator: The ASE Calculator for the current run
         file: Path to file to append the current step to
         metadata: the metadata for the calculation, store to atoms.info if possible
     """
@@ -40,7 +42,7 @@ def step2file(atoms, calc=None, file="trajectory.son", metadata={}):
                 atoms.info.update({"metadata": metadata})
                 break
 
-    dct.update(results2dict(atoms, calc))
+    dct.update(results2dict(atoms, calculator))
 
     son.dump(dct, file, dumper=dict2json)
 
@@ -59,7 +61,7 @@ def metadata2file(metadata, file="metadata.son"):
     son.dump({**metadata, "vibes": {"version": version}}, file, is_metadata=True)
 
 
-def write(trajectory, file="trajectory.son"):
+def write(trajectory, file=filenames.trajectory):
     """Write to son file
 
     Args:
@@ -79,9 +81,9 @@ def write(trajectory, file="trajectory.son"):
 
     # check for file and make backup
     if os.path.exists(file):
-        ofile = f"{file}.bak"
-        shutil.copy(file, ofile)
-        talk(f".. {file} copied to {ofile}")
+        outfile = f"{file}.bak"
+        shutil.copy(file, outfile)
+        talk(f".. {file} copied to {outfile}")
 
     metadata2file(trajectory.metadata, temp_file)
 
@@ -95,7 +97,7 @@ def write(trajectory, file="trajectory.son"):
 
 
 def reader(
-    file="trajectory.son",
+    file=filenames.trajectory,
     get_metadata=False,
     fc_file=None,
     with_stresses=False,
@@ -224,22 +226,22 @@ def to_tdep(trajectory, folder=".", skip=1):
 
     lines = [f"{n_atoms}", f"{n_steps}", f"{dt}", f"{T0}"]
 
-    fname = folder / "infile.meta"
+    file = folder / "infile.meta"
 
-    with fname.open("w") as fo:
+    with file.open("w") as fo:
         fo.write("\n".join(lines))
-        talk(f".. {fname} written.")
+        talk(f".. {file} written.")
 
     # supercell and fake unit cell
     write_settings = {"format": "vasp", "direct": True, "vasp5": True}
     if trajectory.primitive:
-        fname = folder / "infile.ucposcar"
-        trajectory.primitive.write(str(fname), **write_settings)
-        talk(f".. {fname} written.")
+        file = folder / "infile.ucposcar"
+        trajectory.primitive.write(str(file), **write_settings)
+        talk(f".. {file} written.")
     if trajectory.supercell:
-        fname = folder / "infile.ssposcar"
-        trajectory.supercell.write(str(fname), **write_settings)
-        talk(f".. {fname} written.")
+        file = folder / "infile.ssposcar"
+        trajectory.supercell.write(str(file), **write_settings)
+        talk(f".. {file} written.")
 
     with ExitStack() as stack:
         pdir = folder / "infile.positions"
@@ -285,7 +287,7 @@ def to_db(trajectory, database):
     """Write vibes trajectory as ase database
 
     Always creates a new database. Database type
-    is always inferred from the filename. Metadata
+    is always inferred from the file. Metadata
     is carried over to the ase database.
 
     Please be aware that ase.db indices start from
@@ -312,7 +314,7 @@ def to_db(trajectory, database):
     timer("done")
 
 
-def read_netcdf(file="trajectory.nc"):
+def read_netcdf(file=filenames.trajectory_dataset):
     """read `trajectory.nc` and return Trajectory"""
     from vibes.trajectory.trajectory import Trajectory
 
@@ -353,7 +355,7 @@ def read_netcdf(file="trajectory.nc"):
     else:
         stress = len(positions) * [None]
 
-    traj = []
+    trajectory_list = []
     for p, v, f, e, s in zip(positions, velocities, forces, potential_energy, stress):
         atoms = ref_atoms.copy()
         atoms.set_positions(p)
@@ -363,12 +365,12 @@ def read_netcdf(file="trajectory.nc"):
         if s is not None:
             results.update({"stress": s})
 
-        calc = SinglePointCalculator(atoms, **results)
-        atoms.calc = calc
+        calculator = SinglePointCalculator(atoms, **results)
+        atoms.calc = calculator
 
-        traj.append(atoms)
+        trajectory_list.append(atoms)
 
-    trajectory = Trajectory(traj, metadata=metadata)
+    trajectory = Trajectory(trajectory_list, metadata=metadata)
     trajectory.displacements = DS.displacements.data
     trajectory.times = DS.time.data
 
