@@ -1,82 +1,59 @@
 """ A leightweight wrapper for Phono3py """
 
 import numpy as np
-from phono3py.phonon3 import Phono3py
+from phono3py import Phono3py, load
+from phono3py.api_phono3py import Phono3pyYaml
 
 from vibes import konstanten as const
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.phonopy import get_supercells_with_displacements
 from vibes.structure.convert import to_phonopy_atoms
 
-from ._defaults import defaults
+from . import _defaults as defaults
 
 
 def prepare_phono3py(
     atoms,
     supercell_matrix,
-    fc3=None,
-    phonon_supercell_matrix=None,
     fc2=None,
-    cutoff_pair_distance=defaults.cutoff_pair_distance,
+    fc3=None,
+    cutoff_pair_distance=defaults.kwargs.cutoff_pair_distance,
     displacement_dataset=None,
-    is_diagonal=defaults.is_diagonal,
-    q_mesh=defaults.q_mesh,
-    displacement=defaults.displacement,
+    is_diagonal=defaults.kwargs.is_diagonal,
+    q_mesh=defaults.kwargs.q_mesh,
+    displacement=defaults.kwargs.displacement,
     symmetrize_fc3q=False,
-    symprec=defaults.symprec,
-    log_level=defaults.log_level,
+    symprec=defaults.kwargs.symprec,
+    log_level=defaults.kwargs.log_level,
     **kwargs,
 ):
     """Prepare a Phono3py object
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        primitive cell for the calculation
-    supercell_matrix: np.ndarray
-        supercell matrix for the third order phonons
-    fc3: np.ndarray
-        Third order force constant matrix
-    phonon_supercell_matrix: np.ndarray
-        supercell matrix for the second order phonons
-    fc2: np.ndarray
-        second order force constant matrix
-    cutoff_pair_distance: float
-        All pairs further apart than this cutoff are ignored
-    displacement_dataset: dict
-        The displacement_dataset for the third order phonons
-    is_diagonal: bool
-        Whether allow diagonal displacements of Atom 2 or not
-    q_mesh: np.ndarray
-        q-point interpolation mesh postprocessing
-    displacement: float
-        magnitude of the displacement
-    symmetrize_fc3q: bool
-        If True symmetrize the third order interactions
-    symprec: float
-        distance tolerance for determining the sapce group/symmetry
-    log_level: int
-        How much information should be streamed to the console
+    Args:
+        atoms: ase.atoms.Atoms
+        supercell_matrix: np.ndarray
+        fc2: np.ndarray
+        fc3: np.ndarray
+        cutoff_pair_distance: float
+        displacement_dataset: dict
+        is_diagonal: bool
+        mesh: np.ndarray
+        displacement: float
+        symmetrize_fc3q: bool
+        symprec: float
+        log_level: int
 
-    Returns
-    -------
-    phonon3: phono3py.phonon3.Phono3py
-        The Phono3py object for the calculation
+    Returns:
+        phono3py.Phono3py
     """
 
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
     supercell_matrix = get_3x3_matrix(supercell_matrix)
 
-    if phonon_supercell_matrix is None:
-        phonon_supercell_matrix = supercell_matrix
-    else:
-        phonon_supercell_matrix = get_3x3_matrix(phonon_supercell_matrix)
-
     phonon3 = Phono3py(
         ph_atoms,
         supercell_matrix=np.transpose(supercell_matrix),
-        phonon_supercell_matrix=np.transpose(phonon_supercell_matrix),
         mesh=q_mesh,
         symprec=symprec,
         is_symmetry=True,
@@ -85,7 +62,7 @@ def prepare_phono3py(
         log_level=log_level,
     )
 
-    if displacement_dataset:
+    if displacement_dataset is not None:
         phonon3.set_displacement_dataset(displacement_dataset)
 
     phonon3.generate_displacements(
@@ -105,43 +82,30 @@ def prepare_phono3py(
 def preprocess(
     atoms,
     supercell_matrix,
-    cutoff_pair_distance=defaults.cutoff_pair_distance,
-    is_diagonal=defaults.is_diagonal,
-    q_mesh=defaults.q_mesh,
-    displacement=defaults.displacement,
-    symprec=defaults.symprec,
-    log_level=defaults.log_level,
+    cutoff_pair_distance=defaults.kwargs.cutoff_pair_distance,
+    is_diagonal=defaults.kwargs.is_diagonal,
+    q_mesh=defaults.kwargs.q_mesh,
+    displacement=defaults.kwargs.displacement,
+    symprec=defaults.kwargs.symprec,
+    log_level=defaults.kwargs.log_level,
     **kwargs,
 ):
     """Set up a Phono3py object and generate all the supercells necessary for the 3rd order
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        primitive cell for the calculation
-    supercell_matrix: np.ndarray
-        supercell matrix for the third order phonons
-    cutoff_pair_distance: float
-        All pairs further apart than this cutoff are ignored
-    is_diagonal: bool
-        Whether allow diagonal displacements of Atom 2 or not
-    q_mesh: np.ndarray
-        q-point interpolation mesh postprocessing
-    displacement: float
-        magnitude of the displacement
-    symprec: float
-        distance tolerance for determining the sapce group/symmetry
-    log_level: int
-        How much information should be streamed to the console
+    Args:
+        atoms: ase.atoms.Atoms
+        supercell_matrix: np.ndarray
+        cutoff_pair_distance: float
+        is_diagonal: bool
+        q_mesh: np.ndarray
+        displacement: float
+        symprec: float
+        log_level: int
 
-    Returns
-    -------
-    phonon3: phono3py.phonon3.Phono3py
-        The Phono3py object with displacement_dataset, and displaced supercells
-    supercell: ase.atoms.Atoms
-        The undisplaced supercell
-    supercells_with_disps: list of ase.atoms.Atoms
-        All of the supercells with displacements
+    Returns:
+        phonon3: phono3py.Phono3py
+        supercell: ase.atoms.Atoms
+        supercells_with_disps: list of ase.atoms.Atoms
     """
 
     phonon3 = prepare_phono3py(
@@ -156,3 +120,33 @@ def preprocess(
     )
 
     return get_supercells_with_displacements(phonon3)
+
+
+def phono3py_save(phonon: Phono3py, file=defaults.phono3py_params_yaml_file):
+    """adapted form Phono3py.save"""
+    ph3py_yaml = Phono3pyYaml()
+    ph3py_yaml.set_phonon_info(phonon)
+    with open(file, "w") as w:
+        w.write(str(ph3py_yaml))
+
+
+def phono3py_load(
+    file=defaults.phono3py_params_yaml_file,
+    mesh=defaults.kwargs.q_mesh,
+    log_level=defaults.kwargs.log_level,
+    **kwargs,
+):
+    """load phono3py object from file
+
+    Args:
+      mesh: the q mesh
+      log_level: log level
+      kwargs: kwargs for `Phono3py.load`
+
+    Returns:
+      Phono3py
+
+    """
+    phonon = load(file, **kwargs)
+
+    return phonon

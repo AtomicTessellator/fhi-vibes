@@ -1,7 +1,7 @@
 """ Module containing wrapper functions to work with Phonopy """
 # flake8: noqa
 
-from vibes.phonopy._defaults import defaults, displacement_id_str
+from vibes.phonopy._defaults import displacement_id_str
 from vibes.phonopy.postprocess import postprocess
 from vibes.phonopy.utils import (
     enumerate_displacements,
@@ -10,4 +10,3 @@ from vibes.phonopy.utils import (
     metadata2dict,
     to_phonopy_atoms,
 )
-from vibes.phonopy.workflow import run_phonopy

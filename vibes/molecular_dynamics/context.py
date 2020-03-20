@@ -34,7 +34,7 @@ class MDSettings(TaskSettings):
         super().__init__(
             name,
             settings=settings,
-            defaults=defaults,
+            default_kwargs=defaults,
             mandatory_keys=mandatory_base,
             mandatory_obj_keys=mandatory_task,
         )

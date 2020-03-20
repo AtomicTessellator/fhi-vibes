@@ -1,8 +1,26 @@
 """ vibes Phono3py defaults """
 
-from vibes.phonopy import defaults as defaults_fc2
+from vibes.phonopy._defaults import kwargs as defaults_fc2
 
+name = "phono3py"
 
-defaults = defaults_fc2.copy()
-defaults.update({"is_diagonal": True, "cutoff_pair_distance": 100.0, "log_level": 2})
-defaults.update({"qmesh": [21, 21, 21]})
+mandatory = {
+    "mandatory_keys": ["machine", "control", "geometry"],
+    "mandatory_obj_keys": ["supercell_matrix"],
+}
+
+kwargs = defaults_fc2.copy()
+kwargs.update(
+    {
+        "displacement": 0.03,
+        "is_diagonal": True,
+        "cutoff_pair_distance": 100.0,
+        "q_mesh": [21, 21, 21],
+        "log_level": 2,
+    }
+)
+
+fc2_file = "fc2.hdf5"
+fc3_file = "fc3.hdf5"
+disp_fc3_yaml_file = "disp_fc3.yaml"
+phono3py_params_yaml_file = "phono3py_params.yaml"

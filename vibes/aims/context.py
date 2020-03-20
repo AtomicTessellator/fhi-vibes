@@ -8,14 +8,7 @@ from ase.io import read
 
 from vibes.settings import SettingsError, TaskSettings
 
-from ._defaults import (
-    basisset_key,
-    defaults,
-    mandatory_base,
-    mandatory_task,
-    name,
-    obj_key,
-)
+from . import _defaults as defaults
 from .setup import setup_aims
 
 
@@ -37,12 +30,12 @@ class AimsSettings(TaskSettings):
         """
 
         super().__init__(
-            name,
+            defaults.name,
             settings=settings,
-            defaults=defaults,
-            mandatory_keys=mandatory_base,
-            obj_key=obj_key,
-            mandatory_obj_keys=mandatory_task,
+            default_kwargs=defaults.kwargs,
+            mandatory_keys=defaults.mandatory_base,
+            obj_key=defaults.obj_key,
+            mandatory_obj_keys=defaults.mandatory_task,
         )
 
         # basisset
@@ -50,7 +43,7 @@ class AimsSettings(TaskSettings):
             msg = "`basisset.type` is removed in favour of `basissets.default`. Stop"
             raise RuntimeError(msg)
 
-        if basisset_key not in self:
+        if defaults.basisset_key not in self:
             msg = f"basisset not specified in {self.settings_file}"
             raise SettingsError(msg)
 
@@ -78,7 +71,7 @@ class AimsContext:
         if workdir:
             self.workdir = Path(workdir)
         if not self.workdir:
-            self.workdir = Path(name)
+            self.workdir = Path(defaults.name)
 
         self._ref_atoms = None
         self._primitive = None

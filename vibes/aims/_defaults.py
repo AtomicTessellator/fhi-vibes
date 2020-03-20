@@ -3,7 +3,6 @@
 from vibes.helpers import talk as _talk
 from vibes.helpers.attribute_dict import AttributeDict as adict
 
-
 name = "aims"
 
 obj_key = "control"
@@ -15,7 +14,7 @@ basisset_choices = ("light", "intermediate", "tight", "really_tight")
 basisset_default = "light"
 
 
-defaults = adict(
+kwargs = adict(
     {
         "sc_accuracy_rho": 1e-6,
         "relativistic": "atomic_zora scalar",
