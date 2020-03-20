@@ -26,69 +26,69 @@ def template(obj, full, allow_overwrite):
 
 
 @template.command("modify")
-@click.argument("filename", default="settings.in")
+@click.argument("file", default="settings.in")
 @click.pass_obj
-def modify_input(obj, filename):
+def modify_input(obj, file):
     """modify an input file"""
 
     click.echo("please come back later")
 
 
 @template.command("aims")
-@click.argument("filename", default="aims.in")
+@click.argument("file", default="aims.in")
 @click.pass_obj
-def aims_input(obj, filename):
+def aims_input(obj, file):
     """provide template settings.in for aims calculation"""
 
-    write_input(obj, "aims", filename)
+    write_input(obj, "aims", file)
 
 
 @template.command("phonopy")
-@click.argument("filename", default="phonopy.in")
+@click.argument("file", default="phonopy.in")
 @click.pass_obj
-def phonopy_input(obj, filename):
+def phonopy_input(obj, file):
     """provide template phonopy.in for phonopy workflow."""
 
-    write_input(obj, "phonopy", filename)
+    write_input(obj, "phonopy", file)
 
 
 @template.command("md")
-@click.argument("filename", default="md.in")
+@click.argument("file", default="md.in")
 @click.pass_obj
-def md_input(obj, filename):
+def md_input(obj, file):
     """provide template md.in for molecular dynamics workflow."""
 
-    write_input(obj, "md", filename)
+    write_input(obj, "md", file)
 
 
 @template.command("relaxation")
-@click.argument("filename", default="relaxation.in")
+@click.argument("file", default="relaxation.in")
 @click.pass_obj
-def relaxation_input(obj, filename):
+def relaxation_input(obj, file):
     """provide template relaxation.in for relaxation workflow."""
 
-    write_input(obj, "relaxation", filename)
+    write_input(obj, "relaxation", file)
 
 
 @template.command("configuration")
-@click.argument("filename", default="vibesrc")
+@click.argument("file", default="vibesrc")
 @click.pass_obj
-def configuration_input(obj, filename):
+def configuration_input(obj, file):
     """provide template vibesrc.template for the configuration"""
 
-    write_input(obj, "vibesrc.template", filename, from_folder=config_files)
+    write_input(obj, "vibesrc.template", file, from_folder=config_files)
 
 
 @template.command("slurm")
-@click.argument("filename", default="slurm.in")
+@click.argument("file", default="slurm.in")
 @click.pass_obj
-def slurm_input(obj, filename):
+def slurm_input(obj, file):
     """provide template slurm settings"""
 
-    write_input(obj, "slurm.in", filename, from_folder=config_files)
+    write_input(obj, "slurm.in", file, from_folder=config_files)
 
 
-def write_input(obj, name, filename, from_folder=settings):
+def write_input(obj, name, file, from_folder=settings):
     """write the input function"""
 
     if obj.full_input:
@@ -96,7 +96,7 @@ def write_input(obj, name, filename, from_folder=settings):
 
     input_file = pkg_resources.read_text(from_folder, name)
 
-    outfile = Path(filename)
+    outfile = Path(file)
 
     if not obj.allow_overwrite and outfile.exists():
         msg = f"{outfile} exists."
@@ -104,4 +104,4 @@ def write_input(obj, name, filename, from_folder=settings):
 
     outfile.write_text(input_file)
 
-    click.echo(f"Default {name} settings file written to {filename}.")
+    click.echo(f"Default {name} settings file written to {file}.")

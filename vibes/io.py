@@ -34,12 +34,12 @@ def get_info_str(atoms, spacegroup=False):
     return info_strings
 
 
-def read(fname, format="aims"):
+def read(file, format="aims"):
     """wrap ase.io.read
 
     Parameters
     ----------
-    fname: str
+    file: str
         The input geometry file
     format: str
         The format of the geometry file
@@ -47,22 +47,22 @@ def read(fname, format="aims"):
     Returns
     -------
     atoms: ase.atoms.Atoms
-        The ASE representation of the structure in fname
+        The ASE representation of the structure in file
     """
 
-    atoms = ase_read(fname, format=format)
+    atoms = ase_read(file, format=format)
 
     return atoms
 
 
-def write(atoms, fname, format="aims", spacegroup=False, **kwargs):
+def write(atoms, file, format="aims", spacegroup=False, **kwargs):
     """wrap ase.io.write
 
     Parameters
     ----------
     atoms: ase.atoms.Atoms
         The structure to write to the file
-    fname: str
+    file: str
         The input geometry file
     format: str
         The format of the geometry file
@@ -77,7 +77,7 @@ def write(atoms, fname, format="aims", spacegroup=False, **kwargs):
 
     if format == "aims":
         atoms.write(
-            fname, info_str=get_info_str(atoms, spacegroup), format=format, **kwargs
+            file, info_str=get_info_str(atoms, spacegroup), format=format, **kwargs
         )
 
     return True

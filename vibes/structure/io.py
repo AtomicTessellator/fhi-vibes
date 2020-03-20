@@ -130,12 +130,12 @@ def get_aims_string(atoms, decorated=True, scaled=None, velocities=False, wrap=F
     return string
 
 
-def inform(atoms, fname=None, verbosity=1, symprec=symprec):
+def inform(atoms, file=None, verbosity=1, symprec=symprec):
     """print geometry information to screen
 
     Args:
       atoms: the structure
-      fname:  (Default value = None)
+      file:  (Default value = None)
       verbosity:  (Default value = 1)
       symprec:  (Default value = symprec)
 
@@ -144,8 +144,8 @@ def inform(atoms, fname=None, verbosity=1, symprec=symprec):
     # Structure info:
     talk(f"Geometry info")
     print(f"  input geometry:    {get_sysname(atoms)}")
-    if fname:
-        print(f"  from:              {fname}")
+    if file:
+        print(f"  from:              {file}")
     print(f"  Symmetry prec.:    {symprec}")
     print(f"  Number of atoms:   {len(atoms)}")
 

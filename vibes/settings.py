@@ -125,15 +125,15 @@ class ConfigDict(AttributeDict):
         """ literally print(self) """
         print(self.get_string(only_settings=only_settings), flush=True)
 
-    def write(self, filename=DEFAULT_SETTINGS_FILE):
+    def write(self, file=DEFAULT_SETTINGS_FILE):
         """write a settings object human readable
 
         Parameters
         ----------
-        filename: str
+        file: str
             path use to write the file
         """
-        with open(filename, "w") as f:
+        with open(file, "w") as f:
             timestr = time.strftime("%Y/%m/%d %H:%M:%S")
             f.write(f"# configfile written at {timestr}\n")
             f.write(self.get_string())
@@ -252,16 +252,16 @@ class Settings(ConfigDict):
         """return path to the settings file"""
         return self._settings_file
 
-    def write(self, filename=None):
+    def write(self, file=None):
         """write settings to file"""
 
-        if not filename:
-            filename = self.settings_file
+        if not file:
+            file = self.settings_file
 
-        if not Path(filename).exists():
-            super().write(filename=filename)
+        if not Path(file).exists():
+            super().write(file=file)
         else:
-            warn(f"{filename} exists, do not overwrite settings.", level=1)
+            warn(f"{file} exists, do not overwrite settings.", level=1)
 
 
 class SettingsSection(AttributeDict):

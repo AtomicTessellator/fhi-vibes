@@ -7,12 +7,12 @@ from vibes.helpers.k_grid import d2k, k2d
 from vibes.io import inform, read
 
 
-def suggest_k_grid(filename, density, uneven, format):
+def suggest_k_grid(file, density, uneven, format):
     """suggest a k_grid for geometry in FILENAME based on density
 
     Parameters
     ----------
-    filename: str or Path
+    file: str or Path
         The input geometry file
     density: float
         The kpoint density
@@ -22,8 +22,8 @@ def suggest_k_grid(filename, density, uneven, format):
         The ASE file format for geometry files
     """
 
-    cell = read(filename, format=format)
-    inform(cell, fname=filename, verbosity=0)
+    cell = read(file, format=format)
+    inform(cell, file=file, verbosity=0)
 
     k_grid = d2k(cell, kptdensity=density, even=not uneven)
 

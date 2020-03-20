@@ -1,4 +1,5 @@
 """Generates TaskSpec Objects"""
+from vibes.filenames import filenames
 from vibes.fireworks.tasks.task_spec import TaskSpec
 
 
@@ -25,7 +26,7 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
         "ph_settings": ["supercell_matrix", "displacement", "sc_matrix_original"],
         "ph3_settings": ["supercell_matrix", "displacement", "cutoff_pair_distance"],
     }
-    out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
+    out_keys = ["walltime", "trajectory_file", "backup_folder", "serial"]
     for set_key in ["ph_settings", "ph3_settings"]:
         if set_key in func_kwargs:
             kwargs_init[set_key] = {}
@@ -86,7 +87,7 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None, add_qadapter=False):
         "random_seed",
     ]
 
-    out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
+    out_keys = ["walltime", "trajectory_file", "backup_folder", "serial"]
     kwargs_init = {}
     kwargs_init_fw_out = {}
 
@@ -171,15 +172,15 @@ def gen_phonon_analysis_task_spec(
     else:
         func_out = "vibes.fireworks.tasks.fw_out.phonons.add_phonon_to_spec"
 
-    if "trajectory" not in func_kwargs:
-        func_kwargs["trajectory"] = "trajectory.son"
+    if "trajectory_file" not in func_kwargs:
+        func_kwargs["trajectory_file"] = filenames.trajectory
     task_spec_list = []
     task_spec_list.append(
         TaskSpec(
             "vibes.fireworks.tasks.phonopy_phono3py_functions.collect_to_trajectory",
             "vibes.fireworks.tasks.fw_out.general.fireworks_no_mods_gen_function",
             False,
-            args=[func_kwargs["workdir"], func_kwargs["trajectory"]],
+            args=[func_kwargs["workdir"], func_kwargs["trajectory_file"]],
             inputs=[forcekey, metakey],
             make_abs_path=make_abs_path,
         )
@@ -224,8 +225,8 @@ def gen_stat_samp_analysis_task_spec(
     elif "workdir" not in func_kwargs:
         func_kwargs["workdir"] = "."
 
-    if "trajectory" not in func_kwargs:
-        func_kwargs["trajectory"] = "trajectory.son"
+    if "trajectory_file" not in func_kwargs:
+        func_kwargs["trajectory_file"] = filenames.trajectory
 
     task_spec_list = []
     task_spec_list.append(
@@ -233,7 +234,7 @@ def gen_stat_samp_analysis_task_spec(
             "vibes.fireworks.tasks.phonopy_phono3py_functions.collect_to_trajectory",
             "vibes.fireworks.tasks.fw_out.general.fireworks_no_mods_gen_function",
             False,
-            args=[func_kwargs["workdir"], func_kwargs["trajectory"]],
+            args=[func_kwargs["workdir"], func_kwargs["trajectory_file"]],
             inputs=[forcekey, metakey],
             make_abs_path=make_abs_path,
         )
@@ -312,14 +313,14 @@ def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
     )
 
 
-def gen_gruniesen_task_spec(settings, trajectory, constraints):
+def gen_gruniesen_task_spec(settings, trajectory_file, constraints):
     """Generate a TaskSpec for setting up a Gruniesen parameter calculation
 
     Parameters
     ----------
     settings: Settings
         The workflow settings
-    trajectory: str
+    trajectory_file: str
         Path the the equilibrium phonon trajectory
     constraints: list of dict
         list of relevant constraint dictionaries for relaxations
@@ -334,7 +335,7 @@ def gen_gruniesen_task_spec(settings, trajectory, constraints):
             "vibes.fireworks.tasks.phonopy_phono3py_functions.setup_gruneisen",
             "vibes.fireworks.tasks.fw_out.general.add_additions_to_spec",
             False,
-            args=[settings, trajectory, constraints],
+            args=[settings, trajectory_file, constraints],
             inputs=["_queueadapter", "kgrid"],
             make_abs_path=False,
         )

@@ -4,27 +4,27 @@ from pathlib import Path
 from vibes.helpers.fileformats import last_from_yaml
 
 
-def load_last_step(atoms, calc, workdir, trajectory):
+def load_last_step(atoms, calculator, workdir, trajectory_file):
     """Loads the last step from a trajectory and update returns calculator objects"""
-    trajectory = Path(workdir) / trajectory
-    last_step_dict = last_from_yaml(trajectory)
+    trajectory_file = Path(workdir) / trajectory_file
+    last_step_dict = last_from_yaml(trajectory_file)
 
     for key, val in last_step_dict["atoms"].items():
         atoms[key] = val
 
-    calc["results"] = last_step_dict["calculator"]
+    calculator["results"] = last_step_dict["calculator"]
 
-    return trajectory, atoms, calc
+    return trajectory_file, atoms, calculator
 
 
-def move_trajectory_file(trajectory):
+def move_trajectory_file(trajectory_file):
     """Move a trajectory to a new file name"""
-    new_traj_list = trajectory.split(".")
+    split_trajectory_file = trajectory_file.split(".")
     try:
-        temp_list = new_traj_list[-2].split("_")
+        temp_list = split_trajectory_file[-2].split("_")
         temp_list[-1] = str(int(temp_list[-1]) + 1)
-        new_traj_list[-2] = "_".join(temp_list)
-        trajectory = ".".join(new_traj_list)
+        split_trajectory_file[-2] = "_".join(temp_list)
+        trajectory_file = ".".join(split_trajectory_file)
     except ValueError:
-        new_traj_list[-2] += "_restart_1"
-        trajectory = ".".join(new_traj_list)
+        split_trajectory_file[-2] += "_restart_1"
+        trajectory_file = ".".join(split_trajectory_file)

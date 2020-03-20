@@ -8,10 +8,10 @@ import click
 # from vibes.settings import Settings
 from vibes.helpers import talk
 
-from .misc import AliasedGroup, complete_filenames
+from .misc import AliasedGroup, complete_files
 
 # paths = click.Path(exists=True)
-paths = complete_filenames
+paths = complete_files
 _prefix = "vibes.run"
 
 

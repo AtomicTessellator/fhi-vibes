@@ -15,7 +15,7 @@ parent = Path(__file__).parent
 atoms = bulk("Al") * (4, 4, 4)
 settings = Settings(settings_file=parent / "md.in")
 
-calc = EMT()
+calculator = EMT()
 
 np.random.seed(4)
 MaxwellBoltzmannDistribution(atoms, 300 * u.kB)
@@ -23,7 +23,7 @@ MaxwellBoltzmannDistribution(atoms, 300 * u.kB)
 ctx = MDContext(settings)
 
 ctx.atoms = atoms
-ctx.calc = calc
+ctx.calculator = calculator
 
 
 def test_run1():

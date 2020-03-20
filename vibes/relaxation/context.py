@@ -8,6 +8,7 @@ from ase.constraints import ExpCellFilter
 
 from vibes import son
 from vibes.aims.context import AimsContext
+from vibes.filenames import filenames
 from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict
 from vibes.settings import TaskSettings
@@ -34,13 +35,13 @@ class RelaxationSettings(TaskSettings):
 class RelaxationContext:
     """context for relaxation"""
 
-    def __init__(self, settings, workdir=None, trajectory=None):
+    def __init__(self, settings, workdir=None, trajectory_file=None):
         """Initialization
 
         Args:
             settings: settings for the relaxation Workflow
             workdir: Working directory for the relaxation workflow
-            trajectory: Path to output trajectory
+            trajectory_file: Path to output trajectory
         """
         self.settings = RelaxationSettings(settings)
 
@@ -52,13 +53,13 @@ class RelaxationContext:
         # workdir has to exist
         Path(self.workdir).mkdir(exist_ok=True, parents=True)
 
-        if trajectory:
-            self.trajectory = Path(trajectory)
+        if trajectory_file:
+            self.trajectory_file = Path(trajectory_file)
         else:
-            self.trajectory = Path(self.workdir) / "trajectory.son"
+            self.trajectory_file = Path(self.workdir) / filenames.trajectory
 
         self._atoms = None
-        self._calc = None
+        self._calculator = None
         self._opt = None
 
     @property
@@ -87,9 +88,9 @@ class RelaxationContext:
         self._atoms = atoms
 
     @property
-    def calc(self):
+    def calculator(self):
         """the calculator for running the computation"""
-        if not self._calc:
+        if not self._calculator:
             # create aims from context and make sure forces are computed
             aims_ctx = AimsContext(settings=self.settings, workdir=self.workdir)
             aims_ctx.settings.obj["compute_forces"] = True
@@ -98,15 +99,15 @@ class RelaxationContext:
             if self.unit_cell:
                 aims_ctx.settings.obj["compute_analytical_stress"] = True
 
-            self._calc = aims_ctx.get_calculator()
+            self._calculator = aims_ctx.get_calculator()
 
-        return self._calc
+        return self._calculator
 
-    @calc.setter
-    def calc(self, calc):
+    @calculator.setter
+    def calculator(self, calculator):
         """set the calculator"""
-        assert issubclass(calc.__class__, Calculator)
-        self._calc = calc
+        assert issubclass(calculator.__class__, Calculator)
+        self._calculator = calculator
 
     @property
     def opt(self):
@@ -164,13 +165,13 @@ class RelaxationContext:
         opt_dict.update(**self.settings.obj)
 
         # other stuff
-        dct = input2dict(self.atoms, calc=self.calc)
+        dct = input2dict(self.atoms, calculator=self.calculator)
 
         return {"relaxation": opt_dict, **dct}
 
     def resume(self):
         """resume from trajectory"""
-        return prepare_from_trajectory(self.atoms, self.opt, self.trajectory)
+        return prepare_from_trajectory(self.atoms, self.opt, self.trajectory_file)
 
     def run(self, timeout=None):
         """run the context workflow"""
@@ -178,13 +179,13 @@ class RelaxationContext:
         run_relaxation(self)
 
 
-def prepare_from_trajectory(atoms, opt, trajectory):
+def prepare_from_trajectory(atoms, opt, trajectory_file):
     """Take the last step from trajectory and initialize atoms + md accordingly"""
 
-    trajectory = Path(trajectory)
-    if trajectory.exists():
+    trajectory_file = Path(trajectory_file)
+    if trajectory_file.exists():
         try:
-            last_atoms = son.last_from(trajectory)
+            last_atoms = son.last_from(trajectory_file)
         except IndexError:
             warn(f"** trajectory lacking the first step, please CHECK!", level=2)
         assert "info" in last_atoms["atoms"]
@@ -192,8 +193,8 @@ def prepare_from_trajectory(atoms, opt, trajectory):
 
         atoms.set_cell(last_atoms["atoms"]["cell"])
         atoms.set_positions(last_atoms["atoms"]["positions"])
-        talk(f"Resume relaxation from  {trajectory}", prefix=_prefix)
+        talk(f"Resume relaxation from  {trajectory_file}", prefix=_prefix)
         return True
 
-    talk(f"** {trajectory} does not exist, nothing to prepare", prefix=_prefix)
+    talk(f"** {trajectory_file} does not exist, nothing to prepare", prefix=_prefix)
     return False

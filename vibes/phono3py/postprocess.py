@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
+from vibes.filenames import filenames
 from vibes.helpers import Timer, talk, warn
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.paths import cwd
@@ -11,13 +12,13 @@ from vibes.io import write
 from vibes.phono3py.wrapper import prepare_phono3py
 from vibes.phonopy import displacement_id_str
 from vibes.structure.convert import to_Atoms
-from vibes.trajectory import reader as traj_reader
+from vibes.trajectory import reader
 
 from . import _defaults as defaults
 
 
 def postprocess(
-    trajectory="trajectory.son",
+    trajectory=filenames.trajectory,
     workdir=".",
     output_dir="output",
     verbose=True,
@@ -39,7 +40,7 @@ def postprocess(
 
     trajectory = Path(workdir) / trajectory
 
-    calculated_atoms, metadata = traj_reader(trajectory, get_metadata=True)
+    calculated_atoms, metadata = reader(trajectory, get_metadata=True)
 
     # make sure the calculated atoms are in order
     for nn, atoms in enumerate(calculated_atoms):
@@ -120,9 +121,9 @@ def extract_results(phonon, output_dir="output"):
     with cwd(output_dir, mkdir=True):
 
         p = to_Atoms(primitive)
-        write(p, "geometry.in.primitive")
+        write(p, filenames.primitive)
         s = to_Atoms(supercell)
-        write(s, "geometry.in.supercell")
+        write(s, filenames.supercell)
 
         io.write_disp_fc3_yaml(dds, supercell)
 

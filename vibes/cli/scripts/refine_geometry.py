@@ -10,24 +10,24 @@ from vibes.spglib.wrapper import refine_cell, standardize_cell
 
 
 def refine_geometry(
-    filename, primitive, conventional, center, origin, cartesian, format, symprec
+    file, primitive, conventional, center, origin, cartesian, format, symprec
 ):
     """refine geometry with spglib and write to file
 
     Parameters
     ----------
-    filename: str
+    file: str
         Input geometry file (default: gemoetry.in)
     primitive: bool
-        If True output the primitive cell structure to filename.primitive
+        If True output the primitive cell structure to file.primitive
     conventional: bool
-        If True ouput the conventional structure to filename.conventional
+        If True ouput the conventional structure to file.conventional
     center: bool
         If True center the cell to the center of mass and output to
-        filename.(primitive, conventional, or refined).center
+        file.(primitive, conventional, or refined).center
     origin: bool
         If True center the cell to the origin and output to
-        filename.(primitive, conventional, or refined).origin
+        file.(primitive, conventional, or refined).origin
     cartesian: bool
         If True use Cartesian coordinates
     format: str
@@ -35,20 +35,20 @@ def refine_geometry(
     symprec: float
         Precision for space group/symmetry operation determination
     """
-    atoms = read(filename, format=format)
+    atoms = read(file, format=format)
 
     talk(f"Perfom geometry refinement for")
 
     inform(atoms, symprec=symprec)
 
-    outfile = f"{filename}"
+    outfile = f"{file}"
 
     if primitive:
         atoms = standardize_cell(atoms, to_primitive=True, symprec=symprec)
         outfile += ".primitive"
     elif conventional:
         atoms = standardize_cell(atoms, to_primitive=False, symprec=symprec)
-        outfile = f"{filename}.conventional"
+        outfile = f"{file}.conventional"
     else:
         atoms = refine_cell(atoms, symprec=symprec)
         outfile += ".refined"

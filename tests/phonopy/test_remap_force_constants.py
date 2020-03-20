@@ -9,9 +9,9 @@ from vibes.phonopy.utils import parse_phonopy_force_constants
 
 parent = Path(__file__).parent
 assets = parent / "assets_remap"
-uc_filename = assets / "geometry.in.primitive"
-sc_filename = assets / "geometry.in.supercell"
-fc_filename = assets / "FORCE_CONSTANTS"
+uc_file = assets / "geometry.in.primitive"
+sc_file = assets / "geometry.in.supercell"
+fc_file = assets / "FORCE_CONSTANTS"
 
 frequencies = np.loadtxt(assets / "frequencies.dat")
 
@@ -19,12 +19,12 @@ frequencies = np.loadtxt(assets / "frequencies.dat")
 def test_remap():
     """test parsing and remapping force constants"""
 
-    atoms = read(sc_filename, format="aims")
+    atoms = read(sc_file, format="aims")
 
     fc = parse_phonopy_force_constants(
-        fc_filename=fc_filename,
-        primitive=uc_filename,
-        supercell=sc_filename,
+        fc_file=fc_file,
+        primitive=uc_file,
+        supercell=sc_file,
         two_dim=True,
         format="aims",
     )

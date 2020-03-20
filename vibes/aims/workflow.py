@@ -66,12 +66,12 @@ def bootstrap(ctx):
     if not atoms_to_calculate:
         raise RuntimeError("no structures to compute.")
 
-    calc = ctx.calc
+    calculator = ctx.calculator
 
     # save metadata
     metadata = input2dict(
         ctx.ref_atoms,
-        calc=calc,
+        calculator=calculator,
         settings=ctx.settings,
         primitive=ctx.primitive,
         supercell=ctx.supercell,
@@ -87,7 +87,7 @@ def bootstrap(ctx):
 
     return {
         "atoms_to_calculate": atoms_to_calculate,
-        "calculator": calc,
+        "calculator": calculator,
         "metadata": metadata,
         "workdir": ctx.workdir,
         "settings": ctx.settings,

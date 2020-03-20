@@ -115,13 +115,13 @@ def process_grun(workflow_settings, atoms, fw_settings):
     """
     grun_fws = []
     if getattr(workflow_settings.phonopy, "converge_phonons", False):
-        trajectory = (
+        trajectory_file = (
             workflow_settings.general.workdir_local + "/converged/trajectory.son"
         )
     else:
         sc_mat = get_3x3_matrix(workflow_settings.phonopy.supercell_matrix)
         natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
-        trajectory = (
+        trajectory_file = (
             workflow_settings.general.workdir_local
             + f"/sc_natoms_{natoms}/phonopy_analysis/trajectory.son"
         )
@@ -132,7 +132,7 @@ def process_grun(workflow_settings, atoms, fw_settings):
 
     grun_fws.append(
         generate_gruniesen_fd_fw(
-            workflow_settings, atoms, trajectory, constraints, fw_settings
+            workflow_settings, atoms, trajectory_file, constraints, fw_settings
         )
     )
     return grun_fws

@@ -138,7 +138,7 @@ def hash_atoms_and_calc(
     return atomshash, calchash
 
 
-def hash_traj(calculated_atoms, metadata, hash_meta=False):
+def hash_trajectory(calculated_atoms, metadata, hash_meta=False):
     """hash of a trajectory file
 
     Parameters

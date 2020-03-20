@@ -21,9 +21,9 @@ def test_hash(atoms=atoms):
     ctx = AimsContext(settings)
 
     atoms = ctx.ref_atoms
-    calc = ctx.get_calculator()
+    calculator = ctx.get_calculator()
 
-    atoms.calc = calc
+    atoms.calc = calculator
 
     atomshash = hash_atoms(atoms)
 

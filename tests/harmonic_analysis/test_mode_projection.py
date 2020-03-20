@@ -31,7 +31,7 @@ def test_all():
     primitive = read(parent / "geometry.in.primitive")
     supercell = read(parent / "geometry.in.supercell")
     force_constants = parse_tdep_forceconstant(
-        fc_filename=parent / "infile.forceconstant",
+        fc_file=parent / "infile.forceconstant",
         primitive=parent / "geometry.in.primitive",
         supercell=parent / "geometry.in.supercell",
         two_dim=True,
@@ -182,14 +182,14 @@ def _run_md(
     primitive=parent / "geometry.in.primitive",
     supercell=parent / "geometry.in.supercell",
     fc_file=parent / "infile.forceconstant",
-    trajectory=parent / "trajectory.son",
+    trajectory_file=parent / "trajectory.son",
 ):
     """ run Verlet MD, harmonic or force field """
-    trajectory = trajectory
+    trajectory_file = trajectory_file
     atoms = read(sample)
 
     force_constants = parse_tdep_forceconstant(
-        fc_filename=fc_file,
+        fc_file=fc_file,
         primitive=primitive,
         supercell=supercell,
         two_dim=True,
@@ -199,7 +199,7 @@ def _run_md(
 
     supercell = read(supercell)
     if harmonic is True:
-        calc = FCCalculator(supercell, force_constants)
+        calculator = FCCalculator(supercell, force_constants)
     else:
         raise RuntimeError("FIXME")
 
@@ -209,9 +209,9 @@ def _run_md(
 
     md = VelocityVerlet(**settings)
 
-    logger = MDLogger(atoms, trajectory, metadata=metadata, overwrite=True)
+    logger = MDLogger(atoms, trajectory_file, metadata=metadata, overwrite=True)
 
-    atoms.calc = calc
+    atoms.calc = calculator
     for _ in progressbar(range(maxsteps)):
         logger(atoms, info={"nsteps": md.nsteps, "dt": md.dt})
         md.run(1)

@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
+from vibes.filenames import filenames
 from vibes.fireworks.tasks.calculate_wrapper import T_S_LINE
 
 
@@ -16,7 +17,7 @@ def get_calc_times(workdir=".", calc_dirs=None):
     calc_times = []
 
     for direc in calc_dirs:
-        aims_out = Path(direc) / "aims.out"
+        aims_out = Path(direc) / filenames.output.aims
         if aims_out.exists():
             lines = np.array(open(str(aims_out)).readlines())
             time_line = np.where(lines == T_S_LINE)[0][0] + 1

@@ -10,6 +10,7 @@ from ase.constraints import (
 
 from vibes.aims.context import AimsContext
 from vibes.aims.setup import setup_aims
+from vibes.filenames import filenames
 from vibes.fireworks.tasks.general_py_task import get_func
 from vibes.fireworks.workflows.workflow_generator import generate_workflow
 from vibes.helpers.converters import dict2atoms, input2dict
@@ -23,14 +24,14 @@ from vibes.structure.convert import to_Atoms
 from vibes.trajectory import metadata2file, reader, step2file
 
 
-def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
+def setup_calc(settings, calculator, use_pimd_wrapper, kwargs_boot):
     """Sets up a calculation
 
     Parameters
     ----------
     settings: Settings
         The settings object for the calculation
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         Calculator used for the calculation
     use_pimd_wrapper: dict
         Dictionary to wrapper ipi parameters for calc
@@ -45,10 +46,10 @@ def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
         The updated kwargs for the bootstrapping
 
     """
-    if calc.name.lower() != "aims":
-        kwargs_boot["calculator"] = calc
+    if calculator.name.lower() != "aims":
+        kwargs_boot["calculator"] = calculator
     else:
-        settings["control"] = calc.parameters.copy()
+        settings["control"] = calculator.parameters.copy()
         if "species_dir" in settings.control:
             sd = settings["control"].pop("species_dir")
             settings["basissets"] = AttributeDict({"default": sd.split("/")[-1]})
@@ -62,7 +63,7 @@ def setup_calc(settings, calc, use_pimd_wrapper, kwargs_boot):
     return settings, kwargs_boot
 
 
-def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
+def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calculator):
     """Sets up the phonon outputs
 
     Parameters
@@ -75,7 +76,7 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
         key prefix for the task
     atoms: ase.atoms.Atoms
         ASE Atoms object for the material
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         Calculator used for the calculation
 
     Returns
@@ -85,7 +86,7 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
     """
     settings, kwargs_boot = setup_calc(
         settings,
-        calc,
+        calculator,
         ("use_pimd_wrapper" in settings and settings["use_pimd_wrapper"]),
         {},
     )
@@ -95,8 +96,8 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
 
     ctx = PhonopyContext(settings=settings)
     ctx.settings.atoms = atoms.copy()
-    if calc is not None and calc.name.lower() != "aims":
-        ctx.settings.atoms.set_calculator(calc)
+    if calculator is not None and calculator.name.lower() != "aims":
+        ctx.settings.atoms.set_calculator(calculator)
     else:
         aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.workdir)
         # set reference structure for aims calculation and make sure forces are computed
@@ -104,8 +105,8 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
             atoms, get_3x3_matrix(ctx.settings.obj.supercell_matrix)
         )
         aims_ctx.settings.obj["compute_forces"] = True
-        calc = setup_aims(aims_ctx, False, False)
-        ctx.settings.atoms.set_calculator(calc)
+        calculator = setup_aims(aims_ctx, False, False)
+        ctx.settings.atoms.set_calculator(calculator)
 
     # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
     outputs = ctx.bootstrap()
@@ -118,7 +119,12 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calc):
 
 
 def bootstrap_phonon(
-    atoms, calc, kpt_density=None, ph_settings=None, ph3_settings=None, fw_settings=None
+    atoms,
+    calculator,
+    kpt_density=None,
+    ph_settings=None,
+    ph3_settings=None,
+    fw_settings=None,
 ):
     """Creates a Settings object and passes it to the bootstrap function
 
@@ -126,7 +132,7 @@ def bootstrap_phonon(
     ----------
     atoms: ase.atoms.Atoms
         Atoms object of the primitive cell
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         Calculator for the force calculations
     kpt_density: float
         k-point density for the MP-Grid
@@ -152,10 +158,14 @@ def bootstrap_phonon(
     at = atoms.copy()
     at.set_calculator(None)
     if ph_settings:
-        outputs.append(setup_phonon_outputs(ph_settings, settings, "ph", at, calc))
+        outputs.append(
+            setup_phonon_outputs(ph_settings, settings, "ph", at, calculator)
+        )
 
     if ph3_settings:
-        outputs.append(setup_phonon_outputs(ph3_settings, settings, "ph3", at, calc))
+        outputs.append(
+            setup_phonon_outputs(ph3_settings, settings, "ph3", at, calculator)
+        )
 
     if kpt_density:
         for out in outputs:
@@ -163,22 +173,22 @@ def bootstrap_phonon(
     return outputs
 
 
-def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
+def collect_to_trajectory(workdir, trajectory_file, calculated_atoms, metadata):
     """Collects forces to a single trajectory file
 
     Parameters
     ----------
         workdir: str
             working directory for the task
-        trajectory: str
+        trajectory_file: str
             file name for the trajectory file
         calculated_atoms: list of dicts
             Results of the force calculations
         metadata: dict
             metadata for the phonon calculations
     """
-    traj = Path(workdir) / trajectory
-    traj.parent.mkdir(exist_ok=True, parents=True)
+    trajectory_outfile = Path(workdir) / trajectory_file
+    trajectory_outfile.parent.mkdir(exist_ok=True, parents=True)
     if "Phonopy" in metadata:
         for el in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
             el["number"] = int(el["number"])
@@ -189,7 +199,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
             for el2 in el1["second_atoms"]:
                 el2["number"] = int(el2["number"])
 
-    metadata2file(metadata, str(traj))
+    metadata2file(metadata, str(trajectory_outfile))
     if isinstance(calculated_atoms[0], dict):
         temp_atoms = []
         for atoms_dict in calculated_atoms:
@@ -214,7 +224,7 @@ def collect_to_trajectory(workdir, trajectory, calculated_atoms, metadata):
         )
     for atoms in calculated_atoms:
         if atoms:
-            step2file(atoms, atoms.calc, str(traj))
+            step2file(atoms, atoms.calc, str(trajectory_outfile))
 
 
 def phonon_postprocess(func_path, phonon_times, kpt_density, **kwargs):
@@ -280,14 +290,13 @@ def prepare_gruneisen(settings, primitive, vol_factor):
             dist_settings[sec_key] = val
 
     file_original = dist_settings.geometry.pop("file", None)
-    dist_primitive.write(
-        "geometry.in.temp", format="aims", geo_constrain=True, scaled=True
-    )
-    dist_settings.geometry["file"] = "geometry.in.temp"
+    outfile = Path(filenames.atoms + ".temp")
+    dist_primitive.write(outfile, format="aims", geo_constrain=True, scaled=True)
+    dist_settings.geometry["file"] = outfile.name
     dist_primitive.calc = setup_aims(
         ctx=AimsContext(settings=dist_settings), verbose=False, make_species_dir=False
     )
-    Path("geometry.in.temp").unlink()
+    outfile.unlink()
     dist_settings.geometry["file"] = file_original
 
     dist_settings.atoms = dist_primitive
@@ -295,14 +304,14 @@ def prepare_gruneisen(settings, primitive, vol_factor):
     return generate_workflow(dist_settings, dist_primitive, launchpad_yaml=None)
 
 
-def setup_gruneisen(settings, trajectory, constraints, _queueadapter, kpt_density):
+def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_density):
     """Set up the finite difference gruniesen parameter calculations
 
     Parameters
     ----------
     settings: dict
         The workflow settings
-    trajectory: str
+    trajectory_file: str
         The trajectory file for the equilibrium phonon calculation
     constraints: list of dict
         list of relevant constraint dictionaries for relaxations
@@ -330,8 +339,8 @@ def setup_gruneisen(settings, trajectory, constraints, _queueadapter, kpt_densit
         settings["phonopy_qadapter"] = _queueadapter
 
     # Get equilibrium phonon
-    eq_phonon = postprocess(trajectory)
-    _, metadata = reader(trajectory, get_metadata=True)
+    eq_phonon = postprocess(trajectory_file)
+    _, metadata = reader(trajectory_file, get_metadata=True)
 
     settings["phonopy"]["supercell_matrix"] = eq_phonon.get_supercell_matrix()
     settings["phonopy"]["symprec"] = metadata["Phonopy"].get("symprec", 1e-5)

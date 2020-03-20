@@ -3,8 +3,10 @@ from pathlib import Path
 
 import click
 
+from vibes.filenames import filenames
+
 from .misc import ClickAliasedGroup as AliasedGroup
-from .misc import complete_filenames
+from .misc import complete_files
 
 
 @click.command(cls=AliasedGroup)
@@ -13,7 +15,7 @@ def output():
 
 
 @output.command(aliases=["md"])
-@click.argument("trajectory", default="trajectory.son", type=complete_filenames)
+@click.argument("trajectory", default=filenames.trajectory, type=complete_files)
 @click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
 @click.option("-d", "--discard", type=int, help="discard this many steps")
 @click.option("--minimal", is_flag=True, help="only write necessary minimum")
@@ -65,7 +67,7 @@ def molecular_dynamics(
 
 
 @output.command("phonopy")
-@click.argument("trajectory", default="trajectory.son", type=complete_filenames)
+@click.argument("trajectory", default=filenames.trajectory, type=complete_files)
 # necessary?
 @click.option("--q_mesh", nargs=3, default=None)
 @click.option("-od", "--output_directory")
@@ -77,7 +79,7 @@ def molecular_dynamics(
 @click.option("-path", "--bz_path", type=str)
 @click.option("--animate", is_flag=True, help="print animation files for special kpts")
 @click.option("--animate_q", nargs=3, multiple=True, type=float, help="animation at q")
-@click.option("--born", type=complete_filenames)
+@click.option("--born", type=complete_files)
 @click.option("--full", is_flag=True)
 @click.option("--remap_fc", is_flag=True)
 @click.option("--sum_rules", is_flag=True)
@@ -111,7 +113,7 @@ def phonopy_output(
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
     phonon = postprocess(
-        trajectory=trajectory,
+        trajectory_file=trajectory,
         born_charges_file=born,
         calculate_full_force_constants=remap_fc,
         enforce_sum_rules=sum_rules,

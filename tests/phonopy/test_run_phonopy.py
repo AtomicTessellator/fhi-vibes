@@ -3,9 +3,9 @@
 from pathlib import Path
 
 import pytest
-
 from ase.build import bulk
 from ase.calculators.emt import EMT
+
 from vibes import Settings
 from vibes.helpers.paths import cwd
 from vibes.phonopy.context import PhonopyContext
@@ -22,7 +22,7 @@ parent = Path(__file__).parent
 
 atoms = bulk("Al")
 
-calc = EMT()
+calculator = EMT()
 
 settings = Settings(parent / "phonopy.in")
 ctx = PhonopyContext(settings=settings)

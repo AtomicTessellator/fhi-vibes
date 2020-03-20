@@ -30,7 +30,7 @@ def atoms_calculate_task(
     func_kwargs,
     func_fw_out_kwargs,
     atoms_dict,
-    calc_dict,
+    calculator_dict,
     *args,
     fw_settings=None,
     walltime=None,
@@ -52,7 +52,7 @@ def atoms_calculate_task(
         Keyword arguments for fw_out function
     atoms_dict: dict
         A dictionary describing the ASE Atoms object
-    calc_dict: dict
+    calculator_dict: dict
         A dictionary describing the ASE Calculator
     args: list
         a list of function arguments passed to func
@@ -84,18 +84,18 @@ def atoms_calculate_task(
 
     default_settings = TaskSettings(name=None, settings=Settings(DEFAULT_CONFIG_FILE))
 
-    calc_dict["command"] = default_settings.machine.aims_command
-    if "species_dir" in calc_dict["calculator_parameters"]:
-        calc_dict["calculator_parameters"]["species_dir"] = (
+    calculator_dict["command"] = default_settings.machine.aims_command
+    if "species_dir" in calculator_dict["calculator_parameters"]:
+        calculator_dict["calculator_parameters"]["species_dir"] = (
             str(default_settings.machine.basissetloc)
             + "/"
-            + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
+            + calculator_dict["calculator_parameters"]["species_dir"].split("/")[-1]
         )
 
-    if "results" in calc_dict:
-        del calc_dict["results"]
+    if "results" in calculator_dict:
+        del calculator_dict["results"]
 
-    atoms = dict2atoms(atoms_dict.copy(), calc_dict, False)
+    atoms = dict2atoms(atoms_dict.copy(), calculator_dict, False)
 
     try:
         func_timer = Timer()
@@ -113,7 +113,7 @@ def atoms_calculate_task(
     os.chdir(start_dir)
     fw_acts = func_fw_out(
         atoms_dict,
-        calc_dict,
+        calculator_dict,
         outputs,
         func_path,
         func_fw_out_path,

@@ -234,12 +234,12 @@ def print_status(
     )
 
 
-def get_relaxation_info(filenames):
+def get_relaxation_info(files):
     """print information about relaxation performed with FHIaims
 
     Parameters
     ----------
-    filenames: list of str
+    files: list of str
         The file paths of the aims.out files to analyze
     """
     init, n_rel, converged, abort = 4 * (None,)
@@ -257,7 +257,7 @@ def get_relaxation_info(filenames):
     )
 
     converged, abort = False, False
-    for infile in filenames:
+    for infile in files:
         with open(infile) as f:
             # Check optimizer
             optimizer = get_optimizer(f)

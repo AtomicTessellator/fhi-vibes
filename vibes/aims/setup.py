@@ -107,7 +107,7 @@ def setup_aims(ctx, verbose=True, make_species_dir=True):
         verbose (bool): inform about the calculator details
 
     Returns:
-        calc: Calculator object for the calculation
+        calculator: Calculator object for the calculation
     """
 
     settings = ctx.settings
@@ -155,6 +155,6 @@ def setup_aims(ctx, verbose=True, make_species_dir=True):
     msg = ["settings:", *[f"  {k}: {v}" for k, v in aims_settings.items()]]
     talk(msg, verbose=verbose)
 
-    calc = Aims(**aims_settings)
+    calculator = Aims(**aims_settings)
 
-    return calc
+    return calculator

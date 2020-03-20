@@ -2,6 +2,7 @@
 import numpy as np
 from fireworks import Firework
 
+from vibes.filenames import filenames
 from vibes.fireworks.tasks.postprocess.phonons import time2str
 from vibes.fireworks.tasks.task_spec import TaskSpec
 from vibes.fireworks.tasks.utility_tasks import update_calc
@@ -69,7 +70,7 @@ def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=T
 def generate_firework(
     task_spec_list=None,
     atoms=None,
-    calc=None,
+    calculator=None,
     fw_settings=None,
     atoms_calc_from_spec=False,
     update_calc_settings=None,
@@ -89,7 +90,7 @@ def generate_firework(
     atoms: ase.atoms.Atoms, dictionary or str
         If not atoms_calc_from_spec then this must be an ASE Atoms object or a dict
         If atoms_calc_from_spec then this must be a key str
-    calc: ase.calculators.calulator.Calculator, dictionary or str
+    calculator: ase.calculators.calulator.Calculator, dictionary or str
         If not atoms_calc_from_spec then this must be an ASE Calculator or a dict
         If atoms_calc_from_spec then this must be a key str
     fw_settings: dict
@@ -162,22 +163,24 @@ def generate_firework(
     setup_tasks = []
     if atoms:
         if not atoms_calc_from_spec:
-            # Preform calc updates here
+            # Preform calculator updates here
             at = atoms2dict(atoms, add_constraints=True)
 
-            if not isinstance(calc, str):
+            if not isinstance(calculator, str):
                 if "k_grid_density" in update_calc_settings:
-                    if not isinstance(calc, dict):
+                    if not isinstance(calculator, dict):
                         update_k_grid(
-                            atoms, calc, update_calc_settings["k_grid_density"]
+                            atoms, calculator, update_calc_settings["k_grid_density"]
                         )
                     else:
                         recipcell = np.linalg.pinv(at["cell"]).transpose()
-                        calc = update_k_grid_calc_dict(
-                            calc, recipcell, update_calc_settings["k_grid_density"]
+                        calculator = update_k_grid_calc_dict(
+                            calculator,
+                            recipcell,
+                            update_calc_settings["k_grid_density"],
                         )
 
-                cl = calc2dict(calc)
+                cl = calc2dict(calculator)
 
                 for key, val in update_calc_settings.items():
                     if key not in ("k_grid_density", "kgrid"):
@@ -189,17 +192,17 @@ def generate_firework(
                 else:
                     fw_settings["spec"]["kgrid"] = None
             else:
-                cl = calc
+                cl = calculator
                 setup_tasks.append(
-                    generate_update_calc_task(calc, update_calc_settings)
+                    generate_update_calc_task(calculator, update_calc_settings)
                 )
         else:
             # Add tasks to update calculator parameters
             at = atoms
-            cl = calc
+            cl = calculator
             if update_calc_settings.keys():
                 setup_tasks.append(
-                    generate_update_calc_task(calc, update_calc_settings)
+                    generate_update_calc_task(calculator, update_calc_settings)
                 )
 
             setup_tasks.append(generate_mod_calc_task(at, cl, "calculator", "kgrid"))
@@ -292,7 +295,7 @@ def generate_kgrid_fw(workflow, atoms, fw_settings):
 
     func_kwargs = {
         "workdir": f"{workflow.general.workdir_cluster}/{fw_settings['fw_name']}/",
-        "trajectory": "trajectory.son",
+        "trajectory_file": filenames.trajectory,
         "dfunc_min": workflow.general.get("kgrid_dfunc_min", 1e-12),
     }
 
@@ -396,9 +399,9 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
         and "spec" in fw_settings
         and "prev_dos_fp" in fw_settings["spec"]
     ):
-        ph, _, scs = preprocess(atoms, workflow[typ]["supercell_matrix"])
+        phonon, _, scs = preprocess(atoms, workflow[typ]["supercell_matrix"])
         qadapter["walltime"] = time2str(str2time(qadapter["walltime"]) * len(scs))
-        if len(atoms) * np.linalg.det(ph.get_supercell_matrix()) > 200:
+        if len(atoms) * np.linalg.det(phonon.get_supercell_matrix()) > 200:
             update_settings["use_local_index"] = True
             update_settings["load_balancing"] = True
 
@@ -717,7 +720,9 @@ def generate_aims_fw(workflow, atoms, fw_settings):
     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, True)
 
 
-def generate_gruniesen_fd_fw(workflow, atoms, trajectory, constraints, fw_settings):
+def generate_gruniesen_fd_fw(
+    workflow, atoms, trajectory_file, constraints, fw_settings
+):
     """Generate a FireWork to calculate the Gruniesen Parameter with finite differences
 
     Parameters
@@ -726,7 +731,7 @@ def generate_gruniesen_fd_fw(workflow, atoms, trajectory, constraints, fw_settin
         The Workflow Settings
     atoms: ase.atoms.Atoms
         The initial ASE Atoms object of the primitive cell
-    trajecotry: str
+    trajecotry_file: str
         Path the the equilibrium phonon trajectory
     constraints: list of dict
         list of relevant constraint dictionaries for relaxations
@@ -742,7 +747,7 @@ def generate_gruniesen_fd_fw(workflow, atoms, trajectory, constraints, fw_settin
     atoms_hash = hash_atoms_and_calc(atoms)[0]
     fw_settings["fw_name"] = f"gruniesen_setup_{chem_form}_{atoms_hash}"
 
-    task_spec = gen_gruniesen_task_spec(workflow, trajectory, constraints)
+    task_spec = gen_gruniesen_task_spec(workflow, trajectory_file, constraints)
     return generate_firework(task_spec, None, None, fw_settings.copy())
 
 

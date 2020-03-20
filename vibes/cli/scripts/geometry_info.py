@@ -14,14 +14,14 @@ def main():
     parser.add_argument("-s", "--short", action="store_true", help="Only print name")
     args = parser.parse_args()
 
-    fname = args.geom
-    cell = read(fname, format=args.format)
+    file = args.geom
+    cell = read(file, format=args.format)
 
     if args.short:
         sds = get_symmetry_dataset(cell)
         print(get_sysname(cell, sds))
     else:
-        inform(cell, fname=fname, symprec=args.tolerance, verbosity=0)
+        inform(cell, file=file, symprec=args.tolerance, verbosity=0)
 
 
 if __name__ == "__main__":

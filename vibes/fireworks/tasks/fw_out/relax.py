@@ -9,7 +9,14 @@ from vibes.helpers.k_grid import k2d
 
 
 def check_aims_complete(
-    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+    atoms,
+    calculator,
+    outputs,
+    func,
+    func_fw_out,
+    func_kwargs,
+    func_fw_kwargs,
+    fw_settings,
 ):
     """A function that checks if a relaxation is converged (if outputs is True)
 
@@ -20,7 +27,7 @@ def check_aims_complete(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The original calculator
     outputs: ase.atoms.Atoms
         The geometry of the final relaxation step
@@ -46,7 +53,7 @@ def check_aims_complete(
         If the FHI-Aims calculation fails
     """
     completed, calc_number, new_atoms_dict, walltime = check_aims(
-        atoms, calc, outputs, **func_kwargs
+        atoms, calculator, outputs, **func_kwargs
     )
 
     update_spec = {}
@@ -55,7 +62,7 @@ def check_aims_complete(
         if "out_spec_atoms" in fw_settings:
             update_spec[fw_settings["out_spec_atoms"]] = new_atoms_dict
         if "out_spec_calc" in fw_settings:
-            update_spec[fw_settings["out_spec_calc"]] = calc
+            update_spec[fw_settings["out_spec_calc"]] = calculator
 
         return FWAction(update_spec=update_spec)
 
@@ -63,15 +70,15 @@ def check_aims_complete(
     if "in_spec_atoms" in fw_settings:
         update_spec[fw_settings["in_spec_atoms"]] = new_atoms_dict
     if "in_spec_calc" in fw_settings:
-        update_spec[fw_settings["in_spec_calc"]] = calc
+        update_spec[fw_settings["in_spec_calc"]] = calculator
     update_spec["kgrid"] = k2d(
-        dict2atoms(new_atoms_dict), calc["calculator_parameters"]["k_grid"]
+        dict2atoms(new_atoms_dict), calculator["calculator_parameters"]["k_grid"]
     )
-    calc.parameters["walltime"] = walltime
+    calculator.parameters["walltime"] = walltime
     if fw_settings and "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
         fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(walltime)
     func_kwargs["walltime"] = walltime
-    del calc["results"]
+    del calculator["results"]
     fw_settings["fw_name"] = fw_settings["fw_base_name"] + str(calc_number)
     fw_settings["spec"].update(update_spec)
     fw_settings["from_db"] = False
@@ -84,7 +91,7 @@ def check_aims_complete(
         func_fw_out=func_fw_out,
         func_kwargs=func_kwargs,
         atoms=new_atoms_dict,
-        calc=calc,
+        calculator=calculator,
         func_fw_out_kwargs=func_fw_kwargs,
         fw_settings=fw_settings,
     )

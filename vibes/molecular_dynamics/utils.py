@@ -67,14 +67,14 @@ class FCCalculator(Calculator):
 class MDLogger:
     """ MD logger class to write vibes trajectory files """
 
-    def __init__(self, atoms, trajectory, metadata=None, overwrite=False):
+    def __init__(self, atoms, trajectory_file, metadata=None, overwrite=False):
         """initialize
 
         Parameters
         ----------
         atoms: ase.atoms.Atoms
             Atoms of the reference structure
-        trajectory: str or Path
+        trajectory_file: str or Path
             path to the trajectory file
         metadata: dict
             metadata for the MD run
@@ -85,12 +85,14 @@ class MDLogger:
         if not metadata:
             metadata = {}
 
-        self.trajectory = trajectory
-        if Path(trajectory).exists() and overwrite:
-            Path(trajectory).unlink()
-            print(f"** {trajectory} deleted.")
+        self.trajectory_file = trajectory_file
+        if Path(trajectory_file).exists() and overwrite:
+            Path(trajectory_file).unlink()
+            print(f"** {trajectory_file} deleted.")
 
-        son.dump({**metadata, **input2dict(atoms)}, self.trajectory, is_metadata=True)
+        son.dump(
+            {**metadata, **input2dict(atoms)}, self.trajectory_file, is_metadata=True
+        )
 
     def __call__(self, atoms, info=None):
         """Log the current step to the trajectory
@@ -116,4 +118,4 @@ class MDLogger:
             },
         }
 
-        son.dump(dct, self.trajectory)
+        son.dump(dct, self.trajectory_file)

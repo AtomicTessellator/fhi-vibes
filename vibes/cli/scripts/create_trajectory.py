@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 
 from ase.io import read
 
+from vibes.filenames import filenames
 from vibes.helpers.converters import input2dict
 from vibes.trajectory import Trajectory
 
@@ -16,7 +17,7 @@ def main():
     parser.add_argument("-sc", help="Add the respective supercell")
     parser.add_argument("--output_format", default="aims-output")
     parser.add_argument("--input_format", default="aims")
-    parser.add_argument("-fn", "--filename", default="trajectory.son")
+    parser.add_argument("-fn", "--file", default=filenames.trajectory)
     args = parser.parse_args()
 
     trajectory = Trajectory()
@@ -39,7 +40,7 @@ def main():
         atoms = read(args.sc, format=args.input_format)
         trajectory.supercell = atoms
 
-    trajectory.write(file=args.filename)
+    trajectory.write(file=args.file)
 
 
 if __name__ == "__main__":

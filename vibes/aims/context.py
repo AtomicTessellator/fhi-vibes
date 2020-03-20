@@ -90,7 +90,7 @@ class AimsContext:
             If file in self.settings.geometry.files does not exist
         """
         # find geometries
-        filenames = []
+        files = []
         s = self.settings
         if "file" in s.geometry:
             try:
@@ -102,23 +102,23 @@ class AimsContext:
             except (AssertionError, StopIteration):
                 msg = f"Please inspect [geometry] in {self.settings.settings_file}"
                 raise click.FileError(s.geometry["file"], msg)
-            filenames.append(path)
+            files.append(path)
             self.settings.geometry["file"] = str(path)
 
         if "files" in s.geometry:
             paths = sorted(Path().glob(s.geometry.files))
             for path in paths:
                 assert path.exists(), path
-            filenames.extend(paths)
+            files.extend(paths)
 
-        return filenames
+        return files
 
     @property
     def atoms_to_calculate(self):
         """The atoms that are supposed to be computed"""
         if not self._atoms_to_calculate:
-            filenames = self.geometry_files
-            atoms_list = [read(file, format="aims") for file in filenames]
+            files = self.geometry_files
+            atoms_list = [read(file, format="aims") for file in files]
             self._atoms_to_calculate = atoms_list
         return self._atoms_to_calculate
 
@@ -173,7 +173,7 @@ class AimsContext:
         return setup_aims(self)
 
     @property
-    def calc(self):
+    def calculator(self):
         """return ASE calculator based on this context"""
         return self.get_calculator()
 

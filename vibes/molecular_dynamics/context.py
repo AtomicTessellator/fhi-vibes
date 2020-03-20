@@ -11,6 +11,7 @@ from ase.md.md import MolecularDynamics
 
 from vibes import son
 from vibes.aims.context import AimsContext
+from vibes.filenames import filenames
 from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict
 from vibes.settings import TaskSettings
@@ -43,7 +44,7 @@ class MDSettings(TaskSettings):
 class MDContext:
     """context for phonopy calculation"""
 
-    def __init__(self, settings, workdir=None, trajectory=None):
+    def __init__(self, settings, workdir=None, trajectory_file=None):
         """Initialization
 
         Parameters
@@ -52,7 +53,7 @@ class MDContext:
             settings for the MD Workflow
         workdir: str or Path
             Working directory for the MD workflow
-        trajectory: str or Path
+        trajectory_file: str or Path
             Path to output trajectory
         """
         self.settings = MDSettings(settings)
@@ -65,13 +66,13 @@ class MDContext:
         # workdir has to exist
         Path(self.workdir).mkdir(exist_ok=True)
 
-        if trajectory:
-            self.trajectory = Path(trajectory)
+        if trajectory_file:
+            self.trajectory_file = Path(trajectory_file)
         else:
-            self.trajectory = Path(self.workdir) / "trajectory.son"
+            self.trajectory_file = Path(self.workdir) / filenames.trajectory
 
         self._atoms = None
-        self._calc = None
+        self._calculator = None
         self._md = None
         self._primitive = None
         self._supercell = None
@@ -111,9 +112,9 @@ class MDContext:
         self._atoms = atoms
 
     @property
-    def calc(self):
+    def calculator(self):
         """the calculator for running the computation"""
-        if not self._calc:
+        if not self._calculator:
             # create aims from context and make sure forces are computed
             aims_ctx = AimsContext(settings=self.settings, workdir=self.workdir)
             aims_ctx.settings.obj["compute_forces"] = True
@@ -124,15 +125,15 @@ class MDContext:
                 talk(msg, prefix=_prefix)
                 aims_ctx.settings.obj["compute_heat_flux"] = True
 
-            self._calc = aims_ctx.get_calculator()
+            self._calculator = aims_ctx.get_calculator()
 
-        return self._calc
+        return self._calculator
 
-    @calc.setter
-    def calc(self, calc):
+    @calculator.setter
+    def calculator(self, calculator):
         """set the calculator"""
-        assert issubclass(calc.__class__, Calculator)
-        self._calc = calc
+        assert issubclass(calculator.__class__, Calculator)
+        self._calculator = calculator
 
     @property
     def md(self):
@@ -217,7 +218,7 @@ class MDContext:
         # other stuff
         dct = input2dict(
             self.atoms,
-            calc=self.calc,
+            calculator=self.calculator,
             primitive=self.primitive,
             supercell=self.supercell,
         )
@@ -226,7 +227,7 @@ class MDContext:
 
     def resume(self):
         """resume from trajectory"""
-        prepare_from_trajectory(self.atoms, self.md, self.trajectory)
+        prepare_from_trajectory(self.atoms, self.md, self.trajectory_file)
 
     def run(self, timeout=None):
         """run the context workflow"""
@@ -234,13 +235,13 @@ class MDContext:
         run_md(self, timeout=timeout)
 
 
-def prepare_from_trajectory(atoms, md, trajectory):
+def prepare_from_trajectory(atoms, md, trajectory_file):
     """Take the last step from trajectory and initialize atoms + md accordingly"""
 
-    trajectory = Path(trajectory)
-    if trajectory.exists():
+    trajectory_file = Path(trajectory_file)
+    if trajectory_file.exists():
         try:
-            last_atoms = son.last_from(trajectory)
+            last_atoms = son.last_from(trajectory_file)
         except IndexError:
             warn(f"** trajectory lacking the first step, please CHECK!", level=2)
         assert "info" in last_atoms["atoms"]
@@ -248,8 +249,8 @@ def prepare_from_trajectory(atoms, md, trajectory):
 
         atoms.set_positions(last_atoms["atoms"]["positions"])
         atoms.set_velocities(last_atoms["atoms"]["velocities"])
-        talk(f"Resume from step {md.nsteps} in {trajectory}", prefix=_prefix)
+        talk(f"Resume from step {md.nsteps} in {trajectory_file}", prefix=_prefix)
         return True
 
-    talk(f"** {trajectory} does not exist, nothing to prepare", prefix=_prefix)
+    talk(f"** {trajectory_file} does not exist, nothing to prepare", prefix=_prefix)
     return False
