@@ -148,10 +148,10 @@ def get_relaxation_info(files):
 
 
 @utils.command(aliases=["samples"])
-@click.argument("file", type=complete_files)
+@click.argument("filename", type=complete_files)
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
-@click.option("-fc", "--force_constants", type=complete_files)
+@click.option("-fc", "--force_constants_file", type=complete_files)
 @click.option("--rattle", type=float, help="atoms.rattle(stdev=X) (ASE default: 0.001)")
 @click.option("--quantum", is_flag=True, help="use quantum distribution function")
 @click.option("--deterministic", is_flag=True, help="create a deterministic sample")
@@ -161,12 +161,12 @@ def get_relaxation_info(files):
 @click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
 @click.option("--propagate", type=float, help="propagate this many fs")
 @click.option("--format", default="aims")
-def create_samples(**kwargs):
+def create_samples(filename, **kwargs):
     """create samples from geometry in FILENAME"""
     from .scripts.create_samples import create_samples
 
     click.echo("vibes CLI: create_samples")
-    create_samples(**kwargs)
+    create_samples(atoms_file=filename, **kwargs)
 
 
 @utils.command("suggest_k_grid")

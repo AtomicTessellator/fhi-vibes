@@ -20,32 +20,30 @@ def generate_samples(
     rattle=False,
     quantum=False,
     deterministic=False,
-    plus_minus=False,
+    zacharias=False,
     gauge_eigenvectors=False,
     ignore_negative=False,
     sobol=False,
     random_seed=None,
     propagate=None,
-    format=None,
     failfast=False,
 ):
     """create samples for Monte Carlo sampling
 
     Args:
-        geometry: input geometry file
+        atoms: the structure
         temperature: temperature in Kelvin
         n_samples: number of samples to create (default: 1)
-        force_constants: file holding force constants for phonon rattle
-        rattle: atoms.rattle
+        force_constants: numpy array w/ force constants
+        rattle: use `atoms.rattle`
         quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
         deterministic: create sample deterministically
-        plus_minus: use +/-
+        zacharias: use +/-
         gauge_eigenvectors: make largest entry positive
         ignore_negative: don't check for negative modes
         sobol: Use sobol numbers for the sampling
         random_seed: seed for random number generator
         propagate: propagate atoms according to velocities for this many fs
-        format: The ASE file format for geometry files
     """
 
     inform(atoms, verbosity=0)
@@ -89,7 +87,7 @@ def generate_samples(
             "failfast": failfast,
             "rng": rng,
             "deterministic": deterministic,
-            "plus_minus": plus_minus,
+            "plus_minus": zacharias,
             "gauge_eigenvectors": gauge_eigenvectors,
             "ignore_negative": ignore_negative,
         }
@@ -104,8 +102,8 @@ def generate_samples(
     info_str += [
         f"quantum:             {quantum}",
         f"deterministic:       {deterministic}",
-        f"plus_minus:          {plus_minus}",
-        f"gauge_eigenvectors:  {gauge_eigenvectors or plus_minus}",
+        f"plus_minus:          {zacharias}",
+        f"gauge_eigenvectors:  {gauge_eigenvectors or zacharias}",
         f"Sobol numbers:       {sobol}",
         f"Random seed:         {seed}",
     ]
@@ -157,72 +155,38 @@ def generate_samples(
 
 
 def create_samples(
-    file,
-    temperature,
-    n_samples,
-    force_constants,
-    rattle,
-    quantum,
-    deterministic,
-    gauge_eigenvectors,
-    zacharias,
-    ignore_negative,
-    sobol,
-    random_seed,
-    propagate,
-    format,
+    atoms_file, temperature=None, force_constants_file=None, format="aims", **kwargs,
 ):
-    """create samples for Monte Carlo sampling
+    """FileIO frontend to `generate_samples`
 
     Args:
-        file: input geometry file
+        atoms_file: input geometry file
         temperature: temperature in Kelvin
-        n_samples: number of samples to create (default: 1)
-        force_constants: file of the file holding force constants for phonon rattle
-        mc_rattle: hiphive mc rattle
-        quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
-        deterministic: create sample deterministically
-        gauge_eigenvectors: gauge eigenvectors
-        zacharias: create sample deterministically and gauge eigenvectors
-        sobol: Use sobol numbers for the sampling
-        random_seed: seed for random number generator
+        force_constants_file: file holding force constants
         format: The ASE file format for geometry files
-        return_samples (bool): If True do not write the samples, but return them
+        kwargs: kwargs for `generate_samples`
     """
 
-    atoms = read(file, format=format)
+    atoms = read(atoms_file, format=format)
     inform(atoms, verbosity=0)
 
     fc = None
-    if force_constants is not None:
+    if force_constants_file is not None:
         # if 3Nx3N shaped txt file:
         try:
-            fc = np.loadtxt(force_constants)
+            fc = np.loadtxt(force_constants_file)
         except ValueError:
             exit("other force constants not yet implemented")
-        talk(f"\nUse force constants from {force_constants} to prepare samples")
+        talk(f"\nUse force constants from {force_constants_file} to prepare samples")
 
     sample_list = generate_samples(
-        atoms,
-        temperature,
-        n_samples,
-        fc,
-        rattle,
-        quantum,
-        deterministic,
-        zacharias,
-        gauge_eigenvectors,
-        ignore_negative,
-        sobol,
-        random_seed,
-        propagate,
-        format,
+        atoms, temperature=temperature, force_constants=fc, **kwargs
     )
 
     for ii, sample in enumerate(sample_list):
         talk(f"Sample {ii:3d}:")
-        out_file = f"{file}.{int(temperature):04d}K"
-        if n_samples > 1:
+        out_file = f"{atoms_file}.{int(temperature):04d}K"
+        if len(sample_list) > 1:
             out_file += f".{ii:03d}"
 
         info_str = sample.info.pop("info_str")

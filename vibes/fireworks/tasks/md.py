@@ -92,7 +92,7 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
                 rattle=False,
                 quantum=False,
                 deterministic=False,
-                plus_minus=False,
+                zacharias=False,
                 gauge_eigenvectors=False,
                 ignore_negative=True,
                 sobol=False,
