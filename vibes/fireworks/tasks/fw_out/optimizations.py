@@ -11,7 +11,14 @@ from vibes.helpers.converters import calc2dict
 
 
 def check_kgrid_opt_completion(
-    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+    atoms,
+    calculator,
+    outputs,
+    func,
+    func_fw_out,
+    func_kwargs,
+    func_fw_kwargs,
+    fw_settings,
 ):
     """A function that checks if an MD like calculation is converged (if outputs is True)
 
@@ -22,7 +29,7 @@ def check_kgrid_opt_completion(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The original calculator
     outputs: list (bool, float, ase.calculators.calulator.Calculator)
         (Converged?, current k-point density,current ASE Calculator)
@@ -42,8 +49,8 @@ def check_kgrid_opt_completion(
     FWAction
         Either another k-grid optimization step, or an updated spec
     """
-    trajectory, atoms, calc = load_last_step(
-        atoms, calc, func_kwargs["workdir"], func_kwargs["trajectory"]
+    trajectory, atoms, calculator = load_last_step(
+        atoms, calculator, func_kwargs["workdir"], func_kwargs["trajectory_file"]
     )
 
     if outputs[0]:
@@ -65,7 +72,7 @@ def check_kgrid_opt_completion(
         func_fw_out=func_fw_out,
         func_kwargs=func_kwargs,
         atoms=atoms,
-        calc=outputs[2],
+        calculator=outputs[2],
         func_fw_out_kwargs=func_fw_kwargs,
         fw_settings=fw_settings,
     )

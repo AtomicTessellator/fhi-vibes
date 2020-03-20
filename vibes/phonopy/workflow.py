@@ -62,21 +62,21 @@ def bootstrap(ctx, dry=False):
 
     # if calculator not given, create an aims context for this calculation
     if ctx.settings.atoms and ctx.settings.atoms.calc:
-        calc = ctx.settings.atoms.calc
+        calculator = ctx.settings.atoms.calc
     else:
         aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.workdir)
         # set reference structure for aims calculation and make sure forces are computed
         aims_ctx.ref_atoms = supercell
         aims_ctx.settings.obj["compute_forces"] = True
 
-        calc = setup_aims(aims_ctx)
+        calculator = setup_aims(aims_ctx)
 
     # save metadata
-    metadata = metadata2dict(phonon, calc)
+    metadata = metadata2dict(phonon, calculator)
 
     return {
         "atoms_to_calculate": scs,
-        "calculator": calc,
+        "calculator": calculator,
         "metadata": metadata,
         "workdir": ctx.workdir,
         "settings": ctx.settings,

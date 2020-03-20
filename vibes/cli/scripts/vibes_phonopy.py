@@ -5,32 +5,33 @@ from pathlib import Path
 
 import numpy as np
 
+from vibes.filenames import filenames
 from vibes.helpers.pickle import pread
 from vibes.phonopy.context import PhonopyContext
 from vibes.phonopy.postprocess import extract_results, postprocess
 from vibes.phonopy.wrapper import summarize_bandstructure
 
 
-def preprocess(filename, settings_file, dimension, format, write_supercell=False):
+def preprocess(file, settings_file, dimension, format, write_supercell=False):
     """inform about a phonopy calculation a priori"""
     from ase.io import read
     from vibes.settings import Settings
-    import vibes.phonopy.wrapper as ph
+    from vibes.phonopy.wrapper import preprocess
 
     ctx = PhonopyContext(Settings(settings_file))
     settings = ctx.settings
 
-    if filename:
-        atoms = read(filename, format=format)
+    if file:
+        atoms = read(file, format=format)
     else:
         atoms = settings.get_atoms(format=format)
 
-    _, _, scs_ref = ph.preprocess(atoms, **{**settings.phonopy, "supercell_matrix": 1})
+    _, _, scs_ref = preprocess(atoms, **{**settings.phonopy, "supercell_matrix": 1})
 
     if dimension is not None:
-        phonon, sc, scs = ph.preprocess(atoms, supercell_matrix=dimension)
+        phonon, sc, scs = preprocess(atoms, supercell_matrix=dimension)
     else:
-        phonon, sc, scs = ph.preprocess(atoms, **settings.phonopy)
+        phonon, sc, scs = preprocess(atoms, **settings.phonopy)
         print("vibes phonopy workflow settings (w/o configuration):")
         settings.print(only_settings=True)
 
@@ -47,7 +48,7 @@ def preprocess(filename, settings_file, dimension, format, write_supercell=False
     print(f"  Number of displacements: {len(scs)} ({len(scs_ref)})")
 
     if write_supercell:
-        sc.write("geometry.in.supercell", format=format)
+        sc.write(filenames.supercell, format=format)
 
 
 def main():

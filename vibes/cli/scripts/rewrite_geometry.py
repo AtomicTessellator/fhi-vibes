@@ -8,14 +8,14 @@ from vibes.io import read, write
 from vibes.structure.io import inform
 
 
-def rewrite_geometry(filename, align, frac, format):
+def rewrite_geometry(file, align, frac, format):
     """clean and rewrite geometry in FILENAME"""
-    atoms = read(filename, format=format)
+    atoms = read(file, format=format)
     inform(atoms, verbosity=0)
 
     atoms = clean_atoms(atoms, align=align)
 
-    outfile = f"{filename}.cleaned"
+    outfile = f"{file}.cleaned"
     write(atoms, outfile, format=format, scaled=frac)
 
     talk(f"\nCleaned geometry written to {outfile}")

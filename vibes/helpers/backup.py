@@ -4,15 +4,16 @@ import shutil
 import tarfile
 from pathlib import Path
 
+from vibes.filenames import filenames
 from vibes.helpers import talk
 from vibes.helpers.aims import peek_aims_uuid
 from vibes.keys import default_backup_folder  # noqa: F401
 
 _prefix = "backup"
-_default_files = ("aims.out", "control.in", "geometry.in")
+_default_files = (filenames.output.aims, "control.in", filenames.atoms)
 
 
-def backup_filename(workdir=".", prefix=_prefix):
+def backup_file(workdir=".", prefix=_prefix):
     """generate a backup file name for the current backup directory"""
 
     file = lambda counter: Path(workdir) / f"{prefix}.{counter:05d}"
@@ -43,7 +44,7 @@ def backup_folder(
         True if source_dir exists and is not empty
     """
 
-    output_filename = backup_filename(target_folder)
+    output_file = backup_file(target_folder)
 
     if not Path(source_dir).exists():
         talk(f"{source_dir} does not exists, nothing to back up.", prefix=_prefix)
@@ -61,25 +62,25 @@ def backup_folder(
 
     # peek aims output file
     info_str = ""
-    aims_uuid = peek_aims_uuid(Path(source_dir) / "aims.out")
+    aims_uuid = peek_aims_uuid(Path(source_dir) / filenames.output.aims)
     if aims_uuid:
         info_str = f"aims_uuid was:      {aims_uuid}"
-        output_filename = f"{output_filename}.{aims_uuid[:8]}"
+        output_file = f"{output_file}.{aims_uuid[:8]}"
 
     if zip:
-        output_filename = f"{output_filename}.tgz"
+        output_file = f"{output_file}.tgz"
         make_tarfile(
-            output_filename,
+            output_file,
             source_dir,
             additional_files=additional_files,
             arcname=Path(source_dir).stem,
         )
     else:
-        shutil.move(source_dir, output_filename)
+        shutil.move(source_dir, output_file)
 
     message = []
     message += [f"Folder:             {source_dir}"]
-    message += [f"was backed up in:   {output_filename}"]
+    message += [f"was backed up in:   {output_file}"]
     message += [info_str]
 
     if verbose:
@@ -89,19 +90,19 @@ def backup_folder(
 
 
 def make_tarfile(
-    output_filename, source_dir, additional_files=None, arcname=None, only_defaults=True
+    output_file, source_dir, additional_files=None, arcname=None, only_defaults=True
 ):
     """create a tgz directory
 
     Args:
-        output_filename: Path to the output file
+        output_file: Path to the output file
         source_dir: Path to the source directory
         additional_files: Additional files to include in the tar file
         arcname: Path to the archive file
         only_defaults: only use the default file names for backup
     """
 
-    outfile = Path(output_filename)
+    outfile = Path(output_file)
 
     files = Path(source_dir).glob("*")
 

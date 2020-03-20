@@ -1,5 +1,6 @@
 from ase.calculators.socketio import SocketIOCalculator
 
+from vibes.filenames import filenames
 from vibes.helpers import talk
 from vibes.helpers.paths import cwd
 from vibes.helpers.restarts import restart
@@ -12,7 +13,7 @@ from ._defaults import name
 
 _prefix = name
 _calc_dirname = "calculation"
-_temp_geometry_filename = "geometry.in.next_step"
+_temp_geometry_file = filenames.atoms_next
 
 
 def run_relaxation(ctx):
@@ -22,7 +23,7 @@ def run_relaxation(ctx):
 
     if not converged:
         talk("restart", prefix=_prefix)
-        restart(ctx.settings, trajectory=ctx.trajectory)
+        restart(ctx.settings, trajectory_file=ctx.trajectory_file)
     else:
         talk("done.", prefix=_prefix)
 
@@ -34,12 +35,12 @@ def run(ctx, backup_folder="backups"):
 
     # extract things from context
     atoms = ctx.atoms
-    calculator = ctx.calc
+    calculator = ctx.calculator
     opt = ctx.opt
     fmax = ctx.fmax
 
     workdir = ctx.workdir
-    trajectory = ctx.trajectory
+    trajectory_file = ctx.trajectory_file
     calc_dir = workdir / _calc_dirname
 
     socketio_port = get_port(calculator)
@@ -65,7 +66,7 @@ def run(ctx, backup_folder="backups"):
 
         # log very initial step and metadata
         if opt.nsteps == 0:
-            metadata2file(ctx.metadata, trajectory)
+            metadata2file(ctx.metadata, trajectory_file)
 
         talk(f"Start step {opt.nsteps}", prefix=_prefix)
         for ii, converged in enumerate(opt.irun(fmax=fmax)):
@@ -93,7 +94,7 @@ def run(ctx, backup_folder="backups"):
                 log_atoms.info.update({"nsteps": opt.nsteps})
 
                 talk(f".. log", prefix=_prefix)
-                step2file(log_atoms, atoms.calc, trajectory)
+                step2file(log_atoms, atoms.calc, trajectory_file)
 
                 info_str = [
                     f"Relaxed with BFGS, fmax={fmax*1000:.3f} meV/AA",
@@ -104,7 +105,7 @@ def run(ctx, backup_folder="backups"):
                     info_str.append(f"residual stress = {res_stress:.6f} meV/AA")
 
                 log_atoms.write(
-                    workdir / _temp_geometry_filename,
+                    workdir / _temp_geometry_file,
                     format="aims",
                     scaled=False,
                     info_str=info_str,

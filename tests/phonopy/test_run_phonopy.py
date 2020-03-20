@@ -14,15 +14,15 @@ parent = Path(__file__).parent
 
 atoms = bulk("Al")
 
-calc = EMT()
+calculator = EMT()
 
 settings = Settings(parent / "phonopy.in")
 
 
-def test_run_phonopy(atoms=atoms, calc=calc, settings=settings):
+def test_run_phonopy(atoms=atoms, calc=calculator, settings=settings):
     ctx = PhonopyContext(settings=settings)
     ctx.settings.atoms = atoms
-    ctx.settings.atoms.set_calculator(calc)
+    ctx.settings.atoms.set_calculator(calculator)
 
     run_phonopy(ctx=ctx)
 

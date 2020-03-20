@@ -8,7 +8,7 @@ from vibes.helpers.converters import dict2atoms
 from vibes.settings import Settings
 
 
-def check_md_finish(atoms_dict, calc_dict, *args, **kwargs):
+def check_md_finish(atoms_dict, calculator_dict, *args, **kwargs):
     """Check phonon convergence and set up future calculations after a phonon calculation
 
     Parameters
@@ -50,7 +50,7 @@ def check_md_finish(atoms_dict, calc_dict, *args, **kwargs):
 
     detours = generate_md_fw(
         settings,
-        dict2atoms(atoms_dict, calc_dict, False),
+        dict2atoms(atoms_dict, calculator_dict, False),
         fw_settings,
         fw_settings["spec"].get("_queueadapter", None),
         workdir,

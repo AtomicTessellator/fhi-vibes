@@ -37,7 +37,7 @@ def generate_samples(
         geometry: input geometry file
         temperature: temperature in Kelvin
         n_samples: number of samples to create (default: 1)
-        force_constants: filename of the file holding force constants for phonon rattle
+        force_constants: file holding force constants for phonon rattle
         rattle: atoms.rattle
         quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
         deterministic: create sample deterministically
@@ -159,7 +159,7 @@ def generate_samples(
 
 
 def create_samples(
-    filename,
+    file,
     temperature,
     n_samples,
     force_constants,
@@ -177,10 +177,10 @@ def create_samples(
     """create samples for Monte Carlo sampling
 
     Args:
-        filename: input geometry file
+        file: input geometry file
         temperature: temperature in Kelvin
         n_samples: number of samples to create (default: 1)
-        force_constants: filename of the file holding force constants for phonon rattle
+        force_constants: file of the file holding force constants for phonon rattle
         mc_rattle: hiphive mc rattle
         quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
         deterministic: create sample deterministically
@@ -192,7 +192,7 @@ def create_samples(
         return_samples (bool): If True do not write the samples, but return them
     """
 
-    atoms = read(filename, format=format)
+    atoms = read(file, format=format)
     inform(atoms, verbosity=0)
 
     fc = None
@@ -223,14 +223,14 @@ def create_samples(
 
     for ii, sample in enumerate(sample_list):
         talk(f"Sample {ii:3d}:")
-        file = f"{filename}.{int(temperature):04d}K"
+        out_file = f"{file}.{int(temperature):04d}K"
         if n_samples > 1:
-            file += f".{ii:03d}"
+            out_file += f".{ii:03d}"
 
         info_str = sample.info.pop("info_str")
-        sample.write(file, info_str=info_str, velocities=True, format=format)
+        sample.write(out_file, info_str=info_str, velocities=True, format=format)
         talk(f".. temperature in sample {ii}:     {sample.get_temperature():9.3f}K")
-        talk(f".. written to {file}")
+        talk(f".. written to {out_file}")
 
 
 def main():

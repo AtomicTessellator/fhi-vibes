@@ -1,11 +1,13 @@
 """Wrappers to the vibes calculate functions"""
+from pathlib import Path
+
 import numpy as np
 
+from vibes.filenames import filenames
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.hash import hash_dict
 from vibes.settings import Settings, TaskSettings
 from vibes.tasks.calculate import calculate, calculate_socket
-
 
 T_S_LINE = (
     "          Detailed time accounting                     : "
@@ -31,11 +33,11 @@ def check_if_failure_ok(lines, walltime):
 
 def wrap_calc_socket(
     atoms_dict_to_calculate,
-    calc_dict,
+    calculator_dict,
     metadata,
     phonon_times=None,
     mem_use=None,
-    trajectory="trajectory.son",
+    trajectory_file=filenames.trajectory,
     workdir=".",
     backup_folder="backups",
     walltime=None,
@@ -48,13 +50,13 @@ def wrap_calc_socket(
     ----------
     atoms_dict_to_calculate:list of dicts
         A list of dicts representing the cellsto calculate the forces on
-    calc_dict:dict
+    calculator_dict:dict
         A dictionary representation of the ASE Calculator used to calculatethe Forces
     metadata:dict
         metadata for the force trajectory file
     phonon_times:list
         List of all the phonon calculation times
-    trajectory:str
+    trajectory_file:str
         file name for the trajectory file
     workdir:str
         work directory for the force calculations
@@ -74,24 +76,24 @@ def wrap_calc_socket(
         If the calculation fails
     """
     atoms_to_calculate = []
-    if calc_dict["calculator"].lower() == "aims":
+    if calculator_dict["calculator"].lower() == "aims":
         settings = TaskSettings(name=None, settings=Settings(settings_file=None))
-        if "species_dir" in calc_dict["calculator_parameters"]:
+        if "species_dir" in calculator_dict["calculator_parameters"]:
             from os import path
 
-            species_type = calc_dict["calculator_parameters"]["species_dir"].split("/")[
-                -1
-            ]
-            calc_dict["calculator_parameters"]["species_dir"] = path.join(
+            species_type = calculator_dict["calculator_parameters"][
+                "species_dir"
+            ].split("/")[-1]
+            calculator_dict["calculator_parameters"]["species_dir"] = path.join(
                 settings.machine.basissetloc, species_type
             )
-        calc_dict["command"] = settings.machine.aims_command
+        calculator_dict["command"] = settings.machine.aims_command
         if walltime:
-            calc_dict["calculator_parameters"]["walltime"] = walltime - 180
+            calculator_dict["calculator_parameters"]["walltime"] = walltime - 180
 
     for at_dict in atoms_dict_to_calculate:
-        atoms_to_calculate.append(dict2atoms(at_dict, calc_dict, False))
-    calculator = dict2atoms(atoms_dict_to_calculate[0], calc_dict, False).calc
+        atoms_to_calculate.append(dict2atoms(at_dict, calculator_dict, False))
+    calculator = dict2atoms(atoms_dict_to_calculate[0], calculator_dict, False).calc
     if "use_pimd_wrapper" in calculator.parameters:
         if calculator.parameters["use_pimd_wrapper"][0][:5] == "UNIX:":
             atoms_hash = hash_dict({"to_calc": atoms_dict_to_calculate})
@@ -104,14 +106,15 @@ def wrap_calc_socket(
             atoms_to_calculate,
             calculator,
             metadata=metadata,
-            trajectory=trajectory,
+            trajectory_file=trajectory_file,
             workdir=workdir,
             backup_folder=backup_folder,
             **kwargs,
         )
     except RuntimeError:
-        if calc_dict["calculator"].lower() == "aims":
-            lines = np.array(open(workdir + "calculations/aims.out").readlines())
+        if calculator_dict["calculator"].lower() == "aims":
+            path = Path(workdir) / "calculations"
+            lines = np.array(open(path / filenames.output.aims).readlines())
             failure_okay = check_if_failure_ok(lines, walltime)
             if not failure_okay:
                 raise RuntimeError(
@@ -122,7 +125,7 @@ def wrap_calc_socket(
         raise RuntimeError("The calculation failed")
 
 
-def wrap_calculate(atoms, calc, workdir=".", walltime=1800, fw_settings=None):
+def wrap_calculate(atoms, calculator, workdir=".", walltime=1800, fw_settings=None):
     """Wrapper for the clalculate_socket function
 
     Parameters
@@ -146,13 +149,14 @@ def wrap_calculate(atoms, calc, workdir=".", walltime=1800, fw_settings=None):
     RuntimeError
         If the calculation fails
 """
-    calc.parameters["walltime"] = walltime
-    calc.parameters.pop("use_pimd_wrapper", None)
+    calculator.parameters["walltime"] = walltime
+    calculator.parameters.pop("use_pimd_wrapper", None)
     try:
-        return calculate(atoms, calc, workdir)
+        return calculate(atoms, calculator, workdir)
     except RuntimeError:
-        if calc.name.lower() == "aims":
-            lines = np.array(open(workdir + "/aims.out").readlines())
+        if calculator.name.lower() == "aims":
+            path = Path(workdir)
+            lines = np.array(open(path / filenames.output.aims).readlines())
             failure_okay = check_if_failure_ok(lines, walltime)
 
             if failure_okay:

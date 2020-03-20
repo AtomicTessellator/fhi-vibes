@@ -10,13 +10,13 @@ from ase import units
 from vibes.trajectory import reader
 
 
-def parse_log(filename):
+def parse_log(file):
     """ parse the ASE logfile, typically md.log """
     e_kin = []
     e_pot = []
     temp = []
     time = []
-    with open(filename) as f:
+    with open(file) as f:
         for line in f:
             if line.strip() == "":
                 continue
@@ -173,6 +173,6 @@ def plot_summary(dataframe, avg, natoms=None):
     ax2.set_ylabel("Energy [eV]")
 
     # fig.tight_layout()
-    fname = "md_summary.pdf"
-    fig.savefig(fname)
-    print(f".. summary plotted to {fname}")
+    file = "md_summary.pdf"
+    fig.savefig(file)
+    print(f".. summary plotted to {file}")

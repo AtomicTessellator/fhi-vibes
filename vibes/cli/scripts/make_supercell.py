@@ -27,7 +27,7 @@ def print_matrix(matrix, indent=2):
 
 
 def make_supercell(
-    filename,
+    file,
     dimension,
     n_target,
     deviation,
@@ -35,13 +35,13 @@ def make_supercell(
     format,
     scaled,
     wrap=False,
-    output_filename=None,
+    output_file=None,
 ):
     """create or find a supercell
 
     Parameters
     ----------
-    filename: str
+    file: str
         Input primitive (for the super cell) cell geometry file (default: geometry.in)
     dimension: list of ints
         the supercell matrix in any format (defined by 1, 3, or 9 ints)
@@ -61,7 +61,7 @@ def make_supercell(
 
     timer = Timer()
     print(f"Find supercell for")
-    cell = read(filename, format=format)
+    cell = read(file, format=format)
     inform(cell, verbosity=0)
     print()
 
@@ -93,14 +93,12 @@ def make_supercell(
 
     if not dry:
         spacegroup = get_spacegroup(cell)
-        if not output_filename:
-            output_filename = f"{filename}.supercell_{len(supercell)}"
+        if not output_file:
+            output_file = f"{file}.supercell_{len(supercell)}"
         info_str = get_info_str(supercell, spacegroup)
         info_str += [f"Supercell matrix:    {smatrix.flatten()}"]
-        supercell.write(
-            output_filename, format=format, scaled=scaled, info_str=info_str
-        )
-        print(f"\nSupercell written to {output_filename}")
+        supercell.write(output_file, format=format, scaled=scaled, info_str=info_str)
+        print(f"\nSupercell written to {output_file}")
 
     timer()
 

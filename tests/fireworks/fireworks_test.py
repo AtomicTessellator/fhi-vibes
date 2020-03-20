@@ -24,7 +24,7 @@ def test_fireworks():
 
     atoms = bulk("Ni", "fcc", a=3.5)
     atoms.set_calculator(EMT())
-    calc = atoms.calc
+    calculator = atoms.calc
     ex_dir = Path("Ni_ex")
     workdir = str(ex_dir.absolute())
 
@@ -49,7 +49,7 @@ def test_fireworks():
         func_fw_out="vibes.fireworks.tasks.fw_out.phonons.post_init_mult_calcs",
         func_kwargs={"ph_settings": kwargs_init},
         atoms=atoms,
-        calc=calc,
+        calculator=calculator,
         args=[1.0],
         func_fw_out_kwargs={"ph_settings": kwargs_init_fw_out},
         atoms_calc_from_spec=False,

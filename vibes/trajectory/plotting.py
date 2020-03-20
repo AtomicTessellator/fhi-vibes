@@ -131,6 +131,6 @@ def plot_summary(dataframe, avg=50, natoms=None):
     ax4.set_xlabel("Time [ps]")
 
     # fig.tight_layout()
-    fname = "md_summary.pdf"
-    fig.savefig(fname, bbox_inches="tight")
-    print(f".. summary plotted to {fname}")
+    file = "md_summary.pdf"
+    fig.savefig(file, bbox_inches="tight")
+    print(f".. summary plotted to {file}")

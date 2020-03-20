@@ -30,7 +30,14 @@ def add_additions_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
 
 def fireworks_no_mods(
-    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+    atoms,
+    calculator,
+    outputs,
+    func,
+    func_fw_out,
+    func_kwargs,
+    func_fw_kwargs,
+    fw_settings,
 ):
     """A function that does not change the FireWorks Workflow upon completion
 
@@ -38,7 +45,7 @@ def fireworks_no_mods(
     ----------
     atoms: ase.atoms.Atoms
         The original atoms at the start of this job
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The original calculator
     outputs: any
         The outputs from the function (assumes to be a single bool output)

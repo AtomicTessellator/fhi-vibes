@@ -14,7 +14,7 @@ class KPointOptimizer(Dynamics):
         loss_func=lambda x: x,
         dfunc_min=1e-6,
         even=True,
-        trajectory=None,
+        trajectory_file=None,
         logfile="-",
         kpts_density_init=1.0,
     ):
@@ -32,7 +32,7 @@ class KPointOptimizer(Dynamics):
             Convergence criteria for the loss function
         even: bool
             If True kgrid must be even valued
-        trajecotry: str
+        trajecotry_file: str
             file name to store the trajectory
         logfile: str
             file name for the log file
@@ -40,7 +40,11 @@ class KPointOptimizer(Dynamics):
             initial k-point density
         """
         Dynamics.__init__(
-            self, atoms, logfile=logfile, trajectory=trajectory, append_trajectory=True
+            self,
+            atoms,
+            logfile=logfile,
+            trajectory=trajectory_file,
+            append_trajectory=True,
         )
 
         self.kpts_density = kpts_density_init

@@ -8,9 +8,9 @@ def main():
 
     atoms = bulk("Al")
 
-    calc = EMT()
+    calculator = EMT()
 
-    run_phono3py(atoms=atoms, calculator=calc)
+    run_phono3py(atoms=atoms, calculator=calculator)
 
 
 try:

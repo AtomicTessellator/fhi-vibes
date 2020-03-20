@@ -93,33 +93,33 @@ def get_stresses(atoms):
     return stresses * units.Hartree
 
 
-def socket_stress_off(calc):
+def socket_stress_off(calculator):
     """Turn stresses computation off via socket
 
     Parameters
     ----------
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         calculator to turn off stress computation for
     """
-    if "socketio" in calc.name.lower():
-        calc.server.protocol.sendmsg("STRESSES_OFF")
+    if "socketio" in calculator.name.lower():
+        calculator.server.protocol.sendmsg("STRESSES_OFF")
     else:
-        talk(f"Calculator {calc.name} is not a socket calculator.")
-        calc.parameters["compute_heat_flux"] = False
-        calc.parameters["compute_analytical_stress"] = True
+        talk(f"Calculator {calculator.name} is not a socket calculator.")
+        calculator.parameters["compute_heat_flux"] = False
+        calculator.parameters["compute_analytical_stress"] = True
 
 
-def socket_stress_on(calc):
+def socket_stress_on(calculator):
     """ Turn stresses computation on via socket
 
     Parameters
     ----------
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         calculator to turn on stress computation for
     """
-    if "socketio" in calc.name.lower():
-        calc.server.protocol.sendmsg("STRESSES_ON")
+    if "socketio" in calculator.name.lower():
+        calculator.server.protocol.sendmsg("STRESSES_ON")
     else:
-        talk(f"Calculator {calc.name} is not a socket calculator.")
-        calc.parameters["compute_heat_flux"] = True
-        del calc.parameters["compute_analytical_stress"]
+        talk(f"Calculator {calculator.name} is not a socket calculator.")
+        calculator.parameters["compute_heat_flux"] = True
+        del calculator.parameters["compute_analytical_stress"]

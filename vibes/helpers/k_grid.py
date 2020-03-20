@@ -82,14 +82,14 @@ def k2d(atoms, k_grid=[2, 2, 2]):
     return np.array(densities)
 
 
-def update_k_grid(atoms, calc, kptdensity, even=True):
-    """Update the k_grid in calc with the respective density
+def update_k_grid(atoms, calculator, kptdensity, even=True):
+    """Update the k_grid in calculator with the respective density
 
     Parameters
     ----------
     atoms: ase.atoms.Atoms
         structure that the calculator is attached to
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The calculator
     kptdensity: list of floats
         desired k-point density in all directions
@@ -98,24 +98,24 @@ def update_k_grid(atoms, calc, kptdensity, even=True):
 
     Returns
     -------
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         The calculator with updated kgrid
     """
 
     k_grid = d2k(atoms, kptdensity, even)
 
-    if calc.name == "aims":
+    if calculator.name == "aims":
         talk(f"Update aims k_grid with kpt density of {kptdensity} to {k_grid}")
-        calc.parameters["k_grid"] = k_grid
-    return calc
+        calculator.parameters["k_grid"] = k_grid
+    return calculator
 
 
-def update_k_grid_calc_dict(calc_dict, recipcell, kptdensity, even=True):
+def update_k_grid_calc_dict(calculator_dict, recipcell, kptdensity, even=True):
     """Update k_grid in dictionary representation of a calculator w/ respective density
 
     Parameters
     ----------
-    calc_dict: dict
+    calculator_dict: dict
         Dictionary representation of calc
     recipcell: np.ndarray
         The reciprocal lattice
@@ -126,10 +126,10 @@ def update_k_grid_calc_dict(calc_dict, recipcell, kptdensity, even=True):
 
     Returns
     -------
-    calc_dict: dict
+    calculator_dict: dict
         The dictionary representation of the calculator with an updated kgrid
     """
     k_grid = d2k_recipcell(recipcell, [True, True, True], kptdensity, even)
 
-    calc_dict["calculator_parameters"]["k_grid"] = k_grid
-    return calc_dict
+    calculator_dict["calculator_parameters"]["k_grid"] = k_grid
+    return calculator_dict

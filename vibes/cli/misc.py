@@ -6,7 +6,7 @@ import click
 import click_aliases
 
 
-complete_filenames = click.Path(exists=True)
+complete_files = click.Path(exists=True)
 
 
 class AliasedGroup(click.Group):
@@ -54,8 +54,8 @@ class ClickAliasedGroup(click_aliases.ClickAliasedGroup):
         ctx.fail("Too many matches: %s" % ", ".join(sorted(matches)))
 
 
-def check_path(filename):
+def check_path(file):
     """check if path exists"""
-    if not Path(filename).exists():
+    if not Path(file).exists():
         msg = f"\n  Current workdir is {Path().cwd()}"
-        raise click.FileError(str(filename), hint=msg)
+        raise click.FileError(str(file), hint=msg)

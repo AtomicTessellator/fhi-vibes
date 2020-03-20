@@ -15,16 +15,16 @@ def talk(msg):
     return _talk(msg, prefix=_prefix)
 
 
-def get_hashes_from_trajectory_file(trajectory, verbose=False):
+def get_hashes_from_trajectory_file(trajectory_file, verbose=False):
     """return all hashes from trajectory"""
     from .io import reader
 
     try:
-        traj = reader(trajectory, verbose=verbose)
+        trajectory = reader(trajectory_file, verbose=verbose)
     except (FileNotFoundError, KeyError):
         return []
 
-    return traj.get_hashes()
+    return trajectory.get_hashes()
 
 
 def clean_pressure(series):

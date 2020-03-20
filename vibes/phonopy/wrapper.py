@@ -162,7 +162,7 @@ def get_dos(
     freq_pitch=None,
     tetrahedron_method=True,
     write=False,
-    filename="total_dos.dat",
+    file="total_dos.dat",
     force_sets=None,
     direction=None,
     xyz_projection=False,
@@ -187,7 +187,7 @@ def get_dos(
         If True use the tetrahedron method to calculate the DOS
     write: bool
         If True save the DOS to a file
-    filename: str
+    file: str
         Path to write to write the dos to
     force_sets: np.ndarray
         Force sets to calculate the force constants with
@@ -226,7 +226,7 @@ def get_dos(
 
         if write:
             phonon.write_total_dos()
-            Path("total_dos.dat").rename(filename)
+            Path("total_dos.dat").rename(file)
 
         return phonon.get_total_dos_dict()
 
@@ -245,7 +245,7 @@ def get_dos(
     )
     if write:
         phonon.write_projected_dos()
-        Path("projected_dos.dat").rename(filename)
+        Path("projected_dos.dat").rename(file)
     return phonon.get_projected_dos_dict()
 
 
@@ -316,7 +316,7 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
     ----------
     phonon: phonopy.Phonopy
         The phonopy object with calculated force constants if force_sets is None
-    filename: str
+    file: str
         file name to store the pdf of the band structure
     paths: list of str
         List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
@@ -428,7 +428,7 @@ def summarize_bandstructure(phonon, fp_file=None):
     return gamma_freq, max_freq
 
 
-def get_animation(phonon, q_point, filename):
+def get_animation(phonon, q_point, file):
     """Gets the animation file at a q_point
 
     Parameters
@@ -437,10 +437,10 @@ def get_animation(phonon, q_point, filename):
         The phonopy object with calculated force constants if force_sets is None
     q_point: np.ndarray
         q-point to write the animation file on
-    filename: str
+    file: str
         Path to animation file output
     """
-    return phonon.write_animation(q_point=q_point, filename=filename)
+    return phonon.write_animation(q_point=q_point, filename=file)
 
 
 def get_debye_temperature(

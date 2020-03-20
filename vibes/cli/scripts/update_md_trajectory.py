@@ -8,26 +8,26 @@ from vibes.io import read
 from vibes.trajectory import reader
 
 
-def update_trajectory(trajectory, uc=None, sc=None, format="aims"):
+def update_trajectory(trajectory_file, uc=None, sc=None, format="aims"):
     """update TRAJECTORY by adding unit cell and supercell"""
-    traj = reader(trajectory)
+    trajectory = reader(trajectory_file)
     new_trajectory = "temp.son"
 
     if uc:
         atoms = read(uc, format=format)
-        traj.primitive = atoms
+        trajectory.primitive = atoms
 
     if sc:
         atoms = read(sc, format=format)
-        traj.supercell = atoms
+        trajectory.supercell = atoms
 
-    traj.write(file=new_trajectory)
+    trajectory.write(file=new_trajectory)
 
-    fname = f"{trajectory}.bak"
-    talk(f".. back up old trajectory to {fname}")
-    shutil.copy(trajectory, fname)
-    talk(f".. write new trajectory to {trajectory}")
-    shutil.move(new_trajectory, trajectory)
+    file = f"{trajectory_file}.bak"
+    talk(f".. back up old trajectory to {file}")
+    shutil.copy(trajectory_file, file)
+    talk(f".. write new trajectory to {trajectory_file}")
+    shutil.move(new_trajectory, trajectory_file)
 
 
 def main():
