@@ -7,6 +7,7 @@ from vibes.helpers.restarts import restart
 from vibes.helpers.socketio import get_port
 from vibes.helpers.structure import clean_atoms
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
+from vibes.spglib.wrapper import get_spacegroup
 from vibes.trajectory import metadata2file, step2file
 
 from ._defaults import name
@@ -88,6 +89,10 @@ def run(ctx, backup_folder="backups"):
                 talk(f".. residual force:  {res_forces:.3f} meV/AA", prefix=_prefix)
                 if filter:
                     talk(f".. residual stress: {res_stress:.3f} meV/AA", prefix=_prefix)
+
+                # spacegroup
+                sg = get_spacegroup(atoms)
+                talk(f".. Space group:     {sg}")
 
                 talk("clean atoms before logging", prefix=_prefix)
                 log_atoms = clean_atoms(atoms, decimals=ctx.decimals)
