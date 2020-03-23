@@ -62,6 +62,49 @@ class RelaxationContext:
         self._calculator = None
         self._opt = None
 
+        self.kw = {}
+        self.exp_cell_filter_kw = {}
+
+        obj = self.settings.obj
+        # save paramters that don't got to the optimizer
+        kw = {
+            "fmax": obj.pop("fmax"),
+            "driver": obj.pop("driver"),
+            "unit_cell": obj.pop("unit_cell"),
+            "decimals": obj.pop("decimals"),
+            "fix_symmetry": obj.pop("fix_symmetry"),
+        }
+        self.kw = kw
+
+        # save parameters that go to the cellfilter
+        kw = {
+            "hydrostatic_strain": obj.pop("hydrostatic_strain"),
+            "constant_volume": obj.pop("constant_volume"),
+            "scalar_pressure": obj.pop("scalar_pressure"),
+        }
+        self.exp_cell_filter_kw = kw
+
+    # views on self.kw
+    @property
+    def driver(self):
+        return self.kw["driver"]
+
+    @property
+    def unit_cell(self):
+        return self.kw["unit_cell"]
+
+    @property
+    def fmax(self):
+        return self.kw["fmax"]
+
+    @property
+    def decimals(self):
+        return self.kw["decimals"]
+
+    @property
+    def fix_symmetry(self):
+        return self.kw["fix_symmetry"]
+
     @property
     def workdir(self):
         """return the working directory"""
@@ -117,17 +160,6 @@ class RelaxationContext:
             opt_settings = {"logfile": str(Path(self.workdir) / obj.logfile)}
             obj.update(opt_settings)
 
-            # save paramters that don't got to the optimizer
-            self.fmax = obj.pop("fmax")
-            self.driver = obj.pop("driver")
-            self.unit_cell = obj.pop("unit_cell")
-            self.decimals = obj.pop("decimals")
-
-            # save parameters that go to the cellfilter
-            self.hydrostatic_strain = obj.pop("hydrostatic_strain")
-            self.constant_volume = obj.pop("constant_volume")
-            self.scalar_pressure = obj.pop("scalar_pressure")
-
             if "bfgs" in self.driver.lower():
                 opt = optimize.BFGS(atoms=self.atoms, **obj)
             else:
@@ -144,11 +176,16 @@ class RelaxationContext:
     @property
     def opt_atoms(self):
         """return ExpCellFilter(self.atoms, **kwargs) if `unit_cell == True`"""
-        kw = {
-            "hydrostatic_strain": self.hydrostatic_strain,
-            "constant_volume": self.constant_volume,
-            "scalar_pressure": self.scalar_pressure,
-        }
+        kw = self.exp_cell_filter_kw
+
+        if self.fix_symmetry:
+            try:
+                from ase.spacegroup.symmetrize import FixSymmetry
+            except ModuleNotFoundError:
+                msg = "`ase.spacegroup.symmetrize.FixSymmetry` is avaible from ASE 3.20"
+                raise RuntimeError(msg)
+
+            self.atoms.set_constraint(FixSymmetry(self.atoms))
 
         if self.unit_cell:
             return ExpCellFilter(self.atoms, **kw)
@@ -163,6 +200,10 @@ class RelaxationContext:
 
         # save time and mass unit
         opt_dict.update(**self.settings.obj)
+
+        # save kws
+        opt_dict.update({"relaxation_options": self.kw})
+        opt_dict.update({"ExpCellFilter": self.exp_cell_filter_kw})
 
         # other stuff
         dct = input2dict(self.atoms, calculator=self.calculator)

@@ -19,5 +19,6 @@ kwargs = adict(
         "constant_volume": False,
         "scalar_pressure": 0.0,
         "decimals": 10,
+        "fix_symmetry": False,
     }
 )

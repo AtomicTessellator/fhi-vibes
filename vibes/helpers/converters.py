@@ -2,7 +2,7 @@
 
 
 import json
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 import numpy as np
 from ase.atoms import Atoms
@@ -44,6 +44,8 @@ class NumpyEncoder(json.JSONEncoder):
             return (float(obj.real), float(obj.imag))
         if isinstance(obj, np.bool_):
             return bool(obj)
+        if isinstance(obj, PosixPath):
+            return str(obj)
         return super().default(obj)
 
 

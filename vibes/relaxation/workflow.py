@@ -107,7 +107,8 @@ def run(ctx, backup_folder="backups"):
                 log_atoms.write(
                     workdir / _temp_geometry_file,
                     format="aims",
-                    scaled=False,
+                    scaled=True,
+                    wrap=False,
                     info_str=info_str,
                 )
 
