@@ -14,7 +14,7 @@ from vibes.helpers.backup import backup_folder as backup
 from vibes.helpers.hash import hash_atoms
 from vibes.helpers.lists import expand_list
 from vibes.helpers.paths import cwd
-from vibes.helpers.socketio import get_port, get_unixsocket
+from vibes.helpers.socketio import get_socket_info
 from vibes.helpers.utils import Spinner
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.son import son
@@ -133,10 +133,10 @@ def calculate_socket(
     atoms = atoms_to_calculate[0].copy()
 
     # handle the socketio
-    socketio_port = get_port(calculator)
-    socketio_unixsocket = get_unixsocket(calculator)
+    socketio_port, socketio_unixsocket = get_socket_info(calculator)
+
     # is the socket used?
-    socketio = socketio_port or socketio_unixsocket
+    socketio = socketio_port is not None
 
     if socketio:
         socket_calc = calculator

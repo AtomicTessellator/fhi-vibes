@@ -4,7 +4,7 @@ from vibes.filenames import filenames
 from vibes.helpers import talk
 from vibes.helpers.paths import cwd
 from vibes.helpers.restarts import restart
-from vibes.helpers.socketio import get_port
+from vibes.helpers.socketio import get_socket_info
 from vibes.helpers.structure import clean_atoms
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.spglib.wrapper import get_spacegroup
@@ -44,7 +44,7 @@ def run(ctx, backup_folder="backups"):
     trajectory_file = ctx.trajectory_file
     calc_dir = workdir / _calc_dirname
 
-    socketio_port = get_port(calculator)
+    socketio_port, socketio_unixsocket = get_socket_info(calculator)
     if socketio_port is None:
         socket_calc = None
     else:
@@ -58,9 +58,9 @@ def run(ctx, backup_folder="backups"):
     # is a filter used?
     filter = len(atoms) < len(opt_atoms)
 
-    with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
-        calc_dir, mkdir=True
-    ):
+    with SocketIOCalculator(
+        socket_calc, port=socketio_port, unixsocket=socketio_unixsocket
+    ) as iocalc, cwd(calc_dir, mkdir=True):
         if socketio_port is not None:
             atoms.calc = iocalc
 

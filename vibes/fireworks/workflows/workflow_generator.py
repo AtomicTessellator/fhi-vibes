@@ -16,7 +16,7 @@ from vibes.fireworks.workflows.firework_generator import (
 )
 from vibes.helpers.hash import hash_atoms_and_calc
 from vibes.helpers.numerics import get_3x3_matrix
-from vibes.phonopy import kwargs as ph_defaults
+from vibes.phonopy._defaults import kwargs as ph_defaults
 
 
 def process_relaxation(workflow_settings, atoms, fw_settings, basis):

@@ -11,7 +11,7 @@ from vibes.helpers.backup import default_backup_folder
 from vibes.helpers.paths import cwd
 from vibes.helpers.restarts import restart
 from vibes.helpers.socketio import (
-    get_port,
+    get_socket_info,
     get_stresses,
     socket_stress_off,
     socket_stress_on,
@@ -70,7 +70,7 @@ def run(ctx, backup_folder=default_backup_folder):
     backup_folder = workdir / backup_folder
 
     # prepare the socketio stuff
-    socketio_port = get_port(calculator)
+    socketio_port, socketio_unixsocket = get_socket_info(calculator)
     if socketio_port is None:
         socket_calc = None
     else:
@@ -98,9 +98,9 @@ def run(ctx, backup_folder=default_backup_folder):
             settings.obj["workdir"] = "."
             settings.write()
 
-    with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
-        calc_dir, mkdir=True
-    ):
+    with SocketIOCalculator(
+        socket_calc, port=socketio_port, unixsocket=socketio_unixsocket
+    ) as iocalc, cwd(calc_dir, mkdir=True):
         # make sure the socket is entered
         if socket_calc is not None:
             atoms.calc = iocalc
