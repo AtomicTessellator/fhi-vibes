@@ -37,6 +37,34 @@ def get_port(calculator, prefix=_prefix):
     return port
 
 
+def get_host(calculator, prefix=_prefix):
+    """return host of the calculator
+
+    Args:
+        calculator: calculator to get the host of
+        prefix: prefix for messages from this function
+    Returns:
+        host: the host for socketio
+    """
+
+    host = None
+
+    if not hasattr(calculator, "parameters"):
+        warn(f"{prefix} No parameters found in calculator {calculator.name}.", level=1)
+        return host
+
+    if "use_pimd_wrapper" in calculator.parameters:
+        host = calculator.parameters["use_pimd_wrapper"][0]
+        if "UNIX:" in host:
+            return None
+        else:
+            talk(f"Use SocketIO with host {host}", prefix=prefix)
+    else:
+        talk(f"Socketio not used with calculator {calculator.name}", prefix=prefix)
+
+    return host
+
+
 def get_unixsocket(calculator, prefix=_prefix):
     """return the unixsocket of the calculator
 
@@ -58,8 +86,6 @@ def get_unixsocket(calculator, prefix=_prefix):
         if host[:5] == "UNIX:":
             unixsocket = host[5:]
             talk(f"Use SocketIO with unixsocket {unixsocket}", prefix=prefix)
-        else:
-            talk(f"Use SocketIO with localhost", prefix=prefix)
     else:
         talk(f"SocketIO not used with calculator {calculator.name}", prefix=prefix)
 

@@ -128,7 +128,7 @@ def setup_aims(ctx, verbose=True, make_species_dir=True):
     ase_settings = {"aims_command": settings.machine.aims_command}
 
     if "socketio" in settings:
-        host = "localhost"
+        host = settings.socketio.get("host", "localhost")
         port = settings.socketio.port
 
         if settings.socketio.get("unixsocket", None) is not None:
