@@ -53,7 +53,6 @@ def run(ctx, backup_folder="backups"):
     atoms.calc = calculator
 
     opt_atoms = ctx.opt_atoms
-    opt.atoms = opt_atoms
     opt.initialize()
 
     # is a filter used?
@@ -75,9 +74,8 @@ def run(ctx, backup_folder="backups"):
                 talk("Relaxation converged.", prefix=_prefix)
                 break
 
-            forces = opt_atoms.get_forces()
-
             # residual forces (and stress)
+            forces = opt_atoms.get_forces(apply_constraint=True)
             na = len(atoms)
             res_forces = (forces[:na] ** 2).sum(axis=1).max() ** 0.5 * 1000
             if filter:

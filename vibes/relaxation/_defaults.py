@@ -1,6 +1,7 @@
 """ vibes defaults for md"""
 
 from vibes.helpers.attribute_dict import AttributeDict as adict
+from vibes.konstanten import n_geom_digits, symprec
 
 name = "relaxation"
 
@@ -18,7 +19,8 @@ kwargs = adict(
         "hydrostatic_strain": False,
         "constant_volume": False,
         "scalar_pressure": 0.0,
-        "decimals": 10,
+        "decimals": n_geom_digits,
         "fix_symmetry": False,
+        "symprec": symprec,
     }
 )

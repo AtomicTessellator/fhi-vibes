@@ -16,6 +16,15 @@ from vibes.settings import TaskSettings
 from . import _defaults as defaults
 from .workflow import _prefix, run_relaxation
 
+# duck type ExpCellFilter, see https://gitlab.com/ase/ase/-/issues/603
+# is resolved:
+
+
+class MyExpCellFilter(ExpCellFilter):
+    def get_forces(self, apply_constraint=True):
+        """overwrite `apply_constraint` from Expcellfilter"""
+        return super().get_forces(apply_constraint=apply_constraint)
+
 
 class RelaxationSettings(TaskSettings):
     """Relaxation settings. Ensures that settings.relaxation is set up sensibly"""
@@ -73,6 +82,7 @@ class RelaxationContext:
             "unit_cell": obj.pop("unit_cell"),
             "decimals": obj.pop("decimals"),
             "fix_symmetry": obj.pop("fix_symmetry"),
+            "symprec": obj.pop("symprec"),
         }
         self.kw = kw
 
@@ -104,6 +114,10 @@ class RelaxationContext:
     @property
     def fix_symmetry(self):
         return self.kw["fix_symmetry"]
+
+    @property
+    def symprec(self):
+        return self.kw["symprec"]
 
     @property
     def workdir(self):
@@ -161,7 +175,7 @@ class RelaxationContext:
             obj.update(opt_settings)
 
             if "bfgs" in self.driver.lower():
-                opt = optimize.BFGS(atoms=self.atoms, **obj)
+                opt = optimize.BFGS(atoms=self.opt_atoms, **obj)
             else:
                 warn(f"Relaxation driver {obj.driver} not supported.", level=2)
 
@@ -185,10 +199,11 @@ class RelaxationContext:
                 msg = "`ase.spacegroup.symmetrize.FixSymmetry` is avaible from ASE 3.20"
                 raise RuntimeError(msg)
 
-            self.atoms.set_constraint(FixSymmetry(self.atoms))
+            constr = FixSymmetry(self.atoms, symprec=self.symprec)
+            self.atoms.set_constraint(constr)
 
         if self.unit_cell:
-            return ExpCellFilter(self.atoms, **kw)
+            return MyExpCellFilter(self.atoms, **kw)
         else:
             return self.atoms
 
