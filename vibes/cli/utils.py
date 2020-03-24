@@ -133,12 +133,13 @@ def tool_make_supercell(
     )
 
 
-# @click.command(cls=AliasedGroup)
-# def utils():
-#     """utilities, for example `aims get_relaxation_info`"""
+@utils.group()
+def aims():
+    """utils for working with FHI-aims (output)"""
+    ...
 
 
-@utils.command(aliases=["relax_info"])
+@aims.command()
 @click.argument("files", nargs=-1, type=complete_files)
 def get_relaxation_info(files):
     """analyze aims relaxation"""
