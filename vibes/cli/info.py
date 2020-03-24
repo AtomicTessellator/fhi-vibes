@@ -182,3 +182,67 @@ def velocity_autocorrelation(file, output_file, plot, peak, max_frequency):
 
     click.echo(f".. write VDOS to {output_file}")
     df.to_csv(output_file, index_label="omega", header=True)
+
+
+@info.command("relaxation")
+@click.argument("file", default=filenames.trajectory, type=complete_files)
+@click.option("-v", "--verbose", is_flag=True)
+@click.pass_obj
+def relaxation_info(obj, file, verbose):
+    """inform about a structure in a geometry input file"""
+    from ase.constraints import ExpCellFilter
+    from vibes.trajectory import reader
+    from vibes.spglib.wrapper import get_spacegroup
+    from vibes.relaxation._defaults import keys, kwargs, relaxation_options, name
+
+    traj, metadata = reader(file, get_metadata=True, verbose=False)
+
+    try:
+        fmax = metadata[name][relaxation_options][keys.fmax]
+    except KeyError:
+        fmax = kwargs[keys.fmax]
+        click.echo(f"** fmax not found in {file}, use default value")
+
+    atoms_ref = traj[0]
+    na = len(atoms_ref)
+
+    energy_ref = atoms_ref.get_potential_energy()
+
+    click.echo(f"Relaxation info for {file}:")
+    if verbose:
+        import json
+
+        click.echo("Metadata for relaxation:")
+        click.echo(json.dumps(metadata[name], indent=2))
+    click.echo(f"fmax: {fmax*1000:.3e} meV/AA")
+    click.echo(
+        "# Step |   Free energy   |   F-F(1)   | max. force |  max. stress |"
+        + "  Volume  |  Spacegroup  |"
+        + "\n"
+        + "#      |       [eV]      |    [meV]   |  [meV/AA]  |  [meV/AA^3]  |"
+        + "  [AA^3]  |              |"
+        + "\n"
+    )
+
+    for ii, atoms in enumerate(traj[1:]):
+
+        opt_atoms = ExpCellFilter(atoms)
+
+        energy = atoms.get_potential_energy()
+        de = 1000 * (energy - energy_ref)
+
+        forces = opt_atoms.get_forces()
+        res_forces = (forces[:na] ** 2).sum(axis=1).max() ** 0.5 * 1000
+        res_stress = (forces[na:] ** 2).sum(axis=1).max() ** 0.5 * 1000
+
+        vol_str = f"{atoms.get_volume():10.3f}"
+        # sg_str = f"{get_spacegroup(atoms):5d}"
+        sg_str = get_spacegroup(atoms)
+
+        msg = "{:5d}   {:16.8f}  {:12.6f} {:12.4f} {:14.4f} {}   {}".format(
+            ii + 1, energy, de, res_forces, res_stress, vol_str, sg_str,
+        )
+        click.echo(msg)
+
+    if min(res_forces, res_stress) < fmax * 1000:
+        click.echo("--> converged.")

@@ -2,8 +2,8 @@ import subprocess as sp
 from pathlib import Path
 
 import pytest
-from vibes.cli.scripts.nomad_upload import upload_folder_dry as nomad_upload_folder
 
+from vibes.cli.scripts.nomad_upload import upload_folder_dry as nomad_upload_folder
 
 parent = Path(__file__).parent
 
@@ -13,6 +13,7 @@ commands = (
     "vibes info geometry geometry.in.primitive",
     "vibes utils suggest_k_grid geometry.in.primitive",
     "vibes info phonopy",
+    "vibes info relaxation relaxation.son -v",
 )
 
 commands_files = [
