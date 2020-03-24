@@ -214,7 +214,13 @@ class Spinner:
 
 
 def progressbar(
-    it, prefix="progress", size=35, file=sys.stdout, len_it=None, n_bars=200
+    it,
+    prefix="progress",
+    size=35,
+    file=sys.stdout,
+    len_it=None,
+    n_bars=200,
+    verbose=True,
 ):
     """a simple progress bar to decorate an iterator
 
@@ -225,6 +231,7 @@ def progressbar(
         file (file): file to write to
         start_count (int): length of iterable
         n_bars (int): show this many bars
+        verbose (bool): show the bar
     """
     count = len_it or max(1, len(it))
     n = len(str(count)) + 1
@@ -236,8 +243,9 @@ def progressbar(
         bar = "{:17s} |{}{}| {}\r".format(
             f"[{prefix}]", "|" * x, " " * (size - x), counter
         )
-        file.write(bar)
-        file.flush()
+        if verbose:
+            file.write(bar)
+            file.flush()
 
     show(0)
 
@@ -252,5 +260,6 @@ def progressbar(
 
     show(ii + 1)
     if hasattr(file, "isatty") and file.isatty():
-        file.write("\n")
-        file.flush()
+        if verbose:
+            file.write("\n")
+            file.flush()

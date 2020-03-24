@@ -119,7 +119,7 @@ def reader(
     """
     from vibes.trajectory.trajectory import Trajectory
 
-    timer = Timer(f"Parse `{file}`")
+    timer = Timer(f"Parse `{file}`", verbose=verbose)
 
     if Path(file).suffix == ".nc":
         trajectory = read_netcdf(file)
@@ -156,8 +156,8 @@ def reader(
         return Trajectory([])
 
     trajectory = Trajectory(metadata=metadata)
-    talk(".. create atoms")
-    for obj in progressbar(pre_trajectory):
+    talk(".. create atoms", verbose=verbose)
+    for obj in progressbar(pre_trajectory, verbose=verbose):
 
         atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
 
