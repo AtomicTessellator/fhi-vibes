@@ -7,25 +7,28 @@ def setup_atoms_task(task_spec, atoms, calculator, fw_settings):
 
     Parameters
     ----------
-    task_spec: TaskSpec
+    task_spec : TaskSpec
         Specification of the Firetask
-    atoms: dict
-        Dictionary representation of the ase.atoms.Atoms
-    calculator: dict
-        Dictionary representation of the ASE Calculator
-    fw_settings: dict
+    atoms : dict
+        Dictionary representation of the ase.atoms.Atoms or key string to access
+        atoms from mongodb
+    calculator : dict
+        Dictionary representation of the ASE Calculator or key string to access
+        calc from mongodb
+    fw_settings : dict
         FireWorks specific parameters
 
     Returns
     -------
-    pt_func: str
+    str
         PyTask function name
-    pt_args: list
+    list
         PyTask args
-    pt_inputs: list of str
-         PyTask inputs
-    pt_kwargs: dict
+    list of str
+        PyTask inputs
+    dict
         PyTask kwargs
+
     """
     pt_func = "vibes.fireworks.tasks.general_py_task.atoms_calculate_task"
     pt_args = list(task_spec.pt_args[:4])
@@ -48,21 +51,22 @@ def setup_general_task(task_spec, fw_settings):
 
     Parameters
     ----------
-    task_spec: TaskSpec
+    task_spec : TaskSpec
         Specification of the Firetask
-    fw_settings: dict
+    fw_settings : dict
         FireWorks specific parameters
 
     Returns
     -------
-    pt_func: str
+    str
         PyTask function name
-    pt_args: list
+    list
         PyTask args
-    pt_inputs: list of str
-         PyTask inputs
-    pt_kwargs: dict
+    list of str
+        PyTask inputs
+    dict
         PyTask kwargs
+
     """
     pt_args = task_spec.pt_args
     pt_func = "vibes.fireworks.tasks.general_py_task.general_function_task"
@@ -77,19 +81,22 @@ def generate_task(task_spec, fw_settings, atoms, calculator):
 
     Parameters
     ----------
-    task_spec: TaskSpec
+    task_spec : TaskSpec
         Specification of the Firetask
-    fw_settings: dict
+    fw_settings : dict
         FireWorks specific parameters
-    atoms: dict
-        Dictionary representation of the ase.atoms.Atoms
-    calculator: dict
-        Dictionary representation of the ASE Calculator
+    atoms : dict
+        Dictionary representation of the ase.atoms.Atoms or key string to access
+        atoms from mongodb
+    calculator : dict
+        Dictionary representation of the ASE Calculator or key string to access
+        calc from mongodb
 
     Returns
     -------
     PyTask
         Task for the given TaskSpec
+
     """
     if task_spec.task_with_atoms_obj:
         pt_params = setup_atoms_task(task_spec, atoms, calculator, fw_settings)
@@ -111,15 +118,16 @@ def generate_update_calc_task(calc_spec, updated_settings):
 
     Parameters
     ----------
-    calc_spec: str
+    calc_spec : str
         Spec for the calculator in the Fireworks database
-    updated_settings: dict
+    updated_settings : dict
         What parameters to update
 
     Returns
     -------
     PyTask
         Task to update the calculator in the Fireworks database
+
     """
     return PyTask(
         {
@@ -139,15 +147,16 @@ def generate_mod_calc_task(atoms, calculator, calc_spec, kpt_spec):
         Either an Atoms dict or a spec key to get the it for the modified system
     calculator: dict or str
         Either a Calculator dict or a spec key to get it for the modified system
-    calc_spec: str
+    calc_spec : str
         Spec for the calculator in the Fireworks database
-    kpt_spec: str
+    kpt_spec : str
         Spec to update the k-point density of the system
 
     Returns
     -------
     PyTask
         Task to update the calculator in the Fireworks database
+
     """
     args = ["k_grid_density", calc_spec]
     kwargs = {"spec_key": kpt_spec}

@@ -8,15 +8,17 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    fw_settings: dict
-        Settings used by fireworks to place objects in the right part of the MongoDB
+    fw_settings : dict
+        Settings used by fireworks to place objects in the right part of the
+        MongoDB (Default value = None)
 
     Returns
     -------
     TaskSpec
         The specification object of the task
+
     """
     if fw_settings is not None:
         fw_settings = fw_settings.copy()
@@ -60,16 +62,17 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None, add_qadapter=False):
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    fw_settings: dict
-        Settings used by fireworks to place objects in the right part of
-                            the MongoDB
+    fw_settings : dict
+        Settings used by fireworks to place objects in the right part of the
+        MongoDB (Default value = None)
 
     Returns
     -------
     TaskSpec
         The specification object of the task
+
     """
     preprocess_keys = [
         "supercell_matrix",
@@ -141,23 +144,24 @@ def gen_phonon_analysis_task_spec(
 
     Parameters
     ----------
-    func: str
+    func : str
         The function path to the serial calculator
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    metakey: str
+    metakey : str
         Key to find the phonon calculation's metadata to recreate the trajectory
-    forcekey: str
+    forcekey : str
         Key to find the phonon calculation's force data to recreate the trajectory
-    timekey: str
+    timekey : str
         Key to find the time needed for the phonon supercell calculations
-    make_abs_path: bool
-        If True make the paths of directories absolute
+    make_abs_path : bool
+        If True make the paths of directories absolute (Default value = False)
 
     Returns
     -------
     TaskSpec
         The specification object of the task
+
     """
     if "workdir" in func_kwargs and "init_workdir" not in func_kwargs:
         func_kwargs["init_workdir"] = func_kwargs["workdir"]
@@ -206,19 +210,20 @@ def gen_stat_samp_analysis_task_spec(
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    metakey: str
+    metakey : str
         Key to find the phonon calculation's metadata to recreate the trajectory
-    forcekey: str
+    forcekey : str
         Key to find the phonon calculation's force data to recreate the trajectory
-    make_abs_path: bool
-        If True make the paths of directories absolute
+    make_abs_path : bool
+        If True make the paths of directories absolute (Default value = False)
 
     Returns
     -------
     TaskSpec
         The specification object of the task
+
     """
     if "analysis_workdir" in func_kwargs:
         func_kwargs["workdir"] = func_kwargs["analysis_workdir"]
@@ -262,21 +267,24 @@ def gen_aims_task_spec(
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    func_fw_outkwargs: dict
+    func_fw_outkwargs : dict
         The defined kwargs for fw_out
-    make_abs_path: bool
-        If True make the paths of directories absolute
-    relax: bool
-        If True it is a relaxation
+    make_abs_path : bool
+        If True make the paths of directories absolute (Default value = False)
+    relax : bool
+        If True it is a relaxation (Default value = True)
+    func_fw_out_kwargs :
+
 
     Returns
     -------
     TaskSpec
         The task_spec for the calculation
+
     """
-    fw_out = "vibes.fireworks.tasks.fw_out.relax.check_aims_complete"
+    fw_out = "vibes.fireworks.tasks.fw_out.aims.check_aims_complete"
     if not relax:
         fw_out = "vibes.fireworks.tasks.fw_out.general.fireworks_no_mods"
     return TaskSpec(
@@ -294,15 +302,16 @@ def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    make_abs_path: bool
-        If True make the paths of directories absolute
+    make_abs_path : bool
+        If True make the paths of directories absolute (Default value = False)
 
     Returns
     -------
     TaskSpec
         The TaskSpec for the kgrid optimization
+
     """
     return TaskSpec(
         "vibes.k_grid.converge_kgrid.converge_kgrid",
@@ -318,17 +327,18 @@ def gen_gruniesen_task_spec(settings, trajectory_file, constraints):
 
     Parameters
     ----------
-    settings: Settings
+    settings : Settings
         The workflow settings
     trajectory_file: str
         Path the the equilibrium phonon trajectory
-    constraints: list of dict
+    constraints : list of dict
         list of relevant constraint dictionaries for relaxations
 
     Returns
     -------
     TaskSpec
         The specification object of the Gruniesen setup task
+
     """
     task_spec_list = [
         TaskSpec(
@@ -370,6 +380,32 @@ def gen_md_task_spec(md_settings, fw_settings=None):
             "vibes.fireworks.tasks.fw_out.md.check_md_finish",
             True,
             {"md_settings": md_settings},
+            args=args,
+            inputs=inputs,
+            make_abs_path=False,
+        )
+    ]
+    return task_spec_list
+
+
+def gen_relax_task_spec(relax_settings, fw_settings=None):
+    """Generate a TaskSpec for setting up a Gruniesen parameter calculation
+
+    Returns
+    -------
+    TaskSpec
+        The specification object of the MD task
+    """
+
+    inputs = []
+    args = [None]
+
+    task_spec_list = [
+        TaskSpec(
+            "vibes.fireworks.tasks.relaxation.run",
+            "vibes.fireworks.tasks.fw_out.relaxation.check_relax_finish",
+            True,
+            {"relax_settings": relax_settings},
             args=args,
             inputs=inputs,
             make_abs_path=False,

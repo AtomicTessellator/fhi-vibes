@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import numpy as np
-
 from vibes.cli.scripts.create_samples import generate_samples
 from vibes.filenames import filenames
 from vibes.helpers.attribute_dict import AttributeDict
@@ -35,8 +34,8 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
 
     Returns
     -------
-    outputs: dict
-        The output of vibes.phonopy.workflow.bootstrap for phonopy and phono3py
+    completed: bool
+        True if the workflow completed
     """
     workdir = md_settings.get("workdir", None)
     if workdir:
@@ -71,8 +70,9 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
         atoms_dict = ph_metadata["primitive"]["atoms"]
         ph_atoms = dict2atoms(atoms_dict, ph_metadata["calculator"], False)
         calculator = ph_atoms.calc
-        kpt_density = k2d(ph_atoms, calculator.parameters["k_grid"])
-        if not Path(workdir / filenames.atoms).exists():
+        if calculator.name.lower() == "aims":
+            kpt_density = k2d(ph_atoms, calculator.parameters["k_grid"])
+        if not Path(workdir / "geometry.in").exists():
             sc = dict2atoms(ph_metadata["supercell"]["atoms"])
             sc_matrix = md_settings.pop(
                 "supercell_matrix",
@@ -116,13 +116,23 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
         update_k_grid(atoms, calculator, kpt_density, even=True)
 
     calculator.parameters.pop("sc_init_iter", None)
-    settings = Settings(settings_file=None)
-    settings._settings_file = "md.in"
-    settings["md"] = AttributeDict(md_settings)
-    settings["basissets"] = AttributeDict(
-        {"default": calculator.parameters.pop("species_dir").split("/")[-1]}
+
+    settings = Settings(
+        settings_file=None, read_config=False, dct={"md": AttributeDict(md_settings)}
     )
-    settings["control"] = AttributeDict(calculator.parameters.copy())
+    settings_file = str(workdir / "md.in")
+    settings._settings_file = settings_file
+    settings["md"] = AttributeDict(md_settings)
+
+    if calculator.name.lower() == "aims":
+        settings["basissets"] = AttributeDict(
+            {"default": calculator.parameters.pop("species_dir").split("/")[-1]}
+        )
+        settings["control"] = AttributeDict(calculator.parameters.copy())
+        host, port = calculator.parameters.pop("use_pimd_wrapper", [None, None])
+        if port:
+            settings["socketio"] = AttributeDict({"port": port, "host": host})
+
     settings["geometry"] = AttributeDict(
         {
             "file": str(workdir / filenames.atoms),
@@ -130,7 +140,9 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
             "supercell": str(workdir / "supercell.in"),
         }
     )
-
-    ctx = MDContext(settings, workdir, trajectory_file)
+    settings.write()
+    ctx = MDContext(Settings(settings_file=settings_file), workdir, trajectory_file)
+    if calculator.name.lower() != "aims":
+        ctx.calculator = calculator
 
     return ctx.run()

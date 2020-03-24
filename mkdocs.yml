@@ -29,6 +29,9 @@ nav:
         - "1: Geometry Optimization": Tutorial/1_geometry_optimization.md
         - Tutorial/acknowledgments.md
         - Tutorial/references.md
+    - High-Throughut:
+        - Getting Started: High_Throughput/setup.md
+        - Tutorial: High_Throughput/0_tut.md
 
 
         

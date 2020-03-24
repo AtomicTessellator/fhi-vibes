@@ -1,12 +1,16 @@
-""" Modified Launchpad class from FireWorks"""
+""" Modified Launchpad class from FireWorks
+
+FireWorks Copyright (c) 2013, The Regents of the University of
+California, through Lawrence Berkeley National Laboratory (subject
+to receipt of any required approvals from the U.S. Dept. of Energy).
+All rights reserved.
+"""
 from fireworks.core import launchpad
 from fireworks.fw_config import LAUNCHPAD_LOC
 
 
 class LaunchPad(launchpad.LaunchPad):
-    """
-    The modified Launchpad that manges the FireWorks database
-    """
+    """The modified Launchpad that manges the FireWorks database"""
 
     def __init__(self, *args, **kwargs):
         super(LaunchPad, self).__init__(*args, **kwargs)
@@ -16,15 +20,16 @@ class LaunchPad(launchpad.LaunchPad):
 
         Parameters
         ----------
-        fworker: FWorker
-            FireWorker for the query
-        ids: list of ints
-            List of FireWork ids to query over
+        fworker : FWorker
+            FireWorker for the query (Default value = None)
+        ids : list of ints
+            List of FireWork ids to query over (Default value = None)
 
         Returns
         -------
         bool
             True if the database has any FireWorks that are ready to run in a given set.
+
         """
         query = fworker.query if fworker else {}
         if ids:
@@ -36,15 +41,16 @@ class LaunchPad(launchpad.LaunchPad):
 
         Parameters
         ----------
-        fworker: FWorker
-            FireWorker for the query
-        ids: list of ints
-            List of FireWork ids to query over
+        fworker : FWorker
+            FireWorker for the query (Default value = None)
+        ids : list of ints
+            (Default value = None)
 
         Returns
         -------
         bool
             True if database has any ready or waiting Fireworks.
+
         """
         if self.run_exists(fworker, ids):
             # check first to see if any are READY
@@ -68,15 +74,16 @@ class LaunchPad(launchpad.LaunchPad):
 
         Parameters
         ----------
-        cls: Class
+        cls : Class
             The class of the LaunchPad
-        d: dict
+        d : dict
             Dictionary used to define the LaunchPad
 
         Returns
         -------
         LaunchPad
             The LaunchPad defined by the dict
+
         """
         logdir = d.get("logdir", None)
         strm_lvl = d.get("strm_lvl", None)
@@ -111,13 +118,14 @@ class LaunchPad(launchpad.LaunchPad):
 
         Parameters
         ----------
-        cls: Class
+        cls : Class
             The class of the LaunchPad
 
         Returns
         -------
-        LaunchPad:
+        LaunchPad
             The LaunchPad defined in LAUNCHPAD_LOC or the default LaunchPad
+
         """
         if LAUNCHPAD_LOC:
             return LaunchPad.from_file(LAUNCHPAD_LOC)

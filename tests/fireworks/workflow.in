@@ -1,0 +1,45 @@
+# information to build a default control.in
+#[geometry]
+#file = geometry.in
+
+[general]
+workdir_local   = "test_run/"
+
+[calculator]
+name = EMT
+
+[socketio]
+port = 12345
+
+[control_kpt]
+density = 1.00
+
+[phonopy]
+supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+conv_crit = 0.95
+serial = True
+displacement = 0.01
+converge_phonons = True
+get_gruniesen = True
+
+[statistical_sampling]
+serial = True
+temperatures = [300]
+supercell_matrix = [-1,1,1,1,-1,1,1,1,-1]
+n_samples = 1
+deterministic = True
+
+[md]
+driver =     Verlet
+timestep =   1
+maxsteps =   5
+temperatures = [300]
+
+[phonopy_qadapter]
+walltime = 1:00:00
+nodes = 1
+
+[md_qadapter]
+walltime = 1:00:00
+nodes = 1
+

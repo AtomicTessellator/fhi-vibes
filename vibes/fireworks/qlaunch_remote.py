@@ -1,4 +1,10 @@
-"""Python API for qlaunch to connect to remote hosts"""
+"""Python API for qlaunch to connect to remote hosts
+
+FireWorks Copyright (c) 2013, The Regents of the University of
+California, through Lawrence Berkeley National Laboratory (subject
+to receipt of any required approvals from the U.S. Dept. of Energy).
+All rights reserved.
+"""
 import os
 import time
 
@@ -29,21 +35,22 @@ __date__ = "Jan 14, 2013, Adaptation: October 31, 2018"
 
 
 def convert_input_to_param(param_name, param, param_list):
-    """ Converts a function input into a qlaunch parameter
+    """Converts a function input into a qlaunch parameter
 
     Parameters
     ----------
-    param_name: str
+    param_name : str
         name of the parameter for qlaunch
-    param: str
+    param : str
         value of the parameter
-    param_list: list of str
+    param_list : list of str
         List of all parameters
 
     Returns
     -------
     str
         command argument str for qlaunch
+
     """
     if param is not None:
         param_list.append(f"--{param_name} {param}")
@@ -72,49 +79,53 @@ def qlaunch_remote(
     remote_shell="/bin/bash -l -c",
     daemon=0,
 ):
-    """ This function adapts the fireworks script qlaunch to a python function
+    """This function adapts the fireworks script qlaunch to a python function
 
     Parameters
     ----------
-    command: str
+    command : str
         Whether to do a singleshot or rapidfire command
-    maxjobs_queue: int
-        maximum jobs to keep in queue for this user
-    maxjobs_block: int
-        maximum jobs to put in a block
-    nlaunches: int or "infinite"
+    maxjobs_queue : int
+        maximum jobs to keep in queue for this user (Default value = None)
+    maxjobs_block : int
+        maximum jobs to put in a block (Default value = None)
+    nlaunches : int or "infinite"
         maximum number of launches to perform (default 0 is all jobs in DB)
-    sleep: int
-        sleep time between loops
-    firework_ids: list of int
-        specific firework_ids to run in reservation mode
-    fw_id: int
-        ID of a specific FireWork to run in reservation mode
-    wflow: list of int or Workflow
-        specific Workflow to run in reservation mode
-    silencer: bool
-        shortcut to mute log messages
-    reserve: bool
-        reserve a fw
-    launcher_dir: str
-        Directory to launch rocket from
-    loglvl: str
-        How much logging should occur
-    gss_auth: bool
-        Allow GSS-API authorization with Kerberos
-    controlpath: str
+    sleep : int
+        sleep time between loops (Default value = None)
+    firework_ids : list of int
+        specific firework_ids to run in reservation mode (Default value = None)
+    fw_id : int
+        ID of a specific FireWork to run in reservation mode (Default value = None)
+    wflow : list of int or Workflow
+        specific Workflow to run in reservation mode (Default value = None)
+    silencer : bool
+        shortcut to mute log messages (Default value = False)
+    reserve : bool
+        reserve a fw (Default value = False)
+    launcher_dir : str
+        Directory to launch rocket from (Default value = None)
+    loglvl : str
+        How much logging should occur (Default value = None)
+    gss_auth : bool
+        Allow GSS-API authorization with Kerberos (Default value = True)
+    controlpath : str
         Path to a control path for ssh multiplexing (Only possible in modified paramiko)
-    remote_host: str
+        (Default value = None)
+    remote_host : str
         Remote host to exec qlaunch. Right now, only supports running from a config dir.
-    remote_config_dir: list of str
+        (Default value = "localhost")
+    remote_config_dir : list of str
         Remote config dir location(s). Defaults to ~/.fireworks.
-    remote_user: str
-        Username to login to remote host.
-    remote_password: str
+    remote_user : str
+        Username to login to remote host. (Default value = None)
+    remote_password : str
         Password for remote host (if necessary and not recommended)
-    remote_shell: str
+        (Default value = None)
+    remote_shell : str
         Shell command to use on remote host for running submission.
-    daemon: int
+        (Default value = "/bin/bash -l -c")
+    daemon : int
         Daemon mode. Command is repeated every x seconds. Defaults to non-daemon mode.
 
     Raises
@@ -123,6 +134,7 @@ def qlaunch_remote(
         If Fabric v2+ is not installed
     AssertionError
         If remote_host is localhost
+
     """
     assert remote_host != "localhost"
 

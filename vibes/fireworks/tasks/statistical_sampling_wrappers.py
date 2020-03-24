@@ -1,7 +1,6 @@
 """Wrappers to prepare statistical sampling"""
 import ase
 import numpy as np
-
 from vibes.cli.scripts.create_samples import generate_samples
 from vibes.helpers.attribute_dict import AttributeDict
 from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms
@@ -16,8 +15,24 @@ from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
 
-def bootstrap(atoms, name="statistical_sampling", settings=None, **kwargs):
-    """ load settings, prepare atoms, calculator, and phonopy """
+def bootstrap(name="statistical_sampling", settings=None, **kwargs):
+    """load settings, prepare atoms, calculator, and phonopy
+
+    Parameters
+    ----------
+    name : str
+        name of the statistical sampling task (Default value = "statistical_sampling")
+    settings : Settings
+        settings used for the workflow (Default value = None)
+    **kwargs :
+
+
+    Returns
+    -------
+    dict
+        distorted supercells to calculate and metadata for the calculation
+
+    """
 
     if settings is None:
         settings = TaskSettings(name=None, settings=Settings())
@@ -31,8 +46,6 @@ def bootstrap(atoms, name="statistical_sampling", settings=None, **kwargs):
 
     _, ph_metadata = reader(stat_sample_settings["phonon_file"], get_metadata=True)
     ph_atoms = dict2atoms(ph_metadata["atoms"], ph_metadata["calculator"], False)
-    calculator = ph_atoms.calc
-    kpt_density = k2d(ph_atoms, calculator.parameters["k_grid"])
 
     # Get sampling metadata
     stat_sample_settings.update(kwargs)
@@ -48,8 +61,12 @@ def bootstrap(atoms, name="statistical_sampling", settings=None, **kwargs):
             supercell, temp, force_constants=fc, **metadata["generate_sample_args"]
         )
 
-    calculator = update_k_grid(td_cells[0], calculator, kpt_density)
-    calculator.parameters.pop("scaled", False)
+    calculator = ph_atoms.calc
+    if calculator.name.lower() == "aims":
+        kpt_density = k2d(ph_atoms, calculator.parameters["k_grid"])
+        calculator = update_k_grid(td_cells[0], calculator, kpt_density)
+        calculator.parameters.pop("scaled", False)
+
     # save metadata
     metadata["calculator"] = calc2dict(calculator)
 
@@ -63,38 +80,41 @@ def bootstrap(atoms, name="statistical_sampling", settings=None, **kwargs):
 
 
 def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs):
-    """
-    Sets ups the statistical sampling
+    """Sets ups the statistical sampling
+
     Parameters
     ----------
-    phonon_file: str
+    phonon_file : str
         String to the phonopy trajectory
-    temperatures: list (floats)
-        List of temperatures to excite the phonons to
-    debye_temp_fact: list(floats)
+    temperatures : list (floats)
+        List of temperatures to excite the phonons to (Default value = None)
+    debye_temp_fact : list(floats)
         List of factors to multiply the debye temperature by to populate temperatures
+        (Default value = None)
+    **kwargs : dict
+        list of terms used to generate distorted supercells
+        Possible items:
+        supercell_matrix : np.ndarray(int)
+            Supercell matrix used to create the supercell from atoms
+        n_samples : int
+            number of samples to create (default: 1)
+        mc_rattle : bool
+            hiphive mc rattle
+        quantum : bool
+            use Bose-Einstein distribution instead of Maxwell-Boltzmann
+        deterministic : bool
+            create sample deterministically
+        sobol : bool
+            Use sobol numbers for the sampling
+        rng_seed : (int
+            seed for random number generator
 
-    Keyword Args
-    ------------
-    supercell_matrix: np.ndarray(int)
-        Supercell matrix used to create the supercell from atoms
-    n_samples: int
-        number of samples to create (default: 1)
-    mc_rattle: bool
-        hiphive mc rattle
-    quantum: bool
-        use Bose-Einstein distribution instead of Maxwell-Boltzmann
-    deterministic: bool
-        create sample deterministically
-    sobol: bool
-        Use sobol numbers for the sampling
-    rng_seed: int
-        seed for random number generator
 
     Returns
     -------
-    list(dicts)
-        A list of thermally displaced supercells to calculate the forces on
+    metadata : dict
+        The metadata used for the statistical sampling steps
+
     """
     if temperatures is None:
         temperatures = ()
@@ -179,17 +199,28 @@ def bootstrap_stat_sample(
     stat_samp_settings=None,
     fw_settings=None,
 ):
-    """
-    Initializes the statistical sampling task
-    Args:
-        atoms (ASE Atoms Object): Atoms object of the primitive cell
-        calculator (ASE Calculator): Calculator for the force calculations
-        kpt_density (float): k-point density for the MP-Grid
-        stat_samp_settings (dict): kwargs for statistical sampling setup
-        fw_settings (dict): FireWork specific settings
+    """Initializes the statistical sampling task
 
-    Returns:
-        (dict): The output of vibes.statistical_sampling.workflow.bootstrap
+    Parameters
+    ----------
+    atoms : ase.atoms.Atoms
+        Atoms object of the primitive cell
+    calculator : ase.calculators.Calculator
+        Calculator for the force calculations
+    kpt_density : float
+        k-point density for the MP-Grid (Default value = None)
+    qadapter : dict
+        properties used for running things on queues
+    stat_samp_settings : dict
+        kwargs for statistical sampling setup (Default value = None)
+    fw_settings : dict
+        FireWork specific settings (Default value = None)
+
+    Returns
+    -------
+    dict
+        The output of vibes.statistical_sampling.workflow.bootstrap
+
     """
     if qadapter:
         fw_settings["spec"]["_queueadapter"] = qadapter
@@ -211,5 +242,12 @@ def bootstrap_stat_sample(
 
 
 def postprocess_statistical_sampling(**kwargs):
-    """Dummy function for post processing of statistical sampling"""
+    """Dummy function for post processing of statistical sampling
+
+    Parameters
+    ----------
+    kwargs : dict
+        keyword arguments for the task
+
+    """
     return None

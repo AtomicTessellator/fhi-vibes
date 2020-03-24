@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import numpy as np
-
 from vibes import anharmonicity_score
 from vibes.trajectory import reader
 
@@ -10,11 +9,15 @@ from vibes.trajectory import reader
 def get_sigma(trajectory_file):
     """Get the sigma value for all temperatures in a sampling trajectory.son file
 
-    Args:
-        trajectory_file(str): Path to the trajectory file
+    Parameters
+    ----------
+    trajectory_file : str
+        Path to the trajectory file
 
-    Returns:
-        sigma(np.ndarray): array of temperatures and sigma for each temperature
+    Returns
+    -------
+    np.ndarray
+        array of temperatures and sigma for each temperature
 
     """
     trajectory, meta = reader(file=trajectory_file, get_metadata=True, verbose=False)

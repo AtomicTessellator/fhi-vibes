@@ -1,13 +1,14 @@
 """FireWorks output for MD runs"""
 
+from ase.io.aims import read_aims
 from fireworks import FWAction
-from vibes.fireworks.tasks.postprocess.md import check_completion
-from vibes.fireworks.workflows.firework_generator import generate_md_fw
-from vibes.helpers.converters import dict2atoms
+from vibes.fireworks.tasks.postprocess.relaxation import check_completion
+from vibes.fireworks.workflows.firework_generator import generate_relax_fw
+from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.settings import Settings
 
 
-def check_md_finish(atoms_dict, calculator_dict, *args, **kwargs):
+def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
     """Check phonon convergence and set up future calculations after a phonon calculation
 
     Parameters
@@ -36,16 +37,24 @@ def check_md_finish(atoms_dict, calculator_dict, *args, **kwargs):
         Increases the supercell size or adds the phonon_dict to the spec
     """
     fw_settings = args[-1]
-    workdir = args[3]["md_settings"].pop("workdir")
-    settings = Settings(f"{workdir}/md.in", read_config=False)
-    settings.md["workdir"] = workdir
+    workdir = args[3]["relax_settings"].pop("workdir", None)
+    if workdir is None:
+        workdir = "."
+    settings = Settings(f"{workdir}/relaxation.in", read_config=False)
+    settings.relaxation["workdir"] = workdir
 
-    if check_completion(workdir, settings["md"]["maxsteps"]):
-        return
+    new_atoms_dict = atoms2dict(read_aims(f"{workdir}/geometry.in.next_step"))
+    if check_completion(workdir, settings["relaxation"]["fmax"]):
+        update_spec = {}
+        if "out_spec_atoms" in fw_settings:
+            update_spec[fw_settings["out_spec_atoms"]] = new_atoms_dict
+        if "out_spec_calc" in fw_settings:
+            update_spec[fw_settings["out_spec_calc"]] = calc_dict
+        return FWAction(update_spec=update_spec)
 
-    detours = generate_md_fw(
+    detours = generate_relax_fw(
         settings,
-        dict2atoms(atoms_dict, calculator_dict, False),
+        dict2atoms(new_atoms_dict, calc_dict, False),
         fw_settings,
         fw_settings["spec"].get("_queueadapter", None),
         workdir,

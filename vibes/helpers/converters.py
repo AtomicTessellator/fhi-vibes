@@ -11,7 +11,6 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import dict2constraint, voigt_6_to_full_3x3_stress
 from ase.db.row import atoms2dict as ase_atoms2dict
 from ase.io.jsonio import MyEncoder
-
 from vibes.helpers.lists import expand_list, list_dim, reduce_list
 from vibes.konstanten import n_yaml_digits
 
@@ -243,6 +242,7 @@ def dict2atoms(atoms_dict, calculator_dict=None, single_point_calc=True):
     atoms: ase.atoms.Atoms
         atoms represented by atoms_dict with calculator represented by calculator_dict
     """
+    atoms_dict = atoms_dict.copy()
 
     if "pbc" not in atoms_dict:
         atoms_dict.update({"pbc": "cell" in atoms_dict})
