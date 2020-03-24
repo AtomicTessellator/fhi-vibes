@@ -7,6 +7,9 @@ def _join(*keys):
     return "_".join(keys)
 
 
+# geometry
+symprec = "symprec"
+
 # generic suffixes
 aux = "aux"
 scalar = "scalar"
@@ -95,3 +98,9 @@ hf_power = heat_flux_power_spectrum
 hf_aux_power = heat_flux_aux_power_spectrum
 k_cum = kappa_cumulative
 k_cum_scalar = kappa_cumulative_scalar
+
+
+# relaxation
+relaxation = "relaxation"
+relaxation_options = "relaxation_options"
+expcellfilter = "ExpCellFilter"

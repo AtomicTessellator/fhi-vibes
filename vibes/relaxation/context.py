@@ -6,7 +6,7 @@ from ase import Atoms, optimize
 from ase.calculators.calculator import Calculator
 from ase.constraints import ExpCellFilter
 
-from vibes import son
+from vibes import keys, son
 from vibes.aims.context import AimsContext
 from vibes.filenames import filenames
 from vibes.helpers import talk, warn
@@ -217,8 +217,8 @@ class RelaxationContext:
         opt_dict.update(**self.settings.obj)
 
         # save kws
-        opt_dict.update({"relaxation_options": self.kw})
-        opt_dict.update({"ExpCellFilter": self.exp_cell_filter_kw})
+        opt_dict.update({keys.relaxation_options: self.kw})
+        opt_dict.update({keys.expcellfilter: self.exp_cell_filter_kw})
 
         # other stuff
         dct = input2dict(self.atoms, calculator=self.calculator)
