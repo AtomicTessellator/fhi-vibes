@@ -4,23 +4,25 @@ from fireworks import FWAction
 
 def add_additions_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     """Adds a set of returned Fireworks to the Workflow
+
     Parameters
     ----------
-    func: str
+    func : str
         Path to function that performs the MD like operation
-    func_fw_out: str
+    func_fw_out : str
         Path to this function
-    args: list
+    args : list
         List of arguments to pass to func
-    fw_settings: dict
-        FireWorks specific settings
-    kwargs: dict
+    fw_settings : dict
+        FireWorks specific settings (Default value = None)
+    kwargs : dict
         keyword arguments for func
 
     Returns
     -------
-    FWAction:
+    firworks.FWAction
         A FWAction to add the outputted FireWorks/Workflows as additions
+
     """
     additions = []
     for out in kwargs["outputs"]:
@@ -30,8 +32,8 @@ def add_additions_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
 
 def fireworks_no_mods(
-    atoms,
-    calculator,
+    atoms_dict,
+    calculator_dict,
     outputs,
     func,
     func_fw_out,
@@ -43,27 +45,28 @@ def fireworks_no_mods(
 
     Parameters
     ----------
-    atoms: ase.atoms.Atoms
-        The original atoms at the start of this job
-    calculator: ase.calculators.calulator.Calculator
-        The original calculator
-    outputs: any
+    atoms_dict : dict
+        The dictionary representation of the original atoms at the start of this job
+    calculator_dict : dict
+        The dictionary representation of the original calculator
+    outputs : any
         The outputs from the function (assumes to be a single bool output)
-    func: str
+    func : str
         Path to function that performs the MD like operation
-    func_fw_out: str
+    func_fw_out : str
         Path to this function
-    func_kwargs: dict
+    func_kwargs : dict
         keyword arguments for func
-    func_fw_kwargs: dict
+    func_fw_kwargs : dict
         Keyword arguments for fw_out function
-    fw_settings: dict
+    fw_settings : dict
         FireWorks specific settings
 
     Returns
     -------
-    FWAction
+    firworks.FWAction
         An empty FWAction
+
     """
     return FWAction()
 
@@ -75,20 +78,21 @@ def fireworks_no_mods_gen_function(
 
     Parameters
     ----------
-    func: str
+    func : str
         Path to function that performs the MD like operation
-    func_fw_out: str
+    func_fw_out : str
         Path to this function
-    args: list
+    args : list
         List of arguments to pass to func
-    fw_settings: dict
-        FireWorks specific settings
-    kwargs: dict
+    fw_settings : dict
+        FireWorks specific settings (Default value = None)
+    kwargs : dict
         keyword arguments for func
 
     Returns
     -------
-    FWAction
+    firworks.FWAction
         An empty FWAction
+
     """
     return FWAction()

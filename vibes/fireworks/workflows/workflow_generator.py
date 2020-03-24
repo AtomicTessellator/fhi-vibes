@@ -1,10 +1,12 @@
 """Functions used to generate a FireWorks Workflow"""
+from pathlib import Path
+
 import numpy as np
 from fireworks import Workflow
-
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.fireworks.workflows.firework_generator import (
     generate_aims_fw,
+    generate_aims_relax_fw,
     generate_gruniesen_fd_fw,
     generate_kgrid_fw,
     generate_md_fw,
@@ -16,22 +18,33 @@ from vibes.fireworks.workflows.firework_generator import (
 )
 from vibes.helpers.hash import hash_atoms_and_calc
 from vibes.helpers.numerics import get_3x3_matrix
-from vibes.phonopy import kwargs as ph_defaults
+from vibes.phonopy._defaults import kwargs as ph_defaults
 
 
-def process_relaxation(workflow_settings, atoms, fw_settings, basis):
+def process_aims_relaxation(workflow_settings, atoms, fw_settings, basis):
     """Processes the workflow settings to get all relaxation steps
 
-    Args:
-        workflow_settings(settings.Settings): Settings for the workflow
-        atoms (ase.atoms.Atoms): The Atoms object for the structure
-        fw_settings(dict): FireWorks specific settings
-        basis (str): default basis sets to use
-    Returns:
-        list of FireWorks: Relaxation FireWorks to add to the workflow
+    Parameters
+    ----------
+    workflow_settings : settings.Settings
+        Settings for the workflow
+    atoms : ase.atoms.Atoms
+        The Atoms object for the structure
+    fw_settings : dict
+        FireWorks specific settings
+    basis : str
+        The default basis set used for this calculation:
+
+    Returns
+    -------
+    list of FireWorks
+        Relaxation FireWorks to add to the workflow
+
     """
     fw_steps = []
-    fw_steps.append(generate_relax_fw(workflow_settings, atoms, fw_settings, "light"))
+    fw_steps.append(
+        generate_aims_relax_fw(workflow_settings, atoms, fw_settings, "light")
+    )
 
     # Tighter Basis Set Relaxation
     use_tight_relax = workflow_settings.general.get("use_tight_relax", False)
@@ -42,7 +55,7 @@ def process_relaxation(workflow_settings, atoms, fw_settings, basis):
         else:
             basisset_type = basis
         fw_steps.append(
-            generate_relax_fw(workflow_settings, atoms, fw_settings, basisset_type)
+            generate_aims_relax_fw(workflow_settings, atoms, fw_settings, basisset_type)
         )
 
     return fw_steps
@@ -51,13 +64,27 @@ def process_relaxation(workflow_settings, atoms, fw_settings, basis):
 def process_phonons(workflow_settings, atoms, fw_settings, basis):
     """Processes the workflow settings to get all phonopy steps
 
-    Args:
-        workflow_settings(settings.Settings): Settings for the workflow
-        atoms (ase.atoms.Atoms): The Atoms object for the structure
-        fw_settings(dict): FireWorks specific settings
-        basis (str): default basis sets to use
-    Returns:
-        list of FireWorks: Phonopy related FireWorks to add to the workflow
+    Parameters
+    ----------
+    workflow_settings : settings.Settings
+        Settings for the workflow
+    atoms : ase.atoms.Atoms
+        The Atoms object for the structure
+    fw_settings : dict
+        FireWorks specific settings
+    basis : str
+        The default basis set used for this calculation
+
+    Returns
+    -------
+    list of FireWorks
+        Phonopy related FireWorks to add to the workflow
+
+    Raises
+    ------
+    ValueError
+        If supercell_matrix is not provided for phonopy, phono3py, or statistical_sampling
+
     """
     phonon_fws = []
     ignore_keys = ["trigonal", "q_mesh"]
@@ -68,10 +95,13 @@ def process_phonons(workflow_settings, atoms, fw_settings, basis):
     if "serial" not in workflow_settings.phonopy:
         workflow_settings.phonopy["serial"] = True
 
-    workflow_settings.phonopy["basisset_type"] = basis
+    if basis:
+        workflow_settings.phonopy["basisset_type"] = basis
+    else:
+        workflow_settings.phonopy.pop("basisset_type", None)
 
     if "supercell_matrix" not in workflow_settings.phonopy:
-        raise IOError("Initial supercell_matrix must be provided")
+        raise ValueError("Initial supercell_matrix must be provided")
 
     phonon_fws.append(
         generate_phonon_fw(workflow_settings, atoms, fw_settings, "phonopy")
@@ -87,12 +117,20 @@ def process_phonons(workflow_settings, atoms, fw_settings, basis):
 def process_stat_samp(workflow_settings, atoms, fw_settings):
     """Processes the workflow settings to get all Statistical Sampling steps
 
-    Args:
-        workflow_settings(settings.Settings): Settings for the workflow
-        atoms (ase.atoms.Atoms): The Atoms object for the structure
-        fw_settings(dict): FireWorks specific settings
-    Returns:
-        list of FireWorks: Statistical Sampling related FireWorks to add to the workflow
+    Parameters
+    ----------
+    workflow_settings : settings.Settings
+        Settings for the workflow
+    atoms : ase.atoms.Atoms
+        The Atoms object for the structure
+    fw_settings : dict
+        FireWorks specific settings
+
+    Returns
+    -------
+    list of FireWorks
+        Statistical Sampling related FireWorks to add to the workflow
+
     """
     stat_samp_fws = []
     stat_samp_fws.append(generate_stat_samp_fw(workflow_settings, atoms, fw_settings))
@@ -106,12 +144,20 @@ def process_stat_samp(workflow_settings, atoms, fw_settings):
 def process_grun(workflow_settings, atoms, fw_settings):
     """Processes the workflow settings to get all Gruneisen steps
 
-    Args:
-        workflow_settings(settings.Settings): Settings for the workflow
-        atoms (ase.atoms.Atoms): The Atoms object for the structure
-        fw_settings(dict): FireWorks specific settings
-    Returns:
-        list of FireWorks: Gruneisen parameter related FireWorks to add to the workflow
+    Parameters
+    ----------
+    workflow_settings : settings.Settings
+        Settings for the workflow
+    atoms : ase.atoms.Atoms
+        The Atoms object for the structure
+    fw_settings : dict
+        FireWorks specific settings
+
+    Returns
+    -------
+    list of FireWorks
+        Gruneisen parameter related FireWorks to add to the workflow
+
     """
     grun_fws = []
     if getattr(workflow_settings.phonopy, "converge_phonons", False):
@@ -138,22 +184,57 @@ def process_grun(workflow_settings, atoms, fw_settings):
     return grun_fws
 
 
-def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
+def process_workdir(workdir, atoms, make_absolute):
+    """process the working directory
+
+    Parameters
+    ----------
+    workdir: str
+        input working directory
+    atoms: ase.atoms.Atoms
+        ASE Atoms object for the working directory
+    make_absolute: bool
+        If True make the working directory absolute
+
+    Returns
+    -------
+    workdir: str
+        output working directory
+
+    """
+    if make_absolute:
+        workdir = Path(workdir).absolute()
+
+    workdir = (
+        workdir
+        / atoms.symbols.get_chemical_formula(mode="metal", empirical=True)
+        / hash_atoms_and_calc(atoms)[0]
+    )
+
+    return str(workdir) + "/"
+
+
+def generate_workflow(
+    workflow_settings, atoms, launchpad_yaml=None, make_absolute=True
+):
     """Generates a workflow from given set of steps
 
     Parameters
     ----------
-    workflow_settings: Settings
+    workflow_settings : Settings
         The settings object for the desired workflow
-    atoms: ase.atoms.Atoms
+    atoms : ase.atoms.Atoms
         ASE Atoms object to preform the calculation on, with an attached calculator
-    launchpad_yaml: str
-        filename for the launchpad definition file
+    launchpad_yaml : str
+        filename for the launchpad definition file (Default value = None)
+    make_absolute: bool
+        If True make the working directory absolute
 
-    Raises
-    ------
-    IOError
-        If supercell_matrix is not provided for phonopy, phono3py, or statistical_sampling
+    Returns
+    -------
+    fireworks.Workflow
+        The FireWorks Workflow for the given workflow_settings
+
     """
     fw_steps = []
     fw_dep = {}
@@ -163,28 +244,32 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
         + "_"
         + hash_atoms_and_calc(atoms)[0]
     }
-    workflow_settings.general.workdir_local += (
-        atoms.symbols.get_chemical_formula(mode="metal", empirical=True)
-        + "/"
-        + hash_atoms_and_calc(atoms)[0]
-        + "/"
-    )
-    workflow_settings.general.workdir_cluster += (
-        atoms.symbols.get_chemical_formula(mode="metal", empirical=True)
-        + "/"
-        + hash_atoms_and_calc(atoms)[0]
-        + "/"
+    wd_cluster = workflow_settings.general.get(
+        "workdir_cluster", workflow_settings.general.workdir_local
     )
 
-    # K-grid optimization
-    if workflow_settings.general.get("opt_kgrid", True):
-        fw_steps.append(generate_kgrid_fw(workflow_settings, atoms, fw_settings))
+    workflow_settings.general["workdir_local"] = process_workdir(
+        workflow_settings.general.workdir_local, atoms, make_absolute
+    )
+    workflow_settings.general["workdir_cluster"] = process_workdir(
+        wd_cluster, atoms, make_absolute
+    )
+    if atoms.calc.name == "aims":
+        # K-grid optimization
+        if workflow_settings.general.get("opt_kgrid", False):
+            fw_steps.append(generate_kgrid_fw(workflow_settings, atoms, fw_settings))
 
-    basis = workflow_settings.general.get("basisset", "light")
+        basis = workflow_settings.general.get("basisset", "light")
 
-    # Relaxation
-    if workflow_settings.general.get("relax_structure", True):
-        fw_steps += process_relaxation(workflow_settings, atoms, fw_settings, basis)
+        # Relaxation
+        if workflow_settings.general.get("relax_structure", False):
+            fw_steps += process_aims_relaxation(
+                workflow_settings, atoms, fw_settings, basis
+            )
+    else:
+        basis = None
+        if "relaxation" in workflow_settings:
+            fw_steps.append(generate_relax_fw(workflow_settings, atoms, fw_settings))
 
     # Setup workflow branching point
     for ii in range(len(fw_steps) - 1):
@@ -221,6 +306,7 @@ def generate_workflow(workflow_settings, atoms, launchpad_yaml=None):
         fw_dep[stat_samp_fws[0]] = stat_samp_fws[1]
         fw_steps += stat_samp_fws
 
+    # Molecular dynamics
     if "md" in workflow_settings:
         md_fws = generate_md_fw(workflow_settings, atoms, fw_settings)
         if "phonopy" in workflow_settings:

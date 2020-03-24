@@ -1,7 +1,6 @@
 # information to build a default control.in
 [geometry]
-#file = geometry.in
-files = Si*/geometry.in
+files = */geometry.in
 
 [general]
 workdir_cluster = "test_run/"

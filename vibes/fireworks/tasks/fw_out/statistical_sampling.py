@@ -1,6 +1,5 @@
 """Generate FWActions after post-processing statistical sampling calculations"""
 from fireworks import FWAction
-
 from vibes.fireworks.tasks.postprocess.statistical_sampling import get_sigma
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.k_grid import k2d
@@ -12,13 +11,13 @@ def add_stat_samp_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     Parameters
     ----------
-    func: str
+    func : str
         Path to the phonon analysis function
-    func_fw_out: str
+    func_fw_out : str
         Path to this function
-    fw_settings: dict
-        Dictionary for the FireWorks specific systems
-    kwargs: dict
+    fw_settings : dict
+        Dictionary for the FireWorks specific systems (Default value = None)
+    kwargs : dict
         Dictionary of keyword arguments that must have the following objects
         workdir: str
             Working directory for the calculation
@@ -27,8 +26,9 @@ def add_stat_samp_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     Returns
     -------
-    FWAction
+    fireworks.FWAction
         FWAction that adds the phonon_dict to the spec
+
     """
     trajectory_file = f"{kwargs['workdir']}/{kwargs['trajectory_file']}"
 

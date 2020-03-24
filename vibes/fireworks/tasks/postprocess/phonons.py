@@ -21,15 +21,18 @@ from vibes.trajectory import reader
 
 
 def time2str(n_sec):
-    """
-    Converts a number of seconds into a time string
-    Args:
-        n_secs (int): A time presented as a number of seconds
+    """Converts a number of seconds into a time string
+
+    Parameters
+    ----------
+    n_sec : int
+        A time presented as a number of seconds
 
     Returns
     -------
-    time_str: str
+    str
         A string representing a specified time
+
     """
     secs = int(n_sec % 60)
     mins = int(n_sec / 60) % 60
@@ -39,13 +42,18 @@ def time2str(n_sec):
 
 
 def get_base_work_dir(wd):
-    """
-    Converts wd to be it's base (no task specific directories)
-    Args:
-        wd (str): Current working directory
+    """Converts wd to be it's base (no task specific directories)
 
-    Returns:
-        (str): The base working directory for the workflow
+    Parameters
+    ----------
+    wd : str
+        Current working directory
+
+    Returns
+    -------
+    str
+        The base working directory for the workflow
+
     """
     wd_list = wd.split("/")
     # remove analysis directories from path
@@ -80,19 +88,20 @@ def get_memory_expectation(new_supercell, calculator, k_pt_density, workdir):
 
     Parameters
     ----------
-    new_supercell: ase.atoms.Atoms
+    new_supercell : ase.atoms.Atoms
         The structure to get the memory estimation for
     calculator: ase.atoms.Calculator
         The ASE Calculator to be used
-    k_pt_density: list of floats
+    k_pt_density : list of floats
         The k-point density in all directions
-    workdir: str
+    workdir : str
         Path to working directory
 
     Returns
     -------
-    float:
+    total_mem : float
         The expected memory of the calculation, scaling based on empirical tests
+
     """
     settings = Settings()
     calculator.parameters["dry_run"] = True
@@ -140,15 +149,22 @@ def get_memory_expectation(new_supercell, calculator, k_pt_density, workdir):
 
 
 def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
-    """
-    Checks if the density of state finger prints are converged
-    Args:
-        dos_fp (MaterialsFingerprint): Current fingerprint
-        prev_dos_fp (MaterialsFingerprint): Fingerprint of the previous step
-        conv_crit (float): convergence criteria
+    """Checks if the density of state finger prints are converged
 
-    Returns:
-        (bool): True if conv_criteria is met
+    Parameters
+    ----------
+    dos_fp : vibes.materials_fp.material_fingerprint.fp_tup
+        Current fingerprint
+    prev_dos_fp : vibes.materials_fp.material_fingerprint.fp_tup
+        Fingerprint of the previous step
+    conv_crit : float
+        convergence criteria
+
+    Returns
+    -------
+    bool
+        True if conv_criteria is met
+
     """
     if not isinstance(prev_dos_fp, fp_tup):
         for ll in range(4):
@@ -172,22 +188,37 @@ def get_converge_phonon_update(
     init_workdir="./",
     **kwargs,
 ):
-    """
-    Check phonon convergence and set up future calculations after a phonon calculation
-    Args:
-        func (str): Path to the phonon analysis function
-        func_fw_out (str): Path to this function
-        args (list): list arguments passed to the phonon analysis
-        fw_settings (dict): Dictionary for the FireWorks specific systems
-        kwargs (dict): Dictionary of keyword arguments
-            Mandatory Keys:
-                outputs: The Phonopy object from post-processing
-                serial (bool): If True use a serial calculation
-                init_workdir (str): Path to the base phonon force calculations
-                trajectory_file (str): trajectory_file file name
+    """Check phonon convergence and set up future calculations after a phonon calculation
 
-    Returns:
-        (FWAction): Increases the supercell size or adds the phonon_dict to the spec
+    Parameters
+    ----------
+    workdir : str
+        path to the working directory
+    trajectory : str
+        name of hte trajectory.son file
+    calc_times : list of floats
+        Total calculation times for all structures
+    ph : phonopy.Phonopy
+        phonopy object for the current calculation
+    conv_crit : float
+        Convergence criteria for Tanimoto Similarity of phonon density of states
+        (Default value = 0.95)
+    prev_dos_fp : vibes.materials_fp.material_fingerprint.fp_tup
+        Fingerprint of the previous step (Default value = None)
+    init_workdir : str
+        Path to the base phonon force calculations (Default value = "./")
+    kwargs : dict
+        Dictionary of keyword arguments
+    **kwargs :
+
+
+    Returns
+    -------
+    ph_conv : bool
+        True if phonon model is converged with respect to the supercell size
+    update_job : dict
+        Dictionary describing all necessary job updates
+
     """
     calc_time = np.sum(calc_times)
 

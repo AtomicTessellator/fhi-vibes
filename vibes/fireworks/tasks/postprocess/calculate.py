@@ -8,7 +8,21 @@ from vibes.fireworks.tasks.calculate_wrapper import T_S_LINE
 
 
 def get_calc_times(workdir=".", calc_dirs=None):
-    """Get the calculation for a set of Aims Calculations"""
+    """Get the calculation for a set of Aims Calculations
+
+    Parameters
+    ----------
+    workdir : str
+        working directory with the calculation in it (Default value = ".")
+    calc_dirs : list of str
+        list of directories where calculations were done (Default value = None)
+
+    Returns
+    -------
+    calc_times : list of floats
+        the wall clock time of all calculations
+
+    """
 
     if calc_dirs is None:
         workdir = Path(workdir)

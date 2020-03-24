@@ -1,10 +1,17 @@
-"""Used to combine a queue/rocket launcher based on which FireTasks are in a WorkFlow"""
+"""Used to combine a queue/rocket launcher based on which FireTasks are in a WorkFlow
+
+FireWorks Copyright (c) 2013, The Regents of the University of
+California, through Lawrence Berkeley National Laboratory (subject
+to receipt of any required approvals from the U.S. Dept. of Energy).
+All rights reserved.
+"""
 import glob
 import os
 import time
 from datetime import datetime
 from pathlib import Path
 
+import numpy as np
 from fireworks.core.rocket_launcher import launch_rocket
 from fireworks.fw_config import (
     ALWAYS_CREATE_NEW_BLOCK,
@@ -21,7 +28,6 @@ from fireworks.utilities.fw_utilities import (
     get_fw_logger,
     log_exception,
 )
-
 from vibes.fireworks._defaults import FW_DEFAULTS
 from vibes.fireworks.qlaunch_remote import qlaunch_remote
 from vibes.helpers import talk
@@ -44,27 +50,26 @@ else:
     SSH_MULTIPLEXING = "controlpath" in SSHClient.connect.__doc__
 
 
-def get_ordred_firework_ids(wflow):
+def get_ready_firework_ids(wflow):
     """Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow
 
     Parameters
     ----------
-    wflow: WorkFlow
+    wflow : WorkFlow
         WorkFlow to run
 
     Returns
     -------
-    firework_ids_ordered: list of ints
+    list of ints
         An ordered list for the desired workflow to run
+
     """
-    firework_ids_ordered = wflow.leaf_fw_ids
-    parent_links = wflow.links.parent_links
-    for fw_id in firework_ids_ordered:
-        parents = parent_links[fw_id] if fw_id in parent_links else []
-        for parent in sorted(parents)[::-1]:
-            if parent not in firework_ids_ordered:
-                firework_ids_ordered.append(parent)
-    return firework_ids_ordered[::-1]
+    ready_fireworks = []
+
+    for fw_id, fw in wflow.id_fw.items():
+        if fw.state == "READY":
+            ready_fireworks.append(fw_id)
+    return ready_fireworks[::-1]
 
 
 def use_queue_launch(fire_work, tasks2queue):
@@ -72,15 +77,16 @@ def use_queue_launch(fire_work, tasks2queue):
 
     Parameters
     ----------
-    fire_work: FireWork
+    fire_work : FireWork
         FireWork to be run locally or remotely
-    tasks2queue: list of str
+    tasks2queue : list of str
         Paths of functions to run on the queue
 
     Returns
     -------
     bool
         True if the task should be run on a cluster
+
     """
     for task in fire_work.spec["_tasks"]:
         if task["args"][0] in tasks2queue:
@@ -118,52 +124,54 @@ def rapidfire(
 
     Parameters
     ----------
-    launchpad: LaunchPad
+    launchpad : LaunchPad
         The LaunchPad where the launches are defined
-    fworker: FWorker
-        The FireWorker used to run the launches
-    qadapter: QueueAdapterBase
-        The QueueAdapter for the launches
-    launch_dir: str
-        directory where we want to write the blocks
-    nlaunches: int
-        total number of launches desired; "infinite" for loop, 0 for one round
-    njobs_queue: int
-        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit
-    njobs_block: int
-        automatically write a new block when njobs_block jobs are in a single block
-    sleep_time: int
-        secs to sleep between rapidfire loop iterations
-    reserve: bool
-        Whether to queue in reservation mode
-    strm_lvl: str
-        level at which to stream log messages
-    timeout: int
-        # of seconds after which to stop the rapidfire process
-    fill_mode: bool
-        True if submit jobs with nothing to run (only in non-reservation mode)
-    firework_ids: list of ints
-        a list firework_ids to launch (len(firework_ids) == nlaunches)
-    wflow: WorkFlow
-        the workflow this qlauncher is supposed to run
-    tasks2queue: List of str
-        List of functions to run on a remote queue
-    gss_auth: bool
-        True if GSS_API should be used to connect to the remote machine
-    controlpath: str
-        path the the socket file for MUX connections
-    remote_host: list of str
-        list of hosts to attempt to connect to
-    remote_config_dir: list of str
-        list of directories on the remote machines to findFireWorks configuration files
-    remote_user: str
-        username for the remote account
-    remote_password: str or None
-        Password for access to the remote account
-    remote_shell: str
-        Type of shell on the remote machine
-    daemon: int
+    fworker : FWorker
+        The FireWorker used to run the launches (Default value = None)
+    qadapter : QueueAdapterBase
+        The QueueAdapter for the launches (Default value = None)
+    launch_dir : str
+        directory where we want to write the blocks (Default value = ".")
+    nlaunches : int
+        total number of launches desired; "infinite" for loop, 0 for one round (Default value = FW_DEFAULTS.nlaunches)
+    njobs_queue : int
+        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit (Default value = FW_DEFAULTS.njobs_queue)
+    njobs_block : int
+        automatically write a new block when njobs_block jobs are in a single block (Default value = FW_DEFAULTS.njobs_block)
+    sleep_time : int
+        secs to sleep between rapidfire loop iterations (Default value = FW_DEFAULTS.sleep_time)
+    reserve : bool
+        Whether to queue in reservation mode (Default value = False)
+    strm_lvl : str
+        level at which to stream log messages (Default value = "CRITICAL")
+    timeout : int
+        # of seconds after which to stop the rapidfire process (Default value = None)
+    fill_mode : bool
+        True if submit jobs with nothing to run (only in non-reservation mode) (Default value = False)
+    firework_ids : list of ints
+        a list firework_ids to launch (len(firework_ids) == nlaunches) (Default value = None)
+    wflow : WorkFlow
+        the workflow this qlauncher is supposed to run (Default value = None)
+    tasks2queue : List of str
+        List of functions to run on a remote queue (Default value = FW_DEFAULTS.tasks2queue)
+    gss_auth : bool
+        True if GSS_API should be used to connect to the remote machine (Default value = False)
+    controlpath : str
+        path the the socket file for MUX connections (Default value = None)
+    remote_host : list of str
+        list of hosts to attempt to connect to (Default value = FW_DEFAULTS.remote_host)
+    remote_config_dir : list of str
+        list of directories on the remote machines to findFireWorks configuration files (Default value = FW_DEFAULTS.remote_config_dir)
+    remote_user : str
+        username for the remote account (Default value = FW_DEFAULTS.remote_user)
+    remote_password : str or None
+        Password for access to the remote account (Default value = FW_DEFAULTS.remote_password)
+    remote_shell : str
+        Type of shell on the remote machine (Default value = "/bin/bash -l -c")
+    daemon : int
         Daemon mode. Command is repeated every x seconds. Defaults non-daemon mode
+    remote_recover_offline :
+        (Default value = False)
 
     Raises
     ------
@@ -173,6 +181,7 @@ def rapidfire(
         If no FireWorker or Queue Adapter is specified
     ValueError
         If the launch directory does not exist
+
     """
     if tasks2queue is None:
         tasks2queue = [""]
@@ -299,7 +308,7 @@ def rapidfire(
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
-                firework_ids = get_ordred_firework_ids(wflow)
+                firework_ids = get_ready_firework_ids(wflow)
             while (
                 skip_check
                 or launchpad.run_exists(fworker, ids=firework_ids)
@@ -326,7 +335,7 @@ def rapidfire(
                 return_code = None
                 # launch a single job
                 if firework_ids or wflow_id:
-                    fw_id = firework_ids[num_launched]
+                    fw_id = firework_ids[0]
                 else:
                     fw_id = launchpad._get_a_fw_to_run(
                         fworker.query, fw_id=None, checkout=False
@@ -350,7 +359,7 @@ def rapidfire(
                 if wflow_id:
                     wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                     nlaunches = len(wflow.fws)
-                    firework_ids = get_ordred_firework_ids(wflow)
+                    firework_ids = get_ready_firework_ids(wflow)
                 if use_queue:
                     num_launched += 1
                 elif return_code is None:

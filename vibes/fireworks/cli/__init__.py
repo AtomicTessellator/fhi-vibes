@@ -1,7 +1,6 @@
 """`vibes fireworks part of the CLI"""
 import click
 from fireworks.fw_config import CONFIG_FILE_DIR, LAUNCHPAD_LOC
-
 from vibes.cli.misc import AliasedGroup
 from vibes.fireworks._defaults import FW_DEFAULTS
 from vibes.helpers import talk
@@ -41,13 +40,14 @@ def fireworks():
 
 
 @fireworks.command("add_wf")
-@click.option("-w", "--workflow", default="workflow.in")
-@click.option("-l", "--launchpad", default=LAUNCHPAD_LOC)
+@click.option("-w", "--workflow", help="The workflow input file", default="workflow.in")
+@click.option("-l", "--launchpad", help="path to launchpad file", default=LAUNCHPAD_LOC)
 def add_wf(workflow, launchpad):
     """Adds a workflow to the launchpad"""
     from pathlib import Path
     from glob import glob
 
+    from ase.calculators.calculator import get_calculator_class
     from vibes.aims.context import AimsContext
     from vibes.aims.setup import setup_aims
     from vibes.fireworks.workflows.workflow_generator import generate_workflow
@@ -77,16 +77,24 @@ def add_wf(workflow, launchpad):
         wflow = TaskSettings(name=None, settings=settings)
         atoms = wflow.atoms
 
-        if "basissets" not in wflow and "basisset" in wflow.general:
-            wflow["basissets"] = AttributeDict({"default": wflow.general.basisset})
-        elif "basissets" not in wflow:
-            wflow["basisset"] = AttributeDict({"default": "light"})
-
         talk(f"Generating workflow for {get_sysname(atoms)}", prefix="fireworks")
-        calculator = setup_aims(
-            ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False
-        )
-        atoms.set_calculator(calculator)
+        if "control" in wflow or (
+            "calculator" in wflow and wflow.calculator.get("name") == "aims"
+        ):
+            if "basissets" not in wflow and "basisset" in wflow.general:
+                wflow["basissets"] = AttributeDict({"default": wflow.general.basisset})
+            elif "basissets" not in wflow:
+                wflow["basisset"] = AttributeDict({"default": "light"})
+
+            calc = setup_aims(
+                ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False
+            )
+        elif "calculator" in wflow:
+            calc_parameters = wflow.calculator.copy()
+            name = calc_parameters.pop("name").lower()
+            calc = get_calculator_class(name)(**calc_parameters)
+
+        atoms.set_calculator(calc)
         generate_workflow(wflow, atoms, launchpad)
 
 

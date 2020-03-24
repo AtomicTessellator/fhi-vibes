@@ -1,4 +1,10 @@
-"""This module contains a modified rapid-fire mode."""
+"""This module contains a modified rapid-fire mode.
+
+FireWorks Copyright (c) 2013, The Regents of the University of
+California, through Lawrence Berkeley National Laboratory (subject
+to receipt of any required approvals from the U.S. Dept. of Energy).
+All rights reserved.
+"""
 # coding: utf-8
 from __future__ import unicode_literals
 
@@ -14,10 +20,9 @@ from fireworks.utilities.fw_utilities import (
     log_multi,
     redirect_local,
 )
-
 from vibes.helpers import talk
 
-from .combined_launcher import get_ordred_firework_ids
+from .combined_launcher import get_ready_firework_ids
 
 
 __author__ = "Anubhav Jain, Modified by Thomas Purcell Nov 2, 2018"
@@ -49,30 +54,31 @@ def rapidfire(
 
     Parameters
     ----------
-    launchpad: LaunchPad
+    launchpad : LaunchPad
         LaunchPad for the launch
-    fworker: FWorker
-        FireWorker for the launch
-    m_dir: str
-        the directory in which to loop Rocket running
-    nlaunches: int
-        0 means 'until completion', -1 or "infinite" means to loop until max_loops
-    max_loops: int
+    fworker : FWorker
+        FireWorker for the launch (Default value = None)
+    m_dir : str
+        the directory in which to loop Rocket running (Default value = None)
+    nlaunches : int
+        0 means 'until completion', -1 or "infinite" means to loop until max_loops (Default value = 0)
+    max_loops : int
         maximum number of loops (default -1 is infinite)
-    sleep_time: int
-        secs to sleep between rapidfire loop iterations
-    strm_lvl: str
-        level at which to output logs to stdout
-    timeout: int
-        of seconds after which to stop the rapidfire process
-    local_redirect: bool
-        redirect standard input and output to local file
-    pdb_on_exception: bool
-        if set to True, python will start the debugger on a firework exception
-    firework_ids: list of ints
-        list of FireWorks to run
-    wflow_id: list of ints
-        list of ids of the root nodes of a workflow
+    sleep_time : int
+        secs to sleep between rapidfire loop iterations (Default value = None)
+    strm_lvl : str
+        level at which to output logs to stdout (Default value = "CRITICAL")
+    timeout : int
+        of seconds after which to stop the rapidfire process (Default value = None)
+    local_redirect : bool
+        redirect standard input and output to local file (Default value = False)
+    pdb_on_exception : bool
+        if set to True, python will start the debugger on a firework exception (Default value = False)
+    firework_ids : list of ints
+        list of FireWorks to run (Default value = None)
+    wflow_id : list of ints
+        list of ids of the root nodes of a workflow (Default value = None)
+
     """
     if firework_ids and len(firework_ids) != nlaunches:
         talk(
@@ -93,20 +99,20 @@ def rapidfire(
     num_loops = 0
 
     def time_ok():
-        """ Determines if the rapidfire run has timed out"""
+        """Determines if the rapidfire run has timed out"""
         return (
             timeout is None or (datetime.now() - start_time).total_seconds() < timeout
         )
 
     while num_loops != max_loops and time_ok():
         skip_check = False  # this is used to speed operation
-        if wflow_id:
-            wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
-            nlaunches = len(wflow.fws)
-            firework_ids = get_ordred_firework_ids(wflow)
         while (
             skip_check or launchpad.run_exists(fworker, ids=firework_ids)
         ) and time_ok():
+            if wflow_id:
+                wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
+                nlaunches = len(wflow.fws)
+                firework_ids = get_ready_firework_ids(wflow)
             os.chdir(curdir)
             launcher_dir = create_datestamp_dir(curdir, l_logger, prefix="launcher_")
             os.chdir(launcher_dir)
@@ -118,7 +124,7 @@ def rapidfire(
                             fworker,
                             strm_lvl=strm_lvl,
                             pdb_on_exception=pdb_on_exception,
-                            fw_id=firework_ids[num_launched],
+                            fw_id=firework_ids[0],
                         )
                     else:
                         rocket_ran = launch_rocket(
@@ -134,7 +140,7 @@ def rapidfire(
                         fworker,
                         strm_lvl=strm_lvl,
                         pdb_on_exception=pdb_on_exception,
-                        fw_id=firework_ids[num_launched],
+                        fw_id=firework_ids[0],
                     )
                 else:
                     rocket_ran = launch_rocket(
@@ -146,7 +152,7 @@ def rapidfire(
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
-                firework_ids = get_ordred_firework_ids(wflow)
+                firework_ids = get_ready_firework_ids(wflow)
             if rocket_ran:
                 num_launched += 1
             elif not os.listdir(launcher_dir):

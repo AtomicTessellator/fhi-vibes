@@ -17,18 +17,33 @@ E_F_INCONSISTENCY = "  ** Inconsistency of forces<->energy above specified toler
 
 
 def check_if_failure_ok(lines, walltime):
-    """Checks if the FHI-aims calculation finished"""
+    """Checks if the FHI-aims calculation finished
+
+    Parameters
+    ----------
+    lines: list of str
+        List of lines in the aims.out file
+    walltime: float
+        walltime used in in seconds
+
+    Returns
+    -------
+    Reason: str
+        a string key describing the reason of the failure
+
+    """
+
+    if E_F_INCONSISTENCY in lines:
+        return "E_F_INCONSISTENCY"
+
     line_sum = np.where(lines == T_S_LINE)[0]
     time_used = float(lines[line_sum[0] + 1].split(":")[1].split("s")[1])
     sum_present = line_sum.size > 0
 
     if walltime and sum_present and time_used / walltime > 0.95:
-        return True
+        return "WALLTIME"
 
-    if E_F_INCONSISTENCY in lines:
-        return True
-
-    return False
+    return "UNKOWN"
 
 
 def wrap_calc_socket(
@@ -48,22 +63,25 @@ def wrap_calc_socket(
 
     Parameters
     ----------
-    atoms_dict_to_calculate:list of dicts
+    atoms_dict_to_calculate : list of dicts
         A list of dicts representing the cellsto calculate the forces on
-    calculator_dict:dict
-        A dictionary representation of the ASE Calculator used to calculatethe Forces
-    metadata:dict
+    calculator_dict : dict
+        A dictionary representation of the ASE Calculator used to calculate the Forces
+    metadata : dict
         metadata for the force trajectory file
-    phonon_times:list
-        List of all the phonon calculation times
-    trajectory_file:str
-        file name for the trajectory file
-    workdir:str
-        work directory for the force calculations
-    backup_folder:str
-        Directory to store backups
-    walltime:int
-        number of seconds to run the calculation for
+    phonon_times : list
+        List of all the phonon calculation times (Default value = None)
+    mem_use : list of floats
+        List of amount of memory used for all calculations (Default value = None)
+    trajectory : str
+        file name for the trajectory file (Default value = "trajectory.son")
+    workdir : str
+        work directory for the force calculations (Default value = ".")
+    backup_folder : str
+        Directory to store backups (Default value = "backups")
+    walltime : int
+        number of seconds to run the calculation for (Default value = None)
+
 
     Returns
     -------
@@ -74,6 +92,7 @@ def wrap_calc_socket(
     ------
     RuntimeError
         If the calculation fails
+
     """
     atoms_to_calculate = []
     if calculator_dict["calculator"].lower() == "aims":
@@ -130,14 +149,14 @@ def wrap_calculate(atoms, calculator, workdir=".", walltime=1800, fw_settings=No
 
     Parameters
     ----------
-    atoms:Atoms
-        Structure.
-    calculator:calculator
-        Calculator.
-    workdir:folder
-        Folder to perform calculation in.
-    walltime:int
-        number of seconds to run the calculation for
+    atoms : ase.atoms.Atoms
+        structure to be simulated
+    calc : ase.calculator.calculator
+        Calculator for the simulation
+    workdir : folder
+        Folder to perform calculation in. (Default value = ".")
+    walltime : int
+        number of seconds to run the calculation for (Default value = 1800)
 
     Returns
     -------
@@ -148,9 +167,11 @@ def wrap_calculate(atoms, calculator, workdir=".", walltime=1800, fw_settings=No
     ------
     RuntimeError
         If the calculation fails
-"""
+
+    """
     calculator.parameters["walltime"] = walltime
     calculator.parameters.pop("use_pimd_wrapper", None)
+
     try:
         return calculate(atoms, calculator, workdir)
     except RuntimeError:

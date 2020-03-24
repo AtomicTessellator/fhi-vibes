@@ -1,0 +1,16 @@
+# MgO/AB_cF8_225_a_b params=4.2263 SG#=225 [ANRL doi: 10.1016/j.commatsci.2017.01.017 (part 1), doi: 10.1016/j.commatsci.2018.10.043 (part 2)]
+# AFLOW::AIMS BEGIN 
+lattice_vector    0.00000000000000   2.11315000000000   2.11315000000000
+lattice_vector    2.11315000000000   0.00000000000000   2.11315000000000
+lattice_vector    2.11315000000000   2.11315000000000   0.00000000000000
+atom_frac    0.00000000000000    0.00000000000000    0.00000000000000  Mg 
+atom_frac    0.50000000000000    0.50000000000000    0.50000000000000  O 
+# format: symmetry_n_params [n n_lv n_fracpos]
+symmetry_n_params 1 1 0
+symmetry_params a
+symmetry_lv 0 , (1.0/2.0)*a , (1.0/2.0)*a
+symmetry_lv (1.0/2.0)*a , 0 , (1.0/2.0)*a
+symmetry_lv (1.0/2.0)*a , (1.0/2.0)*a , 0
+symmetry_frac 0 , 0.0 , 0.0
+symmetry_frac (1.0/2.0) , (1.0/2.0) , (1.0/2.0)
+# AFLOW::AIMS END 
