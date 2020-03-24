@@ -178,14 +178,13 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
         "rattle": kwargs.get("mc_rattle", False),
         "quantum": kwargs.get("quantum", False),
         "deterministic": kwargs.get("deterministic", True),
-        "plus_minus": kwargs.get("plus_minus", True),
+        "zacharias": kwargs.get("plus_minus", True),
         "gauge_eigenvectors": kwargs.get("gauge_eigenvectors", True),
         "ignore_negative": kwargs.get("ignore_negative", False),
         "failfast": kwargs.get("failfast", True),
         "sobol": kwargs.get("sobol", False),
         "random_seed": rng_seed,
         "propagate": False,
-        "format": "aims",
     }
 
     return metadata

@@ -98,7 +98,6 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
                 sobol=False,
                 random_seed=np.random.randint(2 ** 32),
                 propagate=0,
-                format="aims",
             )[0]
 
             supercell.write(str(workdir / "supercell.in"), format="aims", scaled=True)
