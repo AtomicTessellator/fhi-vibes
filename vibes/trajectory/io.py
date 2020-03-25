@@ -101,8 +101,8 @@ def reader(
     get_metadata=False,
     fc_file=None,
     with_stresses=False,
+    single_point_calculator=True,
     verbose=True,
-    single_point_calc=True,
 ):
     """Convert information in file to Trajectory
 
@@ -111,6 +111,7 @@ def reader(
         get_metadata: If True return the metadata
         fc_file: force constants file
         with_stresses: Return only the atoms with stresses computed
+        single_point_calculator: return calculators as SinglePointCalculator
         verbose: If True print more information to the screen
 
     Returns:
@@ -164,7 +165,11 @@ def reader(
         # remember that the results need to go to a dedicated results dict in calc
         calc_dict = {**pre_calc_dict, "results": obj["calculator"]}
 
-        atoms = dict2atoms(atoms_dict, calc_dict, single_point_calc)
+        atoms = dict2atoms(
+            atoms_dict,
+            calculator_dict=calc_dict,
+            single_point_calculator=single_point_calculator,
+        )
 
         # info
         if "MD" in metadata:

@@ -9,7 +9,7 @@ from vibes.helpers.hash import hash_atoms, hash_atoms_and_calc
 from vibes.trajectory import reader
 
 parent = Path(__file__).parent
-traj = reader(parent / "trajectory.son", single_point_calc=False)
+traj = reader(parent / "trajectory.son", single_point_calculator=False)
 
 db_file = Path(parent / "db.json")
 

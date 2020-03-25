@@ -81,14 +81,14 @@ def atoms2dict(
     return atoms_dict
 
 
-def calc2dict(calc: SinglePointCalculator) -> dict:
+def calc2dict(calculator: SinglePointCalculator) -> dict:
     """Converts an ase calculator calc into a dict
 
     Args:
-        calc: The calculator to be converted to a dict
+        calculator: The calculator to be converted to a dict
 
     Returns:
-        calc_dict: The dict representation of calc
+        calculator_dict: The dict representation of calculator
     """
 
     if calculator is None:
@@ -113,7 +113,7 @@ def calc2dict(calc: SinglePointCalculator) -> dict:
 
 def input2dict(
     atoms: Atoms,
-    calc: SinglePointCalculator = None,
+    calculator: SinglePointCalculator = None,
     primitive: Atoms = None,
     supercell: Atoms = None,
     settings: dict = None,
@@ -122,7 +122,7 @@ def input2dict(
 
     Args:
         atoms: The structure to be converted to a dict
-        calc: The calculator to be converted to a dict
+        calculator: The calculator to be converted to a dict
         primitive: The primitive cell structure
         supercell: The supercell cell structure
         settings: The settings used to generate the inputs
@@ -162,7 +162,7 @@ def input2dict(
     return input_dict
 
 
-def results2dict(atoms: Atoms, calc: SinglePointCalculator = None) -> dict:
+def results2dict(atoms: Atoms, calculator: SinglePointCalculator = None) -> dict:
     """extract information from atoms and calculator and convert to plain dict
 
     Args:
@@ -204,13 +204,14 @@ def results2dict(atoms: Atoms, calc: SinglePointCalculator = None) -> dict:
 
 
 def dict2atoms(
-    atoms_dict: dict, calc_dict: dict = None, single_point_calc: bool = True
+    atoms_dict: dict, calculator_dict: dict = None, single_point_calculator: bool = True
 ) -> Atoms:
     """Convert dictionaries into atoms and calculator objects
 
     Args:
         atoms_dict: The dict representation of atoms
-        calc_dict: The dict representation of calc
+        calculator_dict: The dict representation of calc
+        single_point_calculator: return calculator as SinglePointCalculator
 
     Returns:
         atoms: atoms represented by atoms_dict with calculator represented by calc_dict
@@ -245,7 +246,7 @@ def dict2atoms(
         results = {}
         if "results" in calculator_dict:
             results = calculator_dict.pop("results")
-        if single_point_calc:
+        if single_point_calculator:
             calculator = SinglePointCalculator(atoms, **results)
             if "calculator" in calculator_dict:
                 calculator.name = calculator_dict["calculator"].lower()
