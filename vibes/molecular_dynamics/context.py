@@ -10,7 +10,7 @@ from ase.io import read
 from ase.md.md import MolecularDynamics
 
 from vibes import son
-from vibes.aims.context import AimsContext
+from vibes.calculator.context import AimsContext
 from vibes.filenames import filenames
 from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict

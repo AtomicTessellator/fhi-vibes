@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from vibes import aims
+from vibes import calculator
 from vibes.settings import Settings
 
 parent = Path(__file__).parent
@@ -12,14 +12,14 @@ def test_create_calculator():
     for file in files:
         settings = Settings(parent / file, read_config=False)
 
-        aims.setup.setup(settings)
+        calculator.setup.setup(settings)
 
 
 def test_create_aims_legacy():
     settings = Settings(parent / "aims.in", read_config=False)
-    c1 = aims.setup.setup(settings)
+    c1 = calculator.setup.setup(settings)
 
     settings = Settings(parent / "aims_old.in", read_config=False)
-    c2 = aims.setup.setup(settings)
+    c2 = calculator.setup.setup(settings)
 
     assert c1.parameters == c2.parameters, (c1, c2)

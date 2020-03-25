@@ -2,10 +2,6 @@
 
 import click
 
-# from vibes.aims.context import AimsContext
-# from vibes.phonopy.context import PhonopyContext
-# from vibes.molecular_dynamics.context import MDContext
-# from vibes.settings import Settings
 from vibes.helpers import talk
 
 from .misc import AliasedGroup, complete_files
@@ -27,7 +23,7 @@ def run():
 def aims_run(obj, settings, workdir):
     """run one or several aims calculations from SETTINGS (default: aims.in)"""
     from vibes.settings import Settings
-    from vibes.aims import AimsContext, run_aims
+    from vibes.calculator import AimsContext, run_aims
 
     ctx = AimsContext(Settings(settings_file=settings), workdir=workdir)
 

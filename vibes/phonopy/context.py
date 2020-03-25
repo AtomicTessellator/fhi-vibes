@@ -136,15 +136,17 @@ class PhonopyContext:
         if self.settings.atoms and self.settings.atoms.calc:
             calc = self.settings.atoms.calc
         else:
-            from vibes import aims
+            from vibes import calculator
 
-            aims_ctx = aims.AimsContext(settings=self.settings, workdir=self.workdir)
+            aims_ctx = calculator.AimsContext(
+                settings=self.settings, workdir=self.workdir
+            )
             # set reference structure for aims calculation
             # and make sure forces are computed
             aims_ctx.ref_atoms = supercell
             aims_ctx.settings.obj["compute_forces"] = True
 
-            calc = aims.setup.setup_aims(aims_ctx)
+            calc = calculator.setup.setup_aims(aims_ctx)
 
         # save metadata
         metadata = metadata2dict(phonon, calc)

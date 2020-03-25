@@ -8,8 +8,9 @@ from ase.constraints import (
     FixScaledParametricRelations,
     dict2constraint,
 )
-from vibes.aims.context import AimsContext
-from vibes.aims.setup import setup_aims
+
+from vibes.calculator.context import AimsContext
+from vibes.calculator.setup import setup_aims
 from vibes.fireworks.tasks.general_py_task import get_func
 from vibes.fireworks.workflows.workflow_generator import generate_workflow
 from vibes.helpers.converters import dict2atoms, input2dict

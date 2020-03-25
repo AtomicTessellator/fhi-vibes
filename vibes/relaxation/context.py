@@ -7,7 +7,7 @@ from ase.calculators.calculator import Calculator
 from ase.constraints import ExpCellFilter
 
 from vibes import keys, son
-from vibes.aims.context import AimsContext
+from vibes.calculator.context import AimsContext
 from vibes.filenames import filenames
 from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict
