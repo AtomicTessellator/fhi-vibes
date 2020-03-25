@@ -15,7 +15,7 @@ def test_hash(atoms=atoms):
     atoms.write("geometry.in", format="aims")
 
     config_file = parent / "hash.cfg"
-    settings = Settings(settings_file=parent / "aims.in", config_file=None)
+    settings = Settings(settings_file=parent / "aims.in", config_files=None)
     settings.machine.basissetloc = parent / settings.machine.basissetloc
 
     ctx = CalculatorContext(settings)
@@ -30,7 +30,7 @@ def test_hash(atoms=atoms):
     _, calchash = hash_atoms_and_calc(atoms, ignore_file=config_file)
 
     assert atomshash == "d362270c568a4a9de8a5a867034983c3057c3db0", atomshash
-    assert calchash == "edd9178b6838aad8ac6f71f33e49d019a95b0b37", calchash
+    assert calchash == "6610567789d51f9d79778e4d0304df819b33cb96", calchash
 
     Path("geometry.in").unlink()
 

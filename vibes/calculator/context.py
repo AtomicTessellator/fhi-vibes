@@ -6,43 +6,8 @@ import click
 from ase import Atoms
 from ase.io import read
 
-from vibes.settings import SettingsError, TaskSettings
-
 from . import _defaults as defaults
-
-
-class AimsSettings(TaskSettings):
-    """Aims settings. Ensures that settings are set up sensibly"""
-
-    def __init__(self, settings: dict = None):
-        """Settings in the context of a phonopy workflow
-
-        Args:
-            settings: Workflow settings for the task
-
-        """
-
-        super().__init__(
-            defaults.name,
-            settings=settings,
-            default_kwargs=defaults.kwargs,
-            mandatory_keys=defaults.mandatory_base,
-            obj_key=defaults.obj_key,
-            mandatory_obj_keys=defaults.mandatory_task,
-        )
-
-        # basisset
-        if "basisset" in self:
-            msg = "`basisset.type` is removed in favour of `basissets.default`. Stop"
-            raise RuntimeError(msg)
-
-        if defaults.basisset_key not in self:
-            msg = f"basisset not specified in {self.settings_file}"
-            raise SettingsError(msg)
-
-        # KS_method
-        if "ks_method" in self.control:
-            self.control["KS_method"] = self.control.pop("ks_method")
+from . import setup
 
 
 class CalculatorContext:
@@ -56,13 +21,12 @@ class CalculatorContext:
             workdir: Directory to run the calculation in
 
         """
-        self.settings = AimsSettings(settings)
-        self.workdir = self.settings.workdir
+        self.settings = settings
 
         if workdir:
-            self.workdir = Path(workdir)
+            self.settings.workdir = Path(workdir)
         if not self.workdir:
-            self.workdir = Path(defaults.name)
+            self.settings.workdir = Path(defaults.name)
 
         self._ref_atoms = None
         self._primitive = None
@@ -147,9 +111,12 @@ class CalculatorContext:
 
     def get_calculator(self):
         """Get the ASE Calculator based on the context"""
-        from .setup import setup_aims
+        if self.name == "aims":
+            from .aims import setup_aims
 
-        return setup_aims(self)
+            return setup_aims(self)
+        else:
+            return setup.from_settings(self.settings)
 
     @property
     def calculator(self):
@@ -159,4 +126,8 @@ class CalculatorContext:
     @property
     def name(self):
         """The name of the calculation"""
-        return self.settings.name
+        return self.settings.calculator.get("name")
+
+    @property
+    def workdir(self):
+        return self.settings.workdir

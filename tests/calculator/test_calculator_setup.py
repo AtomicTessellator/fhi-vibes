@@ -17,6 +17,13 @@ def test_create_calculator(file):
     calculator.setup.from_settings(settings)
 
 
+@pytest.mark.parametrize("file", files)
+def test_create_calculator_context(file):
+    settings = Settings(file, config_files=None)
+
+    calculator.CalculatorContext(settings)
+
+
 def test_create_aims_legacy():
     settings = Settings(parent / "aims.in", config_files=None)
     c1 = calculator.setup.from_settings(settings)

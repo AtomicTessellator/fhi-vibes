@@ -91,12 +91,12 @@ class MDContext:
     @property
     def maxsteps(self):
         """return the maxsteps from settings"""
-        return self.settings.obj["maxsteps"]
+        return self.settings.md["maxsteps"]
 
     @maxsteps.setter
     def maxsteps(self, steps):
         """set maxsteps"""
-        self.settings.obj["maxsteps"] = steps
+        self.settings.md["maxsteps"] = steps
 
     @property
     def atoms(self):
@@ -116,14 +116,15 @@ class MDContext:
         """the calculator for running the computation"""
         if not self._calculator:
             # create aims from context and make sure forces are computed
+            assert self.settings.calculator.name == "aims"
             aims_ctx = CalculatorContext(settings=self.settings, workdir=self.workdir)
-            aims_ctx.settings.obj["compute_forces"] = True
+            aims_ctx.settings.calculator.parameters["compute_forces"] = True
 
             # atomic stresses
             if self.compute_stresses:
                 msg = f"Compute atomic stress every {self.compute_stresses} steps"
                 talk(msg, prefix=_prefix)
-                aims_ctx.settings.obj["compute_heat_flux"] = True
+                aims_ctx.settings.calculator.parameters["compute_heat_flux"] = True
 
             self._calculator = aims_ctx.get_calculator()
 
@@ -139,7 +140,7 @@ class MDContext:
     def md(self):
         """the MD algorithm"""
         if not self._md:
-            obj = self.settings.obj
+            obj = self.settings.md
             md_settings = {
                 "atoms": self.atoms,
                 "timestep": obj.timestep * u.fs,
@@ -196,7 +197,7 @@ class MDContext:
         compute_stresses = 0
         if "compute_stresses" in self.settings.obj:
             # make sure compute_stresses describes a step length
-            compute_stresses = self.settings.obj["compute_stresses"]
+            compute_stresses = self.settings.calculator.parameters["compute_stresses"]
             if compute_stresses is True:
                 compute_stresses = 1
             elif compute_stresses is False:

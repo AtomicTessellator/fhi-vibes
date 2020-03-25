@@ -14,6 +14,15 @@ from .context import CalculatorContext
 _fallback = "light"
 
 
+def verify_settings(settings: dict):
+    assert "machine" in settings
+    assert "aims_command" in settings.machine
+    assert "calculator" in settings
+    assert "basissets" in settings.calculator
+    assert "parameters" in settings.calculator
+    assert "xc" in settings.calculator.parameters
+
+
 class BasissetError(RuntimeError):
     """Raise when the basisset was set up incorrectly"""
 
@@ -32,7 +41,7 @@ def create_species_dir(
 
     """
     loc = ctx.basisset_location
-    settings = ctx.settings
+    settings = ctx.settings.calculator
 
     # if old section with `basisset.type` is used:
     if basisset_key not in settings:
@@ -120,22 +129,22 @@ def setup_aims(
         Calculator object for the calculation
 
     """
-    settings = ctx.settings
+    verify_settings(ctx.settings)
+    settings = ctx.settings.calculator
 
     # update k_grid
-    if ctx.ref_atoms and "control_kpt" in settings:
-        if "density" not in settings.control_kpt:
+    if ctx.ref_atoms and "kpoints" in settings:
+        if "density" not in settings.kpoints:
             warn("'control_kpt' given, but not kpt density. Check!", level=1)
         else:
-            kptdensity = settings.control_kpt.density
+            kptdensity = settings.kpoints.density
             k_grid = d2k(ctx.ref_atoms, kptdensity, True)
             talk(f"Update aims k_grid with kpt density of {kptdensity} to {k_grid}")
-            ctx.settings.obj["k_grid"] = k_grid
-            del ctx.settings["control_kpt"]
+            ctx.settings.parameters["k_grid"] = k_grid
 
-    aims_settings = settings.obj
+    aims_settings = settings.parameters
 
-    ase_settings = {"aims_command": settings.machine.aims_command}
+    ase_settings = {"aims_command": ctx.settings.machine.aims_command}
 
     if "socketio" in settings:
         host = settings.socketio.get("host", "localhost")
