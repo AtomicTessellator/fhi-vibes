@@ -2,7 +2,7 @@ from pathlib import Path
 
 from ase.build import bulk
 
-from vibes.calculator.context import AimsContext
+from vibes.calculator.context import CalculatorContext
 from vibes.helpers.hash import hash_atoms, hash_atoms_and_calc
 from vibes.settings import Settings
 
@@ -18,7 +18,7 @@ def test_hash(atoms=atoms):
     settings = Settings(settings_file=parent / "aims.in", config_file=None)
     settings.machine.basissetloc = parent / settings.machine.basissetloc
 
-    ctx = AimsContext(settings)
+    ctx = CalculatorContext(settings)
 
     atoms = ctx.ref_atoms
     calculator = ctx.get_calculator()

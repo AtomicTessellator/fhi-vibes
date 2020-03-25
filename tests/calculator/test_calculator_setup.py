@@ -1,18 +1,20 @@
 from pathlib import Path
 
+import pytest
+
 from vibes import calculator
 from vibes.settings import Settings
 
-parent = Path(__file__).parent
+parent = Path(__file__).parent.absolute()
+
+files = list(parent.glob("*.in"))
 
 
-def test_create_calculator():
-    files = parent.glob("*.in")
+@pytest.mark.parametrize("file", files)
+def test_create_calculator(file):
+    settings = Settings(file, read_config=False)
 
-    for file in files:
-        settings = Settings(parent / file, read_config=False)
-
-        calculator.setup.from_settings(settings)
+    calculator.setup.from_settings(settings)
 
 
 def test_create_aims_legacy():

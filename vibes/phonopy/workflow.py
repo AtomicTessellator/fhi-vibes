@@ -3,7 +3,7 @@
     Input: geometry.in and settings.in
     Output: geometry.in.supercell and trajectory.son """
 
-from vibes.calculator.context import AimsContext
+from vibes.calculator.context import CalculatorContext
 from vibes.calculator.setup import setup_aims
 from vibes.helpers import talk
 from vibes.helpers.restarts import restart
@@ -64,7 +64,7 @@ def bootstrap(ctx, dry=False):
     if ctx.settings.atoms and ctx.settings.atoms.calc:
         calculator = ctx.settings.atoms.calc
     else:
-        aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.workdir)
+        aims_ctx = CalculatorContext(settings=ctx.settings, workdir=ctx.workdir)
         # set reference structure for aims calculation and make sure forces are computed
         aims_ctx.ref_atoms = supercell
         aims_ctx.settings.obj["compute_forces"] = True

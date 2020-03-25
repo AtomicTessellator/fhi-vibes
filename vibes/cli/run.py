@@ -23,9 +23,9 @@ def run():
 def aims_run(obj, settings, workdir):
     """run one or several aims calculations from SETTINGS (default: aims.in)"""
     from vibes.settings import Settings
-    from vibes.calculator import AimsContext, run_aims
+    from vibes.calculator import CalculatorContext, run_aims
 
-    ctx = AimsContext(Settings(settings_file=settings), workdir=workdir)
+    ctx = CalculatorContext(Settings(settings_file=settings), workdir=workdir)
 
     if obj.verbose > 0:
         talk(f"run aims calculations with settings from {settings}\n", prefix=_prefix)

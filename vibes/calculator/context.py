@@ -52,7 +52,7 @@ class AimsSettings(TaskSettings):
             self.control["KS_method"] = self.control.pop("ks_method")
 
 
-class AimsContext:
+class CalculatorContext:
     """context for aims calculation"""
 
     def __init__(self, settings, workdir=None):

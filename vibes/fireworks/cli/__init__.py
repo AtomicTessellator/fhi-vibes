@@ -49,7 +49,7 @@ def add_wf(workflow, launchpad):
     from glob import glob
 
     from ase.calculators.calculator import get_calculator_class
-    from vibes.calculator.context import AimsContext
+    from vibes.calculator.context import CalculatorContext
     from vibes.calculator.setup import setup_aims
     from vibes.fireworks.workflows.workflow_generator import generate_workflow
     from vibes.settings import TaskSettings, AttributeDict, Settings
@@ -88,7 +88,9 @@ def add_wf(workflow, launchpad):
                 wflow["basisset"] = AttributeDict({"default": "light"})
 
             calc = setup_aims(
-                ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False
+                ctx=CalculatorContext(settings=wflow),
+                verbose=False,
+                make_species_dir=False,
             )
         elif "calculator" in wflow:
             calc_parameters = wflow.calculator.copy()

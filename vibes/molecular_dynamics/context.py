@@ -10,7 +10,7 @@ from ase.io import read
 from ase.md.md import MolecularDynamics
 
 from vibes import son
-from vibes.calculator.context import AimsContext
+from vibes.calculator.context import CalculatorContext
 from vibes.filenames import filenames
 from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict
@@ -116,7 +116,7 @@ class MDContext:
         """the calculator for running the computation"""
         if not self._calculator:
             # create aims from context and make sure forces are computed
-            aims_ctx = AimsContext(settings=self.settings, workdir=self.workdir)
+            aims_ctx = CalculatorContext(settings=self.settings, workdir=self.workdir)
             aims_ctx.settings.obj["compute_forces"] = True
 
             # atomic stresses

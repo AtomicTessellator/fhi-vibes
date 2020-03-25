@@ -9,7 +9,7 @@ from ase.constraints import (
     dict2constraint,
 )
 
-from vibes.calculator.context import AimsContext
+from vibes.calculator.context import CalculatorContext
 from vibes.calculator.setup import setup_aims
 from vibes.fireworks.tasks.general_py_task import get_func
 from vibes.fireworks.workflows.workflow_generator import generate_workflow
@@ -100,7 +100,7 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calculator):
     if calculator is not None and calculator.name.lower() != "aims":
         ctx.settings.atoms.set_calculator(calculator)
     else:
-        aims_ctx = AimsContext(settings=ctx.settings, workdir=ctx.workdir)
+        aims_ctx = CalculatorContext(settings=ctx.settings, workdir=ctx.workdir)
         # set reference structure for aims calculation and make sure forces are computed
         aims_ctx.ref_atoms = make_supercell(
             atoms, get_3x3_matrix(ctx.settings.obj.supercell_matrix)
@@ -307,7 +307,7 @@ def prepare_gruneisen(settings, primitive, vol_factor, calc=None):
         )
         dist_settings.geometry["file"] = "geometry.in.temp"
         dist_primitive.calc = setup_aims(
-            ctx=AimsContext(settings=dist_settings),
+            ctx=CalculatorContext(settings=dist_settings),
             verbose=False,
             make_species_dir=False,
         )
