@@ -2,7 +2,7 @@
 import ase
 import numpy as np
 from vibes.cli.scripts.create_samples import generate_samples
-from vibes.helpers.attribute_dict import AttributeDict
+from vibes.helpers.dict import AttributeDict
 from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms
 from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.supercell import make_supercell

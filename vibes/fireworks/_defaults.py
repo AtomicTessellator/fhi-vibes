@@ -1,6 +1,6 @@
 """Default definitions for FireWorks"""
 from vibes._defaults import DEFAULT_FIREWORKS_FILE
-from vibes.helpers.attribute_dict import AttributeDict as adict
+from vibes.helpers.dict import AttributeDict as adict
 from vibes.settings import Config
 
 

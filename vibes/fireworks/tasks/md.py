@@ -2,9 +2,10 @@
 from pathlib import Path
 
 import numpy as np
+
 from vibes.cli.scripts.create_samples import generate_samples
 from vibes.filenames import filenames
-from vibes.helpers.attribute_dict import AttributeDict
+from vibes.helpers.dict import AttributeDict
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.numerics import get_3x3_matrix
@@ -117,7 +118,7 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
     calculator.parameters.pop("sc_init_iter", None)
 
     settings = Settings(
-        settings_file=None, read_config=False, dct={"md": AttributeDict(md_settings)}
+        settings_file=None, config_files=None, dct={"md": AttributeDict(md_settings)}
     )
     settings_file = str(workdir / "md.in")
     settings._settings_file = settings_file

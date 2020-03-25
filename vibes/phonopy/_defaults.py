@@ -1,6 +1,6 @@
 """ vibes defaults for phonopy """
 
-from vibes.helpers.attribute_dict import AttributeDict as adict
+from vibes.helpers.dict import AttributeDict as adict
 
 displacement_id_str = "displacement_id"
 name = "phonopy"

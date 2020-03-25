@@ -1,7 +1,7 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
-from vibes.helpers.attribute_dict import AttributeDict
+from vibes.helpers.dict import AttributeDict
 from vibes.helpers.k_grid import update_k_grid
 from vibes.relaxation.context import RelaxationContext
 from vibes.settings import Settings

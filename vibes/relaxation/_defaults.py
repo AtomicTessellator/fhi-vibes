@@ -1,7 +1,7 @@
 """ vibes defaults for md"""
 import collections
 
-from vibes.helpers.attribute_dict import AttributeDict as adict
+from vibes.helpers.dict import AttributeDict as adict
 from vibes.keys import relaxation, relaxation_options  # noqa: F401
 from vibes.konstanten import n_geom_digits, symprec
 

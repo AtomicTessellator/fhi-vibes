@@ -1,6 +1,7 @@
 """FireWorks output for MD runs"""
 
 from fireworks import FWAction
+
 from vibes.fireworks.tasks.postprocess.md import check_completion
 from vibes.fireworks.workflows.firework_generator import generate_md_fw
 from vibes.helpers.converters import dict2atoms
@@ -37,7 +38,7 @@ def check_md_finish(atoms_dict, calculator_dict, *args, **kwargs):
     """
     fw_settings = args[-1]
     workdir = args[3]["md_settings"].pop("workdir")
-    settings = Settings(f"{workdir}/md.in", read_config=False)
+    settings = Settings(f"{workdir}/md.in", config_files=None)
     settings.md["workdir"] = workdir
 
     if check_completion(workdir, settings["md"]["maxsteps"]):
