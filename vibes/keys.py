@@ -68,6 +68,7 @@ avalanche_function = "avalanche_function"
 avalanche_index = "avalanche_index"
 
 # file management
+file = "file"
 default_backup_folder = "backups"
 cache = "cache.vibes"
 
@@ -104,3 +105,10 @@ k_cum_scalar = kappa_cumulative_scalar
 relaxation = "relaxation"
 relaxation_options = "relaxation_options"
 expcellfilter = "ExpCellFilter"
+
+# atoms and calculator
+atoms = "atoms"
+calculator = "calculator"
+parameters = "parameters"
+calculator_parameters = ".".join([calculator, parameters])
+settings = "settings"

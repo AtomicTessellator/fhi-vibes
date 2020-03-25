@@ -1,0 +1,14 @@
+[calculator]
+name: aims
+
+[calculator.parameters]
+xc:                            pw-lda
+
+[calculator.basissets]
+default:                       light
+
+[calculator.kpoints]
+density:                       5
+
+[calculator.socketio]
+port:                          12345
