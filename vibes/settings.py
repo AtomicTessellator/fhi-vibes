@@ -1,15 +1,18 @@
 """ Settings class for holding settings, based on configparser.ConfigParser """
 from pathlib import Path
+from typing import Sequence
 
 from jconfigparser import Config
+from jconfigparser.dict import DotDict
 
+from vibes import keys
 from vibes._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
     DEFAULT_GEOMETRY_FILE,
     DEFAULT_SETTINGS_FILE,
 )
-from vibes.helpers.attribute_dict import AttributeDict
+from vibes.helpers.dict import AttributeDict, merge
 from vibes.helpers.warnings import warn
 
 
@@ -70,9 +73,9 @@ class Settings(Config):
 
     def __init__(
         self,
-        settings_file: str = DEFAULT_SETTINGS_FILE,
-        read_config: bool = True,
-        config_file: str = DEFAULT_CONFIG_FILE,
+        settings_file: str = None,
+        template_files: Sequence[str] = None,
+        config_files: Sequence[str] = [DEFAULT_SETTINGS_FILE, DEFAULT_CONFIG_FILE],
         fireworks_file: str = DEFAULT_FIREWORKS_FILE,
         dct: dict = None,
     ):
@@ -80,27 +83,42 @@ class Settings(Config):
 
         Args:
             settings_file: Path to the settings file
-            read_config: read the configuration files
-            config_file: Path to the configuration file
+            template_files: Template settings files
+            config_files: Path to the configuration files
             fireworks_file: Path to the FireWorks Configuration file
             dct: create Settings from this dictionary
+
         """
-        if read_config:
-            config_files = [config_file, settings_file, fireworks_file]
-        else:
-            config_files = [settings_file]
+        if dct is None and settings_file is None:
+            warn("`settings_file` is `None`", level=1)
 
-        if dct:
-            # recursion depth 1
-            super().__init__()
-            for key in dct:
-                self[key] = dct[key]
-            if hasattr(dct, "settings_file"):
-                self._settings_file = dct.settings_file
-        else:
-            super().__init__(filenames=[file for file in config_files if file])
+        files = []
+        if template_files is not None:
+            assert isinstance(template_files, tuple) or isinstance(template_files, list)
+            files = template_files
 
-        self._settings_file = settings_file
+        if config_files is not None:
+            files += config_files
+            files.append(fireworks_file)
+
+        files.append(settings_file)
+
+        if not dct:
+            dct = DotDict()
+            for file in (file for file in files if file):
+                _temp = Config(file)
+                dct = merge(_temp, dct, dict_type=DotDict)
+
+        dct = legacy_update(dct)
+
+        super().__init__()
+        for key in dct:
+            self[key] = dct[key]
+
+        if hasattr(dct, "settings_file"):
+            self._settings_file = dct.settings_file
+        else:
+            self._settings_file = settings_file
 
     @classmethod
     def from_dict(cls, dct):
@@ -124,7 +142,7 @@ class Settings(Config):
             file = self.settings_file
 
         if not Path(file).exists():
-            super().write(file=file)
+            super().write(file)
         else:
             warn(f"{file} exists, do not overwrite settings.", level=1)
 
@@ -133,6 +151,18 @@ class Settings(Config):
         if only_settings:
             ignore_sections = Configuration().keys()
         super().print(ignore_sections=ignore_sections)
+
+    @property
+    def workdir(self):
+        if "folders" in self:
+            if "workdir" in self.folders:
+                return self.folders.workdir
+
+    @workdir.setter
+    def workdir(self, dir):
+        dct = DotDict()
+        dct["workdir"] = dir
+        self["folders"] = merge(dct, self.get("folders", DotDict()), dict_type=DotDict)
 
 
 class SettingsSection(AttributeDict):
@@ -198,7 +228,6 @@ class TaskSettings(Settings):
         self,
         name=None,
         settings=None,
-        read_config=True,
         default_kwargs=None,
         mandatory_keys=None,
         obj_key=None,
@@ -213,8 +242,6 @@ class TaskSettings(Settings):
             name of the context or workflow
         settings_file: str or Path
             location of settings file. Otherwise inferred from name
-        read_config: boolean
-            read the configuration file, otherwise just use settings
         defaults: dict
             dictionary with default key/value pairs
         mandatory_keys: list
@@ -235,7 +262,7 @@ class TaskSettings(Settings):
         if mandatory_obj_keys is None:
             mandatory_obj_keys = []
         if settings is None:
-            settings = Settings(read_config=read_config)
+            settings = Settings()
 
         # read the bare settings
         super().__init__(dct=settings)
@@ -348,3 +375,28 @@ class TaskSettings(Settings):
     def workdir(self, workdir):
         """wrapper for the working directory"""
         self._workdir = workdir
+
+
+def legacy_update(settings: dict) -> dict:
+    """replace legacy keynames in settings"""
+    if "calculator" not in settings:
+        settings["calculator"] = DotDict()
+
+    if "control" in settings:
+        settings[f"{keys.calculator}.{keys.name}"] = "aims"
+        settings[keys.calculator][keys.parameters] = settings.pop("control")
+
+    if "control_kpt" in settings:
+        settings[keys.calculator]["kpoints"] = settings.pop("control_kpt")
+
+    if "basissets" in settings:
+        settings[keys.calculator]["basissets"] = settings.pop("basissets")
+
+    if "socketio" in settings:
+        settings[keys.calculator]["socketio"] = settings.pop("socketio")
+
+    if "basisset" in settings:
+        msg = "`basisset.type` is removed in favour of `basissets.default`. Stop"
+        raise RuntimeError(msg)
+
+    return settings
