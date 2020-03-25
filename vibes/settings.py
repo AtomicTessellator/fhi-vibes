@@ -1,10 +1,7 @@
 """ Settings class for holding settings, based on configparser.ConfigParser """
-import configparser
-import json
-import time
 from pathlib import Path
 
-import numpy as np
+from jconfigparser import Config
 
 from vibes._defaults import (
     DEFAULT_CONFIG_FILE,
@@ -12,7 +9,7 @@ from vibes._defaults import (
     DEFAULT_GEOMETRY_FILE,
     DEFAULT_SETTINGS_FILE,
 )
-from vibes.helpers.attribute_dict import AttributeDict, MultiOrderedDict
+from vibes.helpers.attribute_dict import AttributeDict
 from vibes.helpers.warnings import warn
 
 
@@ -20,21 +17,21 @@ class SettingsError(Exception):
     """error in settings"""
 
 
-def verify_key(key, obj, hint=None, section=False, allowed_to_fail=False):
+def verify_key(
+    key: str,
+    obj: dict,
+    hint: str = None,
+    section: bool = False,
+    allowed_to_fail: bool = False,
+):
     """verify that key is in object, otherwise raise SettingsError
 
-    Parameters
-    ----------
-    key: str
-        Key to check if it is in obj
-    obj: dict like object
-        Dict to see if key is in it
-    hint: str
-        string representation of obj
-    section: bool
-        If True key is a section in obj
-    allowed_to_fail: bool
-        If True use wannings not errors
+    Args:
+        key: Key to check if it is in obj
+        obj: Dict to see if key is in it
+        hint: string representation of obj
+        section: If True key is a section in obj
+        allowed_to_fail: If True use wannings not errors
     """
     if not hint:
         hint = str(obj)
@@ -51,191 +48,59 @@ def verify_key(key, obj, hint=None, section=False, allowed_to_fail=False):
             raise SettingsError(msg)
 
 
-class Config(configparser.ConfigParser):
-    """ConfigParser that uses JSON to parse the values instead returning stings"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            *args,
-            **kwargs,
-            interpolation=configparser.ExtendedInterpolation(),
-            strict=False,
-        )
-
-    def getval(self, *args, **kwargs):
-        """ Redifine getval() to allow for json formated values (not only string) """
-        try:
-            return json.loads(self.get(*args, **kwargs))
-        except json.JSONDecodeError:
-            try:
-                return self.getboolean(*args, **kwargs)
-            except ValueError:
-                return self.get(*args, **kwargs)
-
-
-class ConfigDict(AttributeDict):
-    """Dictionary that holds the configuration settings"""
-
-    def __init__(self, config_files=None, dct=None, **kwargs):
-        """Initialize ConfigDict
-
-        Args:
-            config_files (list of str): A list of configure files to read in
-            dct (dict): a dictionary
-        """
-        super().__init__(**kwargs)
-
-        # initialize from config files
-        if config_files:
-            config = Config()
-            config.read(config_files)
-
-            # Recursion depth: 1
-            for sec in config.sections():
-                self[sec] = AttributeDict()
-                for key in config[sec]:
-                    self[sec][key] = config.getval(sec, key)
-
-            # check for `output` to resolve multiple options
-            if "control" in config and "output" in config["control"].keys():
-                kw = {"dict_type": MultiOrderedDict, "strict": False}
-                output_cfg = configparser.ConfigParser(**kw)
-                # discard config files to avoid double sections
-                files = [file for file in config_files if str(file).endswith(".in")]
-                output_cfg.read(files)
-                values = output_cfg["control"]["output"].split("\n")
-                self["control"]["output"] = values
-
-        # initialize from dictionary
-        elif dct:
-            # Recursion depth: 1
-            for sec in dct:
-                self[sec] = AttributeDict()
-                for key in dct[sec]:
-                    self[sec][key] = dct[sec][key]
-
-        else:
-            raise ValueError("Either provide `config_files` or a dict in `dct`")
-
-    def __str__(self):
-        """ for printing the object """
-        return self.get_string()
-
-    def print(self, only_settings=False):
-        """ literally print(self) """
-        print(self.get_string(only_settings=only_settings), flush=True)
-
-    def write(self, file=DEFAULT_SETTINGS_FILE):
-        """write a settings object human readable
-
-        Parameters
-        ----------
-        file: str
-            path use to write the file
-        """
-        with open(file, "w") as f:
-            timestr = time.strftime("%Y/%m/%d %H:%M:%S")
-            f.write(f"# configfile written at {timestr}\n")
-            f.write(self.get_string())
-
-    def get_string(self, width=30, only_settings=False):
-        """ return string representation for writing etc.
-
-        Parameters
-        ----------
-        width: int
-            The width of the string column to print
-        only settings: bool
-            If True only print the settings
-
-        Returns
-        -------
-        string: str
-            The string representation of the ConfigDict
-        """
-        if only_settings:
-            ref_dict = Configuration()
-        else:
-            ref_dict = {}
-
-        string = ""
-        for sec in self:
-            # Filter out the private attributes
-            if sec.startswith("_") or sec in ref_dict:
-                continue
-
-            string += f"\n[{sec}]\n"
-            for key in self[sec]:
-                elem = self[sec][key]
-                if "numpy.ndarray" in str(type(elem)):
-                    elem = np.array2string(elem.flatten(), separator=",")
-                #
-                if elem is None:
-                    elem = "null"
-                #
-                if key == "verbose":
-                    continue
-                # write out `output` keys one by one for readability
-                if key == "output":
-                    for elem in self[sec][key]:
-                        string += "{:{}s} {}\n".format(f"{key}:", width, elem)
-                else:
-                    string += "{:{}s} {}\n".format(f"{key}:", width, elem)
-        return string
-
-
-class Configuration(ConfigDict):
+class Configuration(Config):
     """class to hold the configuration from .vibesrc"""
 
-    def __init__(self, config_file=DEFAULT_CONFIG_FILE):
+    def __init__(self, config_file: str = DEFAULT_CONFIG_FILE):
         """Initializer
 
-        Parameters
-        ----------
-        config_file: str
-            Path to the configure file
+        Args:
+            config_file: Path to the configure file
         """
         from vibes import __version__ as version
 
-        super().__init__(config_files=config_file)
+        super().__init__(filenames=config_file)
 
         # include the vibes version tag
         self.update({"vibes": {"version": version}})
 
 
-class Settings(ConfigDict):
+class Settings(Config):
     """Class to hold the settings parsed from settings.in (+ the configuration)"""
 
     def __init__(
         self,
-        settings_file=DEFAULT_SETTINGS_FILE,
-        read_config=True,
-        config_file=DEFAULT_CONFIG_FILE,
-        fireworks_file=DEFAULT_FIREWORKS_FILE,
-        dct=None,
+        settings_file: str = DEFAULT_SETTINGS_FILE,
+        read_config: bool = True,
+        config_file: str = DEFAULT_CONFIG_FILE,
+        fireworks_file: str = DEFAULT_FIREWORKS_FILE,
+        dct: dict = None,
     ):
         """Initialize Settings
 
         Args:
-            settings_file (str): Path to the settings file
-            read_config (boolean): read the configuration files
-            config_file (str): Path to the configuration file
-            fireworks_file (str): Path to the FireWorks Configuration file
-            dct (dict): create Settings from this dictionary
+            settings_file: Path to the settings file
+            read_config: read the configuration files
+            config_file: Path to the configuration file
+            fireworks_file: Path to the FireWorks Configuration file
+            dct: create Settings from this dictionary
         """
-        self._settings_file = settings_file
-
         if read_config:
             config_files = [config_file, settings_file, fireworks_file]
         else:
             config_files = [settings_file]
 
         if dct:
-            super().__init__(dct=dct)
+            # recursion depth 1
+            super().__init__()
+            for key in dct:
+                self[key] = dct[key]
             if hasattr(dct, "settings_file"):
                 self._settings_file = dct.settings_file
         else:
-            super().__init__(config_files=[file for file in config_files if file])
+            super().__init__(filenames=[file for file in config_files if file])
+
+        self._settings_file = settings_file
 
     @classmethod
     def from_dict(cls, dct):
@@ -262,6 +127,12 @@ class Settings(ConfigDict):
             super().write(file=file)
         else:
             warn(f"{file} exists, do not overwrite settings.", level=1)
+
+    def print(self, only_settings: bool = False):
+        ignore_sections = None
+        if only_settings:
+            ignore_sections = Configuration().keys()
+        super().print(ignore_sections=ignore_sections)
 
 
 class SettingsSection(AttributeDict):

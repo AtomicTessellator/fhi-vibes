@@ -87,3 +87,4 @@ vibes.md
 
 .coverage
 coverage.xml
+codecov.ini

@@ -38,6 +38,7 @@ hiphive = {version = "^0.5.0", optional = true}
 tables = "^3.5"
 click_aliases = "^1.0"
 click_completion = "^0.5.2"
+jconfigparser = {version = "^0.1.0-alpha.1", allows-prereleases = true}
 
 [tool.poetry.extras]
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
@@ -46,7 +47,7 @@ hiphive = ["hiphive"]
 postgresql = ["psycopg2"]
 
 [tool.poetry.dev-dependencies]
-black = "^18.9b0"
+black = "^19.10.b0"
 pytest = "^4.6"
 flake8 = "^3.7"
 rope = "^0.14.0"
