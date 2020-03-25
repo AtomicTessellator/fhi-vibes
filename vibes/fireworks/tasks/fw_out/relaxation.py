@@ -2,6 +2,7 @@
 
 from ase.io.aims import read_aims
 from fireworks import FWAction
+
 from vibes.fireworks.tasks.postprocess.relaxation import check_completion
 from vibes.fireworks.workflows.firework_generator import generate_relax_fw
 from vibes.helpers.converters import atoms2dict, dict2atoms
@@ -40,7 +41,7 @@ def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
     workdir = args[3]["relax_settings"].pop("workdir", None)
     if workdir is None:
         workdir = "."
-    settings = Settings(f"{workdir}/relaxation.in", read_config=False)
+    settings = Settings(f"{workdir}/relaxation.in", config_files=None)
     settings.relaxation["workdir"] = workdir
 
     new_atoms_dict = atoms2dict(read_aims(f"{workdir}/geometry.in.next_step"))

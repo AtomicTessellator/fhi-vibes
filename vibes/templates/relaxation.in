@@ -1,0 +1,9 @@
+[relaxation]
+driver =       BFGS
+fmax =         0.001
+unit_cell =    True
+maxstep =      0.2
+fix_symmetry = False
+
+[folders]
+workdir:      relaxation

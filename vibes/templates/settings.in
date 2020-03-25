@@ -1,0 +1,7 @@
+[files]
+geometry:           geometry.in
+trajectory:         trajectory.son
+
+[folders]
+workdir:            null
+output:             output

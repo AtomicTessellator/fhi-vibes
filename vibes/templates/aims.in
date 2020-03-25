@@ -1,0 +1,13 @@
+[calculator]
+name:                          aims
+
+[calculator.parameters]
+xc:                            pbesol
+relativistic:                  atomic_zora scalar
+output_level:                  MD_light
+
+[calculator.basissets]
+default:                       light
+
+[folders]
+workdir:                       aims

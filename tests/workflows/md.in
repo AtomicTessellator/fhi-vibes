@@ -18,10 +18,12 @@ timestep =    1
 temperature = 300
 friction =    0.02
 maxsteps =    2
-workdir =     md_test
 
 [restart]
 command = vibes run md
 
 [machine]
 basissetloc = species_defaults
+
+[folders]
+workdir =     md_test

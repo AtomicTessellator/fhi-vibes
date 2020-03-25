@@ -1,7 +1,7 @@
 """ vibes defaults for aims"""
 
 from vibes.helpers import talk as _talk
-from vibes.helpers.attribute_dict import AttributeDict as adict
+from vibes.helpers.dict import AttributeDict as adict
 
 name = "aims"
 
