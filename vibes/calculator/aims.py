@@ -9,28 +9,28 @@ from vibes.helpers.k_grid import d2k
 from vibes.helpers.warnings import warn
 
 from ._defaults import basisset_choices, basisset_default, basisset_key, name, talk
+from .context import CalculatorContext
+
+_fallback = "light"
 
 
 class BasissetError(RuntimeError):
     """Raise when the basisset was set up incorrectly"""
 
 
-def create_species_dir(ctx, folder="basissets", fallback="light"):
+def create_species_dir(
+    ctx: CalculatorContext, folder: str = "basissets", fallback: str = _fallback
+) -> str:
     """ create a custom bassiset folder for the computation
 
-    Parameters
-    ----------
-    ctx: AimsContext
-        The context for the calculation
-    folder: str or Path
-        Folder to store the basisset
+    Args:
+        ctx: The context for the calculation
+        folder: Folder to store the basisset
 
-    Returns
-    -------
-    str
+    Returns:
         The absolute file path to the species directory
-    """
 
+    """
     loc = ctx.basisset_location
     settings = ctx.settings
 
@@ -85,7 +85,15 @@ def create_species_dir(ctx, folder="basissets", fallback="light"):
     return str(folder.absolute())
 
 
-def add_basisset(loc, typ, elem, num, folder, fallback="light", verbose=True):
+def add_basisset(
+    loc: str,
+    typ: str,
+    elem: str,
+    num: int,
+    folder: str,
+    fallback: str = _fallback,
+    verbose: bool = True,
+):
     """copy basisset from location LOC of type TYP for ELEMENT w/ no. NUM to FOLDER"""
     rep = f"{num:02d}_{elem}_default"
 
@@ -99,7 +107,9 @@ def add_basisset(loc, typ, elem, num, folder, fallback="light", verbose=True):
         shutil.copy(loc / fallback / rep, folder)
 
 
-def setup_aims(ctx, verbose=True, make_species_dir=True):
+def setup_aims(
+    ctx: CalculatorContext, verbose: bool = True, make_species_dir: bool = True
+) -> Aims:
     """Set up an aims calculator.
 
     Args:
@@ -107,9 +117,9 @@ def setup_aims(ctx, verbose=True, make_species_dir=True):
         verbose (bool): inform about the calculator details
 
     Returns:
-        calculator: Calculator object for the calculation
-    """
+        Calculator object for the calculation
 
+    """
     settings = ctx.settings
 
     # update k_grid

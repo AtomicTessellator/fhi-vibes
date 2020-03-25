@@ -1,32 +1,32 @@
 """set up ase calculators from settings"""
-from ase.calculators.calculator import get_calculator_class
+from ase.calculators.calculator import Calculator, get_calculator_class
 
 from vibes import keys
 
 from .aims import setup_aims  # noqa: F401
 
 
-def from_settings(settings: dict = None):
-    # replace legacy keynames
+def legacy_update(settings: dict) -> dict:
+    """replace legacy keynames in settings"""
     if "control" in settings:
-        settings[keys.calculator] = {keys.name: "aims"}
+        settings[f"{keys.calculator}.{keys.name}"] = "aims"
         settings[keys.calculator][keys.parameters] = settings.pop("control")
 
     if "control_kpt" in settings:
-        dct = {"kpoints": settings.pop("control_kpt")}
-        settings[keys.calculator].update(dct)
+        settings[keys.calculator]["kpoints"] = settings.pop("control_kpt")
 
     if "basissets" in settings:
-        dct = {"basissets": settings.pop("basissets")}
-        settings[keys.calculator].update(dct)
+        settings[keys.calculator]["basissets"] = settings.pop("basissets")
 
     if "socketio" in settings:
-        dct = {"socketio": settings.pop("socketio")}
-        settings[keys.calculator].update(dct)
+        settings[keys.calculator]["socketio"] = settings.pop("socketio")
 
-    # get calculator class and create the calculator
+
+def from_settings(settings: dict = None) -> Calculator:
+    """get calculator class and create the calculator from settings.parameters"""
+    legacy_update(settings)
     calc_dict = settings[keys.calculator]
-    calc_name = calc_dict.pop(keys.name)
+    calc_name = calc_dict.name
 
     cls = get_calculator_class(calc_name)
 

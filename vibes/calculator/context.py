@@ -9,24 +9,17 @@ from ase.io import read
 from vibes.settings import SettingsError, TaskSettings
 
 from . import _defaults as defaults
-from .setup import setup_aims
 
 
 class AimsSettings(TaskSettings):
     """Aims settings. Ensures that settings are set up sensibly"""
 
-    def __init__(self, settings=None):
+    def __init__(self, settings: dict = None):
         """Settings in the context of a phonopy workflow
 
-        Parameters
-        ----------
-        settings: Settings
-            Workflow settings for the task
+        Args:
+            settings: Workflow settings for the task
 
-        Raises
-        ------
-        SettingsError
-            If the basis set type is not defined
         """
 
         super().__init__(
@@ -55,15 +48,13 @@ class AimsSettings(TaskSettings):
 class CalculatorContext:
     """context for aims calculation"""
 
-    def __init__(self, settings, workdir=None):
+    def __init__(self, settings: dict, workdir: str = None):
         """Constructor
 
-        Parameters
-        ----------
-        settings: Settings
-            Settings Object for the Workflow
-        workdir: str
-            Directory to run the calculation in
+        Args:
+            settings: Settings Object for the Workflow
+            workdir: Directory to run the calculation in
+
         """
         self.settings = AimsSettings(settings)
         self.workdir = self.settings.workdir
@@ -79,16 +70,8 @@ class CalculatorContext:
         self._atoms_to_calculate = None
 
     @property
-    def geometry_files(self):
-        """The geometry input files
-
-        Raises
-        ------
-        click.FileError
-            If geometry file does not exist
-        AssertionError
-            If file in self.settings.geometry.files does not exist
-        """
+    def geometry_files(self) -> list:
+        """The geometry input files"""
         # find geometries
         files = []
         s = self.settings
@@ -114,7 +97,7 @@ class CalculatorContext:
         return files
 
     @property
-    def atoms_to_calculate(self):
+    def atoms_to_calculate(self) -> list:
         """The atoms that are supposed to be computed"""
         if not self._atoms_to_calculate:
             files = self.geometry_files
@@ -152,24 +135,20 @@ class CalculatorContext:
         return self._ref_atoms
 
     @ref_atoms.setter
-    def ref_atoms(self, atoms):
+    def ref_atoms(self, atoms: Atoms):
         """ref_atoms setter
 
-        Parameters
-        ----------
-        atoms: ase.atoms.Atoms
-            atoms to set ref_atoms
+        Args:
+            atoms: atoms to set ref_atoms
 
-        Raises
-        ------
-        AssertionError
-            atoms is not of type ase.atoms.Atoms
         """
         assert isinstance(atoms, Atoms)
         self._ref_atoms = atoms
 
     def get_calculator(self):
         """Get the ASE Calculator based on the context"""
+        from .setup import setup_aims
+
         return setup_aims(self)
 
     @property
