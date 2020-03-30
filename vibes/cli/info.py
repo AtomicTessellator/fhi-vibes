@@ -190,7 +190,8 @@ def velocity_autocorrelation(file, output_file, plot, peak, max_frequency):
 @click.pass_obj
 def relaxation_info(obj, file, verbose):
     """inform about a structure in a geometry input file"""
-    from ase.constraints import ExpCellFilter
+    from ase.constraints import full_3x3_to_voigt_6_stress
+    from vibes.relaxation.context import MyExpCellFilter as ExpCellFilter
     from vibes.trajectory import reader
     from vibes.spglib.wrapper import get_spacegroup
     from vibes.relaxation._defaults import keys, kwargs, relaxation_options, name
@@ -201,7 +202,14 @@ def relaxation_info(obj, file, verbose):
         fmax = metadata[name][relaxation_options][keys.fmax]
     except KeyError:
         fmax = kwargs[keys.fmax]
-        click.echo(f"** fmax not found in {file}, use default value")
+        click.echo(f"** fmax not found in {file}, use default value {fmax}")
+
+    try:
+        fix_symmetry = metadata[name][relaxation_options][keys.fix_symmetry]
+    except KeyError:
+        fix_symmetry = kwargs[keys.fix_symmetry]
+        msg = f"** `fix_symmetry` not found in {file}, use default value {fix_symmetry}"
+        click.echo(msg)
 
     atoms_ref = traj[0]
     na = len(atoms_ref)
@@ -214,7 +222,13 @@ def relaxation_info(obj, file, verbose):
 
         click.echo("Metadata for relaxation:")
         click.echo(json.dumps(metadata[name], indent=2))
-    click.echo(f"fmax: {fmax*1000:.3e} meV/AA")
+
+    if fix_symmetry:
+        from ase.spacegroup.symmetrize import FixSymmetry
+
+        click.echo("fix_symmetry: True")
+
+    click.echo(f"fmax:         {fmax*1000:.3e} meV/AA")
     click.echo(
         "# Step |   Free energy   |   F-F(1)   | max. force |  max. stress |"
         + "  Volume  |  Spacegroup  |"
@@ -226,14 +240,23 @@ def relaxation_info(obj, file, verbose):
 
     for ii, atoms in enumerate(traj[1:]):
 
-        opt_atoms = ExpCellFilter(atoms)
-
         energy = atoms.get_potential_energy()
         de = 1000 * (energy - energy_ref)
 
+        opt_atoms = ExpCellFilter(atoms)
+
         forces = opt_atoms.get_forces()
-        res_forces = (forces[:na] ** 2).sum(axis=1).max() ** 0.5 * 1000
-        res_stress = (forces[na:] ** 2).sum(axis=1).max() ** 0.5 * 1000
+        stress = full_3x3_to_voigt_6_stress(forces[na:])
+        forces = forces[:na]  # drop the stress
+
+        # optionally: symmetrize forces and stress
+        if fix_symmetry:
+            constr = FixSymmetry(atoms, symprec=kwargs[keys.symprec])
+            constr.adjust_forces(atoms, forces)
+            constr.adjust_stress(atoms, stress)
+
+        res_forces = (forces ** 2).sum(axis=1).max() ** 0.5 * 1000
+        res_stress = abs(stress).max() * 1000
 
         vol_str = f"{atoms.get_volume():10.3f}"
         # sg_str = f"{get_spacegroup(atoms):5d}"
@@ -244,5 +267,5 @@ def relaxation_info(obj, file, verbose):
         )
         click.echo(msg)
 
-    if min(res_forces, res_stress) < fmax * 1000:
+    if max(res_forces, res_stress) < fmax * 1000:
         click.echo("--> converged.")
