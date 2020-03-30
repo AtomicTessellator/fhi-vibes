@@ -23,6 +23,7 @@ _keys = [
     "decimals",
     "fix_symmetry",
     "symprec",
+    "restart",
 ]
 keys = collections.namedtuple("relaxation_keywords", _keys)(*_keys)
 
@@ -40,5 +41,6 @@ kwargs = adict(
         keys.decimals: n_geom_digits,
         keys.fix_symmetry: False,
         keys.symprec: symprec,
+        keys.restart: "bfgs.restart",
     }
 )
