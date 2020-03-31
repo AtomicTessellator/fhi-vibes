@@ -2,33 +2,36 @@
 
 from pathlib import Path
 
-import click
 from ase import Atoms
 from ase.io import read
 
-from . import _defaults as defaults
+from vibes import keys
+
 from . import setup
+
+calc_dirname = "calculations"
 
 
 class CalculatorContext:
-    """context for aims calculation"""
+    """context for ase calculator"""
 
-    def __init__(self, settings: dict, workdir: str = None):
+    def __init__(self, settings: dict, atoms: Atoms = None, workdir: str = None):
         """Constructor
 
         Args:
             settings: Settings Object for the Workflow
+            atoms: refernce structure
             workdir: Directory to run the calculation in
 
         """
         self.settings = settings
 
-        if workdir:
-            self.settings.workdir = Path(workdir)
-        if not self.workdir:
-            self.settings.workdir = Path(defaults.name)
+        assert keys.calculator in settings
 
-        self._ref_atoms = None
+        if workdir:
+            self.settings[keys.calculator][keys.workdir] = workdir
+
+        self._ref_atoms = atoms
         self._primitive = None
         self._supercell = None
         self._atoms_to_calculate = None
@@ -39,21 +42,15 @@ class CalculatorContext:
         # find geometries
         files = []
         s = self.settings
-        if "file" in s.geometry:
-            try:
-                try:
-                    path = next(Path().glob(s.geometry.file))
-                except NotImplementedError:
-                    path = Path(s.geometry.file)
+        if "files" in s:
+            if "geometry" in s.files:
+                path = next(Path().glob(s.files.geometry))
                 assert path.exists()
-            except (AssertionError, StopIteration):
-                msg = f"Please inspect [geometry] in {self.settings.settings_file}"
-                raise click.FileError(s.geometry["file"], msg)
             files.append(path)
-            self.settings.geometry["file"] = str(path)
+            self.settings.files["geometry"] = str(path)
 
-        if "files" in s.geometry:
-            paths = sorted(Path().glob(s.geometry.files))
+        if "geometries" in s.files:
+            paths = sorted(Path().glob(s.files.geometries))
             for path in paths:
                 assert path.exists(), path
             files.extend(paths)
@@ -72,7 +69,7 @@ class CalculatorContext:
     @property
     def primitive(self):
         """The primitive cell structure"""
-        g = self.settings.geometry
+        g = self.settings.files
         if not self._primitive and "primitive" in g:
             self._primitive = read(g["primitive"], format="aims")
         return self._primitive
@@ -80,7 +77,7 @@ class CalculatorContext:
     @property
     def supercell(self):
         """The supercell structure"""
-        g = self.settings.geometry
+        g = self.settings.files
         if not self._supercell and "supercell" in g:
             self._supercell = read(g["supercell"], format="aims")
         return self._supercell
@@ -130,4 +127,4 @@ class CalculatorContext:
 
     @property
     def workdir(self):
-        return self.settings.workdir
+        return Path(self.settings.calculator.get(keys.workdir, calc_dirname))

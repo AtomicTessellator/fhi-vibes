@@ -8,10 +8,16 @@ from ase.calculators.aims import Aims
 from vibes.helpers.k_grid import d2k
 from vibes.helpers.warnings import warn
 
-from ._defaults import basisset_choices, basisset_default, basisset_key, name, talk
+from ._defaults import talk
 from .context import CalculatorContext
 
 _fallback = "light"
+
+name = "aims"
+
+basisset_key = "basissets"
+basisset_choices = ("light", "intermediate", "tight", "really_tight")
+basisset_default = "light"
 
 
 def verify_settings(settings: dict):
@@ -143,6 +149,29 @@ def setup_aims(
             ctx.settings.parameters["k_grid"] = k_grid
 
     aims_settings = settings.parameters
+
+    # check for information in settings that imply to set up forces and stress:
+    force, stress, stresses = False, False, False
+
+    if "md" in ctx.settings:
+        force = True
+        if ctx.settings["md"]["compute_stresses"]:
+            stresses = True
+
+    if "relaxation" in ctx.settings:
+        force = True
+        if ctx.settings["relaxation"]["unit_cell"]:
+            stress = True
+
+    if "phonopy" in ctx.settings:
+        force = True
+
+    if force:
+        aims_settings.update({"compute_forces": True})
+    if stress:
+        aims_settings.update({"compute_analytical_stress": True})
+    if stresses:
+        aims_settings.update({"compute_heat_flux": True})
 
     ase_settings = {"aims_command": ctx.settings.machine.aims_command}
 
