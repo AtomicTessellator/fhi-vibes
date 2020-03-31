@@ -91,7 +91,8 @@ def run(ctx, backup_folder="backups"):
                 talk(f"Step {opt.nsteps} finished.", prefix=_prefix)
                 talk(f".. residual force:  {res_forces:.3f} meV/AA", prefix=_prefix)
                 if filter:
-                    talk(f".. residual stress: {res_stress:.3f} meV/AA", prefix=_prefix)
+                    msg = f".. residual stress: {res_stress:.3f} meV/AA**3"
+                    talk(msg, prefix=_prefix)
 
                 # spacegroup
                 sg = get_spacegroup(atoms)
