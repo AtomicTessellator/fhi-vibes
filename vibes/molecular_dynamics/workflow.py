@@ -95,7 +95,7 @@ def run(ctx, backup_folder=default_backup_folder):
     # back up settings
     if settings:
         with cwd(workdir, mkdir=True):
-            settings.obj["workdir"] = "."
+            settings.workdir = "."
             settings.write()
 
     with SocketIOCalculator(
