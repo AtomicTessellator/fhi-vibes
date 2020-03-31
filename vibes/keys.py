@@ -71,6 +71,7 @@ avalanche_index = "avalanche_index"
 file = "file"
 default_backup_folder = "backups"
 cache = "cache.vibes"
+workdir = "workdir"
 
 # hash
 name = "name"
