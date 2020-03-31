@@ -151,11 +151,7 @@ def calculate_socket(
         metadata["settings"] = settings.to_dict()
         if save_input:
             with cwd(workdir, mkdir=True):
-                if "file" in settings.geometry:
-                    geometry_file = Path(settings.geometry.file)
-                    if not geometry_file.exists():
-                        settings.atoms.write(str(geometry_file), format="aims")
-                settings.obj["workdir"] = workdir
+                settings.workdir = workdir
                 settings.write()
 
     # fetch list of hashes from trajectory
