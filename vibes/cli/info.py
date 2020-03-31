@@ -11,6 +11,19 @@ def info():
     """inform about content of a file"""
 
 
+@info.command("settings")
+@click.argument("file", type=complete_files)
+@click.pass_obj
+def settings_info(obj, file):
+    """inform about content of a settings file"""
+    from vibes.settings import Settings
+
+    click.echo(f"List content of {file} including system-wide configuration")
+
+    settings = Settings(file)
+    settings.print()
+
+
 @info.command("geometry")
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("--format", default="aims", show_default=True)

@@ -24,7 +24,7 @@ def preprocess(file, settings_file, dimension, format, write_supercell=False):
     if file:
         atoms = read(file, format=format)
     else:
-        atoms = settings.get_atoms(format=format)
+        atoms = settings.read_atoms(format=format)
 
     _, _, scs_ref = preprocess(atoms, **{**settings.phonopy, "supercell_matrix": 1})
 
