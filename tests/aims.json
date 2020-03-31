@@ -1,0 +1,32 @@
+{
+ "geometry": {
+  "file": "geometry.in",
+  "files": "geometry.in.???",
+  "primitive": "geometry.in.primitive",
+  "supercell": "geometry.in.supercell"
+ },
+ "calculator": {
+  "aims": {
+   "xc": "pw-lda",
+   "k_grid": [
+    2,
+    2,
+    2
+   ],
+   "charge_mix_param": 0.3,
+   "sc_accuracy_rho": 1e-06,
+   "relax_geometry": "trm 1e-3",
+   "relax_unit_cell": false,
+   "use_symmetric_forces": false
+  }
+ },
+ "basissets": {
+  "aims": {
+   "default": "light"
+  }
+ },
+ "socketio": {
+  "port": null,
+  "unixsocket": null
+ }
+}

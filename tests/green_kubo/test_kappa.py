@@ -11,13 +11,13 @@ from vibes import keys
 from vibes.correlation import get_autocorrelation
 from vibes.green_kubo.heat_flux import get_kappa_cumulative_dataset
 from vibes.integrate import get_cumtrapz
-from vibes.settings import ConfigDict
+from vibes.settings import Config
 
 parent = Path(__file__).parent
 folder = parent / "lammps"
 
 # read info
-info = ConfigDict(folder / "info.cfg").info
+info = Config(folder / "info.cfg").info
 
 # read reference
 flux_df = pd.read_csv(folder / "flux.csv.bz2", index_col=info.index_col)

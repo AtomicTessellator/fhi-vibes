@@ -3,26 +3,12 @@
 from collections import OrderedDict
 
 
-# from vibes.helpers.warnings import warn
-
-
-class MultiOrderedDict(OrderedDict):
-    """A dict that can store multiple values for a key"""
-
-    def __setitem__(self, key, value):
-        if isinstance(value, list) and key in self:
-            self[key].extend(value)
-        else:
-            super().__setitem__(key, value)
-
-
 class AttributeDict(OrderedDict):
     """ Ordered dictionary with attribute access """
 
     def __getattr__(self, attr):
         if attr in self:
             return self[attr]
-        # warn(f"Attribute {attr} not in dictionary, return None.", level=1)
         raise AttributeError(f"Attribute {attr} not in dictionary, return None.")
 
     def __dict__(self):

@@ -1,10 +1,10 @@
 """Default definitions for FireWorks"""
 from vibes._defaults import DEFAULT_FIREWORKS_FILE
 from vibes.helpers.attribute_dict import AttributeDict as adict
-from vibes.settings import ConfigDict
+from vibes.settings import Config
 
 
-SETTINGS = ConfigDict(config_files=[DEFAULT_FIREWORKS_FILE])
+SETTINGS = Config(config_files=[DEFAULT_FIREWORKS_FILE])
 
 REMOTE_SETUP = SETTINGS.pop("remote_setup", {})
 REMOTE_HOST_AUTH = SETTINGS.pop("remote_host_auth", {})
