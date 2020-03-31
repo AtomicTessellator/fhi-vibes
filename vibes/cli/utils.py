@@ -97,7 +97,7 @@ def geometry_refine(*args, **kwargs):
 @click.option("-dd", "--diagonal_dimension", type=int, nargs=3)
 @click.option("-n", "--n_target", type=int)
 @click.option("-o", "--output_file")
-@click.option("--deviation", default=0.1, show_default=True)
+@click.option("--deviation", default=0.2, show_default=True)
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
 @click.option("-frac", "--fractional", is_flag=True)

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from ase.calculators.socketio import SocketIOCalculator
 
 from vibes.filenames import filenames
@@ -53,7 +55,6 @@ def run(ctx, backup_folder="backups"):
     atoms.calc = calculator
 
     opt_atoms = ctx.opt_atoms
-    opt.initialize()
 
     # is a filter used?
     filter = len(atoms) < len(opt_atoms)
@@ -64,8 +65,12 @@ def run(ctx, backup_folder="backups"):
         if socketio_port is not None:
             atoms.calc = iocalc
 
-        # log very initial step and metadata
-        if opt.nsteps == 0:
+        if Path(opt.restart).exists():
+            talk(f"Restart optimizer from {opt.restart}.", prefix=_prefix)
+            opt.read()
+        else:
+            opt.initialize()
+            # log very initial step and metadata
             metadata2file(ctx.metadata, trajectory_file)
 
         talk(f"Start step {opt.nsteps}", prefix=_prefix)
@@ -86,7 +91,8 @@ def run(ctx, backup_folder="backups"):
                 talk(f"Step {opt.nsteps} finished.", prefix=_prefix)
                 talk(f".. residual force:  {res_forces:.3f} meV/AA", prefix=_prefix)
                 if filter:
-                    talk(f".. residual stress: {res_stress:.3f} meV/AA", prefix=_prefix)
+                    msg = f".. residual stress: {res_stress:.3f} meV/AA**3"
+                    talk(msg, prefix=_prefix)
 
                 # spacegroup
                 sg = get_spacegroup(atoms)
