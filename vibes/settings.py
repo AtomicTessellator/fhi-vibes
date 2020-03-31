@@ -124,10 +124,8 @@ class Settings(Config):
             self[key] = _dct[key]
 
         if hasattr(dct, "file"):
-            print("yes")
             self._settings_file = dct.file
         else:
-            print("no")
             self._settings_file = settings_file
 
     @classmethod

@@ -39,10 +39,13 @@ kwargs = adict(
         keys.scalar_pressure: 0.0,
         keys.decimals: n_geom_digits,
         keys.symprec: symprec,
-        keys.restart: "bfgs.restart",
         keys.workdir: name,
         # kwargs go to Optimizer, e.g., BFGS(..., **kwargs)
-        "kwargs": {keys.maxstep: 0.2, keys.logfile: "relaxation.log"},
+        "kwargs": {
+            keys.maxstep: 0.2,
+            keys.logfile: "relaxation.log",
+            keys.restart: "bfgs.restart",
+        },
     }
 )
 
