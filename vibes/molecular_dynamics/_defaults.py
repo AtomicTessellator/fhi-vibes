@@ -30,3 +30,5 @@ kwargs = adict(
 )
 
 settings_dict = {name: kwargs}
+
+calculation_timeout = 30 * 60  # 30 minutes

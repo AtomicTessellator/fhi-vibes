@@ -12,19 +12,19 @@ keywords = ['physics']
 build = "build.py"
 
 [tool.poetry.dependencies]
-python = "^3.6, <4.0"
+python = "^3.6.1, <4.0"
 numpy = "^1.11"
 scipy = "^1.1.1"
 matplotlib = "^3.1"
 son = "^0.3.2"
 spglib = "^1.12"
-phonopy = "^2.1"
+phonopy = "^2.4, <2.5.0"
 ase = "^3.19.0"
 click = "^7.0"
-pandas = "^0.25.0"
+attrs = "^19.1"
 seekpath = "^1.8.4"
 fireworks = {version = "^1.9",optional = true}
-phono3py = {version = "^1.17",optional = true}
+phono3py = {version = "^1.18",optional = true}
 python-gssapi = {version = "^0.6.4",optional = true}
 pymongo = {version = "^3.8",optional = true}
 fabric = {version = "^2.4",optional = true}
@@ -38,6 +38,7 @@ tables = "^3.5"
 click_aliases = "^1.0"
 click_completion = "^0.5.2"
 jconfigparser = {version = "^0.1.0-alpha.1", allows-prereleases = true}
+pandas = "^1.0"
 
 [tool.poetry.extras]
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
@@ -46,7 +47,7 @@ hiphive = ["hiphive"]
 postgresql = ["psycopg2"]
 
 [tool.poetry.dev-dependencies]
-black = "^19.10.b0"
+black = "^19.10b0"
 pytest = "^4.6"
 flake8 = "^3.7"
 rope = "^0.14.0"

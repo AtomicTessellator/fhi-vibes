@@ -102,6 +102,9 @@ class RelaxationContext(TaskContext):
         """return ExpCellFilter(self.atoms, **kwargs) if `unit_cell == True`"""
         kw = self.exp_cell_filter_kw
 
+        msg = ["filter settings:", *[f"  {k}: {v}" for k, v in kw.items()]]
+        talk(msg, prefix=_prefix)
+
         if self.fix_symmetry:
             try:
                 from ase.spacegroup.symmetrize import FixSymmetry
@@ -137,7 +140,7 @@ class RelaxationContext(TaskContext):
 
     def resume(self):
         """resume from trajectory"""
-        return prepare_from_trajectory(self.atoms, self.opt, self.trajectory_file)
+        prepare_from_trajectory(self.atoms, self.trajectory_file)
 
     def run(self, timeout=None):
         """run the context workflow"""
@@ -145,7 +148,7 @@ class RelaxationContext(TaskContext):
         run_relaxation(self)
 
 
-def prepare_from_trajectory(atoms, opt, trajectory_file):
+def prepare_from_trajectory(atoms, trajectory_file):
     """Take the last step from trajectory and initialize atoms + md accordingly"""
 
     trajectory_file = Path(trajectory_file)
@@ -155,7 +158,6 @@ def prepare_from_trajectory(atoms, opt, trajectory_file):
         except IndexError:
             warn(f"** trajectory lacking the first step, please CHECK!", level=2)
         assert "info" in last_atoms["atoms"]
-        opt.nsteps = last_atoms["atoms"]["info"]["nsteps"]
 
         atoms.set_cell(last_atoms["atoms"]["cell"])
         atoms.set_positions(last_atoms["atoms"]["positions"])

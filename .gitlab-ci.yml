@@ -4,6 +4,8 @@ before_script:
   - flake8
   - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
   - poetry install
+  - pip install https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz
+  - pip list
 
 default:
   script:

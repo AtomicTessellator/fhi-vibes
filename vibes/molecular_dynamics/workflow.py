@@ -16,14 +16,14 @@ from vibes.helpers.socketio import (
     socket_stress_off,
     socket_stress_on,
 )
+from vibes.helpers.utils import Timeout
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.trajectory import metadata2file, step2file
 
-from ._defaults import name
+from ._defaults import calculation_timeout, name
 
 _calc_dirname = "calculations"
 # _socket_timeout = 60
-# _calculation_timeout = 30
 _prefix = name
 
 
@@ -98,6 +98,7 @@ def run(ctx, backup_folder=default_backup_folder):
             settings.workdir = "."
             settings.write()
 
+    timeout = Timeout(calculation_timeout)
     with SocketIOCalculator(
         socket_calc, port=socketio_port, unixsocket=socketio_unixsocket
     ) as iocalc, cwd(calc_dir, mkdir=True):
@@ -122,6 +123,9 @@ def run(ctx, backup_folder=default_backup_folder):
             step2file(atoms, file=trajectory_file, metadata=meta)
 
         while not watchdog() and md.nsteps < maxsteps:
+
+            # reset timeout
+            timeout()
 
             if not md_step(md):
                 break

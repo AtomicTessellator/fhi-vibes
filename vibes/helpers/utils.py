@@ -1,6 +1,7 @@
 """A simple timer"""
 import inspect
 import itertools
+import os
 import signal
 import sys
 import threading
@@ -72,7 +73,7 @@ def print_msg(message, prefix=None, indent=0, width=15):
 
 
 class Timer:
-    """simple timer with Timeout function"""
+    """simple timer"""
 
     prefix = None
 
@@ -81,12 +82,10 @@ class Timer:
 
         Args:
             message: Message to print at initialization
-            timeout: set a timeout after which a TimeoutError is raised
+            timeout: attach a `Timeout` with `timeout` seconds
             prefix: prefix for `talk'
             verboes: be verbose
 
-        Timeout inspired by
-            https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/
         """
         self.time = time.time()
         self.verbose = verbose
@@ -100,10 +99,7 @@ class Timer:
         if message and verbose:
             self.print(message, prefix=self.prefix)
 
-        self.timeout = timeout
-        if timeout:
-            signal.signal(signal.SIGALRM, self.raise_timeout)
-            signal.alarm(timeout)
+        self.timeout = Timeout(timeout)
 
     def wrap(self, func, *args, info_str="", **kwargs):
         result = func(*args, **kwargs)
@@ -120,23 +116,58 @@ class Timer:
             self.print(f".. time elapsed: {time_str}", prefix=self.prefix)
 
         # stop signal alarm if it was initialized
-        if self.timeout:
-            signal.signal(signal.SIGALRM, signal.SIG_IGN)
+        self.timeout.stop()
 
         if reset:
             self.time = time.time()
 
         return float(time_str[:-1])
 
+
+class Timeout:
+    """simple Timeout function"""
+
+    def __init__(self, timeout: int, kill: bool = True, pid: int = None):
+        """Initialize a Timeout
+
+        Args:
+            timeout: timeout in seconds after which `os.kill()` is called
+            kill: kill process instead of raising `TimeoutError`
+            pid: terminate this PID
+
+        Timeout partially inspired by
+            https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/
+
+        """
+        self.pid = pid
+        self.kill = kill
+        self.time = time.time()
+        self.timeout = timeout
+
+        if timeout is not None:
+            signal.signal(signal.SIGALRM, self.raise_timeout)
+            signal.alarm(timeout)
+
+    def stop(self):
+        if self.timeout is not None:
+            signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+    def __call__(self):
+        """update timer, i.e., reset timeout"""
+        self.stop()
+
+        signal.signal(signal.SIGALRM, self.raise_timeout)
+        signal.alarm(self.timeout)
+
     def raise_timeout(self, signum, frame):
-        """raise TimeoutError"""
-        warn(f"Timeout of {self.timeout}s is approaching, raise TimeoutError", level=1)
-        raise TimeoutError
+        """kill the program"""
+        msg = f"Timeout of {self.timeout}s is approaching, stop programm"
+        if self.kill:
+            warn(msg, level=1)
+            pid = self.pid or os.getpid()
+            os.kill(pid, signal.SIGKILL)
 
-
-def raise_timeout(signum, frame):
-    """raise TimeoutError"""
-    raise TimeoutError
+        raise TimeoutError(msg)
 
 
 class Spinner:
