@@ -37,7 +37,7 @@ hiphive = {version = "^0.5.0", optional = true}
 tables = "^3.5"
 click_aliases = "^1.0"
 click_completion = "^0.5.2"
-jconfigparser = {version = "^0.1.0-alpha.1", allows-prereleases = true}
+jconfigparser = "^0.1.1"
 pandas = "^1.0"
 
 [tool.poetry.extras]
