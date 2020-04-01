@@ -1,19 +1,20 @@
-[geometry]
-file:                         geometry.in
+[files]
+geometry:                      geometry.in
 
-[control]
+[calculator]
+name: aims
+
+[calculator.parameters]
 xc:                            pw-lda
-k_grid:                        [2, 2, 2]
-sc_accuracy_rho:               1e-7
-compute_forces:                true
 
-[basissets]
+[calculator.kpoints]
+density:                       5
+
+[calculator.basissets]
 default:                       light
 
-[socketio]
+[calculator.socketio]
 port:                          12345
-# Uncomment if you want to use a unix socket
-# unixsocket:                    vibes_test_socket
 
 [phonopy]
 supercell_matrix:              [1, 2, 1]

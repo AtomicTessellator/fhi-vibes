@@ -1,19 +1,14 @@
-[geometry]
-file =             geometry.in
+[files]
+geometry=             geometry.in
 
-[control]
-xc =               pw-lda
-k_grid =           [2, 2, 2]
-sc_accuracy_rho =  1e-5
-use_symmetric_forces = True
+[calculator]
+name: lj
 
-[basissets]
-default = light
-
-[socketio]
-port = 12345
+[calculator.parameters]
+sigma = 2
 
 [relaxation]
-driver =      BFGS
-fmax =        0.01
-unit_cell =   True
+driver =       BFGS
+fmax =         0.01
+unit_cell =    True
+fix_symmetry = True
