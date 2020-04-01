@@ -9,6 +9,6 @@ def from_settings(settings: dict = None) -> Calculator:
     calc_dict = settings[keys.calculator]
     calc_name = calc_dict.name
 
-    cls = get_calculator_class(calc_name)
+    cls = get_calculator_class(calc_name.lower())
 
     return cls(**calc_dict.get(keys.parameters, {}))

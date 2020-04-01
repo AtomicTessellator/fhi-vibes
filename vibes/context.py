@@ -3,6 +3,8 @@ from pathlib import Path
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 
+from jconfigparser.dict import DotDict
+
 from vibes import keys
 from vibes.calculator.context import CalculatorContext
 from vibes.filenames import filenames
@@ -30,17 +32,19 @@ class TaskContext:
         self._calculator = None
         self._name = name
 
-        self.kw = self.settings[self._name]
+        if name:
+            self.kw = self.settings[self._name]
+        else:
+            self.kw = DotDict()
 
         # workdir has to exist
         if workdir:
             self.kw[keys.workdir] = Path(workdir).absolute()
-
-        Path(self.workdir).mkdir(exist_ok=True, parents=True)
+            Path(self.workdir).mkdir(exist_ok=True, parents=True)
 
         if trajectory_file:
             self.trajectory_file = Path(trajectory_file)
-        else:
+        elif self.workdir:
             self.trajectory_file = Path(self.workdir) / filenames.trajectory
 
     @property
@@ -50,7 +54,7 @@ class TaskContext:
     @property
     def workdir(self):
         """return the working directory"""
-        if self.kw[keys.workdir]:
+        if self.kw.get(keys.workdir, None):
             return Path(self.kw[keys.workdir]).absolute()
 
     @workdir.setter
