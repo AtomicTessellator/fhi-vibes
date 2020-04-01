@@ -40,6 +40,8 @@ class TaskContext:
         # workdir has to exist
         if workdir:
             self.kw[keys.workdir] = Path(workdir).absolute()
+
+        if self.workdir:
             Path(self.workdir).mkdir(exist_ok=True, parents=True)
 
         if trajectory_file:
@@ -81,11 +83,11 @@ class TaskContext:
         """the calculator for running the computation"""
         if not self._calculator:
             # create aims from context and make sure forces are computed
-            aims_ctx = CalculatorContext(
+            calc_ctx = CalculatorContext(
                 settings=self.settings, atoms=self.atoms, workdir=self.workdir
             )
-
-            self._calculator = aims_ctx.get_calculator()
+            calc_ctx.ref_atoms = self.atoms
+            self._calculator = calc_ctx.calculator
 
         return self._calculator
 

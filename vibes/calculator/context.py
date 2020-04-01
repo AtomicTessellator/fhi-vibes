@@ -31,6 +31,9 @@ class CalculatorContext:
         if workdir:
             self.settings[keys.calculator][keys.workdir] = workdir
 
+        self._make_species_dir = self.settings[keys.calculator].get(
+            "make_species_dir", True
+        )
         self._ref_atoms = atoms
         self._primitive = None
         self._supercell = None
@@ -111,7 +114,7 @@ class CalculatorContext:
         if self.name == "aims":
             from .aims import setup_aims
 
-            return setup_aims(self)
+            return setup_aims(self, make_species_dir=self._make_species_dir)
         else:
             return setup.from_settings(self.settings)
 

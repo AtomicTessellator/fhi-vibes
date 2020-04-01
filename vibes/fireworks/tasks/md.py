@@ -5,8 +5,8 @@ import numpy as np
 
 from vibes.cli.scripts.create_samples import generate_samples
 from vibes.filenames import filenames
-from vibes.helpers.dict import AttributeDict
 from vibes.helpers.converters import dict2atoms
+from vibes.helpers.dict import AttributeDict
 from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.helpers.supercell import make_supercell

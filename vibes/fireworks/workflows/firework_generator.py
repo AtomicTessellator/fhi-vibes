@@ -187,6 +187,7 @@ def generate_firework(
                 for key, val in update_calc_settings.items():
                     if key not in ("k_grid_density", "kgrid"):
                         cl = update_calc(cl, key, val)
+
                 if cl["calculator"].lower() == "aims":
                     fw_settings["spec"]["kgrid"] = k2d(
                         atoms, cl["calculator_parameters"]["k_grid"]

@@ -2,22 +2,17 @@
 from pathlib import Path
 
 import numpy as np
-from ase.calculators.calculator import get_calculator_class
 from ase.constraints import (
     FixCartesianParametricRelations,
     FixScaledParametricRelations,
     dict2constraint,
 )
-
 from jconfigparser.dict import DotDict
 
-from vibes.calculator.context import CalculatorContext
 from vibes.context import TaskContext
 from vibes.fireworks.tasks.general_py_task import get_func
 from vibes.fireworks.workflows.workflow_generator import generate_workflow
 from vibes.helpers.converters import dict2atoms, input2dict
-from vibes.helpers.numerics import get_3x3_matrix
-from vibes.helpers.supercell import make_supercell
 from vibes.phonopy import displacement_id_str
 from vibes.phonopy.context import PhonopyContext
 from vibes.phonopy.postprocess import postprocess
@@ -48,7 +43,7 @@ def setup_calc(settings):
         settings["calculator"]["basissets"] = DotDict({"default": sd.split("/")[-1]})
 
     if "use_pimd_wrapper" in settings.calculator.parameters:
-        pimd = settings["calculator"].pop("use_pimd_wrapper")
+        pimd = settings["calculator"]["parameters"].pop("use_pimd_wrapper")
         host = pimd[0]
         port = pimd[1]
         if "UNIX:" in host:
@@ -93,6 +88,7 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms):
 
     ctx = PhonopyContext(settings=settings)
     ctx.primitive = atoms.copy()
+    ctx.atoms = atoms.copy()
 
     outputs = ctx.bootstrap()
 
@@ -136,11 +132,11 @@ def bootstrap_phonon(
     """
     settings = Settings(settings_file=None)
     settings["calculator"] = DotDict({"name": calculator.name})
-    settings["parameters"] = DotDict(calculator.parameters.copy())
-
+    settings["calculator"]["parameters"] = DotDict(calculator.parameters.copy())
+    settings["calculator"]["make_species_dir"] = False
     if kpt_density:
         settings["calculator"]["kpoints"] = DotDict({"density": kpt_density})
-        settings["calculator"]["parameters"].pop("kgrid")
+        settings["calculator"]["parameters"].pop("k_grid")
 
     outputs = []
     at = atoms.copy()
@@ -292,8 +288,8 @@ def prepare_gruneisen(settings, primitive, vol_factor):
     )
 
     dist_ctx = TaskContext(name=None, settings=dist_settings)
-    dist_primitive.set_calculator(dist_ctx.calculator)
     dist_ctx.atoms = dist_primitive
+    dist_primitive.set_calculator(dist_ctx.calculator)
 
     return generate_workflow(dist_ctx, dist_primitive, launchpad_yaml=None)
 
@@ -342,12 +338,20 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
     settings["phonopy"]["displacement"] = metadata["Phonopy"]["displacements"][0][1]
 
     settings["calculator"] = DotDict({"name": metadata["calculator"]["calculator"]})
+
     if settings["calculator"]["name"].lower() == "aims":
         settings["calculator"]["parameters"] = DotDict({})
         for key, val in metadata["calculator"]["calculator_parameters"].items():
             settings["calculator"]["parameters"][key] = val
         settings["calculator"]["parameters"].pop("kgrid", None)
         settings["calculator"]["kpoints"] = DotDict({"density": kpt_density})
+        settings["calculator"]["basissets"] = DotDict(
+            {
+                "default": settings["calculator"]["parameters"]
+                .get("species_dir")
+                .split("/")[-1]
+            }
+        )
     else:
         settings["calculator"]["parameters"] = DotDict(
             metadata["calculator"]["calculator_parameters"]

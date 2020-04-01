@@ -146,7 +146,7 @@ def setup_aims(
             kptdensity = settings.kpoints.density
             k_grid = d2k(ctx.ref_atoms, kptdensity, True)
             talk(f"Update aims k_grid with kpt density of {kptdensity} to {k_grid}")
-            ctx.settings.parameters["k_grid"] = k_grid
+            settings.parameters["k_grid"] = k_grid
 
     aims_settings = settings.parameters
 

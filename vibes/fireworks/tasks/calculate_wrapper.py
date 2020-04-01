@@ -9,6 +9,7 @@ from vibes.helpers.hash import hash_dict
 from vibes.settings import Settings
 from vibes.tasks.calculate import calculate, calculate_socket
 
+
 T_S_LINE = (
     "          Detailed time accounting                     : "
     " max(cpu_time)    wall_clock(cpu1)\n"

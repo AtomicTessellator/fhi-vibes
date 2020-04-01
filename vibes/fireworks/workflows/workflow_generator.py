@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 from fireworks import Workflow
+
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.fireworks.workflows.firework_generator import (
     generate_aims_fw,
@@ -257,7 +258,7 @@ def generate_workflow(workflow, atoms, launchpad_yaml=None, make_absolute=True):
         if workflow.settings.general.get("opt_kgrid", False):
             fw_steps.append(generate_kgrid_fw(workflow.settings, atoms, fw_settings))
 
-        basis = workflow.settings.general.get("basisset", "light")
+        basis = workflow.settings.calculator.basissets.get("default", "light")
 
         # Relaxation
         if workflow.settings.general.get("relax_structure", False):

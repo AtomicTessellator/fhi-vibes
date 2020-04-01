@@ -2,7 +2,6 @@
 from ase.calculators.calculator import Calculator, get_calculator_class
 
 from vibes import keys
-from vibes.calculator.aims import setup_aims
 
 
 def from_settings(settings: dict = None) -> Calculator:
