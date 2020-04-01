@@ -1,7 +1,8 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
-from vibes.helpers.dict import AttributeDict
+from jconfigparser.dict import DotDict
+
 from vibes.helpers.k_grid import update_k_grid
 from vibes.relaxation.context import RelaxationContext
 from vibes.settings import Settings
@@ -45,19 +46,31 @@ def run(atoms, calculator, kpt_density=None, relax_settings=None, fw_settings=No
         calculator.parameters.pop("sc_init_iter", None)
 
     settings = Settings(settings_file=None)
-    settings._settings_file = "relaxation.in"
-    settings["relaxation"] = AttributeDict(relax_settings)
+    settings_file = f"{workdir}/relaxation.in"
+    settings._settings_file = settings_file
+    settings["relaxation"] = DotDict(relax_settings)
+    settings["calculator"] = DotDict({"name": calculator.name})
+    settings["calculator"]["parameters"] = DotDict(calculator.parameters.copy())
 
     if calculator.name.lower() == "aims":
-        settings["control"] = AttributeDict(calculator.parameters.copy())
-        settings["basissets"] = AttributeDict(
+        settings["calculator"]["basissets"] = DotDict(
             {"default": calculator.parameters.pop("species_dir").split("/")[-1]}
         )
 
-    settings["geometry"] = AttributeDict({"file": str(workdir / "geometry.in")})
-    settings.write(f"{workdir}/relaxation.in")
+        host, port = calculator.parameters.pop("use_pimd_wrapper", [None, None])
+        if "UNIX" in host:
+            unixsocket = host
+            host = None
+        else:
+            unixsocket = None
+        if port:
+            settings["calculator"]["socketio"] = DotDict(
+                {"port": port, "host": host, "unixsocket": unixsocket}
+            )
 
-    ctx = RelaxationContext(settings, workdir, trajectory)
-    ctx.calculator = calculator
+    settings["files"] = DotDict({"geometry": str(workdir.absolute() / "geometry.in")})
+    settings.write(f"{workdir}/relaxation.in", full_path=True)
+
+    ctx = RelaxationContext(Settings(settings_file=settings_file), workdir, trajectory)
 
     return ctx.run()

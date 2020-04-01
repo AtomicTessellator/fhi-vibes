@@ -35,7 +35,7 @@ def test_fireworks():
             wflow_id=workflow.root_fw_ids,
             strm_lvl="INFO",
             sleep_time=2,
-            max_loops=10,
+            max_loops=2,
         )
     shutil.rmtree("test_run/")
     shutil.rmtree("fireworks_launchers/")

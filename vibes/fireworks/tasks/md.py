@@ -1,12 +1,12 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
+from jconfigparser.dict import DotDict
 import numpy as np
 
 from vibes.cli.scripts.create_samples import generate_samples
 from vibes.filenames import filenames
 from vibes.helpers.converters import dict2atoms
-from vibes.helpers.dict import AttributeDict
 from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.helpers.supercell import make_supercell
@@ -118,31 +118,37 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
     calculator.parameters.pop("sc_init_iter", None)
 
     settings = Settings(
-        settings_file=None, config_files=None, dct={"md": AttributeDict(md_settings)}
+        settings_file=None, config_files=None, dct={"md": DotDict(md_settings)}
     )
     settings_file = str(workdir / "md.in")
     settings._settings_file = settings_file
-    settings["md"] = AttributeDict(md_settings)
+    settings["md"] = DotDict(md_settings)
+    settings["calculator"] = DotDict({"name": calculator.name})
 
     if calculator.name.lower() == "aims":
-        settings["basissets"] = AttributeDict(
+        settings["calculator"]["basissets"] = DotDict(
             {"default": calculator.parameters.pop("species_dir").split("/")[-1]}
         )
-        settings["control"] = AttributeDict(calculator.parameters.copy())
-        host, port = calculator.parameters.pop("use_pimd_wrapper", [None, None])
-        if port:
-            settings["socketio"] = AttributeDict({"port": port, "host": host})
 
-    settings["geometry"] = AttributeDict(
+        host, port = calculator.parameters.pop("use_pimd_wrapper", [None, None])
+        if "UNIX" in host:
+            unixsocket = host
+            host = None
+        else:
+            unixsocket = None
+        if port:
+            settings["calculator"]["socketio"] = DotDict(
+                {"port": port, "host": host, "unixsocket": unixsocket}
+            )
+
+    settings["files"] = DotDict(
         {
-            "file": str(workdir / filenames.atoms),
-            "primitive": str(workdir / "unitcell.in"),
-            "supercell": str(workdir / "supercell.in"),
+            "geometry": str(workdir.absolute() / filenames.atoms),
+            "primitive": str(workdir.absolute() / "unitcell.in"),
+            "supercell": str(workdir.absolute() / "supercell.in"),
         }
     )
-    settings.write()
+    settings.write(settings_file, full_path=True)
     ctx = MDContext(Settings(settings_file=settings_file), workdir, trajectory_file)
-    if calculator.name.lower() != "aims":
-        ctx.calculator = calculator
 
     return ctx.run()

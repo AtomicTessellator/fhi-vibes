@@ -138,14 +138,17 @@ class Settings(Config):
         """return path to the settings file"""
         return self._settings_file
 
-    def write(self, file=None):
+    def write(self, file=None, full_path=False):
         """write settings to file"""
 
         if not file:
             file = self.file
 
+        if not full_path:
+            file = Path(file).name
+
         if not Path(file).exists():
-            super().write(Path(file).name)
+            super().write(Path(file))
         else:
             warn(f"{file} exists, do not overwrite settings.", level=1)
 
