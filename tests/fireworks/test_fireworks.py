@@ -3,7 +3,6 @@ import shutil
 from pathlib import Path
 
 from ase.build import bulk
-from ase.calculators.calculator import get_calculator_class
 from vibes.context import TaskContext
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.fireworks.rocket_launcher import rapidfire
