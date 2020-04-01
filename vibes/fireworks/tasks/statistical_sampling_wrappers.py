@@ -10,7 +10,7 @@ from vibes.helpers.warnings import warn
 from vibes.phonopy.postprocess import postprocess as postprocess_ph
 from vibes.phonopy.utils import get_force_constants_from_trajectory
 from vibes.phonopy.wrapper import preprocess as get_debye_temperature
-from vibes.settings import Settings, TaskSettings
+from vibes.settings import Settings
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
@@ -35,7 +35,7 @@ def bootstrap(name="statistical_sampling", settings=None, **kwargs):
     """
 
     if settings is None:
-        settings = TaskSettings(name=None, settings=Settings())
+        settings = Settings()
 
     stat_sample_settings = {}
 

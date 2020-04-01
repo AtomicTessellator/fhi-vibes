@@ -51,10 +51,11 @@ def add_wf(workflow, launchpad):
     from ase.calculators.calculator import get_calculator_class
     from vibes.calculator.context import CalculatorContext
     from vibes.calculator.setup import setup_aims
+    from vibes.context import TaskContext
     from vibes.fireworks.workflows.workflow_generator import generate_workflow
-    from vibes.settings import TaskSettings, AttributeDict, Settings
+    from vibes.settings import Settings
 
-    wflow = TaskSettings(name=None, settings=Settings(settings_file=workflow))
+    wflow = TaskContext(name=None, settings=Settings(settings_file=workflow))
     """Adds a workflow to the launchpad"""
     structure_files = []
     if "geometry" in wflow:
@@ -75,29 +76,11 @@ def add_wf(workflow, launchpad):
         settings.geometry.pop("files", None)
         settings.geometry["file"] = str(file)
 
-        wflow = TaskSettings(name=None, settings=settings)
+        wflow = TaskContext(name=None, settings=settings)
         atoms = wflow.atoms
+        atoms.set_calculator(wflow.calculator)
 
         talk(f"Generating workflow for {get_sysname(atoms)}", prefix="fireworks")
-        if "control" in wflow or (
-            "calculator" in wflow and wflow.calculator.get("name") == "aims"
-        ):
-            if "basissets" not in wflow and "basisset" in wflow.general:
-                wflow["basissets"] = AttributeDict({"default": wflow.general.basisset})
-            elif "basissets" not in wflow:
-                wflow["basisset"] = AttributeDict({"default": "light"})
-
-            calc = setup_aims(
-                ctx=CalculatorContext(settings=wflow),
-                verbose=False,
-                make_species_dir=False,
-            )
-        elif "calculator" in wflow:
-            calc_parameters = wflow.calculator.copy()
-            name = calc_parameters.pop("name").lower()
-            calc = get_calculator_class(name)(**calc_parameters)
-
-        atoms.set_calculator(calc)
         generate_workflow(wflow, atoms, launchpad)
 
 
