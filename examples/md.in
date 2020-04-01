@@ -1,5 +1,5 @@
-[geometry]
-file =             geometry.in
+[files]
+geometry =  geometry.in
 primitive = geometry.in
 supercell = geometry.in
 

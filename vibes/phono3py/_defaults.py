@@ -17,6 +17,7 @@ kwargs.update(
         "cutoff_pair_distance": 100.0,
         "q_mesh": [21, 21, 21],
         "log_level": 2,
+        "workdir": name,
     }
 )
 

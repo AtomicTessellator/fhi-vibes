@@ -151,7 +151,6 @@ def calculate_socket(
         metadata["settings"] = settings.to_dict()
         if save_input:
             with cwd(workdir, mkdir=True):
-                settings.workdir = workdir
                 settings.write()
 
     # fetch list of hashes from trajectory
@@ -189,6 +188,8 @@ def calculate_socket(
             for n_cell, cell in enumerate(atoms_to_calculate):
                 # skip if cell is None or already computed
                 if cell is None:
+                    talk("`atoms is None`, skip.")
+
                     continue
                 if check_precomputed_hashes(cell, precomputed_hashes, n_cell):
                     continue
@@ -216,13 +217,13 @@ def calculate_socket(
                 # compute and save the aims UUID
                 msg = f"{'[vibes]':15}Compute structure "
                 msg += f"{n_cell + 1} of {len(atoms_to_calculate)}"
-                # talk(msg)
 
-                with cwd(wd, mkdir=True), Spinner(msg):
-                    atoms.calc.calculate(atoms, system_changes=["positions"])
+                with cwd(wd, mkdir=True):
+                    with Spinner(msg):
+                        atoms.calc.calculate(atoms, system_changes=["positions"])
+
+                    # log the step including aims_uuid if possible
                     meta = get_aims_uuid_dict()
-
-                    # log the step
                     step2file(atoms, atoms.calc, trajectory_file, metadata=meta)
 
                 if watchdog():

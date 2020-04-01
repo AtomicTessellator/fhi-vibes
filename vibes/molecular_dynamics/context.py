@@ -108,6 +108,7 @@ class MDContext(TaskContext):
         compute_stresses = 0
         if "compute_stresses" in self.kw:
             # make sure compute_stresses describes a step length
+            compute_stresses = self.kw["compute_stresses"]
             if compute_stresses is True:
                 compute_stresses = 1
             elif compute_stresses is False:

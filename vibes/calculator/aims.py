@@ -20,6 +20,13 @@ basisset_choices = ("light", "intermediate", "tight", "really_tight")
 basisset_default = "light"
 
 
+default_control = {
+    "sc_accuracy_rho": 1e-6,
+    "relativistic": "atomic_zora scalar",
+    "output_level": "MD_light",
+}
+
+
 def verify_settings(settings: dict):
     assert "machine" in settings
     assert "aims_command" in settings.machine
@@ -147,6 +154,12 @@ def setup_aims(
             k_grid = d2k(ctx.ref_atoms, kptdensity, True)
             talk(f"Update aims k_grid with kpt density of {kptdensity} to {k_grid}")
             settings.parameters["k_grid"] = k_grid
+
+    # add defaults
+    for key in default_control:
+        if key not in settings.parameters:
+            settings.parameters[key] = default_control[key]
+            talk(f".. add `{key}: {default_control[key]}` to parameters (default)")
 
     aims_settings = settings.parameters
 

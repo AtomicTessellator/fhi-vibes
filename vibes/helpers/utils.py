@@ -241,7 +241,7 @@ class Spinner:
             self.print(newline=True)
 
         if exception is not None:
-            return exception
+            raise exception
 
 
 def progressbar(

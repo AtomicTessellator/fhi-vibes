@@ -22,7 +22,7 @@ kwargs = adict(
         keys.driver: "VelocityVerlet",
         keys.timestep: 1,
         keys.maxsteps: 1000,
-        keys.compute_stresses: None,
+        keys.compute_stresses: False,
         keys.workdir: name,
         # kwargs go to Dynamics, e.g., Langeving(..., **kwargs)
         "kwargs": {keys.temperature: None, keys.friction: None, keys.logfile: "md.log"},

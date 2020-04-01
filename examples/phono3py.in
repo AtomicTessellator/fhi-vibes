@@ -1,20 +1,13 @@
-[geometry]
-file:                         geometry.in
+[files]
+geometry:                     geometry.in
 
-[control]
-xc:                            pw-lda
-k_grid:                        [2, 2, 2]
-sc_accuracy_rho:               1e-7
-compute_forces:                true
-
-[basissets]
-default:                       light
+[calculator]
+name: lj
 
 [socketio]
-port:                          12345
-# Uncomment if you want to use a unix socket
-# unixsocket:                    vibes_test_socket
+port: null
 
 [phono3py]
-supercell_matrix:              [1, 2, 1]
+supercell_matrix:              [2, 2, 2]
+workdir:                       phono3py_${calculator:name}
 
