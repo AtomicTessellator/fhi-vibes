@@ -151,7 +151,6 @@ def calculate_socket(
         metadata["settings"] = settings.to_dict()
         if save_input:
             with cwd(workdir, mkdir=True):
-                settings.workdir = workdir
                 settings.write()
 
     # fetch list of hashes from trajectory

@@ -145,7 +145,7 @@ class Settings(Config):
             file = self.file
 
         if not Path(file).exists():
-            super().write(file)
+            super().write(Path(file).name)
         else:
             warn(f"{file} exists, do not overwrite settings.", level=1)
 

@@ -95,7 +95,6 @@ def run(ctx, backup_folder=default_backup_folder):
     # back up settings
     if settings:
         with cwd(workdir, mkdir=True):
-            settings.workdir = "."
             settings.write()
 
     timeout = Timeout(calculation_timeout)

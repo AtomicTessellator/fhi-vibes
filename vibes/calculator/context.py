@@ -127,4 +127,4 @@ class CalculatorContext:
 
     @property
     def workdir(self):
-        return Path(self.settings.calculator.get(keys.workdir, calc_dirname))
+        return Path(self.settings.calculator.get(keys.workdir, self.name))
