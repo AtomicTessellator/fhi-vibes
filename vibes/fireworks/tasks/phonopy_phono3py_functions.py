@@ -362,7 +362,7 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
         )
     else:
         use_ase_relax = settings["relaxation"].get("use_ase_relax")
-        for key, val in settings["relaxation"].items():
+        for val in settings["relaxation"].values():
             if isinstance(val, DotDict):
                 if use_ase_relax:
                     settings["relaxation"]["unit_cell"] = False
