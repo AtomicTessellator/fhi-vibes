@@ -56,7 +56,7 @@ class TaskContext:
     @property
     def workdir(self):
         """return the working directory"""
-        if self.kw.get(keys.workdir, None):
+        if self.kw.get(keys.workdir):
             return Path(self.kw[keys.workdir]).absolute()
 
     @workdir.setter
