@@ -1,38 +1,78 @@
 # information to build a default control.in
-[geometry]
-files = */geometry.in
+[files]
+geometries = Si*/geometry.in
 
-[general]
-workdir_cluster = "test_run/"
-workdir_local   = "test_run/"
-use_third = False
-basisset = light
-use_tight_relax = False
-kgrid_dfunc_min = 1e13
-opt_kgrid = False
-relax_structure = False
+[calculator]
+name = aims
 
-[control]
+[calculator.parameters]
 xc =                 pw-lda
 sc_accuracy_rho =    1e-4
 sc_accuracy_forces = 5E-3
 output_level =       MD_light
 relativistic =       "atomic_zora scalar"
 
-[socketio]
+[calculator.kpoints]
+density = 5.0
+
+[calculator.basissets]
+default = light
+
+[calculator.socketio]
 port = 12345
 
-[control_kpt]
-density = 1.00
+[fireworks]
+name = example_run
+
+[fireworks.workdir]
+cluster = "test_run/"
+local   = "test_run/"
+
+#[optimize_kgrid]
+#dfunc_min = 1e-2
+
+#[optimize_kgrid.qadapter]
+#nodes = 1
+#walltime = 01:00:00
+
+[relaxation]
+use_ase_relax = False
+
+[relaxation.1]
+basis = light
+method = trm
+fmax = 1e-3
+relax_unit_cell = full
+
+[relaxation.1.qadapter]
+nodes = 1
+walltime = 00:15:00
+
+[relaxation.2]
+basis = intermediate
+method = trm
+fmax = 1e-3
+relax_unit_cell = full
+
+[relaxation.2.qadapter]
+nodes = 1
+walltime = 00:45:00
 
 [phonopy]
 supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-conv_crit = 0.05
 walltime = 3500
 serial = True
 displacement = 0.01
-converge_phonons = True
-get_gruniesen = True
+
+[phonopy.convergence]
+minimum_similiarty_score = 0.05
+
+[phonopy.qadapter]
+walltime = 1:00:00
+nodes = 1
+
+[gruneisen]
+volume_factors = [0.99, 1.01]
 
 [statistical_sampling]
 serial = True
@@ -41,7 +81,9 @@ supercell_matrix = [-1,1,1,1,-1,1,1,1,-1]
 n_samples = 1
 deterministic = True
 
+
 [md]
+supercell_matrix = [-1,1,1,1,-1,1,1,1,-1]
 driver:                        Langevin
 timestep:                      1
 temperature:                   300
@@ -50,11 +92,7 @@ maxsteps:                      11
 compute_stresses:              5
 logfile:                       md.log
 
-[phonopy_qadapter]
-walltime = 1:00:00
-nodes = 1
-
-[md_qadapter]
+[md.qadapter]
 walltime = 1:00:00
 nodes = 1
 

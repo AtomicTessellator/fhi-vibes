@@ -164,14 +164,14 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
     # check for information in settings that imply to set up forces and stress:
     force, stress, stresses = False, False, False
 
-    if "md" in ctx.settings:
+    if "md" in ctx.settings and "phonopy" not in ctx.settings:
         force = True
         if ctx.settings["md"]["compute_stresses"]:
             stresses = True
 
     if "relaxation" in ctx.settings:
         force = True
-        if ctx.settings["relaxation"]["unit_cell"]:
+        if ctx.settings["relaxation"].get("unit_cell"):
             stress = True
 
     if "phonopy" in ctx.settings:

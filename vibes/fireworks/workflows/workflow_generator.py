@@ -48,19 +48,19 @@ def process_relaxation(workflow, atoms, fw_settings, basis):
     settings = workflow.settings.relaxation
     for key, val in settings.items():
         if isinstance(val, DotDict):
-            relaxation_steps.append(key)
+            try:
+                relaxation_steps.append(int(key))
+            except ValueError:
+                raise ValueError("relaxation step keys must be whole numbers")
 
-    if basis and basis not in settings and settings.get("ignore_basis", False):
-        relaxation_steps.append(basis)
-
-    for step in relaxation_steps:
+    for step in sorted(relaxation_steps):
         if settings.get("use_ase_relax", False):
             fw_steps.append(
-                generate_relax_fw(workflow.settings, atoms, fw_settings, step)
+                generate_relax_fw(workflow.settings, atoms, fw_settings, str(step))
             )
         else:
             fw_steps.append(
-                generate_aims_relax_fw(workflow.settings, atoms, fw_settings, step)
+                generate_aims_relax_fw(workflow.settings, atoms, fw_settings, str(step))
             )
 
     return fw_steps

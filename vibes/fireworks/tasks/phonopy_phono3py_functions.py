@@ -338,11 +338,11 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
     settings["phonopy"]["displacement"] = metadata["Phonopy"]["displacements"][0][1]
 
     settings["calculator"] = DotDict({"name": metadata["calculator"]["calculator"]})
+    settings["calculator"]["parameters"] = DotDict(
+        metadata["calculator"]["calculator_parameters"]
+    )
 
     if settings["calculator"]["name"].lower() == "aims":
-        settings["calculator"]["parameters"] = DotDict({})
-        for key, val in metadata["calculator"]["calculator_parameters"].items():
-            settings["calculator"]["parameters"][key] = val
         settings["calculator"]["parameters"].pop("kgrid", None)
         settings["calculator"]["kpoints"] = DotDict({"density": kpt_density})
         settings["calculator"]["basissets"] = DotDict(
@@ -352,33 +352,33 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
                 .split("/")[-1]
             }
         )
-    else:
-        settings["calculator"]["parameters"] = DotDict(
-            metadata["calculator"]["calculator_parameters"]
-        )
-        if "relaxation" not in settings:
-            settings["relaxation"] = {
-                "driver": "BFGS",
-                "unit_cell": False,
-                "fmax": 0.001,
+
+    if "relaxation" not in settings:
+        settings["relaxation"] = DotDict(
+            {
+                "1": {"driver": "BFGS", "unit_cell": False, "fmax": 0.001},
+                "use_ase_relax": True,
             }
-        else:
-            settings["relaxation"]["unit_cell"] = False
+        )
+    else:
+        use_ase_relax = settings["relaxation"].get("use_ase_relax")
+        for key, val in settings["relaxation"].items():
+            if isinstance(val, DotDict):
+                if use_ase_relax:
+                    settings["relaxation"]["unit_cell"] = False
+                else:
+                    settings["relaxation"]["relax_unit_cell"] = False
 
     primitive = to_Atoms(eq_phonon.get_primitive())
     add_constraints = []
     for constr in constraints:
         constraint = dict2constraint(constr)
         if isinstance(constraint, FixScaledParametricRelations):
-            if not constraint.params:
-                settings["general"]["relax_structure"] = False
-                try:
-                    settings["calculator"]["parameters"].pop("relax_unit_cell", None)
-                except KeyError:
-                    pass
-                settings.pop("relaxation", None)
-            else:
+            if constraint.params:
                 add_constraints.append(constraint)
+
+    if len(constraints) > 0 and len(add_constraints) == 0:
+        settings.pop("relaxation", None)
 
     primitive.constraints = add_constraints
 

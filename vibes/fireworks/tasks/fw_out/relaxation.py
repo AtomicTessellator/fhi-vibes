@@ -46,9 +46,9 @@ def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
         workdir = "."
     settings = Settings(f"{workdir}/relaxation.in", config_files=None)
     settings["relaxation"] = DotDict(
-        {relax_settings["name"]: settings.pop("relaxation")}
+        {relax_settings["step"]: settings.pop("relaxation")}
     )
-    settings.relaxation[relax_settings["name"]]["qadapter"] = fw_settings["spec"].get(
+    settings.relaxation[relax_settings["step"]]["qadapter"] = fw_settings["spec"].get(
         "_qadapter"
     )
     settings["fireworks"] = DotDict()
@@ -66,7 +66,7 @@ def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
         settings,
         dict2atoms(new_atoms_dict, calc_dict, False),
         fw_settings,
-        relax_settings["name"],
+        relax_settings["step"],
     )
     update_spec = {}
     if "out_spec_atoms" in fw_settings:

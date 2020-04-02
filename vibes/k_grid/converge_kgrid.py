@@ -24,6 +24,7 @@ def converge_kgrid(
     socketio_port=None,
     walltime=None,
     workdir=".",
+    **kwargs,
 ):
     """Converges the k-grid relative to some loss function
 

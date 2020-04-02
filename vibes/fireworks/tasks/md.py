@@ -124,7 +124,6 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
     settings._settings_file = settings_file
     settings["md"] = DotDict(md_settings)
     settings["calculator"] = DotDict({"name": calculator.name})
-
     if calculator.name.lower() == "aims":
         settings["calculator"]["basissets"] = DotDict(
             {"default": calculator.parameters.pop("species_dir").split("/")[-1]}
@@ -141,6 +140,7 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
                 {"port": port, "host": host, "unixsocket": unixsocket}
             )
 
+    settings["calculator"]["parameters"] = DotDict(calculator.parameters)
     settings["files"] = DotDict(
         {
             "geometry": str(workdir.absolute() / filenames.atoms),

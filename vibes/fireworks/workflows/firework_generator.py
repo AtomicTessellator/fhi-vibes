@@ -343,7 +343,7 @@ def generate_aims_relax_fw(settings, atoms, fw_settings, step):
     method = settings.relaxation[step].get("method", "trm")
     force_crit = settings.relaxation[step].get("fmax", 1e-3)
     relax_unit_cell = settings.relaxation[step].get("relax_unit_cell", "full")
-    basis = settings.relaxation[step].get("basis", step)
+    basis = settings.relaxation[step].get("basis")
 
     update_settings = {
         "relax_geometry": f"{method} {force_crit}",
@@ -373,17 +373,17 @@ def generate_relax_fw(settings, atoms, fw_settings, step):
     """
     qadapter = settings.relaxation[step].get("qadapter")
 
-    abreviated_step = [bt[0] for bt in step.split("_")]
-    fw_settings["fw_name"] = f"{'_'.join(abreviated_step)}_relax"
+    fw_settings["fw_name"] = f"{step}_relax"
 
     update_settings = {}
     if settings.calculator.name.lower() == "aims":
-        update_settings["basisset_type"] = settings.relaxation[step].get("basis", step)
+        update_settings["basisset_type"] = settings.relaxation[step].get("basis")
+
     relax_set = settings.relaxation[step].copy()
     relax_set[
         "workdir"
     ] = f"{settings.fireworks.workdir.cluster}/{fw_settings['fw_name']}/"
-    relax_set["name"] = step
+    relax_set["step"] = step
 
     task_spec = gen_relax_task_spec(relax_set, fw_settings)
 

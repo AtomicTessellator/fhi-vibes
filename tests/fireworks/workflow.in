@@ -17,7 +17,7 @@ local   = "test_run/"
 [relaxation]
 use_ase_relax = True
 
-[relaxation.step_1]
+[relaxation.1]
 driver =      BFGS
 fmax =        0.001
 unit_cell =   True
