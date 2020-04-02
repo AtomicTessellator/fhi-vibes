@@ -271,13 +271,13 @@ def generate_fw(
     )
 
 
-def generate_kgrid_fw(workflow, atoms, fw_settings):
+def generate_kgrid_fw(settings, atoms, fw_settings):
     """Generate a k-grid optimization Firework
 
     Parameters
     ----------
-    workflow : Settings
-        workflow settings where the task is defined
+    settings : Settings
+        settings settings where the task is defined
     atoms : ase.atoms.Atoms
         ASE Atoms object to preform the calculation on
     fw_settings : dict
@@ -293,38 +293,33 @@ def generate_kgrid_fw(workflow, atoms, fw_settings):
     fw_settings["fw_name"] = "kgrid_opt"
     fw_settings["out_spec_k_den"] = "kgrid"
 
-    if "kgrid_qadapter" in workflow:
-        qadapter = workflow["kgrid_qadapter"]
-    else:
-        qadapter = None
+    qadapter = settings.optimize_kgrid.get("qadapter")
 
     func_kwargs = {
-        "workdir": f"{workflow.general.workdir_cluster}/{fw_settings['fw_name']}/",
+        "workdir": f"{settings.fireworks.workdir.cluster}/{fw_settings['fw_name']}/",
         "trajectory_file": filenames.trajectory,
-        "dfunc_min": workflow.general.get("kgrid_dfunc_min", 1e-12),
+        "dfunc_min": settings.optimize_kgrid.get("dfunc_min", 1e-6),
     }
 
     if qadapter and "walltime" in qadapter:
         func_kwargs["walltime"] = str2time(qadapter["walltime"])
-    else:
-        func_kwargs["walltime"] = 1800
 
     task_spec = gen_kgrid_task_spec(func_kwargs)
     return generate_fw(atoms, task_spec, fw_settings, qadapter)
 
 
-def generate_aims_relax_fw(workflow, atoms, fw_settings, basisset_type):
+def generate_aims_relax_fw(settings, atoms, fw_settings, step):
     """Generates a Firework for the relaxation step
 
     Parameters
     ----------
-    workflow : Settings
-        workflow settings where the task is defined
+    settings : Settings
+        settings settings where the task is defined
     atoms : ase.atoms.Atoms
         ASE Atoms object to preform the calculation on
     fw_settings : dict
         Firework settings for the step
-    basisset_type : str
+    step : str
         Basis Set parameters to use for the calculation
 
     Returns
@@ -333,46 +328,39 @@ def generate_aims_relax_fw(workflow, atoms, fw_settings, basisset_type):
         Firework for the relaxation step
 
     """
-    if f"{basisset_type}_rel_qadapter" in workflow:
-        qadapter = workflow["light_rel_qadapter"]
-    else:
-        qadapter = None
+    qadapter = settings.relaxation[step].get("qadapter")
 
-    abreviated_basis = [bt[0] for bt in basisset_type.split("_")]
-    fw_settings["fw_name"] = f"{'_'.join(abreviated_basis)}_relax"
+    abreviated_step = [bt[0] for bt in step.split("_")]
+    fw_settings["fw_name"] = f"{'_'.join(abreviated_step)}_relax"
 
     func_kwargs = {
-        "workdir": f"{workflow.general.workdir_cluster}/{fw_settings['fw_name']}/"
+        "workdir": f"{settings.fireworks.workdir.cluster}/{fw_settings['fw_name']}/"
     }
     fw_out_kwargs = {"calc_number": 0}
 
     task_spec = gen_aims_task_spec(func_kwargs, fw_out_kwargs)
 
-    if "relaxation" in workflow:
-        method = workflow.relaxation.get("method", "trm")
-        force_crit = workflow.relaxation.get("conv_crit", 1e-3)
-        relax_unit_cell = workflow.relaxation.get("relax_unit_cell", "full")
-    else:
-        method = "trm"
-        force_crit = 1e-3
-        relax_unit_cell = "full"
+    method = settings.relaxation[step].get("method", "trm")
+    force_crit = settings.relaxation[step].get("fmax", 1e-3)
+    relax_unit_cell = settings.relaxation[step].get("relax_unit_cell", "full")
+    basis = settings.relaxation[step].get("basis", step)
 
     update_settings = {
         "relax_geometry": f"{method} {force_crit}",
-        "basisset_type": basisset_type,
+        "basisset_type": basis,
         "relax_unit_cell": relax_unit_cell,
     }
 
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, True)
 
 
-def generate_relax_fw(workflow, atoms, fw_settings):
+def generate_relax_fw(settings, atoms, fw_settings, step):
     """Generates a Firework for the relaxation step
 
     Parameters
     ----------
-    workflow: Settings
-        workflow settings where the task is defined
+    settings: Settings
+        settings settings where the task is defined
     atoms: ase.atoms.Atoms, dict
         ASE Atoms object to preform the calculation on
     fw_settings: dict
@@ -383,34 +371,37 @@ def generate_relax_fw(workflow, atoms, fw_settings):
     Firework
         Firework for the relaxation step
     """
-    if f"relaxation_qadapter" in workflow:
-        qadapter = workflow["relaxation_qadapter"]
-    else:
-        qadapter = None
+    qadapter = settings.relaxation[step].get("qadapter")
 
-    fw_settings["fw_name"] = "relaxation"
-    relax_set = workflow["relaxation"].copy()
+    abreviated_step = [bt[0] for bt in step.split("_")]
+    fw_settings["fw_name"] = f"{'_'.join(abreviated_step)}_relax"
+
+    update_settings = {}
+    if settings.calculator.name.lower() == "aims":
+        update_settings["basisset_type"] = settings.relaxation[step].get("basis", step)
+    relax_set = settings.relaxation[step].copy()
     relax_set[
         "workdir"
-    ] = f"{workflow.general.workdir_cluster}/{fw_settings['fw_name']}/"
+    ] = f"{settings.fireworks.workdir.cluster}/{fw_settings['fw_name']}/"
+    relax_set["name"] = step
 
     task_spec = gen_relax_task_spec(relax_set, fw_settings)
 
-    return generate_fw(atoms, task_spec, fw_settings, qadapter, None, True)
+    return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, True)
 
 
-def generate_phonon_fw(workflow, atoms, fw_settings, typ):
+def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
     """Generates a Firework for the phonon initialization
 
     Parameters
     ----------
-    workflow : Settings
-        workflow settings where the task is defined
+    settings : Settings
+        settings settings where the task is defined
     atoms : ase.atoms.Atoms or dict
         ASE Atoms object to preform the calculation on
     fw_settings : dict
         Firework settings for the step
-    typ : str
+    name : str
         either phonopy or phono3py
 
     Returns
@@ -419,67 +410,65 @@ def generate_phonon_fw(workflow, atoms, fw_settings, typ):
         Firework for the relaxation step
 
     """
-
-    if f"{typ}_qadapter" in workflow:
-        qadapter = workflow["phonopy_qadapter"]
-    else:
-        qadapter = {}
+    qadapter = settings[name].get("qadapter")
 
     update_settings = {}
-    if "basisset_type" in workflow[typ]:
-        update_settings["basisset_type"] = workflow[typ].pop("basisset_type")
+    if "basisset_type" in settings[name]:
+        update_settings["basisset_type"] = settings[name].pop("basisset_type")
 
-    if "socket_io_port" in workflow[typ]:
-        update_settings["use_pimd_wrapper"] = workflow[typ].pop("socket_io_port")
-    elif "use_pimd_wrapper" in workflow[typ]:
-        update_settings["use_pimd_wrapper"] = workflow[typ].pop("use_pimd_wrapper")
+    if "socketio" in settings.calculator:
+        port = settings.calculator.socketio["port"]
+        host = settings.calculator.socketio.get("host", "localhost")
+        update_settings["use_pimd_wrapper"] = [host, port]
+    elif "use_pimd_wrapper" in settings.calculator:
+        update_settings["use_pimd_wrapper"] = settings.calculator.pop(
+            "use_pimd_wrapper"
+        )
 
-    if (
-        workflow[typ].get("serial", True)
-        and "spec" in fw_settings
-        and "prev_dos_fp" in fw_settings["spec"]
-    ):
-        phonon, _, scs = preprocess(atoms, workflow[typ]["supercell_matrix"])
+    if settings[name].get("serial", True):
+        _, _, scs = preprocess(atoms, settings[name]["supercell_matrix"])
         qadapter["walltime"] = time2str(str2time(qadapter["walltime"]) * len(scs))
-        if len(atoms) * np.linalg.det(phonon.get_supercell_matrix()) > 200:
-            update_settings["use_local_index"] = True
-            update_settings["load_balancing"] = True
 
     if "walltime" in qadapter:
-        workflow[typ]["walltime"] = str2time(qadapter["walltime"])
-    else:
-        workflow[typ]["walltime"] = 1800
+        settings[name]["walltime"] = str2time(qadapter["walltime"])
 
-    fw_settings["fw_name"] = typ
+    fw_settings["fw_name"] = name
     natoms = len(atoms) * np.linalg.det(
-        get_3x3_matrix(workflow[typ]["supercell_matrix"])
+        get_3x3_matrix(settings[name]["supercell_matrix"])
     )
     natoms = int(round(natoms))
-    workflow[typ][
+    settings[name][
         "workdir"
-    ] = f"{workflow.general.workdir_cluster}/sc_natoms_{natoms}/{typ}/"
-    if typ == "phonopy":
-        func_kwargs = {"ph_settings": workflow[typ].copy()}
-    elif typ == "phono3py":
-        func_kwargs = {"ph3_settings": workflow[typ].copy()}
+    ] = f"{settings.fireworks.workdir.cluster}/sc_natoms_{natoms}/{name}/"
+    if name == "phonopy":
+        func_kwargs = {"ph_settings": settings[name].copy()}
+    elif name == "phono3py":
+        func_kwargs = {"ph3_settings": settings[name].copy()}
 
     task_spec = gen_phonon_task_spec(func_kwargs, fw_settings)
 
-    return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings)
+    return generate_fw(
+        atoms,
+        task_spec,
+        fw_settings,
+        qadapter,
+        update_settings,
+        update_in_spec=update_in_spec,
+    )
 
 
-def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
+def generate_phonon_postprocess_fw(settings, atoms, fw_settings, name):
     """Generates a Firework for the phonon analysis
 
     Parameters
     ----------
-    workflow : Settings
-        workflow settings where the task is defined
+    settings : Settings
+        settings settings where the task is defined
     atoms : ase.atoms.Atoms
         ASE Atoms object to preform the calculation on
     fw_settings : dict
         Firework settings for the step
-    typ : str
+    name : str
         either phonopy or phono3py
 
     Returns
@@ -488,7 +477,7 @@ def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
         Firework for the phonon analysis
 
     """
-    if typ == "phonopy":
+    if name == "phonopy":
         fw_settings["mod_spec_add"] = "ph"
         fw_settings["fw_name"] = "phonopy_analysis"
     else:
@@ -496,19 +485,19 @@ def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
         fw_settings["mod_spec_add"] = "ph3"
     fw_settings["mod_spec_add"] += "_forces"
 
-    func_kwargs = workflow[typ].copy()
+    func_kwargs = settings[name].copy()
     if "workdir" in func_kwargs:
         func_kwargs.pop("workdir")
 
     natoms = len(atoms) * np.linalg.det(
-        get_3x3_matrix(workflow[typ]["supercell_matrix"])
+        get_3x3_matrix(settings[name]["supercell_matrix"])
     )
     natoms = int(round(natoms))
 
     func_kwargs[
         "analysis_workdir"
-    ] = f"{workflow.general.workdir_local}/sc_natoms_{natoms}/{fw_settings['fw_name']}/"
-    func_kwargs["init_workdir"] = f"{workflow.general.workdir_cluster}/{typ}/"
+    ] = f"{settings.fireworks.workdir.local}/sc_natoms_{natoms}/{fw_settings['fw_name']}/"
+    func_kwargs["init_workdir"] = f"{settings.fireworks.workdir.cluster}/{name}/"
 
     task_spec = gen_phonon_analysis_task_spec(
         "vibes." + fw_settings["fw_name"][:-9] + ".postprocess.postprocess",
@@ -524,7 +513,7 @@ def generate_phonon_postprocess_fw(workflow, atoms, fw_settings, typ):
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 
-def generate_phonon_fw_in_wf(
+def generate_converging_phonon_fw(
     atoms, wd, fw_settings, qadapter, ph_settings, update_in_spec=True
 ):
     """Generates a Firework for the phonon initialization
@@ -577,17 +566,20 @@ def generate_phonon_fw_in_wf(
     typ = ph_settings.pop("type")
     fw_settings["fw_name"] = typ
     ph_settings["workdir"] = wd + "/" + typ + "/"
+
     if typ == "phonopy":
         func_kwargs = {"ph_settings": ph_settings.copy()}
     else:
         func_kwargs = {"ph3_settings": ph_settings.copy()}
+
     task_spec = gen_phonon_task_spec(func_kwargs, fw_settings)
+
     return generate_fw(
         atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec
     )
 
 
-def generate_phonon_postprocess_fw_in_wf(
+def generate_converging_phonon_postprocess_fw(
     atoms, wd, fw_settings, ph_settings, wd_init=None
 ):
     """Generates a Firework for the phonon analysis
@@ -638,13 +630,13 @@ def generate_phonon_postprocess_fw_in_wf(
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 
-def generate_stat_samp_fw(workflow, atoms, fw_settings):
+def generate_stat_samp_fw(settings, atoms, fw_settings):
     """Generates a Firework for the statistical sampling initialization
 
     Parameters
     ----------
-    workflow : settings.Settings
-        workflow settings object
+    settings : settings.Settings
+        settings settings object
     atoms : ase.Atoms or dict
         ASE Atoms object to preform the calculation on
     fw_settings : dict
@@ -657,58 +649,54 @@ def generate_stat_samp_fw(workflow, atoms, fw_settings):
 
     """
     fw_settings["fw_name"] = "stat_samp"
-
-    if "statistical_sampling_qadapter" in workflow:
-        qadapter = workflow["statistical_sampling_qadapter"]
-    elif "phonopy_qadapter" in workflow:
-        qadapter = workflow["phonopy_qadapter"]
-    else:
-        qadapter = None
+    qadapter = settings.statistical_sampling.get("qadapter")
+    if not qadapter and "phonopy" in settings:
+        qadapter = settings.phonopy.get("qadapter")
 
     if qadapter and "walltime" in qadapter:
-        workflow.statistical_sampling["walltime"] = str2time(qadapter["walltime"])
-    else:
-        workflow.statistical_sampling["walltime"] = 1800
+        settings.statistical_sampling["walltime"] = str2time(qadapter["walltime"])
 
     add_qadapter = False
-    if "phonopy" in workflow:
-        add_qadapter = workflow.phonopy.get("converge_phonons", False)
+    if "phonopy" in settings and "convergence" in settings.phonopy:
+        add_qadapter = True
 
-    workflow.statistical_sampling[
+    settings.statistical_sampling[
         "workdir"
-    ] = f"{workflow.general.workdir_cluster}/statistical_sampling/"
-    if "phonon_file" not in workflow.statistical_sampling:
-        if "phonopy" not in workflow:
+    ] = f"{settings.fireworks.workdir.cluster}/statistical_sampling/"
+
+    if "phonon_file" not in settings.statistical_sampling:
+        if "phonopy" not in settings:
             raise IOError("phonon file must be given")
 
-        if workflow.phonopy.get("converge_phonons", False):
-            workflow.statistical_sampling[
+        if "convergence" in settings.phonopy:
+            settings.statistical_sampling[
                 "phonon_file"
-            ] = f"{workflow.general.workdir_local}/converged/trajectory.son"
+            ] = f"{settings.fireworks.workdir.local}/converged/trajectory.son"
         else:
-            sc_mat = get_3x3_matrix(workflow.phonopy.supercell_matrix)
+            sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
             sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
             rel_dir = f"/sc_natoms_{sc_natoms}/phonopy_analysis/trajectory.son"
-            workflow.statistical_sampling["phonon_file"] = (
-                workflow.general.workdir_local + rel_dir
+            settings.statistical_sampling["phonon_file"] = (
+                settings.fireworks.workdir.local + rel_dir
             )
+
     fw_settings.pop("in_spec_calc", None)
     fw_settings.pop("in_spec_atoms", None)
     fw_settings["from_db"] = False
 
     task_spec = gen_stat_samp_task_spec(
-        workflow.statistical_sampling, fw_settings, add_qadapter
+        settings.statistical_sampling, fw_settings, add_qadapter
     )
     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, False)
 
 
-def generate_stat_samp_postprocess_fw(workflow, atoms, fw_settings):
+def generate_stat_samp_postprocess_fw(settings, atoms, fw_settings):
     """Generates a Firework for the statistical sampling analysis
 
     Parameters
     ----------
-    workflow : settings.Settings
-        workflow settings object
+    settings : settings.Settings
+        settings settings object
     atoms : ase.Atoms or dict
         ASE Atoms object to preform the calculation on
     fw_settings : dict
@@ -724,13 +712,13 @@ def generate_stat_samp_postprocess_fw(workflow, atoms, fw_settings):
     fw_settings["mod_spec_add"] = "stat_samp"
     fw_settings["mod_spec_add"] += "_forces"
 
-    func_kwargs = workflow["statistical_sampling"].copy()
+    func_kwargs = settings.statistical_sampling.copy()
     if "workdir" in func_kwargs:
         func_kwargs.pop("workdir")
 
     func_kwargs[
         "analysis_workdir"
-    ] = f"{workflow.general.workdir_local}/{fw_settings['fw_name']}/"
+    ] = f"{settings.fireworks.workdir.local}/{fw_settings['fw_name']}/"
 
     task_spec = gen_stat_samp_analysis_task_spec(
         func_kwargs,
@@ -744,13 +732,13 @@ def generate_stat_samp_postprocess_fw(workflow, atoms, fw_settings):
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 
-def generate_aims_fw(workflow, atoms, fw_settings):
+def generate_aims_fw(settings, atoms, fw_settings):
     """Generates a Firework for the relaxation step
 
     Parameters
     ----------
-    workflow : Settings
-        workflow settings where the task is defined
+    settings : Settings
+        settings settings where the task is defined
     atoms : ase.atoms.Atoms or dict
         ASE Atoms object to preform the calculation on
     fw_settings : dict
@@ -762,27 +750,23 @@ def generate_aims_fw(workflow, atoms, fw_settings):
         Firework for the relaxation step
 
     """
-    if f"aims_qadapter" in workflow:
-        qadapter = workflow["aims_qadapter"]
-    else:
-        qadapter = None
+    qadapter = settings.aims.get("qadapter")
 
     fw_settings["fw_name"] = f"aims"
-
-    func_kwargs = {"workdir": f"{workflow.general.workdir_cluster}/aims_calculation/"}
+    func_kwargs = {"workdir": f"{settings.fireworks.workdir.cluster}/aims_calculation/"}
     task_spec = gen_aims_task_spec(func_kwargs, {}, relax=False)
 
     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, True)
 
 
 def generate_gruniesen_fd_fw(
-    workflow, atoms, trajectory_file, constraints, fw_settings
+    settings, atoms, trajectory_file, constraints, fw_settings
 ):
     """Generate a FireWork to calculate the Gruniesen Parameter with finite differences
 
     Parameters
     ----------
-    workflow : Settings
+    settings : Settings
         The Workflow Settings
     atoms : ase.atoms.Atoms
         The initial ASE Atoms object of the primitive cell
@@ -805,16 +789,16 @@ def generate_gruniesen_fd_fw(
     atoms_hash = hash_atoms_and_calc(atoms)[0]
     fw_settings["fw_name"] = f"gruniesen_setup_{chem_form}_{atoms_hash}"
 
-    task_spec = gen_gruniesen_task_spec(workflow, trajectory_file, constraints)
+    task_spec = gen_gruniesen_task_spec(settings, trajectory_file, constraints)
     return generate_firework(task_spec, None, None, fw_settings.copy())
 
 
-def generate_md_fw(workflow, atoms, fw_settings, qadapter=None, workdir=None):
+def generate_md_fw(settings, atoms, fw_settings, qadapter=None, workdir=None):
     """Generate a FireWork to run a Molecular Dynamics calculation
 
     Parameters
     ----------
-    workflow: Settings
+    settings: Settings
         The Workflow Settings
     atoms: ase.atoms.Atoms
         The initial ASE Atoms object of the primitive cell
@@ -836,20 +820,20 @@ def generate_md_fw(workflow, atoms, fw_settings, qadapter=None, workdir=None):
     fw_settings["from_db"] = False
 
     if qadapter is None:
-        qadapter = workflow.pop("md_qadapter", None)
+        qadapter = settings.md.pop("qadapter", None)
 
-    md_settings = workflow["md"].copy()
+    md_settings = settings["md"].copy()
 
-    if "phonon_file" not in workflow.md and "phonopy" in workflow:
-        if workflow.phonopy.get("converge_phonons", False):
+    if "phonon_file" not in settings.md and "phonopy" in settings:
+        if "convergence" in settings.phonopy:
             md_settings[
                 "phonon_file"
-            ] = f"{workflow.general.workdir_cluster}/converged/trajectory.son"
+            ] = f"{settings.fireworks.workdir.cluster}/converged/trajectory.son"
         else:
-            sc_mat = get_3x3_matrix(workflow.phonopy.supercell_matrix)
+            sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
             sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
             rel_dir = f"/sc_natoms_{sc_natoms}/phonopy/trajectory.son"
-            md_settings["phonon_file"] = workflow.general.workdir_cluster + rel_dir
+            md_settings["phonon_file"] = settings.fireworks.workdir.cluster + rel_dir
 
     temps = md_settings.pop("temperatures", None)
     if temps is None:
@@ -862,7 +846,7 @@ def generate_md_fw(workflow, atoms, fw_settings, qadapter=None, workdir=None):
         if workdir is None:
             md_set[
                 "workdir"
-            ] = f"{workflow.general.workdir_cluster}/{fw_settings['fw_name']}/"
+            ] = f"{settings.fireworks.workdir.cluster}/{fw_settings['fw_name']}/"
         else:
             md_set["workdir"] = workdir
         md_set["temperature"] = temp

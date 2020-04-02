@@ -142,7 +142,7 @@ class Settings(Config):
         """write settings to file"""
 
         if not file:
-            file = self.file.name
+            file = Path(self.file).name
 
         if not Path(file).exists():
             super().write(Path(file))

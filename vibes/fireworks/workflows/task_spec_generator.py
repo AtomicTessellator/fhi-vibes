@@ -171,8 +171,12 @@ def gen_phonon_analysis_task_spec(
     elif "workdir" not in func_kwargs:
         func_kwargs["workdir"] = "."
 
-    if "converge_phonons" in func_kwargs and func_kwargs["converge_phonons"]:
+    if "convergence" in func_kwargs:
         func_out = "vibes.fireworks.tasks.fw_out.phonons.converge_phonons"
+        func_kwargs["conv_crit"] = func_kwargs["convergence"][
+            "minimum_similiarty_score"
+        ]
+        func_kwargs.pop("convergence")
     else:
         func_out = "vibes.fireworks.tasks.fw_out.phonons.add_phonon_to_spec"
 

@@ -148,7 +148,7 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
             "supercell": str(workdir.absolute() / "supercell.in"),
         }
     )
-    settings.write(settings_file, full_path=True)
+    settings.write(settings_file)
     ctx = MDContext(Settings(settings_file=settings_file), workdir, trajectory_file)
 
     return ctx.run()

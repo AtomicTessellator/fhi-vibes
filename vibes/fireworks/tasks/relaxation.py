@@ -69,7 +69,7 @@ def run(atoms, calculator, kpt_density=None, relax_settings=None, fw_settings=No
             )
 
     settings["files"] = DotDict({"geometry": str(workdir.absolute() / "geometry.in")})
-    settings.write(f"{workdir}/relaxation.in", full_path=True)
+    settings.write(f"{workdir}/relaxation.in")
 
     ctx = RelaxationContext(Settings(settings_file=settings_file), workdir, trajectory)
 

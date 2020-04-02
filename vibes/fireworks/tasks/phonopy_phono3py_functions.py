@@ -280,11 +280,11 @@ def prepare_gruneisen(settings, primitive, vol_factor):
     if "geometry" in dist_settings:
         dist_settings.geometry["file"] = file_original
 
-    dist_settings.general["workdir_cluster"] = str(
-        Path(dist_settings.general.workdir_cluster).parents[1]
+    dist_settings.fireworks.workdir["cluster"] = str(
+        Path(dist_settings.fireworks.workdir["cluster"]).parents[1]
     )
-    dist_settings.general["workdir_local"] = str(
-        Path(dist_settings.general.workdir_local).parents[1]
+    dist_settings.fireworks.workdir["local"] = str(
+        Path(dist_settings.fireworks.workdir["local"]).parents[1]
     )
 
     dist_ctx = TaskContext(name=None, settings=dist_settings)
@@ -319,9 +319,9 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
 
     """
     # Prepare settings by reset general work_dir and do not reoptimize k_grid
-    settings["general"]["opt_kgrid"] = False
-    settings["phonopy"]["get_gruniesen"] = False
-    settings["phonopy"]["converge_phonons"] = False
+    settings.pop("optimize_kgrid", None)
+    settings.pop("gruneisen", None)
+    settings["phonopy"].pop("convergence", None)
 
     settings.pop("statistical_sampling", None)
     settings.pop("md", None)

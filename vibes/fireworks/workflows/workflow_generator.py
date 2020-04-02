@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 from fireworks import Workflow
+from jconfigparser.dict import DotDict
 
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.fireworks.workflows.firework_generator import (
@@ -22,7 +23,7 @@ from vibes.helpers.numerics import get_3x3_matrix
 from vibes.phonopy._defaults import kwargs as ph_defaults
 
 
-def process_aims_relaxation(workflow, atoms, fw_settings, basis):
+def process_relaxation(workflow, atoms, fw_settings, basis):
     """Processes the workflow settings to get all relaxation steps
 
     Parameters
@@ -43,21 +44,24 @@ def process_aims_relaxation(workflow, atoms, fw_settings, basis):
 
     """
     fw_steps = []
-    fw_steps.append(
-        generate_aims_relax_fw(workflow.settings, atoms, fw_settings, "light")
-    )
+    relaxation_steps = []
+    settings = workflow.settings.relaxation
+    for key, val in settings.items():
+        if isinstance(val, DotDict):
+            relaxation_steps.append(key)
 
-    # Tighter Basis Set Relaxation
-    use_tight_relax = workflow.settings.general.get("use_tight_relax", False)
+    if basis and basis not in settings and settings.get("ignore_basis", False):
+        relaxation_steps.append(basis)
 
-    if basis != "light" or use_tight_relax:
-        if use_tight_relax:
-            basisset_type = "tight"
+    for step in relaxation_steps:
+        if settings.get("use_ase_relax", False):
+            fw_steps.append(
+                generate_relax_fw(workflow.settings, atoms, fw_settings, step)
+            )
         else:
-            basisset_type = basis
-        fw_steps.append(
-            generate_aims_relax_fw(workflow.settings, atoms, fw_settings, basisset_type)
-        )
+            fw_steps.append(
+                generate_aims_relax_fw(workflow.settings, atoms, fw_settings, step)
+            )
 
     return fw_steps
 
@@ -89,11 +93,13 @@ def process_phonons(workflow, atoms, fw_settings, basis):
     """
     phonon_fws = []
     ignore_keys = ["trigonal", "q_mesh"]
-    for key, val in ph_defaults.items():
-        if key not in workflow.settings.phonopy and key not in ignore_keys:
-            workflow.settings.phonopy[key] = val
+    settings = workflow.settings.phonopy
 
-    if "serial" not in workflow.settings.phonopy:
+    for key, val in ph_defaults.items():
+        if key not in settings and key not in ignore_keys:
+            settings[key] = val
+
+    if "serial" not in settings:
         workflow.settings.phonopy["serial"] = True
 
     if basis:
@@ -101,7 +107,7 @@ def process_phonons(workflow, atoms, fw_settings, basis):
     else:
         workflow.settings.phonopy.pop("basisset_type", None)
 
-    if "supercell_matrix" not in workflow.settings.phonopy:
+    if "supercell_matrix" not in settings:
         raise ValueError("Initial supercell_matrix must be provided")
 
     phonon_fws.append(
@@ -110,7 +116,7 @@ def process_phonons(workflow, atoms, fw_settings, basis):
     phonon_fws.append(
         generate_phonon_postprocess_fw(workflow.settings, atoms, fw_settings, "phonopy")
     )
-    if getattr(workflow.settings.phonopy, "get_gruniesen", False):
+    if "gruneisen" in workflow.settings:
         phonon_fws += process_grun(workflow, atoms, fw_settings)
     return phonon_fws
 
@@ -161,15 +167,14 @@ def process_grun(workflow, atoms, fw_settings):
 
     """
     grun_fws = []
-    if getattr(workflow.settings.phonopy, "converge_phonons", False):
-        trajectory_file = (
-            workflow.settings.general.workdir_local + "/converged/trajectory.son"
-        )
+    settings = workflow.settings
+    if "convergence" in settings.phonopy:
+        trajectory_file = settings.fireworks.workdir.local + "/converged/trajectory.son"
     else:
-        sc_mat = get_3x3_matrix(workflow.settings.phonopy.supercell_matrix)
+        sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
         natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
         trajectory_file = (
-            workflow.settings.general.workdir_local
+            settings.fireworks.workdir.local
             + f"/sc_natoms_{natoms}/phonopy_analysis/trajectory.son"
         )
 
@@ -179,7 +184,7 @@ def process_grun(workflow, atoms, fw_settings):
 
     grun_fws.append(
         generate_gruniesen_fd_fw(
-            workflow.settings, atoms, trajectory_file, constraints, fw_settings
+            settings, atoms, trajectory_file, constraints, fw_settings
         )
     )
     return grun_fws
@@ -238,35 +243,35 @@ def generate_workflow(workflow, atoms, launchpad_yaml=None, make_absolute=True):
     fw_steps = []
     fw_dep = {}
 
-    fw_settings = {
-        "name": atoms.symbols.get_chemical_formula(mode="metal", empirical=True)
-        + "_"
-        + hash_atoms_and_calc(atoms)[0]
-    }
-    wd_cluster = workflow.settings.general.get(
-        "workdir_cluster", workflow.settings.general.workdir_local
-    )
+    name = atoms.symbols.get_chemical_formula(mode="metal", empirical=True)
+    name += f"_{hash_atoms_and_calc(atoms)[0]}"
+    fw_settings = {"name": name}
 
-    workflow.settings.general["workdir_local"] = process_workdir(
-        workflow.settings.general.workdir_local, atoms, make_absolute
+    wd_cluster = workflow.settings.fireworks.workdir.get(
+        "cluster", workflow.settings.fireworks.workdir.local
     )
-    workflow.settings.general["workdir_cluster"] = process_workdir(
+    workflow.settings.fireworks.workdir["local"] = process_workdir(
+        workflow.settings.fireworks.workdir.local, atoms, make_absolute
+    )
+    workflow.settings.fireworks.workdir["cluster"] = process_workdir(
         wd_cluster, atoms, make_absolute
     )
-    if atoms.calc.name == "aims":
-        # K-grid optimization
-        if workflow.settings.general.get("opt_kgrid", False):
-            fw_steps.append(generate_kgrid_fw(workflow.settings, atoms, fw_settings))
 
+    # K-grid optimization
+    if (
+        workflow.settings.calculator.name == "aims"
+        and "optimize_kgrid" in workflow.settings
+    ):
+        fw_steps.append(generate_kgrid_fw(workflow.settings, atoms, fw_settings))
+
+    if "basissets" in workflow.settings.calculator:
         basis = workflow.settings.calculator.basissets.get("default", "light")
-
-        # Relaxation
-        if workflow.settings.general.get("relax_structure", False):
-            fw_steps += process_aims_relaxation(workflow, atoms, fw_settings, basis)
     else:
         basis = None
-        if "relaxation" in workflow.settings:
-            fw_steps.append(generate_relax_fw(workflow.settings, atoms, fw_settings))
+
+    # Relaxation
+    if "relaxation" in workflow.settings:
+        fw_steps += process_relaxation(workflow, atoms, fw_settings, basis)
 
     # Setup workflow branching point
     for ii in range(len(fw_steps) - 1):
@@ -321,4 +326,5 @@ def generate_workflow(workflow, atoms, launchpad_yaml=None, make_absolute=True):
         launchpad.add_wf(Workflow(fw_steps, fw_dep, name=fw_settings["name"]))
         return None
 
+    name = workflow.settings.fireworks.name + fw_settings["name"]
     return Workflow(fw_steps, fw_dep, name=fw_settings["name"])
