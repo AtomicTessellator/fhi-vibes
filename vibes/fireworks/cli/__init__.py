@@ -53,7 +53,6 @@ def add_wf(workflow, launchpad):
     from vibes.settings import Settings
 
     settings = Settings(settings_file=workflow)
-    settings["calculator"]["make_species_dir"] = False
     structure_files = []
     if "files" in settings:
         if "geometries" in settings.files:
@@ -70,6 +69,8 @@ def add_wf(workflow, launchpad):
 
     for file in structure_files:
         settings = Settings(settings_file=workflow)
+        settings["calculator"]["make_species_dir"] = False
+
         settings.files.pop("geometries", None)
         settings.files["geometry"] = str(file)
 

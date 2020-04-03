@@ -10,7 +10,6 @@ launch_dir = "."
 [fireworks.remote.authorization]
 user = remote_username
 password = null
-gss_auth = True
 
 [fireworks.remote.launch]
 njobs_queue = 0

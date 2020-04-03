@@ -79,6 +79,15 @@ def configuration_input(obj, file):
     write_input(obj, "vibesrc.template", file, from_folder=config_files)
 
 
+@template.command("fireworks_configuration")
+@click.argument("file", default="fireworksrc")
+@click.pass_obj
+def fireworks_configuration_input(obj, file):
+    """provide template fireworksrc.template for the configuration"""
+
+    write_input(obj, "fireworksrc.template", file, from_folder=config_files)
+
+
 @template.command("slurm")
 @click.argument("file", default="slurm.in")
 @click.pass_obj
