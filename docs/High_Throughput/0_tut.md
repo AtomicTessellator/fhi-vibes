@@ -17,89 +17,150 @@ Because of this we made some modifications to the basic FireWorks framework:
 
 ## Setting up a workflow file
 
-The input file for running a high-throughput workflow is similar to their command line counterparts, but with an extra section titled general.
-The general blocks represent a set of options that alters the workflow on a global level and includes the following keywords:
+The input file for running a high-throughput workflow is similar to their command line counterparts, but with multiple task blocks defined within a single input file.
+Because of this new sections need to be added in order to ensure a smooth operation of all the workflows, which are defined here
 
-- **workdir_cluster:** The root directory to store files on a cluster
-- **workdir_local:** The root directory to store files on your local machine
-- **basisset:** The default basis set to use for all materials (Not stored in the same location as the individual step locations so that can change for pre-relaxation)
-- **relax_structure:** If True relax all structures
-- **use_tight_relax:** If True relax the structure with tight basis settings and use that structure for all future calculations.
-- **opt_kgrid:** If True converge the k-grid with respect to the total energy of a material
-- **kgrid_dfunc_min:** Threshold to converge the total energy change to
+### The `fireworks` Block
+Outside of the sections defined in `.fireworksrc` a few new terms need to be defined for the individual workflows:
 
-All of the working directories for the calculations represent parent directories with the actual files stored in workdir/empirical_chemical_formula/atoms_hash/task_name/ to prevent accidental overwriting of files.
+* `fireworks.name`: name to prepend to all workflows defined in the workflow
+* `fireworks.workdir.local`: Directory to run tasks on the local machine
+* `fireworks.workdir.remote`: Directory to run tasks on remote hosts
 
-Once the general section is added to the file, every step that you want to perform in the workflow must be directly added to workflows.
-Additionally if you do not want to use the default job settings for running the jobs on a cluster corresponding task_qadapter settings are needed
-For example if you want to compare the values of the anharmonicity quantification at 300 and 600 K for a set of FCC structures using the one-shot approach and molecular dynamics you'd have the following skeleton for your workflow.in file
+### The `qadapter` Blocks
+In addition to having multiple tasks to run, each task can optionally have its own `qadapter` section that dictates the computational resources that should be requested for it run properly.
+These blocks include the following keywords:
+
+* `nodes`: Number of nodes to request
+* `ntasks_per_node`: Number of tasks per node
+* `walltime`: Wallclock time for the calculation to run
+* `queue`: The queue that you wish to run the jobs on
+* `account`: The account to charge the hours too.
+
+If any of these keywords is not included in the `qadapter` file then the defaults in the remote host's `my_qadapter.yaml` file will be used
+
+### k-grid Optimization
+Because these workflows are designed to run an many materials, optimizing the kgird for FHI-aims calculations for all materials maybe necessary. To accommodate this include the following section
 ```
-[general]
-workdir_cluster = /path/to/base/working/directory/on/cluster/
-workdir_local = /path/to/base/working/directory/on/local/machine/
-basisset = light
-relax_structure = True
+[optimize_kgrid]
+dfunc_min = 1e-9
+```
+Here `optimize_kgrid.dfunc_min` is the minimum change in energy necssary to say the k-grid is converged
 
-[geometry]
-files = regular/expression/to/get/all/geometries.in
+### Relaxation
+Relaxing the structures is largely the same as what was done with command line tools outside of two things:
 
-[control]
-# Electronic structure settings
-xc =                 pw-lda
+ 1. The option of using ASE or the electronic structure package relaxation algorithms
+ 2. The ability to do a multi step relaxation.
 
-[control_kpt]
-# Standard k-point density to use for all calculations
-density = 1.00
+`relaxation.use_ase_relax` is the switch that controls which relaxation techniques are used.
 
+Because the relaxation can be multi-step the relaxation terms are defined by numeric sub-features `relaxation.1`, `relaxation.2`, etc. each defining a particular step in the relaxation process in numerical order.
+To do a single step relation, just use `relaxation.1`.
+The terms defined in each block should either be code specific if `relaxation.use_ase_relax` is False, and the standard choices if `relaxation.use_ase_relax` is True.
+
+An example of a single step calculation using ASE's optimizer is defined below, see `vibes/examples/high_throughput/workflow.in` for a multi-step example using FHI-aims.
+```
+[relaxation]
+use_ase_relax = True
+
+[relaxation.1]
+driver = BFGS
+fmax = 0.001
+unit_cell = True
+scalar_pressure = 0.01
+hydrostatic_strain = True
+```
+
+### Phonopy Calculations
+The inputs for phonopy are the same as those used in the command line utilities, with an additional term to control if supercell convergence: `phonopy.convergence`.
+If `phonopy.convergence` is True then the supercell size will iteratively increase by until the Tanimoto similarity of the phonon density of states larger than 0.80.
+
+To control either the convergence criteria or the base supercell matrix to iterate, make `phonopy.convergence` a block with the following terms
+```
+[phonopy.convergence]
+minimum_similiarty_score= 0.85
+sc_matrix_base = [-1,1,1,1,-1,1,1,1,-1]
+```
+where `minimum_similiarty_score` is the new criteria, and `sc_matrix_base` is the supercell matrix to determine the magnitude of the supercell size increase
+
+For example of how the supercells increase if the following sections of an input file was given:
+```
 [phonopy]
-supercell_matrix = [-2, 2, 2, 2, -2, 2, 2, 2 -2]
-converge_phonons = True
-conv_crit = 0.80
-sc_matrix_original = [-1, 1, 1, 1, -1, 1, 1, 1 -1]
-get_gruniesen = False
+supercell_matrix = [2, 2, 2]
+convergence = True
+```
+Then the next supercell that will be tested would be `[4, 4, 4]`.
+However if this was given instead
+```
+[phonopy]
+supercell_matrix = [2, 2, 2]
 
+[phonopy.convergence]
+sc_matrix_base = [1, 1, 1]
+```
+Then the next supercell size calculated would be [3, 3, 3].
+For a `sc_matrix_base` to be valid `supercell_matrix` must be an integer multiple of `sc_matrix_base`.
+
+### Gruneisen Parameter Calculations
+Once a phonopy calculation are complete, the Gruneisen parameter can be calculated from finite difference by including a gruneisen section
+```
+[gruneisen]
+volume_factors = [0.99, 1.01]
+```
+where `volume_factors` describes the percentage difference in cell volume to calculate the Gruneisen parameters.
+
+### Anharmonicity Quantification
+The framework provides a means to quantify the anharmonicity from from statistical sampling using the `statistical_sampling` keyword
+```
 [statistical_sampling]
-# phonon_file = /path/to/phonopy/trajectory.son
+phonon_file = path/to/phonopy/trajectory.son
+supercell_matrix = [-1,1,1,1,-1,1,1,1,-1]
 temperatures = [300, 600]
+debye_temp_fact = [1.0]
+serial = True
 n_samples = 1
 plus_minus = True
-
-[md]
-# phonon_file = /path/to/phonopy/trajectory.son
-supercell_matrix = [-2, 2, 2, 2, -2, 2, 2, 2, -2]
-driver = Langevin
-timestep = 5
-temperatures = [300, 600]
-friction = 0.03
-maxsteps = 2000
-compute_stresses = 10
-logfile = md.log
-
-[light]
-
-[phonopy_qadapter]
-walltime = 4:00:00
-nodes = 2
-
-# [statistical_sampling_qadapter]
-# walltime = 04:00:00
-# nodes = 2
-
-[md_qadapter]
-walltime = 24:00:00
-nodes = 2
+mc_rattle = False
+quantum = True
+deterministic = True
+zacharias = True
+gauge_eigenvectors = True
+ignore_negative = False
+failfast = True
+sobol = Faslse
+random_seed = 13
+propagate = False
 ```
-This workflow has many of the same keywords as their command line counterparts, but phonopy has four additional keywords:
+Each of these key words corresponds to a term used to generate the samples from a phonopy calculation described in phonon_file.
+If phonopy is also in the workflow then phonon_file is not needed and the model calculated would be used.
+Each of the keywords correspond to the following terms
 
-- **converge_phonons:** If True calculate the harmonic with a converged supercell as determined by the [Tanimoto similarity](https://en.wikipedia.org/wiki/Jaccard_index#Other_definitions_of_Tanimoto_distance) between successive supercell sizes
-- **sc_matrix_original:** Base supercell matrix to scale at each step (supercell_matrix must be an integer scale multiple of sc_matrix_original)
-- **conv_crit:** Minimum similarity score to be considered converged
-- **get_gruniesen:** Automatically scale the volume and run the corresponding phonopy calculations to calculate the gruneisen parameters from finite differences
+* `supercell_matrix`: The supercell matrix for the calculation, if not given use the one from the phonopy calculation. If the supercell matrix is different from the one in the phonon_file the phonopy force constants will be remapped onto the new supercell
+* `temperatures`: list of temperatures to calculate the anharmonicity at
+* `debye_temp_fact`: list of multipliers to add temperatures that are factors the materials Debye temperature
+* `serial`: If True then do this in serial
+* `n_samples`: number of samples to calculate for each temperature
+* `plus_minus`: Use the deterministic sampling regime from Zacharias, et al
+* `deterministic`: Populate all phonon modes to k_B T energy
+* `gauge_eigenvectors`: Use a plus minus gauge for the eigenmodes
+* `mc_rattle`: Rattle the structures using a Monte Carlo rattling method
+* `quantum`: Populate phonon modes with a Bose-Einstein distribution
+* `ignore_negative`: Ignore all imaginary modes
+* `failfast`: If True fail if any imaginary modes are present or acustic modes are not near at Gamma
+* `sobol`: If True use sobol quasi-random numbers
+* `random_seed`: integer to seed the random number generator
+* `propagate`: propagate the structure forward in time somewhat with ASE
 
-All of these keywords will automatically add new phonopy calculations with an updated qadatper for the increased computational cost.
-If a phonopy is being calculated in the workflow, then the md/statistical sampling steps will automatically use the converged phonon model (if no supercell convergence just use the single calculation) otherwise you must pass the phonopy trajectories via the phonon_file keyword.
-If no statistical_sampling_qadapter is given it will use the last phonopy_qadapter for all calculations.
-All other keywords are the same as the command line utilities.
+### Molecular Dynamics
+Finally a molecular dynamics calculation can be done using the same settings as the command line utilities.
+There are only three minor changes to automatically generate the samples. All of these new parmeters are the same as the ones defined for the anharmonicity calculation.
+```
+[md]
+phonon_file = path/to/phonopy/trajectory.son
+temperatures = [300, 600]
+supercell_matrix = [1, 1, 1]
+```
 
 ## Adding and running workflows
 

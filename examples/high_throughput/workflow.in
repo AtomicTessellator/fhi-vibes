@@ -13,7 +13,7 @@ output_level =       MD_light
 relativistic =       "atomic_zora scalar"
 
 [calculator.kpoints]
-density = 5.0
+density = 2.0
 
 [calculator.basissets]
 default = light
@@ -25,15 +25,15 @@ port = 12345
 name = example_run
 
 [fireworks.workdir]
-cluster = "test_run/"
+remote = "test_run/"
 local   = "test_run/"
 
-#[optimize_kgrid]
-#dfunc_min = 1e-2
+[optimize_kgrid]
+dfunc_min = 1e-3
 
-#[optimize_kgrid.qadapter]
-#nodes = 1
-#walltime = 01:00:00
+[optimize_kgrid.qadapter]
+nodes = 1
+walltime = 01:00:00
 
 [relaxation]
 use_ase_relax = False
@@ -72,7 +72,7 @@ walltime = 1:00:00
 nodes = 1
 
 [gruneisen]
-volume_factors = [0.99, 1.01]
+volume_factors = [0.99, 1.01, 0.98, 1.02]
 
 [statistical_sampling]
 serial = True
@@ -80,7 +80,6 @@ temperatures = [300]
 supercell_matrix = [-1,1,1,1,-1,1,1,1,-1]
 n_samples = 1
 deterministic = True
-
 
 [md]
 supercell_matrix = [-1,1,1,1,-1,1,1,1,-1]

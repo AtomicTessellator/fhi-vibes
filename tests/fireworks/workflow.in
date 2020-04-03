@@ -25,13 +25,14 @@ scalar_pressure = 0.01
 hydrostatic_strain = True
 
 [phonopy]
-supercell_matrix = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+supercell_matrix = [-2, 2, 2, 2, -2, 2, 2, 2, -2]
 conv_crit = 0.95
 serial = True
 displacement = 0.01
 
 [phonopy.convergence]
 minimum_similiarty_score = 0.05
+sc_matrix_base = [-1, 1, 1, 1, -1, 1, 1, 1, -1]
 
 [phonopy.qadapter]
 walltime = 1:00:00
@@ -43,6 +44,7 @@ volume_factors = [0.99, 1.01]
 [statistical_sampling]
 serial = True
 temperatures = [300]
+debye_temp_fact = [1.0]
 supercell_matrix = [-1,1,1,1,-1,1,1,1,-1]
 n_samples = 1
 deterministic = True
