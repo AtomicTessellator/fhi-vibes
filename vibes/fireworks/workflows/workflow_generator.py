@@ -1,7 +1,6 @@
 """Functions used to generate a FireWorks Workflow"""
 from pathlib import Path
 
-import numpy as np
 from fireworks import Workflow
 from jconfigparser.dict import DotDict
 
@@ -17,9 +16,9 @@ from vibes.fireworks.workflows.firework_generator import (
     generate_relax_fw,
     generate_stat_samp_fw,
     generate_stat_samp_postprocess_fw,
+    get_phonon_file_location,
 )
 from vibes.helpers.hash import hash_atoms_and_calc
-from vibes.helpers.numerics import get_3x3_matrix
 from vibes.phonopy._defaults import kwargs as ph_defaults
 
 
@@ -168,20 +167,11 @@ def process_grun(workflow, atoms, fw_settings):
     """
     grun_fws = []
     settings = workflow.settings
-    if "convergence" in settings.phonopy:
-        trajectory_file = settings.fireworks.workdir.local + "/converged/trajectory.son"
-    else:
-        sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
-        natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
-        trajectory_file = (
-            settings.fireworks.workdir.local
-            + f"/sc_natoms_{natoms}/phonopy_analysis/trajectory.son"
-        )
+    trajectory_file = get_phonon_file_location(settings, atoms)
 
     constraints = []
     for cosntr in atoms.constraints:
         constraints.append(cosntr.todict())
-
     grun_fws.append(
         generate_gruniesen_fd_fw(
             settings, atoms, trajectory_file, constraints, fw_settings
@@ -247,15 +237,20 @@ def generate_workflow(workflow, atoms, launchpad_yaml=None, make_absolute=True):
     name += f"_{hash_atoms_and_calc(atoms)[0]}"
     fw_settings = {"name": name}
 
-    wd_cluster = workflow.settings.fireworks.workdir.get(
-        "cluster", workflow.settings.fireworks.workdir.local
+    wd_remote = workflow.settings.fireworks.workdir.get(
+        "remote", workflow.settings.fireworks.workdir.local
     )
     workflow.settings.fireworks.workdir["local"] = process_workdir(
         workflow.settings.fireworks.workdir.local, atoms, make_absolute
     )
-    workflow.settings.fireworks.workdir["cluster"] = process_workdir(
-        wd_cluster, atoms, make_absolute
+    workflow.settings.fireworks.workdir["remote"] = process_workdir(
+        wd_remote, atoms, make_absolute
     )
+
+    if "basissets" in workflow.settings.calculator:
+        basis = workflow.settings.calculator.basissets.get("default", "light")
+    else:
+        basis = None
 
     # K-grid optimization
     if (
@@ -263,11 +258,6 @@ def generate_workflow(workflow, atoms, launchpad_yaml=None, make_absolute=True):
         and "optimize_kgrid" in workflow.settings
     ):
         fw_steps.append(generate_kgrid_fw(workflow.settings, atoms, fw_settings))
-
-    if "basissets" in workflow.settings.calculator:
-        basis = workflow.settings.calculator.basissets.get("default", "light")
-    else:
-        basis = None
 
     # Relaxation
     if "relaxation" in workflow.settings:

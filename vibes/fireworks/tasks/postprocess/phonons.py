@@ -277,18 +277,18 @@ def get_converge_phonon_update(
 
     # If Not Converged update phonons
 
-    if "sc_matrix_original" not in kwargs:
-        kwargs["sc_matrix_original"] = phonon.get_supercell_matrix()
+    if "sc_matrix_base" not in kwargs:
+        kwargs["sc_matrix_base"] = phonon.get_supercell_matrix()
 
-    ind = np.where(np.array(kwargs["sc_matrix_original"]).flatten() != 0)[0][0]
-    if kwargs.get("sc_matrix_original", None) is not None:
+    ind = np.where(np.array(kwargs["sc_matrix_base"]).flatten() != 0)[0][0]
+    if kwargs.get("sc_matrix_base", None) is not None:
         n_cur = int(
             round(
                 phonon.get_supercell_matrix().flatten()[ind]
-                / np.array(kwargs["sc_matrix_original"]).flatten()[ind]
+                / np.array(kwargs["sc_matrix_base"]).flatten()[ind]
             )
         )
-        sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_original"]).reshape((3, 3))
+        sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_base"]).reshape((3, 3))
     else:
         sc_mat = 2.0 * phonon.get_supercell_matrix()
 
@@ -316,7 +316,7 @@ def get_converge_phonon_update(
     disp_mag = np.linalg.norm(displacement)
 
     update_job = {
-        "sc_matrix_original": kwargs["sc_matrix_original"],
+        "sc_matrix_base": kwargs["sc_matrix_base"],
         "supercell_matrix": sc_mat,
         "init_workdir": init_workdir,
         "analysis_wd": analysis_wd,

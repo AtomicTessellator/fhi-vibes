@@ -10,7 +10,7 @@ from vibes.helpers.supercell import make_supercell
 from vibes.helpers.warnings import warn
 from vibes.phonopy.postprocess import postprocess as postprocess_ph
 from vibes.phonopy.utils import get_force_constants_from_trajectory
-from vibes.phonopy.wrapper import preprocess as get_debye_temperature
+from vibes.phonopy.wrapper import get_debye_temperature
 from vibes.settings import Settings
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
@@ -147,8 +147,7 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
             raise IOError(
                 "Debye Temp must be calculated with phonopy, please add phonon_file"
             )
-
-        debye_temp = get_debye_temperature(phonon, 5e-3)[0]
+        debye_temp = get_debye_temperature(phonon, 5e-3)[-1]
         temperatures += [tt * debye_temp for tt in debye_temp_fact]
     elif temperatures is None:
         raise IOError("temperatures must be given to do harmonic analysis")

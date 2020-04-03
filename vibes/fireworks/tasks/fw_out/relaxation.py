@@ -52,7 +52,7 @@ def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
         "_qadapter"
     )
     settings["fireworks"] = DotDict()
-    settings.fireworks["workdir"] = DotDict({"cluster": workdir})
+    settings.fireworks["workdir"] = DotDict({"remote": workdir})
     new_atoms_dict = atoms2dict(read_aims(f"{workdir}/geometry.in.next_step"))
     if check_completion(workdir, relax_settings["fmax"]):
         update_spec = {}

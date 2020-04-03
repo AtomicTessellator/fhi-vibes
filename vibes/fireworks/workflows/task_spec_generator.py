@@ -1,6 +1,9 @@
 """Generates TaskSpec Objects"""
+import numpy as np
+
 from vibes.filenames import filenames
 from vibes.fireworks.tasks.task_spec import TaskSpec
+from vibes.helpers.numerics import get_3x3_matrix
 
 
 def gen_phonon_task_spec(func_kwargs, fw_settings=None):
@@ -24,11 +27,13 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
         fw_settings = fw_settings.copy()
     kwargs_init = {}
     kwargs_init_fw_out = {}
+
     preprocess_keys = {
-        "ph_settings": ["supercell_matrix", "displacement", "sc_matrix_original"],
+        "ph_settings": ["supercell_matrix", "displacement"],
         "ph3_settings": ["supercell_matrix", "displacement", "cutoff_pair_distance"],
     }
     out_keys = ["walltime", "trajectory_file", "backup_folder", "serial"]
+
     for set_key in ["ph_settings", "ph3_settings"]:
         if set_key in func_kwargs:
             kwargs_init[set_key] = {}
@@ -42,6 +47,7 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
                     kwargs_init[set_key][key] = val
                 if key in out_keys:
                     kwargs_init_fw_out[set_key][key] = val
+
     inputs = ["kgrid"]
     args = []
 
@@ -171,11 +177,48 @@ def gen_phonon_analysis_task_spec(
     elif "workdir" not in func_kwargs:
         func_kwargs["workdir"] = "."
 
+    conv = False
     if "convergence" in func_kwargs:
+        if isinstance(func_kwargs["convergence"], bool):
+            conv = func_kwargs["convergence"]
+            conv_crit = 0.80
+        else:
+            conv = True
+            conv_crit = func_kwargs["convergence"].get("minimum_similiarty_score", 0.80)
+            supercell_matrix = get_3x3_matrix(func_kwargs["supercell_matrix"]).flatten()
+            sc_matrix_base = get_3x3_matrix(
+                func_kwargs["convergence"].get("sc_matrix_base", supercell_matrix)
+            ).flatten()
+
+            inds = np.where(np.abs(sc_matrix_base) > 0.99)[0]
+            quot = supercell_matrix[inds] / sc_matrix_base[inds]
+
+            try:
+                assert np.all(quot == quot[0])
+            except AssertionError:
+                raise ValueError(
+                    "supercell_matrix is not a scalar multiple of sc_matrix_base"
+                )
+
+            try:
+                assert np.all(quot > 0.99)
+            except AssertionError:
+                raise ValueError("sc_matrix_base is smaller than supercell_matrix")
+
+            try:
+                assert np.all(np.abs(quot - np.round(quot)) < 1e-10)
+            except AssertionError:
+                raise ValueError(
+                    "supercell_matrix is not an integer scalar multiple of sc_matrix_base"
+                )
+
+            func_kwargs["sc_matrix_base"] = [
+                int(round(sc_el)) for sc_el in sc_matrix_base.flatten()
+            ]
+
+    if conv:
         func_out = "vibes.fireworks.tasks.fw_out.phonons.converge_phonons"
-        func_kwargs["conv_crit"] = func_kwargs["convergence"][
-            "minimum_similiarty_score"
-        ]
+        func_kwargs["conv_crit"] = conv_crit
         func_kwargs.pop("convergence")
     else:
         func_out = "vibes.fireworks.tasks.fw_out.phonons.add_phonon_to_spec"

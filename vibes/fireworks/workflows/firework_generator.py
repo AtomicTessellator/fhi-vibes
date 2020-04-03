@@ -30,6 +30,41 @@ from vibes.helpers.watchdogs import str2time
 from vibes.phonopy.wrapper import preprocess
 
 
+def get_phonon_file_location(settings, atoms):
+    """Get the phonon file location for a task
+
+    Parameters
+    ----------
+    settings: Settings
+        The settings for the overall workflow
+    atoms: ase.atoms.Atoms
+        The Atoms object for the workflow
+
+    Returns
+    str
+        The phonon_file location
+    """
+    if "phonopy" not in settings:
+        raise IOError("phonon file must be given")
+
+    conv = False
+    if "convergence" in settings.phonopy:
+        if isinstance(settings.phonopy.convergence, bool):
+            conv = settings.phonopy.convergence
+        else:
+            conv = True
+
+    if conv:
+        phonon_file = f"{settings.fireworks.workdir.local}/converged/trajectory.son"
+    else:
+        sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
+        sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
+        rel_dir = f"/sc_natoms_{sc_natoms}/phonopy_analysis/trajectory.son"
+        phonon_file = settings.fireworks.workdir.local + rel_dir
+
+    return phonon_file
+
+
 def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=True):
     """update the fw_settings for the next step
 
@@ -296,7 +331,7 @@ def generate_kgrid_fw(settings, atoms, fw_settings):
     qadapter = settings.optimize_kgrid.get("qadapter")
 
     func_kwargs = {
-        "workdir": f"{settings.fireworks.workdir.cluster}/{fw_settings['fw_name']}/",
+        "workdir": f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/",
         "trajectory_file": filenames.trajectory,
         "dfunc_min": settings.optimize_kgrid.get("dfunc_min", 1e-6),
     }
@@ -334,7 +369,7 @@ def generate_aims_relax_fw(settings, atoms, fw_settings, step):
     fw_settings["fw_name"] = f"{'_'.join(abreviated_step)}_relax"
 
     func_kwargs = {
-        "workdir": f"{settings.fireworks.workdir.cluster}/{fw_settings['fw_name']}/"
+        "workdir": f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/"
     }
     fw_out_kwargs = {"calc_number": 0}
 
@@ -382,7 +417,7 @@ def generate_relax_fw(settings, atoms, fw_settings, step):
     relax_set = settings.relaxation[step].copy()
     relax_set[
         "workdir"
-    ] = f"{settings.fireworks.workdir.cluster}/{fw_settings['fw_name']}/"
+    ] = f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/"
     relax_set["step"] = step
 
     task_spec = gen_relax_task_spec(relax_set, fw_settings)
@@ -439,7 +474,8 @@ def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
     natoms = int(round(natoms))
     settings[name][
         "workdir"
-    ] = f"{settings.fireworks.workdir.cluster}/sc_natoms_{natoms}/{name}/"
+    ] = f"{settings.fireworks.workdir.remote}/sc_natoms_{natoms}/{name}/"
+
     if name == "phonopy":
         func_kwargs = {"ph_settings": settings[name].copy()}
     elif name == "phono3py":
@@ -497,7 +533,7 @@ def generate_phonon_postprocess_fw(settings, atoms, fw_settings, name):
     func_kwargs[
         "analysis_workdir"
     ] = f"{settings.fireworks.workdir.local}/sc_natoms_{natoms}/{fw_settings['fw_name']}/"
-    func_kwargs["init_workdir"] = f"{settings.fireworks.workdir.cluster}/{name}/"
+    func_kwargs["init_workdir"] = f"{settings.fireworks.workdir.remote}/{name}/"
 
     task_spec = gen_phonon_analysis_task_spec(
         "vibes." + fw_settings["fw_name"][:-9] + ".postprocess.postprocess",
@@ -662,23 +698,12 @@ def generate_stat_samp_fw(settings, atoms, fw_settings):
 
     settings.statistical_sampling[
         "workdir"
-    ] = f"{settings.fireworks.workdir.cluster}/statistical_sampling/"
+    ] = f"{settings.fireworks.workdir.remote}/statistical_sampling/"
 
     if "phonon_file" not in settings.statistical_sampling:
-        if "phonopy" not in settings:
-            raise IOError("phonon file must be given")
-
-        if "convergence" in settings.phonopy:
-            settings.statistical_sampling[
-                "phonon_file"
-            ] = f"{settings.fireworks.workdir.local}/converged/trajectory.son"
-        else:
-            sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
-            sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
-            rel_dir = f"/sc_natoms_{sc_natoms}/phonopy_analysis/trajectory.son"
-            settings.statistical_sampling["phonon_file"] = (
-                settings.fireworks.workdir.local + rel_dir
-            )
+        settings.statistical_sampling["phonon_file"] = get_phonon_file_location(
+            settings, atoms
+        )
 
     fw_settings.pop("in_spec_calc", None)
     fw_settings.pop("in_spec_atoms", None)
@@ -753,7 +778,7 @@ def generate_aims_fw(settings, atoms, fw_settings):
     qadapter = settings.aims.get("qadapter")
 
     fw_settings["fw_name"] = f"aims"
-    func_kwargs = {"workdir": f"{settings.fireworks.workdir.cluster}/aims_calculation/"}
+    func_kwargs = {"workdir": f"{settings.fireworks.workdir.remote}/aims_calculation/"}
     task_spec = gen_aims_task_spec(func_kwargs, {}, relax=False)
 
     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, True)
@@ -825,15 +850,7 @@ def generate_md_fw(settings, atoms, fw_settings, qadapter=None, workdir=None):
     md_settings = settings["md"].copy()
 
     if "phonon_file" not in settings.md and "phonopy" in settings:
-        if "convergence" in settings.phonopy:
-            md_settings[
-                "phonon_file"
-            ] = f"{settings.fireworks.workdir.cluster}/converged/trajectory.son"
-        else:
-            sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
-            sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
-            rel_dir = f"/sc_natoms_{sc_natoms}/phonopy/trajectory.son"
-            md_settings["phonon_file"] = settings.fireworks.workdir.cluster + rel_dir
+        md_settings["phonon_file"] = get_phonon_file_location(settings, atoms)
 
     temps = md_settings.pop("temperatures", None)
     if temps is None:
@@ -846,7 +863,7 @@ def generate_md_fw(settings, atoms, fw_settings, qadapter=None, workdir=None):
         if workdir is None:
             md_set[
                 "workdir"
-            ] = f"{settings.fireworks.workdir.cluster}/{fw_settings['fw_name']}/"
+            ] = f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/"
         else:
             md_set["workdir"] = workdir
         md_set["temperature"] = temp

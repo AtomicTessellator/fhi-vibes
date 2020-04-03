@@ -26,7 +26,7 @@ def get_sigma(trajectory_file):
     forces_harmonic = {}
 
     for ii, sc in enumerate(trajectory):
-        temp = int(sc.info["info_str"][1].split("T = ")[1].split(" K")[0])
+        temp = float(sc.info["info_str"][1].split("T = ")[1].split(" K")[0])
         if temp not in forces_dft:
             forces_dft[temp] = []
             forces_harmonic[temp] = []

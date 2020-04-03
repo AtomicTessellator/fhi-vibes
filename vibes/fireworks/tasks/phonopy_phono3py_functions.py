@@ -199,7 +199,7 @@ def collect_to_trajectory(workdir, trajectory_file, calculated_atoms, metadata):
     except KeyError:
         calculated_atoms = sorted(
             temp_atoms,
-            key=lambda x: int(x.info["info_str"][1].split("T = ")[1].split(" K")[0])
+            key=lambda x: float(x.info["info_str"][1].split("T = ")[1].split(" K")[0])
             if x
             else len(calculated_atoms) + 1,
         )
@@ -280,8 +280,8 @@ def prepare_gruneisen(settings, primitive, vol_factor):
     if "geometry" in dist_settings:
         dist_settings.geometry["file"] = file_original
 
-    dist_settings.fireworks.workdir["cluster"] = str(
-        Path(dist_settings.fireworks.workdir["cluster"]).parents[1]
+    dist_settings.fireworks.workdir["remote"] = str(
+        Path(dist_settings.fireworks.workdir["remote"]).parents[1]
     )
     dist_settings.fireworks.workdir["local"] = str(
         Path(dist_settings.fireworks.workdir["local"]).parents[1]
@@ -320,14 +320,14 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
     """
     # Prepare settings by reset general work_dir and do not reoptimize k_grid
     settings.pop("optimize_kgrid", None)
-    settings.pop("gruneisen", None)
+    gruneisen = settings.pop("gruneisen", None)
     settings["phonopy"].pop("convergence", None)
 
     settings.pop("statistical_sampling", None)
     settings.pop("md", None)
 
     if _queueadapter:
-        settings["phonopy_qadapter"] = _queueadapter
+        settings["phonopy.qadapter"] = _queueadapter
 
     # Get equilibrium phonon
     eq_phonon = postprocess(trajectory_file)
@@ -381,8 +381,8 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
         settings.pop("relaxation", None)
 
     primitive.constraints = add_constraints
+    gruneisen_list = []
+    for fact in gruneisen["volume_factors"]:
+        gruneisen_list.append(prepare_gruneisen(settings, primitive, fact))
 
-    pl_gruneisen = prepare_gruneisen(settings, primitive, 1.01)
-    mn_gruneisen = prepare_gruneisen(settings, primitive, 0.99)
-
-    return pl_gruneisen, mn_gruneisen
+    return gruneisen_list

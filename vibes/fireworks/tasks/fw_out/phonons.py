@@ -444,8 +444,9 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     kwargs["prev_dos_fp"] = update_job["prev_dos_fp"]
     kwargs["trajectory_file"] = trajectory_file.split("/")[-1]
-    kwargs["sc_matrix_original"] = update_job["sc_matrix_original"]
+    kwargs["sc_matrix_base"] = update_job["sc_matrix_base"]
     kwargs["convergence"] = {"minimum_similiarty_score": kwargs["conv_crit"]}
+
     analysis_fw = generate_converging_phonon_postprocess_fw(
         primitive,
         update_job["analysis_wd"],
