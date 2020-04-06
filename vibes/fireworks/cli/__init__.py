@@ -29,7 +29,8 @@ class ListOption(click.Option):
         """
         if not value:
             return None
-        value = value.split(",")
+        if isinstance(value, str):
+            value = value.split(",")
         if isinstance(self.type, click.types.IntParamType):
             return [int(v) for v in value]
         return value
