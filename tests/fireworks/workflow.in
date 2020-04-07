@@ -8,6 +8,9 @@ name = EMT
 [calculator.kpoints]
 density = 1.00
 
+[calculator.socketio]
+port = null
+
 [fireworks]
 name = example_run
 
