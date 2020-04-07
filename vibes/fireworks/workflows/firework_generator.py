@@ -30,7 +30,7 @@ from vibes.helpers.watchdogs import str2time
 from vibes.phonopy.wrapper import preprocess
 
 
-def get_phonon_file_location(settings, atoms):
+def get_phonon_file_location(settings, atoms, remote=False):
     """Get the phonon file location for a task
 
     Parameters
@@ -39,6 +39,8 @@ def get_phonon_file_location(settings, atoms):
         The settings for the overall workflow
     atoms: ase.atoms.Atoms
         The Atoms object for the workflow
+    remote: bool
+        True if use remote directory instead of the local one
 
     Returns
     str
@@ -54,13 +56,18 @@ def get_phonon_file_location(settings, atoms):
         else:
             conv = True
 
+    if remote:
+        base_direc = settings.fireworks.workdir.remote
+    else:
+        base_direc = settings.fireworks.workdir.local
+
     if conv:
-        phonon_file = f"{settings.fireworks.workdir.local}/converged/trajectory.son"
+        phonon_file = f"{base_direc}/converged/trajectory.son"
     else:
         sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
         sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
         rel_dir = f"/sc_natoms_{sc_natoms}/phonopy_analysis/trajectory.son"
-        phonon_file = settings.fireworks.workdir.local + rel_dir
+        phonon_file = base_direc + rel_dir
 
     return phonon_file
 
@@ -850,7 +857,7 @@ def generate_md_fw(settings, atoms, fw_settings, qadapter=None, workdir=None):
     md_settings = settings["md"].copy()
 
     if "phonon_file" not in settings.md and "phonopy" in settings:
-        md_settings["phonon_file"] = get_phonon_file_location(settings, atoms)
+        md_settings["phonon_file"] = get_phonon_file_location(settings, atoms, True)
 
     temps = md_settings.pop("temperatures", None)
     if temps is None:

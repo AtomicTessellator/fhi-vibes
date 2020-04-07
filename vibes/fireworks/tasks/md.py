@@ -59,8 +59,6 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
     else:
         if Path(md_settings["phonon_file"]).parent.name == "converged":
             sc_list = Path(md_settings["phonon_file"]).parents[1].glob("sc_n*")
-            print("\n\n\n\n")
-            print(Path(md_settings["phonon_file"]).parents[1])
             sc_list = sorted(sc_list, key=lambda s: int(str(s).split("_")[-1]))
             md_settings["phonon_file"] = str(sc_list[-1] / "phonopy/trajectory.son")
 

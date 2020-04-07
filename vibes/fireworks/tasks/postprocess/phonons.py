@@ -305,7 +305,7 @@ def get_converge_phonon_update(
     else:
         time_scaling = 3.0 * ratio
 
-    expected_walltime = calc_time * time_scaling
+    expected_walltime = max(calc_time * time_scaling, 1680)
 
     ntasks = int(np.ceil(phonon.supercell.get_number_of_atoms() * 0.75))
 
@@ -322,7 +322,6 @@ def get_converge_phonon_update(
         "analysis_wd": analysis_wd,
         "ntasks": ntasks,
         "expected_walltime": expected_walltime,
-        # "expected_mem": expected_mem,
         "ph_calculator": calculator_dict,
         "ph_primitive": atoms2dict(to_Atoms(phonon.get_unitcell(), db=True)),
         "ph_supercell": atoms2dict(to_Atoms(phonon.get_supercell(), db=True)),
