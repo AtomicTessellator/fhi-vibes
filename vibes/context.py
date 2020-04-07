@@ -14,7 +14,7 @@ class TaskContext:
     """context for task"""
 
     def __init__(
-        self, settings, name, template_dict=None, workdir=None, trajectory_file=None,
+        self, settings, name, template_dict=None, workdir=None, trajectory_file=None
     ):
         """Initialization
 
@@ -33,7 +33,7 @@ class TaskContext:
         self._calculator = None
         self._name = name
 
-        self.kw = self.settings[self._name]
+        self.kw = self.settings.get(name, {})
 
         if workdir:
             self.kw[keys.workdir] = Path(workdir).absolute()
@@ -50,13 +50,13 @@ class TaskContext:
     @property
     def workdir(self):
         """return the working directory"""
-        if self.kw[keys.workdir]:
-            workdir = Path(self.kw[keys.workdir]).absolute()
+        if self.kw.get(keys.workdir):
+            workdir = self.kw[keys.workdir]
         else:
             workdir = "workdir"
             warn(f"workdir not set, return `{workdir}``")
 
-        return workdir
+        return Path(workdir).absolute()
 
     @workdir.setter
     def workdir(self, folder):
@@ -83,14 +83,13 @@ class TaskContext:
     @property
     def calculator(self):
         """the calculator for running the computation"""
-        self.mkdir()
         if not self._calculator:
             # create aims from context and make sure forces are computed
-            aims_ctx = CalculatorContext(
+            calc_ctx = CalculatorContext(
                 settings=self.settings, atoms=self.atoms, workdir=self.workdir
             )
-
-            self._calculator = aims_ctx.get_calculator()
+            calc_ctx.ref_atoms = self.atoms
+            self._calculator = calc_ctx.calculator
 
         return self._calculator
 

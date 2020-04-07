@@ -2,68 +2,65 @@
 from pathlib import Path
 
 import numpy as np
-from ase.calculators.calculator import get_calculator_class
 from ase.constraints import (
     FixCartesianParametricRelations,
     FixScaledParametricRelations,
     dict2constraint,
 )
+from jconfigparser.dict import DotDict
 
-from vibes.calculator.context import CalculatorContext
-from vibes.calculator.setup import setup_aims
+from vibes.context import TaskContext
 from vibes.fireworks.tasks.general_py_task import get_func
 from vibes.fireworks.workflows.workflow_generator import generate_workflow
 from vibes.helpers.converters import dict2atoms, input2dict
-from vibes.helpers.numerics import get_3x3_matrix
-from vibes.helpers.supercell import make_supercell
 from vibes.phonopy import displacement_id_str
 from vibes.phonopy.context import PhonopyContext
 from vibes.phonopy.postprocess import postprocess
-from vibes.settings import AttributeDict, Settings, TaskSettings
+from vibes.settings import Settings
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import metadata2file, reader, step2file
 
 
-def setup_calc(settings, calculator, use_pimd_wrapper, kwargs_boot):
+def setup_calc(settings):
     """Sets up a calculation
 
     Parameters
     ----------
     settings : Settings
         The settings object for the calculation
-    calculator: ase.calculators.calulator.Calculator
-        Calculator used for the calculation
-    use_pimd_wrapper : dict
-        Dictionary to wrapper ipi parameters for calc
-    kwargs_boot : dict
-        kwargs for the bootstrapping
 
     Returns
     -------
     settings : Settings
         The updated settings object
-    kwargs_boot : dict
-        The updated kwargs for the bootstrapping
 
     """
-    if calculator.name.lower() != "aims":
-        kwargs_boot["calculator"] = calculator
-    else:
-        settings["control"] = calculator.parameters.copy()
-        if "species_dir" in settings.control:
-            sd = settings["control"].pop("species_dir")
-            settings["basissets"] = AttributeDict({"default": sd.split("/")[-1]})
-        if use_pimd_wrapper:
-            settings["socketio"] = AttributeDict(
-                {"port": settings.pop("use_pimd_wrapper")}
-            )
-        settings.control.pop("aims_command", None)
-        if "control_kpt" in settings:
-            settings.control.pop("kgrid", None)
-    return settings, kwargs_boot
+    if settings.calculator.name.lower() != "aims":
+        return settings
+
+    if "species_dir" in settings.calculator.parameters:
+        sd = settings["calculator"]["parameters"].pop("species_dir")
+        settings["calculator"]["basissets"] = DotDict({"default": sd.split("/")[-1]})
+
+    if "use_pimd_wrapper" in settings.calculator.parameters:
+        pimd = settings["calculator"]["parameters"].pop("use_pimd_wrapper")
+        host = pimd[0]
+        port = pimd[1]
+        if "UNIX:" in host:
+            unixsocket = host
+            host = None
+        else:
+            unixsocket = None
+        settings["calculator"]["socketio"] = DotDict(
+            {"port": port, "host": host, "unixsocket": unixsocket}
+        )
+
+    settings["calculator"]["parameters"].pop("aims_command", None)
+
+    return settings
 
 
-def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calculator):
+def setup_phonon_outputs(ph_settings, settings, prefix, atoms):
     """Sets up the phonon outputs
 
     Parameters
@@ -76,8 +73,6 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calculator):
         key prefix for the task
     atoms : ase.atoms.Atoms
         ASE Atoms object for the material
-    calculator: ase.calculators.calulator.Calculator
-        Calculator used for the calculation
 
     Returns
     -------
@@ -85,31 +80,16 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms, calculator):
         All the necessary output/metadata for the task
 
     """
-    settings, kwargs_boot = setup_calc(
-        settings,
-        calculator,
-        ("use_pimd_wrapper" in settings and settings["use_pimd_wrapper"]),
-        {},
-    )
+    settings = setup_calc(settings)
     settings[f"{prefix}onopy"] = ph_settings.copy()
+
     if "serial" in settings[f"{prefix}onopy"]:
         del settings[f"{prefix}onopy"]["serial"]
 
     ctx = PhonopyContext(settings=settings)
-    ctx.settings.atoms = atoms.copy()
-    if calculator is not None and calculator.name.lower() != "aims":
-        ctx.settings.atoms.set_calculator(calculator)
-    else:
-        aims_ctx = CalculatorContext(settings=ctx.settings, workdir=ctx.workdir)
-        # set reference structure for aims calculation and make sure forces are computed
-        aims_ctx.ref_atoms = make_supercell(
-            atoms, get_3x3_matrix(ctx.settings.obj.supercell_matrix)
-        )
-        aims_ctx.settings.obj["compute_forces"] = True
-        calculator = setup_aims(aims_ctx, False, False)
-        ctx.settings.atoms.set_calculator(calculator)
+    ctx.primitive = atoms.copy()
+    ctx.atoms = atoms.copy()
 
-    # outputs = bootstrap(name=f"{prefix}onopy", settings=settings, **kwargs_boot)
     outputs = ctx.bootstrap()
 
     outputs["metadata"]["supercell"] = {"atoms": outputs["metadata"]["atoms"]}
@@ -150,24 +130,22 @@ def bootstrap_phonon(
         The output of vibes.phonopy.workflow.bootstrap for phonopy and phono3py
 
     """
-    settings = TaskSettings(name=None, settings=Settings(settings_file=None))
-    settings.atoms = atoms
-
+    settings = Settings(settings_file=None)
+    settings["calculator"] = DotDict({"name": calculator.name})
+    settings["calculator"]["parameters"] = DotDict(calculator.parameters.copy())
+    settings["calculator"]["make_species_dir"] = False
     if kpt_density:
-        settings["control_kpt"] = AttributeDict({"density": kpt_density})
+        settings["calculator"]["kpoints"] = DotDict({"density": kpt_density})
+        settings["calculator"]["parameters"].pop("k_grid")
 
     outputs = []
     at = atoms.copy()
     at.set_calculator(None)
     if ph_settings:
-        outputs.append(
-            setup_phonon_outputs(ph_settings, settings, "ph", at, calculator)
-        )
+        outputs.append(setup_phonon_outputs(ph_settings, settings, "ph", at))
 
     if ph3_settings:
-        outputs.append(
-            setup_phonon_outputs(ph3_settings, settings, "ph3", at, calculator)
-        )
+        outputs.append(setup_phonon_outputs(ph3_settings, settings, "ph3", at))
 
     if kpt_density:
         for out in outputs:
@@ -221,7 +199,7 @@ def collect_to_trajectory(workdir, trajectory_file, calculated_atoms, metadata):
     except KeyError:
         calculated_atoms = sorted(
             temp_atoms,
-            key=lambda x: int(x.info["info_str"][1].split("T = ")[1].split(" K")[0])
+            key=lambda x: float(x.info["info_str"][1].split("T = ")[1].split(" K")[0])
             if x
             else len(calculated_atoms) + 1,
         )
@@ -254,7 +232,7 @@ def phonon_postprocess(func_path, phonon_times, kpt_density, **kwargs):
     return func(**kwargs)
 
 
-def prepare_gruneisen(settings, primitive, vol_factor, calc=None):
+def prepare_gruneisen(settings, primitive, vol_factor):
     """Prepare a Gruneisen calculation
 
     Parameters
@@ -265,8 +243,6 @@ def prepare_gruneisen(settings, primitive, vol_factor, calc=None):
         The primitive cell for the phonon calculation
     vol_factor : float
         The volume rescaling factor
-    calc: ase.calculator.Calculator
-        The Calucator for the simulation
 
     Returns
     -------
@@ -289,7 +265,7 @@ def prepare_gruneisen(settings, primitive, vol_factor, calc=None):
     dist_settings = Settings()
     for sec_key, sec_val in settings.items():
         if isinstance(sec_val, dict):
-            dist_settings[sec_key] = AttributeDict()
+            dist_settings[sec_key] = DotDict()
             for key, val in sec_val.items():
                 try:
                     dist_settings[sec_key][key] = val.copy()
@@ -301,33 +277,21 @@ def prepare_gruneisen(settings, primitive, vol_factor, calc=None):
     if "geometry" in dist_settings:
         file_original = dist_settings.geometry.pop("file", None)
 
-    if calc is None:
-        dist_primitive.write(
-            "geometry.in.temp", format="aims", geo_constrain=True, scaled=True
-        )
-        dist_settings.geometry["file"] = "geometry.in.temp"
-        dist_primitive.calc = setup_aims(
-            ctx=CalculatorContext(settings=dist_settings),
-            verbose=False,
-            make_species_dir=False,
-        )
-        Path("geometry.in.temp").unlink()
-    else:
-        dist_primitive.calc = calc
-
     if "geometry" in dist_settings:
         dist_settings.geometry["file"] = file_original
 
-    dist_settings.atoms = dist_primitive
-
-    dist_settings.general["workdir_cluster"] = str(
-        Path(dist_settings.general.workdir_cluster).parents[1]
+    dist_settings.fireworks.workdir["remote"] = str(
+        Path(dist_settings.fireworks.workdir["remote"]).parents[1]
     )
-    dist_settings.general["workdir_loca"] = str(
-        Path(dist_settings.general.workdir_local).parents[1]
+    dist_settings.fireworks.workdir["local"] = str(
+        Path(dist_settings.fireworks.workdir["local"]).parents[1]
     )
 
-    return generate_workflow(dist_settings, dist_primitive, launchpad_yaml=None)
+    dist_ctx = TaskContext(name=None, settings=dist_settings)
+    dist_ctx.atoms = dist_primitive
+    dist_primitive.set_calculator(dist_ctx.calculator)
+
+    return generate_workflow(dist_ctx, dist_primitive, launchpad_yaml=None)
 
 
 def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_density):
@@ -355,15 +319,15 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
 
     """
     # Prepare settings by reset general work_dir and do not reoptimize k_grid
-    settings["general"]["opt_kgrid"] = False
-    settings["phonopy"]["get_gruniesen"] = False
-    settings["phonopy"]["converge_phonons"] = False
+    settings.pop("optimize_kgrid", None)
+    gruneisen = settings.pop("gruneisen", None)
+    settings["phonopy"].pop("convergence", None)
 
     settings.pop("statistical_sampling", None)
     settings.pop("md", None)
 
     if _queueadapter:
-        settings["phonopy_qadapter"] = _queueadapter
+        settings["phonopy.qadapter"] = _queueadapter
 
     # Get equilibrium phonon
     eq_phonon = postprocess(trajectory_file)
@@ -373,51 +337,52 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
     settings["phonopy"]["symprec"] = metadata["Phonopy"].get("symprec", 1e-5)
     settings["phonopy"]["displacement"] = metadata["Phonopy"]["displacements"][0][1]
 
-    if metadata["calculator"]["calculator"].lower() == "aims":
-        settings["control"] = {}
-        for key, val in metadata["calculator"]["calculator_parameters"].items():
-            settings["control"][key] = val
-        settings["control"].pop("kgrid", None)
-        settings["control_kpt"] = {"density": kpt_density}
-        calc = None
-    else:
-        name = metadata["calculator"]["calculator"].lower()
-        calc = get_calculator_class(name)(
-            **metadata["calculator"]["calculator_parameters"]
+    settings["calculator"] = DotDict({"name": metadata["calculator"]["calculator"]})
+    settings["calculator"]["parameters"] = DotDict(
+        metadata["calculator"]["calculator_parameters"]
+    )
+
+    if settings["calculator"]["name"].lower() == "aims":
+        settings["calculator"]["parameters"].pop("kgrid", None)
+        settings["calculator"]["kpoints"] = DotDict({"density": kpt_density})
+        settings["calculator"]["basissets"] = DotDict(
+            {
+                "default": settings["calculator"]["parameters"]
+                .get("species_dir")
+                .split("/")[-1]
+            }
         )
+
+    if "relaxation" not in settings:
+        settings["relaxation"] = DotDict(
+            {
+                "1": {"driver": "BFGS", "unit_cell": False, "fmax": 0.001},
+                "use_ase_relax": True,
+            }
+        )
+    else:
+        use_ase_relax = settings["relaxation"].get("use_ase_relax")
+        for val in settings["relaxation"].values():
+            if isinstance(val, DotDict):
+                if use_ase_relax:
+                    settings["relaxation"]["unit_cell"] = False
+                else:
+                    settings["relaxation"]["relax_unit_cell"] = False
 
     primitive = to_Atoms(eq_phonon.get_primitive())
     add_constraints = []
     for constr in constraints:
         constraint = dict2constraint(constr)
         if isinstance(constraint, FixScaledParametricRelations):
-            if not constraint.params:
-                settings["general"]["relax_structure"] = False
-                try:
-                    settings["control"].pop("relax_unit_cell", None)
-                except KeyError:
-                    pass
-                settings.pop("relaxation", None)
-            else:
+            if constraint.params:
                 add_constraints.append(constraint)
 
-    primitive.constraints = add_constraints
-
-    if calc is None:
-        settings["general"]["relax_structure"] = True
-        settings["control"]["relax_unit_cell"] = "none"
+    if len(constraints) > 0 and len(add_constraints) == 0:
         settings.pop("relaxation", None)
-    else:
-        if "relaxation" not in settings:
-            settings["relaxation"] = {
-                "driver": "BFGS",
-                "unit_cell": False,
-                "fmax": 0.001,
-            }
-        else:
-            settings["relaxation"]["unit_cell"] = False
 
-    pl_gruneisen = prepare_gruneisen(settings, primitive, 1.01, calc)
-    mn_gruneisen = prepare_gruneisen(settings, primitive, 0.99, calc)
+    primitive.constraints = add_constraints
+    gruneisen_list = []
+    for fact in gruneisen["volume_factors"]:
+        gruneisen_list.append(prepare_gruneisen(settings, primitive, fact))
 
-    return pl_gruneisen, mn_gruneisen
+    return gruneisen_list

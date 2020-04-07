@@ -236,7 +236,9 @@ def launch_rocket_to_queue(
                                     queue = qu
                                     queue_ind = ii
                             if queue is None:
-                                raise ValueError("Job can't run on requested resource")
+                                warn("Job may not run on requested resource")
+                                queue = qu
+                                queue_ind = ii 
                             fw.spec["_queueadapter"]["queue"] = queue["name"]
                             if sc_wt < str2time(queue["max_walltime"]):
                                 fw.spec["_queueadapter"]["nodes"] = nodes

@@ -5,8 +5,8 @@ from vibes.fireworks.tasks.postprocess.phonons import get_converge_phonon_update
 from vibes.fireworks.utils.converters import phonon3_to_dict, phonon_to_dict
 from vibes.fireworks.workflows.firework_generator import (
     generate_firework,
-    generate_phonon_fw_in_wf,
-    generate_phonon_postprocess_fw_in_wf,
+    generate_converging_phonon_fw,
+    generate_converging_phonon_postprocess_fw,
     time2str,
 )
 from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms
@@ -432,7 +432,8 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         qadapter = None
 
     primitive = to_Atoms(phonon.get_primitive())
-    init_fw = generate_phonon_fw_in_wf(
+
+    init_fw = generate_converging_phonon_fw(
         primitive,
         update_job["init_workdir"],
         fw_settings,
@@ -443,8 +444,10 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     kwargs["prev_dos_fp"] = update_job["prev_dos_fp"]
     kwargs["trajectory_file"] = trajectory_file.split("/")[-1]
-    kwargs["sc_matrix_original"] = update_job["sc_matrix_original"]
-    analysis_fw = generate_phonon_postprocess_fw_in_wf(
+    kwargs["sc_matrix_base"] = update_job["sc_matrix_base"]
+    kwargs["convergence"] = {"minimum_similiarty_score": kwargs["conv_crit"]}
+
+    analysis_fw = generate_converging_phonon_postprocess_fw(
         primitive,
         update_job["analysis_wd"],
         fw_settings,

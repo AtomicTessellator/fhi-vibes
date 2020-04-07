@@ -129,9 +129,7 @@ def add_basisset(
         shutil.copy(loc / fallback / rep, folder)
 
 
-def setup_aims(
-    ctx: CalculatorContext, verbose: bool = True, make_species_dir: bool = True
-) -> Aims:
+def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
     """Set up an aims calculator.
 
     Args:
@@ -166,14 +164,14 @@ def setup_aims(
     # check for information in settings that imply to set up forces and stress:
     force, stress, stresses = False, False, False
 
-    if "md" in ctx.settings:
+    if "md" in ctx.settings and "phonopy" not in ctx.settings:
         force = True
         if ctx.settings["md"]["compute_stresses"]:
             stresses = True
 
     if "relaxation" in ctx.settings:
         force = True
-        if ctx.settings["relaxation"]["unit_cell"]:
+        if ctx.settings["relaxation"].get("unit_cell"):
             stress = True
 
     if "phonopy" in ctx.settings:
@@ -200,7 +198,7 @@ def setup_aims(
             aims_settings.update({"use_pimd_wrapper": (host, port)})
 
     # create basissetfolder
-    if make_species_dir:
+    if settings.get("make_species_dir", True):
         species_dir = create_species_dir(ctx)
     else:
         species_dir = str(ctx.basisset_location / settings.basissets.default)

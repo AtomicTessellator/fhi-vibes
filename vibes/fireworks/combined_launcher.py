@@ -73,7 +73,7 @@ def get_ready_firework_ids(wflow):
 
 
 def use_queue_launch(fire_work, tasks2queue):
-    """Determines if a particular FireWork should be ran on a cluster
+    """Determines if a particular FireWork should be ran on a remote
 
     Parameters
     ----------
@@ -85,7 +85,7 @@ def use_queue_launch(fire_work, tasks2queue):
     Returns
     -------
     bool
-        True if the task should be run on a cluster
+        True if the task should be run on a remote
 
     """
     for task in fire_work.spec["_tasks"]:

@@ -277,18 +277,18 @@ def get_converge_phonon_update(
 
     # If Not Converged update phonons
 
-    if "sc_matrix_original" not in kwargs:
-        kwargs["sc_matrix_original"] = phonon.get_supercell_matrix()
+    if "sc_matrix_base" not in kwargs:
+        kwargs["sc_matrix_base"] = phonon.get_supercell_matrix()
 
-    ind = np.where(np.array(kwargs["sc_matrix_original"]).flatten() != 0)[0][0]
-    if kwargs.get("sc_matrix_original", None) is not None:
+    ind = np.where(np.array(kwargs["sc_matrix_base"]).flatten() != 0)[0][0]
+    if kwargs.get("sc_matrix_base", None) is not None:
         n_cur = int(
             round(
                 phonon.get_supercell_matrix().flatten()[ind]
-                / np.array(kwargs["sc_matrix_original"]).flatten()[ind]
+                / np.array(kwargs["sc_matrix_base"]).flatten()[ind]
             )
         )
-        sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_original"]).reshape((3, 3))
+        sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_base"]).reshape((3, 3))
     else:
         sc_mat = 2.0 * phonon.get_supercell_matrix()
 
@@ -305,7 +305,7 @@ def get_converge_phonon_update(
     else:
         time_scaling = 3.0 * ratio
 
-    expected_walltime = calc_time * time_scaling
+    expected_walltime = max(calc_time * time_scaling, 1680)
 
     ntasks = int(np.ceil(phonon.supercell.get_number_of_atoms() * 0.75))
 
@@ -316,13 +316,12 @@ def get_converge_phonon_update(
     disp_mag = np.linalg.norm(displacement)
 
     update_job = {
-        "sc_matrix_original": kwargs["sc_matrix_original"],
+        "sc_matrix_base": kwargs["sc_matrix_base"],
         "supercell_matrix": sc_mat,
         "init_workdir": init_workdir,
         "analysis_wd": analysis_wd,
         "ntasks": ntasks,
         "expected_walltime": expected_walltime,
-        # "expected_mem": expected_mem,
         "ph_calculator": calculator_dict,
         "ph_primitive": atoms2dict(to_Atoms(phonon.get_unitcell(), db=True)),
         "ph_supercell": atoms2dict(to_Atoms(phonon.get_supercell(), db=True)),
