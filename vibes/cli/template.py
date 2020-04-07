@@ -8,7 +8,6 @@ from vibes.templates import config_files, settings
 
 from .misc import AliasedGroup
 
-
 try:
     import importlib.resources as pkg_resources
 except ModuleNotFoundError:
@@ -16,22 +15,11 @@ except ModuleNotFoundError:
 
 
 @click.command(cls=AliasedGroup)
-@click.option("--full", is_flag=True, help="list more options", show_default=True)
 @click.option("--allow_overwrite", is_flag=True, show_default=True)
 @click.pass_obj
-def template(obj, full, allow_overwrite):
+def template(obj, allow_overwrite):
     """provide template input files for tasks and workflows"""
-    obj.full_input = full
     obj.allow_overwrite = allow_overwrite
-
-
-@template.command("modify")
-@click.argument("file", default="settings.in")
-@click.pass_obj
-def modify_input(obj, file):
-    """modify an input file"""
-
-    click.echo("please come back later")
 
 
 @template.command("aims")
@@ -48,8 +36,10 @@ def aims_input(obj, file):
 @click.pass_obj
 def phonopy_input(obj, file):
     """provide template phonopy.in for phonopy workflow."""
+    from vibes.phonopy.context import PhonopyContext
 
-    write_input(obj, "phonopy", file)
+    ctx = PhonopyContext()
+    write_settings(obj, ctx.settings, file)
 
 
 @template.command("md")
@@ -57,8 +47,10 @@ def phonopy_input(obj, file):
 @click.pass_obj
 def md_input(obj, file):
     """provide template md.in for molecular dynamics workflow."""
+    from vibes.molecular_dynamics.context import MDContext
 
-    write_input(obj, "md", file)
+    ctx = MDContext()
+    write_settings(obj, ctx.settings, file)
 
 
 @template.command("relaxation")
@@ -66,8 +58,10 @@ def md_input(obj, file):
 @click.pass_obj
 def relaxation_input(obj, file):
     """provide template relaxation.in for relaxation workflow."""
+    from vibes.relaxation.context import RelaxationContext
 
-    write_input(obj, "relaxation", file)
+    ctx = RelaxationContext()
+    write_settings(obj, ctx.settings, file)
 
 
 @template.command("configuration")
@@ -91,9 +85,6 @@ def slurm_input(obj, file):
 def write_input(obj, name, file, from_folder=settings):
     """write the input function"""
 
-    if obj.full_input:
-        name += "_full"
-
     input_file = pkg_resources.read_text(from_folder, name)
 
     outfile = Path(file)
@@ -105,3 +96,17 @@ def write_input(obj, name, file, from_folder=settings):
     outfile.write_text(input_file)
 
     click.echo(f"Default {name} settings file written to {file}.")
+
+
+def write_settings(obj, settings, file):
+    """write the settings"""
+
+    outfile = Path(file)
+
+    if outfile.exists() and obj.allow_overwrite:
+        click.echo(f"Remove `{outfile}`")
+        outfile.unlink()
+
+    settings.write(outfile)
+
+    click.echo(f"Settings written to `{outfile}`")
