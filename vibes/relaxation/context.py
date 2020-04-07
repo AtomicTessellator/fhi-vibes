@@ -26,7 +26,7 @@ class MyExpCellFilter(ExpCellFilter):
 class RelaxationContext(TaskContext):
     """context for relaxation"""
 
-    def __init__(self, settings, workdir=None, trajectory_file=None):
+    def __init__(self, settings=None, workdir=None, trajectory_file=None):
         """Initialization
 
         Args:

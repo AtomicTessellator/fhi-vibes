@@ -19,7 +19,7 @@ from .workflow import _prefix, run_md
 class MDContext(TaskContext):
     """context for phonopy calculation"""
 
-    def __init__(self, settings, workdir=None, trajectory_file=None):
+    def __init__(self, settings=None, workdir=None, trajectory_file=None):
         """Context for MD
 
         Args:
