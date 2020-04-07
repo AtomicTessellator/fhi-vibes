@@ -2,7 +2,6 @@ from pathlib import Path
 
 from ase import Atoms
 from ase.calculators.calculator import Calculator
-from jconfigparser.dict import DotDict
 
 from vibes import keys
 from vibes.calculator.context import CalculatorContext
@@ -34,10 +33,7 @@ class TaskContext:
         self._calculator = None
         self._name = name
 
-        if name:
-            self.kw = self.settings[self._name]
-        else:
-            self.kw = DotDict()
+        self.kw = self.settings.get(name, {})
 
         if workdir:
             self.kw[keys.workdir] = Path(workdir).absolute()
@@ -57,7 +53,7 @@ class TaskContext:
         if self.kw.get(keys.workdir):
             workdir = self.kw[keys.workdir]
         else:
-            workdir = "workdir"
+            workdir = self.name + "_workdir"
             warn(f"workdir not set, return `{workdir}``")
 
         return Path(workdir).absolute()
