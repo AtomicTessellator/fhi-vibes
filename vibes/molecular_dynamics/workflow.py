@@ -73,6 +73,8 @@ def run(ctx, backup_folder=default_backup_folder):
     socketio_port, socketio_unixsocket = get_socket_info(calculator)
     if socketio_port is None:
         socket_calc = None
+        # choose some 5 digit number
+        socketio_port = np.random.randint(0, 65000)
     else:
         socket_calc = calculator
     atoms.calc = calculator
