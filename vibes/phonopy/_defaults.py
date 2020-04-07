@@ -25,7 +25,7 @@ keys = collections.namedtuple(f"{name}_keywords", _keys)(*_keys)
 
 kwargs = adict(
     {
-        keys.supercell_matrix: 1,
+        keys.supercell_matrix: [1, 1, 1],
         keys.displacement: 0.01,
         keys.is_diagonal: False,
         keys.is_trigonal: False,

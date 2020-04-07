@@ -142,6 +142,8 @@ def calculate_socket(
         socket_calc = calculator
     else:
         socket_calc = None
+        # choose some 5 digit number
+        socketio_port = np.random.randint(0, 65000)
 
     # perform backup if calculation folder exists
     backup(calc_dir, target_folder=backup_folder)

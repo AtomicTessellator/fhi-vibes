@@ -2,12 +2,12 @@ from pathlib import Path
 
 from ase import Atoms
 from ase.calculators.calculator import Calculator
-
 from jconfigparser.dict import DotDict
 
 from vibes import keys
 from vibes.calculator.context import CalculatorContext
 from vibes.filenames import filenames
+from vibes.helpers import warn
 from vibes.settings import Settings
 
 
@@ -15,7 +15,7 @@ class TaskContext:
     """context for task"""
 
     def __init__(
-        self, settings, name, template_dict=None, workdir=None, trajectory_file=None
+        self, settings, name, template_dict=None, workdir=None, trajectory_file=None,
     ):
         """Initialization
 
@@ -26,7 +26,9 @@ class TaskContext:
             workdir: Working directory for running the task
             trajectory_file: Path to output trajectory
         """
-        self.settings = Settings(dct=settings, template_dict=template_dict)
+        self.settings = Settings(
+            dct=settings, template_dict=template_dict, config_files=None
+        )
 
         self._atoms = None
         self._calculator = None
@@ -37,12 +39,8 @@ class TaskContext:
         else:
             self.kw = DotDict()
 
-        # workdir has to exist
         if workdir:
             self.kw[keys.workdir] = Path(workdir).absolute()
-
-        if self.workdir:
-            Path(self.workdir).mkdir(exist_ok=True, parents=True)
 
         if trajectory_file:
             self.trajectory_file = Path(trajectory_file)
@@ -56,13 +54,21 @@ class TaskContext:
     @property
     def workdir(self):
         """return the working directory"""
-        if self.kw.get(keys.workdir):
-            return Path(self.kw[keys.workdir]).absolute()
+        if self.get(keys.workdir):
+            workdir = Path(self.kw[keys.workdir]).absolute()
+        else:
+            workdir = "workdir"
+            warn(f"workdir not set, return `{workdir}``")
+
+        return workdir
 
     @workdir.setter
     def workdir(self, folder):
         """set and create the working directory. Use a standard name if dir='auto'"""
         self.kw[keys.workdir] = folder
+
+    def mkdir(self):
+        """create working directory"""
         self.workdir.mkdir(exist_ok=True, parents=True)
 
     @property
@@ -81,6 +87,7 @@ class TaskContext:
     @property
     def calculator(self):
         """the calculator for running the computation"""
+        self.mkdir()
         if not self._calculator:
             # create aims from context and make sure forces are computed
             calc_ctx = CalculatorContext(

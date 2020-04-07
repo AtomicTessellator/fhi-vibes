@@ -26,7 +26,7 @@ class MyExpCellFilter(ExpCellFilter):
 class RelaxationContext(TaskContext):
     """context for relaxation"""
 
-    def __init__(self, settings, workdir=None, trajectory_file=None):
+    def __init__(self, settings=None, workdir=None, trajectory_file=None):
         """Initialization
 
         Args:
@@ -79,6 +79,8 @@ class RelaxationContext(TaskContext):
     @property
     def opt(self):
         """the relaxation algorithm"""
+        self.mkdir()
+
         if not self._opt:
             obj = self.settings[name].kwargs
 

@@ -18,7 +18,7 @@ class PhonopyContext(TaskContext):
     """context for phonopy calculation"""
 
     def __init__(
-        self, settings, workdir=None, name=name, template_dict=None,
+        self, settings=None, workdir=None, name=name, template_dict=None,
     ):
         """Intializer
 
