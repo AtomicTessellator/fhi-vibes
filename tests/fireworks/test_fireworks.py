@@ -16,8 +16,8 @@ parent = Path(__file__).parent
 
 def test_fireworks():
     settings = Settings(settings_file=parent / "workflow.in")
-    settings.calculator["mkdir"] = False
     wflow = TaskContext(name=None, settings=settings)
+
     atoms = bulk("Ni", "fcc", a=3.5)
     wflow.atoms = atoms
 
