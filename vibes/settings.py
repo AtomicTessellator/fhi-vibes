@@ -10,6 +10,7 @@ from vibes._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
     DEFAULT_GEOMETRY_FILE,
+    DEFAULT_SETTINGS_FILE,
 )
 from vibes.helpers.dict import merge
 from vibes.helpers.warnings import warn
@@ -136,7 +137,9 @@ class Settings(Config):
     @property
     def file(self):
         """return path to the settings file"""
-        return self._settings_file
+        if self._settings_file is not None:
+            return self._settings_file
+        return DEFAULT_SETTINGS_FILE
 
     def write(self, file=None):
         """write settings to file"""
@@ -178,10 +181,10 @@ def legacy_update_aims(settings: dict) -> dict:
     """replace legacy keynames in settings related to aims"""
 
     # aims
-    if "calculator" not in settings:
-        settings["calculator"] = DotDict()
-
     if "control" in settings:
+        if "calculator" not in settings:
+            settings["calculator"] = DotDict()
+
         settings[f"{keys.calculator}.{keys.name}"] = "aims"
         settings[keys.calculator][keys.parameters] = settings.pop("control")
 
