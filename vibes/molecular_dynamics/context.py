@@ -51,6 +51,8 @@ class MDContext(TaskContext):
     @property
     def md(self):
         """the MD algorithm"""
+        self.mkdir()
+
         if not self._md:
             obj = self.kw
             md_settings = {
