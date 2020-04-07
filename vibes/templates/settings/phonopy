@@ -1,16 +1,15 @@
-[geometry]
-file:                          geometry.in
+[files]
+geometry =         geometry.in
 
-[control]
-xc:                            pw-lda
-k_grid:                        [2, 2, 2]
-compute_forces:                true
+[calculator]
+name =             aims
 
-[basissets]
-default:                          light
+[calculator.parameters]
+xc =               pw-lda
+k_grid =           [2, 2, 2]
+
+[calculator.basissets]
+default = light
 
 [phonopy]
 supercell_matrix:              [1, 1, 1]
-
-[socketio]
-port:                          12345

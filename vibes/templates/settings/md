@@ -1,15 +1,15 @@
-[geometry]
-file =             geometry.in
+[files]
+geometry =         geometry.in
 
-[control]
+[calculator]
+name =             aims
+
+[calculator.parameters]
 xc =               pw-lda
 k_grid =           [2, 2, 2]
 
-[basissets]
+[calculator.basissets]
 default = light
-
-[socketio]
-port = 12345
 
 [md]
 driver =      Verlet

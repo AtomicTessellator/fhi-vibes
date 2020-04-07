@@ -1,23 +1,24 @@
-[geometry]
-file:                         geometry.in
+[files]
+geometry =         geometry.in
 
-[control]
-xc:                            pw-lda
-k_grid:                        [2, 2, 2]
-sc_accuracy_rho:               1e-7
-compute_forces:                true
+[calculator]
+name =             aims
 
-[basissets]
-default:                          light
+[calculator.parameters]
+xc =               pw-lda
+k_grid =           [2, 2, 2]
+
+[calculator.basissets]
+default = light
+
+[calculator.socketio]
+port = 12345
 
 [phonopy]
 workdir:                       auto
 supercell_matrix:              [[-2, 2, 2], [2, -2, 2], [2, 2, -2]]
 displacement:                  0.01
 is_diagonal:                   False
-is_plusminus:                  auto
+is_plusminus:                  true
 q_mesh:                        [26, 26, 26]
 symprec:                       1e-5
-
-[socketio]
-port:                          12345
