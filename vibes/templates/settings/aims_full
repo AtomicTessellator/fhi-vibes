@@ -1,25 +1,26 @@
-[geometry]
-file:                          geometry.in
-files:                         geometry.in.???
+[files]
+geometry:                      geometry.in
+geometries:                    geometry.in.???
 primitive:                     geometry.in.primitive
 supercell:                     geometry.in.supercell
 
-[control]
+[calculator]
+name:                          aims
+workdir:                       ${name}.${calculator.parameters:xc}
+
+[calculator.parameters]
 xc:                            pw-lda
-k_grid:                        [2, 2, 2]
 charge_mix_param:              0.3
 sc_accuracy_rho:               1e-6
-relax_geometry:                trm 1e-3
-relax_unit_cell:               false
-# relax_unit_cell:               full
-use_symmetric_forces:          false
 
-[basissets]
+[calculator.kpoints]
+density:                       5
+
+[calculator.basissets]
 default:                       light
 # Si:                            intermediate
 # O:                             tight
 # fallback:                      light
 
-[socketio]
+[calculator.socketio]
 port:                          null
-unixsocket:                    null
