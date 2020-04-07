@@ -53,10 +53,7 @@ class TaskContext:
         if self.kw.get(keys.workdir):
             workdir = self.kw[keys.workdir]
         else:
-            if self.name:
-                workdir = self.name + "_workdir"
-            else:
-                workdir = "workdir"
+            workdir = "workdir"
             warn(f"workdir not set, return `{workdir}``")
 
         return Path(workdir).absolute()
@@ -86,8 +83,6 @@ class TaskContext:
     @property
     def calculator(self):
         """the calculator for running the computation"""
-        if self.settings.get("calculator", {}).get("mkdir", True):
-            self.mkdir()
         if not self._calculator:
             # create aims from context and make sure forces are computed
             calc_ctx = CalculatorContext(
