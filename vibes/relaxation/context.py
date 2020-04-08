@@ -79,9 +79,8 @@ class RelaxationContext(TaskContext):
     @property
     def opt(self):
         """the relaxation algorithm"""
-        self.mkdir()
-
         if not self._opt:
+            self.mkdir()
             obj = self.settings[name].kwargs
 
             logfile = str(self.workdir / obj.pop("logfile", "relaxation.log"))
