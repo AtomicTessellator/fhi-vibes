@@ -139,6 +139,10 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
             settings["calculator"]["socketio"] = DotDict(
                 {"port": port, "host": host, "unixsocket": unixsocket}
             )
+        else:
+            settings["calculator"].pop("socketio", None)
+    elif calculator.name.lower() == "emt":
+        settings["calculator"].pop("socketio", None)
 
     settings["calculator"]["parameters"] = DotDict(calculator.parameters)
     settings["files"] = DotDict(
