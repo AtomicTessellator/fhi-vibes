@@ -1,12 +1,12 @@
+<a name="1_GeometryOptimization"></a>
+
 !!! danger
 	In this Tutorial, we assume you are already familiar with running *FHI-aims* calculations, and that you have [installed](../README.md#installation) and [configured](../README.md#configuration) `FHI-vibes` successfully.
 	
 !!! info
 	For vibrational studies, it is crucial to use structures that are accurately  relaxed. Before starting with actual phonon calculations, we thus learn how to perform a geometry optimization with *FHI-vibes*
 
-## <a name="1_GeometryOptimization"></a> Optimize Your Geometry
-
-### Define Inputs
+## Define Inputs
 
 As input, we use an fcc-diamond Silicon crystal:
 ```
@@ -26,9 +26,9 @@ atom_frac 0.25 0.25 0.25 Si
     """run this in a script or in a python shell"""
     
     from ase.build import bulk
-
+    
     si = bulk("Si")
-
+    
     si.write("geometry.in", scaled=True)
     ```
 
@@ -53,17 +53,19 @@ The newly generated input file `relaxation.in` should look like this:
 
     [calculator]
     name:                          aims
-
+    
     [calculator.parameters]
     xc:                            pw-lda
-    k_grid:                        [2, 2, 2]
-
+    
+    [calculator.kpoints]
+    density:                       3.5
+    
     [calculator.basissets]
     default:                       light
-
+    
     [calculator.socketio]
     port:                          12345
-
+    
     [relaxation]
     driver:                        BFGS
     fmax:                          0.001
@@ -75,13 +77,53 @@ The newly generated input file `relaxation.in` should look like this:
     decimals:                      12
     symprec:                       1e-05
     workdir:                       relaxation
-
+    
     [relaxation.kwargs]
     maxstep:                       0.2
     logfile:                       relaxation.log
     restart:                       bfgs.restart
     ```
 
+The settings file template you just generated contains all the necessary settings to set up and run a geometry optimization with `FHI-vibes` using `FHI-aims` as the force/stress calculator. For speeding up the tutorial you might want to decrease the kpoints density to 1 kpoint per $\require{mediawiki-texvc} \AA^{-1}$. 
+
+??? info "`relaxation.in` with adjusted `kpoints` density"
+
+    ```
+    [files]
+    geometry:                      geometry.in
+    
+    [calculator]
+    name:                          aims
+    
+    [calculator.parameters]
+    xc:                            pw-lda
+    
+    [calculator.kpoints]
+    density:                       3.5
+    
+    [calculator.basissets]
+    default:                       light
+    
+    [calculator.socketio]
+    port:                          12345
+    
+    [relaxation]
+    driver:                        BFGS
+    fmax:                          0.001
+    unit_cell:                     True
+    fix_symmetry:                  False
+    hydrostatic_strain:            False
+    constant_volume:               False
+    scalar_pressure:               0.0
+    decimals:                      12
+    symprec:                       1e-05
+    workdir:                       relaxation
+    
+    [relaxation.kwargs]
+    maxstep:                       0.2
+    logfile:                       relaxation.log
+    restart:                       bfgs.restart
+    ```
 You can start the calculation with `vibes run relaxation`. We suggest pipe the output, e.g., like this:
 
 ```

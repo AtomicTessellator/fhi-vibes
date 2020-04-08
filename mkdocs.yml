@@ -27,6 +27,7 @@ nav:
     - Tutorial: 
         - "Introduction: Phonons": Tutorial/0_intro.md
         - "1: Geometry Optimization": Tutorial/1_geometry_optimization.md
+        - "2: Phonopy Calculation": Tutorial/2_phonopy.md
         - Tutorial/acknowledgments.md
         - Tutorial/references.md
     - High-Throughut:

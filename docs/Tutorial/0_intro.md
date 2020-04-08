@@ -38,11 +38,10 @@ of the lattice expansion and of the atomic motion will be discussed and analyzed
 
 To determine the vibrations in a solid, we approximate the potential energy surface
 for the nuclei by performing a Taylor expansion of the total energy $E$ around the equilibrium positions:
-
 $$
 \require{cancel}
 \begin{aligned}
-\def\vec#1{{\bf #1}}
+\def\vec#1{{\mathbf{#1}}}
 \def\t#1{\text{#1}}
 E \left(\{\vec{R}^0 + \Delta \vec{R}\}\right) 
 & \approx 
@@ -59,7 +58,6 @@ complications: In contrast to the forces $\vec{F}$, which only depend on the den
 on its derivative with respect to the nuclear coordinates, i.e., on its _response_ to nuclear displacements. One can either 
 use _Density Functional Perturbation Theory (DFPT)_ [[Baroni2001](references.md#baroni2001)] to compute the response 
 or one can circumvent this problem by performing the second order derivative _numerically by finite differences_
-
 $$
 \begin{align}
 \Phi_{IJ} 
