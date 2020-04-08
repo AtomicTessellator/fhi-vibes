@@ -45,6 +45,8 @@ markdown_extensions:
     - toc:
         permalink: "#"
     - pymdownx.arithmatex
+    - pymdownx.details
+    - pymdownx.superfences
     - footnotes
     - admonition
     

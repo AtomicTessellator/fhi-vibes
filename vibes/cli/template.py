@@ -1,7 +1,5 @@
 """`vibes input` part of the CLI"""
 
-from pathlib import Path
-
 import click
 
 from vibes.templates import config_files, settings
