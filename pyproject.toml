@@ -41,8 +41,7 @@ jconfigparser = "^0.1.1"
 pandas = "^1.0"
 
 [tool.poetry.extras]
-fireworks_remote = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
-fireworks = ["fireworks", "pymongo"]
+fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
 phono3py = ["phono3py"]
 hiphive = ["hiphive"]
 postgresql = ["psycopg2"]
