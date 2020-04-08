@@ -24,6 +24,13 @@ nav:
         - Welcome!: README.md
         - References: References.md
         - License: license.md
+    - Documentation: 
+        - Overview: Documentation/0_intro.md
+        - "Input Files": Documentation/input_files.md
+        - "Calculator Setup": Documentation/calculator_setup.md
+        - Workflows:
+            - "Relaxation": Documentation/relaxation.md
+        - "Output Files": Documentation/output_files.md
     - Tutorial: 
         - "Introduction: Phonons": Tutorial/0_intro.md
         - "1: Geometry Optimization": Tutorial/1_geometry_optimization.md
