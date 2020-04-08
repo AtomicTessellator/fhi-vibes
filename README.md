@@ -37,16 +37,10 @@ pip install fhi-vibes
 Configure `vibes` by creating a `~/.vibesrc` configuration file in the home directory. To this end, first run
 
 ```
-vibes template configuration
+vibes template configuration > ~/.vibesrc
 ```
 
 and edit according to system. The `aims_command` is a command or script that takes care of running aims. This can be either just `mpirun aims.x`, or a script loading necessary modules etc. and finally calling `srun aims.x` on a cluster.
-
-Then copy this file to your home folder with 
-
-```
-cp vibesrc ~/.vibesrc
-```
 
 **You're now good to go!** Just make sure your vibes virtual environment is activated.
 

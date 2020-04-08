@@ -11,3 +11,5 @@ k_grid:                        [2, 2, 2]
 [calculator.basissets]
 default:                       light
 
+[calculator.socketio]
+port:                          12345

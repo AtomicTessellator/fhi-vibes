@@ -28,7 +28,7 @@ def template(obj, allow_overwrite):
 def aims_input(obj, file):
     """provide template settings.in for aims calculation"""
 
-    write_input(obj, "aims", file)
+    print_input(obj, "aims", file)
 
 
 @template.command("phonopy")
@@ -39,7 +39,7 @@ def phonopy_input(obj, file):
     from vibes.phonopy.context import PhonopyContext
 
     ctx = PhonopyContext()
-    write_settings(obj, ctx.settings, file)
+    ctx.settings.print()
 
 
 @template.command("md")
@@ -50,7 +50,7 @@ def md_input(obj, file):
     from vibes.molecular_dynamics.context import MDContext
 
     ctx = MDContext()
-    write_settings(obj, ctx.settings, file)
+    ctx.settings.print()
 
 
 @template.command("relaxation")
@@ -61,7 +61,7 @@ def relaxation_input(obj, file):
     from vibes.relaxation.context import RelaxationContext
 
     ctx = RelaxationContext()
-    write_settings(obj, ctx.settings, file)
+    ctx.settings.print()
 
 
 @template.command("configuration")
@@ -70,7 +70,7 @@ def relaxation_input(obj, file):
 def configuration_input(obj, file):
     """provide template vibesrc.template for the configuration"""
 
-    write_input(obj, "vibesrc.template", file, from_folder=config_files)
+    print_input(obj, "vibesrc.template", file, from_folder=config_files)
 
 
 @template.command("fireworks_configuration")
@@ -79,7 +79,7 @@ def configuration_input(obj, file):
 def fireworks_configuration_input(obj, file):
     """provide template fireworksrc.template for the configuration"""
 
-    write_input(obj, "fireworksrc.template", file, from_folder=config_files)
+    print_input(obj, "fireworksrc.template", file, from_folder=config_files)
 
 
 @template.command("slurm")
@@ -88,34 +88,12 @@ def fireworks_configuration_input(obj, file):
 def slurm_input(obj, file):
     """provide template slurm settings"""
 
-    write_input(obj, "slurm.in", file, from_folder=config_files)
+    print_input(obj, "slurm.in", file, from_folder=config_files)
 
 
-def write_input(obj, name, file, from_folder=settings):
+def print_input(obj, name, file, from_folder=settings):
     """write the input function"""
 
     input_file = pkg_resources.read_text(from_folder, name)
 
-    outfile = Path(file)
-
-    if not obj.allow_overwrite and outfile.exists():
-        msg = f"{outfile} exists."
-        raise click.ClickException(msg)
-
-    outfile.write_text(input_file)
-
-    click.echo(f"Default {name} settings file written to {file}.")
-
-
-def write_settings(obj, settings, file):
-    """write the settings"""
-
-    outfile = Path(file)
-
-    if outfile.exists() and obj.allow_overwrite:
-        click.echo(f"Remove `{outfile}`")
-        outfile.unlink()
-
-    settings.write(outfile)
-
-    click.echo(f"Settings written to `{outfile}`")
+    click.echo(input_file)
