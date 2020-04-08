@@ -1,4 +1,4 @@
-""" Helpers for working with kpoint densites """
+""" Helpers for working with kpoint densites. """
 
 import numpy as np
 
@@ -8,7 +8,7 @@ from vibes.helpers.utils import talk
 def d2k(atoms, kptdensity=3.5, even=True):
     """Convert k-point density to Monkhorst-Pack grid size.
 
-    from [ase.calculators.calculator.kptdensity2monkhorstpack]
+    inspired by [ase.calculators.calculator.kptdensity2monkhorstpack]
 
     Parameters
     ----------
