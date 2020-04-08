@@ -458,13 +458,19 @@ def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
     if "basisset_type" in settings[name]:
         update_settings["basisset_type"] = settings[name].pop("basisset_type")
 
-    if "socketio" in settings.calculator:
+    if "socketio" in settings.calculator and settings.calculator.name.lower() == "aims":
         port = settings.calculator.socketio["port"]
         host = settings.calculator.socketio.get("host", "localhost")
         update_settings["use_pimd_wrapper"] = [host, port]
-    elif "use_pimd_wrapper" in settings.calculator:
-        update_settings["use_pimd_wrapper"] = settings.calculator.pop(
+    elif "use_pimd_wrapper" in settings.calculator.get("parameters", {}):
+        update_settings["use_pimd_wrapper"] = settings.calculator.parameters.pop(
             "use_pimd_wrapper"
+        )
+        host, port = update_settings["use_pimd_wrapper"]
+        if "UNIX" in host:
+            host, unixsocket = None, host
+        settings.calculator["socketio"] = DotDict(
+            {"host": host, "port": port, "unixsocket": unixsocket}
         )
 
     if settings[name].get("serial", True):
@@ -782,10 +788,12 @@ def generate_aims_fw(settings, atoms, fw_settings):
         Firework for the relaxation step
 
     """
-    qadapter = settings.aims.get("qadapter")
+    qadapter = settings.get("qadapter")
 
-    fw_settings["fw_name"] = f"aims"
-    func_kwargs = {"workdir": f"{settings.fireworks.workdir.remote}/aims_calculation/"}
+    fw_settings["fw_name"] = f"single_point"
+    func_kwargs = {
+        "workdir": f"{settings.fireworks.workdir.remote}/single_point_calculation/"
+    }
     task_spec = gen_aims_task_spec(func_kwargs, {}, relax=False)
 
     return generate_fw(atoms, task_spec, fw_settings, qadapter, None, True)
