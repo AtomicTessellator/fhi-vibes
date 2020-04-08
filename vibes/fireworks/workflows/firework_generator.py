@@ -1,6 +1,7 @@
 """Generates Task Specific FireWorks"""
 import numpy as np
 from fireworks import Firework
+from jconfigparser.dict import DotDict
 
 from vibes.filenames import filenames
 from vibes.fireworks.tasks.postprocess.phonons import time2str
