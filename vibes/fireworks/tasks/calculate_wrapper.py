@@ -6,8 +6,9 @@ import numpy as np
 from vibes.filenames import filenames
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.hash import hash_dict
-from vibes.settings import Settings, TaskSettings
+from vibes.settings import Settings
 from vibes.tasks.calculate import calculate, calculate_socket
+
 
 T_S_LINE = (
     "          Detailed time accounting                     : "
@@ -95,8 +96,9 @@ def wrap_calc_socket(
 
     """
     atoms_to_calculate = []
+
     if calculator_dict["calculator"].lower() == "aims":
-        settings = TaskSettings(name=None, settings=Settings(settings_file=None))
+        settings = Settings(settings_file=None)
         if "species_dir" in calculator_dict["calculator_parameters"]:
             from os import path
 
@@ -106,12 +108,15 @@ def wrap_calc_socket(
             calculator_dict["calculator_parameters"]["species_dir"] = path.join(
                 settings.machine.basissetloc, species_type
             )
+
         calculator_dict["command"] = settings.machine.aims_command
+
         if walltime:
             calculator_dict["calculator_parameters"]["walltime"] = walltime - 180
 
     for at_dict in atoms_dict_to_calculate:
         atoms_to_calculate.append(dict2atoms(at_dict, calculator_dict, False))
+
     calculator = dict2atoms(atoms_dict_to_calculate[0], calculator_dict, False).calc
     if "use_pimd_wrapper" in calculator.parameters:
         if calculator.parameters["use_pimd_wrapper"][0][:5] == "UNIX:":
@@ -120,6 +125,7 @@ def wrap_calc_socket(
             calculator.parameters["use_pimd_wrapper"][
                 0
             ] += f"cm_{name}_{atoms_hash[:15]}"
+
     try:
         return calculate_socket(
             atoms_to_calculate,

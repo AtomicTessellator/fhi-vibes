@@ -50,7 +50,10 @@ def check_kgrid_opt_completion(
 
     """
     trajectory, atoms_dict, calculator_dict = load_last_step(
-        atoms_dict, calculator_dict, func_kwargs["workdir"], func_kwargs["trajectory"]
+        atoms_dict,
+        calculator_dict,
+        func_kwargs["workdir"],
+        func_kwargs["trajectory_file"],
     )
 
     if outputs[0]:

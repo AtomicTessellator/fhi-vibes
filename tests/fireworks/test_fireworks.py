@@ -3,29 +3,25 @@ import shutil
 from pathlib import Path
 
 from ase.build import bulk
-from ase.calculators.calculator import get_calculator_class
+from vibes.context import TaskContext
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.fireworks.rocket_launcher import rapidfire
 from vibes.fireworks.workflows.workflow_generator import generate_workflow
 from vibes.helpers.paths import cwd
-from vibes.settings import Settings, TaskSettings
+from vibes.settings import Settings
 
 
 parent = Path(__file__).parent
 
 
 def test_fireworks():
-    wflow = TaskSettings(
-        name=None, settings=Settings(settings_file=parent / "workflow.in")
-    )
+    settings = Settings(settings_file=parent / "workflow.in")
+    wflow = TaskContext(name=None, settings=settings)
+
     atoms = bulk("Ni", "fcc", a=3.5)
     wflow.atoms = atoms
 
-    calc_parameters = wflow.calculator.copy()
-    name = calc_parameters.pop("name").lower()
-    calc = get_calculator_class(name)(**calc_parameters)
-
-    atoms.set_calculator(calc)
+    atoms.set_calculator(wflow.calculator)
 
     lp = LaunchPad(strm_lvl="INFO")
     lp.reset("", require_password=False)
@@ -39,7 +35,7 @@ def test_fireworks():
             wflow_id=workflow.root_fw_ids,
             strm_lvl="INFO",
             sleep_time=2,
-            max_loops=10,
+            max_loops=2,
         )
     shutil.rmtree("test_run/")
     shutil.rmtree("fireworks_launchers/")

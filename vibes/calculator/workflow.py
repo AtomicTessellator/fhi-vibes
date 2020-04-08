@@ -8,14 +8,15 @@ from vibes.helpers.converters import atoms2dict, input2dict
 from vibes.helpers.restarts import restart
 from vibes.tasks import calculate_socket
 
+from .context import CalculatorContext
 
-def run_aims(ctx):
+
+def run_aims(ctx: CalculatorContext):
     """ high level function to run aims calculation
 
-    Parameters
-    ----------
-    ctx: AimsContext
-        The context for the calculation
+    Args:
+        ctx: The context for the calculation
+
     """
 
     args = bootstrap(ctx)
@@ -28,17 +29,13 @@ def run_aims(ctx):
         talk("done.")
 
 
-def bootstrap(ctx):
+def bootstrap(ctx: CalculatorContext) -> dict:
     """ load settings, prepare atoms and aims calculator
 
-    Parameters
-    ----------
-    ctx: AimsContext
-        The context for the calculation
+    Args:
+        ctx: The context for the calculation
 
-    Returns
-    -------
-    dict
+    Returns:
         All of the necessary objects to run the Aims calculation with the following items
 
         atoms_to_calculate: list of ase.atoms.Atoms
@@ -54,10 +51,6 @@ def bootstrap(ctx):
         backup_after_calculation: bool
             If True back up the calculation folder once completed
 
-    Raises
-    ------
-    RuntimeError
-        If there are no structures to compute
     """
 
     # find geometries

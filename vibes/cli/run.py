@@ -2,10 +2,6 @@
 
 import click
 
-# from vibes.aims.context import AimsContext
-# from vibes.phonopy.context import PhonopyContext
-# from vibes.molecular_dynamics.context import MDContext
-# from vibes.settings import Settings
 from vibes.helpers import talk
 
 from .misc import AliasedGroup, complete_files
@@ -27,9 +23,9 @@ def run():
 def aims_run(obj, settings, workdir):
     """run one or several aims calculations from SETTINGS (default: aims.in)"""
     from vibes.settings import Settings
-    from vibes.aims import AimsContext, run_aims
+    from vibes.calculator import CalculatorContext, run_aims
 
-    ctx = AimsContext(Settings(settings_file=settings), workdir=workdir)
+    ctx = CalculatorContext(Settings(settings_file=settings), workdir=workdir)
 
     if obj.verbose > 0:
         talk(f"run aims calculations with settings from {settings}\n", prefix=_prefix)
@@ -58,7 +54,6 @@ def phonopy_run(obj, settings, workdir, dry):
 @run.command("phono3py")
 @click.argument("settings", default="phono3py.in", type=paths)
 @click.option("--workdir", help="work directory")
-@click.option("--kappa", help="")
 @click.option("--dry", is_flag=True, help="just prepare inputs in the workdir")
 @click.pass_obj
 def phono3py_run(obj, settings, workdir, dry):

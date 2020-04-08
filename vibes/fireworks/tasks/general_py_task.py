@@ -4,7 +4,7 @@ import os
 from vibes import DEFAULT_CONFIG_FILE
 from vibes.helpers import Timer
 from vibes.helpers.converters import dict2atoms
-from vibes.settings import Settings, TaskSettings
+from vibes.settings import Settings
 
 
 def get_func(func_path):
@@ -93,7 +93,7 @@ def atoms_calculate_task(
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 
-    default_settings = TaskSettings(name=None, settings=Settings(DEFAULT_CONFIG_FILE))
+    default_settings = Settings(DEFAULT_CONFIG_FILE)
 
     calculator_dict["command"] = default_settings.machine.aims_command
     if "species_dir" in calculator_dict["calculator_parameters"]:

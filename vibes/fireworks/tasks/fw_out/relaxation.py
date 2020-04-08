@@ -2,6 +2,8 @@
 
 from ase.io.aims import read_aims
 from fireworks import FWAction
+from jconfigparser.dict import DotDict
+
 from vibes.fireworks.tasks.postprocess.relaxation import check_completion
 from vibes.fireworks.workflows.firework_generator import generate_relax_fw
 from vibes.helpers.converters import atoms2dict, dict2atoms
@@ -37,14 +39,22 @@ def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
         Increases the supercell size or adds the phonon_dict to the spec
     """
     fw_settings = args[-1]
+    relax_settings = args[3]["relax_settings"]
     workdir = args[3]["relax_settings"].pop("workdir", None)
+
     if workdir is None:
         workdir = "."
-    settings = Settings(f"{workdir}/relaxation.in", read_config=False)
-    settings.relaxation["workdir"] = workdir
-
+    settings = Settings(f"{workdir}/relaxation.in", config_files=None)
+    settings["relaxation"] = DotDict(
+        {relax_settings["step"]: settings.pop("relaxation")}
+    )
+    settings.relaxation[relax_settings["step"]]["qadapter"] = fw_settings["spec"].get(
+        "_qadapter"
+    )
+    settings["fireworks"] = DotDict()
+    settings.fireworks["workdir"] = DotDict({"remote": workdir})
     new_atoms_dict = atoms2dict(read_aims(f"{workdir}/geometry.in.next_step"))
-    if check_completion(workdir, settings["relaxation"]["fmax"]):
+    if check_completion(workdir, relax_settings["fmax"]):
         update_spec = {}
         if "out_spec_atoms" in fw_settings:
             update_spec[fw_settings["out_spec_atoms"]] = new_atoms_dict
@@ -56,8 +66,14 @@ def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
         settings,
         dict2atoms(new_atoms_dict, calc_dict, False),
         fw_settings,
-        fw_settings["spec"].get("_queueadapter", None),
-        workdir,
+        relax_settings["step"],
     )
+    update_spec = {}
+    if "out_spec_atoms" in fw_settings:
+        update_spec[fw_settings["out_spec_atoms"]] = new_atoms_dict
+    if "out_spec_calc" in fw_settings:
+        update_spec[fw_settings["out_spec_calc"]] = calc_dict
 
-    return FWAction(detours=detours)
+    detours.spec.update(update_spec)
+
+    return FWAction(detours=detours, update_spec=update_spec)

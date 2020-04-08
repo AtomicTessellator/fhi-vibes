@@ -1,7 +1,7 @@
 """ vibes defaults for md"""
 import collections
 
-from vibes.helpers.attribute_dict import AttributeDict as adict
+from vibes.helpers.dict import AttributeDict as adict
 from vibes.keys import relaxation, relaxation_options  # noqa: F401
 from vibes.konstanten import n_geom_digits, symprec
 
@@ -23,6 +23,7 @@ _keys = [
     "decimals",
     "fix_symmetry",
     "symprec",
+    "workdir",
     "restart",
 ]
 keys = collections.namedtuple("relaxation_keywords", _keys)(*_keys)
@@ -30,17 +31,22 @@ keys = collections.namedtuple("relaxation_keywords", _keys)(*_keys)
 kwargs = adict(
     {
         keys.driver: "BFGS",
-        keys.logfile: "relaxation.log",
-        keys.unit_cell: False,
         keys.fmax: 0.001,
-        # "alpha": 25,
-        keys.maxstep: 0.2,
+        keys.unit_cell: False,
+        keys.fix_symmetry: False,
         keys.hydrostatic_strain: False,
         keys.constant_volume: False,
         keys.scalar_pressure: 0.0,
         keys.decimals: n_geom_digits,
-        keys.fix_symmetry: False,
         keys.symprec: symprec,
-        keys.restart: "bfgs.restart",
+        keys.workdir: name,
+        # kwargs go to Optimizer, e.g., BFGS(..., **kwargs)
+        "kwargs": {
+            keys.maxstep: 0.2,
+            keys.logfile: "relaxation.log",
+            keys.restart: "bfgs.restart",
+        },
     }
 )
+
+settings_dict = {name: kwargs}

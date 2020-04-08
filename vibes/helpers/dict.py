@@ -30,3 +30,28 @@ class AttributeDict(OrderedDict):
     def as_dict(self):
         """ return plain python dictionary (Fireworks compatibility) """
         return dict(self)
+
+
+def merge(source: dict, destination: dict, dict_type=dict) -> dict:
+    """recursively merge two dictionaries
+
+    Example:
+        a = {"first": {"all_rows": {"pass": "dog", "number": "1"}}}
+        b = {"first": {"all_rows": {"fail": "cat", "number": "5"}}}
+        merge(b, a) == {
+            "first": {"all_rows": {"pass": "dog", "fail": "cat", "number": "5"}}
+        }
+
+    Reference:
+        https://stackoverflow.com/a/20666342/5172579
+
+    """
+    for key, value in source.items():
+        if issubclass(value.__class__, dict):
+            # get node or create one
+            node = destination.setdefault(key, dict_type())
+            merge(value, node, dict_type=dict_type)
+        else:
+            destination[key] = value
+
+    return destination

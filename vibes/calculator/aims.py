@@ -1,4 +1,4 @@
-""" Provide an aims calculator without much ado """
+"""FHI-aims related setup"""
 import shutil
 from pathlib import Path
 
@@ -8,31 +8,53 @@ from ase.calculators.aims import Aims
 from vibes.helpers.k_grid import d2k
 from vibes.helpers.warnings import warn
 
-from ._defaults import basisset_choices, basisset_default, basisset_key, name, talk
+from ._defaults import talk
+from .context import CalculatorContext
+
+_fallback = "light"
+
+name = "aims"
+
+basisset_key = "basissets"
+basisset_choices = ("light", "intermediate", "tight", "really_tight")
+basisset_default = "light"
+
+
+default_control = {
+    "sc_accuracy_rho": 1e-6,
+    "relativistic": "atomic_zora scalar",
+    "output_level": "MD_light",
+}
+
+
+def verify_settings(settings: dict):
+    assert "machine" in settings
+    assert "aims_command" in settings.machine
+    assert "calculator" in settings
+    assert "basissets" in settings.calculator
+    assert "parameters" in settings.calculator
+    assert "xc" in settings.calculator.parameters
 
 
 class BasissetError(RuntimeError):
     """Raise when the basisset was set up incorrectly"""
 
 
-def create_species_dir(ctx, folder="basissets", fallback="light"):
+def create_species_dir(
+    ctx: CalculatorContext, folder: str = "basissets", fallback: str = _fallback
+) -> str:
     """ create a custom bassiset folder for the computation
 
-    Parameters
-    ----------
-    ctx: AimsContext
-        The context for the calculation
-    folder: str or Path
-        Folder to store the basisset
+    Args:
+        ctx: The context for the calculation
+        folder: Folder to store the basisset
 
-    Returns
-    -------
-    str
+    Returns:
         The absolute file path to the species directory
-    """
 
+    """
     loc = ctx.basisset_location
-    settings = ctx.settings
+    settings = ctx.settings.calculator
 
     # if old section with `basisset.type` is used:
     if basisset_key not in settings:
@@ -85,7 +107,15 @@ def create_species_dir(ctx, folder="basissets", fallback="light"):
     return str(folder.absolute())
 
 
-def add_basisset(loc, typ, elem, num, folder, fallback="light", verbose=True):
+def add_basisset(
+    loc: str,
+    typ: str,
+    elem: str,
+    num: int,
+    folder: str,
+    fallback: str = _fallback,
+    verbose: bool = True,
+):
     """copy basisset from location LOC of type TYP for ELEMENT w/ no. NUM to FOLDER"""
     rep = f"{num:02d}_{elem}_default"
 
@@ -99,7 +129,7 @@ def add_basisset(loc, typ, elem, num, folder, fallback="light", verbose=True):
         shutil.copy(loc / fallback / rep, folder)
 
 
-def setup_aims(ctx, verbose=True, make_species_dir=True):
+def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
     """Set up an aims calculator.
 
     Args:
@@ -107,25 +137,54 @@ def setup_aims(ctx, verbose=True, make_species_dir=True):
         verbose (bool): inform about the calculator details
 
     Returns:
-        calculator: Calculator object for the calculation
-    """
+        Calculator object for the calculation
 
-    settings = ctx.settings
+    """
+    verify_settings(ctx.settings)
+    settings = ctx.settings.calculator
 
     # update k_grid
-    if ctx.ref_atoms and "control_kpt" in settings:
-        if "density" not in settings.control_kpt:
+    if ctx.ref_atoms and "kpoints" in settings:
+        if "density" not in settings.kpoints:
             warn("'control_kpt' given, but not kpt density. Check!", level=1)
         else:
-            kptdensity = settings.control_kpt.density
+            kptdensity = settings.kpoints.density
             k_grid = d2k(ctx.ref_atoms, kptdensity, True)
             talk(f"Update aims k_grid with kpt density of {kptdensity} to {k_grid}")
-            ctx.settings.obj["k_grid"] = k_grid
-            del ctx.settings["control_kpt"]
+            settings.parameters["k_grid"] = k_grid
 
-    aims_settings = settings.obj
+    # add defaults
+    for key in default_control:
+        if key not in settings.parameters:
+            settings.parameters[key] = default_control[key]
+            talk(f".. add `{key}: {default_control[key]}` to parameters (default)")
 
-    ase_settings = {"aims_command": settings.machine.aims_command}
+    aims_settings = settings.parameters
+
+    # check for information in settings that imply to set up forces and stress:
+    force, stress, stresses = False, False, False
+
+    if "md" in ctx.settings and "phonopy" not in ctx.settings:
+        force = True
+        if ctx.settings["md"]["compute_stresses"]:
+            stresses = True
+
+    if "relaxation" in ctx.settings:
+        force = True
+        if ctx.settings["relaxation"].get("unit_cell"):
+            stress = True
+
+    if "phonopy" in ctx.settings:
+        force = True
+
+    if force:
+        aims_settings.update({"compute_forces": True})
+    if stress:
+        aims_settings.update({"compute_analytical_stress": True})
+    if stresses:
+        aims_settings.update({"compute_heat_flux": True})
+
+    ase_settings = {"aims_command": ctx.settings.machine.aims_command}
 
     if "socketio" in settings:
         host = settings.socketio.get("host", "localhost")
@@ -139,7 +198,7 @@ def setup_aims(ctx, verbose=True, make_species_dir=True):
             aims_settings.update({"use_pimd_wrapper": (host, port)})
 
     # create basissetfolder
-    if make_species_dir:
+    if settings.get("make_species_dir", True):
         species_dir = create_species_dir(ctx)
     else:
         species_dir = str(ctx.basisset_location / settings.basissets.default)

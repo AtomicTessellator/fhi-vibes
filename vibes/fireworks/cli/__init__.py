@@ -1,6 +1,7 @@
 """`vibes fireworks part of the CLI"""
 import click
 from fireworks.fw_config import CONFIG_FILE_DIR, LAUNCHPAD_LOC
+
 from vibes.cli.misc import AliasedGroup
 from vibes.fireworks._defaults import FW_DEFAULTS
 from vibes.helpers import talk
@@ -28,7 +29,8 @@ class ListOption(click.Option):
         """
         if not value:
             return None
-        value = value.split(",")
+        if isinstance(value, str):
+            value = value.split(",")
         if isinstance(self.type, click.types.IntParamType):
             return [int(v) for v in value]
         return value
@@ -47,54 +49,37 @@ def add_wf(workflow, launchpad):
     from pathlib import Path
     from glob import glob
 
-    from ase.calculators.calculator import get_calculator_class
-    from vibes.aims.context import AimsContext
-    from vibes.aims.setup import setup_aims
+    from vibes.context import TaskContext
     from vibes.fireworks.workflows.workflow_generator import generate_workflow
-    from vibes.settings import TaskSettings, AttributeDict, Settings
+    from vibes.settings import Settings
 
-    wflow = TaskSettings(name=None, settings=Settings(settings_file=workflow))
-    """Adds a workflow to the launchpad"""
+    settings = Settings(settings_file=workflow)
     structure_files = []
-    if "geometry" in wflow:
-        if "files" in wflow.geometry:
-            if "/" == wflow.geometry.files[0]:
-                files = glob(wflow.geometry.pop("files"))
+    if "files" in settings:
+        if "geometries" in settings.files:
+            if "/" == settings.files.geometries[0]:
+                files = glob(settings.files.pop("geometries"))
             else:
-                files = Path.cwd().glob(wflow.geometry.pop("files"))
+                files = Path.cwd().glob(settings.files.pop("geometries"))
             for file in files:
                 structure_files.append(Path(file).relative_to(Path.cwd()))
-        if "file" in wflow.geometry:
-            structure_files.append(wflow.geometry.pop("file"))
+        if "geometry" in settings.files:
+            structure_files.append(settings.files.pop("geometry"))
     else:
         raise IOError("No geometry file was specified")
 
     for file in structure_files:
         settings = Settings(settings_file=workflow)
-        settings.geometry.pop("files", None)
-        settings.geometry["file"] = str(file)
+        settings["calculator"]["make_species_dir"] = False
 
-        wflow = TaskSettings(name=None, settings=settings)
+        settings.files.pop("geometries", None)
+        settings.files["geometry"] = str(file)
+
+        wflow = TaskContext(name=None, settings=settings)
         atoms = wflow.atoms
+        atoms.set_calculator(wflow.calculator)
 
         talk(f"Generating workflow for {get_sysname(atoms)}", prefix="fireworks")
-        if "control" in wflow or (
-            "calculator" in wflow and wflow.calculator.get("name") == "aims"
-        ):
-            if "basissets" not in wflow and "basisset" in wflow.general:
-                wflow["basissets"] = AttributeDict({"default": wflow.general.basisset})
-            elif "basissets" not in wflow:
-                wflow["basisset"] = AttributeDict({"default": "light"})
-
-            calc = setup_aims(
-                ctx=AimsContext(settings=wflow), verbose=False, make_species_dir=False
-            )
-        elif "calculator" in wflow:
-            calc_parameters = wflow.calculator.copy()
-            name = calc_parameters.pop("name").lower()
-            calc = get_calculator_class(name)(**calc_parameters)
-
-        atoms.set_calculator(calc)
         generate_workflow(wflow, atoms, launchpad)
 
 

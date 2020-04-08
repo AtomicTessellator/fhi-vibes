@@ -4,18 +4,15 @@ from vibes.filenames import filenames
 from vibes.helpers import talk, warn
 
 
-def peek_aims_uuid(file=filenames.output.aims):
+def peek_aims_uuid(file: str = filenames.output.aims) -> str:
     """peek into aims.out and find the uuid
 
-    Parameters
-    ----------
-    file: str
-        Path to the aims.out file (default: aims.out)
+    Args:
+        file: Path to the aims.out file (default: aims.out)
 
-    Returns
-    -------
-    str
+    Returns:
         The uuid of an FHI-Aims calculation
+
     """
     try:
         with open(file) as f:
@@ -28,18 +25,15 @@ def peek_aims_uuid(file=filenames.output.aims):
     return ""
 
 
-def get_aims_uuid_dict(file=filenames.output.aims):
+def get_aims_uuid_dict(file: str = filenames.output.aims) -> dict:
     """return aims uuid as dictionary
 
-    Parameters
-    ----------
-    file: str
-        Path to the aims.out file (default: aims.out)
+    Args:
+        file: Path to the aims.out file (default: aims.out)
 
-    Returns
-    -------
-    dict
+    Returns:
         The uuid of an FHI-Aims calculation as a dict
+
     """
     uuid = peek_aims_uuid(file)
 

@@ -1,15 +1,18 @@
 """ Settings class for holding settings, based on configparser.ConfigParser """
 from pathlib import Path
+from typing import Sequence
 
 from jconfigparser import Config
+from jconfigparser.dict import DotDict
 
+from vibes import keys
 from vibes._defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_FIREWORKS_FILE,
     DEFAULT_GEOMETRY_FILE,
     DEFAULT_SETTINGS_FILE,
 )
-from vibes.helpers.attribute_dict import AttributeDict
+from vibes.helpers.dict import merge
 from vibes.helpers.warnings import warn
 
 
@@ -70,37 +73,61 @@ class Settings(Config):
 
     def __init__(
         self,
-        settings_file: str = DEFAULT_SETTINGS_FILE,
-        read_config: bool = True,
-        config_file: str = DEFAULT_CONFIG_FILE,
-        fireworks_file: str = DEFAULT_FIREWORKS_FILE,
+        settings_file: str = None,
+        template_dict: dict = None,
+        config_files: Sequence[str] = [DEFAULT_CONFIG_FILE],
+        fireworks: bool = False,
         dct: dict = None,
     ):
         """Initialize Settings
 
         Args:
             settings_file: Path to the settings file
-            read_config: read the configuration files
-            config_file: Path to the configuration file
-            fireworks_file: Path to the FireWorks Configuration file
+            template_dict: Template dictionary with default settings
+            config_files: Path to the configuration files
+            fireworks: read fireworks config file
             dct: create Settings from this dictionary
+
         """
-        if read_config:
-            config_files = [config_file, settings_file, fireworks_file]
-        else:
-            config_files = [settings_file]
+        if dct is None and settings_file is None:
+            warn("`settings_file` is `None`", level=1)
 
-        if dct:
-            # recursion depth 1
-            super().__init__()
-            for key in dct:
-                self[key] = dct[key]
-            if hasattr(dct, "settings_file"):
-                self._settings_file = dct.settings_file
-        else:
-            super().__init__(filenames=[file for file in config_files if file])
+        # read config, then template, then user settings
 
-        self._settings_file = settings_file
+        _dct = DotDict()
+
+        # i) config
+        if config_files is not None:
+            if fireworks:
+                config_files.append(DEFAULT_FIREWORKS_FILE)
+
+            for file in config_files:
+                _temp = Config(file)
+                _dct = merge(_temp, _dct, dict_type=DotDict)
+
+        # ii) read template
+        if template_dict:
+            _dct = merge(template_dict, _dct, dict_type=DotDict)
+
+        # iii) user settings
+        if not dct:
+            dct = {}
+
+            if settings_file is not None:
+                dct = Config(settings_file)
+
+        _dct = merge(dct, _dct, dict_type=DotDict)
+
+        _dct = legacy_update(_dct)
+
+        super().__init__()
+        for key in _dct:
+            self[key] = _dct[key]
+
+        if hasattr(dct, "file"):
+            self._settings_file = dct.file
+        else:
+            self._settings_file = settings_file
 
     @classmethod
     def from_dict(cls, dct):
@@ -110,21 +137,18 @@ class Settings(Config):
     @property
     def file(self):
         """return path to the settings file"""
-        return self._settings_file
-
-    @property
-    def settings_file(self):
-        """return path to the settings file"""
-        return self._settings_file
+        if self._settings_file is not None:
+            return self._settings_file
+        return DEFAULT_SETTINGS_FILE
 
     def write(self, file=None):
         """write settings to file"""
 
         if not file:
-            file = self.settings_file
+            file = Path(self.file).name
 
         if not Path(file).exists():
-            super().write(file=file)
+            super().write(Path(file))
         else:
             warn(f"{file} exists, do not overwrite settings.", level=1)
 
@@ -134,194 +158,13 @@ class Settings(Config):
             ignore_sections = Configuration().keys()
         super().print(ignore_sections=ignore_sections)
 
-
-class SettingsSection(AttributeDict):
-    """Wrapper for a section of settings.in"""
-
-    def __init__(self, name, settings=None, defaults=None, mandatory_keys=None):
-        """Initialize Settings in a specific context
-
-        Parameters
-        ----------
-        name: str
-            name of the section
-        settings: Settings
-            Settings object
-        defaults: dict
-            dictionary with default key/value pairs
-        mandatory_keys: list
-            mandatory keys in the section
-        """
-
-        if defaults is None:
-            defaults = {}
-        if mandatory_keys is None:
-            mandatory_keys = []
-
-        super().__init__(settings[name])
-
-        self._name = name
-        self._settings_file = settings.settings_file
-
-        # validate mandatory keys
-        for key in mandatory_keys:
-            self.verify_key(key)
-
-        for key in defaults.keys():
-            self[key] = self.get(key, defaults[key])
-
-    @property
-    def name(self):
-        """the name of the task/context"""
-        return self._name
-
-    def verify_key(self, key):
-        """verify that key is in self.obj
-
-        Parameters
-        ----------
-        key: str
-            key to verify is in self.obj
-
-        Raises
-        ------
-        SettingsError
-            If key is not in self.obj
-        """
-        verify_key(key, self, hint=f"{self._settings_file}, section [{self.name}]")
-
-
-class TaskSettings(Settings):
-    """Wrapper for Settings in the context of a workflow"""
-
-    def __init__(
-        self,
-        name=None,
-        settings=None,
-        read_config=True,
-        default_kwargs=None,
-        mandatory_keys=None,
-        obj_key=None,
-        mandatory_obj_keys=None,
-        debug=False,
-    ):
-        """Initialize Settings in a specific context
-
-        Parameters
-        ----------
-        name: str
-            name of the context or workflow
-        settings_file: str or Path
-            location of settings file. Otherwise inferred from name
-        read_config: boolean
-            read the configuration file, otherwise just use settings
-        defaults: dict
-            dictionary with default key/value pairs
-        mandatory_keys: list
-            mandatory keys in `settings`
-        mandatory_obj_keys: list
-            mandatory keys in `settings.name`
-
-        Attributes
-        ----------
-        _obj: dict
-            this holds the sub dict with name `name`
-
-        """
-        if default_kwargs is None:
-            default_kwargs = {}
-        if mandatory_keys is None:
-            mandatory_keys = []
-        if mandatory_obj_keys is None:
-            mandatory_obj_keys = []
-        if settings is None:
-            settings = Settings(read_config=read_config)
-
-        # read the bare settings
-        super().__init__(dct=settings)
-
-        self._atoms = None
-        self._workdir = None
-        self._debug = debug
-        self._obj = {}
-
-        for key, val in settings.items():
-            self[key] = val
-
-        self._name = name
-
-        # verify name
-        self.verify_key(name)
-
-        if not obj_key:
-            obj_key = name
-
-        # validate mandatory keys
-        for key in mandatory_keys:
-            self.verify_key(key)
-
-        if obj_key:
-            s = SettingsSection(obj_key, settings, default_kwargs, mandatory_obj_keys)
-            self[obj_key] = s
-            self._obj = self[obj_key]
-
-        # workdir
-        if "workdir" in self.obj:
-            self.workdir = self.obj.pop("workdir")
-
-        # make sure atoms are read once
-        _ = self.atoms
-
-    @property
-    def name(self):
-        """the name of the task/context"""
-        return self._name
-
-    def verify_key(self, key):
-        """verify that key is in self
-
-        Parameters
-        ----------
-        key: str
-            section key to check is in self
-
-        Raises
-        ------
-        SettingsError
-            If key is not in self.obj
-        """
-        verify_key(
-            key, self, hint=f"{self.settings_file}", section=True, allowed_to_fail=True
-        )
-
-    @property
-    def atoms(self):
-        """ Return the settings.atoms object """
-        if not self._atoms:
-            self._atoms = self.get_atoms()
-        return self._atoms
-
-    @atoms.setter
-    def atoms(self, obj):
-        """Set the settings._atoms with an  ase.atoms.Atoms object"""
-        from ase.atoms import Atoms
-
-        assert isinstance(obj, Atoms), type(obj)
-        self._atoms = obj
-
-    def get_atoms(self, format="aims"):
+    def read_atoms(self, format="aims"):
         """parse the geometry described in settings.in and return as atoms
-
-        Parameters
-        ----------
-        format: str
-            format of self.geometry.file
         """
         from ase.io import read
 
-        # use the file specified in geometry.file or the default (geometry.in)
-        if "geometry" in self and "file" in self.geometry and self.geometry.file:
-            path = Path(self.geometry.file)
+        if "files" in self and "geometry" in self["files"]:
+            path = Path(self.files.geometry)
             file = next(path.parent.glob(path.name))
         else:
             file = DEFAULT_GEOMETRY_FILE
@@ -329,22 +172,55 @@ class TaskSettings(Settings):
         if Path(file).exists():
             return read(file, format=format)
 
-        if self._debug:
-            warn(f"Geometry file {file} not found.", level=1)
+        warn(f"Geometry file {file} not found.", level=1)
 
         return None
 
-    @property
-    def obj(self):
-        """the object holding the specific settings for the task"""
-        return self._obj
 
-    @property
-    def workdir(self):
-        """wrapper for the working directory"""
-        return self._workdir
+def legacy_update_aims(settings: dict) -> dict:
+    """replace legacy keynames in settings related to aims"""
 
-    @workdir.setter
-    def workdir(self, workdir):
-        """wrapper for the working directory"""
-        self._workdir = workdir
+    # aims
+    if "control" in settings:
+        if "calculator" not in settings:
+            settings["calculator"] = DotDict()
+
+        settings[f"{keys.calculator}.{keys.name}"] = "aims"
+        settings[keys.calculator][keys.parameters] = settings.pop("control")
+
+    if "control_kpt" in settings:
+        settings[keys.calculator]["kpoints"] = settings.pop("control_kpt")
+
+    if "basissets" in settings:
+        settings[keys.calculator]["basissets"] = settings.pop("basissets")
+
+    if "socketio" in settings:
+        settings[keys.calculator]["socketio"] = settings.pop("socketio")
+
+    if "basisset" in settings:
+        msg = "`basisset.type` is removed in favour of `basissets.default`. Stop"
+        raise RuntimeError(msg)
+
+
+def legacy_update(settings: dict) -> dict:
+    """replace legacy keynames in settings"""
+
+    # aims -> calculator.aims
+    legacy_update_aims(settings)
+
+    # geometry -> files
+    _files = "files"
+    if "geometry" in settings:
+        if _files not in settings:
+            settings[_files] = DotDict()
+
+        if "file" in settings.geometry:
+            settings[_files]["geometry"] = settings.geometry.pop("file")
+        if "files" in settings.geometry:
+            settings[_files]["geometries"] = settings.geometry.pop("files")
+
+        for name in ("primitive", "supercell"):
+            if name in settings.geometry:
+                settings[_files][name] = settings.geometry.pop(name)
+
+    return settings

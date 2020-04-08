@@ -1,16 +1,17 @@
 """Wrappers to prepare statistical sampling"""
 import ase
 import numpy as np
+
 from vibes.cli.scripts.create_samples import generate_samples
-from vibes.helpers.attribute_dict import AttributeDict
 from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms
+from vibes.helpers.dict import AttributeDict
 from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.supercell import make_supercell
 from vibes.helpers.warnings import warn
 from vibes.phonopy.postprocess import postprocess as postprocess_ph
 from vibes.phonopy.utils import get_force_constants_from_trajectory
-from vibes.phonopy.wrapper import preprocess as get_debye_temperature
-from vibes.settings import Settings, TaskSettings
+from vibes.phonopy.wrapper import get_debye_temperature
+from vibes.settings import Settings
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
@@ -35,7 +36,7 @@ def bootstrap(name="statistical_sampling", settings=None, **kwargs):
     """
 
     if settings is None:
-        settings = TaskSettings(name=None, settings=Settings())
+        settings = Settings()
 
     stat_sample_settings = {}
 
@@ -146,8 +147,7 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
             raise IOError(
                 "Debye Temp must be calculated with phonopy, please add phonon_file"
             )
-
-        debye_temp = get_debye_temperature(phonon, 5e-3)[0]
+        debye_temp = get_debye_temperature(phonon, 5e-3)[-1]
         temperatures += [tt * debye_temp for tt in debye_temp_fact]
     elif temperatures is None:
         raise IOError("temperatures must be given to do harmonic analysis")

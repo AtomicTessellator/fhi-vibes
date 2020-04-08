@@ -159,6 +159,48 @@ CONFIG_FILE_DIR = $FW_CONFIG
 ```
 To find where the site-packages file is located run `python -m site` and it should appear in the returned list.
 
+## Creating a `.fireworksrc` file
+Now that FireWorks is installed and setup correctly vibes needs to be configured correctly in order to use it effectively.
+This file sets up default values for running FireWorks utilities that will be consistent throughout all calculation.
+To make this file run `vibes template fireworks_configuration` which will create a template `fireworksrc` in the current working directory with the following input:
+```
+[fireworks]
+config_dir: "~/.fireworks"
+tasks2queue = ["vibes.relaxation.bfgs.relax", "vibes.fireworks.tasks.calculate_wrapper.wrap_calc_socket", "vibes.k_grid.converge_kgrid.converge_kgrid", "vibes.fireworks.tasks.calculate_wrapper.wrap_calculate", "vibes.fireworks.tasks.md.run" ]
+
+[fireworks.remote]
+host = ["remote.host.path"]
+config_dir = ["/path/to/remote/home/.fireworks/"]
+launch_dir = "."
+
+[fireworks.remote.authorization]
+user = remote_username
+password = null
+
+[fireworks.remote.launch]
+njobs_queue = 0
+njobs_block = 500
+reserve = True
+nlaunches = 0
+sleep_time = 60
+```
+A description of each of these parameters is given below:
+
+* `fireworks.config_dir`: The local FireWorks configuration directory
+* `fireworks.tasks2queue`: List of all tasks to be run on the queue for a combined launch
+* `fireworks.remote.host`: List of all remote hosts
+* `fireworks.remote.config_dir`: List of all FireWorks configuration directories on the remote hosts
+* `fireworks.remote.launch_dir`: Launch Directory for the remote hosts
+* `fireworks.remote.authorization.user`: username used for the remote hosts
+* `fireworks.remote.authorization.password`: Password for the remote hosts (recommended to not store here and keep null)
+* `fireworks.remote.launch.njobs_queue`: Maximum number of jobs to submit onto a remote host (0 no limit)
+* `fireworks.remote.launch.njobs_block`: Number of launcher directories to add to a block directory on remote hosts
+* `fireworks.remote.launch.reserve`: If True run FireWorks in reservation mode
+* `fireworks.remote.launch.nlaunches`: Maximum number of jobs to launch at any given (0 no limit)
+* `fireworks.remote.launch.sleep_time`: Time to sleep in seconds between checking for jobs to run.
+
+Once completed copy `fireworksrc` to `$HOME/.fireworksrc`.
+
 ## Testing if it works
 Now that your FireWorks installation should be working properly test it with the vibes FireWorks test in `test/fireworks/test_fireworks.py`.
 If the test works successfully then when you run `lpad get_wflows` you should get the following output (created on should match today's date/time):

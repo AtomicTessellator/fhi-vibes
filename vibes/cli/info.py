@@ -11,6 +11,19 @@ def info():
     """inform about content of a file"""
 
 
+@info.command("settings")
+@click.argument("file", type=complete_files)
+@click.pass_obj
+def settings_info(obj, file):
+    """inform about content of a settings file"""
+    from vibes.settings import Settings
+
+    click.echo(f"List content of {file} including system-wide configuration")
+
+    settings = Settings(file)
+    settings.print()
+
+
 @info.command("geometry")
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("--format", default="aims", show_default=True)
@@ -198,18 +211,24 @@ def relaxation_info(obj, file, verbose):
 
     traj, metadata = reader(file, get_metadata=True, verbose=False)
 
+    relaxation_kwargs = metadata[name].get(relaxation_options, {})
+
     try:
-        fmax = metadata[name][relaxation_options][keys.fmax]
+        fmax = relaxation_kwargs[keys.fmax]
     except KeyError:
         fmax = kwargs[keys.fmax]
         click.echo(f"** fmax not found in {file}, use default value {fmax}")
 
     try:
-        fix_symmetry = metadata[name][relaxation_options][keys.fix_symmetry]
+        fix_symmetry = relaxation_kwargs[keys.fix_symmetry]
     except KeyError:
         fix_symmetry = kwargs[keys.fix_symmetry]
         msg = f"** `fix_symmetry` not found in {file}, use default value {fix_symmetry}"
         click.echo(msg)
+
+    scalar_pressure = relaxation_kwargs.get(
+        keys.scalar_pressure, kwargs[keys.scalar_pressure]
+    )
 
     atoms_ref = traj[0]
     na = len(atoms_ref)
@@ -226,9 +245,12 @@ def relaxation_info(obj, file, verbose):
     if fix_symmetry:
         from ase.spacegroup.symmetrize import FixSymmetry
 
-        click.echo("fix_symmetry: True")
+        click.echo("fix_symmetry:     True")
 
-    click.echo(f"fmax:         {fmax*1000:.3e} meV/AA")
+    if scalar_pressure:
+        click.echo(f"scalar_pressure: {scalar_pressure*1000: .3e} meV/A**3")
+
+    click.echo(f"fmax:            {fmax*1000: .3e} meV/AA")
     click.echo(
         "# Step |   Free energy   |   F-F(1)   | max. force |  max. stress |"
         + "  Volume  |  Spacegroup  |"
@@ -243,7 +265,7 @@ def relaxation_info(obj, file, verbose):
         energy = atoms.get_potential_energy()
         de = 1000 * (energy - energy_ref)
 
-        opt_atoms = ExpCellFilter(atoms)
+        opt_atoms = ExpCellFilter(atoms, scalar_pressure=scalar_pressure)
 
         forces = opt_atoms.get_forces()
         stress = full_3x3_to_voigt_6_stress(forces[na:])

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vibes"
-version = "1.0.0a3"
+version = "1.0.0-alpha.0"
 description = "Fritz Haber Institute Vibrational Simulations"
 authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
 license = "ISC"
@@ -37,7 +37,7 @@ hiphive = {version = "^0.5.0", optional = true}
 tables = "^3.5"
 click_aliases = "^1.0"
 click_completion = "^0.5.2"
-jconfigparser = {version = "^0.1.0-alpha.1", allows-prereleases = true}
+jconfigparser = "^0.1.1"
 pandas = "^1.0"
 
 [tool.poetry.extras]

@@ -1,13 +1,14 @@
-[files]
-geometry:                      geometry.in
-
 [calculator]
-name:                          aims
+name: aims
 
 [calculator.parameters]
 xc:                            pw-lda
-k_grid:                        [2, 2, 2]
 
 [calculator.basissets]
 default:                       light
 
+[calculator.kpoints]
+density:                       5
+
+[calculator.socketio]
+port:                          12345

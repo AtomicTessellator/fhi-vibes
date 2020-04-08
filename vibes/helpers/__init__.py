@@ -1,7 +1,7 @@
 """various helpers"""
 # flake8: noqa
 
-from .attribute_dict import AttributeDict
+from .dict import AttributeDict
 from .geometry import get_cubicness
 from .k_grid import d2k
 from .lists import list_dim

@@ -1,14 +1,19 @@
-[geometry]
-file:                          geometry.??
-files:                         geometry.in.???
+[files]
+geometry:                      geometry.??
+geometries:                    geometry.in.???
 primitive:                     geometry.in
 
-[control]
-xc:                            pw-lda
-k_grid:                        [2, 2, 2]
+[calculator]
+name:                          aims
 
-[basissets]
+[calculator.parameters]
+xc:                            pw-lda
+
+[calculator.kpoints]
+density:                       3
+
+[calculator.basissets]
 Si:                            light
 
-[socketio]
+[calculator.socketio]
 port:                          12345

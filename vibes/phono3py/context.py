@@ -10,11 +10,7 @@ class Phono3pyContext(PhonopyContext):
     """PhonopyContext with changed name"""
 
     def __init__(self, *args, **kwargs):
-        kw = {
-            "name": defaults.name,
-            "defaults_kw": defaults.kwargs,
-            "mandatory_kw": defaults.mandatory,
-        }
+        kw = {"name": defaults.name, "template_dict": defaults.settings_dict}
         kwargs.update(kw)
         super().__init__(*args, **kwargs)
 

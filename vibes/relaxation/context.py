@@ -2,18 +2,15 @@
 
 from pathlib import Path
 
-from ase import Atoms, optimize
-from ase.calculators.calculator import Calculator
+from ase import optimize
 from ase.constraints import ExpCellFilter
 
 from vibes import keys, son
-from vibes.aims.context import AimsContext
-from vibes.filenames import filenames
+from vibes.context import TaskContext
 from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict
-from vibes.settings import TaskSettings
 
-from . import _defaults as defaults
+from ._defaults import name, settings_dict
 from .workflow import _prefix, run_relaxation
 
 # duck type ExpCellFilter, see https://gitlab.com/ase/ase/-/issues/603
@@ -26,25 +23,10 @@ class MyExpCellFilter(ExpCellFilter):
         return super().get_forces(apply_constraint=apply_constraint)
 
 
-class RelaxationSettings(TaskSettings):
-    """Relaxation settings. Ensures that settings.relaxation is set up sensibly"""
-
-    def __init__(self, settings):
-        """Settings in the context of an md workflow"""
-
-        super().__init__(
-            defaults.name,
-            settings=settings,
-            default_kwargs=defaults.kwargs,
-            mandatory_keys=defaults.mandatory_base,
-            mandatory_obj_keys=defaults.mandatory_task,
-        )
-
-
-class RelaxationContext:
+class RelaxationContext(TaskContext):
     """context for relaxation"""
 
-    def __init__(self, settings, workdir=None, trajectory_file=None):
+    def __init__(self, settings=None, workdir=None, trajectory_file=None):
         """Initialization
 
         Args:
@@ -52,130 +34,60 @@ class RelaxationContext:
             workdir: Working directory for the relaxation workflow
             trajectory_file: Path to output trajectory
         """
-        self.settings = RelaxationSettings(settings)
+        super().__init__(settings, name, template_dict=settings_dict)
 
-        if workdir:
-            self.workdir = Path(workdir).absolute()
-        if not self.workdir:
-            self.workdir = Path(defaults.name).absolute()
-
-        # workdir has to exist
-        Path(self.workdir).mkdir(exist_ok=True, parents=True)
-
-        if trajectory_file:
-            self.trajectory_file = Path(trajectory_file)
-        else:
-            self.trajectory_file = Path(self.workdir) / filenames.trajectory
-
-        self._atoms = None
-        self._calculator = None
         self._opt = None
 
-        self.kw = {}
-        self.exp_cell_filter_kw = {}
+        # legacy
+        if "maxstep" in self.kw:
+            self.kw["kwargs"]["maxstep"] = self.kw.pop("maxstep")
 
-        obj = self.settings.obj
-        # save paramters that don't got to the optimizer
+    @property
+    def exp_cell_filter_kw(self):
+        """kwargs from self.settings.relaxation for ExpCellFilter"""
         kw = {
-            "fmax": obj.pop("fmax"),
-            "driver": obj.pop("driver"),
-            "unit_cell": obj.pop("unit_cell"),
-            "decimals": obj.pop("decimals"),
-            "fix_symmetry": obj.pop("fix_symmetry"),
-            "symprec": obj.pop("symprec"),
+            "hydrostatic_strain": self.kw.get("hydrostatic_strain"),
+            "constant_volume": self.kw.get("constant_volume"),
+            "scalar_pressure": self.kw.get("scalar_pressure"),
         }
-        self.kw = kw
+        return kw
 
-        # save parameters that go to the cellfilter
-        kw = {
-            "hydrostatic_strain": obj.pop("hydrostatic_strain"),
-            "constant_volume": obj.pop("constant_volume"),
-            "scalar_pressure": obj.pop("scalar_pressure"),
-        }
-        self.exp_cell_filter_kw = kw
-
-    # views on self.kw
     @property
     def driver(self):
-        return self.kw["driver"]
+        return self.kw.get("driver")
 
     @property
     def unit_cell(self):
-        return self.kw["unit_cell"]
+        return self.kw.get("unit_cell")
 
     @property
     def fmax(self):
-        return self.kw["fmax"]
+        return self.kw.get("fmax")
 
     @property
     def decimals(self):
-        return self.kw["decimals"]
+        return self.kw.get("decimals")
 
     @property
     def fix_symmetry(self):
-        return self.kw["fix_symmetry"]
+        return self.kw.get("fix_symmetry")
 
     @property
     def symprec(self):
-        return self.kw["symprec"]
-
-    @property
-    def workdir(self):
-        """return the working directory"""
-        if self.settings.workdir:
-            return Path(self.settings.workdir).absolute()
-
-    @workdir.setter
-    def workdir(self, folder):
-        """set and create the working directory. Use a standard name if dir='auto'"""
-        self.settings.workdir = Path(folder)
-        self.workdir.mkdir(exist_ok=True, parents=True)
-
-    @property
-    def atoms(self):
-        """The atoms object for running the computation"""
-        if not self._atoms:
-            self._atoms = self.settings.get_atoms()
-        return self._atoms
-
-    @atoms.setter
-    def atoms(self, atoms):
-        """set the atoms"""
-        assert isinstance(atoms, Atoms), atoms
-        self._atoms = atoms
-
-    @property
-    def calculator(self):
-        """the calculator for running the computation"""
-        if not self._calculator:
-            # create aims from context and make sure forces are computed
-            aims_ctx = AimsContext(settings=self.settings, workdir=self.workdir)
-            aims_ctx.settings.obj["compute_forces"] = True
-
-            # atomic stresses
-            if self.unit_cell:
-                aims_ctx.settings.obj["compute_analytical_stress"] = True
-
-            self._calculator = aims_ctx.get_calculator()
-
-        return self._calculator
-
-    @calculator.setter
-    def calculator(self, calculator):
-        """set the calculator"""
-        assert issubclass(calculator.__class__, Calculator)
-        self._calculator = calculator
+        return self.kw.get("symprec")
 
     @property
     def opt(self):
         """the relaxation algorithm"""
+        self.mkdir()
+
         if not self._opt:
-            obj = self.settings.obj
-            opt_settings = {"logfile": str(Path(self.workdir) / obj.logfile)}
-            obj.update(opt_settings)
+            obj = self.settings[name].kwargs
+
+            logfile = str(self.workdir / obj.pop("logfile", "relaxation.log"))
 
             if "bfgs" in self.driver.lower():
-                opt = optimize.BFGS(atoms=self.opt_atoms, **obj)
+                opt = optimize.BFGS(atoms=self.opt_atoms, logfile=logfile, **obj)
             else:
                 warn(f"Relaxation driver {obj.driver} not supported.", level=2)
 
@@ -217,7 +129,7 @@ class RelaxationContext:
         opt_dict = self.opt.todict()
 
         # save time and mass unit
-        opt_dict.update(**self.settings.obj)
+        opt_dict.update(**self.settings[name])
 
         # save kws
         opt_dict.update({keys.relaxation_options: self.kw})

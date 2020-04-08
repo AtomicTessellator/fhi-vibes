@@ -4,6 +4,7 @@ A to convert phonopy/phono3py objects to dictionaries
 import copy
 
 import numpy as np
+
 from vibes.ase.db.dict_converters import atoms2dict
 from vibes.materials_fp.material_fingerprint import (
     get_phonon_bs_fp,
@@ -80,9 +81,12 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
     if phonon.thermal_properties is not None:
         dct["tp_ZPE"] = phonon.thermal_properties.zero_point_energy
         dct["tp_high_T_S"] = phonon.thermal_properties.high_T_entropy
-        dct["tp_T"], dct["tp_A"], dct["tp_S"], dct[
-            "tp_Cv"
-        ] = phonon.get_thermal_properties()
+        (
+            dct["tp_T"],
+            dct["tp_A"],
+            dct["tp_S"],
+            dct["tp_Cv"],
+        ) = phonon.get_thermal_properties()
 
     return dct
 

@@ -1,130 +1,73 @@
 """Phonopy workflow context managing"""
 
 import sys
-from pathlib import Path
 
 from ase import Atoms
 
+from vibes.context import TaskContext
 from vibes.helpers.numerics import get_3x3_matrix
-from vibes.settings import TaskSettings
 from vibes.structure.misc import get_sysname
 
-from . import _defaults as defaults
 from . import metadata2dict
 from . import postprocess as postprocess
 from . import wrapper as backend
+from ._defaults import keys, name, settings_dict
 
 
-class PhonopySettings(TaskSettings):
-    """Phonopy settings. Ensures that settings.phonopy is set up sensibly"""
-
-    def __init__(
-        self, settings, name=defaults.name, defaults_kw=None, mandatory_kw=None
-    ):
-        """Settings in the context of a phonopy workflow
-
-        Parameters
-        ----------
-        settings: Settings
-            Settings object with settings for phonopy
-        """
-        if defaults_kw is None:
-            defaults_kw = defaults.kwargs
-        if mandatory_kw is None:
-            mandatory_kw = defaults.mandatory
-
-        super().__init__(
-            name=name, settings=settings, default_kwargs=defaults_kw, **mandatory_kw
-        )
-
-        # validate
-        self.obj["supercell_matrix"] = get_3x3_matrix(self._obj.supercell_matrix)
-
-    @property
-    def supercell_matrix(self):
-        """return settings.phonopy.supercell_matrix"""
-        return self.obj["supercell_matrix"]
-
-
-class PhonopyContext:
+class PhonopyContext(TaskContext):
     """context for phonopy calculation"""
 
     def __init__(
-        self,
-        settings,
-        workdir=None,
-        name=defaults.name,
-        defaults_kw: dict = None,
-        mandatory_kw: dict = None,
+        self, settings=None, workdir=None, name=name, template_dict=None,
     ):
         """Intializer
 
-        Parameters
-        ----------
-        settings: Settings
-            Settings for the Workflow
-        workdir: str or Path
-            The working directory for the workflow
+        Args:
+            settings: Settings for the Workflow
+            workdir: The working directory for the workflow
+            name: `phonopy` or `phono3py`
+            template_dict: for `phono3py`
         """
-        self.settings = PhonopySettings(
-            settings, name=name, defaults_kw=defaults_kw, mandatory_kw=mandatory_kw
-        )
-        self._ref_atoms = None
+        super().__init__(settings, name, template_dict=template_dict or settings_dict)
 
-        if workdir:
-            self.workdir = workdir
-        if not self.workdir:
-            self.workdir = name
-        else:
-            self.workdir = self.workdir
-
-        self.backend = backend
-        self.postprocess = postprocess
-
-    @property
-    def workdir(self):
-        """return the working directory"""
-        return self.settings.workdir
-
-    @workdir.setter
-    def workdir(self, folder):
-        """set the working directory. Use a standard name if dir='auto'"""
-        if "auto" in str(folder).lower():
-            smatrix = self.settings.obj.supercell_matrix.flatten()
+        if "auto" in str(self.workdir).lower():
+            smatrix = self.supercell_matrix.flatten()
             vol = self.ref_atoms.get_volume()
             sysname = get_sysname(self.ref_atoms)
             rep = "_{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}".format(sysname, *smatrix, vol)
             dirname = self.name + rep
-            self.settings.workdir = Path(dirname)
-        else:
-            self.settings.workdir = Path(folder)
+            self.workdir = dirname
+
+        self.backend = backend
+        self.postprocess = postprocess
+
+        self._primitive = None
+
+    @property
+    def supercell_matrix(self):
+        """return settings.phonopy.supercell_matrix"""
+        return get_3x3_matrix(self.kw["supercell_matrix"])
 
     @property
     def q_mesh(self):
         """return the q_mesh from settings"""
-        return self.settings.obj["q_mesh"]
+        return self.kw[keys.q_mesh]
 
     @property
-    def ref_atoms(self):
-        """return the reference Atoms object for the given context"""
-        if not self._ref_atoms:
-            self._ref_atoms = self.settings.atoms.copy()
+    def primitive(self):
+        """(primitive) unit cell"""
+        if self._primitive is None:
+            self._primitive = self.settings.read_atoms()
+        return self._primitive
 
-        return self._ref_atoms
-
-    @ref_atoms.setter
-    def ref_atoms(self, atoms):
-        """The setter for ref_atoms, makes sure it's an atoms object indeed"""
+    @primitive.setter
+    def primitive(self, atoms: Atoms):
+        """set the primitive unit cell"""
         assert isinstance(atoms, Atoms)
-        self._ref_atoms = atoms
-
-    @property
-    def name(self):
-        """return name of the workflow"""
-        return self.settings.name
+        self._primitive = atoms
 
     def preprocess(self):
-        return self.backend.preprocess(atoms=self.ref_atoms, **self.settings.obj)
+        return self.backend.preprocess(atoms=self.primitive, **self.kw)
 
     def bootstrap(self, dry=False):
         """load settings, prepare atoms, calculator, and phonopy object"""
@@ -132,19 +75,8 @@ class PhonopyContext:
         # Phonopy preprocess
         phonon, supercell, scs = self.preprocess()
 
-        # if calculator not given, create an aims context for this calculation
-        if self.settings.atoms and self.settings.atoms.calc:
-            calc = self.settings.atoms.calc
-        else:
-            from vibes import aims
-
-            aims_ctx = aims.AimsContext(settings=self.settings, workdir=self.workdir)
-            # set reference structure for aims calculation
-            # and make sure forces are computed
-            aims_ctx.ref_atoms = supercell
-            aims_ctx.settings.obj["compute_forces"] = True
-
-            calc = aims.setup.setup_aims(aims_ctx)
+        self.atoms = supercell
+        calc = self.calculator
 
         # save metadata
         metadata = metadata2dict(phonon, calc)
@@ -158,7 +90,7 @@ class PhonopyContext:
             "save_input": True,
             "backup_after_calculation": False,
             "dry": dry,
-            **self.settings.obj,
+            **self.kw,
         }
 
     def run(self, dry=False):

@@ -1,0 +1,11 @@
+[control]
+xc:                            pw-lda
+
+[control_kpt]
+density:                       5
+
+[basissets]
+default:                       light
+
+[socketio]
+port:                          12345

@@ -3,17 +3,16 @@
 from pathlib import Path
 
 from ase.build import bulk
-
 from fireworks import FWorker, Workflow
 
 from vibes.fireworks.combined_launcher import rapidfire
 from vibes.fireworks.launchpad import LaunchPadHilde
-from vibes.fireworks.workflows.workflow_generator import generate_firework
-from vibes.settings import Settings
-from vibes.templates.aims import setup_aims
-from vibes.tasks.calculate import calculate as vibes_calc
 from vibes.fireworks.tasks.fw_out.general import fireworks_no_mods_gen_function
 from vibes.fireworks.tasks.task_spec import TaskSpec
+from vibes.fireworks.workflows.workflow_generator import generate_firework
+from vibes.settings import Settings
+from vibes.tasks.calculate import calculate as vibes_calc
+from vibes.templates.calculator import setup_aims
 
 
 def print_message(message):

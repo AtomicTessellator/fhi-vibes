@@ -28,8 +28,6 @@ commands_files = [
     ["vibes utils fc frequencies", "frequencies.dat"],
 ]
 
-commands_tmpdir = ["vibes template aims"]
-
 
 def _run(cmd, cwd=parent):
     sp.run(cmd.split(), cwd=cwd, check=True)
@@ -45,11 +43,6 @@ def _exists(file, cwd=True):
 @pytest.mark.parametrize("cmd", commands)
 def test_cmd(cmd):
     _run(cmd)
-
-
-@pytest.mark.parametrize("cmd", commands_tmpdir)
-def test_cmd_tmpdir(cmd, tmp_path):
-    _run(cmd, cwd=tmp_path)
 
 
 @pytest.mark.parametrize("cmd,file", commands_files)
