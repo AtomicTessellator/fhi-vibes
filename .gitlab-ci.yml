@@ -14,8 +14,8 @@ default:
 fireworks:
   when: manual
   script:
+    - poetry install -E fireworks
     - service mongodb start --ipv6
-    - pip install fireworks
     - cp vibes/templates/config_files/fireworksrc.template ~/.fireworksrc
     - pytest tests/fireworks
 
