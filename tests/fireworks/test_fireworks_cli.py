@@ -10,7 +10,6 @@ parent = Path(__file__).parent
 
 def test_fireworks_cli():
     lp = LaunchPad(strm_lvl="INFO")
-    lp.reset("", require_password=False)
 
     commands = (
         f"vibes fireworks add_wf -w {parent}/workflow_C.in",
@@ -22,7 +21,7 @@ def test_fireworks_cli():
         with cwd("fireworks_launchers", mkdir=True):
             sp.run(commands[1].split())
 
-        assert lp.get_wf_by_fw_id(1).state == "COMPLETED"
+        assert lp.get_wf_by_fw_id(2).state == "COMPLETED"
 
         shutil.rmtree("test_run/")
         shutil.rmtree("fireworks_launchers/")
