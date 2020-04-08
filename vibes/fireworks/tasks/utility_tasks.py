@@ -41,7 +41,7 @@ def mod_calc(param_key, calc_spec, calculator_dict, val, atoms=None, spec_key=No
     ):
         recipcell = np.linalg.pinv(atoms["cell"]).transpose()
         update_k_grid_calc_dict(calculator_dict, recipcell, val)
-    else:
+    elif param_key != "k_grid_density":
         calculator_dict["calculator_parameters"][param_key] = val
     up_spec = {calc_spec: calculator_dict}
     if spec_key:

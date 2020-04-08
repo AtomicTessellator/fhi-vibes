@@ -54,6 +54,8 @@ def setup_calc(settings):
         settings["calculator"]["socketio"] = DotDict(
             {"port": port, "host": host, "unixsocket": unixsocket}
         )
+    else:
+        settings["calculator"].pop("socketio", None)
 
     settings["calculator"]["parameters"].pop("aims_command", None)
 
@@ -341,7 +343,6 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
     settings["calculator"]["parameters"] = DotDict(
         metadata["calculator"]["calculator_parameters"]
     )
-
     if settings["calculator"]["name"].lower() == "aims":
         settings["calculator"]["parameters"].pop("kgrid", None)
         settings["calculator"]["kpoints"] = DotDict({"density": kpt_density})
@@ -352,6 +353,21 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
                 .split("/")[-1]
             }
         )
+        host, port = settings["calculator"]["parameters"].pop(
+            "use_pimd_wrapper", [None, None]
+        )
+        if "UNIX" in host:
+            unixsocket, host = host, None
+        else:
+            unixsocket = None
+        if port:
+            settings["calculator"]["socketio"] = DotDict(
+                {"port": port, "host": host, "unixsocket": unixsocket}
+            )
+        else:
+            settings["calculator"].pop("socketio", None)
+    elif settings["calculator"]["name"].lower() == "emt":
+        settings["calculator"].pop("socketio", None)
 
     if "relaxation" not in settings:
         settings["relaxation"] = DotDict(
@@ -362,12 +378,12 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
         )
     else:
         use_ase_relax = settings["relaxation"].get("use_ase_relax")
-        for val in settings["relaxation"].values():
-            if isinstance(val, DotDict):
+        for key, val in settings["relaxation"].items():
+            if issubclass(type(val), dict):
                 if use_ase_relax:
-                    settings["relaxation"]["unit_cell"] = False
+                    settings["relaxation"][key]["unit_cell"] = False
                 else:
-                    settings["relaxation"]["relax_unit_cell"] = False
+                    settings["relaxation"][key]["relax_unit_cell"] = False
 
     primitive = to_Atoms(eq_phonon.get_primitive())
     add_constraints = []
