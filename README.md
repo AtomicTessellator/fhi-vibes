@@ -5,8 +5,8 @@ Welcome to `FHI-vibes`, a `python` package for _ab initio_ modeling of vibration
 
 ## Overview
 
-- For a basic introducin
-- If you are here to learn how to run `phonopy` calculations with forces obtained from `FHI-aims`, please have a look at our [Tutorial](Tutorial/0_intro.md).
+- [Documentation](https://flokno.gitlab.io/hilde/Documentation/0_intro/)
+- [Tutorial](https://flokno.gitlab.io/hilde/Tutorial/0_intro/)
 - If you are interested in scientific work that was performed using `FHI-vibes`, please have a look at [References](References.md)
 
 `FHI-vibes` is submitted to [JOSS](https://joss.theoj.org/).

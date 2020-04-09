@@ -20,7 +20,7 @@ theme:
         code: 'Droid Sans Mono'
 
 nav:
-    - FHI-vibes: 
+    - Home:
         - Welcome!: README.md
         - References: References.md
         - License: license.md
