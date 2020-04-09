@@ -95,13 +95,14 @@ def atoms_calculate_task(
 
     default_settings = Settings(DEFAULT_CONFIG_FILE)
 
-    calculator_dict["command"] = default_settings.machine.aims_command
-    if "species_dir" in calculator_dict["calculator_parameters"]:
-        calculator_dict["calculator_parameters"]["species_dir"] = (
-            str(default_settings.machine.basissetloc)
-            + "/"
-            + calculator_dict["calculator_parameters"]["species_dir"].split("/")[-1]
-        )
+    if calculator_dict["calculator"].lower() == "aims":
+        calculator_dict["command"] = default_settings.machine.aims_command
+        if "species_dir" in calculator_dict["calculator_parameters"]:
+            calculator_dict["calculator_parameters"]["species_dir"] = (
+                str(default_settings.machine.basissetloc)
+                + "/"
+                + calculator_dict["calculator_parameters"]["species_dir"].split("/")[-1]
+            )
 
     if "results" in calculator_dict:
         del calculator_dict["results"]

@@ -83,7 +83,7 @@ Now that you have a database set up now it is time to install FireWorks
 
 ## Installing FireWorks
 The first step in using FireWorks is installing the python library.
-By installing vibes with the FireWorks dependency by typing ```poetry install -E fireworks``` or ```pip install vibes[fireworks]``` this is already included, but you may want to install your own version of FireWorks locally.
+By installing vibes with the FireWorks dependency by typing `poetry install -E fireworks` or `pip install vibes[fireworks]` this is already included, but you may want to install your own version of FireWorks locally.
 You can do this either by cloning the [git repository](https://github.com/materialsproject/fireworks) and using the python tools or via pip.
 In addition to FireWorks, if you want to use the remote clients/database you'll need to install paramiko and fabric or if you are using the NEWT queuing system you'll have to install requests.
 To do all of this with pip simply type in
