@@ -1,8 +1,5 @@
 <a name="1_GeometryOptimization"></a>
 
-!!! danger
-	In this Tutorial, we assume you are already familiar with running *FHI-aims* calculations, and that you have [installed](../README.md#installation) and [configured](../README.md#configuration) `FHI-vibes` successfully.
-	
 !!! info
 	For vibrational studies, it is crucial to use structures that are accurately  relaxed. Before starting with actual phonon calculations, we thus learn how to perform a geometry optimization with *FHI-vibes*
 

@@ -27,21 +27,22 @@ nav:
     - Documentation: 
         - Overview: Documentation/0_intro.md
         - "Input Files": Documentation/input_files.md
+        - "Output Files": Documentation/output_files.md
         - "Calculator Setup": Documentation/calculator_setup.md
         - Workflows:
             - "Relaxation": Documentation/relaxation.md
-        - "Output Files": Documentation/output_files.md
+        - High-Throughut:
+            - Getting Started: High_Throughput/setup.md
     - Tutorial: 
-        - "Introduction: Phonons": Tutorial/0_intro.md
-        - "1: Geometry Optimization": Tutorial/1_geometry_optimization.md
-        - "2: Phonopy Calculation": Tutorial/2_phonopy.md
+        - Overview: Tutorial/0_intro.md
+        - "Geometry Optimization": Tutorial/1_geometry_optimization.md
+        - "Phonon Calculations":
+            - "Background": Tutorial/2_phonopy_intro.md
+            - "Running a phonon calculation": Tutorial/2_phonopy.md
+        - High-Throughput:
+            - "Phonon Calculations": High_Throughput/0_tut.md
         - Tutorial/acknowledgments.md
         - Tutorial/references.md
-    - High-Throughut:
-        - Getting Started: High_Throughput/setup.md
-        - Tutorial: High_Throughput/0_tut.md
-
-
         
 plugins:
   - search
