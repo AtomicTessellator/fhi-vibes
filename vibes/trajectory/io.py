@@ -124,6 +124,10 @@ def reader(
 
     if Path(file).suffix == ".nc":
         trajectory = read_netcdf(file)
+        if fc_file:
+            fc = io.parse_force_constants(fc_file, two_dim=False)
+            trajectory.set_force_constants(fc)
+
         timer()
 
         return trajectory
