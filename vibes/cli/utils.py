@@ -91,6 +91,27 @@ def geometry_refine(*args, **kwargs):
     refine_geometry(*args, **kwargs)
 
 
+@geometry.command("wrap")
+@click.argument("file", default=filenames.atoms, type=complete_files)
+@click.option("-o", "--output_file")
+@click.option("--format", default="aims")
+def wrap_atoms(file, output_file, format):
+    """rewrite geometry in fractional coordinates"""
+    from ase.io import read
+
+    if not output_file:
+        output_file = file + ".wrapped"
+
+    atoms = read(file, format=format)
+    atoms.positions -= [0.1, 0.1, 0.1]
+    atoms.wrap(pretty_translation=True)
+    atoms.positions += [0.1, 0.1, 0.1]
+    atoms.wrap()
+    atoms.write(output_file, format=format, scaled=True, geo_constrain=True, wrap=False)
+
+    click.echo(f"Wrapped geometry written to {output_file}")
+
+
 @utils.command("make_supercell")
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("-d", "--dimension", type=int, nargs=9)
@@ -404,6 +425,28 @@ def pick_sample(file, number, range, cartesian):
         atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
         atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
         click.echo(f".. sample written to {outfile}")
+
+
+@trajectory.command("average")
+@click.argument("file", default=filenames.trajectory, type=complete_files)
+@click.option("-r", "--range", type=int, nargs=3, help="start, stop, step")
+@click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
+@click.option("-o", "--outfile", default="geometry.in.average", show_default=True)
+def average_trajectory(file, range, cartesian, outfile):
+    """average positions"""
+    from vibes.trajectory import reader
+
+    click.echo(f"Read trajectory from {file}:")
+    traj = reader(file)
+
+    if len(range) == 3:
+        rge = xrange(*range)
+        traj = traj[rge]
+
+    atoms = traj.average_atoms
+    atoms.wrap(pretty_translation=True)
+    atoms.write(outfile, format="aims", scaled=not cartesian)
+    click.echo(f".. geometry with averaged positions written to {outfile}")
 
 
 @utils.group(aliases=["a"])
