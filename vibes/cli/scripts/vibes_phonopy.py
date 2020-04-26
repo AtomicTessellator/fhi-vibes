@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 
 from vibes.filenames import filenames
+from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
 from vibes.helpers.pickle import pread
 from vibes.phonopy.context import PhonopyContext
 from vibes.phonopy.postprocess import extract_results, postprocess
@@ -35,8 +36,9 @@ def preprocess(file, settings_file, dimension, format, write_supercell=False):
         print("vibes phonopy workflow settings (w/o configuration):")
         settings.print(only_settings=True)
 
-    sc_str = np.array2string(phonon.get_supercell_matrix().flatten(), separator=", ")
-    bash_str = " ".join(str(l) for l in phonon.get_supercell_matrix().flatten())
+    smatrix = phonon.get_supercell_matrix().T
+    sc_str = np.array2string(smatrix.flatten(), separator=", ")
+    bash_str = " ".join(str(l) for l in smatrix.flatten())
     print("Phonopy Information")
     print(f"  Supercell matrix:        {sc_str}")
     print(f"  .. for make_supercell:   -d {bash_str}")
@@ -44,8 +46,14 @@ def preprocess(file, settings_file, dimension, format, write_supercell=False):
     for latvec in sc.cell:
         lv_str = "{:-6.2f} {:-6.2f} {:-6.2f}".format(*latvec)
         print(f"                         {lv_str}")
+
     print(f"  Number of atoms in SC:   {len(sc)}")
     print(f"  Number of displacements: {len(scs)} ({len(scs_ref)})")
+
+    cub = get_cubicness(sc.cell)
+    print(f"  Cubicness:               {cub:.3f} ({cub**3:.3f})")
+    sh = inscribed_sphere_in_box(sc.cell)
+    print(f"  Largest Cutoff:          {sh:.3f} AA")
 
     if write_supercell:
         sc.write(filenames.supercell, format=format)
