@@ -132,10 +132,7 @@ def reader(
 
         return trajectory
 
-    try:
-        metadata, pre_trajectory = son.load(file, verbose=verbose)
-    except json.decoder.JSONDecodeError:
-        metadata, pre_trajectory = son.load(file, verbose=verbose)
+    metadata, pre_trajectory = son.load(file, verbose=verbose)
 
     # legacy of trajectory.yaml
     if metadata is None:
