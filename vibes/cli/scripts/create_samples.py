@@ -26,7 +26,7 @@ def generate_samples(
     sobol=False,
     random_seed=None,
     propagate=None,
-    failfast=False,
+    failfast=True,
 ):
     """create samples for Monte Carlo sampling
 

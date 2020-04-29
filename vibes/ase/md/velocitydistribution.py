@@ -18,7 +18,7 @@ def phonon_harmonics(
     plus_minus: bool = False,
     gauge_eigenvectors: bool = False,
     return_eigensolution: bool = False,
-    failfast: bool = False,
+    failfast: bool = True,
     ignore_negative: bool = True,
 ) -> Sequence[np.ndarray]:
     r"""Return displacements and velocities that produce a given temperature.
@@ -61,7 +61,7 @@ def phonon_harmonics(
     # Check for soft modes
     w2min = w2_s[last_ignore_mode:].min()
     if w2min < 0:
-        msg = "Dynamical matrix has negative eigenvalues such as {}".format(w2min)
+        msg = f"Spectrum not positive, e.g. {w2min}. Use `ignore_negative`."
         if failfast:
             raise ValueError(msg)
         else:
@@ -71,10 +71,7 @@ def phonon_harmonics(
     worst_zero = np.abs(zeros).max()
     if worst_zero > 1e-3:
         msg = "Translational deviate from 0 significantly: {}".format(w2_s[:3])
-        if failfast:
-            raise ValueError(msg)
-        else:
-            warn(msg, level=1)
+        warn(msg, level=1)
 
     nw = len(w2_s) - last_ignore_mode
     n_atoms = len(masses)
