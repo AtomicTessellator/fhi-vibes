@@ -23,6 +23,7 @@ basisset_default = "light"
 default_control = {
     "sc_accuracy_rho": 1e-6,
     "relativistic": "atomic_zora scalar",
+    "compensate_multipole_errors": False,
     "output_level": "MD_light",
 }
 
