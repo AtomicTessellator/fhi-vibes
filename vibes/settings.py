@@ -78,6 +78,7 @@ class Settings(Config):
         config_files: Sequence[str] = [DEFAULT_CONFIG_FILE],
         fireworks: bool = False,
         dct: dict = None,
+        debug: bool = False,
     ):
         """Initialize Settings
 
@@ -87,9 +88,10 @@ class Settings(Config):
             config_files: Path to the configuration files
             fireworks: read fireworks config file
             dct: create Settings from this dictionary
+            debug: debug verbosity level
 
         """
-        if dct is None and settings_file is None:
+        if debug and dct is None and settings_file is None:
             warn("`settings_file` is `None`", level=1)
 
         # read config, then template, then user settings
