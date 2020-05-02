@@ -88,7 +88,7 @@ class Settings(Config):
             config_files: Path to the configuration files
             fireworks: read fireworks config file
             dct: create Settings from this dictionary
-            debug: debug verbosity level
+            debug: add verbosity for debugging
 
         """
         if debug and dct is None and settings_file is None:
