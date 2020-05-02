@@ -120,6 +120,24 @@ def show_netcdf_file(file):
     print(DS)
 
 
+@info.command("csv")
+@click.argument("file", type=complete_files)
+@click.option("--max_rows", default=100)
+@click.option("--describe", is_flag=True)
+def show_csv_file(file, max_rows, describe):
+    """show contents of csv FILE"""
+    import pandas as pd
+
+    pd.options.display.max_rows = max_rows
+
+    df = pd.read_csv(file)
+
+    if describe:
+        click.echo(df.describe())
+    else:
+        click.echo(df)
+
+
 @info.command("hdf5")
 @click.argument("file", type=complete_files)
 @click.option("-v", "--verbose", is_flag=True)
