@@ -1,7 +1,7 @@
 """vibes CLI utils"""
 
+from vibes import keys
 from vibes.filenames import filenames
-from vibes.keys import default_backup_folder
 
 from .misc import AliasedGroup, ClickAliasedGroup, click, complete_files
 
@@ -358,6 +358,20 @@ def t2db(file, output_file):
     traj.to_db(output_file)
 
 
+@trajectory.command("2csv")
+@click.argument("file", default=filenames.trajectory, type=complete_files)
+@click.option("-o", "--output_file", default="trajectory.csv")
+def t2csv(file, output_file):
+    """extract trajectory in FILENAME and store 1D data as csv dataframe"""
+    from vibes.trajectory import reader
+
+    traj = reader(file)
+    df = traj.dataframe
+
+    click.echo(f"Write trajectory data to {output_file}")
+    df.to_csv(output_file)
+
+
 @trajectory.command("update")
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-uc", help="Add a (primitive) unit cell", type=complete_files)
@@ -537,7 +551,7 @@ def describe(file):
 
 @utils.command("backup")
 @click.argument("folder", type=complete_files)
-@click.option("--target", default=default_backup_folder, show_default=True)
+@click.option("--target", default=keys.default_backup_folder, show_default=True)
 @click.option("--nozip", is_flag=True)
 def perform_backup(folder, target, nozip):
     """backup FOLDER to TARGET"""

@@ -124,13 +124,17 @@ def show_netcdf_file(file):
 @click.argument("file", type=complete_files)
 @click.option("--max_rows", default=100)
 @click.option("--describe", is_flag=True)
-def show_csv_file(file, max_rows, describe):
+@click.option("--half", is_flag=True)
+def show_csv_file(file, max_rows, describe, half):
     """show contents of csv FILE"""
     import pandas as pd
 
     pd.options.display.max_rows = max_rows
 
     df = pd.read_csv(file)
+
+    if half:
+        df = df.iloc[len(df) // 2 :]
 
     if describe:
         click.echo(df.describe())

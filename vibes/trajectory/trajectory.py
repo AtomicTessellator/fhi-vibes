@@ -385,6 +385,23 @@ class Trajectory(list):
 
         return get_trajectory_dataset(self)
 
+    @property
+    def dataframe(self):
+        """return 1D data as pandas.DataFrame
+
+        Contains:
+            temperature, kinetic energy, potential energy, pressure
+        """
+        _keys = [
+            keys.temperature,
+            keys.energy_kinetic,
+            keys.energy_potential,
+            keys.pressure,
+        ]
+        df = self.dataset[_keys].to_dataframe()
+
+        return df
+
     def discard(self, first=0, last=0):
         """discard atoms before FIRST and after LAST and return as new Trajectory"""
         n = len(self)

@@ -29,7 +29,11 @@ def plot_summary(dataframe, avg=50, natoms=None):
     e_kin = dataframe[keys.energy_kinetic]
     e_pot = dataframe[keys.energy_potential]
 
-    e_pot -= e_pot.min()
+    # energy 0 such that e_tot[0] = 0
+    e_tot = e_pot + e_kin
+    e_0 = e_tot.iloc[0]
+    e_tot -= e_0
+    e_pot -= e_pot.iloc[0] + e_kin.iloc[0]
 
     # settings for the immediate plot
     plot_kw = {"alpha": 0.4, "linewidth": 1.0, "label": ""}
@@ -87,14 +91,6 @@ def plot_summary(dataframe, avg=50, natoms=None):
     ax.set_xlabel("Time [ps]")
     ax.set_ylabel("Nucl. Temperature [K]")
     ax.legend(loc=4)
-
-    # fig.savefig("temp.pdf")
-
-    # plot energies in one plot
-    # fig, ax = plt.subplots()
-
-    e_tot = e_pot + e_kin
-    # e_dif = e_pot #e_kin - e_pot
 
     e_tot.plot(color=tc[0], title="Energy", ax=ax2, **plot_kw)
     roll = e_tot.rolling(**kw_roll).mean()
