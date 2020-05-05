@@ -209,17 +209,11 @@ def extract_results(
             phonon.run_thermal_properties()
             phonon.write_yaml_thermal_properties()
 
-            talk(f".. plot")
-            wrapper.plot_thermal_properties(phonon)
-
         if bandstructure:
             talk(f"Extract bandstructure")
             talk(f".. write yaml")
             wrapper.set_bandstructure(phonon, paths=bz_path)
             phonon.write_yaml_band_structure()
-
-            talk(f".. plot")
-            wrapper.plot_bandstructure(phonon, paths=bz_path)
 
         if debye:
             talk("Extract Debye Temperatur")
@@ -234,18 +228,12 @@ def extract_results(
             talk(f".. write")
             dos = wrapper.get_dos(phonon, q_mesh=q_mesh, write=True)
 
-            talk(f".. plot")
-            wrapper.plot_bandstructure_and_dos(phonon)
-
         if pdos:
             talk(f"Extract projected DOS")
             talk(f".. write")
             phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
             phonon.run_projected_dos(use_tetrahedron_method=True)
             phonon.write_projected_dos()
-
-            talk(f".. plot")
-            wrapper.plot_bandstructure_and_dos(phonon, partial=True)
 
         animate_q_points = {}
         if animate:
@@ -270,3 +258,46 @@ def extract_results(
 
     if verbose:
         print_frequencies_at_gamma(phonon)
+
+
+def plot_results(
+    phonon,
+    thermal_properties=False,
+    bandstructure=False,
+    dos=False,
+    pdos=False,
+    bz_path=None,
+    output_dir="phonopy_output",
+):
+    """Plot results from phonopy object and present them.
+
+    Args:
+        phonon (phonopy.Phonopy): The Phonopy Object with calculated force constants
+        thermal_properties (bool, optional): write and plot thermal properties
+        bandstructure (bool, optional): write and plot bandstructure
+        dos (bool, optional): write and plot DOS
+        pdos (bool, optional): write and plot projected DOS
+        bz_path (list, optional): Brillouin zone path for bandstructure
+        output_dir (str, optional): ]. Defaults to "phonopy_output".
+    """
+    timer = Timer("\nPlot phonopy results:")
+
+    with cwd(output_dir, mkdir=True):
+
+        if thermal_properties:
+            talk(f"Plot thermal properties")
+            wrapper.plot_thermal_properties(phonon)
+
+        if bandstructure:
+            talk(f"Plot bandstructure")
+            wrapper.plot_bandstructure(phonon, paths=bz_path)
+
+        if dos:
+            talk(f"Plot DOS:")
+            wrapper.plot_bandstructure_and_dos(phonon)
+
+        if pdos:
+            talk(f"Plot projected DOS")
+            wrapper.plot_bandstructure_and_dos(phonon, partial=True)
+
+    timer(f"all files written to {output_dir}")

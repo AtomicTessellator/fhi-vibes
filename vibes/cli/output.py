@@ -106,7 +106,7 @@ def phonopy_output(
 ):
     """perform phonopy postprocess for TRAJECTORY"""
     from vibes.phonopy import _defaults as defaults
-    from vibes.phonopy.postprocess import postprocess, extract_results
+    from vibes.phonopy.postprocess import postprocess, extract_results, plot_results
 
     if not q_mesh:
         q_mesh = defaults.kwargs.q_mesh.copy()
@@ -143,15 +143,23 @@ def phonopy_output(
 
     extract_results(phonon, **kwargs)
 
+    kwargs = {
+        "thermal_properties": thermal_properties or full,
+        "bandstructure": bandstructure or full,
+        "dos": density_of_states or full,
+        "pdos": projected_density_of_states,
+        "bz_path": bz_path,
+        "output_dir": output_directory,
+    }
+    plot_results(phonon, **kwargs)
+
 
 @output.command("phono3py")
 @click.argument("trajectory", default="trajectory.son", type=complete_files)
 # necessary?
 @click.option("--q_mesh", nargs=3, default=None)
 @click.pass_obj
-def phono3py_output(
-    obj, trajectory, q_mesh,
-):
+def phono3py_output(obj, trajectory, q_mesh):
     """perform phono3py postprocess for TRAJECTORY"""
     from vibes.phono3py._defaults import kwargs
     from vibes.phono3py.postprocess import postprocess, extract_results
