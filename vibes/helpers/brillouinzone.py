@@ -5,6 +5,8 @@ Utility functions for working with Brillouin zones
 from ase.dft import kpoints
 from ase.lattice import FCC
 
+from vibes.helpers.latex import latexify_labels
+
 
 def get_paths(atoms):
     """Get recommended path connencting high symmetry points in the BZ.
@@ -74,7 +76,7 @@ def get_bands(atoms, paths=None, npoints=50):
     return bands
 
 
-def get_labels(paths, latex=True):
+def get_labels(paths, latex=False):
     """Get the labels for a given path for printing them with latex
 
     Parameters
@@ -106,17 +108,16 @@ def get_labels(paths, latex=True):
         if ll == "|":
             labels[ii] = f"{labels[ii-1]}|{labels[ii+1]}"
             labels[ii - 1], labels[ii + 1] = "", ""
-        if ll == "G" and latex:
-            labels[ii] = "\\Gamma"
+
     labels = [ll for ll in labels if ll]
 
-    latexify = lambda sym: "$\\mathrm{\\mathsf{" + str(sym) + "}}$"
     if latex:
-        return [latexify(sym) for sym in labels]
+        return latexify_labels(labels)
+
     return labels
 
 
-def get_bands_and_labels(atoms, paths=None, npoints=50, latex=True):
+def get_bands_and_labels(atoms, paths=None, npoints=50, latex=False):
     """Combine get_bands() and get_labels()
 
     Parameters
