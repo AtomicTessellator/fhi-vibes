@@ -72,7 +72,7 @@ def create_species_dir(
 
     for key in (default, fallback):
         if key not in basisset_choices:
-            raise BasissetError(f"Species default '{key}' unknown.")
+            warn(f"Species default '{key}' unknown.", level=1)
 
     # return default if no atom is given for reference
     ref_atoms = ctx.ref_atoms
