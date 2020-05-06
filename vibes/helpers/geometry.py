@@ -4,7 +4,14 @@ from vibes.helpers.numerics import clean_matrix
 
 
 def get_deformation(cell1: np.array, cell2: np.array) -> np.array:
-    """Compute the matrix that deforms cell1 into cell2"""
+    """Compute the matrix that deforms cell1 into cell2
+
+    Rationale:
+              A2 = D A1
+        <=> A2.T = A1.T D.T
+         =>    D = np.linalg.solve(A1.T, A2.T).T
+
+    """
     A1 = np.asarray(cell1)
     A2 = np.asarray(cell2)
 
