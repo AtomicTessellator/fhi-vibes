@@ -26,6 +26,7 @@ _dct = {
     "supercell": _geometry + ".supercell",
     "trajectory": keys.trajectory + ".son",
     "trajectory_dataset": keys.trajectory + ".nc",
+    "deformation": "deformation.dat",
     _output: output,
 }
 filenames = collections.namedtuple(_filename, _dct.keys())(**_dct)

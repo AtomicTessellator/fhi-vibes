@@ -3,7 +3,7 @@
 from vibes import keys
 from vibes.filenames import filenames
 
-from .misc import AliasedGroup, ClickAliasedGroup, click, complete_files
+from .misc import AliasedGroup, ClickAliasedGroup, Path, click, complete_files
 
 xrange = range
 
@@ -11,12 +11,6 @@ xrange = range
 @click.group(cls=ClickAliasedGroup)
 def utils():
     """tools and utils"""
-
-
-@utils.command(cls=AliasedGroup)
-def geometry():
-    """utils for working with structures"""
-    ...
 
 
 @utils.command(aliases=["hash"])
@@ -39,6 +33,78 @@ def hash_file(file, dry, outfile):
             f.write(f"\n# {timestr}")
             f.write(f'\n"{file}": "{hash}"')
         talk(f".. written to {outfile}")
+
+
+@utils.command(cls=AliasedGroup)
+def geometry():
+    """utils for working with structures"""
+    ...
+
+
+@geometry.command()  # aliases=['gd'])
+@click.argument("files", nargs=2, type=complete_files)
+@click.option("--outfile", default=filenames.deformation)
+@click.option("--dry", is_flag=True)
+@click.option("--format", default="aims")
+def get_deformation(files, outfile, dry, format):
+    """get matrix that deformes geometry1 to geometry2"""
+    from ase.io import read
+    from vibes.helpers.geometry import get_deformation
+
+    atoms1 = read(files[0], format=format)
+    atoms2 = read(files[1], format=format)
+
+    D = get_deformation(atoms1.cell, atoms2.cell).round(14)
+
+    click.echo("Deformation tensor:")
+    click.echo(D)
+
+    if not dry:
+        import numpy as np
+
+        click.echo(f".. write to {outfile}")
+        np.savetxt(outfile, D)
+
+
+@geometry.command()  # aliases=['ad'])
+@click.argument("file", type=complete_files)
+@click.option("--deformation", type=complete_files, default=filenames.deformation)
+@click.option("--outfile", type=Path)
+@click.option("--dry", is_flag=True)
+@click.option("--cartesian", is_flag=True)
+@click.option("--format", default="aims")
+def apply_deformation(file, deformation, outfile, dry, cartesian, format):
+    """get matrix that deformes geometry1 to geometry2"""
+    import numpy as np
+    from ase.io import read
+
+    D = np.loadtxt(deformation)
+    atoms = read(file, format=format)
+
+    click.echo(f"Apply deformation tensor from {deformation}:")
+    click.echo(D)
+
+    new_atoms = atoms.copy()
+    new_atoms.set_cell(D @ atoms.cell[:], scale_atoms=True)
+
+    velocities = False
+    if atoms.get_velocities() is not None:
+        velocities = True
+        new_atoms.set_velocities(atoms.get_velocities())
+        click.echo("** velocities are not scaled")
+
+    info_str = f"Deformation tensor: {D.tolist()}"
+
+    if not dry:
+        outfile = outfile or file + ".deformed"
+        click.echo(f".. write structure to {outfile}")
+        kw = {
+            "info_str": info_str,
+            "scaled": not cartesian,
+            "format": format,
+            "velocities": velocities,
+        }
+        new_atoms.write(outfile, **kw)
 
 
 @geometry.command("2frac")
@@ -319,7 +385,7 @@ def tool_nomad_upload(files, token, name, legacy, dry):
     nomad_upload(files, token, legacy, dry, name=name)
 
 
-@utils.group()
+@utils.group(cls=ClickAliasedGroup)
 def trajectory():
     """trajectory utils"""
 
@@ -412,12 +478,13 @@ def trajectory_update(file, uc, sc, fc, output_file, format):
         shutil.move(new_trajectory, file)
 
 
-@trajectory.command("pick_sample")
+@trajectory.command(aliases=["pick"])
 @click.argument("file", default=filenames.trajectory, type=complete_files)
+@click.option("-o", "--outfile", type=Path)
 @click.option("-n", "--number", default=0)
 @click.option("-r", "--range", type=int, nargs=3, help="start, stop, step")
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
-def pick_sample(file, number, range, cartesian):
+def pick_samples(file, outfile, number, range, cartesian):
     """pick a sample from trajectory and write to geometry input file"""
     from vibes.trajectory import reader
 
@@ -434,9 +501,8 @@ def pick_sample(file, number, range, cartesian):
 
     for number in rge:
         click.echo(f"Extract sample {number}:")
-        outfile = f"{filenames.atoms}.{number}"
+        outfile = outfile or f"{filenames.atoms}.{number}"
         atoms = traj[number]
-        atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
         atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
         click.echo(f".. sample written to {outfile}")
 
