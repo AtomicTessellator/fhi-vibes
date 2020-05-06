@@ -3,6 +3,14 @@ import numpy as np
 from vibes.helpers.numerics import clean_matrix
 
 
+def get_deformation(cell1: np.array, cell2: np.array) -> np.array:
+    """Compute the matrix that deforms cell1 into cell2"""
+    A1 = np.asarray(cell1)
+    A2 = np.asarray(cell2)
+
+    return np.linalg.solve(A1.T, A2.T).T
+
+
 def inscribed_sphere_in_box(cell):
     """Find the radius of an inscribed sphere in a unit cell
 
