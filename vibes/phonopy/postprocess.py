@@ -268,6 +268,7 @@ def plot_results(
     pdos=False,
     bz_path=None,
     output_dir="phonopy_output",
+    run_mesh=False,
 ):
     """Plot results from phonopy object and present them.
 
@@ -279,6 +280,7 @@ def plot_results(
         pdos (bool, optional): write and plot projected DOS
         bz_path (list, optional): Brillouin zone path for bandstructure
         output_dir (str, optional): ]. Defaults to "phonopy_output".
+        run_mesh (bool): re-run the mesh
     """
     timer = Timer("\nPlot phonopy results:")
 
@@ -294,10 +296,10 @@ def plot_results(
 
         if dos:
             talk(f"Plot DOS:")
-            wrapper.plot_bandstructure_and_dos(phonon)
+            wrapper.plot_bandstructure_and_dos(phonon, run_mesh=run_mesh)
 
         if pdos:
             talk(f"Plot projected DOS")
-            wrapper.plot_bandstructure_and_dos(phonon, partial=True)
+            wrapper.plot_bandstructure_and_dos(phonon, partial=True, run_mesh=run_mesh)
 
     timer(f"all files written to {output_dir}")
