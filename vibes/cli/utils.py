@@ -43,11 +43,18 @@ def geometry():
 
 @geometry.command()  # aliases=['gd'])
 @click.argument("files", nargs=2, type=complete_files)
+@click.option("-sc_file", "--supercell_file", type=Path)
 @click.option("--outfile", default=filenames.deformation)
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
-def get_deformation(files, outfile, dry, format):
-    """get matrix that deformes geometry1 to geometry2"""
+def get_deformation(files, supercell_file, outfile, dry, format):
+    """get matrix D that deformes lattice of geometry1 to lattice of geometry2, where
+        A_2 = D A_1
+
+    For Supercells:
+        S = M A  =>  S_2 = M D A_1  = M D M^-1 S_1  = D_s S_1
+    """
+    import numpy as np
     from ase.io import read
     from vibes.helpers.geometry import get_deformation
 
@@ -55,6 +62,16 @@ def get_deformation(files, outfile, dry, format):
     atoms2 = read(files[1], format=format)
 
     D = get_deformation(atoms1.cell, atoms2.cell).round(14)
+
+    # supercell?
+    if supercell_file is not None:
+        click.echo(f"Reference supercell from: {supercell_file}")
+        sc = read(supercell_file, format=format)
+        M = get_deformation(atoms1.cell, sc.cell).round(14)
+
+        D = M @ D @ np.linalg.inv(M)
+
+        outfile = f"supercell_{outfile}"
 
     click.echo("Deformation tensor:")
     click.echo(D)
