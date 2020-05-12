@@ -7,16 +7,19 @@ from .misc import AliasedGroup, ClickAliasedGroup, Path, click, complete_files
 
 xrange = range
 
+# from click 7.1 on
+_default_context_settings = {"show_default": True}
+
 
 @click.group(cls=ClickAliasedGroup)
 def utils():
     """tools and utils"""
 
 
-@utils.command(aliases=["hash"])
+@utils.command(aliases=["hash"], context_settings=_default_context_settings)
 @click.argument("file", type=complete_files)
 @click.option("--dry", is_flag=True, help="Only print hash to stdout")
-@click.option("-o", "--outfile", default="hash.toml", show_default=True)
+@click.option("-o", "--outfile", default="hash.toml")
 def hash_file(file, dry, outfile):
     """create sha hash for FILE"""
     import time
@@ -41,7 +44,7 @@ def geometry():
     ...
 
 
-@geometry.command()  # aliases=['gd'])
+@geometry.command(context_settings=_default_context_settings)  # aliases=['gd'])
 @click.argument("files", nargs=2, type=complete_files)
 @click.option("-sc_file", "--supercell_file", type=Path)
 @click.option("--outfile", default=filenames.deformation)
@@ -83,7 +86,7 @@ def get_deformation(files, supercell_file, outfile, dry, format):
         np.savetxt(outfile, D)
 
 
-@geometry.command()  # aliases=['ad'])
+@geometry.command(context_settings=_default_context_settings)  # aliases=['ad'])
 @click.argument("file", type=complete_files)
 @click.option("--deformation", type=complete_files, default=filenames.deformation)
 @click.option("--outfile", type=Path)
@@ -124,7 +127,7 @@ def apply_deformation(file, deformation, outfile, dry, cartesian, format):
         new_atoms.write(outfile, **kw)
 
 
-@geometry.command("2frac")
+@geometry.command("2frac", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("-o", "--output_file")
 @click.option("--format", default="aims")
@@ -141,7 +144,7 @@ def to_fractional(file, output_file, format):
     click.echo(f"Geometry written to {output_file}")
 
 
-@geometry.command("2cart")
+@geometry.command("2cart", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("-o", "--output_file")
 @click.option("--format", default="aims")
@@ -158,7 +161,7 @@ def to_cartesian(file, output_file, format):
     click.echo(f"Geometry written to {output_file}")
 
 
-@geometry.command("refine")
+@geometry.command("refine", context_settings=_default_context_settings)
 @click.argument("file", type=complete_files)
 @click.option("-prim", "--primitive", is_flag=True)
 @click.option("-conv", "--conventional", is_flag=True)
@@ -174,7 +177,7 @@ def geometry_refine(*args, **kwargs):
     refine_geometry(*args, **kwargs)
 
 
-@geometry.command("wrap")
+@geometry.command("wrap", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("-o", "--output_file")
 @click.option("--format", default="aims")
@@ -195,13 +198,13 @@ def wrap_atoms(file, output_file, format):
     click.echo(f"Wrapped geometry written to {output_file}")
 
 
-@utils.command("make_supercell")
+@utils.command("make_supercell", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("-d", "--dimension", type=int, nargs=9)
 @click.option("-dd", "--diagonal_dimension", type=int, nargs=3)
 @click.option("-n", "--n_target", type=int)
 @click.option("-o", "--output_file")
-@click.option("--deviation", default=0.2, show_default=True)
+@click.option("--deviation", default=0.2)
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
 @click.option("-frac", "--fractional", is_flag=True)
@@ -243,7 +246,7 @@ def aims():
     ...
 
 
-@aims.command()
+@aims.command(context_settings=_default_context_settings)
 @click.argument("files", nargs=-1, type=complete_files)
 def get_relaxation_info(files):
     """analyze aims relaxation"""
@@ -252,7 +255,7 @@ def get_relaxation_info(files):
     get_relaxation_info(files)
 
 
-@utils.command(aliases=["samples"])
+@utils.command(aliases=["samples"], context_settings=_default_context_settings)
 @click.argument("filename", type=complete_files)
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
@@ -274,7 +277,7 @@ def create_samples(filename, **kwargs):
     create_samples(atoms_file=filename, **kwargs)
 
 
-@utils.command("suggest_k_grid")
+@utils.command("suggest_k_grid", context_settings=_default_context_settings)
 @click.argument("file", type=complete_files)
 @click.option("-d", "--density", default=3.5)
 @click.option("--uneven", is_flag=True)
@@ -293,11 +296,11 @@ def force_constants():
     ...
 
 
-@force_constants.command()
+@force_constants.command(context_settings=_default_context_settings)
 @click.argument("file", default="FORCE_CONSTANTS", type=complete_files)
-@click.option("-uc", "--primitive", default=filenames.primitive, show_default=True)
-@click.option("-sc", "--supercell", default=filenames.supercell, show_default=True)
-@click.option("-nsc", "--new_supercell", show_default=True)
+@click.option("-uc", "--primitive", default=filenames.primitive)
+@click.option("-sc", "--supercell", default=filenames.supercell)
+@click.option("-nsc", "--new_supercell")
 @click.option("-o", "--output_file")
 @click.option("--symmetrize", is_flag=True)
 @click.option("--python", is_flag=True)
@@ -351,11 +354,11 @@ def remap(
     click.echo(f".. remapped force constants written to {output_file}")
 
 
-@force_constants.command()
+@force_constants.command(context_settings=_default_context_settings)
 @click.argument("file", default="FORCE_CONSTANTS_remapped", type=complete_files)
-@click.option("-sc", "--supercell", default=filenames.supercell, show_default=True)
-@click.option("-n", "--show_n_frequencies", default=6, type=int, show_default=True)
-@click.option("-o", "--output_file", default="frequencies.dat", show_default=True)
+@click.option("-sc", "--supercell", default=filenames.supercell)
+@click.option("-n", "--show_n_frequencies", default=6, type=int)
+@click.option("-o", "--output_file", default="frequencies.dat")
 @click.option("--symmetrize", is_flag=True)
 @click.option("--format", default="aims")
 def frequencies(file, supercell, show_n_frequencies, output_file, symmetrize, format):
@@ -389,7 +392,7 @@ def nomad():
     ...
 
 
-@nomad.command("upload")
+@nomad.command("upload", context_settings=_default_context_settings)
 @click.argument("files", nargs=-1, type=complete_files)
 @click.option("--token", help="nomad token, otherwise read from .vibesrc")
 @click.option("--name", help="nomad upload name")
@@ -407,7 +410,7 @@ def trajectory():
     """trajectory utils"""
 
 
-@trajectory.command("2tdep")
+@trajectory.command("2tdep", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-s", "--skip", default=1, help="skip this many steps from trajectory")
 @click.option("--folder", default="tdep", help="folder to store input")
@@ -419,7 +422,7 @@ def t2tdep(file, skip, folder):
     traj.to_tdep(folder=folder, skip=skip)
 
 
-@trajectory.command("2xyz")
+@trajectory.command("2xyz", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--output_file", default="trajectory.xyz")
 def t2xyz(file, output_file):
@@ -430,7 +433,7 @@ def t2xyz(file, output_file):
     traj.to_xyz(file=output_file)
 
 
-@trajectory.command("2db")
+@trajectory.command("2db", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--output_file", default="trajectory.db")
 def t2db(file, output_file):
@@ -441,7 +444,7 @@ def t2db(file, output_file):
     traj.to_db(output_file)
 
 
-@trajectory.command("2csv")
+@trajectory.command("2csv", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--output_file", default="trajectory.csv")
 def t2csv(file, output_file):
@@ -455,7 +458,7 @@ def t2csv(file, output_file):
     df.to_csv(output_file)
 
 
-@trajectory.command("update")
+@trajectory.command("update", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-uc", help="Add a (primitive) unit cell", type=complete_files)
 @click.option("-sc", help="Add the respective supercell", type=complete_files)
@@ -495,7 +498,7 @@ def trajectory_update(file, uc, sc, fc, output_file, format):
         shutil.move(new_trajectory, file)
 
 
-@trajectory.command(aliases=["pick"])
+@trajectory.command(aliases=["pick"], context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", type=Path)
 @click.option("-n", "--number", default=0)
@@ -524,11 +527,11 @@ def pick_samples(file, outfile, number, range, cartesian):
         click.echo(f".. sample written to {outfile}")
 
 
-@trajectory.command("average")
+@trajectory.command("average", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-r", "--range", type=int, nargs=3, help="start, stop, step")
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
-@click.option("-o", "--outfile", default="geometry.in.average", show_default=True)
+@click.option("-o", "--outfile", default="geometry.in.average")
 def average_trajectory(file, range, cartesian, outfile):
     """average positions"""
     from vibes.trajectory import reader
@@ -552,7 +555,7 @@ def anharmonicity():
     ...
 
 
-@anharmonicity.command("sigma")
+@anharmonicity.command("sigma", context_settings=_default_context_settings)
 @click.argument("files", type=complete_files, nargs=-1)
 @click.option("-csv", "--store_csv", is_flag=True, help="store dataframes to csv")
 @click.option("-h5", "--store_hdf5", is_flag=True, help="store dataframes to hdf5")
@@ -621,7 +624,7 @@ def pandas():
     ...
 
 
-@pandas.command()
+@pandas.command(context_settings=_default_context_settings)
 @click.argument("file", type=complete_files)
 def describe(file):
     import pandas as pd
@@ -632,9 +635,9 @@ def describe(file):
     click.echo(df.describe())
 
 
-@utils.command("backup")
+@utils.command("backup", context_settings=_default_context_settings)
 @click.argument("folder", type=complete_files)
-@click.option("--target", default=keys.default_backup_folder, show_default=True)
+@click.option("--target", default=keys.default_backup_folder)
 @click.option("--nozip", is_flag=True)
 def perform_backup(folder, target, nozip):
     """backup FOLDER to TARGET"""
@@ -649,7 +652,9 @@ def phono3py():
     ...
 
 
-@phono3py.command("run_thermal_conductivity")
+@phono3py.command(
+    "run_thermal_conductivity", context_settings=_default_context_settings
+)
 @click.argument("folder", default="output", type=complete_files)
 @click.option("--q_mesh", nargs=3, help="q_mesh")
 @click.option("--outfile", default="kappa_QMESH.log")
