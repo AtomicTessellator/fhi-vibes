@@ -28,7 +28,7 @@ scalar_pressure = 0.01
 hydrostatic_strain = True
 
 [phonopy]
-supercell_matrix = [2, 2, 0, -2, 2, 0, 0, 0, 1]
+supercell_matrix = [4, 4, 0, -4, 4, 0, 0, 0, 2]
 conv_crit = 0.95
 serial = True
 displacement = 0.01

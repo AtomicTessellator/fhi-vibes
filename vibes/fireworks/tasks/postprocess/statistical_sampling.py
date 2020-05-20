@@ -41,8 +41,7 @@ def get_sigma(trajectory_file):
 
         dft = np.array(forces_dft[key])
         ha = np.array(forces_harmonic[key])
-        r2 = anharmonicity_score.get_r2(dft, ha, mean=False, silent=True)
-        sigma.append(np.sqrt(1 - r2))
+        sigma.append(anharmonicity_score.get_sigma(dft, ha))
 
     with open(f"{Path(trajectory_file).parents[0]}/sigma.dat", "w") as f:
         for t, r in zip(temp, sigma):

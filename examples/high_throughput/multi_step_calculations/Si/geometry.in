@@ -1,0 +1,5 @@
+lattice_vector      0.000      2.703      2.703
+lattice_vector      2.703      0.000      2.703
+lattice_vector      2.703      2.703      0.000
+atom_frac      0.00     0.00     0.00 Si
+atom_frac      0.25     0.25     0.25 Si

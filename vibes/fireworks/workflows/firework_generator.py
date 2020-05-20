@@ -2,9 +2,9 @@
 import numpy as np
 from fireworks import Firework
 from jconfigparser.dict import DotDict
+from pathlib import Path
 
 from vibes.filenames import filenames
-from vibes.fireworks.tasks.postprocess.phonons import time2str
 from vibes.fireworks.tasks.task_spec import TaskSpec
 from vibes.fireworks.tasks.utility_tasks import update_calc
 from vibes.fireworks.workflows.task_generator import (
@@ -28,7 +28,6 @@ from vibes.helpers.hash import hash_atoms_and_calc
 from vibes.helpers.k_grid import k2d, update_k_grid, update_k_grid_calc_dict
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.helpers.watchdogs import str2time
-from vibes.phonopy.wrapper import preprocess
 
 
 def get_phonon_file_location(settings, atoms, remote=False):
@@ -474,10 +473,6 @@ def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
             {"host": host, "port": port, "unixsocket": unixsocket}
         )
 
-    if settings[name].get("serial", True):
-        _, _, scs = preprocess(atoms, settings[name]["supercell_matrix"])
-        qadapter["walltime"] = time2str(str2time(qadapter["walltime"]) * len(scs))
-
     if "walltime" in qadapter:
         settings[name]["walltime"] = str2time(qadapter["walltime"])
 
@@ -507,7 +502,9 @@ def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
     )
 
 
-def generate_phonon_postprocess_fw(settings, atoms, fw_settings, name):
+def generate_phonon_postprocess_fw(
+    settings, atoms, fw_settings, name, prev_dos_fp=None
+):
     """Generates a Firework for the phonon analysis
 
     Parameters
@@ -548,124 +545,8 @@ def generate_phonon_postprocess_fw(settings, atoms, fw_settings, name):
         "analysis_workdir"
     ] = f"{settings.fireworks.workdir.local}/sc_natoms_{natoms}/{fw_settings['fw_name']}/"
     func_kwargs["init_workdir"] = f"{settings.fireworks.workdir.remote}/{name}/"
+    func_kwargs["prev_dos_fp"] = prev_dos_fp
 
-    task_spec = gen_phonon_analysis_task_spec(
-        "vibes." + fw_settings["fw_name"][:-9] + ".postprocess.postprocess",
-        func_kwargs,
-        fw_settings["mod_spec_add"][:-7] + "_metadata",
-        fw_settings["mod_spec_add"],
-        fw_settings["mod_spec_add"][:-7] + "_times",
-        False,
-    )
-    fw_settings[
-        "fw_name"
-    ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
-    return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
-
-
-def generate_converging_phonon_fw(
-    atoms, wd, fw_settings, qadapter, ph_settings, update_in_spec=True
-):
-    """Generates a Firework for the phonon initialization
-
-    Parameters
-    ----------
-    atoms : ase.atoms.Atoms
-        ASE Atoms object to preform the calculation on
-    wd : str
-        Workdirectory
-    fw_settings : dict
-        Firework settings for the step
-    qadapter : dict
-        The queueadapter for the step
-    ph_settings : dict
-        kwargs for the phonons
-    update_settings : dict
-        calculator update settings
-    update_in_spec :
-        (Default value = True)
-
-    Returns
-    -------
-    fireworks.Firework
-        Firework for the phonon initialization
-
-    """
-    if (
-        "serial" in ph_settings
-        and ph_settings["serial"]
-        and "spec" in fw_settings
-        and "prev_dos_fp" in fw_settings["spec"]
-    ):
-        _, _, scs = preprocess(atoms, ph_settings["supercell_matrix"])
-        qadapter["walltime"] = time2str(str2time(qadapter["walltime"]) * len(scs))
-
-    if qadapter and "walltime" in qadapter:
-        ph_settings["walltime"] = str2time(qadapter["walltime"])
-    else:
-        ph_settings["walltime"] = 1800
-
-    update_settings = {}
-    if "basisset_type" in ph_settings:
-        update_settings["basisset_type"] = ph_settings.pop("basisset_type")
-    if "socket_io_port" in ph_settings:
-        update_settings["use_pimd_wrapper"] = ph_settings.pop("socket_io_port")
-    elif "use_pimd_wrapper" in ph_settings:
-        update_settings["use_pimd_wrapper"] = ph_settings.pop("use_pimd_wrapper")
-
-    typ = ph_settings.pop("type")
-    fw_settings["fw_name"] = typ
-    ph_settings["workdir"] = wd + "/" + typ + "/"
-
-    if typ == "phonopy":
-        func_kwargs = {"ph_settings": ph_settings.copy()}
-    else:
-        func_kwargs = {"ph3_settings": ph_settings.copy()}
-
-    task_spec = gen_phonon_task_spec(func_kwargs, fw_settings)
-
-    return generate_fw(
-        atoms, task_spec, fw_settings, qadapter, update_settings, update_in_spec
-    )
-
-
-def generate_converging_phonon_postprocess_fw(
-    atoms, wd, fw_settings, ph_settings, wd_init=None
-):
-    """Generates a Firework for the phonon analysis
-
-    Parameters
-    ----------
-    atoms : ase.atoms.Atoms or dict
-        ASE Atoms object to preform the calculation on
-    wd : str
-        Workdirectory
-    fw_settings : dict
-        Firework settings for the step
-    ph_settings : dict
-        kwargs for the phonon analysis
-    wd_init : str
-        workdir for the initial phonon force calculations (Default value = None)
-
-    Returns
-    -------
-    fireworks.Firework
-        Firework for the phonon analysis
-
-    """
-    if ph_settings.pop("type") == "phonopy":
-        fw_settings["mod_spec_add"] = "ph"
-        fw_settings["fw_name"] = "phonopy_analysis"
-    else:
-        fw_settings["fw_name"] = "phono3py_analysis"
-        fw_settings["mod_spec_add"] = "ph3"
-    fw_settings["mod_spec_add"] += "_forces"
-
-    func_kwargs = ph_settings.copy()
-    if "workdir" in func_kwargs:
-        func_kwargs.pop("workdir")
-    func_kwargs["analysis_workdir"] = wd + "/" + fw_settings["fw_name"] + "/"
-    func_kwargs["init_workdir"] = wd_init
     task_spec = gen_phonon_analysis_task_spec(
         "vibes." + fw_settings["fw_name"][:-9] + ".postprocess.postprocess",
         func_kwargs,
@@ -717,6 +598,10 @@ def generate_stat_samp_fw(settings, atoms, fw_settings):
     if "phonon_file" not in settings.statistical_sampling:
         settings.statistical_sampling["phonon_file"] = get_phonon_file_location(
             settings, atoms
+        )
+    else:
+        settings.statistical_sampling["phonon_file"] = str(
+            Path(settings.statistical_sampling.phonon_file).absolute()
         )
 
     fw_settings.pop("in_spec_calc", None)
@@ -867,6 +752,8 @@ def generate_md_fw(settings, atoms, fw_settings, qadapter=None, workdir=None):
 
     if "phonon_file" not in settings.md and "phonopy" in settings:
         md_settings["phonon_file"] = get_phonon_file_location(settings, atoms, True)
+    else:
+        md_settings["phonon_file"] = str(Path(settings.md.phonon_file).absolute())
 
     temps = md_settings.pop("temperatures", None)
     if temps is None:
