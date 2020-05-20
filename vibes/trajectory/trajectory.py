@@ -14,7 +14,7 @@ from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.utils import progressbar
 
 from . import analysis as al
-from .utils import Timer, talk
+from .utils import Timer, talk, clean_pressure
 
 
 class Trajectory(list):
@@ -314,18 +314,39 @@ class Trajectory(list):
         return -0.5 * (self.forces_harmonic * self.displacements).sum(axis=(1, 2))
 
     @lazy_property
-    def stress(self):
-        """return the stress as [N_t, 3, 3] array"""
+    def stress_potential(self):
+        """return the potential stress as [N_t, 3, 3] array"""
         zeros = np.zeros((3, 3))
         stresses = []
         for a in self:
             if "stress" in a.calc.results:
-                stress = a.get_stress(voigt=False)
+                stress = a.get_stress(voigt=False, include_ideal_gas=False)
             else:
                 stress = np.full_like(zeros, np.nan)
             stresses.append(stress)
 
         return np.array(stresses, dtype=float)
+
+    @lazy_property
+    def stress_kinetic(self):
+        """return the kinetic stress as [N_t, 3, 3] array"""
+        zeros = np.zeros((3, 3))
+        stresses = []
+        for a in self:
+            if "stress" in a.calc.results:
+                stress_potential = a.get_stress(voigt=False)
+                stress_full = a.get_stress(voigt=False, include_ideal_gas=True)
+                stress_kinetic = stress_full - stress_potential
+            else:
+                stress_kinetic = np.full_like(zeros, np.nan)
+            stresses.append(stress_kinetic)
+
+        return np.array(stresses, dtype=float)
+
+    @lazy_property
+    def stress(self):
+        """return the full stress (kinetic + potential) as [N_t, 3, 3] array"""
+        return self.stress_kinetic + self.stress_potential
 
     @lazy_property
     def stresses(self):
@@ -344,19 +365,32 @@ class Trajectory(list):
 
         return np.array(atomic_stresses, dtype=float)
 
-    def get_pressure(self, GPa=False):
+    def get_pressure(self, kinetic=False):
         """return the pressure as [N_t] array"""
-        pressure = np.array([-1 / 3 * np.trace(stress) for stress in self.stress])
+        if kinetic:
+            stress = self.stress_kinetic
+        else:
+            stress = self.stress_potential
+
+        pressure = np.array([-1 / 3 * np.trace(s) for s in stress])
         assert len(pressure) == len(self)
 
-        if GPa:
-            pressure /= units.GPa
-        return pressure
+        return clean_pressure(pressure)
+
+    @lazy_property
+    def pressure_potential(self):
+        """return the potential pressure as [N_t] array"""
+        return self.get_pressure(kinetic=False)
+
+    @lazy_property
+    def pressure_kinetic(self):
+        """return the potential pressure as [N_t] array"""
+        return self.get_pressure(kinetic=True)
 
     @lazy_property
     def pressure(self):
-        """return the pressure as [N_t] array"""
-        return self.get_pressure()
+        """return the full pressure (kinetic + potential) as [N_t] array"""
+        return self.pressure_kinetic + self.pressure_potential
 
     @property
     def sigma(self):

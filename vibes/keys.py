@@ -45,6 +45,8 @@ energy_kinetic = "energy_kinetic"
 energy_potential = "energy_potential"
 energy_potential_harmonic = "energy_potential_harmonic"
 pressure = "pressure"
+pressure_kinetic = "pressure_kinetic"
+pressure_potential = "pressure_potential"
 temperature = "temperature"
 
 heat_flux = "heat_flux"

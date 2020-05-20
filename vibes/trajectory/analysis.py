@@ -166,7 +166,11 @@ def summary(dataset, plot=False, **kwargs):
     talk("Summarize Potential Energy", prefix="info")
     energy(dataset[keys.energy_potential])
     print()
-    talk("Summarize Pressure", prefix="info")
+    talk("Summarize Kinetic Pressure", prefix="info")
+    pressure(dataset.pressure_kinetic)
+    talk("Summarize Potential Pressure", prefix="info")
+    pressure(dataset.pressure_potential)
+    talk("Summarize Total Pressure (Kinetic + Potential)", prefix="info")
     pressure(dataset.pressure)
 
     # drift
@@ -186,6 +190,8 @@ def summary(dataset, plot=False, **kwargs):
             keys.energy_kinetic,
             keys.energy_potential,
             keys.pressure,
+            keys.pressure_kinetic,
+            keys.pressure_potential,
         ]
         df = dataset[_keys].to_dataframe()
         df.index /= 1000

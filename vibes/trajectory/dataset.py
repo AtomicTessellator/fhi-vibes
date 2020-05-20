@@ -1,14 +1,13 @@
 """compute and analyze heat fluxes"""
 import numpy as np
 import xarray as xr
-from ase import units
 
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.helpers.converters import atoms2json, dict2json
 from vibes.structure.misc import get_sysname
 
-from .utils import Timer, clean_pressure
+from .utils import Timer
 
 
 def _time_coords(trajectory):
@@ -106,29 +105,23 @@ def get_velocities_dataarray(trajectory, verbose=True):
     return df
 
 
-def get_pressure_dataarray(trajectory, GPa=False, verbose=True):
+def get_pressure_dataset(trajectory, verbose=True):
     """extract pressure from TRAJECTORY  and return as xarray.DataArray
 
     Args:
         trajectory (Trajectory): list of atoms objects
     Returns:
-        pressure (xarray.DataArray [N_t])
+        pressure (xarray.DataArray [N_t]) in eV/AA**3
     """
     timer = Timer("Get pressure from trajectory", verbose=verbose)
 
-    unit = 1.0
-    if GPa:
-        unit = units.GPa
+    data = {
+        keys.pressure: (dims.time, trajectory.pressure),
+        keys.pressure_kinetic: (dims.time, trajectory.pressure_kinetic),
+        keys.pressure_potential: (dims.time, trajectory.pressure_potential),
+    }
 
-    extra_metadata = {"to_eV": unit}
-
-    df = xr.DataArray(
-        clean_pressure(trajectory.pressure / unit),
-        dims=[dims.time],
-        coords=_time_coords(trajectory),
-        name="pressure",
-        attrs=_attrs(trajectory, dct=extra_metadata),
-    )
+    df = xr.Dataset(data, coords=_time_coords(trajectory), attrs=_attrs(trajectory),)
 
     timer()
 
@@ -149,7 +142,6 @@ def get_trajectory_dataset(trajectory, metadata=False):
     # add velocities and pressure
     positions = get_positions_dataarray(trajectory)
     velocities = get_velocities_dataarray(trajectory)
-    pressure = get_pressure_dataarray(trajectory)
 
     # reference positions
     positions_reference = (dims.positions, trajectory.reference_atoms.positions)
@@ -165,7 +157,6 @@ def get_trajectory_dataset(trajectory, metadata=False):
         keys.energy_kinetic: (dims.time, trajectory.kinetic_energy),
         keys.energy_potential: (dims.time, trajectory.potential_energy),
         "stress": (dims.time_tensor, trajectory.stress),
-        "pressure": pressure,
         "temperature": (dims.time, trajectory.temperatures),
         keys.reference_positions: positions_reference,
         keys.reference_lattice: lattice_reference,
@@ -208,7 +199,12 @@ def get_trajectory_dataset(trajectory, metadata=False):
         dataset.update(update_dict)
         attrs.update({"sigma": trajectory.sigma})
 
-    return xr.Dataset(dataset, coords=coords, attrs=attrs)
+    ds = xr.Dataset(dataset, coords=coords, attrs=attrs)
+
+    # add pressure
+    ds.update(get_pressure_dataset(trajectory))
+
+    return ds
 
 
 def get_heat_flux_dataset(trajectory, only_flux=False, metadata=False):
