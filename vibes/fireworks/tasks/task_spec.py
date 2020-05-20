@@ -21,24 +21,25 @@ class TaskSpec:
 
         Parameters
         ----------
-        func: str or Function
+        func : str or Function
             Function to be wrapped into a PyTask
-        func_fw_out: str or Function
+        func_fw_out : str or Function
             Function that converts the outputs of func into FWActions
-        task_with_atoms_obj: bool
+        task_with_atoms_obj : bool
             True if calculating using an ASE Atoms object
-        func_kwargs: dict
+        func_kwargs : dict
             kwargs for func
-        func_fw_out_kwargs: dict
-           kwargs for func_fw_out
-        args: list
+        func_fw_out_kwargs : dict
+            kwargs for func_fw_out
+        args : list
             args for func
-        inputs: list of str
+        inputs : list of str
             spec_keys for args for func stored in the FireWorks database
-        make_abs_path: bool
+        make_abs_path : bool
             If True make all paths absolute
-        fw_settings: dict
+        fw_settings : dict
             The FireWorks specific settings
+
         """
         if not isinstance(func, str):
             func = f"{func.__module__}.{func.__name__}"
@@ -68,12 +69,12 @@ class TaskSpec:
         if args:
             self.args = args
         else:
-            self.args = ()
+            self.args = []
 
         if inputs:
             self._inputs = inputs
         else:
-            self._inputs = ()
+            self._inputs = []
 
         if task_with_atoms_obj:
             self._pt_args = [
@@ -88,7 +89,7 @@ class TaskSpec:
 
     @property
     def pt_args(self):
-        """get the PyTask args for the task """
+        """get the PyTask args for the task"""
         return self._pt_args
 
     @property
@@ -98,12 +99,22 @@ class TaskSpec:
 
     @fw_settings.setter
     def fw_settings(self, fw_set):
-        """set the task_specs fw_settings"""
+        """set the task_specs fw_settings
+
+        Parameters
+        ----------
+        fw_set : dict
+            FireWork settings to be added to the task spec
+
+        Returns
+        -------
+
+        """
         self._fw_settings = fw_set
 
     @property
     def pt_kwargs(self):
-        """get the PyTask kwargs for the task """
+        """get the PyTask kwargs for the task"""
         if not self.fw_settings:
             self.fw_settings = {}
 
@@ -117,5 +128,5 @@ class TaskSpec:
 
     @property
     def pt_inputs(self):
-        """get the PyTask inputs for the task """
+        """get the PyTask inputs for the task"""
         return self._inputs

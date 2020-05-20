@@ -14,7 +14,7 @@ class KPointOptimizer(Dynamics):
         loss_func=lambda x: x,
         dfunc_min=1e-6,
         even=True,
-        trajectory=None,
+        trajectory_file=None,
         logfile="-",
         kpts_density_init=1.0,
     ):
@@ -32,7 +32,7 @@ class KPointOptimizer(Dynamics):
             Convergence criteria for the loss function
         even: bool
             If True kgrid must be even valued
-        trajecotry: str
+        trajecotry_file: str
             file name to store the trajectory
         logfile: str
             file name for the log file
@@ -40,7 +40,11 @@ class KPointOptimizer(Dynamics):
             initial k-point density
         """
         Dynamics.__init__(
-            self, atoms, logfile=logfile, trajectory=trajectory, append_trajectory=True
+            self,
+            atoms,
+            logfile=logfile,
+            trajectory=trajectory_file,
+            append_trajectory=True,
         )
 
         self.kpts_density = kpts_density_init
@@ -48,6 +52,7 @@ class KPointOptimizer(Dynamics):
         kpts_initial = d2k(atoms, self.kpts_density, self.even)
         self.kpts = kpts_initial
 
+        self.step = 0
         self.func = func
         self.loss_func = loss_func
         self.dfunc = 1e12
@@ -59,12 +64,12 @@ class KPointOptimizer(Dynamics):
     @property
     def kpts(self):
         """ Accessor function to k_grid"""
-        return self.atoms.calc.parameters.k_grid
+        return self.atoms.calc.parameters["k_grid"]
 
     @kpts.setter
     def kpts(self, kp):
         """ Setter function for the k_grid"""
-        self.atoms.calc.parameters.k_grid = kp
+        self.atoms.calc.parameters["k_grid"] = kp
 
     def increase_kpts(self):
         """Step function to increase k-grid density"""
@@ -80,6 +85,16 @@ class KPointOptimizer(Dynamics):
     def todict(self):
         """Converts optimizer to a dict"""
         return {"type": "kpoint-optimizer"}
+
+    def log(self):
+        """Log the k-point optimization"""
+        if self.logfile:
+            if self.step == 0:
+                self.logfile.write(f"Step, k_points, Energy\n")
+            self.logfile.write(
+                f"{self.step}, {self.kpts}, {self.atoms.get_potential_energy()}\n"
+            )
+            self.logfile.flush()
 
     def irun(self, steps=100):
         """Iterative run functions, advances the calculation by one step
@@ -100,6 +115,7 @@ class KPointOptimizer(Dynamics):
             val = self.func(self.atoms)
             self.dfunc = self.loss_func(self.last - val)
             self.call_observers()
+            self.log()
             if self.dfunc < self.dfunc_min:
                 yield True
             else:

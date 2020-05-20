@@ -1,17 +1,14 @@
 """ Notifications via, e.g., email """
 
 
-def send_simple_mail(message, to_addr, extra_message=""):
+def send_simple_mail(message: str, to_addr: str, extra_message: str = None) -> None:
     """Send simple e-mail message
 
-    Parameters
-    ----------
-    message: str
-        Message to send
-    to_addr: str
-        The e-mail address
-    extra_message:
-        Additional message to send
+    Args:
+      message: the message
+      to_addr: the mail address of recipient
+      extra_message:  prefix of message
+
     """
     import os
 

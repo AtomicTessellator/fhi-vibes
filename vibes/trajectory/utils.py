@@ -4,27 +4,26 @@ import numpy as np
 from vibes.helpers import Timer
 from vibes.helpers import talk as _talk
 
-
 _prefix = "trajectory"
 
 Timer.prefix = _prefix
 
 
-def talk(msg):
+def talk(msg, **kwargs):
     """wrapper for `utils.talk` with prefix"""
-    return _talk(msg, prefix=_prefix)
+    return _talk(msg, prefix=_prefix, **kwargs)
 
 
-def get_hashes_from_trajectory_file(trajectory, verbose=False):
+def get_hashes_from_trajectory_file(trajectory_file, verbose=False):
     """return all hashes from trajectory"""
     from .io import reader
 
     try:
-        traj = reader(trajectory, verbose=verbose)
+        trajectory = reader(trajectory_file, verbose=verbose)
     except (FileNotFoundError, KeyError):
         return []
 
-    return traj.get_hashes()
+    return trajectory.get_hashes()
 
 
 def clean_pressure(series):

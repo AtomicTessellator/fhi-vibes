@@ -5,100 +5,107 @@ from fireworks import FWAction
 from vibes.helpers.k_grid import update_k_grid_calc_dict
 
 
-def mod_calc(param_key, calc_spec, calc, val, atoms=None, spec_key=None):
+def mod_calc(param_key, calc_spec, calculator_dict, val, atoms=None, spec_key=None):
     """Function to modify a calculator within the MongoDB
 
     Parameters
     ----------
-    param_key: str
+    param_key : str
         key in the calculator dictionary to change
-    calc_spec: str
+    calc_spec : str
         key for the calculator spec
-    calc: dict
+    calculator_dict : dict
         a dict representing an ASE Calculator
-    val: the
-        w value calc[param_key] should be updated to
-    atoms: dict
-        A dict representing an ASE Atoms object
-    spec_key: str
-        The key in the MongoDB to update the val
+    val : Object
+        The value calculator_dict[param_key] should be updated to
+    atoms : dict
+        A dict representing an ASE Atoms object (Default value = None)
+    spec_key : str
+        The key in the MongoDB to update the val (Default value = None)
 
     Returns
     -------
     FWAction
         An FWAction that modifies the calculator inside the spec
+
     """
     if param_key == "command":
-        calc[param_key] = val
+        calculator_dict[param_key] = val
     elif param_key == "basisset_type":
-        sd = calc["calculator_parameters"]["species_dir"].split("/")
+        sd = calculator_dict["calculator_parameters"]["species_dir"].split("/")
         sd[-1] = val
-        calc["calculator_parameters"]["species_dir"] = "/".join(sd)
-    elif param_key == "k_grid_density":
+        calculator_dict["calculator_parameters"]["species_dir"] = "/".join(sd)
+    elif (
+        param_key == "k_grid_density"
+        and calculator_dict["calculator"].lower() == "aims"
+    ):
         recipcell = np.linalg.pinv(atoms["cell"]).transpose()
-        update_k_grid_calc_dict(calc, recipcell, val)
-    else:
-        calc["calculator_parameters"][param_key] = val
-    up_spec = {calc_spec: calc}
+        update_k_grid_calc_dict(calculator_dict, recipcell, val)
+    elif param_key != "k_grid_density":
+        calculator_dict["calculator_parameters"][param_key] = val
+    up_spec = {calc_spec: calculator_dict}
     if spec_key:
         up_spec[spec_key] = val
     return FWAction(update_spec=up_spec)
 
 
-def update_calc(calc_dict, key, val):
+def update_calc(calculator_dict, key, val):
     """Update the calculator dictionary
 
     Parameters
     ----------
-    calc_dict: dict
+    calculator_dict : dict
         The dictionary representation of the ASE Calculator
-    key: str
+    key : str
         The key string of the parameter to be changed
-    val: The
+    val : The
         dated value associated with the key string
 
     Returns
     -------
     dict
         The updated clac_dict
+
     """
     if key == "command":
-        calc_dict[key] = val
+        calculator_dict[key] = val
     elif key == "basisset_type":
-        sd = calc_dict["calculator_parameters"]["species_dir"].split("/")
+        sd = calculator_dict["calculator_parameters"]["species_dir"].split("/")
         sd[-1] = val
-        calc_dict["calculator_parameters"]["species_dir"] = "/".join(sd)
+        calculator_dict["calculator_parameters"]["species_dir"] = "/".join(sd)
     elif key == "use_pimd_wrapper" and isinstance(val, int):
-        calc_dict["calculator_parameters"][key] = ("localhost", val)
+        calculator_dict["calculator_parameters"][key] = ("localhost", val)
     else:
-        if val is None and key in calc_dict["calculator_parameters"]:
-            del calc_dict["calculator_parameters"][key]
+        if val is None and key in calculator_dict["calculator_parameters"]:
+            del calculator_dict["calculator_parameters"][key]
         elif val is not None:
-            calc_dict["calculator_parameters"][key] = val
-    return calc_dict
+            calculator_dict["calculator_parameters"][key] = val
+    return calculator_dict
 
 
-def update_calc_in_db(calc_spec, update_calc_params, calc):
+def update_calc_in_db(calc_spec, update_calc_params, calculator_dict):
     """Updates a calculator in the MongoDB with a new set of parameters
 
     Parameters
     ----------
-    calc_spec: str
+    calc_spec : str
         spec to store the new calculator
-    update_calc_params: dict
+    update_calc_params : dict
         A dictionary describing the new parameters to update the calc with
-    calc: dict
+    calculator_dict : dict
         A dict representing an ASE Calculator
 
     Returns
     -------
     FWAction
         An FWAction that updates the calculator in the spec
+
     """
     del_key_list = ["relax_geometry", "relax_unit_cell"]
     for key in del_key_list:
-        if key in calc["calculator_parameters"]:
-            del calc["calculator_parameters"][key]
+        calculator_dict["calculator_parameters"].pop(key, None)
+
     for key, val in update_calc_params.items():
-        calc = update_calc(calc, key, val)
-    return FWAction(update_spec={calc_spec: calc})
+        calculator_dict = update_calc(calculator_dict, key, val)
+
+    return FWAction(update_spec={calc_spec: calculator_dict})

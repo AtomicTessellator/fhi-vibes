@@ -13,21 +13,26 @@ commands = (
     "vibes info geometry geometry.in.primitive",
     "vibes utils suggest_k_grid geometry.in.primitive",
     "vibes info phonopy",
+    "vibes info relaxation relaxation.son -v",
 )
 
+gp = "geometry.in.primitive"
+gs = "geometry.in.supercell"
 commands_files = [
     ["vibes utils backup calculations", "backups/backup.00002.19636B4A.tgz"],
     ["vibes output md", "trajectory.nc"],
     ["vibes output phonopy phonopy.son --full --q_mesh 5 5 5", "output"],
     ["vibes utils trajectory 2db", "trajectory.db"],
     ["vibes utils trajectory 2tdep", "tdep"],
-    ["vibes utils trajectory pick_sample -n 1", "geometry.in.1"],
+    ["vibes utils trajectory 2csv", "trajectory.csv"],
+    ["vibes utils trajectory 2xyz", "trajectory.xyz"],
+    ["vibes utils trajectory pick -n 1", "geometry.in.1"],
     ["vibes utils nomad upload calculations --token test --dry", nomad_upload_folder],
     ["vibes utils hash trajectory.son", "hash.toml"],
     ["vibes utils fc frequencies", "frequencies.dat"],
+    [f"vibes utils geometry get-deformation {gp} {gs}", "deformation.dat"],
+    [f"vibes utils geometry apply-deformation {gp}", f"{gp}.deformed"],
 ]
-
-commands_tmpdir = ["vibes template aims"]
 
 
 def _run(cmd, cwd=parent):
@@ -44,11 +49,6 @@ def _exists(file, cwd=True):
 @pytest.mark.parametrize("cmd", commands)
 def test_cmd(cmd):
     _run(cmd)
-
-
-@pytest.mark.parametrize("cmd", commands_tmpdir)
-def test_cmd_tmpdir(cmd, tmp_path):
-    _run(cmd, cwd=tmp_path)
 
 
 @pytest.mark.parametrize("cmd,file", commands_files)

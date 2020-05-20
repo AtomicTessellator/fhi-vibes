@@ -132,28 +132,6 @@ def preprocess(
     return get_supercells_with_displacements(phonon)
 
 
-# TARP: This is depcricated and should not be used
-# def get_force_constants(phonon, force_sets=None):
-#     """ Take a Phonopy object, produce force constants from the given forces and
-#         return in usable shape (3N, 3N) insated of (N, N, 3, 3)
-
-#     """
-#     n_atoms = phonon.get_supercell().get_number_of_atoms()
-
-#     phonon.produce_force_constants(force_sets)
-
-#     force_constants = phonon.get_force_constants()
-
-#     if force_constants is not None:
-#         # convert forces from (N, N, 3, 3) to (3*N, 3*N)
-#         force_constants = (
-#             phonon.get_force_constants().swapaxes(1, 2).reshape(2 * (3 * n_atoms,))
-#         )
-#         return force_constants
-#     # else
-#     raise ValueError("Force constants not yet created, specify force_sets.")
-
-
 def get_dos(
     phonon,
     total=True,
@@ -163,7 +141,7 @@ def get_dos(
     freq_pitch=None,
     tetrahedron_method=True,
     write=False,
-    filename="total_dos.dat",
+    file="total_dos.dat",
     force_sets=None,
     direction=None,
     xyz_projection=False,
@@ -188,7 +166,7 @@ def get_dos(
         If True use the tetrahedron method to calculate the DOS
     write: bool
         If True save the DOS to a file
-    filename: str
+    file: str
         Path to write to write the dos to
     force_sets: np.ndarray
         Force sets to calculate the force constants with
@@ -227,7 +205,7 @@ def get_dos(
 
         if write:
             phonon.write_total_dos()
-            Path("total_dos.dat").rename(filename)
+            Path("total_dos.dat").rename(file)
 
         return phonon.get_total_dos_dict()
 
@@ -246,11 +224,11 @@ def get_dos(
     )
     if write:
         phonon.write_projected_dos()
-        Path("projected_dos.dat").rename(filename)
+        Path("projected_dos.dat").rename(file)
     return phonon.get_projected_dos_dict()
 
 
-def set_bandstructure(phonon, paths=None):
+def set_bandstructure(phonon, paths=None, add_labels=True):
     """Compute bandstructure for given path and attach to phonopy object
 
     Parameters
@@ -259,11 +237,18 @@ def set_bandstructure(phonon, paths=None):
         Phonopy object with calculated force constants if force_Sets is None
     paths: list of str
         List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
+    add_labels: bool
+        If True run bandstructure with labels
     """
     if isinstance(paths, str):
         paths = [paths]
 
-    bands, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
+    bands, labels = bz.get_bands_and_labels(
+        to_Atoms(phonon.primitive), paths, latex=False
+    )
+
+    if not add_labels:
+        labels = None
 
     phonon.run_band_structure(bands, labels=labels)
 
@@ -290,8 +275,8 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
 
-    _, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths)
-    set_bandstructure(phonon, paths)
+    _, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths, latex=False)
+    set_bandstructure(phonon, paths, True)
 
     return (phonon.get_band_structure_dict(), labels)
 
@@ -317,20 +302,28 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
     ----------
     phonon: phonopy.Phonopy
         The phonopy object with calculated force constants if force_sets is None
-    filename: str
+    file: str
         file name to store the pdf of the band structure
     paths: list of str
         List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
     force_sets: np.ndarray
         Force sets to calculate the force constants with
+    latex: bool
+        If True use latex symbols
     """
 
-    set_bandstructure(phonon, paths)
+    set_bandstructure(phonon, paths, False)
 
     plt = phonon.plot_band_structure()
+    fig = plt.gcf()
+
+    _, labels = bz.get_bands_and_labels(to_Atoms(phonon.primitive), paths, latex=False)
+
+    fig = plt.gcf()
+    fig.axes[0].set_xticklabels(labels)
 
     try:
-        plt.savefig(file)
+        fig.savefig(file)
     except (RuntimeError, FileNotFoundError):
         warn("saving the phonon dispersion not possible, latex probably missing?")
 
@@ -354,9 +347,11 @@ def plot_bandstructure_and_dos(
         If True use projected density of states
     file: str
         Path to save the the plot to
+    latex: bool
+        If True use latex symbols
     """
 
-    set_bandstructure(phonon)
+    set_bandstructure(phonon, add_labels=False)
 
     if partial:
         if run_mesh:
@@ -370,11 +365,15 @@ def plot_bandstructure_and_dos(
         pdos_indices = None
 
     plt = phonon.plot_band_structure_and_dos(pdos_indices=pdos_indices)
+    fig = plt.gcf()
+
+    _, labels = bz.get_bands_and_labels(to_Atoms(phonon.get_primitive()), latex=False)
+    fig.axes[0].set_xticklabels(labels)
 
     try:
         plt.savefig(file)
     except (RuntimeError, FileNotFoundError):
-        warn("saving the phonon DOS not possible, latex probably missing?")
+        warn("saving the phonon DOS not possible.")
 
 
 def summarize_bandstructure(phonon, fp_file=None):
@@ -396,7 +395,7 @@ def summarize_bandstructure(phonon, fp_file=None):
     """
     from vibes.konstanten.einheiten import THz_to_cm
 
-    set_bandstructure(phonon)
+    set_bandstructure(phonon, add_labels=False)
 
     qpts = np.array(phonon.band_structure.qpoints).reshape(-1, 3)
 
@@ -429,7 +428,7 @@ def summarize_bandstructure(phonon, fp_file=None):
     return gamma_freq, max_freq
 
 
-def get_animation(phonon, q_point, filename):
+def get_animation(phonon, q_point, file):
     """Gets the animation file at a q_point
 
     Parameters
@@ -438,10 +437,10 @@ def get_animation(phonon, q_point, filename):
         The phonopy object with calculated force constants if force_sets is None
     q_point: np.ndarray
         q-point to write the animation file on
-    filename: str
+    file: str
         Path to animation file output
     """
-    return phonon.write_animation(q_point=q_point, filename=filename)
+    return phonon.write_animation(q_point=q_point, filename=file)
 
 
 def get_debye_temperature(

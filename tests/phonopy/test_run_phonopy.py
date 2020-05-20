@@ -3,9 +3,9 @@
 from pathlib import Path
 
 import pytest
-
 from ase.build import bulk
 from ase.calculators.emt import EMT
+
 from vibes import Settings
 from vibes.helpers.paths import cwd
 from vibes.phonopy.context import PhonopyContext
@@ -37,8 +37,8 @@ if phono3py:
 
 @pytest.mark.parametrize("ctx", contexts)
 def test_phonopy_ctx(ctx, tmp_path):
-    ctx.settings.atoms = atoms
-    ctx.settings.atoms.set_calculator(calc)
+    ctx.primitive = atoms
+    ctx.calculator = calc
 
     with cwd(tmp_path, mkdir=True):
         ctx.run()

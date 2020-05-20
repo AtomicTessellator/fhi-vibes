@@ -3,50 +3,63 @@ from pathlib import Path
 
 from fireworks import FWAction
 
+from vibes.filenames import filenames
 from vibes.fireworks.tasks.postprocess.calculate import get_calc_times
 from vibes.fireworks.workflows.firework_generator import generate_firework
 from vibes.helpers.converters import atoms2dict, calc2dict
-from vibes.trajectory import reader as traj_reader
+from vibes.trajectory import reader
 
 
 def mod_spec_add(
-    atoms, calc, outputs, func, func_fw_out, func_kwargs, func_fw_kwargs, fw_settings
+    atoms_dict,
+    calculator_dict,
+    outputs,
+    func,
+    func_fw_out,
+    func_kwargs,
+    func_fw_kwargs,
+    fw_settings,
 ):
     """A function that appends the current results to a specified spec in the MongoDB
 
     Parameters
     ----------
-    atoms: ase.atoms.Atoms
-        The original atoms at the start of this job
-    calc: ase.calculators.calulator.Calculator
-        The original calculator
-    outputs: dict
+    atoms_dict : dict
+        The dictionary representation of the original atoms at the start of this job
+    calculator_dict : dict
+        The dictionary representation of the original calculator
+    outputs : dict
         The outputs from the function (assumes to be a single bool output)
-    func: str
+    func : str
         Path to function that performs the MD like operation
-    func_fw_out: str
+    func_fw_out : str
         Path to this function
-    func_kwargs: dict
+    func_kwargs : dict
         keyword arguments for func
-    func_fw_kwargs: dict
+    func_fw_kwargs : dict
         Keyword arguments for fw_out function
-    fw_settings: dict
+    fw_settings : dict
         FireWorks specific settings
 
     Returns
     -------
-    FWAction
+    fireworks.FWAction
         Modifies the spec to add the current atoms list to it
+
     """
-    atoms_dict = atoms2dict(outputs)
-    calc_dict = calc2dict(outputs.calc)
-    calc_dict["results"] = calc.results
-    atoms_dict["calculator_dict"] = calc_dict
-    mod_spec = [{"_push": {fw_settings["mod_spec_add"]: atoms_dict}}]
+    new_atoms_dict = atoms2dict(outputs)
+    new_calculator_dict = calc2dict(outputs.calc)
+
+    new_calculator_dict["results"] = calculator_dict["results"]
+    new_atoms_dict["calculator_dict"] = calculator_dict
+
+    mod_spec = [{"_push": {fw_settings["mod_spec_add"]: new_atoms_dict}}]
+
     if "time_spec_add" in fw_settings:
         mod_spec[0]["_push"][fw_settings["time_spec_add"]] = func_fw_kwargs.pop(
             "run_time"
         )
+
     return FWAction(mod_spec=mod_spec)
 
 
@@ -55,22 +68,23 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     Parameters
     ----------
-    func: str
+    func : str
         Path to function that performs the MD like operation
-    func_fw_out: str
+    func_fw_out : str
         Path to this function
-    args: list
+    args : list
         Arguments passed to the socket calculator function
-    fw_settings: dict
-        FireWorks specific settings
-    kwargs: dict
+    fw_settings : dict
+        FireWorks specific settings (Default value = None)
+    kwargs : dict
         Key word arguments passed to the socket calculator function
 
     Returns
     -------
-    FWAction
-        Either a new Firework to restart the calculation or
-        an updated spec with the list of atoms
+    fireworks.FWAction
+        Either a new Firework to restart the calculation or an
+        updated spec with the list of atoms
+
     """
     if "workdir" in kwargs:
         calc_times = get_calc_times(kwargs["workdir"])
@@ -92,16 +106,16 @@ def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     if kwargs["outputs"]:
         wd = Path(kwargs.get("workdir", "."))
-        traj = kwargs.get("trajectory", "trajectory.son")
+        trajectory_file = kwargs.get("trajectory", filenames.trajectory)
 
-        ca = traj_reader(str((wd / traj).absolute()), False)
+        ca = reader(str((wd / trajectory_file).absolute()), False)
 
         update_spec[fw_settings["mod_spec_add"]] = []
         for atoms in ca:
             atoms_dict = atoms2dict(atoms)
-            calc_dict = calc2dict(atoms.calc)
-            calc_dict["results"] = atoms.calc.results
-            atoms_dict["calculator_dict"] = calc_dict
+            calculator_dict = calc2dict(atoms.calc)
+            calculator_dict["results"] = atoms.calc.results
+            atoms_dict["calculator_dict"] = calculator_dict
             update_spec[fw_settings["mod_spec_add"]].append(atoms_dict)
 
         return FWAction(update_spec=update_spec)

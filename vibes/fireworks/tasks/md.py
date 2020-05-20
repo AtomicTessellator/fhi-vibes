@@ -1,9 +1,11 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
+from jconfigparser.dict import DotDict
 import numpy as np
 
-from vibes.helpers.attribute_dict import AttributeDict
+from vibes.cli.scripts.create_samples import generate_samples
+from vibes.filenames import filenames
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.numerics import get_3x3_matrix
@@ -11,19 +13,18 @@ from vibes.helpers.supercell import make_supercell
 from vibes.molecular_dynamics.context import MDContext
 from vibes.phonopy.postprocess import extract_results, postprocess
 from vibes.phonopy.utils import remap_force_constants
-from vibes.scripts.create_samples import generate_samples
 from vibes.settings import Settings
 from vibes.trajectory import reader
 
 
-def run(atoms, calc, kpt_density=None, md_settings=None, fw_settings=None):
+def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None):
     """Creates a Settings object and passes it to the bootstrap function
 
     Parameters
     ----------
     atoms: ase.atoms.Atoms
         Atoms object of the primitive cell
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         Calculator for the force calculations
     kpt_density: float
         k-point density for the MP-Grid
@@ -34,24 +35,27 @@ def run(atoms, calc, kpt_density=None, md_settings=None, fw_settings=None):
 
     Returns
     -------
-    outputs: dict
-        The output of vibes.phonopy.workflow.bootstrap for phonopy and phono3py
+    completed: bool
+        True if the workflow completed
     """
     workdir = md_settings.get("workdir", None)
     if workdir:
         workdir = Path(workdir)
-        trajectory = workdir / "trajectory.son"
+        trajectory_file = workdir / filenames.trajectory
         workdir.mkdir(parents=True, exist_ok=True)
     else:
-        trajectory = None
+        trajectory_file = None
         workdir = Path(".")
 
-    if "phonon_file" not in md_settings and not Path(workdir / "geometry.in").exists():
+    if (
+        "phonon_file" not in md_settings
+        and not Path(workdir / filenames.atoms).exists()
+    ):
         sc_matrix = md_settings.pop("supercell_matrix", np.eye(3))
         supercell = make_supercell(atoms, sc_matrix)
         supercell.write(str(workdir / "supercell.in"), format="aims", scaled=True)
         atoms.write(str(workdir / "unitcell.in"), format="aims", scaled=True)
-        supercell.write(str(workdir / "geometry.in"), format="aims", scaled=True)
+        supercell.write(str(workdir / filenames.atoms), format="aims", scaled=True)
     else:
         if Path(md_settings["phonon_file"]).parent.name == "converged":
             sc_list = Path(md_settings["phonon_file"]).parents[1].glob("sc_n*")
@@ -59,15 +63,16 @@ def run(atoms, calc, kpt_density=None, md_settings=None, fw_settings=None):
             md_settings["phonon_file"] = str(sc_list[-1] / "phonopy/trajectory.son")
 
         _, ph_metadata = reader(md_settings["phonon_file"], get_metadata=True)
-        traj_dir = str(Path(md_settings["phonon_file"]).parent)
-        traj_file = str(Path(md_settings["phonon_file"]).name)
-        phonon = postprocess(traj_file, traj_dir, verbose=False)
+        ph_workdir = str(Path(md_settings["phonon_file"]).parent)
+        ph_trajectory_file = str(Path(md_settings["phonon_file"]).name)
+        phonon = postprocess(ph_trajectory_file, ph_workdir, verbose=False)
         extract_results(phonon, output_dir=workdir / "phonopy_output")
 
         atoms_dict = ph_metadata["primitive"]["atoms"]
         ph_atoms = dict2atoms(atoms_dict, ph_metadata["calculator"], False)
-        calc = ph_atoms.calc
-        kpt_density = k2d(ph_atoms, calc.parameters["k_grid"])
+        calculator = ph_atoms.calc
+        if calculator.name.lower() == "aims":
+            kpt_density = k2d(ph_atoms, calculator.parameters["k_grid"])
         if not Path(workdir / "geometry.in").exists():
             sc = dict2atoms(ph_metadata["supercell"]["atoms"])
             sc_matrix = md_settings.pop(
@@ -88,20 +93,19 @@ def run(atoms, calc, kpt_density=None, md_settings=None, fw_settings=None):
                 rattle=False,
                 quantum=False,
                 deterministic=False,
-                plus_minus=False,
+                zacharias=False,
                 gauge_eigenvectors=False,
                 ignore_negative=True,
                 sobol=False,
                 random_seed=np.random.randint(2 ** 32),
                 propagate=0,
-                format="aims",
             )[0]
 
             supercell.write(str(workdir / "supercell.in"), format="aims", scaled=True)
             ph_atoms.write(str(workdir / "unitcell.in"), format="aims", scaled=True)
             info_str = atoms_md.info.pop("info_str")
             atoms_md.write(
-                str(workdir / "geometry.in"),
+                str(workdir / filenames.atoms),
                 info_str=info_str,
                 format="aims",
                 scaled=True,
@@ -109,24 +113,46 @@ def run(atoms, calc, kpt_density=None, md_settings=None, fw_settings=None):
             )
 
     if kpt_density is not None:
-        update_k_grid(atoms, calc, kpt_density, even=True)
+        update_k_grid(atoms, calculator, kpt_density, even=True)
 
-    calc.parameters.pop("sc_init_iter", None)
-    settings = Settings(settings_file=None)
-    settings._settings_file = "md.in"
-    settings["md"] = AttributeDict(md_settings)
-    settings["basissets"] = AttributeDict(
-        {"default": calc.parameters.pop("species_dir").split("/")[-1]}
+    calculator.parameters.pop("sc_init_iter", None)
+
+    settings = Settings(
+        settings_file=None, config_files=None, dct={"md": DotDict(md_settings)}
     )
-    settings["control"] = AttributeDict(calc.parameters.copy())
-    settings["geometry"] = AttributeDict(
+    settings_file = str(workdir / "md.in")
+    settings._settings_file = settings_file
+    settings["md"] = DotDict(md_settings)
+    settings["calculator"] = DotDict({"name": calculator.name})
+    if calculator.name.lower() == "aims":
+        settings["calculator"]["basissets"] = DotDict(
+            {"default": calculator.parameters.pop("species_dir").split("/")[-1]}
+        )
+
+        host, port = calculator.parameters.pop("use_pimd_wrapper", [None, None])
+        if "UNIX" in host:
+            unixsocket = host
+            host = None
+        else:
+            unixsocket = None
+        if port:
+            settings["calculator"]["socketio"] = DotDict(
+                {"port": port, "host": host, "unixsocket": unixsocket}
+            )
+        else:
+            settings["calculator"].pop("socketio", None)
+    elif calculator.name.lower() == "emt":
+        settings["calculator"].pop("socketio", None)
+
+    settings["calculator"]["parameters"] = DotDict(calculator.parameters)
+    settings["files"] = DotDict(
         {
-            "file": str(workdir / "geometry.in"),
-            "primitive": str(workdir / "unitcell.in"),
-            "supercell": str(workdir / "supercell.in"),
+            "geometry": str(workdir.absolute() / filenames.atoms),
+            "primitive": str(workdir.absolute() / "unitcell.in"),
+            "supercell": str(workdir.absolute() / "supercell.in"),
         }
     )
-
-    ctx = MDContext(settings, workdir, trajectory)
+    settings.write(settings_file)
+    ctx = MDContext(Settings(settings_file=settings_file), workdir, trajectory_file)
 
     return ctx.run()

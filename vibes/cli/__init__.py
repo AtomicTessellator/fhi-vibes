@@ -49,6 +49,8 @@ try:
     cli.add_command(vibes.fireworks.cli.fireworks)
 except ImportError:
     pass
+except KeyError:
+    pass
 
 try:
     import vibes.balsam.cli

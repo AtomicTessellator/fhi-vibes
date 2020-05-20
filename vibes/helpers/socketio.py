@@ -9,61 +9,36 @@ from vibes.helpers.warnings import warn
 _prefix = "socketio"
 
 
-def get_port(calculator, prefix=_prefix):
+def get_socket_info(calculator, prefix=_prefix):
     """return port of the calculator
 
     Args:
         calculator: calculator to get the port of
         prefix: prefix for messages from this function
     Returns:
+        host: The host for socketio
         port: the port for socketio
+        unixsocket: get_unixsocket
     """
 
     port = None
-
+    unixsocket = None
     if not hasattr(calculator, "parameters"):
         warn(f"{prefix} No parameters found in calculator {calculator.name}.", level=1)
         return port
 
     if "use_pimd_wrapper" in calculator.parameters:
         port = calculator.parameters["use_pimd_wrapper"][1]
-        if "UNIX:" in calculator.parameters["use_pimd_wrapper"][0]:
-            talk(f"Use SocketIO with unixsocket and port {port}", prefix=prefix)
+        host = calculator.parameters["use_pimd_wrapper"][0]
+        if "UNIX:" in host:
+            unixsocket = calculator.parameters["use_pimd_wrapper"][0]
+            talk(f"Use SocketIO with unixsocket file {unixsocket}", prefix=prefix)
         else:
-            talk(f"Use SocketIO with port {port}", prefix=prefix)
+            talk(f"Use SocketIO with host {host} and port {port}", prefix=prefix)
     else:
         talk(f"Socketio not used with calculator {calculator.name}", prefix=prefix)
 
-    return port
-
-
-def get_unixsocket(calculator, prefix=_prefix):
-    """return the unixsocket of the calculator
-
-    Args:
-        calculator: calculator to get the unixsocket of
-        prefix: prefix for messages from this function
-    Returns:
-        unixsocket: the unixsocket used for socketio
-    """
-
-    unixsocket = None
-
-    if not hasattr(calculator, "parameters"):
-        warn(f"{prefix} No parameters found in calculator {calculator.name}.", level=1)
-        return unixsocket
-
-    if "use_pimd_wrapper" in calculator.parameters:
-        host = calculator.parameters["use_pimd_wrapper"][0]
-        if host[:5] == "UNIX:":
-            unixsocket = host[5:]
-            talk(f"Use SocketIO with unixsocket {unixsocket}", prefix=prefix)
-        else:
-            talk(f"Use SocketIO with localhost", prefix=prefix)
-    else:
-        talk(f"SocketIO not used with calculator {calculator.name}", prefix=prefix)
-
-    return unixsocket
+    return port, unixsocket
 
 
 def get_stresses(atoms):
@@ -93,33 +68,33 @@ def get_stresses(atoms):
     return stresses * units.Hartree
 
 
-def socket_stress_off(calc):
+def socket_stress_off(calculator):
     """Turn stresses computation off via socket
 
     Parameters
     ----------
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         calculator to turn off stress computation for
     """
-    if "socketio" in calc.name.lower():
-        calc.server.protocol.sendmsg("STRESSES_OFF")
+    if "socketio" in calculator.name.lower():
+        calculator.server.protocol.sendmsg("STRESSES_OFF")
     else:
-        talk(f"Calculator {calc.name} is not a socket calculator.")
-        calc.parameters["compute_heat_flux"] = False
-        calc.parameters["compute_analytical_stress"] = True
+        talk(f"Calculator {calculator.name} is not a socket calculator.")
+        calculator.parameters["compute_heat_flux"] = False
+        calculator.parameters["compute_analytical_stress"] = True
 
 
-def socket_stress_on(calc):
+def socket_stress_on(calculator):
     """ Turn stresses computation on via socket
 
     Parameters
     ----------
-    calc: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calulator.Calculator
         calculator to turn on stress computation for
     """
-    if "socketio" in calc.name.lower():
-        calc.server.protocol.sendmsg("STRESSES_ON")
+    if "socketio" in calculator.name.lower():
+        calculator.server.protocol.sendmsg("STRESSES_ON")
     else:
-        talk(f"Calculator {calc.name} is not a socket calculator.")
-        calc.parameters["compute_heat_flux"] = True
-        del calc.parameters["compute_analytical_stress"]
+        talk(f"Calculator {calculator.name} is not a socket calculator.")
+        calculator.parameters["compute_heat_flux"] = True
+        del calculator.parameters["compute_analytical_stress"]

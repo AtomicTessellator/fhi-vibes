@@ -1,0 +1,5 @@
+[calculator]
+name: lj
+
+[calculator.parameters]
+sigma: 2

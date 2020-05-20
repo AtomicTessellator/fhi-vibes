@@ -6,12 +6,12 @@ from vibes.helpers import talk, warn
 from vibes.settings import Settings
 
 
-def restart(settings=None, trajectory=None, verbose=True):
+def restart(settings=None, trajectory_file=None, verbose=True):
     """ restart a job according to the restart instructions in the settings
 
     Args:
         settings (Settings): Settings for the task
-        trajectory (Path): if given, check if the trajectory exists
+        trajectory_file (Path): if given, check if the trajectory exists
         verbose (bool): If True print more logging information
 
     Returns:
@@ -24,7 +24,7 @@ def restart(settings=None, trajectory=None, verbose=True):
 
     if "restart" in settings:
         # check if trajectory exists
-        if trajectory and not path.exists(trajectory):
+        if trajectory_file and not path.exists(trajectory_file):
             msg = "Computation restart request, but no trajectory found. CHECK!"
             warn(msg, level=2)
         if verbose:

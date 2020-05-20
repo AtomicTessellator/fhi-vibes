@@ -1,5 +1,9 @@
 """Generates TaskSpec Objects"""
+import numpy as np
+
+from vibes.filenames import filenames
 from vibes.fireworks.tasks.task_spec import TaskSpec
+from vibes.helpers.numerics import get_3x3_matrix
 
 
 def gen_phonon_task_spec(func_kwargs, fw_settings=None):
@@ -7,25 +11,29 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    fw_settings: dict
-        Settings used by fireworks to place objects in the right part of the MongoDB
+    fw_settings : dict
+        Settings used by fireworks to place objects in the right part of the
+        MongoDB (Default value = None)
 
     Returns
     -------
     TaskSpec
         The specification object of the task
+
     """
     if fw_settings is not None:
         fw_settings = fw_settings.copy()
     kwargs_init = {}
     kwargs_init_fw_out = {}
+
     preprocess_keys = {
-        "ph_settings": ["supercell_matrix", "displacement", "sc_matrix_original"],
+        "ph_settings": ["supercell_matrix", "displacement"],
         "ph3_settings": ["supercell_matrix", "displacement", "cutoff_pair_distance"],
     }
-    out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
+    out_keys = ["walltime", "trajectory_file", "backup_folder", "serial"]
+
     for set_key in ["ph_settings", "ph3_settings"]:
         if set_key in func_kwargs:
             kwargs_init[set_key] = {}
@@ -39,6 +47,7 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
                     kwargs_init[set_key][key] = val
                 if key in out_keys:
                     kwargs_init_fw_out[set_key][key] = val
+
     inputs = ["kgrid"]
     args = []
 
@@ -59,16 +68,17 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None, add_qadapter=False):
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    fw_settings: dict
-        Settings used by fireworks to place objects in the right part of
-                            the MongoDB
+    fw_settings : dict
+        Settings used by fireworks to place objects in the right part of the
+        MongoDB (Default value = None)
 
     Returns
     -------
     TaskSpec
         The specification object of the task
+
     """
     preprocess_keys = [
         "supercell_matrix",
@@ -86,7 +96,7 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None, add_qadapter=False):
         "random_seed",
     ]
 
-    out_keys = ["walltime", "trajectory", "backup_folder", "serial"]
+    out_keys = ["walltime", "trajectory_file", "backup_folder", "serial"]
     kwargs_init = {}
     kwargs_init_fw_out = {}
 
@@ -140,23 +150,24 @@ def gen_phonon_analysis_task_spec(
 
     Parameters
     ----------
-    func: str
+    func : str
         The function path to the serial calculator
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    metakey: str
+    metakey : str
         Key to find the phonon calculation's metadata to recreate the trajectory
-    forcekey: str
+    forcekey : str
         Key to find the phonon calculation's force data to recreate the trajectory
-    timekey: str
+    timekey : str
         Key to find the time needed for the phonon supercell calculations
-    make_abs_path: bool
-        If True make the paths of directories absolute
+    make_abs_path : bool
+        If True make the paths of directories absolute (Default value = False)
 
     Returns
     -------
     TaskSpec
         The specification object of the task
+
     """
     if "workdir" in func_kwargs and "init_workdir" not in func_kwargs:
         func_kwargs["init_workdir"] = func_kwargs["workdir"]
@@ -166,20 +177,61 @@ def gen_phonon_analysis_task_spec(
     elif "workdir" not in func_kwargs:
         func_kwargs["workdir"] = "."
 
-    if "converge_phonons" in func_kwargs and func_kwargs["converge_phonons"]:
+    conv = False
+    if "convergence" in func_kwargs:
+        if isinstance(func_kwargs["convergence"], bool):
+            conv = func_kwargs["convergence"]
+            conv_crit = 0.80
+        else:
+            conv = True
+            conv_crit = func_kwargs["convergence"].get("minimum_similiarty_score", 0.80)
+            supercell_matrix = get_3x3_matrix(func_kwargs["supercell_matrix"]).flatten()
+            sc_matrix_base = get_3x3_matrix(
+                func_kwargs["convergence"].get("sc_matrix_base", supercell_matrix)
+            ).flatten()
+
+            inds = np.where(np.abs(sc_matrix_base) > 0.99)[0]
+            quot = supercell_matrix[inds] / sc_matrix_base[inds]
+
+            try:
+                assert np.all(quot == quot[0])
+            except AssertionError:
+                raise ValueError(
+                    "supercell_matrix is not a scalar multiple of sc_matrix_base"
+                )
+
+            try:
+                assert np.all(quot > 0.99)
+            except AssertionError:
+                raise ValueError("sc_matrix_base is smaller than supercell_matrix")
+
+            try:
+                assert np.all(np.abs(quot - np.round(quot)) < 1e-10)
+            except AssertionError:
+                raise ValueError(
+                    "supercell_matrix is not an integer scalar multiple of sc_matrix_base"
+                )
+
+            func_kwargs["sc_matrix_base"] = [
+                int(round(sc_el)) for sc_el in sc_matrix_base.flatten()
+            ]
+
+    if conv:
         func_out = "vibes.fireworks.tasks.fw_out.phonons.converge_phonons"
+        func_kwargs["conv_crit"] = conv_crit
+        func_kwargs.pop("convergence")
     else:
         func_out = "vibes.fireworks.tasks.fw_out.phonons.add_phonon_to_spec"
 
-    if "trajectory" not in func_kwargs:
-        func_kwargs["trajectory"] = "trajectory.son"
+    if "trajectory_file" not in func_kwargs:
+        func_kwargs["trajectory_file"] = filenames.trajectory
     task_spec_list = []
     task_spec_list.append(
         TaskSpec(
             "vibes.fireworks.tasks.phonopy_phono3py_functions.collect_to_trajectory",
             "vibes.fireworks.tasks.fw_out.general.fireworks_no_mods_gen_function",
             False,
-            args=[func_kwargs["workdir"], func_kwargs["trajectory"]],
+            args=[func_kwargs["workdir"], func_kwargs["trajectory_file"]],
             inputs=[forcekey, metakey],
             make_abs_path=make_abs_path,
         )
@@ -205,27 +257,28 @@ def gen_stat_samp_analysis_task_spec(
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    metakey: str
+    metakey : str
         Key to find the phonon calculation's metadata to recreate the trajectory
-    forcekey: str
+    forcekey : str
         Key to find the phonon calculation's force data to recreate the trajectory
-    make_abs_path: bool
-        If True make the paths of directories absolute
+    make_abs_path : bool
+        If True make the paths of directories absolute (Default value = False)
 
     Returns
     -------
     TaskSpec
         The specification object of the task
+
     """
     if "analysis_workdir" in func_kwargs:
         func_kwargs["workdir"] = func_kwargs["analysis_workdir"]
     elif "workdir" not in func_kwargs:
         func_kwargs["workdir"] = "."
 
-    if "trajectory" not in func_kwargs:
-        func_kwargs["trajectory"] = "trajectory.son"
+    if "trajectory_file" not in func_kwargs:
+        func_kwargs["trajectory_file"] = filenames.trajectory
 
     task_spec_list = []
     task_spec_list.append(
@@ -233,7 +286,7 @@ def gen_stat_samp_analysis_task_spec(
             "vibes.fireworks.tasks.phonopy_phono3py_functions.collect_to_trajectory",
             "vibes.fireworks.tasks.fw_out.general.fireworks_no_mods_gen_function",
             False,
-            args=[func_kwargs["workdir"], func_kwargs["trajectory"]],
+            args=[func_kwargs["workdir"], func_kwargs["trajectory_file"]],
             inputs=[forcekey, metakey],
             make_abs_path=make_abs_path,
         )
@@ -261,21 +314,24 @@ def gen_aims_task_spec(
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    func_fw_outkwargs: dict
+    func_fw_outkwargs : dict
         The defined kwargs for fw_out
-    make_abs_path: bool
-        If True make the paths of directories absolute
-    relax: bool
-        If True it is a relaxation
+    make_abs_path : bool
+        If True make the paths of directories absolute (Default value = False)
+    relax : bool
+        If True it is a relaxation (Default value = True)
+    func_fw_out_kwargs :
+
 
     Returns
     -------
     TaskSpec
         The task_spec for the calculation
+
     """
-    fw_out = "vibes.fireworks.tasks.fw_out.relax.check_aims_complete"
+    fw_out = "vibes.fireworks.tasks.fw_out.aims.check_aims_complete"
     if not relax:
         fw_out = "vibes.fireworks.tasks.fw_out.general.fireworks_no_mods"
     return TaskSpec(
@@ -293,15 +349,16 @@ def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
 
     Parameters
     ----------
-    func_kwargs: dict
+    func_kwargs : dict
         The defined kwargs for func
-    make_abs_path: bool
-        If True make the paths of directories absolute
+    make_abs_path : bool
+        If True make the paths of directories absolute (Default value = False)
 
     Returns
     -------
     TaskSpec
         The TaskSpec for the kgrid optimization
+
     """
     return TaskSpec(
         "vibes.k_grid.converge_kgrid.converge_kgrid",
@@ -312,29 +369,30 @@ def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
     )
 
 
-def gen_gruniesen_task_spec(settings, trajectory, constraints):
+def gen_gruniesen_task_spec(settings, trajectory_file, constraints):
     """Generate a TaskSpec for setting up a Gruniesen parameter calculation
 
     Parameters
     ----------
-    settings: Settings
+    settings : Settings
         The workflow settings
-    trajectory: str
+    trajectory_file: str
         Path the the equilibrium phonon trajectory
-    constraints: list of dict
+    constraints : list of dict
         list of relevant constraint dictionaries for relaxations
 
     Returns
     -------
     TaskSpec
         The specification object of the Gruniesen setup task
+
     """
     task_spec_list = [
         TaskSpec(
             "vibes.fireworks.tasks.phonopy_phono3py_functions.setup_gruneisen",
             "vibes.fireworks.tasks.fw_out.general.add_additions_to_spec",
             False,
-            args=[settings, trajectory, constraints],
+            args=[settings, trajectory_file, constraints],
             inputs=["_queueadapter", "kgrid"],
             make_abs_path=False,
         )
@@ -369,6 +427,32 @@ def gen_md_task_spec(md_settings, fw_settings=None):
             "vibes.fireworks.tasks.fw_out.md.check_md_finish",
             True,
             {"md_settings": md_settings},
+            args=args,
+            inputs=inputs,
+            make_abs_path=False,
+        )
+    ]
+    return task_spec_list
+
+
+def gen_relax_task_spec(relax_settings, fw_settings=None):
+    """Generate a TaskSpec for setting up a Gruniesen parameter calculation
+
+    Returns
+    -------
+    TaskSpec
+        The specification object of the MD task
+    """
+
+    inputs = []
+    args = [None]
+
+    task_spec_list = [
+        TaskSpec(
+            "vibes.fireworks.tasks.relaxation.run",
+            "vibes.fireworks.tasks.fw_out.relaxation.check_relax_finish",
+            True,
+            {"relax_settings": relax_settings},
             args=args,
             inputs=inputs,
             make_abs_path=False,

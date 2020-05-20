@@ -25,3 +25,4 @@ command = vibes run md
 
 [machine]
 basissetloc = species_defaults
+

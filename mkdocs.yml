@@ -1,0 +1,82 @@
+site_name: FHI-vibes
+
+repo_url: https://gitlab.com/flokno/hilde
+
+copyright: 'Copyright &copy; 2020 Florian Knoop'
+
+theme:
+    name: 'material'
+    palette:
+        primary: 'Teal'
+        accent: 'Blue Grey'
+    logo: 'images/FV.svg'
+    favicon: 'images/FV.svg'
+    include_search_page: false
+    feature:
+        tabs: true
+
+    font:
+        text: 'Open Sans'
+        code: 'Droid Sans Mono'
+
+nav:
+    - Home:
+        - Welcome!: README.md
+        - References: References.md
+        - License: license.md
+    - Documentation: 
+        - Overview: Documentation/0_intro.md
+        - "Input Files": Documentation/input_files.md
+        - "Output Files": Documentation/output_files.md
+        - "Calculator Setup": Documentation/calculator_setup.md
+        - Workflows:
+            - "Relaxation": Documentation/relaxation.md
+        - High-Throughut:
+                - Overview: High_Throughput/Documentation/0_overview.md
+                - Installation Guide: High_Throughput/Installation/0_setup.md
+                - General Workflows: High_Throughput/Documentation/1_general_high_throughput.md
+                - qadapters: High_Throughput/Documentation/2_qadapter.md
+                - K-Point Density Optimization: High_Throughput/Documentation/3_optimize_k_grid.md
+                - Relaxation: High_Throughput/Documentation/4_relaxation.md
+                - Phonon Calculations: High_Throughput/Documentation/5_phonons.md
+                - Monte Carlo Sampling: High_Throughput/Documentation/6_statistical_sampling.md
+                - Molecular Dynamics: High_Throughput/Documentation/7_md.md
+    - Tutorial:
+        - Overview: Tutorial/0_intro.md
+        - "Geometry Optimization": Tutorial/1_geometry_optimization.md
+        - "Phonon Calculations":
+            - "Background": Tutorial/2_phonopy_intro.md
+            - "Running a phonon calculation": Tutorial/2_phonopy.md
+        - High-Throughput:
+            - "Phonon Calculations": High_Throughput/Tutorial/0_phonopy.md
+            - "Multistep Workflows": High_Throughput/Tutorial/1_multistep.md
+        - Tutorial/acknowledgments.md
+        - Tutorial/references.md
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+  - search
+
+markdown_extensions:
+    - toc:
+        permalink: "#"
+    - pymdownx.arithmatex
+    - pymdownx.details
+    - pymdownx.superfences
+    - footnotes
+    - admonition
+
+extra_javascript:
+  - 'javascripts/mathjax.js'
+  - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'
+
+
+extra:
+  social:
+    - type: gitlab
+      link: https://gitlab.com/flokno/hilde
+    - type: twitter
+      link: https://twitter.com/floknoo
+

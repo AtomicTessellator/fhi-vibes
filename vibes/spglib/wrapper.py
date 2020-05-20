@@ -4,8 +4,8 @@ import numpy as np
 import spglib as spg
 from ase.atoms import Atoms
 
-from vibes.helpers.attribute_dict import AttributeDict
-from vibes.konstanten.symmetry import symprec as default_symprec
+from vibes.helpers.dict import AttributeDict
+from vibes.konstanten import symprec as default_symprec
 from vibes.structure.convert import to_spglib_cell
 
 

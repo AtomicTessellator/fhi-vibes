@@ -4,14 +4,31 @@ before_script:
   - flake8
   - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
   - poetry install
+  - pip install https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz
+  - pip list
 
 default:
   script:
     - pytest --cov --cov-config=setup.cfg tests/ --ignore tests/fireworks/
+  after_script:
+    - bash <(curl -s https://codecov.io/bash) -t d6fc44a4-f34d-4b5b-bf29-10db36125244
 
 fireworks:
   when: manual
-  script:
+  before_script:
+    - poetry install -E fireworks
     - service mongodb start --ipv6
-    - pip install fireworks
+    - cp vibes/templates/config_files/fireworksrc.template ~/.fireworksrc
+  script:
     - pytest tests/fireworks
+
+pages:
+  script:
+  - mkdocs build
+  - mv site public
+  artifacts:
+    paths:
+    - public
+  only:
+  - release
+  - docs

@@ -5,6 +5,8 @@ Utility functions for working with Brillouin zones
 from ase.dft import kpoints
 from ase.lattice import FCC
 
+from vibes.helpers.latex import latexify_labels
+
 
 def get_paths(atoms):
     """Get recommended path connencting high symmetry points in the BZ.
@@ -65,12 +67,16 @@ def get_bands(atoms, paths=None, npoints=50):
         paths = get_paths(atoms)
     bands = []
     for path in paths:
-        for ii, _ in enumerate(kpoints.parse_path_string(path)[0][:-1]):
-            bands.append(atoms.cell.bandpath(path[ii : ii + 2], npoints=npoints).kpts)
+        points = kpoints.parse_path_string(path)[0]  # [:-1]
+        ps = [points.pop(0)]
+        for _, p in enumerate(points):
+            ps.append(p)
+            bands.append(atoms.cell.bandpath("".join(ps), npoints=npoints).kpts)
+            ps.pop(0)
     return bands
 
 
-def get_labels(paths, latex=True):
+def get_labels(paths, latex=False):
     """Get the labels for a given path for printing them with latex
 
     Parameters
@@ -86,24 +92,32 @@ def get_labels(paths, latex=True):
         The labels for the high-symmetry path
     """
     if len(paths) == 1:
-        labels = [*paths[0]]
+        labels = kpoints.parse_path_string(paths[0])[0]
+        labels.append("|")
     else:
-        labels = [*"|".join(paths)]
+        labels = []
+        for path in paths:
+            points = kpoints.parse_path_string(path)[0]
+            labels.extend(points)
+            labels.append("|")
+
+    # discard last |
+    labels = labels[:-1]
+
     for ii, ll in enumerate(labels):
         if ll == "|":
             labels[ii] = f"{labels[ii-1]}|{labels[ii+1]}"
             labels[ii - 1], labels[ii + 1] = "", ""
-        if ll == "G" and latex:
-            labels[ii] = "\\Gamma"
+
     labels = [ll for ll in labels if ll]
 
-    latexify = lambda sym: "$\\mathrm{\\mathsf{" + str(sym) + "}}$"
     if latex:
-        return [latexify(sym) for sym in labels]
+        return latexify_labels(labels)
+
     return labels
 
 
-def get_bands_and_labels(atoms, paths=None, npoints=50, latex=True):
+def get_bands_and_labels(atoms, paths=None, npoints=50, latex=False):
     """Combine get_bands() and get_labels()
 
     Parameters
@@ -127,4 +141,7 @@ def get_bands_and_labels(atoms, paths=None, npoints=50, latex=True):
     if paths is None:
         paths = get_paths(atoms)
 
-    return get_bands(atoms, paths, npoints=npoints), get_labels(paths, latex=latex)
+    bands = get_bands(atoms, paths, npoints=npoints)
+    labels = get_labels(paths, latex=latex)
+
+    return bands, labels

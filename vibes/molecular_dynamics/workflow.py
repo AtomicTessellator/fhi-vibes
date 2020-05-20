@@ -11,19 +11,19 @@ from vibes.helpers.backup import default_backup_folder
 from vibes.helpers.paths import cwd
 from vibes.helpers.restarts import restart
 from vibes.helpers.socketio import (
-    get_port,
+    get_socket_info,
     get_stresses,
     socket_stress_off,
     socket_stress_on,
 )
+from vibes.helpers.utils import Timeout
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.trajectory import metadata2file, step2file
 
-from ._defaults import name
+from ._defaults import calculation_timeout, name
 
 _calc_dirname = "calculations"
 # _socket_timeout = 60
-# _calculation_timeout = 30
 _prefix = name
 
 
@@ -34,7 +34,7 @@ def run_md(ctx, timeout=None):
 
     if not converged:
         talk("restart", prefix=_prefix)
-        restart(ctx.settings, trajectory=ctx.trajectory)
+        restart(ctx.settings, trajectory_file=ctx.trajectory_file)
     else:
         talk("done.", prefix=_prefix)
 
@@ -51,7 +51,7 @@ def run(ctx, backup_folder=default_backup_folder):
 
     # extract things from context
     atoms = ctx.atoms
-    calc = ctx.calc
+    calculator = ctx.calculator
     md = ctx.md
     maxsteps = ctx.maxsteps
     compute_stresses = ctx.compute_stresses
@@ -65,17 +65,19 @@ def run(ctx, backup_folder=default_backup_folder):
 
     # create working directories
     workdir = ctx.workdir
-    trajectory = ctx.trajectory
+    trajectory_file = ctx.trajectory_file
     calc_dir = workdir / _calc_dirname
     backup_folder = workdir / backup_folder
 
     # prepare the socketio stuff
-    socketio_port = get_port(calc)
+    socketio_port, socketio_unixsocket = get_socket_info(calculator)
     if socketio_port is None:
         socket_calc = None
+        # choose some 5 digit number
+        socketio_port = np.random.randint(0, 65000)
     else:
-        socket_calc = calc
-    atoms.calc = calc
+        socket_calc = calculator
+    atoms.calc = calculator
 
     # does it make sense to start everything?
     if md.nsteps >= maxsteps:
@@ -85,8 +87,8 @@ def run(ctx, backup_folder=default_backup_folder):
 
     # is the calculation similar enough?
     metadata = ctx.metadata
-    if trajectory.exists():
-        old_metadata, _ = son.load(trajectory)
+    if trajectory_file.exists():
+        old_metadata, _ = son.load(trajectory_file)
         check_metadata(metadata, old_metadata)
 
     # backup previously computed data
@@ -95,12 +97,12 @@ def run(ctx, backup_folder=default_backup_folder):
     # back up settings
     if settings:
         with cwd(workdir, mkdir=True):
-            settings.obj["workdir"] = "."
             settings.write()
 
-    with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
-        calc_dir, mkdir=True
-    ):
+    timeout = Timeout(calculation_timeout)
+    with SocketIOCalculator(
+        socket_calc, port=socketio_port, unixsocket=socketio_unixsocket
+    ) as iocalc, cwd(calc_dir, mkdir=True):
         # make sure the socket is entered
         if socket_calc is not None:
             atoms.calc = iocalc
@@ -111,7 +113,7 @@ def run(ctx, backup_folder=default_backup_folder):
             if not get_forces(atoms):
                 return False
             # log metadata
-            metadata2file(metadata, file=trajectory)
+            metadata2file(metadata, file=trajectory_file)
             # log initial structure computation
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
             meta = get_aims_uuid_dict()
@@ -119,9 +121,12 @@ def run(ctx, backup_folder=default_backup_folder):
                 stresses = get_stresses(atoms)
                 atoms.calc.results["stresses"] = stresses
 
-            step2file(atoms, file=trajectory, metadata=meta)
+            step2file(atoms, file=trajectory_file, metadata=meta)
 
         while not watchdog() and md.nsteps < maxsteps:
+
+            # reset timeout
+            timeout()
 
             if not md_step(md):
                 break
@@ -135,7 +140,7 @@ def run(ctx, backup_folder=default_backup_folder):
             # peek into aims file and grep for uuid
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
             meta = get_aims_uuid_dict()
-            step2file(atoms, atoms.calc, trajectory, metadata=meta)
+            step2file(atoms, atoms.calc, trajectory_file, metadata=meta)
 
             if compute_stresses:
                 if compute_stresses_next(compute_stresses, md.nsteps):

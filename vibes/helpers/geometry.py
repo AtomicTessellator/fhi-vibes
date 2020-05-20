@@ -3,14 +3,30 @@ import numpy as np
 from vibes.helpers.numerics import clean_matrix
 
 
+def get_deformation(cell1: np.array, cell2: np.array) -> np.array:
+    """Compute the matrix that deforms cell1 into cell2
+
+    Rationale:
+              A2 = D A1
+        <=> A2.T = A1.T D.T
+         =>    D = np.linalg.solve(A1.T, A2.T).T
+
+    """
+    A1 = np.asarray(cell1)
+    A2 = np.asarray(cell2)
+
+    return np.linalg.solve(A1.T, A2.T).T
+
+
 def inscribed_sphere_in_box(cell):
     """Find the radius of an inscribed sphere in a unit cell
 
     Args:
-        cell (np.ndarray): Cell where the sphere should be inscribed
+      cell(np.ndarray): Cell where the sphere should be inscribed
 
     Returns:
-        float: The radius of the inscribed sphere
+      float: The radius of the inscribed sphere
+
     """
 
     # the normals of the faces of the box
@@ -33,10 +49,11 @@ def bounding_sphere_of_box(cell):
     """Find the radius of the sphere bounding a box
 
     Args:
-        cell (np.ndarray): Cell where the sphere should be wrapped around
+      cell(np.ndarray): Cell where the sphere should be wrapped around
 
     Returns:
-        float: The radius of the inscribed sphere
+      float: The radius of the inscribed sphere
+
     """
     a, b, c = np.asarray(cell)
 
@@ -55,18 +72,12 @@ def get_cubicness(cell):
     sphere that fits into the cell to a sphere that fits into a cubic cell
     of similar size
 
-    Parameters
-    ----------
-    cell: np.ndarray
-        Lattice of the cell
+    Args:
+      cell(np.ndarray): Lattice of the cell
 
-    Returns
-    -------
-    float
-        ratio of radii of the two spheres:
+    Returns:
+        float: cubicness
 
-          - 1 means perfectly cubic,
-          - ratio**3 compared volumes of the two spheres
     """
 
     # perfect radius: 1/2 * width of the cube
@@ -83,19 +94,14 @@ def get_cubicness(cell):
 def get_rotation_matrix(phi, axis, radians=False):
     """Get the rotation matrix for a given rotation
 
-    Parameters
-    ----------
-    phi: float
-        The angle to rotate by
-    axis: int
-        0-2 axis to rotate ove
-    radians: bool
-        If True phi is in radians
+    Args:
+      phi(float): The angle to rotate by
+      axis(int): 0-2 axis to rotate ove
+      radians(bool, optional): If True phi is in radians (Default value = False)
 
-    Returns
-    -------
-    Rm: np.ndarray
-        The rotation matrix
+    Returns:
+        np.ndarray: rotation matrix
+
     """
     if not radians:
         phi = phi / 180 * np.pi

@@ -3,6 +3,9 @@ from pathlib import Path
 from shutil import copyfile, rmtree
 
 import numpy as np
+
+from vibes.filenames import filenames
+from vibes.fireworks.utils.converters import phonon_to_dict
 from vibes.helpers.converters import atoms2dict
 from vibes.helpers.k_grid import update_k_grid
 from vibes.helpers.paths import cwd
@@ -11,23 +14,27 @@ from vibes.materials_fp.material_fingerprint import (
     get_phonon_dos_fp,
     scalar_product,
 )
-from vibes.phonon_db.row import phonon_to_dict
+from vibes.phonopy.utils import remap_force_constants
 from vibes.phonopy.wrapper import preprocess as ph_preprocess
 from vibes.settings import Settings
-from vibes.structure.convert import to_Atoms_db
+from vibes.helpers.supercell import get_lattice_points
+from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
 
 def time2str(n_sec):
-    """
-    Converts a number of seconds into a time string
-    Args:
-        n_secs (int): A time presented as a number of seconds
+    """Converts a number of seconds into a time string
+
+    Parameters
+    ----------
+    n_sec : int
+        A time presented as a number of seconds
 
     Returns
     -------
-    time_str: str
+    str
         A string representing a specified time
+
     """
     secs = int(n_sec % 60)
     mins = int(n_sec / 60) % 60
@@ -37,13 +44,18 @@ def time2str(n_sec):
 
 
 def get_base_work_dir(wd):
-    """
-    Converts wd to be it's base (no task specific directories)
-    Args:
-        wd (str): Current working directory
+    """Converts wd to be it's base (no task specific directories)
 
-    Returns:
-        (str): The base working directory for the workflow
+    Parameters
+    ----------
+    wd : str
+        Current working directory
+
+    Returns
+    -------
+    str
+        The base working directory for the workflow
+
     """
     wd_list = wd.split("/")
     # remove analysis directories from path
@@ -73,44 +85,45 @@ def get_base_work_dir(wd):
     return "/".join(wd_list)
 
 
-def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
+def get_memory_expectation(new_supercell, calculator, k_pt_density, workdir):
     """Runs a dry_run of the new calculation and gets the estimated memory usage
 
     Parameters
     ----------
-    new_supercell: ase.atoms.Atoms
+    new_supercell : ase.atoms.Atoms
         The structure to get the memory estimation for
-    calc: ase.atoms.Calculator
+    calculator: ase.atoms.Calculator
         The ASE Calculator to be used
-    k_pt_density: list of floats
+    k_pt_density : list of floats
         The k-point density in all directions
-    workdir: str
+    workdir : str
         Path to working directory
 
     Returns
     -------
-    float:
+    total_mem : float
         The expected memory of the calculation, scaling based on empirical tests
+
     """
     settings = Settings()
-    calc.parameters["dry_run"] = True
-    calc.parameters.pop("use_local_index", None)
-    calc.parameters.pop("load_balancing", None)
-    calc.command = settings.machine.aims_command
+    calculator.parameters["dry_run"] = True
+    calculator.parameters.pop("use_local_index", None)
+    calculator.parameters.pop("load_balancing", None)
+    calculator.command = settings.machine.aims_command
     bs_base = settings.machine.basissetloc
-    calc.parameters["species_dir"] = (
-        bs_base + "/" + calc.parameters["species_dir"].split("/")[-1]
+    calculator.parameters["species_dir"] = (
+        bs_base + "/" + calculator.parameters["species_dir"].split("/")[-1]
     )
-    calc.parameters["compute_forces"] = False
-    update_k_grid(new_supercell, calc, k_pt_density, even=True)
-    new_supercell.set_calculator(calc)
+    calculator.parameters["compute_forces"] = False
+    update_k_grid(new_supercell, calculator, k_pt_density, even=True)
+    new_supercell.set_calculator(calculator)
     mem_expect_dir = workdir + "/.memory_expectation"
     with cwd(mem_expect_dir, mkdir=True):
         try:
-            new_supercell.calc.calculate()
+            new_supercell.calculator.calculate()
         except RuntimeError:
-            calc.parameters["dry_run"] = False
-        lines = open("aims.out").readlines()
+            calculator.parameters["dry_run"] = False
+        lines = open(filenames.output.aims).readlines()
     rmtree(mem_expect_dir)
 
     for line in lines:
@@ -138,15 +151,22 @@ def get_memory_expectation(new_supercell, calc, k_pt_density, workdir):
 
 
 def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
-    """
-    Checks if the density of state finger prints are converged
-    Args:
-        dos_fp (MaterialsFingerprint): Current fingerprint
-        prev_dos_fp (MaterialsFingerprint): Fingerprint of the previous step
-        conv_crit (float): convergence criteria
+    """Checks if the density of state finger prints are converged
 
-    Returns:
-        (bool): True if conv_criteria is met
+    Parameters
+    ----------
+    dos_fp : vibes.materials_fp.material_fingerprint.fp_tup
+        Current fingerprint
+    prev_dos_fp : vibes.materials_fp.material_fingerprint.fp_tup
+        Fingerprint of the previous step
+    conv_crit : float
+        convergence criteria
+
+    Returns
+    -------
+    bool
+        True if conv_criteria is met
+
     """
     if not isinstance(prev_dos_fp, fp_tup):
         for ll in range(4):
@@ -162,59 +182,117 @@ def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
 
 def get_converge_phonon_update(
     workdir,
-    trajectory,
+    trajectory_file,
     calc_times,
-    ph,
+    phonon,
     conv_crit=0.95,
     prev_dos_fp=None,
     init_workdir="./",
     **kwargs,
 ):
-    """
-    Check phonon convergence and set up future calculations after a phonon calculation
-    Args:
-        func (str): Path to the phonon analysis function
-        func_fw_out (str): Path to this function
-        args (list): list arguments passed to the phonon analysis
-        fw_settings (dict): Dictionary for the FireWorks specific systems
-        kwargs (dict): Dictionary of keyword arguments
-            Mandatory Keys:
-                outputs: The Phonopy object from post-processing
-                serial (bool): If True use a serial calculation
-                init_workdir (str): Path to the base phonon force calculations
-                trajectory (str): trajectory file name
+    """Check phonon convergence and set up future calculations after a phonon calculation
 
-    Returns:
-        (FWAction): Increases the supercell size or adds the phonon_dict to the spec
+    Parameters
+    ----------
+    workdir : str
+        path to the working directory
+    trajectory : str
+        name of hte trajectory.son file
+    calc_times : list of floats
+        Total calculation times for all structures
+    ph : phonopy.Phonopy
+        phonopy object for the current calculation
+    conv_crit : float
+        Convergence criteria for Tanimoto Similarity of phonon density of states
+        (Default value = 0.95)
+    prev_dos_fp : vibes.materials_fp.material_fingerprint.fp_tup
+        Fingerprint of the previous step (Default value = None)
+    init_workdir : str
+        Path to the base phonon force calculations (Default value = "./")
+    kwargs : dict
+        Dictionary of keyword arguments
+    **kwargs :
+
+
+    Returns
+    -------
+    ph_conv : bool
+        True if phonon model is converged with respect to the supercell size
+    update_job : dict
+        Dictionary describing all necessary job updates
+
     """
     calc_time = np.sum(calc_times)
 
-    traj = f"{workdir}/{trajectory}"
-
-    _, metadata = reader(traj, True)
-    calc_dict = metadata["calculator"]
-    calc_dict["calculator"] = calc_dict["calculator"].lower()
+    _, metadata = reader(f"{workdir}/{trajectory_file}", True)
+    calculator_dict = metadata["calculator"]
+    calculator_dict["calculator"] = calculator_dict["calculator"].lower()
 
     # Calculate the phonon DOS
-    ph.set_mesh([45, 45, 45])
-    if np.any(ph.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-1):
-        raise ValueError("Negative frequencies at Gamma, terminating workflow here.")
+    primitive = to_Atoms(phonon.get_primitive())
+    supercell = to_Atoms(phonon.get_supercell())
+    brav_pts, _ = get_lattice_points(primitive.cell, supercell.cell)
+    for k in brav_pts:
+        if np.any(phonon.get_frequencies(k) < -1.0e-1):
+            raise ValueError("Negative frequencies at an included lattice point.")
+
+    phonon.run_mesh([45, 45, 45])
+
+    if "sc_matrix_base" not in kwargs:
+        kwargs["sc_matrix_base"] = phonon.get_supercell_matrix()
+
+    ind = np.where(np.array(kwargs["sc_matrix_base"]).flatten() != 0)[0][0]
+    n_cur = int(
+        round(
+            phonon.get_supercell_matrix().flatten()[ind]
+            / np.array(kwargs["sc_matrix_base"]).flatten()[ind]
+        )
+    )
+    displacement = phonon._displacement_dataset["first_atoms"][0]["displacement"]
+    disp_mag = np.linalg.norm(displacement)
+
+    if n_cur > 1 and prev_dos_fp is None:
+        sc_mat = (n_cur - 1) * np.array(kwargs["sc_matrix_base"]).reshape((3, 3))
+        phonon_small, supercell, _ = ph_preprocess(
+            to_Atoms(phonon.get_unitcell(), db=True), sc_mat, displacement=disp_mag
+        )
+        phonon_small.set_force_constants(
+            remap_force_constants(
+                phonon.get_force_constants(),
+                to_Atoms(phonon.get_unitcell()),
+                to_Atoms(phonon.get_supercell()),
+                supercell,
+                reduce_fc=True,
+            )
+        )
+        brav_pts, _ = get_lattice_points(primitive.cell, supercell.cell)
+        for k in brav_pts:
+            if np.any(phonon_small.get_frequencies(k) < -1.0e-1):
+                raise ValueError("Negative frequencies at an included lattice point.")
+
+        phonon_small.run_mesh([45, 45, 45])
+        phonon_small.run_total_dos(freq_pitch=0.01)
+        n_bins = len(phonon_small.get_total_dos_dict()["frequency_points"])
+        prev_dos_fp = get_phonon_dos_fp(phonon_small, nbins=n_bins)
 
     if prev_dos_fp:
         de = prev_dos_fp[0][0][1] - prev_dos_fp[0][0][0]
         min_f = prev_dos_fp[0][0][0] - 0.5 * de
         max_f = prev_dos_fp[0][0][-1] + 0.5 * de
-        ph.run_total_dos(freq_min=min_f, freq_max=max_f, freq_pitch=0.01)
+        phonon.run_total_dos(freq_min=min_f, freq_max=max_f, freq_pitch=0.01)
     else:
-        ph.run_total_dos(freq_pitch=0.01)
+        # If Not Converged update phonons
+        phonon.run_total_dos(freq_pitch=0.01)
 
     # Get a phonon DOS Finger print to compare against the previous one
-    n_bins = len(ph.get_total_dos_dict()["frequency_points"])
-    dos_fp = get_phonon_dos_fp(ph, nbins=n_bins)
+    n_bins = len(phonon.get_total_dos_dict()["frequency_points"])
+    dos_fp = get_phonon_dos_fp(phonon, nbins=n_bins)
 
     # Get the base working directory
     init_workdir = get_base_work_dir(init_workdir)
     analysis_wd = get_base_work_dir(workdir)
+
+    # Check phonon Convergence
     if prev_dos_fp:
         ph_conv = check_phonon_conv(dos_fp, prev_dos_fp, conv_crit)
     else:
@@ -223,76 +301,56 @@ def get_converge_phonon_update(
     # Check to see if phonons are converged
     if prev_dos_fp is not None and ph_conv:
         Path(f"{analysis_wd}/converged/").mkdir(exist_ok=True, parents=True)
-        copyfile(traj, f"{analysis_wd}/converged/trajectory.son")
-        if "prev_wd" in kwargs:
-            Path(f"{analysis_wd}/converged_mn_1/").mkdir(exist_ok=True, parents=True)
-            traj_prev = f"{kwargs['prev_wd']}/{trajectory}"
-            copyfile(traj_prev, f"{analysis_wd}/converged_mn_1/trajectory.son")
+        copyfile(
+            f"{workdir}/{trajectory_file}", f"{analysis_wd}/converged/trajectory.son"
+        )
         update_job = {
-            "ph_dict": phonon_to_dict(ph),
-            "ph_calculator": calc_dict,
-            "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
-            "ph_time": calc_time / len(ph.get_supercells_with_displacements()),
+            "ph_dict": phonon_to_dict(phonon),
+            "ph_calculator": calculator_dict,
+            "ph_primitive": atoms2dict(to_Atoms(phonon.get_unitcell(), db=True)),
+            "ph_time": calc_time / len(phonon.get_supercells_with_displacements()),
         }
         return True, update_job
 
     # Reset dos_fp to include full Energy Range for the material
     if prev_dos_fp:
-        ph.set_total_DOS(tetrahedron_method=True, freq_pitch=0.01)
-        n_bins = len(ph.get_total_dos_dict()["frequency_points"])
-        dos_fp = get_phonon_dos_fp(ph, nbins=n_bins)
+        phonon.set_total_DOS(tetrahedron_method=True, freq_pitch=0.01)
+        n_bins = len(phonon.get_total_dos_dict()["frequency_points"])
+        dos_fp = get_phonon_dos_fp(phonon, nbins=n_bins)
 
     # If Not Converged update phonons
+    sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_base"]).reshape((3, 3))
 
-    if "sc_matrix_original" not in kwargs:
-        kwargs["sc_matrix_original"] = ph.get_supercell_matrix()
-
-    ind = np.where(np.array(kwargs["sc_matrix_original"]).flatten() != 0)[0][0]
-    if kwargs.get("sc_matrix_original", None) is not None:
-        n_cur = int(
-            round(
-                ph.get_supercell_matrix().flatten()[ind]
-                / np.array(kwargs["sc_matrix_original"]).flatten()[ind]
-            )
-        )
-        sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_original"]).reshape((3, 3))
-    else:
-        sc_mat = 2.0 * ph.get_supercell_matrix()
-
-    displacement = ph._displacement_dataset["first_atoms"][0]["displacement"]
-    disp_mag = np.linalg.norm(displacement)
-
-    ratio = np.linalg.det(sc_mat) / np.linalg.det(ph.get_supercell_matrix())
-    ph, _, _ = ph_preprocess(
-        to_Atoms_db(ph.get_primitive()), sc_mat, displacement=displacement
+    ratio = np.linalg.det(sc_mat) / np.linalg.det(phonon.get_supercell_matrix())
+    phonon, _, _ = ph_preprocess(
+        to_Atoms(phonon.get_unitcell(), db=True), sc_mat, displacement=displacement
     )
 
-    if ph.get_supercell().get_number_of_atoms() > 500:
+    if phonon.get_supercell().get_number_of_atoms() > 500:
         time_scaling = 3.0 * ratio ** 3.0
     else:
         time_scaling = 3.0 * ratio
 
-    expected_walltime = calc_time * time_scaling
+    expected_walltime = max(calc_time * time_scaling, 1680)
 
-    ntasks = int(np.ceil(ph.supercell.get_number_of_atoms() * 0.75))
+    ntasks = int(np.ceil(phonon.supercell.get_number_of_atoms() * 0.75))
 
-    init_workdir += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
-    analysis_wd += f"/sc_natoms_{ph.get_supercell().get_number_of_atoms()}"
+    # init_workdir += f"/sc_natoms_{phonon.get_supercell().get_number_of_atoms()}"
+    # analysis_wd += f"/sc_natoms_{phonon.get_supercell().get_number_of_atoms()}"
 
-    displacement = ph._displacement_dataset["first_atoms"][0]["displacement"]
+    displacement = phonon._displacement_dataset["first_atoms"][0]["displacement"]
     disp_mag = np.linalg.norm(displacement)
 
     update_job = {
-        "sc_matrix_original": kwargs["sc_matrix_original"],
+        "sc_matrix_base": kwargs["sc_matrix_base"],
         "supercell_matrix": sc_mat,
         "init_workdir": init_workdir,
         "analysis_wd": analysis_wd,
         "ntasks": ntasks,
         "expected_walltime": expected_walltime,
-        # "expected_mem": expected_mem,
-        "ph_calculator": calc_dict,
-        "ph_primitive": atoms2dict(to_Atoms_db(ph.get_primitive())),
-        "ph_supercell": atoms2dict(to_Atoms_db(ph.get_supercell())),
+        "ph_calculator": calculator_dict,
+        "ph_primitive": atoms2dict(to_Atoms(phonon.get_unitcell(), db=True)),
+        "ph_supercell": atoms2dict(to_Atoms(phonon.get_supercell(), db=True)),
         "prev_dos_fp": dos_fp,
         "prev_wd": workdir,
         "displacement": disp_mag,

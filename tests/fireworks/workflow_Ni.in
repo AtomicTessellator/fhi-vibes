@@ -1,0 +1,16 @@
+# information to build a default control.in
+[calculator]
+name = EMT
+
+[calculator.kpoints]
+density = 1.00
+
+[calculator.socketio]
+port = 31415
+
+[fireworks]
+name = example_run
+
+[fireworks.workdir]
+local   = "test_run/"
+

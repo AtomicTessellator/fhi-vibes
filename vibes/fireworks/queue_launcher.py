@@ -1,4 +1,10 @@
-"""A modified version of queue launcher to allow for a rapidfire over a single Workflow"""
+"""A modified version of queue launcher to allow for a rapidfire over a single Workflow
+
+FireWorks Copyright (c) 2013, The Regents of the University of
+California, through Lawrence Berkeley National Laboratory (subject
+to receipt of any required approvals from the U.S. Dept. of Energy).
+All rights reserved.
+"""
 import glob
 import os
 import time
@@ -27,10 +33,10 @@ from fireworks.utilities.fw_utilities import (
     log_exception,
 )
 from monty.os import cd, makedirs_p
-
 from vibes.fireworks._defaults import FW_DEFAULTS
-from vibes.fireworks.combined_launcher import get_ordred_firework_ids
+from vibes.fireworks.combined_launcher import get_ready_firework_ids
 from vibes.helpers import talk
+from vibes.helpers.warnings import warn
 from vibes.helpers.watchdogs import str2time
 
 
@@ -53,28 +59,28 @@ def launch_rocket_to_queue(
     fill_mode=False,
     fw_id=None,
 ):
-    """ Submit a single job to the queue.
+    """Submit a single job to the queue.
 
     Parameters
     ----------
-    launchpad: LaunchPad
+    launchpad : LaunchPad
         LaunchPad for the launch
-    fworker: FWorker
+    fworker : FWorker
         FireWorker for the launch
-    qadapter: QueueAdapterBase
+    qadapter : QueueAdapterBase
         Queue Adapter for the resource
-    launcher_dir: str
-        The directory where to submit the job
-    reserve: bool
-        Whether to queue in reservation mode
-    strm_lvl: str
-        level at which to stream log messages
-    create_launcher_dir: bool
-        Whether to create a subfolder launcher+timestamp, if needed
-    fill_mode: bool
-        If True submit jobs even if there are none to run (only in non-reservation mode)
-    fw_id: int
-        specific fw_id to reserve (reservation mode only)
+    launcher_dir : str
+        The directory where to submit the job (Default value = FW_DEFAULTS.launch_dir)
+    reserve : bool
+        Whether to queue in reservation mode (Default value = False)
+    strm_lvl : str
+        level at which to stream log messages (Default value = "INFO")
+    create_launcher_dir : bool
+        Whether to create a subfolder launcher+timestamp, if needed (Default value = False)
+    fill_mode : bool
+        If True submit jobs even if there are none to run (only in non-reservation mode) (Default value = False)
+    fw_id : int
+        specific fw_id to reserve (reservation mode only) (Default value = None)
 
     Raises
     ------
@@ -87,6 +93,7 @@ def launch_rocket_to_queue(
         If in Reservation Mode and not using a singleshot RocketLauncher OR
         If in Reservation Mode and Fill Mode is also requested OR
         If asking to launch a particular FireWork and not in Reservation Mode
+
     """
     fworker = fworker if fworker else FWorker()
     launcher_dir = os.path.abspath(launcher_dir)
@@ -203,9 +210,9 @@ def launch_rocket_to_queue(
                                     "Queue Name not found for that resources"
                                 )
                             if queue["max_nodes"] < nodes_needed[queue_ind]:
-                                raise IOError(
-                                    "Requested resource does not have enough memory"
-                                )
+                                warn("Requested resource might not have enough memory")
+                                fw.spec["_queueadapter"]["nodes"] = queue["max_nodes"]
+
                             if "walltime" not in fw.spec["_queueadapter"]:
                                 fw.spec["_queueadapter"]["walltime"] = queue[
                                     "max_walltime"
@@ -229,9 +236,11 @@ def launch_rocket_to_queue(
                                     queue = qu
                                     queue_ind = ii
                             if queue is None:
-                                raise ValueError("Job can't run on requested resource")
+                                warn("Job may not run on requested resource")
+                                queue = qu
+                                queue_ind = ii 
                             fw.spec["_queueadapter"]["queue"] = queue["name"]
-                            if nodes * sc_wt < str2time(queue["max_walltime"]):
+                            if sc_wt < str2time(queue["max_walltime"]):
                                 fw.spec["_queueadapter"]["nodes"] = nodes
                             else:
                                 fw.spec["_queueadapter"]["nodes"] = int(
@@ -242,9 +251,19 @@ def launch_rocket_to_queue(
                                 ]
                     if nodes_needed[queue_ind] > fw.spec["_queueadapter"]["nodes"]:
                         fw.spec["_queueadapter"]["nodes"] = nodes_needed[queue_ind]
+
+                    if fw.spec["_queueadapter"]["nodes"] > queue["max_nodes"]:
+                        warn("Requested nodes too large, reducing them now")
+                        fw.spec["_queueadapter"]["nodes"] = queue["max_nodes"]
+                    sc_wt = str2time(fw.spec["_queueadapter"]["walltime"])
+                    if sc_wt > str2time(queue["max_walltime"]):
+                        warn("Requested walltime too long, reducing it now")
+                        fw.spec["_queueadapter"]["walltime"] = queue["max_walltime"]
+
                     del qadapter["queues"]
                     qadapter.update(fw.spec["_queueadapter"])
                     qadapter.pop("ntasks", 1)
+
                 if "walltime" in qadapter:
                     for tt, task in enumerate(fw.spec["_tasks"]):
                         if ("kwargs" in task and "walltime" in task["kwargs"]) or (
@@ -348,43 +367,47 @@ def rapidfire(
     firework_ids=None,
     wflow_id=None,
 ):
-    """ Submit many jobs to the queue.
+    """Submit many jobs to the queue.
 
     Parameters
     ----------
-    launchpad: LaunchPad
+    launchpad : LaunchPad
         LaunchPad for the launch
-    fworker: FWorker
+    fworker : FWorker
         FireWorker for the launch
-    qadapter: QueueAdapterBase
+    qadapter : QueueAdapterBase
         Queue Adapter for the resource
-    launch_dir: str
-        directory where we want to write the blocks
-    nlaunches: int
-        total number of launches desired; "infinite" for loop, 0 for one round
-    njobs_queue: int
-        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit
-    njobs_block: int
-        automatically write a new block when njobs_block jobs are in a single block
-    sleep_time: int
-        secs to sleep between rapidfire loop iterations
-    reserve: bool
-        Whether to queue in reservation mode
-    strm_lvl: str
-        level at which to stream log messages
-    timeout: int
-        # of seconds after which to stop the rapidfire process
-    fill_mode: bool
-        If True submit jobs even if there is nothing to run (only in non-reservation mode)
-    firework_ids: list of ints
-        a list firework_ids to launch (len(firework_ids) == nlaunches)
-    wflow_id: list of ints
-        a list firework_ids that are a root of the workflow
+    launch_dir : str
+        directory where we want to write the blocks (Default value = FW_DEFAULTS.launch_dir)
+    nlaunches : int
+        total number of launches desired; "infinite" for loop, 0 for one round (Default value = FW_DEFAULTS.nlaunches)
+    njobs_queue : int
+        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit (Default value = FW_DEFAULTS.njobs_queue)
+    njobs_block : int
+        automatically write a new block when njobs_block jobs are in a single block (Default value = FW_DEFAULTS.njobs_block)
+    sleep_time : int
+        secs to sleep between rapidfire loop iterations (Default value = FW_DEFAULTS.sleep_time)
+    reserve : bool
+        Whether to queue in reservation mode (Default value = False)
+    strm_lvl : str
+        level at which to stream log messages (Default value = "CRITICAL")
+    timeout : int
+        # of seconds after which to stop the rapidfire process (Default value = None)
+    fill_mode : bool
+        If True submit jobs even if there is nothing to run (only in non-reservation mode) (Default value = False)
+    firework_ids : list of ints
+        a list firework_ids to launch (len(firework_ids) == nlaunches) (Default value = None)
+    wflow_id : list of ints
+        a list firework_ids that are a root of the workflow (Default value = None)
+
+    Returns
+    -------
 
     Raises
     ------
     ValueError
         If the luanch directory does not exist
+
     """
     if firework_ids and len(firework_ids) != nlaunches:
         talk(
@@ -427,7 +450,7 @@ def rapidfire(
             if wflow_id:
                 wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                 nlaunches = len(wflow.fws)
-                firework_ids = get_ordred_firework_ids(wflow)
+                firework_ids = get_ready_firework_ids(wflow)
 
             while launchpad.run_exists(fworker, ids=firework_ids) or (
                 fill_mode and not reserve
@@ -461,7 +484,7 @@ def rapidfire(
                         strm_lvl,
                         True,
                         fill_mode,
-                        firework_ids[num_launched],
+                        firework_ids[0],
                     )
                 else:
                     return_code = launch_rocket_to_queue(
@@ -483,7 +506,7 @@ def rapidfire(
                 if wflow_id:
                     wflow = launchpad.get_wf_by_fw_id(wflow_id[0])
                     nlaunches = len(wflow.fws)
-                    firework_ids = get_ordred_firework_ids(wflow)
+                    firework_ids = get_ready_firework_ids(wflow)
                 num_launched += 1
                 if nlaunches > 0 and num_launched == nlaunches:
                     l_logger.info(

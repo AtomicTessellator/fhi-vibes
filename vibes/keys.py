@@ -7,6 +7,9 @@ def _join(*keys):
     return "_".join(keys)
 
 
+# geometry
+symprec = "symprec"
+
 # generic suffixes
 aux = "aux"
 scalar = "scalar"
@@ -65,8 +68,10 @@ avalanche_function = "avalanche_function"
 avalanche_index = "avalanche_index"
 
 # file management
+file = "file"
 default_backup_folder = "backups"
 cache = "cache.vibes"
+workdir = "workdir"
 
 # hash
 name = "name"
@@ -95,3 +100,16 @@ hf_power = heat_flux_power_spectrum
 hf_aux_power = heat_flux_aux_power_spectrum
 k_cum = kappa_cumulative
 k_cum_scalar = kappa_cumulative_scalar
+
+
+# relaxation
+relaxation = "relaxation"
+relaxation_options = "relaxation_options"
+expcellfilter = "ExpCellFilter"
+
+# atoms and calculator
+atoms = "atoms"
+calculator = "calculator"
+parameters = "parameters"
+calculator_parameters = ".".join([calculator, parameters])
+settings = "settings"

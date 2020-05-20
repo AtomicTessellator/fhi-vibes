@@ -7,18 +7,18 @@ from pathlib import Path
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 
+from vibes.filenames import filenames
 from vibes.helpers import talk, warn
 from vibes.helpers.aims import get_aims_uuid_dict
 from vibes.helpers.backup import backup_folder as backup
 from vibes.helpers.hash import hash_atoms
 from vibes.helpers.lists import expand_list
 from vibes.helpers.paths import cwd
-from vibes.helpers.socketio import get_port, get_unixsocket
+from vibes.helpers.socketio import get_socket_info
 from vibes.helpers.utils import Spinner
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.son import son
 from vibes.trajectory import get_hashes_from_trajectory_file, metadata2file, step2file
-
 
 calc_dirname = "calculations"
 
@@ -77,7 +77,7 @@ def calculate_socket(
     calculator,
     metadata=None,
     settings=None,
-    trajectory="trajectory.son",
+    trajectory_file=filenames.trajectory,
     workdir="calculations",
     save_input=False,
     backup_folder="backups",
@@ -98,7 +98,7 @@ def calculate_socket(
         metadata information to store to trajectory
     settings: dict
         the settings used to set up the calculation
-    trajectory: str or Path
+    trajectory_file: str or Path
         path to write trajectory to
     workdir: str or Path
         working directory
@@ -125,7 +125,7 @@ def calculate_socket(
 
     # create working directories
     workdir = Path(workdir).absolute()
-    trajectory = workdir / trajectory
+    trajectory_file = workdir / trajectory_file
     backup_folder = workdir / backup_folder
     calc_dir = workdir / calc_dirname
 
@@ -133,15 +133,17 @@ def calculate_socket(
     atoms = atoms_to_calculate[0].copy()
 
     # handle the socketio
-    socketio_port = get_port(calculator)
-    socketio_unixsocket = get_unixsocket(calculator)
+    socketio_port, socketio_unixsocket = get_socket_info(calculator)
+
     # is the socket used?
-    socketio = socketio_port or socketio_unixsocket
+    socketio = socketio_port is not None
 
     if socketio:
         socket_calc = calculator
     else:
         socket_calc = None
+        # choose some 5 digit number
+        socketio_port = np.random.randint(0, 65000)
 
     # perform backup if calculation folder exists
     backup(calc_dir, target_folder=backup_folder)
@@ -151,15 +153,10 @@ def calculate_socket(
         metadata["settings"] = settings.to_dict()
         if save_input:
             with cwd(workdir, mkdir=True):
-                if "file" in settings.geometry:
-                    geometry_file = Path(settings.geometry.file)
-                    if not geometry_file.exists():
-                        settings.atoms.write(str(geometry_file), format="aims")
-                settings.obj["workdir"] = workdir
                 settings.write()
 
     # fetch list of hashes from trajectory
-    precomputed_hashes = get_hashes_from_trajectory_file(trajectory)
+    precomputed_hashes = get_hashes_from_trajectory_file(trajectory_file)
 
     # perform calculation
     n_cell = -1
@@ -167,11 +164,11 @@ def calculate_socket(
         # log metadata and sanity check
         if check_settings_before_resume:
             try:
-                old_metadata, _ = son.load(trajectory)
+                old_metadata, _ = son.load(trajectory_file)
                 check_metadata(metadata, old_metadata)
-                talk(f"resume from {trajectory}")
+                talk(f"resume from {trajectory_file}")
             except FileNotFoundError:
-                metadata2file(metadata, trajectory)
+                metadata2file(metadata, trajectory_file)
 
         if dry:
             talk("dry run requested, stop.")
@@ -193,6 +190,8 @@ def calculate_socket(
             for n_cell, cell in enumerate(atoms_to_calculate):
                 # skip if cell is None or already computed
                 if cell is None:
+                    talk("`atoms is None`, skip.")
+
                     continue
                 if check_precomputed_hashes(cell, precomputed_hashes, n_cell):
                     continue
@@ -220,14 +219,14 @@ def calculate_socket(
                 # compute and save the aims UUID
                 msg = f"{'[vibes]':15}Compute structure "
                 msg += f"{n_cell + 1} of {len(atoms_to_calculate)}"
-                # talk(msg)
 
-                with cwd(wd, mkdir=True), Spinner(msg):
-                    atoms.calc.calculate(atoms, system_changes=["positions"])
+                with cwd(wd, mkdir=True):
+                    with Spinner(msg):
+                        atoms.calc.calculate(atoms, system_changes=["positions"])
+
+                    # log the step including aims_uuid if possible
                     meta = get_aims_uuid_dict()
-
-                    # log the step
-                    step2file(atoms, atoms.calc, trajectory, metadata=meta)
+                    step2file(atoms, atoms.calc, trajectory_file, metadata=meta)
 
                 if watchdog():
                     break
@@ -281,10 +280,10 @@ def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
             warn(msg, level=1)
 
 
-def fix_emt(atoms, calc):
+def fix_emt(atoms, calculator):
     """necessary to use EMT with socket"""
     try:
-        calc.initialize(atoms)
+        calculator.initialize(atoms)
         talk("calculator initialized.")
     except AttributeError:
         pass

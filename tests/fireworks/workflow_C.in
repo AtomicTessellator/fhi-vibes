@@ -1,0 +1,65 @@
+# information to build a default control.in
+[files]
+geometry = geometry.in
+
+[calculator]
+name = EMT
+
+[calculator.kpoints]
+density = 1.00
+
+[calculator.socketio]
+port = 31415
+
+[fireworks]
+name = example_run
+
+[fireworks.workdir]
+local   = "test_run/"
+
+[relaxation]
+use_ase_relax = True
+
+[relaxation.1]
+driver =      BFGS
+fmax =        0.001
+unit_cell =   True
+scalar_pressure = 0.01
+hydrostatic_strain = True
+
+[phonopy]
+supercell_matrix = [4, 4, 0, -4, 4, 0, 0, 0, 2]
+conv_crit = 0.95
+serial = True
+displacement = 0.01
+
+[phonopy.convergence]
+minimum_similiarty_score = 0.05
+sc_matrix_base = [2, 2, 0, -2, 2, 0, 0, 0, 1]
+
+[phonopy.qadapter]
+walltime = 1:00:00
+nodes = 1
+
+[gruneisen]
+volume_factors = [0.99, 1.01]
+
+[statistical_sampling]
+serial = True
+temperatures = [300]
+debye_temp_fact = [1.0]
+supercell_matrix = [2, 2, 0, -2, 2, 0, 0, 0, 1]
+n_samples = 1
+deterministic = True
+
+[md]
+supercell_matrix = [2, 2, 0, -2, 2, 0, 0, 0, 1]
+driver =     Verlet
+timestep =   1
+maxsteps =   5
+temperatures = [300]
+
+[md.qadapter]
+walltime = 1:00:00
+nodes = 1
+

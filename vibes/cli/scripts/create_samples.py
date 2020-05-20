@@ -2,8 +2,6 @@
 Script to initialize positions and velocities with force constants.
 Similar to canonical_sampling from TDEP.
 """
-from argparse import ArgumentParser as argpars
-
 import numpy as np
 from ase import units as u
 from ase.io import read
@@ -16,38 +14,36 @@ from vibes.structure.io import inform
 
 def generate_samples(
     atoms,
-    temperature,
-    n_samples,
-    force_constants,
-    rattle,
-    quantum,
-    deterministic,
-    plus_minus,
-    gauge_eigenvectors,
-    ignore_negative,
-    sobol,
-    random_seed,
-    propagate,
-    format,
-    failfast=False,
+    temperature=None,
+    n_samples=None,
+    force_constants=None,
+    rattle=False,
+    quantum=False,
+    deterministic=False,
+    zacharias=False,
+    gauge_eigenvectors=False,
+    ignore_negative=False,
+    sobol=False,
+    random_seed=None,
+    propagate=None,
+    failfast=True,
 ):
     """create samples for Monte Carlo sampling
 
     Args:
-        geometry: input geometry file
+        atoms: the structure
         temperature: temperature in Kelvin
         n_samples: number of samples to create (default: 1)
-        force_constants: filename of the file holding force constants for phonon rattle
-        rattle: atoms.rattle
+        force_constants: numpy array w/ force constants
+        rattle: use `atoms.rattle`
         quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
         deterministic: create sample deterministically
-        plus_minus: use +/-
+        zacharias: use +/-
         gauge_eigenvectors: make largest entry positive
         ignore_negative: don't check for negative modes
         sobol: Use sobol numbers for the sampling
         random_seed: seed for random number generator
         propagate: propagate atoms according to velocities for this many fs
-        format: The ASE file format for geometry files
     """
 
     inform(atoms, verbosity=0)
@@ -91,7 +87,7 @@ def generate_samples(
             "failfast": failfast,
             "rng": rng,
             "deterministic": deterministic,
-            "plus_minus": plus_minus,
+            "plus_minus": zacharias,
             "gauge_eigenvectors": gauge_eigenvectors,
             "ignore_negative": ignore_negative,
         }
@@ -106,8 +102,8 @@ def generate_samples(
     info_str += [
         f"quantum:             {quantum}",
         f"deterministic:       {deterministic}",
-        f"plus_minus:          {plus_minus}",
-        f"gauge_eigenvectors:  {gauge_eigenvectors or plus_minus}",
+        f"plus_minus:          {zacharias}",
+        f"gauge_eigenvectors:  {gauge_eigenvectors or zacharias}",
         f"Sobol numbers:       {sobol}",
         f"Random seed:         {seed}",
     ]
@@ -159,114 +155,44 @@ def generate_samples(
 
 
 def create_samples(
-    filename,
-    temperature,
-    n_samples,
-    force_constants,
-    rattle,
-    quantum,
-    deterministic,
-    gauge_eigenvectors,
-    zacharias,
-    ignore_negative,
-    sobol,
-    random_seed,
-    propagate,
-    format,
+    atoms_file, temperature=None, force_constants_file=None, format="aims", **kwargs,
 ):
-    """create samples for Monte Carlo sampling
+    """FileIO frontend to `generate_samples`
 
     Args:
-        filename: input geometry file
+        atoms_file: input geometry file
         temperature: temperature in Kelvin
-        n_samples: number of samples to create (default: 1)
-        force_constants: filename of the file holding force constants for phonon rattle
-        mc_rattle: hiphive mc rattle
-        quantum: use Bose-Einstein distribution instead of Maxwell-Boltzmann
-        deterministic: create sample deterministically
-        gauge_eigenvectors: gauge eigenvectors
-        zacharias: create sample deterministically and gauge eigenvectors
-        sobol: Use sobol numbers for the sampling
-        random_seed: seed for random number generator
+        force_constants_file: file holding force constants
         format: The ASE file format for geometry files
-        return_samples (bool): If True do not write the samples, but return them
+        kwargs: kwargs for `generate_samples`
     """
 
-    atoms = read(filename, format=format)
+    atoms = read(atoms_file, format=format)
     inform(atoms, verbosity=0)
 
     fc = None
-    if force_constants is not None:
+    if force_constants_file is not None:
         # if 3Nx3N shaped txt file:
         try:
-            fc = np.loadtxt(force_constants)
+            fc = np.loadtxt(force_constants_file)
         except ValueError:
             exit("other force constants not yet implemented")
-        talk(f"\nUse force constants from {force_constants} to prepare samples")
+        talk(f"\nUse force constants from {force_constants_file} to prepare samples")
 
     sample_list = generate_samples(
-        atoms,
-        temperature,
-        n_samples,
-        fc,
-        rattle,
-        quantum,
-        deterministic,
-        zacharias,
-        gauge_eigenvectors,
-        ignore_negative,
-        sobol,
-        random_seed,
-        propagate,
-        format,
+        atoms, temperature=temperature, force_constants=fc, **kwargs
     )
 
     for ii, sample in enumerate(sample_list):
         talk(f"Sample {ii:3d}:")
-        file = f"{filename}.{int(temperature):04d}K"
-        if n_samples > 1:
-            file += f".{ii:03d}"
+        out_file = f"{atoms_file}.{int(temperature):04d}K"
+        if len(sample_list) > 1:
+            out_file += f".{ii:03d}"
 
         info_str = sample.info.pop("info_str")
-        sample.write(file, info_str=info_str, velocities=True, format=format)
+        sample.write(out_file, info_str=info_str, velocities=True, format=format)
         talk(f".. temperature in sample {ii}:     {sample.get_temperature():9.3f}K")
-        talk(f".. written to {file}")
-
-
-def main():
-    """ main function """
-    parser = argpars(description="Read geometry create supercell")
-    parser.add_argument("geom", type=str, help="geometry input file")
-    parser.add_argument("-T", "--temperature", type=int)
-    parser.add_argument("-fc", "--force_constants")
-    parser.add_argument("--mc_rattle", nargs="?", type=float, const=0.01, default=None)
-    parser.add_argument("-n", "--n_samples", type=int, default=1, help="no. of samples")
-    parser.add_argument("--quantum", action="store_true")
-    parser.add_argument("--sobol", action="store_true")
-    parser.add_argument("--deterministic", action="store_true")
-    parser.add_argument("--ignore_negative", action="store_false")
-    parser.add_argument("--format", default="aims")
-    parser.add_argument("--non_enforced_temp", action="store_true")
-    parser.add_argument("--non_stationary", action="store_true")
-    parser.add_argument("--random_seed", type=int, default=None)
-    args = parser.parse_args()
-
-    create_samples(
-        args.geom,
-        args.temperature,
-        args.n_samples,
-        args.force_constants,
-        args.mc_rattle,
-        args.quantum,
-        args.deterministic,
-        args.sobol,
-        args.random_seed,
-        args.format,
-    )
-
-
-if __name__ == "__main__":
-    main()
+        talk(f".. written to {out_file}")
 
 
 def check_frequencies(atoms, force_constants):

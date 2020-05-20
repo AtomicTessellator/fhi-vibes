@@ -4,7 +4,7 @@ import os
 from vibes import DEFAULT_CONFIG_FILE
 from vibes.helpers import Timer
 from vibes.helpers.converters import dict2atoms
-from vibes.settings import Settings, TaskSettings
+from vibes.settings import Settings
 
 
 def get_func(func_path):
@@ -12,8 +12,14 @@ def get_func(func_path):
 
     Parameters
     ----------
-    func_path: str
+    func_path : str
         The path to the python function
+
+    Returns
+    -------
+    Function
+        function to use for the task
+
     """
     toks = func_path.rsplit(".", 1)
     if len(toks) == 2:
@@ -30,7 +36,7 @@ def atoms_calculate_task(
     func_kwargs,
     func_fw_out_kwargs,
     atoms_dict,
-    calc_dict,
+    calculator_dict,
     *args,
     fw_settings=None,
     walltime=None,
@@ -42,32 +48,37 @@ def atoms_calculate_task(
 
     Parameters
     ----------
-    func_path: str
+    func_path : str
         Path to the function describing the desired set operations to be performed
-    func_fw_out_path: str
+    func_fw_out_path : str
         Path to the function that describes how the results should alter the workflow
-    func_kwargs: dict
+    func_kwargs : dict
         A dictionary describing the key word arguments to func
-    func_fw_out_kwargs: dict
+    func_fw_out_kwargs : dict
         Keyword arguments for fw_out function
-    atoms_dict: dict
+    atoms_dict : dict
         A dictionary describing the ASE Atoms object
-    calc_dict: dict
+    calculator_dict : dict
         A dictionary describing the ASE Calculator
-    args: list
+    args : list
         a list of function arguments passed to func
-    fw_settings: dict
+    fw_settings : dict
         A dictionary describing the FireWorks specific settings used in func_fw_out
+        (Default value = None)
+    walltime : float
+        time of job
+
 
     Returns
     -------
-    FWAction:
+    fireworks.FWAction
         The FWAction func_fw_out outputs
 
     Raises
     ------
     RuntimeError
         If the Task fails
+
     """
     if walltime:
         func_kwargs["walltime"] = walltime
@@ -82,20 +93,21 @@ def atoms_calculate_task(
     func = get_func(func_path)
     func_fw_out = get_func(func_fw_out_path)
 
-    default_settings = TaskSettings(name=None, settings=Settings(DEFAULT_CONFIG_FILE))
+    default_settings = Settings(DEFAULT_CONFIG_FILE)
 
-    calc_dict["command"] = default_settings.machine.aims_command
-    if "species_dir" in calc_dict["calculator_parameters"]:
-        calc_dict["calculator_parameters"]["species_dir"] = (
-            str(default_settings.machine.basissetloc)
-            + "/"
-            + calc_dict["calculator_parameters"]["species_dir"].split("/")[-1]
-        )
+    if calculator_dict["calculator"].lower() == "aims":
+        calculator_dict["command"] = default_settings.machine.aims_command
+        if "species_dir" in calculator_dict["calculator_parameters"]:
+            calculator_dict["calculator_parameters"]["species_dir"] = (
+                str(default_settings.machine.basissetloc)
+                + "/"
+                + calculator_dict["calculator_parameters"]["species_dir"].split("/")[-1]
+            )
 
-    if "results" in calc_dict:
-        del calc_dict["results"]
+    if "results" in calculator_dict:
+        del calculator_dict["results"]
 
-    atoms = dict2atoms(atoms_dict.copy(), calc_dict, False)
+    atoms = dict2atoms(atoms_dict.copy(), calculator_dict, False)
 
     try:
         func_timer = Timer()
@@ -113,7 +125,7 @@ def atoms_calculate_task(
     os.chdir(start_dir)
     fw_acts = func_fw_out(
         atoms_dict,
-        calc_dict,
+        calculator_dict,
         outputs,
         func_path,
         func_fw_out_path,
@@ -131,21 +143,23 @@ def general_function_task(
 
     Parameters
     ----------
-    func_path: str
+    func_path : str
         Path to the function describing the desired set operations to be performed
-    func_fw_out_path: str
+    func_fw_out_path : str
         Path to the function that describes how the results should alter the Workflow
-    args: list
+    args : list
         A list of arguments to pass to func and func_fw_out
-    fw_settings: dict
+    fw_settings : dict
         A dictionary describing the FireWorks specific settings used in func_fw_out
-    kwargs: dict
+        (Default value = None)
+    kwargs : dict
         A dict of key word arguments to pass to the func and func_fw_out
 
     Returns
     -------
-    FWAction
+    fireworks.FWAction
         The FWAction func_fw_out outputs
+
     """
     if fw_settings is None:
         fw_settings = {}
