@@ -58,7 +58,7 @@ def check_kgrid_opt_completion(
 
     if outputs[0]:
         up_spec = {
-            fw_settings["out_spec_k_den"]: outputs[1],
+            fw_settings["out_spec_k_den"]: outputs[1] - 1.0,
             fw_settings["out_spec_atoms"]: atoms_dict,
             fw_settings["out_spec_calc"]: calc2dict(outputs[2]),
         }

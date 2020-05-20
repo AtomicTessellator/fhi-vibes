@@ -1,0 +1,5 @@
+lattice_vector    0.000   2.104   2.104
+lattice_vector    2.104   0.000   2.104
+lattice_vector    2.104   2.104   0.000
+atom_frac    0.00    0.00    0.00  Mg 
+atom_frac    0.50    0.50    0.50  O 
