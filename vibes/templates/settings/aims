@@ -6,8 +6,12 @@ name:                          aims
 
 [calculator.parameters]
 xc:                            pw-lda
-k_grid:                        [2, 2, 2]
+
+[calculator.kpoints]
+density:                       3.5
 
 [calculator.basissets]
 default:                       light
 
+[calculator.socketio]
+port:                          12345

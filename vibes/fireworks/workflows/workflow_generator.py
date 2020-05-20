@@ -53,7 +53,7 @@ def process_relaxation(workflow, atoms, fw_settings, basis):
                 raise ValueError("relaxation step keys must be whole numbers")
 
     for step in sorted(relaxation_steps):
-        if settings.get("use_ase_relax", False):
+        if settings.get("use_ase_relax", True):
             fw_steps.append(
                 generate_relax_fw(workflow.settings, atoms, fw_settings, str(step))
             )
@@ -65,7 +65,9 @@ def process_relaxation(workflow, atoms, fw_settings, basis):
     return fw_steps
 
 
-def process_phonons(workflow, atoms, fw_settings, basis):
+def process_phonons(
+    workflow, atoms, fw_settings, basis, update_in_spec=True, prev_dos_fp=None
+):
     """Processes the workflow settings to get all phonopy steps
 
     Parameters
@@ -78,6 +80,10 @@ def process_phonons(workflow, atoms, fw_settings, basis):
         FireWorks specific settings
     basis : str
         The default basis set used for this calculation
+    update_in_spec : bool
+        If True then update the input spec
+    prev_dos_fp: PhononDOSFingerprint
+        The fingerprint of the previous phonopy calculation
 
     Returns
     -------
@@ -110,10 +116,14 @@ def process_phonons(workflow, atoms, fw_settings, basis):
         raise ValueError("Initial supercell_matrix must be provided")
 
     phonon_fws.append(
-        generate_phonon_fw(workflow.settings, atoms, fw_settings, "phonopy")
+        generate_phonon_fw(
+            workflow.settings, atoms, fw_settings, "phonopy", update_in_spec
+        )
     )
     phonon_fws.append(
-        generate_phonon_postprocess_fw(workflow.settings, atoms, fw_settings, "phonopy")
+        generate_phonon_postprocess_fw(
+            workflow.settings, atoms, fw_settings, "phonopy", prev_dos_fp
+        )
     )
     if "gruneisen" in workflow.settings:
         phonon_fws += process_grun(workflow, atoms, fw_settings)
@@ -311,10 +321,10 @@ def generate_workflow(workflow, atoms, launchpad_yaml=None, make_absolute=True):
     if not fw_steps:
         fw_steps.append(generate_aims_fw(workflow.settings, atoms, fw_settings))
 
+    name = f"{workflow.settings.fireworks.name}_{fw_settings['name']}"
     if launchpad_yaml:
         launchpad = LaunchPad.from_file(launchpad_yaml)
-        launchpad.add_wf(Workflow(fw_steps, fw_dep, name=fw_settings["name"]))
+        launchpad.add_wf(Workflow(fw_steps, fw_dep, name=name))
         return None
 
-    name = workflow.settings.fireworks.name + fw_settings["name"]
-    return Workflow(fw_steps, fw_dep, name=fw_settings["name"])
+    return Workflow(fw_steps, fw_dep, name=name)

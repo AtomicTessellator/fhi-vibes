@@ -32,7 +32,7 @@ kwargs = adict(
     {
         keys.driver: "BFGS",
         keys.fmax: 0.001,
-        keys.unit_cell: False,
+        keys.unit_cell: True,
         keys.fix_symmetry: False,
         keys.hydrostatic_strain: False,
         keys.constant_volume: False,

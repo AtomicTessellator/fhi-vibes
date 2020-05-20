@@ -14,8 +14,10 @@ from vibes.materials_fp.material_fingerprint import (
     get_phonon_dos_fp,
     scalar_product,
 )
+from vibes.phonopy.utils import remap_force_constants
 from vibes.phonopy.wrapper import preprocess as ph_preprocess
 from vibes.settings import Settings
+from vibes.helpers.supercell import get_lattice_points
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
@@ -227,9 +229,51 @@ def get_converge_phonon_update(
     calculator_dict["calculator"] = calculator_dict["calculator"].lower()
 
     # Calculate the phonon DOS
-    phonon.set_mesh([45, 45, 45])
-    if np.any(phonon.get_frequencies([0.0, 0.0, 0.0]) < -1.0e-1):
-        raise ValueError("Negative frequencies at Gamma, terminating workflow here.")
+    primitive = to_Atoms(phonon.get_primitive())
+    supercell = to_Atoms(phonon.get_supercell())
+    brav_pts, _ = get_lattice_points(primitive.cell, supercell.cell)
+    for k in brav_pts:
+        if np.any(phonon.get_frequencies(k) < -1.0e-1):
+            raise ValueError("Negative frequencies at an included lattice point.")
+
+    phonon.run_mesh([45, 45, 45])
+
+    if "sc_matrix_base" not in kwargs:
+        kwargs["sc_matrix_base"] = phonon.get_supercell_matrix()
+
+    ind = np.where(np.array(kwargs["sc_matrix_base"]).flatten() != 0)[0][0]
+    n_cur = int(
+        round(
+            phonon.get_supercell_matrix().flatten()[ind]
+            / np.array(kwargs["sc_matrix_base"]).flatten()[ind]
+        )
+    )
+    displacement = phonon._displacement_dataset["first_atoms"][0]["displacement"]
+    disp_mag = np.linalg.norm(displacement)
+
+    if n_cur > 1 and prev_dos_fp is None:
+        sc_mat = (n_cur - 1) * np.array(kwargs["sc_matrix_base"]).reshape((3, 3))
+        phonon_small, supercell, _ = ph_preprocess(
+            to_Atoms(phonon.get_unitcell(), db=True), sc_mat, displacement=disp_mag
+        )
+        phonon_small.set_force_constants(
+            remap_force_constants(
+                phonon.get_force_constants(),
+                to_Atoms(phonon.get_unitcell()),
+                to_Atoms(phonon.get_supercell()),
+                supercell,
+                reduce_fc=True,
+            )
+        )
+        brav_pts, _ = get_lattice_points(primitive.cell, supercell.cell)
+        for k in brav_pts:
+            if np.any(phonon_small.get_frequencies(k) < -1.0e-1):
+                raise ValueError("Negative frequencies at an included lattice point.")
+
+        phonon_small.run_mesh([45, 45, 45])
+        phonon_small.run_total_dos(freq_pitch=0.01)
+        n_bins = len(phonon_small.get_total_dos_dict()["frequency_points"])
+        prev_dos_fp = get_phonon_dos_fp(phonon_small, nbins=n_bins)
 
     if prev_dos_fp:
         de = prev_dos_fp[0][0][1] - prev_dos_fp[0][0][0]
@@ -237,6 +281,7 @@ def get_converge_phonon_update(
         max_f = prev_dos_fp[0][0][-1] + 0.5 * de
         phonon.run_total_dos(freq_min=min_f, freq_max=max_f, freq_pitch=0.01)
     else:
+        # If Not Converged update phonons
         phonon.run_total_dos(freq_pitch=0.01)
 
     # Get a phonon DOS Finger print to compare against the previous one
@@ -246,6 +291,8 @@ def get_converge_phonon_update(
     # Get the base working directory
     init_workdir = get_base_work_dir(init_workdir)
     analysis_wd = get_base_work_dir(workdir)
+
+    # Check phonon Convergence
     if prev_dos_fp:
         ph_conv = check_phonon_conv(dos_fp, prev_dos_fp, conv_crit)
     else:
@@ -257,10 +304,6 @@ def get_converge_phonon_update(
         copyfile(
             f"{workdir}/{trajectory_file}", f"{analysis_wd}/converged/trajectory.son"
         )
-        if "prev_wd" in kwargs:
-            Path(f"{analysis_wd}/converged_mn_1/").mkdir(exist_ok=True, parents=True)
-            prev_trajectory = f"{kwargs['prev_wd']}/{trajectory_file}"
-            copyfile(prev_trajectory, f"{analysis_wd}/converged_mn_1/trajectory.son")
         update_job = {
             "ph_dict": phonon_to_dict(phonon),
             "ph_calculator": calculator_dict,
@@ -276,24 +319,7 @@ def get_converge_phonon_update(
         dos_fp = get_phonon_dos_fp(phonon, nbins=n_bins)
 
     # If Not Converged update phonons
-
-    if "sc_matrix_base" not in kwargs:
-        kwargs["sc_matrix_base"] = phonon.get_supercell_matrix()
-
-    ind = np.where(np.array(kwargs["sc_matrix_base"]).flatten() != 0)[0][0]
-    if kwargs.get("sc_matrix_base", None) is not None:
-        n_cur = int(
-            round(
-                phonon.get_supercell_matrix().flatten()[ind]
-                / np.array(kwargs["sc_matrix_base"]).flatten()[ind]
-            )
-        )
-        sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_base"]).reshape((3, 3))
-    else:
-        sc_mat = 2.0 * phonon.get_supercell_matrix()
-
-    displacement = phonon._displacement_dataset["first_atoms"][0]["displacement"]
-    disp_mag = np.linalg.norm(displacement)
+    sc_mat = (n_cur + 1) * np.array(kwargs["sc_matrix_base"]).reshape((3, 3))
 
     ratio = np.linalg.det(sc_mat) / np.linalg.det(phonon.get_supercell_matrix())
     phonon, _, _ = ph_preprocess(
@@ -309,8 +335,8 @@ def get_converge_phonon_update(
 
     ntasks = int(np.ceil(phonon.supercell.get_number_of_atoms() * 0.75))
 
-    init_workdir += f"/sc_natoms_{phonon.get_supercell().get_number_of_atoms()}"
-    analysis_wd += f"/sc_natoms_{phonon.get_supercell().get_number_of_atoms()}"
+    # init_workdir += f"/sc_natoms_{phonon.get_supercell().get_number_of_atoms()}"
+    # analysis_wd += f"/sc_natoms_{phonon.get_supercell().get_number_of_atoms()}"
 
     displacement = phonon._displacement_dataset["first_atoms"][0]["displacement"]
     disp_mag = np.linalg.norm(displacement)

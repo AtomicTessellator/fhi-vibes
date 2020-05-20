@@ -38,7 +38,9 @@ def run(atoms, calculator, kpt_density=None, relax_settings=None, fw_settings=No
         trajectory = "trajectory.son"
         workdir = Path(".")
 
-    atoms.write(str(workdir / "geometry.in"), format="aims", scaled=True)
+    atoms.write(
+        str(workdir / "geometry.in"), format="aims", scaled=True, geo_constrain=True
+    )
 
     if calculator.name.lower() == "aims":
         if kpt_density is not None:
@@ -72,5 +74,4 @@ def run(atoms, calculator, kpt_density=None, relax_settings=None, fw_settings=No
     settings.write(f"{workdir}/relaxation.in")
 
     ctx = RelaxationContext(Settings(settings_file=settings_file), workdir, trajectory)
-
     return ctx.run()

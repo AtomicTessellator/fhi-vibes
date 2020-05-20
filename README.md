@@ -5,7 +5,8 @@ Welcome to `FHI-vibes`, a `python` package for _ab initio_ modeling of vibration
 
 ## Overview
 
-- If you are here to learn how to run `phonopy` calculations with forces obtained from `FHI-aims`, please have a look at our [Tutorial](Tutorial/0_intro.md).
+- [Documentation](https://flokno.gitlab.io/hilde/Documentation/0_intro/)
+- [Tutorial](https://flokno.gitlab.io/hilde/Tutorial/0_intro/)
 - If you are interested in scientific work that was performed using `FHI-vibes`, please have a look at [References](References.md)
 
 `FHI-vibes` is submitted to [JOSS](https://joss.theoj.org/).
@@ -37,20 +38,14 @@ pip install fhi-vibes
 Configure `vibes` by creating a `~/.vibesrc` configuration file in the home directory. To this end, first run
 
 ```
-vibes template configuration
+vibes template configuration > ~/.vibesrc
 ```
 
 and edit according to system. The `aims_command` is a command or script that takes care of running aims. This can be either just `mpirun aims.x`, or a script loading necessary modules etc. and finally calling `srun aims.x` on a cluster.
 
-Then copy this file to your home folder with 
-
-```
-cp vibesrc ~/.vibesrc
-```
-
 **You're now good to go!** Just make sure your vibes virtual environment is activated.
 
-## Remarks for `python3.6`
+### Remarks for `python3.6`
 
 On `python3.6`, please install `importlib_resources` and `dataclasses` via 
 
@@ -73,11 +68,3 @@ If you use the `fishshell`, add a file `~/.config/fish/completions/vibes.fish` c
 ```bash
 eval (env _VIBES_COMPLETE=source-fish vibes)
 ```
-
-## Settings Files
-
-`vibes` uses the Python `configparser` module for parsing settings files named
-`settings.in` and the configuration file `.vibesrc`. The
-parser is augmented by `JSON` so it understands any input on the right hand side that is
-valid `JSON`. The inputs get converted to Python objects according to [this conversion
-table](https://realpython.com/python-json/#serializing-json).

@@ -1,17 +1,21 @@
 """Generate FWActions after setting Phonon Calculations"""
 
 from fireworks import FWAction, Workflow
-from vibes.fireworks.tasks.postprocess.phonons import get_converge_phonon_update
-from vibes.fireworks.utils.converters import phonon3_to_dict, phonon_to_dict
-from vibes.fireworks.workflows.firework_generator import (
-    generate_firework,
-    generate_converging_phonon_fw,
-    generate_converging_phonon_postprocess_fw,
+from vibes.fireworks.tasks.postprocess.phonons import (
+    get_converge_phonon_update,
     time2str,
 )
+from vibes.fireworks.utils.converters import phonon3_to_dict, phonon_to_dict
+from vibes.fireworks.workflows.firework_generator import generate_firework
+from vibes.fireworks.workflows.workflow_generator import process_phonons
+
+from vibes.context import TaskContext
+
 from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms
 from vibes.helpers.k_grid import k2d
 from vibes.helpers.watchdogs import str2time
+from vibes.phonopy._defaults import keys, kwargs as ph_kwargs
+from vibes.settings import Settings
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
@@ -383,6 +387,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     phonon = kwargs.pop("outputs")
     workdir = kwargs.pop("workdir")
     trajectory_file = kwargs.pop("trajectory_file")
+
     conv, update_job = get_converge_phonon_update(
         workdir, trajectory_file, args[1], phonon, **kwargs
     )
@@ -433,26 +438,79 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     primitive = to_Atoms(phonon.get_primitive())
 
-    init_fw = generate_converging_phonon_fw(
-        primitive,
-        update_job["init_workdir"],
-        fw_settings,
-        qadapter,
-        func_kwargs,
-        update_in_spec=False,
-    )
+    _, metadata = reader(f"{workdir}/{trajectory_file}", True)
 
-    kwargs["prev_dos_fp"] = update_job["prev_dos_fp"]
-    kwargs["trajectory_file"] = trajectory_file.split("/")[-1]
-    kwargs["sc_matrix_base"] = update_job["sc_matrix_base"]
-    kwargs["convergence"] = {"minimum_similiarty_score": kwargs["conv_crit"]}
+    fireworks_dct = {
+        "name": "phonon_continuation",
+        "workdir": {
+            "local": update_job["analysis_wd"],
+            "remote": update_job["init_workdir"],
+        },
+    }
 
-    analysis_fw = generate_converging_phonon_postprocess_fw(
-        primitive,
-        update_job["analysis_wd"],
-        fw_settings,
-        kwargs,
-        wd_init=update_job["init_workdir"],
+    phonopy_dct = {
+        "serial": kwargs["serial"],
+        keys.supercell_matrix: update_job["supercell_matrix"],
+        keys.symprec: metadata["Phonopy"][keys.symprec],
+        keys.displacement: update_job["displacement"],
+        keys.is_diagonal: metadata["Phonopy"].get(
+            keys.is_diagonal, ph_kwargs[keys.is_diagonal]
+        ),
+        keys.is_trigonal: metadata["Phonopy"].get(
+            keys.is_trigonal, ph_kwargs[keys.is_trigonal]
+        ),
+        keys.is_plusminus: metadata["Phonopy"].get(
+            keys.is_plusminus, ph_kwargs[keys.is_plusminus]
+        ),
+        "qadapter": qadapter,
+        "convergence": {
+            "minimum_similiarty_score": kwargs["conv_crit"],
+            "sc_matrix_base": update_job["sc_matrix_base"],
+        },
+    }
+
+    calculator_dct = {
+        "name": update_job["ph_calculator"]["calculator"],
+        "parameters": update_job["ph_calculator"]["calculator_parameters"],
+    }
+
+    if calculator_dct["name"] == "aims":
+        socketio = calculator_dct["parameters"].get("use_pimd_wrapper")
+        if socketio:
+            port = socketio[1]
+            host = socketio[0]
+            unixsocket = None
+            if "UNIX" in host:
+                unixsocket = host
+                host = None
+
+            calculator_dct["socketio"] = {
+                "host": host,
+                "port": port,
+                "unixsocket": unixsocket,
+            }
+
+        k_grid = calculator_dct["parameters"].get("k_grid")
+        if k_grid:
+            calculator_dct["kpoints"] = {"density": args[-1]}
+
+    basis = calculator_dct["parameters"].get("species_dir")
+    if basis:
+        basis = basis.split("/")[-1]
+        calculator_dct["basissets"] = {"default": basis}
+
+    dct = {
+        "fireworks": fireworks_dct,
+        "phonopy": phonopy_dct,
+        "calculator": calculator_dct,
+    }
+
+    settings = Settings(dct=dct)
+    workflow = TaskContext(name=None, settings=settings)
+    workflow.atoms = primitive
+
+    init_fw, analysis_fw = process_phonons(
+        workflow, primitive, fw_settings, basis, False, update_job["prev_dos_fp"]
     )
 
     detours = [init_fw, analysis_fw]
