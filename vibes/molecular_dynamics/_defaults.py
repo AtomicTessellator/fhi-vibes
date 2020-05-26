@@ -13,11 +13,17 @@ _keys = [
     "compute_stresses",
     "logfile",
     "friction",
+    # NPTBerendsen
+    "taut",
+    "taup",
+    "pressure",
+    "compressibility",
     "workdir",
 ]
 keys = collections.namedtuple("md_keywords", _keys)(*_keys)
 
-kwargs = adict(
+# Verlet
+base_dict = adict(
     {
         keys.driver: "VelocityVerlet",
         keys.timestep: 1,
@@ -25,10 +31,33 @@ kwargs = adict(
         keys.compute_stresses: False,
         keys.workdir: name,
         # kwargs go to Dynamics, e.g., Langeving(..., **kwargs)
-        "kwargs": {keys.temperature: None, keys.friction: None, keys.logfile: "md.log"},
+        "kwargs": {keys.logfile: "md.log"},
     }
 )
+nve_dict = {name: base_dict.copy()}
 
-settings_dict = {name: kwargs}
+# Langevin
+kwargs_nvt = {**base_dict}
+kwargs_nvt[keys.driver] = "Langevin"
+kwargs_nvt["kwargs"] = {
+    keys.temperature: 300,
+    keys.friction: 0.02,
+    **base_dict["kwargs"],
+}
+nvt_dict = {name: kwargs_nvt}
+
+# Berendsen
+kwargs_npt = {**base_dict}
+kwargs_npt[keys.driver] = "NPTBerendsen"
+kwargs_npt["kwargs"] = {
+    keys.temperature: 300,
+    keys.taut: 0.5e3,  # * units.fs,
+    keys.taup: 1e3,  # * units.fs,
+    keys.pressure: 1.01325,  # in bar
+    keys.compressibility: 4.57e-5,  # in bar^-1
+    **base_dict["kwargs"],
+}
+npt_dict = {name: kwargs_npt}
+
 
 calculation_timeout = 30 * 60  # 30 minutes

@@ -2,6 +2,7 @@
 
 import click
 
+from vibes import keys
 from vibes.templates import config_files, settings
 
 from .misc import AliasedGroup
@@ -42,12 +43,21 @@ def phonopy_input(obj, file):
 
 @template.command("md")
 @click.argument("file", default="md.in")
+@click.option("--nvt", is_flag=True)
+@click.option("--npt", is_flag=True)
 @click.pass_obj
-def md_input(obj, file):
+def md_input(obj, file, nvt, npt):
     """provide template md.in for molecular dynamics workflow."""
     from vibes.molecular_dynamics.context import MDContext
 
-    ctx = MDContext()
+    if nvt:
+        ensemble = keys.nvt
+    elif npt:
+        ensemble = keys.npt
+    else:
+        ensemble = keys.nve
+
+    ctx = MDContext(ensemble=ensemble)
     ctx.settings.print()
 
 

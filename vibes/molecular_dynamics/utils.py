@@ -3,7 +3,7 @@
     - Logger for tracking custom MD """
 from pathlib import Path
 
-from ase.calculators.calculator import Calculator
+from ase.calculators.calculator import Calculator, PropertyNotImplementedError
 
 from vibes import son
 from vibes.helpers.converters import input2dict
@@ -106,15 +106,23 @@ class MDLogger:
         """
         if info is None:
             info = {}
+
+        try:
+            stress = atoms.get_stress(voigt=False)
+        except PropertyNotImplementedError:
+            stress = None
+
         dct = {
             "atoms": {
                 "info": info,
+                "cell": atoms.cell[:],
                 "positions": atoms.positions,
                 "velocities": atoms.get_velocities(),
             },
             "calculator": {
                 "forces": atoms.get_forces(),
                 "energy": atoms.get_kinetic_energy(),
+                "stress": stress,
             },
         }
 
