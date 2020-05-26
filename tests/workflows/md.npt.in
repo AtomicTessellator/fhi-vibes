@@ -1,0 +1,26 @@
+[files]
+geometry = geometry.in
+
+[calculator]
+name     = lj
+
+[calculator.parameters]
+sigma    = 3.405
+epsilon  = 0.010325 
+rc       = 13.0
+
+[md]
+driver:                        NPTBerendsen
+timestep:                      1
+maxsteps:                      3
+compute_stresses:              False
+workdir:                       md
+
+[md.kwargs]
+temperature:                   300
+taut:                          500.0
+taup:                          1000.0
+pressure:                      1.01325
+compressibility:               4.57e-05
+logfile:                       md.log
+

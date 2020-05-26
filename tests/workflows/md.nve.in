@@ -1,0 +1,22 @@
+[files]
+geometry = geometry.in
+
+[calculator]
+name     = lj
+
+[calculator.parameters]
+sigma    = 3.405
+epsilon  = 0.010325 
+rc       = 13.0
+
+
+[md]
+driver:                        VelocityVerlet
+timestep:                      1
+maxsteps:                      3
+compute_stresses:              False
+workdir:                       md
+
+[md.kwargs]
+logfile:                       md.log
+

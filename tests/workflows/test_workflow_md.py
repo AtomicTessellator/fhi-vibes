@@ -1,37 +1,30 @@
 """test the MD workflow"""
 
-import shutil
+import subprocess as sp
 from pathlib import Path
 
 import pytest
-
-from vibes.helpers import cwd
-from vibes.molecular_dynamics.context import MDContext
-from vibes.settings import Settings
+from ase.build import bulk
 
 parent = Path(__file__).parent
 
+run_command = "vibes run md"
 
-@pytest.mark.filterwarnings("ignore:Subprocess")
-def test_md():
-    with cwd(parent):
 
-        settings = Settings(settings_file="md.in")
-        settings.machine.basissetloc = parent / settings.machine.basissetloc
+@pytest.fixture
+def atoms():
+    """two atoms at potential minimum"""
+    return bulk("Ar", cubic=True) * (2, 2, 2)
 
-        ctx = MDContext(settings)
 
-        workdir = ctx.workdir / "calculations"
+@pytest.mark.parametrize("file", parent.glob("md.*.in"))
+def test_npt(atoms, tmp_path, file):
+    # tmp_path.mkdir()
+    atoms.write(tmp_path / "geometry.in")
+    file.link_to(tmp_path / "md.in")
 
-        if workdir.exists():
-            shutil.rmtree(workdir)
-
-        try:
-            ctx.run()
-        except RuntimeError:
-            assert (workdir / "control.in").exists()
-            shutil.rmtree(ctx.workdir)
+    sp.run(run_command.split(), cwd=tmp_path)
 
 
 if __name__ == "__main__":
-    test_md()
+    test_npt()
