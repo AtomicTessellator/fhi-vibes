@@ -125,8 +125,10 @@ def show_netcdf_file(file):
 @click.option("--max_rows", default=100)
 @click.option("--describe", is_flag=True)
 @click.option("--half", is_flag=True)
-def show_csv_file(file, max_rows, describe, half):
+@click.option("--to_json", type=Path, help="Write to json file")
+def show_csv_file(file, max_rows, describe, half, to_json):
     """show contents of csv FILE"""
+    import json
     import pandas as pd
 
     pd.options.display.max_rows = max_rows
@@ -137,9 +139,14 @@ def show_csv_file(file, max_rows, describe, half):
         df = df.iloc[len(df) // 2 :]
 
     if describe:
-        click.echo(df.describe())
-    else:
-        click.echo(df)
+        df = df.describe()
+
+    click.echo(df)
+
+    if to_json is not None:
+        click.echo(f".. write to {to_json}")
+        with open(to_json, "w") as f:
+            json.dump(df.to_dict(), f, indent=1)
 
 
 @info.command("hdf5")
