@@ -447,6 +447,7 @@ class Trajectory(list):
             keys.energy_kinetic,
             keys.energy_potential,
             keys.pressure_kinetic,
+            keys.pressure_potential,
             keys.pressure,
         ]
         df = self.dataset[_keys].to_dataframe()

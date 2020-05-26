@@ -357,7 +357,7 @@ def read_netcdf(file=filenames.trajectory_dataset):
     potential_energy = DS[keys.energy_potential].data
 
     if "cell" in DS:
-        cells = DS.cells.data
+        cells = DS.cell.data
     else:
         cells = [None for _ in positions]
 
