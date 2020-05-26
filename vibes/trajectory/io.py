@@ -354,8 +354,12 @@ def read_netcdf(file=filenames.trajectory_dataset):
     positions = DS.positions.data
     velocities = DS.velocities.data
     forces = DS.forces.data
-    cells = DS.cell.data
     potential_energy = DS[keys.energy_potential].data
+
+    if "cell" in DS:
+        cells = DS.cells.data
+    else:
+        cells = [None for _ in positions]
 
     if keys.stress_potential in DS:
         stress = DS[keys.stress_potential].data
@@ -366,7 +370,8 @@ def read_netcdf(file=filenames.trajectory_dataset):
     properties = (positions, cells, velocities, forces, potential_energy, stress)
     for p, c, v, f, e, s in zip(*properties):
         atoms = ref_atoms.copy()
-        atoms.set_cell(c)
+        if c is not None:
+            atoms.set_cell(c)
         atoms.set_positions(p)
         atoms.set_velocities(v)
 
