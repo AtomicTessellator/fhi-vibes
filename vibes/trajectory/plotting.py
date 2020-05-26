@@ -49,7 +49,7 @@ def plot_summary(dataframe, avg=50, natoms=None):
     # pressure dataframe
     df_p = dataframe[[keys.pressure, keys.pressure_kinetic, keys.pressure_potential]]
     df_p /= units.GPa
-    # df_p_int = df_p.interpolate("akima")
+    df_p_int = df_p.interpolate("akima")
     df_p = df_p.dropna()
     if len(df_p) > 3:
         fig, (ax, ax2, ax3, ax4) = plt.subplots(nrows=4, **fig_kw)
@@ -63,6 +63,9 @@ def plot_summary(dataframe, avg=50, natoms=None):
         kw = {"lw": 0, "marker": ".", "mec": None, "alpha": 0.5, "label": ""}
         for ii, (_, series) in enumerate(df_p.iteritems()):
             series.plot(ax=ax3, color=tc[ii], **kw)
+
+        for ii, (_, series) in enumerate(df_p_int.iteritems()):
+            series.plot(ax=ax3, color=tc[ii], alpha=0.8)
 
         df_mean = df_p.rolling(**kw_roll).mean()
         for ii, (name, series) in enumerate(df_mean.iteritems()):

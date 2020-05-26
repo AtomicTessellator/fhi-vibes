@@ -156,8 +156,12 @@ def get_trajectory_dataset(trajectory, metadata=False):
         keys.forces: (dims.time_atom_vec, trajectory.forces),
         keys.energy_kinetic: (dims.time, trajectory.kinetic_energy),
         keys.energy_potential: (dims.time, trajectory.potential_energy),
-        "stress": (dims.time_tensor, trajectory.stress),
+        keys.stress: (dims.time_tensor, trajectory.stress),
+        keys.stress_kinetic: (dims.time_tensor, trajectory.stress_kinetic),
+        keys.stress_potential: (dims.time_tensor, trajectory.stress_potential),
         "temperature": (dims.time, trajectory.temperatures),
+        "cell": (dims.time_tensor, trajectory.cells),
+        "volume": (dims.time, trajectory.volumes),
         keys.reference_positions: positions_reference,
         keys.reference_lattice: lattice_reference,
     }

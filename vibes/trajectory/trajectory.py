@@ -14,7 +14,7 @@ from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.utils import progressbar
 
 from . import analysis as al
-from .utils import Timer, talk, clean_pressure
+from .utils import Timer, talk
 
 
 class Trajectory(list):
@@ -42,7 +42,6 @@ class Trajectory(list):
         self._average_atoms = None
         self._heat_flux = None
         self._avg_heat_flux = None
-        self._volume = None
         self._forces_harmonic = None
         self._displacements = None
         self._force_constants_remapped = None
@@ -167,13 +166,20 @@ class Trajectory(list):
             masses_dict[sym] = mass
         return masses_dict
 
+    @lazy_property
+    def cells(self):
+        """return cell per time step"""
+        return [a.cell[:] for a in self]
+
+    @lazy_property
+    def volumes(self):
+        """return volume per time step"""
+        return [a.get_volume() for a in self]
+
     @property
     def volume(self):
         """return averaged volume"""
-        if not self._volume:
-            volumes = [a.get_volume() for a in self]
-            self._volume = np.mean(volumes).squeeze()
-        return self._volume
+        return np.mean(self.volumes).squeeze()
 
     @property
     def times(self):
@@ -330,6 +336,9 @@ class Trajectory(list):
                 stress = a.get_stress(voigt=False, include_ideal_gas=False)
             else:
                 stress = np.full_like(zeros, np.nan)
+            # exact zero means was not computed
+            if np.abs(stress).max() < 1e-14:
+                stress = np.full_like(zeros, np.nan)
             stresses.append(stress)
 
         return np.array(stresses, dtype=float)
@@ -350,7 +359,7 @@ class Trajectory(list):
 
         return np.array(stresses, dtype=float)
 
-    @lazy_property
+    @property
     def stress(self):
         """return the full stress (kinetic + potential) as [N_t, 3, 3] array"""
         return self.stress_kinetic + self.stress_potential
@@ -382,7 +391,7 @@ class Trajectory(list):
         pressure = np.array([-1 / 3 * np.trace(s) for s in stress])
         assert len(pressure) == len(self)
 
-        return clean_pressure(pressure)
+        return pressure  # clean_pressure(pressure)
 
     @lazy_property
     def pressure_potential(self):
@@ -437,6 +446,7 @@ class Trajectory(list):
             keys.temperature,
             keys.energy_kinetic,
             keys.energy_potential,
+            keys.pressure_kinetic,
             keys.pressure,
         ]
         df = self.dataset[_keys].to_dataframe()
