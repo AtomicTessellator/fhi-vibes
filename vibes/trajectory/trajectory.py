@@ -22,7 +22,7 @@ class Trajectory(list):
            - extract and plot several statistics on the MD trajectory
            - convert to other formats like xyz or TDEP """
 
-    def __init__(self, *args, metadata=None):
+    def __init__(self, *args, metadata=None, debug=False):
         """Initializer
 
         Args:
@@ -48,6 +48,8 @@ class Trajectory(list):
         self._force_constants_remapped = None
         if keys.fc not in self._metadata:
             self._metadata[keys.fc] = None
+
+        self.debug = debug
 
     @classmethod
     def read(cls, file=filenames.trajectory, **kwargs):
@@ -84,7 +86,9 @@ class Trajectory(list):
             if self.supercell:
                 self._reference_atoms = self.supercell.copy()
             else:
-                warn("No supercell found, return first Atoms in trajectory", level=1)
+                if self.debug:
+                    msg = "No supercell found, return first Atoms in trajectory"
+                    warn(msg, level=1)
                 self._reference_atoms = self[0].copy()
         return self._reference_atoms
 
@@ -110,7 +114,8 @@ class Trajectory(list):
             if "atoms" in dct:
                 dct = dct["atoms"]
             return dict2atoms(dct)
-        warn("primitive cell not provided in trajectory metadata")
+        if self.debug:
+            warn("primitive cell not provided in trajectory metadata")
 
     @primitive.setter
     def primitive(self, atoms):
@@ -130,7 +135,8 @@ class Trajectory(list):
                     dct = dct["atoms"]
                 self._supercell = dict2atoms(dct)
             else:
-                warn("supercell not provided in trajectory metadata")
+                if self.debug:
+                    warn("supercell not provided in trajectory metadata")
         return self._supercell
 
     @supercell.setter
@@ -239,7 +245,8 @@ class Trajectory(list):
         """return (reduced) force constants or warn if not set"""
         fc = self.metadata[keys.fc]
         if any(x is None for x in (fc, self.primitive, self.supercell)):
-            warn("`trajectory.force_constants` not set, return None")
+            if self.debug:
+                warn("`trajectory.force_constants` not set, return None")
         else:
             fc = np.asarray(fc)
             Np, Na = len(self.primitive), len(self.supercell)
