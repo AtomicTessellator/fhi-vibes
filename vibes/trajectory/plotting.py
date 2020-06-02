@@ -46,10 +46,12 @@ def plot_summary(dataframe, avg=50, natoms=None):
     kw_roll = {"window": avg, "min_periods": 0, "center": True}
 
     # pressure: make sure there is enough data, otherwise don't bother plotting
-    p = dataframe.pressure / units.GPa
-    p_int = p.interpolate("akima")
-    p = p.dropna()
-    if len(p) > 3:
+    # pressure dataframe
+    df_p = dataframe[[keys.pressure, keys.pressure_kinetic, keys.pressure_potential]]
+    df_p /= units.GPa
+    df_p_int = df_p.interpolate("akima")
+    df_p = df_p.dropna()
+    if len(df_p) > 3:
         fig, (ax, ax2, ax3, ax4) = plt.subplots(nrows=4, **fig_kw)
         # fig = plt.figure(**fig_kw)
         # gs = gridspec.GridSpec(nrows=6, ncols=1)
@@ -58,11 +60,17 @@ def plot_summary(dataframe, avg=50, natoms=None):
         # ax3 = fig.add_subplot(gs[4])
         # ax4 = fig.add_subplot(gs[5])
         # fig, (ax, ax2, ax3) = plt.subplots(nrows=3, **fig_kw)
-        p.plot(
-            ax=ax3, **{**plot_kw, "label": "p", "linewidth": 0}, color=tc[3], marker="x"
-        )
-        p_int.plot(ax=ax3, **{**plot_kw, "label": "p (akima)"}, color=tc[3])
-        p_int.expanding().mean().plot(ax=ax3, label="avg. p", **avg_kw, color=tc[3])
+        kw = {"lw": 0, "marker": ".", "mec": None, "alpha": 0.5, "label": ""}
+        for ii, (_, series) in enumerate(df_p.iteritems()):
+            series.plot(ax=ax3, color=tc[ii], **kw)
+
+        for ii, (_, series) in enumerate(df_p_int.iteritems()):
+            series.plot(ax=ax3, color=tc[ii], alpha=0.8)
+
+        df_mean = df_p.rolling(**kw_roll).mean()
+        for ii, (name, series) in enumerate(df_mean.iteritems()):
+            series.plot(ax=ax3, label=name, color=tc[ii])
+
         ax3.axhline(0, linewidth=0.75)
         ax3.legend(loc=4)
         ax3.set_title("Pressure")

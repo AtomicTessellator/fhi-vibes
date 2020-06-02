@@ -7,34 +7,51 @@ from ase import units as u
 from ase.io import read
 from ase.md.md import MolecularDynamics
 
-from vibes import son
+from vibes import keys, son
 from vibes.context import TaskContext
 from vibes.helpers import talk, warn
 from vibes.helpers.converters import input2dict
 
-from ._defaults import name, settings_dict
+from ._defaults import keys as md_keys
+from ._defaults import name, npt_dict, nve_dict, nvt_dict
 from .workflow import _prefix, run_md
 
 
 class MDContext(TaskContext):
     """context for phonopy calculation"""
 
-    def __init__(self, settings=None, workdir=None, trajectory_file=None):
+    def __init__(
+        self, settings=None, workdir=None, trajectory_file=None, ensemble=keys.nve
+    ):
         """Context for MD
 
         Args:
             settings: settings for the MD Workflow
             workdir: Working directory for the MD workflow
             trajectory_file: Path to output trajectory
+            ensemble: the thermodynamics ensemble (NVE, NVT, NPT)
         """
+        if ensemble.lower() == keys.nve.lower():
+            settings_dict = nve_dict
+        elif ensemble.lower() == keys.nvt.lower():
+            settings_dict = nvt_dict
+        elif ensemble.lower() == keys.npt.lower():
+            settings_dict = npt_dict
+        else:
+            raise ValueError(f"{ensemble} not implemented, choose (NVE/NVT/NPT")
+
         super().__init__(settings, name, template_dict=settings_dict)
 
         self._md = None
         self._primitive = None
         self._supercell = None
 
-        # legacy
+        # legacy Langevin
         for key in ("temperature", "friction"):
+            if key in self.kw:
+                self.kw["kwargs"][key] = self.kw.pop(key)
+        # legacy Berendsen
+        for key in ("taut", "taup", "pressure", "compressibility"):
             if key in self.kw:
                 self.kw["kwargs"][key] = self.kw.pop(key)
 
@@ -50,7 +67,7 @@ class MDContext(TaskContext):
 
     @property
     def md(self):
-        """the MD algorithm"""
+        """set up the MD algorithm and make sure the units are consistent etc"""
         if not self._md:
             self.mkdir()
             obj = self.kw
@@ -67,6 +84,17 @@ class MDContext(TaskContext):
                     friction=obj.kwargs["friction"],
                     **md_settings,
                 )
+            elif "berendsen" in obj.driver.lower():
+                from ase.md.nptberendsen import NPTBerendsen
+
+                kw = obj.kwargs.copy()
+                md = NPTBerendsen(
+                    **md_settings,
+                    taut=kw.pop(md_keys.taut) * u.fs,
+                    taup=kw.pop(md_keys.taup) * u.fs,
+                    **kw,
+                )
+
             else:
                 warn(f"MD driver {obj.driver} not supported.", level=2)
 

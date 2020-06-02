@@ -45,6 +45,11 @@ energy_kinetic = "energy_kinetic"
 energy_potential = "energy_potential"
 energy_potential_harmonic = "energy_potential_harmonic"
 pressure = "pressure"
+pressure_kinetic = "pressure_kinetic"
+pressure_potential = "pressure_potential"
+stress = "stress"
+stress_kinetic = "stress_kinetic"
+stress_potential = "stress_potential"
 temperature = "temperature"
 
 heat_flux = "heat_flux"
@@ -66,6 +71,11 @@ avalanche_data = "avalanche_function"
 time_avalanche = "avalanche_time"
 avalanche_function = "avalanche_function"
 avalanche_index = "avalanche_index"
+
+# molecular dynamics
+nve = "NVE"
+nvt = "NVT"
+npt = "NPT"
 
 # file management
 file = "file"

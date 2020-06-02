@@ -22,7 +22,7 @@ class Trajectory(list):
            - extract and plot several statistics on the MD trajectory
            - convert to other formats like xyz or TDEP """
 
-    def __init__(self, *args, metadata=None):
+    def __init__(self, *args, metadata=None, debug=False):
         """Initializer
 
         Args:
@@ -42,12 +42,13 @@ class Trajectory(list):
         self._average_atoms = None
         self._heat_flux = None
         self._avg_heat_flux = None
-        self._volume = None
         self._forces_harmonic = None
         self._displacements = None
         self._force_constants_remapped = None
         if keys.fc not in self._metadata:
             self._metadata[keys.fc] = None
+
+        self.debug = debug
 
     @classmethod
     def read(cls, file=filenames.trajectory, **kwargs):
@@ -84,7 +85,9 @@ class Trajectory(list):
             if self.supercell:
                 self._reference_atoms = self.supercell.copy()
             else:
-                warn("No supercell found, return first Atoms in trajectory", level=1)
+                if self.debug:
+                    msg = "No supercell found, return first Atoms in trajectory"
+                    warn(msg, level=1)
                 self._reference_atoms = self[0].copy()
         return self._reference_atoms
 
@@ -110,7 +113,8 @@ class Trajectory(list):
             if "atoms" in dct:
                 dct = dct["atoms"]
             return dict2atoms(dct)
-        warn("primitive cell not provided in trajectory metadata")
+        if self.debug:
+            warn("primitive cell not provided in trajectory metadata")
 
     @primitive.setter
     def primitive(self, atoms):
@@ -130,7 +134,8 @@ class Trajectory(list):
                     dct = dct["atoms"]
                 self._supercell = dict2atoms(dct)
             else:
-                warn("supercell not provided in trajectory metadata")
+                if self.debug:
+                    warn("supercell not provided in trajectory metadata")
         return self._supercell
 
     @supercell.setter
@@ -161,13 +166,20 @@ class Trajectory(list):
             masses_dict[sym] = mass
         return masses_dict
 
+    @lazy_property
+    def cells(self):
+        """return cell per time step"""
+        return [a.cell[:] for a in self]
+
+    @lazy_property
+    def volumes(self):
+        """return volume per time step"""
+        return [a.get_volume() for a in self]
+
     @property
     def volume(self):
         """return averaged volume"""
-        if not self._volume:
-            volumes = [a.get_volume() for a in self]
-            self._volume = np.mean(volumes).squeeze()
-        return self._volume
+        return np.mean(self.volumes).squeeze()
 
     @property
     def times(self):
@@ -239,7 +251,8 @@ class Trajectory(list):
         """return (reduced) force constants or warn if not set"""
         fc = self.metadata[keys.fc]
         if any(x is None for x in (fc, self.primitive, self.supercell)):
-            warn("`trajectory.force_constants` not set, return None")
+            if self.debug:
+                warn("`trajectory.force_constants` not set, return None")
         else:
             fc = np.asarray(fc)
             Np, Na = len(self.primitive), len(self.supercell)
@@ -314,18 +327,42 @@ class Trajectory(list):
         return -0.5 * (self.forces_harmonic * self.displacements).sum(axis=(1, 2))
 
     @lazy_property
-    def stress(self):
-        """return the stress as [N_t, 3, 3] array"""
+    def stress_potential(self):
+        """return the potential stress as [N_t, 3, 3] array"""
         zeros = np.zeros((3, 3))
         stresses = []
         for a in self:
             if "stress" in a.calc.results:
-                stress = a.get_stress(voigt=False)
+                stress = a.get_stress(voigt=False, include_ideal_gas=False)
             else:
+                stress = np.full_like(zeros, np.nan)
+            # exact zero means was not computed
+            if np.abs(stress).max() < 1e-14:
                 stress = np.full_like(zeros, np.nan)
             stresses.append(stress)
 
         return np.array(stresses, dtype=float)
+
+    @lazy_property
+    def stress_kinetic(self):
+        """return the kinetic stress as [N_t, 3, 3] array"""
+        zeros = np.zeros((3, 3))
+        stresses = []
+        for a in self:
+            if "stress" in a.calc.results:
+                stress_potential = a.get_stress(voigt=False)
+                stress_full = a.get_stress(voigt=False, include_ideal_gas=True)
+                stress_kinetic = stress_full - stress_potential
+            else:
+                stress_kinetic = np.full_like(zeros, np.nan)
+            stresses.append(stress_kinetic)
+
+        return np.array(stresses, dtype=float)
+
+    @property
+    def stress(self):
+        """return the full stress (kinetic + potential) as [N_t, 3, 3] array"""
+        return self.stress_kinetic + self.stress_potential
 
     @lazy_property
     def stresses(self):
@@ -344,19 +381,32 @@ class Trajectory(list):
 
         return np.array(atomic_stresses, dtype=float)
 
-    def get_pressure(self, GPa=False):
+    def get_pressure(self, kinetic=False):
         """return the pressure as [N_t] array"""
-        pressure = np.array([-1 / 3 * np.trace(stress) for stress in self.stress])
+        if kinetic:
+            stress = self.stress_kinetic
+        else:
+            stress = self.stress_potential
+
+        pressure = np.array([-1 / 3 * np.trace(s) for s in stress])
         assert len(pressure) == len(self)
 
-        if GPa:
-            pressure /= units.GPa
-        return pressure
+        return pressure  # clean_pressure(pressure)
+
+    @lazy_property
+    def pressure_potential(self):
+        """return the potential pressure as [N_t] array"""
+        return self.get_pressure(kinetic=False)
+
+    @lazy_property
+    def pressure_kinetic(self):
+        """return the potential pressure as [N_t] array"""
+        return self.get_pressure(kinetic=True)
 
     @lazy_property
     def pressure(self):
-        """return the pressure as [N_t] array"""
-        return self.get_pressure()
+        """return the full pressure (kinetic + potential) as [N_t] array"""
+        return self.pressure_kinetic + self.pressure_potential
 
     @property
     def sigma(self):
@@ -396,6 +446,8 @@ class Trajectory(list):
             keys.temperature,
             keys.energy_kinetic,
             keys.energy_potential,
+            keys.pressure_kinetic,
+            keys.pressure_potential,
             keys.pressure,
         ]
         df = self.dataset[_keys].to_dataframe()

@@ -47,7 +47,7 @@ def geometry():
 @geometry.command(context_settings=_default_context_settings)  # aliases=['gd'])
 @click.argument("files", nargs=2, type=complete_files)
 @click.option("-sc_file", "--supercell_file", type=Path)
-@click.option("--outfile", default=filenames.deformation)
+@click.option("--outfile", default=filenames.deformation, type=Path)
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
 def get_deformation(files, supercell_file, outfile, dry, format):
@@ -74,7 +74,7 @@ def get_deformation(files, supercell_file, outfile, dry, format):
 
         D = M @ D @ np.linalg.inv(M)
 
-        outfile = f"supercell_{outfile}"
+        outfile = f"{outfile.stem}_supercell{outfile.suffix}"
 
     click.echo("Deformation tensor:")
     click.echo(D)
@@ -125,6 +125,33 @@ def apply_deformation(file, deformation, outfile, dry, cartesian, format):
             "velocities": velocities,
         }
         new_atoms.write(outfile, **kw)
+
+
+@geometry.command(context_settings=_default_context_settings)
+@click.argument("files", nargs=2, type=complete_files)
+@click.option("--cartesian", is_flag=True)
+@click.option("--format", default="aims")
+def set_cell(files, cartesian, format):
+    """set cell of geometry in file1 to geometry in file2"""
+    from ase.io import read
+
+    atoms1 = read(files[0], format=format)
+    atoms2 = read(files[1], format=format)
+
+    velocities = atoms2.get_velocities()
+
+    click.echo(f"Replace lattice in {files[1]} by lattice from {files[0]}")
+    atoms2.set_cell(atoms1.cell[:], scale_atoms=True)
+    if velocities is not None:
+        click.echo("** velocities are not scaled")
+
+    click.echo(f".. write structure to {files[1]}")
+    kw = {
+        "scaled": not cartesian,
+        "format": format,
+        "velocities": velocities is not None,
+    }
+    atoms2.write(files[1], **kw)
 
 
 @geometry.command("2frac", context_settings=_default_context_settings)
@@ -521,10 +548,12 @@ def pick_samples(file, outfile, number, range, cartesian):
 
     for number in rge:
         click.echo(f"Extract sample {number}:")
-        outfile = outfile or f"{filenames.atoms}.{number}"
+        file = outfile or f"{filenames.atoms}.{number}"
         atoms = traj[number]
-        atoms.write(outfile, format="aims", velocities=True, scaled=not cartesian)
-        click.echo(f".. sample written to {outfile}")
+        info_str = f"Sample no.: {number:7d}"
+        kw = {"velocities": True, "scaled": not cartesian, "info_str": info_str}
+        atoms.write(file, format="aims", **kw)
+        click.echo(f".. sample written to {file}")
 
 
 @trajectory.command("average", context_settings=_default_context_settings)
@@ -616,23 +645,6 @@ def compute_sigma(
             with pd.HDFStore(outfile) as store:
                 click.echo(f".. append dataframe for {name} to {outfile}")
                 store[name] = df
-
-
-@utils.group(aliases=["pd"])
-def pandas():
-    """utils for working with pandas dataframes"""
-    ...
-
-
-@pandas.command(context_settings=_default_context_settings)
-@click.argument("file", type=complete_files)
-def describe(file):
-    import pandas as pd
-
-    df = pd.read_csv(file)
-
-    click.echo(f"Describe {type(df)} from {file}:")
-    click.echo(df.describe())
 
 
 @utils.command("backup", context_settings=_default_context_settings)

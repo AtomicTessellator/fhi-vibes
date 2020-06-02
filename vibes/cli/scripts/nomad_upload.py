@@ -99,7 +99,7 @@ def nomad_upload(
     for file in files:
         path = tmp_dir / file
         if path.suffix == ".tgz":
-            path = tmp_dir / path.stem
+            path = tmp_dir / Path(file).parent / path.stem
 
         if path.exists():
             talk(f'Clean up "{path}"')
