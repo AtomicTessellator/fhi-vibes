@@ -548,12 +548,12 @@ def pick_samples(file, outfile, number, range, cartesian):
 
     for number in rge:
         click.echo(f"Extract sample {number}:")
-        outfile = outfile or f"{filenames.atoms}.{number}"
+        file = outfile or f"{filenames.atoms}.{number}"
         atoms = traj[number]
         info_str = f"Sample no.: {number:7d}"
         kw = {"velocities": True, "scaled": not cartesian, "info_str": info_str}
-        atoms.write(outfile, format="aims", **kw)
-        click.echo(f".. sample written to {outfile}")
+        atoms.write(file, format="aims", **kw)
+        click.echo(f".. sample written to {file}")
 
 
 @trajectory.command("average", context_settings=_default_context_settings)
