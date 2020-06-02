@@ -36,7 +36,7 @@ def submit(
     if submit_output == "":
         submit_output = "empty (e.g. local computation)"
 
-    print(submit_output.stdout)
+    print(submit_output.stdout, submit_output.stderr)
 
     try:
         timestr = time.strftime("%Y/%m/%d_%H:%M:%S")
