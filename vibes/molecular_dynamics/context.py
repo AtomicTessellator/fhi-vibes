@@ -40,7 +40,7 @@ class MDContext(TaskContext):
         else:
             raise ValueError(f"{ensemble} not implemented, choose (NVE/NVT/NPT")
 
-        super().__init__(settings, name, template_dict=settings_dict)
+        super().__init__(settings, name, workdir=workdir, template_dict=settings_dict)
 
         self._md = None
         self._primitive = None

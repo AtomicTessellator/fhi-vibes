@@ -2,6 +2,7 @@
 from ase.calculators.calculator import Calculator, get_calculator_class
 
 from vibes import keys
+from vibes.helpers import talk
 
 
 def from_settings(settings: dict = None) -> Calculator:
@@ -11,4 +12,10 @@ def from_settings(settings: dict = None) -> Calculator:
 
     cls = get_calculator_class(calc_name)
 
-    return cls(**calc_dict.get(keys.parameters, {}))
+    parameters = calc_dict.get(keys.parameters, {})
+
+    talk(f"Set up a `{cls}` calculator with the following parameters:")
+    for (k, v) in parameters.items():
+        talk(f"{k:15}: {v}")
+
+    return cls(**parameters)

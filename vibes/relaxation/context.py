@@ -34,7 +34,7 @@ class RelaxationContext(TaskContext):
             workdir: Working directory for the relaxation workflow
             trajectory_file: Path to output trajectory
         """
-        super().__init__(settings, name, template_dict=settings_dict)
+        super().__init__(settings, name, workdir=workdir, template_dict=settings_dict)
 
         self._opt = None
 
