@@ -7,7 +7,7 @@ from ase.calculators.calculator import PropertyNotImplementedError
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
 from vibes.filenames import filenames
-from vibes.helpers import lazy_property, warn
+from vibes.helpers import lazy_property, warn, get_stresses
 from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.helpers.displacements import get_dR
 from vibes.helpers.hash import hash_atoms, hashfunc
@@ -372,9 +372,8 @@ class Trajectory(list):
         zeros = np.zeros((len(self.reference_atoms), 3, 3))
 
         for a in self:
-            V = a.get_volume()
             try:
-                atomic_stress = a.get_stresses() / V
+                atomic_stress = get_stresses(a)
             except PropertyNotImplementedError:
                 atomic_stress = np.full_like(zeros, np.nan)
             atomic_stresses.append(atomic_stress)
@@ -645,9 +644,8 @@ class Trajectory(list):
         # 2) compute J_avg from average stresses
         timer = Timer("Compute heat flux:")
         for a in progressbar(trajectory):
-            V = a.get_volume()
             try:
-                stresses = a.get_stresses() / V
+                stresses = get_stresses(a)
             except PropertyNotImplementedError:
                 continue
 

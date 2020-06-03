@@ -2,7 +2,7 @@
 import numpy as np
 from ase import units
 
-from vibes.helpers import progressbar
+from vibes.helpers import progressbar, get_stresses
 
 from . import Timer
 
@@ -36,8 +36,7 @@ def get_heat_flux(trajectory):
     times = trajectory.times
     times -= min(times)
     for a in progressbar(trajectory):
-        V = a.get_volume()
-        stresses = a.get_stresses() / V
+        stresses = get_stresses(a)
 
         ds = stresses - avg_stresses
 

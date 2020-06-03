@@ -5,6 +5,7 @@ from ase import units
 from vibes.helpers import talk
 from vibes.helpers.warnings import warn
 
+from . import stresses as stresses_helper
 
 _prefix = "socketio"
 
@@ -42,30 +43,19 @@ def get_socket_info(calculator, prefix=_prefix):
 
 
 def get_stresses(atoms):
-    """Use Socket to get atomic stresses
+    """Use Socket to get intensive atomic stresses in eV/AA^3 in Nx3x3 shape.
+    Raw stresses are supposed to be extensive and the volume is divided out.
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        atoms of the calculation to get teh stress of
-
-    Returns
-    -------
-    The atomic stress
-
-    Raises
-    ------
-    AssertionError
-        If STRESSREADY is not sent in response to GETSTRESSES message
     """
     if "socketio" not in atoms.calc.name.lower():
-        return atoms.calc.get_stresses()
+        return stresses_helper.get_stresses(atoms)
+    # assume these are extensive stresses
     atoms.calc.server.protocol.sendmsg("GETSTRESSES")
     msg = atoms.calc.server.protocol.recvmsg()
     assert msg == "STRESSREADY"
     natoms = atoms.calc.server.protocol.recv(1, np.int32)
     stresses = atoms.calc.server.protocol.recv((int(natoms), 3, 3), np.float64)
-    return stresses * units.Hartree
+    return stresses * units.Hartree / atoms.get_volume()
 
 
 def socket_stress_off(calculator):
@@ -96,5 +86,7 @@ def socket_stress_on(calculator):
         calculator.server.protocol.sendmsg("STRESSES_ON")
     else:
         talk(f"Calculator {calculator.name} is not a socket calculator.")
-        calculator.parameters["compute_heat_flux"] = True
-        del calculator.parameters["compute_analytical_stress"]
+        if "aims" in calculator.name.lower():
+            talk(f"Switch on `compute_heat_flux` for {calculator.name}")
+            calculator.parameters["compute_heat_flux"] = True
+            del calculator.parameters["compute_analytical_stress"]
