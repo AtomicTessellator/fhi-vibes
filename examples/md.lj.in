@@ -1,0 +1,22 @@
+[files]
+geometry =  geometry.in
+primitive = geometry.in
+supercell = geometry.in
+
+[calculator]
+name:    lj
+
+[calculator.parameters]
+sigma=3.405
+epsilon=0.010325
+rc=8
+
+[md]
+driver =      Langevin
+timestep =    1
+temperature = 300
+friction =    0.02
+maxsteps =    11
+compute_stresses = true
+workdir =     md_lj
+

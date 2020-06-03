@@ -19,5 +19,5 @@ driver =      Langevin
 timestep =    1
 temperature = 300
 friction =    0.02
-maxsteps =    11
-compute_stresses = 5
+maxsteps =    5
+compute_stresses = 2
