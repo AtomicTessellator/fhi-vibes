@@ -6,6 +6,7 @@ import scipy.linalg as la
 from ase import units
 from ase.md.verlet import VelocityVerlet
 
+from vibes.ase.calculators.fc import FCCalculator
 from vibes.harmonic_analysis import HarmonicAnalysis
 from vibes.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
 from vibes.harmonic_analysis.normal_modes import get_A_qst2, projector, u_s_to_u_I
@@ -15,7 +16,7 @@ from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
 from vibes.helpers.supercell import get_commensurate_q_points
 from vibes.io import read
 from vibes.konstanten import kB
-from vibes.molecular_dynamics.utils import FCCalculator, MDLogger
+from vibes.molecular_dynamics.utils import MDLogger
 from vibes.tdep.wrapper import (
     parse_tdep_forceconstant,
     parse_tdep_remapped_forceconstant,

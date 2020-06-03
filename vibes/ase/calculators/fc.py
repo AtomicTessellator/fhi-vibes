@@ -3,8 +3,6 @@ from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import full_3x3_to_voigt_6_stress
 from ase.geometry import find_mic
 
-from vibes.helpers.displacements import get_dR
-
 
 class FCCalculator(Calculator):
     """Harmonic Force Constants Calculator
