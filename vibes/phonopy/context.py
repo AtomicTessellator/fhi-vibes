@@ -28,7 +28,8 @@ class PhonopyContext(TaskContext):
             name: `phonopy` or `phono3py`
             template_dict: for `phono3py`
         """
-        super().__init__(settings, name, template_dict=template_dict or settings_dict)
+        template_dict = template_dict or settings_dict
+        super().__init__(settings, name, workdir=workdir, template_dict=template_dict)
 
         if "auto" in str(self.workdir).lower():
             smatrix = self.supercell_matrix.flatten()
