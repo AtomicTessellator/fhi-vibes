@@ -3,13 +3,13 @@
 import numpy as np
 from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
+from ase.geometry import find_mic
 
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
 from vibes.filenames import filenames
-from vibes.helpers import lazy_property, warn, get_stresses
+from vibes.helpers import get_stresses, lazy_property, warn
 from vibes.helpers.converters import atoms2dict, dict2atoms
-from vibes.helpers.displacements import get_dR
 from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.utils import progressbar
 
@@ -530,16 +530,15 @@ class Trajectory(list):
             # warn("Supercell not set, let us stop here.", level=2)
             warn("SUPERCELL NOT SET, compute w.r.t to reference atoms", level=1)
 
-        atoms_ideal = self.reference_atoms
+        timer = Timer("Compute displacements")
 
-        # use get_dR
-        list1 = []
-        talk("compute displacements")
-        for atoms in progressbar(self):
-            list1.append(get_dR(atoms, atoms_ideal))
-        list1 = np.asarray(list1)
+        cell = np.asarray(self.reference_atoms.cell)
+        shape = self.positions.shape
+        displacements = self.positions - self.reference_atoms.positions
 
-        self.displacements = list1
+        displacements = find_mic(displacements.reshape(-1, 3), cell)[0]
+        self.displacements = displacements.reshape(*shape)
+        timer()
 
     @property
     def displacements(self):
