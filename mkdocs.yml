@@ -26,6 +26,7 @@ nav:
         - License: license.md
     - Documentation: 
         - Overview: Documentation/0_intro.md
+        - "Units": Documentation/units.md
         - "Input Files": Documentation/input_files.md
         - "Output Files": Documentation/output_files.md
         - "Calculator Setup": Documentation/calculator_setup.md
