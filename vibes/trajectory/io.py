@@ -1,6 +1,7 @@
 """Trajectory File I/O"""
 
 import json
+import multiprocessing
 import os
 import shutil
 from pathlib import Path
@@ -96,6 +97,56 @@ def write(trajectory, file=filenames.trajectory):
     timer()
 
 
+def _create_atoms(
+    obj: dict,
+    pre_atoms_dict: dict,
+    pre_calc_dict: dict,
+    metadata: dict,
+    single_point_calculator: bool,
+):
+    """create Atoms object from dictionaries"""
+    atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
+
+    # remember that the results need to go to a dedicated results dict in calc
+    calc_dict = {**pre_calc_dict, "results": obj["calculator"]}
+
+    atoms = dict2atoms(
+        atoms_dict,
+        calculator_dict=calc_dict,
+        single_point_calculator=single_point_calculator,
+    )
+
+    # info
+    if "MD" in metadata:
+        if "dt" in atoms.info:
+            atoms.info["dt_fs"] = atoms.info["dt"] / metadata["MD"]["fs"]
+    elif "info" in obj:
+        info = obj["info"]
+        atoms.info.update(info)
+
+    # compatibility with older trajectories
+    if "MD" in obj:
+        atoms.info.update(obj["MD"])
+
+    # preserve metadata
+    if "metadata" in obj:
+        atoms.info.update({"metadata": obj["metadata"]})
+
+    return atoms
+
+
+def _map_create_atoms(pre_trajectory, **kwargs):
+    workers = []
+    pool = multiprocessing.Pool()
+    for obj in pre_trajectory:
+        workers.append(pool.apply_async(_create_atoms, args=(obj,), kwds=kwargs))
+    pool.close()
+    pool.join()
+
+    result = [worker.get() for worker in workers]
+    return result
+
+
 def reader(
     file=filenames.trajectory,
     get_metadata=False,
@@ -133,6 +184,7 @@ def reader(
         return trajectory
 
     metadata, pre_trajectory = son.load(file, verbose=verbose)
+    timer()
 
     # legacy of trajectory.yaml
     if metadata is None:
@@ -147,9 +199,6 @@ def reader(
     if "numbers" in pre_atoms_dict and "symbols" in pre_atoms_dict:
         del pre_atoms_dict["symbols"]
 
-    if "MD" in metadata:
-        md_metadata = metadata["MD"]
-
     if not pre_trajectory:
         if get_metadata:
             talk(".. trajectory empty, return (Trajectory([]), metadata)")
@@ -157,38 +206,16 @@ def reader(
         talk(".. trajectory empty, return Trajectory([])")
         return Trajectory([])
 
-    trajectory = Trajectory(metadata=metadata)
-    talk(".. create atoms", verbose=verbose)
-    for obj in progressbar(pre_trajectory, verbose=verbose):
-
-        atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
-
-        # remember that the results need to go to a dedicated results dict in calc
-        calc_dict = {**pre_calc_dict, "results": obj["calculator"]}
-
-        atoms = dict2atoms(
-            atoms_dict,
-            calculator_dict=calc_dict,
-            single_point_calculator=single_point_calculator,
-        )
-
-        # info
-        if "MD" in metadata:
-            if "dt" in atoms.info:
-                atoms.info["dt_fs"] = atoms.info["dt"] / md_metadata["fs"]
-        elif "info" in obj:
-            info = obj["info"]
-            atoms.info.update(info)
-
-        # compatibility with older trajectories
-        if "MD" in obj:
-            atoms.info.update(obj["MD"])
-
-        # preserve metadata
-        if "metadata" in obj:
-            atoms.info.update({"metadata": obj["metadata"]})
-
-        trajectory.append(atoms)
+    timer2 = Timer(".. create atoms", verbose=verbose)
+    kw = {
+        "pre_atoms_dict": pre_atoms_dict,
+        "pre_calc_dict": pre_calc_dict,
+        "metadata": metadata,
+        "single_point_calculator": single_point_calculator,
+    }
+    list = _map_create_atoms(pre_trajectory, **kw)
+    trajectory = Trajectory(list, metadata=metadata)
+    timer2()
 
     timer("done")
 
