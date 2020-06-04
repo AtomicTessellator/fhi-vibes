@@ -1,0 +1,5 @@
+[files]
+geometry:                      geometry.in.primitive
+
+[calculator]
+name:                          lj

@@ -19,6 +19,7 @@ commands = (
 gp = "geometry.in.primitive"
 gs = "geometry.in.supercell"
 commands_files = [
+    ["vibes run singlepoint lj.in", "lj/trajectory.son"],
     ["vibes utils backup calculations", "backups/backup.00002.19636B4A.tgz"],
     ["vibes output md", "trajectory.nc"],
     ["vibes output phonopy phonopy.son --full --q_mesh 5 5 5", "output"],
