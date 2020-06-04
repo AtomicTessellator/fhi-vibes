@@ -53,7 +53,7 @@ def process_relaxation(workflow, atoms, fw_settings, basis):
                 raise ValueError("relaxation step keys must be whole numbers")
 
     for step in sorted(relaxation_steps):
-        if settings.get("use_ase_relax", True):
+        if not settings.get("use_aims_relax", False):
             fw_steps.append(
                 generate_relax_fw(workflow.settings, atoms, fw_settings, str(step))
             )

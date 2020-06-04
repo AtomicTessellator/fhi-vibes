@@ -370,7 +370,11 @@ def generate_aims_relax_fw(settings, atoms, fw_settings, step):
         Firework for the relaxation step
 
     """
-    qadapter = settings.relaxation[step].get("qadapter")
+    relax_settings = settings.relaxation.copy()
+    relax_settings.pop("use_aims_relaxation", None)
+
+    relax_settings.update(settings.relaxation[step])
+    qadapter = relax_settings.get("qadapter")
 
     abreviated_step = [bt[0] for bt in step.split("_")]
     fw_settings["fw_name"] = f"{'_'.join(abreviated_step)}_relax"
@@ -382,10 +386,10 @@ def generate_aims_relax_fw(settings, atoms, fw_settings, step):
 
     task_spec = gen_aims_task_spec(func_kwargs, fw_out_kwargs)
 
-    method = settings.relaxation[step].get("method", "trm")
-    force_crit = settings.relaxation[step].get("fmax", 1e-3)
-    relax_unit_cell = settings.relaxation[step].get("relax_unit_cell", "full")
-    basis = settings.relaxation[step].get("basis")
+    method = relax_settings.get("method", "trm")
+    force_crit = relax_settings.get("fmax", 1e-3)
+    relax_unit_cell = relax_settings.get("relax_unit_cell", "full")
+    basis = relax_settings.get("basis")
 
     update_settings = {
         "relax_geometry": f"{method} {force_crit}",
@@ -413,21 +417,23 @@ def generate_relax_fw(settings, atoms, fw_settings, step):
     Firework
         Firework for the relaxation step
     """
-    qadapter = settings.relaxation[step].get("qadapter")
+    relax_settings = settings.relaxation.copy()
+    relax_settings.pop("use_aims_relaxation", None)
+
+    relax_settings.update(settings.relaxation[step])
+    qadapter = relax_settings.get("qadapter")
 
     fw_settings["fw_name"] = f"{step}_relax"
 
     update_settings = {}
     if settings.calculator.name.lower() == "aims":
-        update_settings["basisset_type"] = settings.relaxation[step].get("basis")
+        update_settings["basisset_type"] = relax_settings.get("basis")
 
-    relax_set = settings.relaxation[step].copy()
-    relax_set[
+    relax_settings[
         "workdir"
     ] = f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/"
-    relax_set["step"] = step
-
-    task_spec = gen_relax_task_spec(relax_set, fw_settings)
+    relax_settings["step"] = step
+    task_spec = gen_relax_task_spec(relax_settings, fw_settings)
 
     return generate_fw(atoms, task_spec, fw_settings, qadapter, update_settings, True)
 
