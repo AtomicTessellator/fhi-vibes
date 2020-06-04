@@ -20,26 +20,25 @@ fmax:                          0.001
 
 for performing a BFGS optimization of the structure found in `geometry.in` until forces are converged below $\require{mediawiki-texvc} 1\,\text{meV}/\AA$.
 
-The default values for the complete list of supported keywords are:
+??? info "Click: Default values for the complete list of supported keywords"
+    ```
+    [relaxation]
+    driver:                        BFGS
+    fmax:                          0.001
+    unit_cell:                     True
+    fix_symmetry:                  False
+    hydrostatic_strain:            False
+    constant_volume:               False
+    scalar_pressure:               0.0
+    decimals:                      12
+    symprec:                       1e-05
+    workdir:                       relaxation
 
-```
-[relaxation]
-driver:                        BFGS
-fmax:                          0.001
-unit_cell:                     True
-fix_symmetry:                  False
-hydrostatic_strain:            False
-constant_volume:               False
-scalar_pressure:               0.0
-decimals:                      12
-symprec:                       1e-05
-workdir:                       relaxation
-
-[relaxation.kwargs]
-maxstep:                       0.2
-logfile:                       relaxation.log
-restart:                       bfgs.restart
-```
+    [relaxation.kwargs]
+    maxstep:                       0.2
+    logfile:                       relaxation.log
+    restart:                       bfgs.restart
+    ```
 
 ## Sections
 

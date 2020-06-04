@@ -19,18 +19,17 @@ supercell_matrix:              [2, 2, 2]
 
 for performing a phonopy calculation for the structure in `geometry.in` with a Lennard-Jones calculator and a $2 \times 2 \times 2$  supercell.
 
-The default values for the complete list of supported keywords are:
-
-```
-[phonopy]
-supercell_matrix:              [1, 1, 1]
-displacement:                  0.01
-is_diagonal:                   False
-is_plusminus:                  auto
-symprec:                       1e-05
-q_mesh:                        [45, 45, 45]
-workdir:                       phonopy
-```
+??? info "Click: Default values for the complete list of supported keywords"
+    ```
+    [phonopy]
+    supercell_matrix:              [1, 1, 1]
+    displacement:                  0.01
+    is_diagonal:                   False
+    is_plusminus:                  auto
+    symprec:                       1e-05
+    q_mesh:                        [45, 45, 45]
+    workdir:                       phonopy
+    ```
 
 ## Sections
 
