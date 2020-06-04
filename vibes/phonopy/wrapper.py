@@ -26,7 +26,6 @@ def prepare_phonopy(
     fc2=None,
     displacement=defaults.kwargs.displacement,
     symprec=defaults.kwargs.symprec,
-    trigonal=defaults.kwargs.is_trigonal,
     is_diagonal=defaults.kwargs.is_diagonal,
     is_plusminus=defaults.kwargs.is_plusminus,
     wrap=False,
@@ -45,8 +44,6 @@ def prepare_phonopy(
         The magnitude of the phonon displacement
     symprec: float
         tolerance for determining the symmetry/spacegroup of the primitive cell
-    trigonal: bool
-        If True use trigonal displacements
     is_diagonal: bool
         If True use diagonal displacements
     is_plusminus: bool
@@ -74,7 +71,6 @@ def prepare_phonopy(
         # is_diagonal=False is chosen to be in line with phono3py, see
         # https://github.com/atztogo/phono3py/pull/15
         is_diagonal=is_diagonal,
-        is_trigonal=trigonal,
     )
 
     if fc2 is not None:
@@ -88,7 +84,6 @@ def preprocess(
     supercell_matrix,
     displacement=defaults.kwargs.displacement,
     symprec=defaults.kwargs.symprec,
-    trigonal=defaults.kwargs.is_trigonal,
     is_plusminus=defaults.kwargs.is_plusminus,
     **kwargs,
 ):
@@ -104,8 +99,6 @@ def preprocess(
         The magnitude of the phonon displacement
     symprec: float
         tolerance for determining the symmetry/spacegroup of the primitive cell
-    trigonal: bool
-        If True use trigonal displacements
     is_plusminus: bool
         use +/- displacements
 
@@ -125,7 +118,6 @@ def preprocess(
         supercell_matrix,
         displacement=displacement,
         symprec=symprec,
-        trigonal=trigonal,
         is_plusminus=is_plusminus,
     )
 
