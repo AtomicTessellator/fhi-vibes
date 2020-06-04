@@ -33,6 +33,7 @@ nav:
         - Workflows:
             - "Relaxation": Documentation/relaxation.md
             - "Phonopy": Documentation/phonopy.md
+            - "Molecular Dynamics": Documentation/md.md
         - High-Throughut:
                 - Overview: High_Throughput/Documentation/0_overview.md
                 - Installation Guide: High_Throughput/Installation/0_setup.md
