@@ -30,6 +30,7 @@ nav:
         - "Input Files": Documentation/input_files.md
         - "Output Files": Documentation/output_files.md
         - "Calculator Setup": Documentation/calculator_setup.md
+        - "Command Line Interface": Documentation/cli.md
         - Workflows:
             - "Relaxation": Documentation/relaxation.md
             - "Phonopy": Documentation/phonopy.md
@@ -54,6 +55,8 @@ nav:
             - "Background": Tutorial/3_md_intro.md
             - "Thermalization" : Tutorial/3_md_thermalization.md
             - "Canonical Sampling": Tutorial/3_md_canonical_sampling.md
+        - "Statistical Sampling": Tutorial/4_statistical_sampling.md
+        - "Anharmonicity Quantification": Tutorial/5_anharmonicity_quantification.md
         - High-Throughput:
             - "Phonon Calculations": High_Throughput/Tutorial/0_phonopy.md
             - "Multistep Workflows": High_Throughput/Tutorial/1_multistep.md
