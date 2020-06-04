@@ -1,3 +1,27 @@
+!!! info
+	An hands-on example for setting up and running a relaxation can be found in the [Tutorial](../Tutorial/1_geometry_optimization.md).
+
+vibes supports geometry optimization by setting up a `relaxation.in` file. A minimal `relaxation.in` would look like
+
+```fo
+[files]
+geometry:                      geometry.in
+
+[calculator]
+name:                          lj
+
+[calculator.parameters]
+sigma:                         3.4
+
+[relaxation]
+driver:                        BFGS
+fmax:                          0.001
+```
+
+for performing a BFGS optimization of the structure found in `geometry.in` until forces are converged below $\require{mediawiki-texvc} 1\,\text{meV}/\AA$.
+
+The default values for the complete list of supported keywords are:
+
 ```
 [relaxation]
 driver:                        BFGS
@@ -27,7 +51,7 @@ Currently only [BFGS](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs) is s
 
 #### `fmax`
 
-`float`: Maximum residual force in $\require{mediawiki-texvc} \text{eV}/\AA$ ($\text{eV}/\AA^3$) for the stress components).
+`float`: Maximum residual force in $\require{mediawiki-texvc} \text{eV}/\AA$ ($\text{eV}/\AA^3$ for the stress components).
 
 #### `unit_cell`
 

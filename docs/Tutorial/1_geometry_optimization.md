@@ -1,7 +1,6 @@
 <a name="1_GeometryOptimization"></a>
 
-!!! info
-	For vibrational studies, it is crucial to use structures that are accurately  relaxed. Before starting with actual phonon calculations, we thus learn how to perform a geometry optimization with *FHI-vibes*
+In this tutorial, you will learn how to perform a geometry optimization with FHI-aims.
 
 ## Define Inputs
 

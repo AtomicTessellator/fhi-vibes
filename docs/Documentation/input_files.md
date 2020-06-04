@@ -7,7 +7,8 @@ Input Files
 
 - Nested section names separated with `.` ,
 - values are parsed by `json`,
-- repeated keywords possible.
+- repeated keywords possible,
+- [`configparser.ExtendedInterpolation`](https://docs.python.org/3/library/configparser.html#configparser.ExtendedInterpolation) is used per default.
 
 ## Example
 

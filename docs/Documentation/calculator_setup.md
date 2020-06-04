@@ -73,6 +73,10 @@ fallback:                      light
 port:                          12345
 ```
 
+### `[calculator.parameters]`
+
+These keywords correspond one-to-one to the FHI-aims keywords that  are written to `control.in`.
+
 ### `[calculator.kpoints]`
 
 #### `density`

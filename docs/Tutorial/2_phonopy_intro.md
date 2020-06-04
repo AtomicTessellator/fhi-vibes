@@ -1,5 +1,8 @@
 # Phonons
 
+!!! info
+	For vibrational studies, it is crucial to use structures that are accurately  relaxed. Before starting with actual phonon calculations, make sure you are familiar with [geometry optimization](1_geometry_optimization.md).
+
 ## Outline
 
 During the course of this workshop, we have used periodic boundary conditions 
