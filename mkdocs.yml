@@ -50,6 +50,10 @@ nav:
         - "Phonon Calculations":
             - "Background": Tutorial/2_phonopy_intro.md
             - "Running a phonon calculation": Tutorial/2_phonopy.md
+        - "Molecular Dynamics":
+            - "Background": Tutorial/3_md_intro.md
+            - "Thermalization" : Tutorial/3_md_thermalization.md
+            - "Canonical Sampling": Tutorial/3_md_canonical_sampling.md
         - High-Throughput:
             - "Phonon Calculations": High_Throughput/Tutorial/0_phonopy.md
             - "Multistep Workflows": High_Throughput/Tutorial/1_multistep.md
