@@ -46,8 +46,8 @@ class CalculatorContext:
             if "geometry" in s.files:
                 path = next(Path().glob(s.files.geometry))
                 assert path.exists()
-            files.append(path)
-            self.settings.files["geometry"] = str(path)
+                files.append(path)
+                self.settings.files["geometry"] = str(path)
 
         if "geometries" in s.files:
             paths = sorted(Path().glob(s.files.geometries))

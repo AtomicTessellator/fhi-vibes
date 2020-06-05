@@ -283,7 +283,7 @@ class Trajectory(list):
 
     def set_force_constants_remapped(self, fc):
         """set remapped force constants"""
-        Na = len(self.supercell)
+        Na = len(self.reference_atoms)
         assert fc.shape == (3 * Na, 3 * Na), fc.shape
         self._force_constants_remapped = fc
 

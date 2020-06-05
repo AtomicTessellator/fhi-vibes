@@ -85,9 +85,9 @@ def write(atoms, file, format="aims", spacegroup=False, **kwargs):
 
 def parse_force_constants(fc_file, **kwargs):
     """parse either phonopy FORCE_CONSTANTS or tdep infile.forceconstants"""
-    file = Path(fc_file)
 
-    name = str(file).lower()
+    file = Path(fc_file)
+    name = file.name
 
     if "force_constants" in name or "fc2" in name:
         from vibes.phonopy.utils import parse_phonopy_force_constants
