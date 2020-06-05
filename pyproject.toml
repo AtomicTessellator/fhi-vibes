@@ -18,13 +18,13 @@ scipy = "^1.1.1"
 matplotlib = "^3.1"
 son = "^0.3.2"
 spglib = "^1.12"
-phonopy = "^2.4, <2.5.0"
+phonopy = "^2.6, <2.7.0"
 ase = "^3.19.0"
 click = "^7.0"
 attrs = "^19.1"
 seekpath = "^1.8.4"
 fireworks = {version = "^1.9",optional = true}
-phono3py = {version = "^1.18",optional = true}
+phono3py = {version = "^1.19",optional = true}
 python-gssapi = {version = "^0.6.4",optional = true}
 pymongo = {version = "^3.8",optional = true}
 fabric = {version = "^2.4",optional = true}
