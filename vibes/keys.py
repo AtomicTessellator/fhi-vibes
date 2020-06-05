@@ -50,6 +50,7 @@ pressure_potential = "pressure_potential"
 stress = "stress"
 stress_kinetic = "stress_kinetic"
 stress_potential = "stress_potential"
+stresses = "stresses"
 temperature = "temperature"
 
 heat_flux = "heat_flux"

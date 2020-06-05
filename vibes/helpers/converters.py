@@ -13,6 +13,7 @@ from ase.constraints import dict2constraint, voigt_6_to_full_3x3_stress
 from ase.db.row import atoms2dict as ase_atoms2dict
 from ase.io.jsonio import MyEncoder
 
+from vibes import keys
 from vibes.helpers.lists import expand_list, list_dim, reduce_list
 from vibes.konstanten import n_yaml_digits
 
@@ -183,10 +184,15 @@ def results2dict(atoms: Atoms, calculator: SinglePointCalculator = None) -> dict
         calculator = atoms.calc
 
     # convert stress to 3x3 if present
-    if "stress" in calculator.results:
-        stress = calculator.results["stress"]
+    if keys.stress in calculator.results:
+        stress = calculator.results[keys.stress]
         if len(stress) == 6:
-            calculator.results["stress"] = voigt_6_to_full_3x3_stress(stress)
+            calculator.results[keys.stress] = voigt_6_to_full_3x3_stress(stress)
+    # convert stresses to Nx3x3 if present
+    if keys.stresses in calculator.results:
+        stresses = calculator.results[keys.stresses]
+        if len(stresses[0]) == 6:
+            calculator.results[keys.stresses] = voigt_6_to_full_3x3_stress(stresses)
 
     # convert numpy arrays into ordinary lists
     for key, val in calculator.results.items():

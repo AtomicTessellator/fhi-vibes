@@ -16,19 +16,20 @@ def run():
     """run a vibes workflow"""
 
 
-@run.command("aims")
+@run.command("singlepoint")
 @click.argument("settings", default="aims.in", type=paths)
 @click.option("--workdir", help="working directory")
 @click.pass_obj
 def aims_run(obj, settings, workdir):
-    """run one or several aims calculations from SETTINGS (default: aims.in)"""
+    """run one or several singlepoint calculations from SETTINGS (default: aims.in)"""
     from vibes.settings import Settings
     from vibes.calculator import CalculatorContext, run_aims
 
     ctx = CalculatorContext(Settings(settings_file=settings), workdir=workdir)
 
     if obj.verbose > 0:
-        talk(f"run aims calculations with settings from {settings}\n", prefix=_prefix)
+        msg = f"run singlepoint calculations with settings from {settings}\n"
+        talk(msg, prefix=_prefix)
 
     run_aims(ctx)
 
