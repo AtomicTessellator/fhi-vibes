@@ -1,28 +1,23 @@
 ```
 [relaxation]
-use_ase_relax = False
+use_aims_relax = True
+method = trm
+fmax = 1e-3
+relax_unit_cell = full
 
 [relaxation.1]
 basis = light
-method = trm
-fmax = 1e-3
-relax_unit_cell = full
+
 
 [relaxation.2]
 basis = intermediate
-method = trm
-fmax = 1e-3
-relax_unit_cell = full
 
 .
 .
 .
 
 [relaxation.n]
-basis = basis_set
-method = relaxation_method
-fmax = 1e-3
-relax_unit_cell = full
+basis = really_tight
 ```
 
 ## Sections
@@ -31,13 +26,9 @@ relax_unit_cell = full
 
 Sections to do relaxation of structures. This is a general definition for various step
 
-#### `use_ase_relax`
+#### `use_aims_relax`
 
-`bool`: True if you want to use the ASE relaxation defined in the `relaxation` portion of the documentation
-
-### `[relaxation.1]`
-
-The first step of the relaxation. If `use_ase_relax` is true replace these keywords with those from the [`relaxation`](../../../Documentation/relaxation) section of the non-high throughput workflows. Otherwise use the electronic structure relaxation keywords. These are examples for `FHI-aims`
+`bool`: True if you want to use the aims relaxation instead of the one defined in the [`relaxation`](../../../Documentation/relaxation) portion of the documentation. For this documentation we will only show keywords if this is true. If this is false then use the keywords you'd normally use for a relaxation
 
 #### `basis`
 
@@ -54,6 +45,11 @@ The first step of the relaxation. If `use_ase_relax` is true replace these keywo
 #### `relax_unit_cell`
 
 `str`: How to relax the unit cell within `FHI-aims` either `full`, `fixed_angles` or `none`
+
+### `[relaxation.1]`
+
+The first step of the relaxation. Only define parameters that are different from default parameters
+
 
 ### `[relaxation.2]`
 
