@@ -5,3 +5,5 @@
 3. <a name="BornHuang"></a>  M. Born, and K. Huang, _Dynamical Theory of Crystal Lattices_, Oxford University Press (1962).
 4. <a name="Togo2015"></a> [Atsushi Togo and Isao Tanaka, Scr. Mater., **108**, 1-5 (2015)](https://phonopy.github.io/phonopy/)
 5. <a name="Parlinski1997"></a> K. Parlinski, Z. Q. Li, and Y. Kawazoe, Phys. Rev. Lett. **78**, 4063 (1997).
+6. <a name="West2006"></a> D. West, and S. K. Estreicher, Phys. Rev. Lett. **96**, 115504 (2006)
+7. <a name="Dove1993"></a> M. Dove, _Introduction to Lattice Dynamics_, Cambridge University Press (1993)
