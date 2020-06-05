@@ -25,9 +25,18 @@ def template(obj, allow_overwrite):
 @click.argument("file", default="aims.in")
 @click.pass_obj
 def aims_input(obj, file):
-    """provide template settings.in for aims calculation"""
+    """provide template settings.in for aims calculator"""
 
     print_input(obj, "aims", file)
+
+
+@template.command("lj")
+@click.argument("file", default="lj.in")
+@click.pass_obj
+def lj_input(obj, file):
+    """provide template settings.in for Lennard-Jones calculator for solid Argon"""
+
+    print_input(obj, "lj", file)
 
 
 @template.command("phonopy")
