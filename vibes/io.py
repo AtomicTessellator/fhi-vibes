@@ -2,6 +2,7 @@ from pathlib import Path
 
 from ase.io import read as ase_read
 
+from vibes.filenames import filenames
 from vibes.spglib.wrapper import get_symmetry_dataset
 from vibes.structure.io import inform  # noqa: F401
 
@@ -85,25 +86,26 @@ def write(atoms, file, format="aims", spacegroup=False, **kwargs):
 
 def parse_force_constants(fc_file, **kwargs):
     """parse either phonopy FORCE_CONSTANTS or tdep infile.forceconstants"""
+
     file = Path(fc_file)
+    name = file.name
 
-    name = str(file).lower()
-
-    if "force_constants" in name or "fc2" in name:
+    if name == filenames.fc.phonopy or name == filenames.fc.phonopy_hdf5:
         from vibes.phonopy.utils import parse_phonopy_force_constants
 
         return parse_phonopy_force_constants(file, **kwargs)
-    elif name.endswith(".forceconstant"):
+
+    elif name.endswith(filenames.suffixes.tdep_fc):
         from vibes.tdep.wrapper import parse_tdep_forceconstant
 
         return parse_tdep_forceconstant(file, **kwargs)
 
-    elif name.endswith(".forceconstant_remapped"):
+    elif name.endswith(filenames.suffixes.tdep_fc_remapped):
         from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
 
         return parse_tdep_remapped_forceconstant(file, **kwargs)
 
-    elif ".dat" in name or name == "FORCE_CONSTANTS_remapped":
+    elif ".dat" in name or name == filenames.fc.phonopy_remapped:
         import numpy as np
 
         return np.loadtxt(fc_file)
