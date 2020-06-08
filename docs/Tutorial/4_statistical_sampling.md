@@ -15,13 +15,13 @@ $$
 \end{align}
 $$
 
-where  $O \left( \mathbf{R} (t), {\bf P} (t) \right)$ denotes the instantaneous value of the observable $O$ obtained for the phase-space configuration $\{{\bf R} (t),  {\bf P} (t) \}$ evaluated with respect to the the full many-body potential $\mathcal V ({\bf R})$. For example, $O$ could be the instantaneous pressure given by
+where  $O \left( \mathbf{R} (t), {\bf P} (t) \right)$ denotes the instantaneous value of the observable $O$ obtained for the phase-space configuration $\{{\bf R} (t),  {\bf P} (t) \}$ evaluated with respect to the the full many-body Hamiltonian $\mathcal H ({\bf P}, {\bf R})$. For example, $O$ could be the instantaneous pressure given by
 
 $$
 \begin{align}
 \def\d\{{\rm d}}
 p({\bf R}, {\bf P}) 
-	= - \left. \left( \frac{\d E ({\bf R}, {\bf P})}{\d V} \right)\right|_T
+	= - \left. \left( \frac{\d \mathcal H ({\bf R}, {\bf P})}{\d V} \right)\right|_T
 	= \frac{1}{3V} \sum_I \frac{{\bf P}_I^2}{M_I} 
 	+ \frac{1}{V} \frac{\d \mathcal V ({\bf R})}{\d V}
 	~,
@@ -49,7 +49,7 @@ $$
 \end{align}
 $$
 
-where $p_{\rm Kin}$ denotes the kinetic ideal gas contribution, which yields the familiar
+where $p_{\rm Kin}$ denotes the kinetic ideal gas contribution, which yields the familiar [[HansenMcDonald]](references.md#HansenMcDonald)
 
 $$
 \left\langle p_{\rm Kin} \right\rangle = \frac{N k_{\rm B} T}{V}~,
@@ -157,6 +157,12 @@ where $\langle A_s \rangle$ is given by Eq. $\eqref{eq:As}$ and each $\zeta_s (n
 ## Example: Lj Argon at 20K
 
 ### Obtain force constants
+
+```
+
+```
+
+
 
 ### Run MD
 

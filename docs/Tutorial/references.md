@@ -7,3 +7,4 @@
 5. <a name="Parlinski1997"></a> K. Parlinski, Z. Q. Li, and Y. Kawazoe, Phys. Rev. Lett. **78**, 4063 (1997).
 6. <a name="West2006"></a> D. West, and S. K. Estreicher, Phys. Rev. Lett. **96**, 115504 (2006)
 7. <a name="Dove1993"></a> M. Dove, _Introduction to Lattice Dynamics_, Cambridge University Press (1993)
+8. <a name="HansenMcDonald"></a> J.P. Hansen, and I.R. McDonald, _Theory of simple liquids_, Elsevier, 1990.
