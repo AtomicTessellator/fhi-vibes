@@ -117,7 +117,6 @@ def _map_correlate(data):
 def get_autocorrelationNd(
     array: xr.DataArray,
     off_diagonal: bool = False,
-    cache: bool = True,
     distribute: bool = True,
     verbose: bool = True,
     **kwargs,
@@ -130,7 +129,6 @@ def get_autocorrelationNd(
         array (xarray.DataArray [N_t, N_a, 3]): data
         off_diagonal_coords (bool): return off-diagonal coordinates (I, a, b)
         off_diagonal_atoms (bool): return off-diagonal atoms (I, J, a, b)
-        cache: cache
         kwargs: go to _correlate
     Returns:
         xarray.DataArray [N_t, N_a, 3]: autocorrelation along axis=0, or
