@@ -6,7 +6,7 @@ The aim of this tutorial is to learn how to perform a molecular dynamics simulat
 	This tutorial mimics the essential steps for performing MD simulations in bulk systems. How you obtain initial structures in your project is, of course, highly dependent on the systems you aim to study etc.
 
 !!! info
-	For this tutorial, we study solid Lennard-Jones Argon at $70\,{\rm K}$. All steps are transferable to performing _ab initio_ molecular dynamics simulations by exchanging the calculator with `FHI-aims`.
+	For this tutorial, we study solid Lennard-Jones Argon at $20\,{\rm K}$. All steps are transferable to performing _ab initio_ molecular dynamics simulations by exchanging the calculator with `FHI-aims`.
 
 ##  Structure preparation
 
@@ -114,13 +114,13 @@ mv geometry.in.primitive.supercell_108 geometry.in.supercell
 
 ### Pre-thermalize the structure
 
-To speed up the thermalization, we can pre-thermalize the system by giving momenta to the atoms according to a Maxwell-Boltzmann distribution at our target temperature of $70\,{\rm K}$. This can be done with the CLI utility `create-samples`:
+To speed up the thermalization, we can pre-thermalize the system by giving momenta to the atoms according to a Maxwell-Boltzmann distribution at our target temperature of $ 20\,{\rm K}$. This can be done with the CLI utility `create-samples`:
 
 ```
-vibes utils create-samples geometry.in.supercell -T 70
+vibes utils create-samples geometry.in.supercell -T 20
 ```
 
-??? info "Output of `vibes utils create-samples geometry.in.supercell -T 70`"
+??? info "Output of `vibes utils create-samples geometry.in.supercell -T 20`"
     ```
     vibes CLI: create_samples
     [vibes]        Geometry info
@@ -145,14 +145,14 @@ vibes utils create-samples geometry.in.supercell -T 70
       Equivalent atoms:    108*0
     [vibes]        Use Maxwell Boltzamnn to set up samples
     [vibes]        Sample   0:
-    [vibes]        .. temperature before cleaning:    80.744K
+    [vibes]        .. temperature before cleaning:    18.119K
     [vibes]        .. remove net momentum from sample and force temperature
-    [vibes]        .. temperature in sample 0:        70.000K
+    [vibes]        .. temperature in sample 0:        20.000K
     [vibes]        Sample   0:
-    [vibes]        .. temperature in sample 0:        70.000K
-    [vibes]        .. written to geometry.in.supercell.0070K
+    [vibes]        .. temperature in sample 0:        20.000K
+    [vibes]        .. written to geometry.in.supercell.0020K
     ```
-The geometry written to `geometry.in.supercell.0070K` will now include the appropriate velocities.
+The geometry written to `geometry.in.supercell.0020K` will now include the appropriate velocities.
 
 We will use this structure and the chosen velocities as the initial structure for the MD run. We suggest to rename this file to `geometry.in` accordingly.
 
@@ -172,6 +172,8 @@ vibes template md --nvt >> md.in
     ```
     [files]
     geometry:                      geometry.in
+    primitive:                     geometry.in.primitive
+    supercell:                     geometry.in.supercell
     
     [calculator]
     name:                          lj
@@ -204,19 +206,21 @@ rc:       8.0
 
 [md]
 timestep:                      4
-maxsteps:                      2500
+maxsteps:                      7500
 
 [md.kwargs]
-temperature:                   70
+temperature:                   20
 ```
 
-Decreasing `rc` will speed up the calculation, as this is a tutorial. `timestep` can be increased to $4\,{\rm fs}$ for Argon at $70\,{\rm K}$. With `maxsteps: 2500` we will run a total of 2500 MD steps, i.e., $10\,{\rm ps}$ simulation time. `temperature` should be set to $70\,{\rm K}$, our target temperature.
+Decreasing `rc` will speed up the calculation, as this is a tutorial. `timestep` can be increased to $4\,{\rm fs}$ for Argon at $20\,{\rm K}$. With `maxsteps: 7500` we will run a total of 7500 MD steps, i.e., $30\,{\rm ps}$ simulation time. **The total simulation time depends on the system and the quantitiy of interest!**`temperature` should be set to $20\,{\rm K}$, our target temperature.
 
 The final `md.in` should look like this:
 
 ```
 [files]
 geometry:                      geometry.in
+primitive:                     geometry.in.primitive
+supercell:                     geometry.in.supercell
 
 [calculator]
 name:                          lj
@@ -231,15 +235,17 @@ rc:       8.0
 [md]
 driver:                        Langevin
 timestep:                      4
-maxsteps:                      2500
+maxsteps:                      7500
 compute_stresses:              False
 workdir:                       md
 
 [md.kwargs]
-temperature:                   70
+temperature:                   20
 friction:                      0.02
 logfile:                       md.log
 ```
+
+Adding `primitive: geometry.in.primitive` and `supercell: geometry.in.supercell` in the `[files]` section is not necessary to run the calculation. However, `vibes` will automatically attach this information to the trajectory so that it cannot get lost. This also makes life easer when post processing. For example, the displacements $\Delta {\bf R}_I(t)$ can only be properly calculated, when the reference supercell is known.
 
 We are now ready to  run the simulation!
 
@@ -253,7 +259,8 @@ vibes run md | tee md.log
 
 Depending on you computer, the calculation will take a few minutes.
 
-## Postprocess
+## Create trajectory dataset and inspect the simulation
+
 ### Process the calculation
 
 The data obtained at each time step will be written to the trajectory file `md/trajectory.son`. The CLI provides a tool to process the trajectory and create an `xarray.Dataset` from it. To this end, run
@@ -317,17 +324,17 @@ To get information about the simulation, you can use the CLI command `info md`, 
 vibes info md trajectory.nc -p
 ```
 
-This command should tell you, among other things, that the temperature is indeed thermalized to approximately $70\,{\rm K}$:
+This command should tell you, among other things, that the temperature is indeed thermalized to approximately $ 20\,{\rm K}$:
 
 ```
 ...
 [info]         Summarize Temperature
-Simulation time:            10.000 ps (2501 steps)
-Temperature:                    68.519 +/-       6.9330 K
-Temperature (1st 1/3):          65.999 +/-       9.4449 K
-Temperature (2st 1/3):          69.463 +/-       5.2413 K
-Temperature (3st 1/3):          70.091 +/-       4.2406 K
-Temperature (last 1/2):         69.077 +/-       4.5322 K
+Simulation time:            30.000 ps (7501 steps)
+Temperature:                    19.826 +/-       1.7902 K
+Temperature (1st 1/3):          19.402 +/-       2.2027 K
+Temperature (2st 1/3):          20.426 +/-       1.4744 K
+Temperature (3st 1/3):          19.651 +/-       1.4218 K
+Temperature (last 1/2):         19.863 +/-       1.4301 K
 ...
 ```
 
@@ -346,7 +353,3 @@ vmd trajectory.xyz
 
 ??? info "`vmd trajectory.xyz`"
 	![image](../assets/LJ-Argon.gif)
-
-### Working with trajectory datasets
-
-For an example on how to directly work with the trajectory dataset in `trajectory.nc`, please have a look at  the [ASE Workshop Tutorial](https://gitlab.com/flokno/ase_workshop_tutorial_19) which analyzes _ab initio_ MD data for a perovskite.
