@@ -66,19 +66,52 @@ p.expanding().mean().plot(ax=ax, color="k")
 ??? info "Plot pressure"
 	![image](../assets/md_pressure.png)
 	
-#### Convergence estimation
-According to the [central-limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem), the standard deviation of the expectation value $\sigma_{\langle O \rangle}$ is given by the standard deviation of the sampled points $\sigma_O$ divided by the square root of the number of _uncorrelated_ samples, $\tilde N_t$:
+#### Expectation value and convergence estimation
+
+[As discussed earlier](3_md_intro.md), the expectation value of the pressure is given by the mean of the observed pressures,
 
 $$
 \begin{align}
-\sigma_{\langle O \rangle} = \frac{\sigma_O}{\sqrt{\tilde N_t}}~.
+\left\langle p_{\rm Pot} \right\rangle
+	= \lim_{N_{\rm t} \rightarrow \infty} \frac{1}{N_{\rm t}}
+	\sum_n^{N_{\rm t}} 	
+	p_{\rm Pot}({\bf R} (t_n))~.
+\label{eq:<pPot>}
+\end{align}
+$$
+
+In our finite simulation, $N_{\rm t} = 5000 < \infty$, so that
+
+$$
+\begin{align}
+\left\langle p_{\rm Pot} \right\rangle
+\approx \left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} \pm \sigma_{\langle p \rangle}~,
+\label{eq:p_final}
+\end{align}
+$$
+
+where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} = 0.1064\,{\rm GPa}$ is the mean pressure observed during the simulation, and $\sigma_{\langle p \rangle}$ is the [_standard error of the mean_](https://en.wikipedia.org/wiki/Standard_error) which reflects that we are never fully converged.
+
+We estimate this error as
+
+$$
+\begin{align}
+\sigma_{\langle p \rangle} = \frac{\sigma_p}{\sqrt{\tilde N_t}}~,
 \label{eq:sigma_O}
 \end{align}
 $$
 
-Obviously, consecutive samples during an MD simulation are correlated. It is thereforce _not correct_ to compute the mean of the observable for all datapoints and give an error bar by computing the standard deviation divided by $\sqrt{N_t}$. We also need to estimate a correlation time $\tau$ for the observable.
+where $\sigma_p$ is the standard deviation of the pressure distribution observed during the simulation, and $\tilde N_t$ is an estimate of the number of _uncorrelated_ samples provided by the simulation.  To this end, we estimate
 
-The most straightforward way is to compute the correlation time by evaluating the [autocorrelation function](https://en.wikipedia.org/wiki/Autocorrelation) and estimate its decay time:
+$$
+\begin{align}
+\tilde N_t = N_t / \tau~,
+\label{eq:N}
+\end{align}
+$$
+
+where $\tau$ is the correlation time for the pressure.
+The most straightforward way to compute $\tau$ is to evaluate the [autocorrelation function](https://en.wikipedia.org/wiki/Autocorrelation) and estimate its decay time:
 
 ```python
 # estimate correlation time
@@ -110,32 +143,49 @@ ax.set_title(f"$\\tau$ is {int(tau)} steps")
 ??? info "Plot pressure"
 	![image](../assets/md_autocorr.png)
 
-In the  present example, the observable decorrelates after about 192 time steps ($\equiv 768\,{\rm fs}$). We therefore estimate the number of uncorrelated sample to be 
+In the  present example, the observable decorrelates after about 192 time steps ($\equiv 768\,{\rm fs}$). We therefore estimate the number of uncorrelated samples to be 
 
 $$
 \begin{align*}
-	\tilde N_t = N_t / 192
+	\tilde N_t = N_t / 192 \approx 26
 \end{align*}
 $$
 
-and
+The standard deviation of the pressure distribution is
 
-```python
-mean = p.mean()
-err = p.std() / (len(p) / tau) ** 0.5
+$$
+\begin{align}
+	\sigma_p = 0.0046\,{\rm GPa}~,
+\end{align}
+$$
 
-print(f"Mean:  {mean:.5f} +/- {err:.5f} GPa")
-print(f"Error: {err / mean * 100:.2f} %")
-```
+so that according to Eq. $\eqref{eq:sigma_O}$,
 
-gives a final results of 
+$$
+\sigma_{\langle p \rangle} = \frac{0.0046}{\sqrt{26}}\,{\rm GPa} \approx 0.0009\,{\rm GPa}~.
+$$
+
+
+The final result for the pressure according to Eq. $\eqref{eq:p_final}$ is
 
 $$
 \begin{align*}
-	\langle p_{\rm Pot} \rangle = (0.1064 \pm 0.0009)\,{\rm GPa}~.
+	\langle p_{\rm Pot} (20\,{\rm K}) \rangle = (0.1064 \pm 0.0009)\,{\rm GPa}~,
 \end{align*}
 $$
 
+which means that our result is converged within an estimated precision of $1\,\%$.
+
+??? info "Code snippet to compute the mean and the error estimator"
+    ```python
+    mean = p.mean()
+    std = p.std()
+    err = std / (len(p) / tau) ** 0.5
+
+    print(f"Mean:  {mean:.5f} GPa")
+    print(f"Std.:  {std:.5f} GPa")
+    print(f"Error: {err:.5f} GPa ({err / mean * 100:.2f} %)")
+    ```
 
 ### More examples
 
