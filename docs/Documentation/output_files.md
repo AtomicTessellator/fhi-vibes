@@ -154,7 +154,7 @@ Files `.csv` suffix are standard [`comma-separated values`](https://en.wikipedia
     
     [3 rows x 7 columns]
     ```
-    
+
 ### `.json` files
 These are plain [`JSON`](https://www.json.org/) files that  can be parsed with the [python builtin `json` module](https://docs.python.org/3/library/json.html)
 
@@ -298,3 +298,16 @@ These are plain [`JSON`](https://www.json.org/) files that  can be parsed with t
               'min': 0.0,
               'std': 5774.368710084239}}
     ```
+
+
+
+## Force Constants
+
+### `FORCE_CONSTANTS`
+
+These are force constants in the [`phonopy` format](https://phonopy.github.io/phonopy/input-files.html?highlight=force_const#force-constants-and-force-constants-hdf5) in the compact form `(n_primitive, n_supercell, 3, 3)`. They can be parsed with `phonopy.file_IO.parse_FORCE_CONSTANTS`.
+
+### `FORCE_CONSTANTS_remapped`
+
+These are force constants mapped to `(3 * n_supercell, 3 * n_supercell)` shape. They can be parsed with `numpy.loadtxt` similar to [`.dat.` files](#dat-files).
+
