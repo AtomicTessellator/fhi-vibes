@@ -172,8 +172,6 @@ vibes template md --nvt >> md.in
     ```
     [files]
     geometry:                      geometry.in
-    primitive:                     geometry.in.primitive
-    supercell:                     geometry.in.supercell
     
     [calculator]
     name:                          lj
@@ -198,9 +196,13 @@ vibes template md --nvt >> md.in
     logfile:                       md.log
     ```
 
-We suggest to adjust the following  keywords:
+We suggest to add and/or adjust the following  keywords:
 
 ```
+[files]
+primitive:                     geometry.in.primitive
+supercell:                     geometry.in.supercell
+
 [calculator.parameters]
 rc:       8.0
 
@@ -213,6 +215,7 @@ temperature:                   20
 ```
 
 Decreasing `rc` will speed up the calculation, as this is a tutorial. `timestep` can be increased to $4\,{\rm fs}$ for Argon at $20\,{\rm K}$. With `maxsteps: 7500` we will run a total of 7500 MD steps, i.e., $30\,{\rm ps}$ simulation time. **The total simulation time depends on the system and the quantitiy of interest!**`temperature` should be set to $20\,{\rm K}$, our target temperature.
+Adding `primitive: geometry.in.primitive` and `supercell: geometry.in.supercell` in the `[files]` section is not necessary to run the calculation. However, `vibes` will automatically attach this information to the trajectory so that it cannot get lost. This also makes life easer when post processing. For example, the displacements $\Delta {\bf R}_I(t)$ can only be properly calculated, when the reference supercell is known.
 
 The final `md.in` should look like this:
 
@@ -244,8 +247,6 @@ temperature:                   20
 friction:                      0.02
 logfile:                       md.log
 ```
-
-Adding `primitive: geometry.in.primitive` and `supercell: geometry.in.supercell` in the `[files]` section is not necessary to run the calculation. However, `vibes` will automatically attach this information to the trajectory so that it cannot get lost. This also makes life easer when post processing. For example, the displacements $\Delta {\bf R}_I(t)$ can only be properly calculated, when the reference supercell is known.
 
 We are now ready to  run the simulation!
 

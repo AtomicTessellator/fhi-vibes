@@ -3,8 +3,6 @@
 !!! warning
 	We assume you successfully ran the simulation of Lennard-Jones Argon at $20\,{\rm K}$ from the [previous chapter](3_md_canonical_sampling.md) and created a `trajectory.nc` dataset.
 
-
-
 ### Example: Pressure
 
 We will now evaluate the potential pressure observed during the simulation, as [introduced earlier](3_md_intro.md#example-pressure). We will use [xarray](http://xarray.pydata.org/) and [pandas](https://pandas.pydata.org/) for the analysis. For interactive data exploration, we recommend to run the code in a [jupyter notebook](https://jupyter.org/) and play around with the suggested parameters like windows sizes etc.
@@ -90,7 +88,7 @@ $$
 \end{align}
 $$
 
-where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} = 0.1064\,{\rm GPa}$ is the mean pressure observed during the simulation, and $\sigma_{\langle p \rangle}$ is the [_standard error of the mean_](https://en.wikipedia.org/wiki/Standard_error) which reflects that we are never fully converged.
+where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} = 0.1064\,{\rm GPa}$ is the mean pressure observed during the simulation, and $\sigma_{\langle p \rangle}$ is the [_standard error of the mean_](https://en.wikipedia.org/wiki/Standard_error).
 
 We estimate this error as
 

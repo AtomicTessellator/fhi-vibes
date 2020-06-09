@@ -1,7 +1,5 @@
 [files]
 geometry:                      geometry.in
-primitive:                     geometry.in.primitive
-supercell:                     geometry.in.supercell
 
 [calculator]
 name:                          lj
