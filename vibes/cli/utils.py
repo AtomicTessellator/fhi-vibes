@@ -503,14 +503,14 @@ def t2csv(file, output_file):
     df.to_csv(output_file)
 
 
-@trajectory.command("update", context_settings=_default_context_settings)
+@trajectory.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-uc", help="Add a (primitive) unit cell", type=complete_files)
 @click.option("-sc", help="Add the respective supercell", type=complete_files)
 @click.option("-fc", help="Add the force constants", type=complete_files)
 @click.option("-o", "--output_file")
 @click.option("--format", default="aims")
-def trajectory_update(file, uc, sc, fc, output_file, format):
+def update(file, uc, sc, fc, output_file, format):
     """add unit cell from UC and supercell from SC to trajectory in FILENAME"""
     # copy: from vibes.scripts.update_md_trajectory import update_trajectory
     import shutil
@@ -528,7 +528,8 @@ def trajectory_update(file, uc, sc, fc, output_file, format):
         traj.supercell = atoms
 
     if not output_file:
-        new_trajectory = "temp.son"
+        suffix = Path(file).suffix
+        new_trajectory = f"temp{suffix}"
         fname = f"{file}.bak"
         click.echo(f".. back up old trajectory to {fname}")
         shutil.copy(file, fname)
@@ -602,67 +603,68 @@ def anharmonicity():
     ...
 
 
-@anharmonicity.command("sigma", context_settings=_default_context_settings)
-@click.argument("files", type=complete_files, nargs=-1)
-@click.option("-csv", "--store_csv", is_flag=True, help="store dataframes to csv")
-@click.option("-h5", "--store_hdf5", is_flag=True, help="store dataframes to hdf5")
-@click.option("--quiet", is_flag=True)
-@click.option("--pick", type=int, help="pick one sample")
-@click.option("--per_atom", is_flag=True)
+@anharmonicity.command(context_settings=_default_context_settings)
+@click.argument("file", type=complete_files)
+@click.option("-o", "--outfile")
 @click.option("--per_sample", is_flag=True)
-@click.option("--per_direction", is_flag=True)
-@click.option("--by_symmetry", is_flag=True)
 @click.option("--describe", is_flag=True)
-def compute_sigma(
-    files,
-    store_csv,
-    store_hdf5,
-    quiet,
-    pick,
-    per_atom,
-    per_sample,
-    per_direction,
-    by_symmetry,
-    describe,
-):
-    """Compute sigma and some statistics"""
-    import pandas as pd
+def sigma(file, outfile, per_sample, describe):
+    """Compute sigmaA for trajectory dataset in FILE"""
     import xarray as xr
     from vibes import keys
     from vibes.anharmonicity_score import get_dataframe
 
-    click.echo(f"Compute harmonicity score for {len(files)} materials:")
+    click.echo(f"Compute anharmonicity measure for {file}:")
 
-    for file in files:
-        click.echo(f" parse {file}")
+    click.echo(f" parse {file}")
 
-        DS = xr.open_dataset(file)
+    DS = xr.open_dataset(file)
 
-        name = DS.attrs[keys.system_name]
-        df = get_dataframe(
-            DS,
-            per_sample=per_sample,
-            per_direction=per_direction,
-            by_symmetry=by_symmetry,
-        )
+    name = DS.attrs[keys.system_name]
+    df = get_dataframe(DS, per_sample=per_sample,)
 
-        if not quiet:
-            click.echo("\nDataFrame:")
-            click.echo(df)
-            if describe:
-                click.echo("\nDataFrame.describe():")
-                click.echo(df.describe())
+    click.echo("\nDataFrame:")
+    click.echo(df)
+    if describe:
+        click.echo("\nDataFrame.describe():")
+        click.echo(df.describe())
 
-        if store_csv:
-            outfile = f"{name}.csv"
-            df.to_csv(outfile, index_label="material", float_format="%15.12e")
-            click.echo(f"\n.. Dataframe for {name} written to {outfile}")
+    if outfile is not None:
+        df.to_csv(outfile, index_label="material", float_format="%15.12e")
+        click.echo(f"\n.. Dataframe for {name} written to {outfile}")
 
-        if store_hdf5:
-            outfile = f"sigma_data.h5"
-            with pd.HDFStore(outfile) as store:
-                click.echo(f".. append dataframe for {name} to {outfile}")
-                store[name] = df
+    # if store_hdf5:
+    #     outfile += ".h5"
+    #     with pd.HDFStore(outfile) as store:
+    #         click.echo(f".. append dataframe for {name} to {outfile}")
+    #         store[name] = df
+
+
+@anharmonicity.command(context_settings=_default_context_settings)
+@click.argument("file", type=complete_files)
+@click.option("-o", "--outfile")
+@click.option("--describe", is_flag=True)
+def mode(file, outfile, describe):
+    """Compute sigmaA per mode for trajectory dataset in FILE"""
+    import xarray as xr
+    from vibes import keys
+    from vibes.anharmonicity_score import get_sigma_per_mode
+
+    click.echo(f"Compute anharmonicity measure per mode for {file}")
+
+    DS = xr.open_dataset(file)
+
+    name = DS.attrs[keys.system_name]
+
+    series = get_sigma_per_mode(DS)
+
+    if describe:
+        click.echo("\nSeries.describe():")
+        click.echo(series.describe())
+
+    outfile = outfile or f"sigmaA_mode_{name}.csv"
+    series.to_csv(outfile, index_label=keys.omega)
+    click.echo(f"\n.. mode resolved sigmaA for {name} written to {outfile}")
 
 
 @utils.command("backup", context_settings=_default_context_settings)
