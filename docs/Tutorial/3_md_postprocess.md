@@ -83,23 +83,23 @@ In our finite simulation, $N_{\rm t} = 5000 < \infty$, so that
 $$
 \begin{align}
 \left\langle p_{\rm Pot} \right\rangle
-\approx \left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} \pm \sigma_{\langle p \rangle}~,
+= \left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} + \Delta~,
 \label{eq:p_final}
 \end{align}
 $$
 
-where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} = 0.1064\,{\rm GPa}$ is the mean pressure observed during the simulation, and $\sigma_{\langle p \rangle}$ is the [_standard error of the mean_](https://en.wikipedia.org/wiki/Standard_error).
+where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} = 0.1064\,{\rm GPa}$ is the mean pressure observed during the finite simulation, and $\Delta$ is the (unknown) difference to the fully converged expectation value. While we are never able to fully converge a calculation, we can nevertheless estimate the magnitude of the error $\Delta$.
 
-We estimate this error as
+We estimate this error by computing $\sigma_{\langle p \rangle}$, the [_standard error of the mean_](https://en.wikipedia.org/wiki/Standard_error):
 
 $$
 \begin{align}
-\sigma_{\langle p \rangle} = \frac{\sigma_p}{\sqrt{\tilde N_t}}~,
+\Delta \approx \sigma_{\langle p \rangle} = \frac{\sigma_p}{\sqrt{\tilde N_t}}~,
 \label{eq:sigma_O}
 \end{align}
 $$
 
-where $\sigma_p$ is the standard deviation of the pressure distribution observed during the simulation, and $\tilde N_t$ is an estimate of the number of _uncorrelated_ samples provided by the simulation.  To this end, we estimate
+where $\sigma_p$ is the standard deviation of the pressure distribution observed during the simulation, and $\tilde N_t$ is an estimate of the number of _uncorrelated_ samples provided by the simulation. To this end, we estimate
 
 $$
 \begin{align}
@@ -172,9 +172,10 @@ $$
 \end{align*}
 $$
 
-which means that our result is converged within an estimated precision of $1\,\%$.
+which means that our result is converged within an estimated precision of $1\,\%$. **Remark:** This does _not_ mean that the true expectation lies within the given range. The estimated error is to be understood in the sense of a [confidence interval](https://en.wikipedia.org/wiki/Confidence_interval#Practical_example).
 
 ??? info "Code snippet to compute the mean and the error estimator"
+
     ```python
     mean = p.mean()
     std = p.std()
