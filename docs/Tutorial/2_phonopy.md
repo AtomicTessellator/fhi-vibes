@@ -1,5 +1,8 @@
 <a name="2_Phonopy"></a>
 
+!!! info
+	For vibrational studies, it is crucial to use structures that are accurately  relaxed. Before starting with actual phonon calculations, make sure you are familiar with [geometry optimization](1_geometry_optimization.md).
+
 ??? info "Prerequisite"
 	Create a new working directory and copy over the `geometry.in.next_step` file you obtained from the previous geometry optimization as your new `geometry.in` file.
 
@@ -37,7 +40,6 @@ vibes template phonopy >> phonopy.in
     supercell_matrix:              [1, 1, 1]
     displacement:                  0.01
     is_diagonal:                   False
-    is_trigonal:                   False
     is_plusminus:                  auto
     symprec:                       1e-05
     q_mesh:                        [45, 45, 45]
@@ -48,7 +50,7 @@ Obviously the most important section in the `phonopy.in` input file is `[phonopy
 
 ### Supercell Matrix (`supercell_matrix`)
 
-The supercell matrix $M_\t{s}$ given as `supercell_matrix` will be used to [generate the lattice of the supercell from the lattice of the primitive unitcell by matrix multiplication:](https://phonopy.github.io/phonopy/phonopy-module.html#supercell-matrix)
+The supercell matrix $M_{\rm S}$ given as `supercell_matrix` will be used to [generate the lattice of the supercell from the lattice of the primitive unitcell by matrix multiplication:](https://phonopy.github.io/phonopy/phonopy-module.html#supercell-matrix)
 
 $$
 \begin{align}
@@ -142,3 +144,25 @@ This will:
 	![image](bandstructure.png)
 	
 **Congratulations!** You have just performed a full _ab initio_ phonon bandstructure calculation.
+
+## More post processing
+
+### DOS and Thermal Properties
+After you managed to compute the band structure, we proceed with evaluating and plotting the density of states. You can do this as well with the CLI command `vibes output phonopy`:
+```
+vibes output phonopy phonopy/trajectory.son --density_of_states
+```
+This will compute the frequencies on a grid of $45 \times 45 \times 45$ $\bf q$ points per default and uses the so-called Tetrahedron method to 
+interpolate between the points~\cite{Bloechl:1994}. Afterwards it  counts the number of frequencies in bins of finite size. Depending on the calculation, the q-grid can be adjusted by specifying it with an additional flag 
+`--q_mesh`, for example
+```
+vibes output phonopy phonopy/trajectory.son -dos --q_mesh 26 26 26
+```
+The density of states will be plotted alongside the bandstructure to a file `output/bandstructure_dos.pdf`, and written to a data file [`total_dos.dat`](https://phonopy.github.io/phonopy/output-files.html#total-dos-dat-and-projected-dos-dat).
+
+The DOS can then be used to evaluate the harmonic free energy $F^{\rm ha}$ and the harmonic heat capacity at constant volume, $C_V$, i.\,e., 
+the thermal properties accessible in the harmonic approximation. You can compute and plot the thermal properties by running
+```
+vibes output phonopy phonopy/trajectory.son --thermal_properties
+```
+Carefully inspect all the files you produced.
