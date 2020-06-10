@@ -61,6 +61,7 @@ heat_fluxes_aux = _join(heat_fluxes, aux)
 gk_prefactor = "gk_prefactor"
 
 sigma = "sigma"
+sigma_mode = "sigma_mode"
 sigma_per_sample = "sigma_per_sample"
 
 # time
