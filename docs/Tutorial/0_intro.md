@@ -14,4 +14,6 @@ In this tutorial, we introduce some of the functionality of `FHI-vibes` with han
 - [Geometry optimization](1_geometry_optimization.md)
 - [Phonon calculations](2_phonopy_intro.md)
 - [Molecular dynamics](3_md_intro.md)
+- [Harmonic sampling](4_statistical_sampling.md)
+- [Anharmonicity quantification](5_anharmonicity_quantification.md)
 - [High-Throughput workflows](../High_Throughput/Tutorial/0_phonopy.md)

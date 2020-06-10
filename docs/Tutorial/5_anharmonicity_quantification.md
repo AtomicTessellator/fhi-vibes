@@ -1,7 +1,7 @@
 # Anharmonicity Quantification
 
 !!! info
-	Please refer to [our paper](references#Knoop2020) for reference.
+	Please refer to [our paper](references#Knoop2020) for background information.
 
 ## Background
 
