@@ -238,7 +238,7 @@ ds = xr.load_dataset("trajectory.nc")
 
 p = ds.pressure_potential.to_series() / GPa
 
-ax = p.plot(alpha=0.75)
+ax = p.plot(marker="x", lw=0)
 
 p.expanding().mean().plot(ax=ax, color="k")
 ```
