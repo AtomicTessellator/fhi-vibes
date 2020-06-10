@@ -254,7 +254,8 @@ def get_sigma_per_mode(dataset, absolute=False):
         else:
             sigmas.append(Y.std() / X.std())
 
-    series = pd.Series(sigmas, index=f)
+    series = pd.Series(sigmas, index=f, name=keys.sigma_mode)
+    series.index.name = keys.omega
 
     return series
 
