@@ -437,6 +437,24 @@ def trajectory():
     """trajectory utils"""
 
 
+@trajectory.command(context_settings=_default_context_settings)
+@click.argument("file", default=filenames.trajectory, type=complete_files)
+@click.option("-n", "--n_steps", type=int, help="discard this many steps")
+def discard(file, n_steps):
+    """discard this many steps from trajectory"""
+    from vibes.trajectory import reader
+
+    traj = reader(file)
+
+    click.echo(f"Discard {n_steps} steps")
+    traj = traj[n_steps:-1]
+
+    p = Path(file)
+    outfile = f"{p.stem}_discarded{p.suffix}"
+
+    traj.write(outfile)
+
+
 @trajectory.command("2tdep", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-s", "--skip", default=1, help="skip this many steps from trajectory")
