@@ -13,7 +13,7 @@ _default_context_settings = {"show_default": True}
 
 @click.group(cls=ClickAliasedGroup)
 def utils():
-    """tools and utils"""
+    """tools and utilities"""
 
 
 @utils.command(aliases=["hash"], context_settings=_default_context_settings)
