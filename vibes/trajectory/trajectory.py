@@ -424,7 +424,7 @@ class Trajectory(list):
             y = self.forces_harmonic
             return get_sigma(x, y, axis=(1, 2))
 
-    @lazy_property
+    @property
     def dataset(self):
         """return data as xarray.Dataset
 
