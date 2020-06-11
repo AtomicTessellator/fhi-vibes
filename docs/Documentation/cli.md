@@ -1,4 +1,5 @@
-## The command line interface (CLI)
+# Command Line Interface (CLI)
+
 `vibes --help`
 
 under construction
