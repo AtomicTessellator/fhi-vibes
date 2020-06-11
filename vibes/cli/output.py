@@ -15,41 +15,28 @@ def output():
 
 
 @output.command(aliases=["md"])
-@click.argument("trajectory", default=filenames.trajectory, type=complete_files)
+@click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
 @click.option("-d", "--discard", type=int, help="discard this many steps")
 @click.option("--minimal", is_flag=True, help="only write necessary minimum")
 @click.option("-fc", "--force_constants", help="use FC to compute ha. forces")
-@click.option("-rfc", "--remapped_force_constants", help="use remapped FC")
 @click.option("-o", "--outfile", default="auto", show_default=True)
 @click.option("-avg", "--average_reference", is_flag=True)
-def molecular_dynamics(
-    trajectory,
-    heat_flux,
-    discard,
-    minimal,
-    force_constants,
-    remapped_force_constants,
-    outfile,
-    average_reference,
+def trajectory(
+    file, heat_flux, discard, minimal, force_constants, outfile, average_reference,
 ):
-    """write data in trajectory as xarray.Dataset"""
+    """write trajectory data in FILE to xarray.Dataset"""
     from vibes.trajectory import reader
-    from vibes.io import parse_force_constants
     from vibes.trajectory.dataset import get_trajectory_dataset
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
-    traj = reader(file=trajectory, fc_file=force_constants)
+    traj = reader(file=file, fc_file=force_constants)
 
     if discard:
         traj = traj.discard(discard)
 
     # harmonic forces?
     if force_constants:
-        traj.set_forces_harmonic(average_reference=average_reference)
-    elif remapped_force_constants:
-        fc = parse_force_constants(remapped_force_constants)
-        traj.set_force_constants_remapped(fc)
         traj.set_forces_harmonic(average_reference=average_reference)
 
     if heat_flux:
@@ -64,11 +51,10 @@ def molecular_dynamics(
     click.echo(f"Trajectory dataset written to {outfile}")
 
 
-@output.command("phonopy")
-@click.argument("trajectory", default=filenames.trajectory, type=complete_files)
+@output.command()
+@click.argument("file", default=filenames.trajectory, type=complete_files)
 # necessary?
 @click.option("--q_mesh", nargs=3, default=None)
-@click.option("-od", "--output_directory")
 @click.option("-bs", "--bandstructure", is_flag=True)
 @click.option("-dos", "--density_of_states", is_flag=True)
 @click.option("-debye", "--debye_temperature", is_flag=True)
@@ -83,11 +69,10 @@ def molecular_dynamics(
 @click.option("--sum_rules", is_flag=True)
 @click.option("-v", "--verbose", is_flag=True, help="print frequencies at gamma point")
 @click.pass_obj
-def phonopy_output(
+def phonopy(
     obj,
-    trajectory,
+    file,
     q_mesh,
-    output_directory,
     bandstructure,
     density_of_states,
     debye_temperature,
@@ -102,7 +87,7 @@ def phonopy_output(
     sum_rules,
     verbose,
 ):
-    """perform phonopy postprocess for TRAJECTORY"""
+    """perform phonopy postprocess for trajectory in FILE"""
     from vibes.phonopy import _defaults as defaults
     from vibes.phonopy.postprocess import postprocess, extract_results, plot_results
 
@@ -111,17 +96,16 @@ def phonopy_output(
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
     phonon = postprocess(
-        trajectory_file=trajectory,
+        trajectory_file=file,
         born_charges_file=born,
         calculate_full_force_constants=remap_fc,
         enforce_sum_rules=sum_rules,
     )
 
-    if not output_directory:
-        folder = "output"
-        if sum_rules:
-            folder += "_sum_rules"
-        output_directory = Path(trajectory).parent / folder
+    folder = "output"
+    if sum_rules:
+        folder += "_sum_rules"
+    output_directory = Path(file).parent / folder
 
     kwargs = {
         "minimal_output": True,
@@ -152,13 +136,13 @@ def phonopy_output(
     plot_results(phonon, **kwargs)
 
 
-@output.command("phono3py")
-@click.argument("trajectory", default="trajectory.son", type=complete_files)
+@output.command()
+@click.argument("file", default="trajectory.son", type=complete_files)
 # necessary?
 @click.option("--q_mesh", nargs=3, default=None)
 @click.pass_obj
-def phono3py_output(obj, trajectory, q_mesh):
-    """perform phono3py postprocess for TRAJECTORY"""
+def phono3py(obj, file, q_mesh):
+    """perform phono3py postprocess for trajectory in FILE"""
     from vibes.phono3py._defaults import kwargs
     from vibes.phono3py.postprocess import postprocess, extract_results
 
@@ -166,26 +150,26 @@ def phono3py_output(obj, trajectory, q_mesh):
         q_mesh = kwargs.q_mesh.copy()
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
-    phonon = postprocess(trajectory=trajectory)
+    phonon = postprocess(trajectory=file)
 
-    output_directory = Path(trajectory).parent / "output"
+    output_directory = Path(file).parent / "output"
 
     extract_results(phonon, output_dir=output_directory)
 
 
 @output.command(aliases=["gk"])
-@click.argument("dataset", default="trajectory_hf.nc")
+@click.argument("file", default="trajectory_hf.nc")
 @click.option("-avg", "--average", default=100, help="average window")
 @click.option("--full", is_flag=True)
 @click.option("--aux", is_flag=True)
 @click.option("-o", "--outfile", default="greenkubo.nc", show_default=True, type=Path)
 @click.option("-d", "--discard", default=0)
-def greenkubo(dataset, average, full, aux, outfile, discard):
-    """perform greenkubo analysis"""
+def greenkubo(file, average, full, aux, outfile, discard):
+    """perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
     import vibes.green_kubo.heat_flux as hf
 
-    ds = xr.load_dataset(dataset)
+    ds = xr.load_dataset(file)
 
     ds_kappa = hf.get_kappa_cumulative_dataset(ds, full=full, aux=aux, discard=discard)
 

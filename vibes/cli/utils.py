@@ -204,12 +204,12 @@ def geometry_refine(*args, **kwargs):
     refine_geometry(*args, **kwargs)
 
 
-@geometry.command("wrap", context_settings=_default_context_settings)
+@geometry.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("-o", "--output_file")
 @click.option("--format", default="aims")
-def wrap_atoms(file, output_file, format):
-    """rewrite geometry in fractional coordinates"""
+def wrap(file, output_file, format):
+    """wrap atoms in FILE to the cell"""
     from ase.io import read
 
     if not output_file:
@@ -282,7 +282,7 @@ def get_relaxation_info(files):
     get_relaxation_info(files)
 
 
-@utils.command(aliases=["samples"], context_settings=_default_context_settings)
+@utils.command(context_settings=_default_context_settings)
 @click.argument("filename", type=complete_files)
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")

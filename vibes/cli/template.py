@@ -21,28 +21,28 @@ def template(obj, allow_overwrite):
     obj.allow_overwrite = allow_overwrite
 
 
-@template.command("aims")
+@template.command()
 @click.argument("file", default="aims.in")
 @click.pass_obj
-def aims_input(obj, file):
-    """provide template settings.in for aims calculator"""
+def aims(obj, file):
+    """provide template aims.in for aims calculator"""
 
     print_input(obj, "aims", file)
 
 
-@template.command("lj")
+@template.command()
 @click.argument("file", default="lj.in")
 @click.pass_obj
-def lj_input(obj, file):
-    """provide template settings.in for Lennard-Jones calculator for solid Argon"""
+def lj(obj, file):
+    """provide template lj.in for Lennard-Jones calculator for solid Argon"""
 
     print_input(obj, "lj", file)
 
 
-@template.command("phonopy")
+@template.command()
 @click.argument("file", default="phonopy.in")
 @click.pass_obj
-def phonopy_input(obj, file):
+def phonopy(obj, file):
     """provide template phonopy.in for phonopy workflow."""
     from vibes.phonopy.context import PhonopyContext
 
@@ -50,12 +50,12 @@ def phonopy_input(obj, file):
     ctx.settings.print()
 
 
-@template.command("md")
+@template.command()
 @click.argument("file", default="md.in")
 @click.option("--nvt", is_flag=True)
 @click.option("--npt", is_flag=True)
 @click.pass_obj
-def md_input(obj, file, nvt, npt):
+def md(obj, file, nvt, npt):
     """provide template md.in for molecular dynamics workflow."""
     from vibes.molecular_dynamics.context import MDContext
 
@@ -70,10 +70,10 @@ def md_input(obj, file, nvt, npt):
     ctx.settings.print()
 
 
-@template.command("relaxation")
+@template.command()
 @click.argument("file", default="relaxation.in")
 @click.pass_obj
-def relaxation_input(obj, file):
+def relaxation(obj, file):
     """provide template relaxation.in for relaxation workflow."""
     from vibes.relaxation.context import RelaxationContext
 
@@ -81,28 +81,28 @@ def relaxation_input(obj, file):
     ctx.settings.print()
 
 
-@template.command("configuration")
+@template.command()
 @click.argument("file", default="vibesrc")
 @click.pass_obj
-def configuration_input(obj, file):
-    """provide template vibesrc.template for the configuration"""
+def configuration(obj, file):
+    """provide template .vibesrc for the configuration"""
 
     print_input(obj, "vibesrc.template", file, from_folder=config_files)
 
 
-@template.command("fireworks_configuration")
+@template.command()
 @click.argument("file", default="fireworksrc")
 @click.pass_obj
-def fireworks_configuration_input(obj, file):
+def fireworks_configuration(obj, file):
     """provide template fireworksrc.template for the configuration"""
 
     print_input(obj, "fireworksrc.template", file, from_folder=config_files)
 
 
-@template.command("slurm")
+@template.command()
 @click.argument("file", default="slurm.in")
 @click.pass_obj
-def slurm_input(obj, file):
+def slurm(obj, file):
     """provide template slurm settings"""
 
     print_input(obj, "slurm.in", file, from_folder=config_files)
