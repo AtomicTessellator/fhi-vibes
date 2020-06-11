@@ -2,7 +2,8 @@
 import numpy as np
 from ase import units
 
-from vibes.helpers import progressbar, get_stresses
+from vibes.helpers import progressbar
+from vibes.helpers.stresses import get_stresses
 
 from . import Timer
 

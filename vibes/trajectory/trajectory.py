@@ -8,9 +8,10 @@ from ase.geometry import find_mic
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
 from vibes.filenames import filenames
-from vibes.helpers import get_stresses, lazy_property, warn
+from vibes.helpers import lazy_property, warn
 from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.helpers.hash import hash_atoms, hashfunc
+from vibes.helpers.stresses import get_stresses
 from vibes.helpers.utils import progressbar
 
 from . import analysis as al

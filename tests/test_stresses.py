@@ -1,10 +1,9 @@
 import numpy as np
 import pytest
-
 from ase.build import bulk
 from ase.calculators.lj import LennardJones
 
-from vibes.helpers import get_stresses
+from vibes.helpers.stresses import get_stresses
 
 
 @pytest.fixture
@@ -25,6 +24,4 @@ def test_get_stresses(atoms_bulk):
 
     assert stresses.shape == (4, 3, 3)
 
-    np.testing.assert_allclose(
-        stresses.sum(axis=0), atoms_bulk.get_stress(voigt=False)
-    )
+    np.testing.assert_allclose(stresses.sum(axis=0), atoms_bulk.get_stress(voigt=False))
