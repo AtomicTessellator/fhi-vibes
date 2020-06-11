@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from vibes.cli.scripts.nomad_upload import upload_folder_dry as nomad_upload_folder
+# from vibes.cli.scripts.nomad_upload import upload_folder_dry as nomad_upload_folder
 
 parent = Path(__file__).parent
 
@@ -11,7 +11,7 @@ parent = Path(__file__).parent
 commands = (
     "vibes --help",
     "vibes info geometry geometry.in.primitive",
-    "vibes utils suggest_k_grid geometry.in.primitive",
+    "vibes utils geometry suggest-k-grid geometry.in.primitive",
     "vibes info phonopy",
     "vibes info relaxation relaxation.son -v",
 )
@@ -28,7 +28,7 @@ commands_files = [
     ["vibes utils trajectory 2csv", "trajectory.csv"],
     ["vibes utils trajectory 2xyz", "trajectory.xyz"],
     ["vibes utils trajectory pick -n 1", "geometry.in.1"],
-    ["vibes utils nomad upload calculations --token test --dry", nomad_upload_folder],
+#     ["vibes utils nomad upload calculations --token test --dry", nomad_upload_folder],
     ["vibes utils hash trajectory.son", "hash.toml"],
     ["vibes utils fc frequencies", "frequencies.dat"],
     [f"vibes utils geometry get-deformation {gp} {gs}", "deformation.dat"],
