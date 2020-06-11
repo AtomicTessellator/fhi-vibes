@@ -16,11 +16,11 @@ def utils():
     """tools and utilities"""
 
 
-@utils.command(aliases=["hash"], context_settings=_default_context_settings)
+@utils.command(context_settings=_default_context_settings)
 @click.argument("file", type=complete_files)
 @click.option("--dry", is_flag=True, help="Only print hash to stdout")
 @click.option("-o", "--outfile", default="hash.toml")
-def hash_file(file, dry, outfile):
+def hash(file, dry, outfile):
     """create sha hash for FILE"""
     import time
     from vibes.helpers.utils import talk
@@ -40,8 +40,21 @@ def hash_file(file, dry, outfile):
 
 @utils.command(cls=AliasedGroup)
 def geometry():
-    """utils for working with structures"""
+    """utils for manipulating structures (wrap, refine, etc.)"""
     ...
+
+
+@geometry.command(context_settings=_default_context_settings)
+@click.argument("file", type=complete_files)
+@click.option("-d", "--density", default=3.5)
+@click.option("--uneven", is_flag=True)
+@click.option("--format", default="aims")
+def suggest_k_grid(file, density, uneven, format):
+    """suggest a k_grid for geometry in FILENAME based on density"""
+    from .scripts.suggest_k_grid import suggest_k_grid
+
+    click.echo("vibes CLI: suggest_k_grid")
+    suggest_k_grid(file, density, uneven, format)
 
 
 @geometry.command(context_settings=_default_context_settings)  # aliases=['gd'])
@@ -267,21 +280,6 @@ def tool_make_supercell(
     )
 
 
-@utils.group()
-def aims():
-    """utils for working with FHI-aims (output)"""
-    ...
-
-
-@aims.command(context_settings=_default_context_settings)
-@click.argument("files", nargs=-1, type=complete_files)
-def get_relaxation_info(files):
-    """analyze aims relaxation"""
-    from .scripts.get_relaxation_info import get_relaxation_info
-
-    get_relaxation_info(files)
-
-
 @utils.command(context_settings=_default_context_settings)
 @click.argument("filename", type=complete_files)
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
@@ -302,19 +300,6 @@ def create_samples(filename, **kwargs):
 
     click.echo("vibes CLI: create_samples")
     create_samples(atoms_file=filename, **kwargs)
-
-
-@utils.command("suggest_k_grid", context_settings=_default_context_settings)
-@click.argument("file", type=complete_files)
-@click.option("-d", "--density", default=3.5)
-@click.option("--uneven", is_flag=True)
-@click.option("--format", default="aims")
-def tool_suggest_k_grid(file, density, uneven, format):
-    """suggest a k_grid for geometry in FILENAME based on density"""
-    from .scripts.suggest_k_grid import suggest_k_grid
-
-    click.echo("vibes CLI: suggest_k_grid")
-    suggest_k_grid(file, density, uneven, format)
 
 
 @utils.group(aliases=["fc"])
@@ -414,22 +399,22 @@ def frequencies(file, supercell, show_n_frequencies, output_file, symmetrize, fo
         click.echo(f".. frequencies written to {output_file}")
 
 
-@utils.group()
-def nomad():
-    ...
-
-
-@nomad.command("upload", context_settings=_default_context_settings)
-@click.argument("files", nargs=-1, type=complete_files)
-@click.option("--token", help="nomad token, otherwise read from .vibesrc")
-@click.option("--name", help="nomad upload name")
-@click.option("--legacy", is_flag=True, help="use old Nomad")
-@click.option("--dry", is_flag=True, help="only show the commands")
-def tool_nomad_upload(files, token, name, legacy, dry):
-    """upload FILES to NOMAD"""
-    from .scripts.nomad_upload import nomad_upload
-
-    nomad_upload(files, token, legacy, dry, name=name)
+# @utils.group()
+# def nomad():
+#     ...
+#
+#
+# @nomad.command("upload", context_settings=_default_context_settings)
+# @click.argument("files", nargs=-1, type=complete_files)
+# @click.option("--token", help="nomad token, otherwise read from .vibesrc")
+# @click.option("--name", help="nomad upload name")
+# @click.option("--legacy", is_flag=True, help="use old Nomad")
+# @click.option("--dry", is_flag=True, help="only show the commands")
+# def tool_nomad_upload(files, token, name, legacy, dry):
+#     """upload FILES to NOMAD"""
+#     from .scripts.nomad_upload import nomad_upload
+#
+#     nomad_upload(files, token, legacy, dry, name=name)
 
 
 @utils.group(cls=ClickAliasedGroup)
@@ -460,7 +445,7 @@ def discard(file, n_steps):
 @click.option("-s", "--skip", default=1, help="skip this many steps from trajectory")
 @click.option("--folder", default="tdep", help="folder to store input")
 def t2tdep(file, skip, folder):
-    """extract trajectory in FILENAME and store tdep input files to FOLDER"""
+    """extract tdep input files from trajectory in FILENAME"""
     from vibes.trajectory import reader
 
     traj = reader(file)
@@ -493,7 +478,7 @@ def t2db(file, output_file):
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--output_file", default="trajectory.csv")
 def t2csv(file, output_file):
-    """extract trajectory in FILENAME and store 1D data as csv dataframe"""
+    """extract and store 1D data from trajectory in FILENAME """
     from vibes.trajectory import reader
 
     traj = reader(file)
@@ -511,7 +496,7 @@ def t2csv(file, output_file):
 @click.option("-o", "--output_file")
 @click.option("--format", default="aims")
 def update(file, uc, sc, fc, output_file, format):
-    """add unit cell from UC and supercell from SC to trajectory in FILENAME"""
+    """update reference data in trajectory file"""
     # copy: from vibes.scripts.update_md_trajectory import update_trajectory
     import shutil
     from ase.io import read
@@ -551,7 +536,7 @@ def update(file, uc, sc, fc, output_file, format):
 @click.option("-r", "--range", type=int, nargs=3, help="start, stop, step")
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
 def pick_samples(file, outfile, number, range, cartesian):
-    """pick a sample from trajectory and write to geometry input file"""
+    """pick samples from trajectory"""
     from vibes.trajectory import reader
 
     click.echo(f"Read trajectory from {file}:")
