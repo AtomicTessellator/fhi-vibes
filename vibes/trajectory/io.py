@@ -414,4 +414,10 @@ def read_netcdf(file=filenames.trajectory_dataset):
     trajectory.displacements = DS.displacements.data
     trajectory.times = DS.time.data
 
+    if keys.fc in DS:
+        trajectory.set_force_constants(np.asarray(DS[keys.fc]))
+
+    if keys.fc_remapped in DS:
+        trajectory.set_force_constants_remapped(np.asarray(DS[keys.fc_remapped]))
+
     return trajectory
