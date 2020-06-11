@@ -149,26 +149,6 @@ def show_csv_file(file, max_rows, describe, half, to_json):
             json.dump(df.to_dict(), f, indent=1)
 
 
-@info.command("hdf5")
-@click.argument("file", type=complete_files)
-@click.option("-v", "--verbose", is_flag=True)
-def show_hdf5_file(file, verbose):
-    """show contents of HDF5 FILE"""
-    import pandas as pd
-
-    click.echo(f"Summarize file {file}")
-    with pd.HDFStore(file) as store:
-        click.echo("Keys:")
-        for k in store:
-            click.echo(f"  {k}")
-
-        if verbose:
-            click.echo()
-            for k in store:
-                click.echo(f"Describe {k}")
-                click.echo(store[k].describe())
-
-
 @info.command(aliases=["gk"])
 @click.argument("dataset", default="greenkubo.nc")
 @click.option("-p", "--plot", is_flag=True, help="plot summary")
