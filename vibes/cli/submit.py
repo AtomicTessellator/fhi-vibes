@@ -32,13 +32,13 @@ def submit(obj, dry):
     obj.dry = dry
 
 
-@submit.command("aims")
-@click.argument("settings", default="aims.in", type=paths)
+@submit.command()
+@click.argument("file", default="aims.in", type=paths)
 @click.pass_obj
-def aims_submit(obj, settings):
-    """submit one or several aims calculations from SETTINGS (default: aims.in)"""
+def singlepoint(obj, file):
+    """submit one or several aims calculations from FILE (default: aims.in)"""
 
-    _start(settings, "aims", dry=obj.dry)
+    _start(file, "singlepoint", dry=obj.dry)
 
 
 @submit.command("phonopy")
