@@ -21,6 +21,7 @@ Welcome to `FHI-vibes`, a `python` package for _ab initio_ modeling of vibration
   
   - `apt-get install gfortran` in Debian-derived systems, or
   - `conda install -c conda-forge fortran-compiler` when `conda` is used.
+- If you want to use `FHI-aims` for running _ab initio_ calculations, make sure you have a recent version that supports the iPi socket communication.
 
 
 ### Install `vibes`
