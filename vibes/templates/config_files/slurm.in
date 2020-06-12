@@ -7,4 +7,3 @@ nodes:        1
 cores:        32
 queue:        express
 timeout:      30
-pre_command:  source_vibes

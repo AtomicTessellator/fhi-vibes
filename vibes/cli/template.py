@@ -5,7 +5,7 @@ import click
 from vibes import keys
 from vibes.templates import config_files, settings
 
-from .misc import AliasedGroup
+from .misc import AliasedGroup, ClickAliasedGroup
 
 try:
     import importlib.resources as pkg_resources
@@ -21,7 +21,12 @@ def template(obj, allow_overwrite):
     obj.allow_overwrite = allow_overwrite
 
 
-@template.command()
+@template.command(cls=ClickAliasedGroup)
+def calculator():
+    """Calculator templates: aims, lj"""
+
+
+@calculator.command()
 @click.argument("file", default="aims.in")
 @click.pass_obj
 def aims(obj, file):
@@ -30,7 +35,7 @@ def aims(obj, file):
     print_input(obj, "aims", file)
 
 
-@template.command()
+@calculator.command()
 @click.argument("file", default="lj.in")
 @click.pass_obj
 def lj(obj, file):
@@ -81,19 +86,24 @@ def relaxation(obj, file):
     ctx.settings.print()
 
 
-@template.command()
+@template.command(cls=ClickAliasedGroup)
+def configuration():
+    """Configuration templates: .vibesrc, .fireworksrc"""
+
+
+@configuration.command()
 @click.argument("file", default="vibesrc")
 @click.pass_obj
-def configuration(obj, file):
+def vibes(obj, file):
     """provide template .vibesrc for the configuration"""
 
     print_input(obj, "vibesrc.template", file, from_folder=config_files)
 
 
-@template.command()
+@configuration.command()
 @click.argument("file", default="fireworksrc")
 @click.pass_obj
-def fireworks_configuration(obj, file):
+def fireworks(obj, file):
     """provide template fireworksrc.template for the configuration"""
 
     print_input(obj, "fireworksrc.template", file, from_folder=config_files)
