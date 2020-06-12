@@ -8,7 +8,7 @@ FHI-vibes comes with a command line interface (CLI) for
 - processing calculations (`vibes output`), and
 - performing several other tasks like converting output files (`vibes utils`).
 
-Practical examples for working with the CLI are found in the [tutorials](../Tutorial/0_intro.md).
+Practical examples for working with the CLI are found in the [tutorials](../Tutorial/0_intro.md). Each of the the sub-commands has its own `--help` for additional information.
 
 
 ## `vibes template`
@@ -34,10 +34,10 @@ Commands:
   slurm          provide template slurm settings
 ```
 
-Each of the the sub-commands has its own `--help` for additional information.
 The templates are printed to screen and can be piped to a file with `| tee`, `>` or `>>`.
 
 ## `vibes info`
+
 ```
 $ vibes info --help
 
@@ -77,5 +77,46 @@ Commands:
   phonopy      run a phonopy calculation from FILE (default: phonopy.in)
   relaxation   run an relaxation from FILE (default: relaxation.in)
   singlepoint  run singlepoint calculations from FILE (default: aims.in)
+```
+
+
+
+## `vibes submit`
+
+```
+$ vibes submit --help
+
+Usage: vibes submit [OPTIONS] COMMAND [ARGS]...
+
+  submit a vibes workflow to slurm
+
+Options:
+  --dry
+  -h, --help  Show this message and exit.
+
+Commands:
+  md           submit MD simulation from FILE (default: md.in)
+  phonopy      submit a phonopy calculation from FILE (default: phonopy.in)
+  relaxation   submit relaxation from FILE (default: relaxation.in)
+  singlepoint  submit singlepoint calculations from FILE (default: aims.in)
+```
+
+
+
+## `vibes output`
+
+```
+$ vibes output --help
+
+Usage: vibes output [OPTIONS] COMMAND [ARGS]...
+
+  produce output of vibes workfow
+
+Options:
+  -h, --help  Show this message and exit.
+
+Commands:
+  phonopy          perform phonopy postprocess for trajectory in FILE
+  trajectory (md)  write trajectory data in FILE to xarray.Dataset
 ```
 

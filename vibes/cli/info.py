@@ -77,7 +77,7 @@ def md(file, plot, avg, verbose):
 @info.command(context_settings=_default_context_settings)
 @click.argument("file", default="phonopy.in", type=complete_files)
 @click.option("--write_supercell", is_flag=True, help="write the supercell to file")
-def phonopy(file, write_supercell, format):
+def phonopy(file, write_supercell):
     """inform about a phonopy calculation based on the input FILE"""
     from .scripts.vibes_phonopy import preprocess
 

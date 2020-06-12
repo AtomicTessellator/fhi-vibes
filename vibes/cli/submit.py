@@ -36,7 +36,7 @@ def submit(obj, dry):
 @click.argument("file", default="aims.in", type=paths)
 @click.pass_obj
 def singlepoint(obj, file):
-    """submit one or several aims calculations from FILE (default: aims.in)"""
+    """submit singlepoint calculations from FILE (default: aims.in)"""
 
     _start(file, "singlepoint", dry=obj.dry)
 
@@ -45,7 +45,7 @@ def singlepoint(obj, file):
 @click.argument("file", default="phonopy.in", type=paths)
 @click.pass_obj
 def phonopy(obj, file):
-    """submit a phonopy calculation for FILE (default: phonopy.in)"""
+    """submit a phonopy calculation from FILE (default: phonopy.in)"""
 
     _start(file, "phonopy", dry=obj.dry)
 
@@ -54,7 +54,7 @@ def phonopy(obj, file):
 @click.argument("file", default="phono3py.in", type=paths)
 @click.pass_obj
 def phono3py(obj, file):
-    """submit a phonopy calculation for FILE (default: phonopy.in)"""
+    """submit a phono3py calculation for FILE (default: phono3py.in)"""
 
     _start(file, "phono3py", dry=obj.dry)
 
@@ -63,7 +63,7 @@ def phono3py(obj, file):
 @click.argument("file", default="md.in", type=paths)
 @click.pass_obj
 def md(obj, file):
-    """submit an MD simulation from FILE (default: md.in)"""
+    """submit MD simulation from FILE (default: md.in)"""
 
     _start(file, "md", dry=obj.dry)
 
@@ -72,6 +72,6 @@ def md(obj, file):
 @click.argument("file", default="relaxation.in", type=paths)
 @click.pass_obj
 def relaxation(obj, file):
-    """submit an relaxation from FILE (default: relaxation.in)"""
+    """submit relaxation from FILE (default: relaxation.in)"""
 
     _start(file, "relaxation", dry=obj.dry)

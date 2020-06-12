@@ -138,7 +138,7 @@ ax.set_xlim(0, 500)
 ax.set_title(f"$\\tau$ is {int(tau)} steps")
 ```
 
-??? info "Plot pressure"
+??? info "Plot pressure autocorrelation function"
 	![image](assets/md_autocorr.png)
 
 In the  present example, the observable decorrelates after about 192 time steps ($\equiv 768\,{\rm fs}$). We therefore estimate the number of uncorrelated samples to be 
