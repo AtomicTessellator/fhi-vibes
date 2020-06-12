@@ -154,15 +154,13 @@ def generate_samples(
     return sample_list
 
 
-def create_samples(
-    atoms_file, temperature=None, force_constants_file=None, format="aims", **kwargs,
-):
+def create_samples(atoms_file, temperature=None, fc_file=None, format="aims", **kwargs):
     """FileIO frontend to `generate_samples`
 
     Args:
         atoms_file: input geometry file
         temperature: temperature in Kelvin
-        force_constants_file: file holding force constants
+        fc_file: file holding force constants
         format: The ASE file format for geometry files
         kwargs: kwargs for `generate_samples`
     """
@@ -171,13 +169,13 @@ def create_samples(
     inform(atoms, verbosity=0)
 
     fc = None
-    if force_constants_file is not None:
+    if fc_file is not None:
         # if 3Nx3N shaped txt file:
         try:
-            fc = np.loadtxt(force_constants_file)
+            fc = np.loadtxt(fc_file)
         except ValueError:
             exit("other force constants not yet implemented")
-        talk(f"\nUse force constants from {force_constants_file} to prepare samples")
+        talk(f"\nUse force constants from {fc_file} to prepare samples")
 
     sample_list = generate_samples(
         atoms, temperature=temperature, force_constants=fc, **kwargs
