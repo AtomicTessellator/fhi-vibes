@@ -5,6 +5,9 @@ from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup, click, complete_files
 
+# from click 7.1 on
+_default_context_settings = {"show_default": True}
+
 
 @click.command(cls=ClickAliasedGroup)
 def info():
@@ -15,7 +18,7 @@ def info():
 @click.argument("file", type=complete_files)
 @click.pass_obj
 def settings(obj, file):
-    """inform about content of a settings file"""
+    """write the settings in FILE *including* the configuration"""
     from vibes.settings import Settings
 
     click.echo(f"List content of {file} including system-wide configuration")
@@ -28,7 +31,7 @@ def settings(obj, file):
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("--format", default="aims", show_default=True)
 @click.option("-t", "--symprec", default=1e-5, show_default=True)
-@click.option("-v", "--verbose", is_flag=True)
+@click.option("-v", "--verbose", is_flag=True, help="increase verbosity")
 @click.pass_obj
 def geometry(obj, file, format, symprec, verbose):
     """inform about a structure in a geometry input file"""
@@ -44,14 +47,13 @@ def geometry(obj, file, format, symprec, verbose):
     inform(atoms, symprec=symprec, verbosity=verbosity)
 
 
-@info.command()
+@info.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-p", "--plot", is_flag=True, help="plot a summary")
-@click.option("-w", "--write", is_flag=True, help="write Dataset to nc file")
 @click.option("--avg", default=100, help="window size for running avg")
 @click.option("-v", "--verbose", is_flag=True, help="be verbose")
-def md(file, plot, write, avg, verbose):
-    """inform about content of a settings.in file"""
+def md(file, plot, avg, verbose):
+    """inform about MD simulation in FILE"""
     import xarray as xr
     from .scripts.md_sum import md_sum
     from vibes.trajectory import analysis as al, reader
@@ -61,8 +63,6 @@ def md(file, plot, write, avg, verbose):
     if file.suffix in (".son", ".yaml", ".bz", ".gz"):
         trajectory = reader(file)
         DS = trajectory.dataset
-        if write:
-            trajectory.write(file.parent / f"{file.stem}.nc")
     elif file.suffix in (".nc"):
         DS = xr.load_dataset(file)
     elif file.suffix in (".log"):
@@ -74,27 +74,20 @@ def md(file, plot, write, avg, verbose):
     al.summary(DS, plot=plot, avg=avg)
 
 
-@info.command()
+@info.command(context_settings=_default_context_settings)
 @click.argument("file", default="phonopy.in", type=complete_files)
 @click.option("--write_supercell", is_flag=True, help="write the supercell to file")
-@click.option("--format", default="aims", show_default=True)
 def phonopy(file, write_supercell, format):
-    """inform about a phonopy calculation"""
+    """inform about a phonopy calculation based on the input FILE"""
     from .scripts.vibes_phonopy import preprocess
 
-    preprocess(
-        file=None,
-        settings_file=file,
-        dimension=None,
-        format=format,
-        write_supercell=write_supercell,
-    )
+    preprocess(settings_file=file, write_supercell=write_supercell)
 
 
 @info.command()
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 def trajectory(file):
-    """inform about content of trajectory file"""
+    """print metadata from trajectory in FILE"""
     from vibes import son
     from vibes.settings import Settings
 
@@ -120,11 +113,11 @@ def netcdf(file):
     print(DS)
 
 
-@info.command()
+@info.command(context_settings=_default_context_settings)
 @click.argument("file", type=complete_files)
-@click.option("--max_rows", default=100)
-@click.option("--describe", is_flag=True)
-@click.option("--half", is_flag=True)
+@click.option("--max_rows", default=100, help="max. no. of rows to print")
+@click.option("--describe", is_flag=True, help="print description of data")
+@click.option("--half", is_flag=True, help="print only the second half of data")
 @click.option("--to_json", type=Path, help="Write to json file")
 def csv(file, max_rows, describe, half, to_json):
     """show contents of csv FILE"""
@@ -149,7 +142,7 @@ def csv(file, max_rows, describe, half, to_json):
             json.dump(df.to_dict(), f, indent=1)
 
 
-@info.command(aliases=["gk"])
+@info.command(aliases=["gk"], context_settings=_default_context_settings)
 @click.argument("dataset", default="greenkubo.nc")
 @click.option("-p", "--plot", is_flag=True, help="plot summary")
 @click.option("--no_hann", is_flag=True)
@@ -181,7 +174,7 @@ def greenkubo(dataset, plot, no_hann, logx, xlim, average):
         click.echo(f".. summary plotted to {file}")
 
 
-@info.command()
+@info.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory_dataset, type=complete_files)
 @click.option("-o", "--output_file", default="vdos.csv")
 @click.option("-p", "--plot", is_flag=True, help="plot the DOS")
@@ -207,12 +200,12 @@ def vdos(file, output_file, plot, peak, max_frequency):
     df.to_csv(output_file, index_label="omega", header=True)
 
 
-@info.command()
+@info.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
-@click.option("-v", "--verbose", is_flag=True)
+@click.option("-v", "--verbose", is_flag=True, help="show more information")
 @click.pass_obj
 def relaxation(obj, file, verbose):
-    """inform about geometry optimization"""
+    """summarize geometry optimization in FILE"""
     from ase.constraints import full_3x3_to_voigt_6_stress
     from vibes.relaxation.context import MyExpCellFilter as ExpCellFilter
     from vibes.trajectory import reader

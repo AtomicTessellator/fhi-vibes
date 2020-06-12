@@ -12,16 +12,6 @@
  basissetloc =       /some/path/to/FHIaims/aimsfiles/species_defaults
  aims_command =      run_aims
 
-# your NOMAD token for `vibes utils nomad_upload`
-[nomad]
- token =             null
-
-
-# [database]
-#  location =         ~/vibes/examples/phonon_db
-#  name =             test.db
-#  db_path =          ${location}/${name}
-
 [slurm]
 name:         test
 mail_type:    all
