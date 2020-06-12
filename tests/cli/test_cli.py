@@ -28,7 +28,6 @@ commands_files = [
     ["vibes utils trajectory 2csv", "trajectory.csv"],
     ["vibes utils trajectory 2xyz", "trajectory.xyz"],
     ["vibes utils trajectory pick -n 1", "geometry.in.1"],
-#     ["vibes utils nomad upload calculations --token test --dry", nomad_upload_folder],
     ["vibes utils hash trajectory.son", "hash.toml"],
     ["vibes utils fc frequencies", "frequencies.dat"],
     [f"vibes utils geometry get-deformation {gp} {gs}", "deformation.dat"],
