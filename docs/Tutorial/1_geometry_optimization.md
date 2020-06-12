@@ -80,7 +80,7 @@ The newly generated input file `relaxation.in` should look like this:
     restart:                       bfgs.restart
     ```
 
-The settings file template you just generated contains all the necessary settings to set up and run a geometry optimization with `FHI-vibes` using `FHI-aims` as the force/stress calculator. For speeding up the tutorial you might want to decrease the kpoints density to 1 kpoint per $\require{mediawiki-texvc} \AA^{-1}$. 
+The settings file template you just generated contains all the necessary settings to set up and run a geometry optimization with `FHI-vibes` using `FHI-aims` as the force/stress calculator. For speeding up the tutorial you might want to decrease the kpoints density to 2 kpoints per $\require{mediawiki-texvc} \AA^{-1}$. 
 
 ??? info "`relaxation.in` with adjusted `kpoints` density"
 
@@ -95,7 +95,7 @@ The settings file template you just generated contains all the necessary setting
     xc:                            pw-lda
     
     [calculator.kpoints]
-    density:                       3.5
+    density:                       2
     
     [calculator.basissets]
     default:                       light

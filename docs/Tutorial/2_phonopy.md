@@ -28,7 +28,7 @@ vibes template phonopy >> phonopy.in
     xc:                            pw-lda
     
     [calculator.kpoints]
-    density:                       1
+    density:                       2
     
     [calculator.basissets]
     default:                       light
