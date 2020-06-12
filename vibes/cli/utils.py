@@ -169,36 +169,36 @@ def set_cell(files, cartesian, format):
 
 @geometry.command("2frac", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
-@click.option("-o", "--output_file")
+@click.option("-o", "--outfile")
 @click.option("--format", default="aims")
-def to_fractional(file, output_file, format):
+def to_fractional(file, outfile, format):
     """rewrite geometry in fractional coordinates"""
     from ase.io import read
 
-    if not output_file:
-        output_file = file + ".fractional"
+    if not outfile:
+        outfile = file + ".fractional"
 
     atoms = read(file, format=format)
-    atoms.write(output_file, format=format, scaled=True, geo_constrain=True)
+    atoms.write(outfile, format=format, scaled=True, geo_constrain=True)
 
-    click.echo(f"Geometry written to {output_file}")
+    click.echo(f"Geometry written to {outfile}")
 
 
 @geometry.command("2cart", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
-@click.option("-o", "--output_file")
+@click.option("-o", "--outfile")
 @click.option("--format", default="aims")
-def to_cartesian(file, output_file, format):
+def to_cartesian(file, outfile, format):
     """rewrite geometry in cartesian coordinates"""
     from ase.io import read
 
-    if not output_file:
-        output_file = file + ".cartesian"
+    if not outfile:
+        outfile = file + ".cartesian"
 
     atoms = read(file, format=format)
-    atoms.write(output_file, format=format, scaled=False)
+    atoms.write(outfile, format=format, scaled=False)
 
-    click.echo(f"Geometry written to {output_file}")
+    click.echo(f"Geometry written to {outfile}")
 
 
 @geometry.command("refine", context_settings=_default_context_settings)
@@ -219,23 +219,23 @@ def geometry_refine(*args, **kwargs):
 
 @geometry.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
-@click.option("-o", "--output_file")
+@click.option("-o", "--outfile")
 @click.option("--format", default="aims")
-def wrap(file, output_file, format):
+def wrap(file, outfile, format):
     """wrap atoms in FILE to the cell"""
     from ase.io import read
 
-    if not output_file:
-        output_file = file + ".wrapped"
+    if not outfile:
+        outfile = file + ".wrapped"
 
     atoms = read(file, format=format)
     atoms.positions -= [0.1, 0.1, 0.1]
     atoms.wrap(pretty_translation=True)
     atoms.positions += [0.1, 0.1, 0.1]
     atoms.wrap()
-    atoms.write(output_file, format=format, scaled=True, geo_constrain=True, wrap=False)
+    atoms.write(outfile, format=format, scaled=True, geo_constrain=True, wrap=False)
 
-    click.echo(f"Wrapped geometry written to {output_file}")
+    click.echo(f"Wrapped geometry written to {outfile}")
 
 
 @utils.command(context_settings=_default_context_settings)
@@ -257,7 +257,7 @@ def make_supercell(
         dimension = diagonal_dimension
 
     make_supercell(
-        file, dimension, n_target, deviation, dry, format, output_file=outfile,
+        file, dimension, n_target, deviation, dry, format, outfile=outfile,
     )
 
 
@@ -330,17 +330,17 @@ def remap(
     msg = f"remapped force constants from {file}, shape [{fc.shape}]"
     np.savetxt(outfile, fc, header=msg)
 
-    click.echo(f".. remapped force constants written to {output_file}")
+    click.echo(f".. remapped force constants written to {outfile}")
 
 
 @force_constants.command(context_settings=_default_context_settings)
 @click.argument("file", default="FORCE_CONSTANTS_remapped", type=complete_files)
 @click.option("-sc", "--supercell", default=filenames.supercell)
 @click.option("-n", "--show_n_frequencies", default=6, type=int)
-@click.option("-o", "--output_file", default="frequencies.dat")
+@click.option("-o", "--outfile", default="frequencies.dat")
 @click.option("--symmetrize", is_flag=True)
 @click.option("--format", default="aims")
-def frequencies(file, supercell, show_n_frequencies, output_file, symmetrize, format):
+def frequencies(file, supercell, show_n_frequencies, outfile, symmetrize, format):
     """compute the frequencies for remapped force constants"""
     import numpy as np
     from ase.io import read
@@ -361,9 +361,9 @@ def frequencies(file, supercell, show_n_frequencies, output_file, symmetrize, fo
         for ii, freq in enumerate(w2[-nn:]):
             print(f" {len(w2) - ii:4d}: {freq }")
 
-    if isinstance(output_file, str):
-        np.savetxt(output_file, w2)
-        click.echo(f".. frequencies written to {output_file}")
+    if isinstance(outfile, str):
+        np.savetxt(outfile, w2)
+        click.echo(f".. frequencies written to {outfile}")
 
 
 @utils.group(cls=ClickAliasedGroup)
@@ -403,38 +403,38 @@ def t2tdep(file, skip, folder):
 
 @trajectory.command("2xyz", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
-@click.option("-o", "--output_file", default="trajectory.xyz")
-def t2xyz(file, output_file):
+@click.option("-o", "--outfile", default="trajectory.xyz")
+def t2xyz(file, outfile):
     """extract trajectory in FILENAME and store as xyz file"""
     from vibes.trajectory import reader
 
     traj = reader(file)
-    traj.to_xyz(file=output_file)
+    traj.to_xyz(file=outfile)
 
 
 @trajectory.command("2db", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
-@click.option("-o", "--output_file", default="trajectory.db")
-def t2db(file, output_file):
+@click.option("-o", "--outfile", default="trajectory.db")
+def t2db(file, outfile):
     """extract trajectory in FILENAME and store as ase db"""
     from vibes.trajectory import reader
 
     traj = reader(file)
-    traj.to_db(output_file)
+    traj.to_db(outfile)
 
 
 @trajectory.command("2csv", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
-@click.option("-o", "--output_file", default="trajectory.csv")
-def t2csv(file, output_file):
+@click.option("-o", "--outfile", default="trajectory.csv")
+def t2csv(file, outfile):
     """extract and store 1D data from trajectory in FILENAME """
     from vibes.trajectory import reader
 
     traj = reader(file)
     df = traj.dataframe
 
-    click.echo(f"Write trajectory data to {output_file}")
-    df.to_csv(output_file)
+    click.echo(f"Write trajectory data to {outfile}")
+    df.to_csv(outfile)
 
 
 @trajectory.command(context_settings=_default_context_settings)
@@ -443,9 +443,9 @@ def t2csv(file, output_file):
 @click.option("-sc", help="Add the respective supercell", type=complete_files)
 @click.option("-fc", help="Add the force constants", type=complete_files)
 @click.option("-rfc", help="Add remapped force constants", type=complete_files)
-@click.option("-o", "--output_file")
+@click.option("-o", "--outfile")
 @click.option("--format", default="aims")
-def update(file, uc, sc, fc, rfc, output_file, format):
+def update(file, uc, sc, fc, rfc, outfile, format):
     """update reference data in trajectory file"""
     # copy: from vibes.scripts.update_md_trajectory import update_trajectory
     import shutil
@@ -468,7 +468,7 @@ def update(file, uc, sc, fc, rfc, output_file, format):
         print(fc)
         traj.set_force_constants_remapped(fc)
 
-    if not output_file:
+    if not outfile:
         suffix = Path(file).suffix
         new_trajectory = f"temp{suffix}"
         fname = f"{file}.bak"
@@ -476,11 +476,11 @@ def update(file, uc, sc, fc, rfc, output_file, format):
         shutil.copy(file, fname)
 
     else:
-        new_trajectory = output_file
+        new_trajectory = outfile
 
     traj.write(file=new_trajectory)
 
-    if not output_file:
+    if not outfile:
         click.echo(f".. move new trajectory to {file}")
         shutil.move(new_trajectory, file)
 
