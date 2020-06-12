@@ -8,6 +8,8 @@ FHI-vibes comes with a command line interface (CLI) for
 - processing calculations (`vibes output`), and
 - performing several other tasks like converting output files (`vibes utils`).
 
+Practical examples for working with the CLI are found in the [tutorials](../Tutorial/0_intro.md).
+
 
 ## `vibes template`
 
@@ -49,10 +51,31 @@ Options:
 Commands:
   csv             show contents of csv FILE
   geometry        inform about a structure in a geometry input file
-  md              inform about content of a settings.in file
+  md              inform about MD simulation in FILE
   netcdf          show contents of netCDF FILE
-  phonopy         inform about a phonopy calculation
-  relaxation      inform about geometry optimization
-  settings        inform about content of a settings file
-  trajectory      inform about content of trajectory file
+  phonopy         inform about a phonopy calculation based on the input FILE
+  relaxation      summarize geometry optimization in FILE
+  settings        write the settings in FILE *including* the configuration
+  trajectory      print metadata from trajectory in FILE
+
 ```
+
+## `vibes run`
+
+```
+vibes run --help
+
+Usage: vibes run [OPTIONS] COMMAND [ARGS]...
+
+  run a vibes workflow
+
+Options:
+  -h, --help  Show this message and exit.
+
+Commands:
+  md           run an MD simulation from FILE (default: md.in)
+  phonopy      run a phonopy calculation from FILE (default: phonopy.in)
+  relaxation   run an relaxation from FILE (default: relaxation.in)
+  singlepoint  run singlepoint calculations from FILE (default: aims.in)
+```
+
