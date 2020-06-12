@@ -127,7 +127,6 @@ def preprocess(
 def get_dos(
     phonon,
     total=True,
-    q_mesh=defaults.kwargs.q_mesh,
     freq_min="auto",
     freq_max="auto",
     freq_pitch=None,
@@ -138,7 +137,7 @@ def get_dos(
     direction=None,
     xyz_projection=False,
 ):
-    """Compute the DOS (and save to file)
+    """Get DOS from Phonopy, run_mesh has to be performed.
 
     Parameters
     ----------
@@ -178,8 +177,6 @@ def get_dos(
         phonon.produce_force_constants(force_sets)
 
     if total:
-        phonon.run_mesh(q_mesh)
-
         if freq_max == "auto":
             freq_max = phonon.get_mesh()[2].max() * 1.05
         if freq_min == "auto":
@@ -200,8 +197,6 @@ def get_dos(
             Path("total_dos.dat").rename(file)
 
         return phonon.get_total_dos_dict()
-
-    phonon.run_mesh(q_mesh, is_mesh_symmetry=False, with_eigenvectors=True)
 
     if freq_max == "auto":
         freq_max = phonon.get_mesh()[2].max() * 1.05
@@ -435,9 +430,7 @@ def get_animation(phonon, q_point, file):
     return phonon.write_animation(q_point=q_point, filename=file)
 
 
-def get_debye_temperature(
-    phonon=None, freq_pitch=5e-3, q_mesh=defaults.kwargs.q_mesh, tetrahedron_method=True
-):
+def get_debye_temperature(phonon=None, freq_pitch=5e-3, tetrahedron_method=True):
     """Calculate the Debye Temperature from the Phonon Density of States
 
     Formulas taken from: J. Appl. Phys. 101, 093513 (2007)
@@ -457,7 +450,6 @@ def get_debye_temperature(
     """
     dos = get_dos(
         phonon,
-        q_mesh=q_mesh,
         freq_min=0.0,
         freq_pitch=freq_pitch,
         tetrahedron_method=tetrahedron_method,
@@ -468,10 +460,10 @@ def get_debye_temperature(
     eps_p_2 = np.trapz(gp * ener ** 2.0, ener) / np.trapz(gp, ener)
 
     phonon.set_Debye_frequency()
-    omgea_d = phonon.get_Debye_frequency() * 1e12 * np.pi * 2.0
+    # omgea_d = phonon.get_Debye_frequency() * 1e12 * np.pi * 2.0
 
     theta_p = eps_p_1 / const.kB
     theta_d_infty = np.sqrt(5.0 / 3.0 * eps_p_2) / const.kB
-    theta_d = omgea_d * const.HBAR / (const.kB * const.EV)
+    # theta_d = omgea_d * const.HBAR / (const.kB * const.EV)
 
-    return theta_p, theta_d_infty, theta_d
+    return theta_p, theta_d_infty  # , theta_d

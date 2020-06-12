@@ -202,22 +202,24 @@ def extract_results(
             talk(f".. write force constants to {fc_file}")
             write_FORCE_CONSTANTS(fc, filename=fc_file, p2s_map=p2s_map)
 
-        if thermal_properties:
-            talk(f"Extract thermal properties")
-            talk(f".. write yaml")
-            phonon.run_mesh(q_mesh)
-            phonon.run_thermal_properties()
-            phonon.write_yaml_thermal_properties()
-
         if bandstructure:
             talk(f"Extract bandstructure")
             talk(f".. write yaml")
             wrapper.set_bandstructure(phonon, paths=bz_path)
             phonon.write_yaml_band_structure()
 
+        if dos or thermal_properties or debye:
+            talk(f"Run mesh")
+            phonon.run_mesh(q_mesh)
+
+        if thermal_properties:
+            talk(f"Extract thermal properties")
+            talk(f".. write yaml")
+            phonon.run_thermal_properties()
+            phonon.write_yaml_thermal_properties()
+
         if debye:
             talk("Extract Debye Temperatur")
-            dos = wrapper.get_dos(phonon, q_mesh=q_mesh, freq_pitch=0.01, write=dos)
             debye_temp = wrapper.get_debye_temperature(phonon)
             with open("debye.dat", "w") as f:
                 f.write(str(debye_temp[0]))
@@ -226,13 +228,12 @@ def extract_results(
         if dos:
             talk(f"Extract DOS:")
             talk(f".. write")
-            dos = wrapper.get_dos(phonon, q_mesh=q_mesh, write=True)
+            dos = wrapper.get_dos(phonon, write=True)
 
         if pdos:
             talk(f"Extract projected DOS")
             talk(f".. write")
             phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
-            phonon.run_projected_dos(use_tetrahedron_method=True)
             phonon.write_projected_dos()
 
         animate_q_points = {}

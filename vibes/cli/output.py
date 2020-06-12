@@ -6,7 +6,7 @@ import click
 from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup as AliasedGroup
-from .misc import complete_files
+from .misc import complete_files, default_context_settings
 
 
 @click.command(cls=AliasedGroup)
@@ -14,30 +14,27 @@ def output():
     """produce output of vibes workfow"""
 
 
-@output.command(aliases=["md"])
+@output.command(aliases=["md"], context_settings=default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
 @click.option("-d", "--discard", type=int, help="discard this many steps")
-@click.option("--minimal", is_flag=True, help="only write necessary minimum")
-@click.option("-fc", "--force_constants", help="use FC to compute ha. forces")
+@click.option("--minimal", is_flag=True, help="omit redundant information")
+@click.option("-fc", "--fc_file", type=Path, help="add force constants from file")
 @click.option("-o", "--outfile", default="auto", show_default=True)
-@click.option("-avg", "--average_reference", is_flag=True)
-def trajectory(
-    file, heat_flux, discard, minimal, force_constants, outfile, average_reference,
-):
+def trajectory(file, heat_flux, discard, minimal, fc_file, outfile):
     """write trajectory data in FILE to xarray.Dataset"""
     from vibes.trajectory import reader
     from vibes.trajectory.dataset import get_trajectory_dataset
 
     click.echo(f"Extract Trajectory dataset from {trajectory}")
-    traj = reader(file=file, fc_file=force_constants)
+    traj = reader(file=file, fc_file=fc_file)
 
     if discard:
         traj = traj.discard(discard)
 
     # harmonic forces?
-    if force_constants:
-        traj.set_forces_harmonic(average_reference=average_reference)
+    if fc_file:
+        traj.set_forces_harmonic()
 
     if heat_flux:
         traj.compute_heat_fluxes_from_stresses()
@@ -51,39 +48,28 @@ def trajectory(
     click.echo(f"Trajectory dataset written to {outfile}")
 
 
-@output.command()
+@output.command(context_settings=default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
-# necessary?
-@click.option("--q_mesh", nargs=3, default=None)
-@click.option("-bs", "--bandstructure", is_flag=True)
-@click.option("-dos", "--density_of_states", is_flag=True)
-@click.option("-debye", "--debye_temperature", is_flag=True)
-@click.option("-pdos", "--projected_density_of_states", is_flag=True)
-@click.option("-tp", "--thermal_properties", is_flag=True)
-@click.option("-path", "--bz_path", type=str)
-@click.option("--animate", is_flag=True, help="print animation files for special kpts")
-@click.option("--animate_q", nargs=3, multiple=True, type=float, help="animation at q")
-@click.option("--born", type=complete_files)
-@click.option("--full", is_flag=True)
-@click.option("--remap_fc", is_flag=True)
-@click.option("--sum_rules", is_flag=True)
+@click.option("-bs", "--bandstructure", is_flag=True, help="plot bandstructure")
+@click.option("--dos", is_flag=True, help="plot DOS")
+@click.option("--full", is_flag=True, help="include thermal properties and animation")
+@click.option("--q_mesh", nargs=3, default=None, help="use this q-mesh")
+@click.option("--debye", is_flag=True, help="compute Debye temperature")
+@click.option("-pdos", "--projected_dos", is_flag=True, help="plot projected DOS")
+@click.option("--born", type=complete_files, help="include file with BORN charges")
+@click.option("--sum_rules", is_flag=True, help="enfore sum rules with hiphive")
 @click.option("-v", "--verbose", is_flag=True, help="print frequencies at gamma point")
 @click.pass_obj
 def phonopy(
     obj,
     file,
-    q_mesh,
     bandstructure,
-    density_of_states,
-    debye_temperature,
-    projected_density_of_states,
-    thermal_properties,
-    bz_path,
-    animate,
-    animate_q,
-    born,
+    dos,
     full,
-    remap_fc,
+    q_mesh,
+    debye,
+    projected_dos,
+    born,
     sum_rules,
     verbose,
 ):
@@ -96,10 +82,7 @@ def phonopy(
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
     phonon = postprocess(
-        trajectory_file=file,
-        born_charges_file=born,
-        calculate_full_force_constants=remap_fc,
-        enforce_sum_rules=sum_rules,
+        trajectory_file=file, born_charges_file=born, enforce_sum_rules=sum_rules,
     )
 
     folder = "output"
@@ -109,28 +92,24 @@ def phonopy(
 
     kwargs = {
         "minimal_output": True,
-        "thermal_properties": thermal_properties or full,
+        "thermal_properties": full,
         "bandstructure": bandstructure or full,
-        "dos": density_of_states or full,
-        "debye": debye_temperature or full,
-        "pdos": projected_density_of_states,
-        "bz_path": bz_path,
+        "dos": dos or full,
+        "debye": debye,
+        "pdos": projected_dos,
         "q_mesh": q_mesh,
         "output_dir": output_directory,
-        "animate": animate or full,
-        "animate_q": animate_q,
-        "remap_fc": remap_fc,
+        "animate": full,
         "verbose": verbose,
     }
 
     extract_results(phonon, **kwargs)
 
     kwargs = {
-        "thermal_properties": thermal_properties or full,
+        "thermal_properties": full,
         "bandstructure": bandstructure or full,
-        "dos": density_of_states or full,
-        "pdos": projected_density_of_states,
-        "bz_path": bz_path,
+        "dos": dos or full,
+        "pdos": projected_dos,
         "output_dir": output_directory,
     }
     plot_results(phonon, **kwargs)
