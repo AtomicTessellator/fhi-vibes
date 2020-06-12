@@ -21,7 +21,7 @@ def utils():
 @click.option("--dry", is_flag=True, help="Only print hash to stdout")
 @click.option("-o", "--outfile", default="hash.toml")
 def hash(file, dry, outfile):
-    """create sha hash for FILE"""
+    """create SHA1 hash for FILE"""
     import time
     from vibes.helpers.utils import talk
     from vibes.helpers.hash import hashfunc
@@ -107,7 +107,7 @@ def get_deformation(files, supercell_file, outfile, dry, format):
 @click.option("--cartesian", is_flag=True)
 @click.option("--format", default="aims")
 def apply_deformation(file, deformation, outfile, dry, cartesian, format):
-    """get matrix that deformes geometry1 to geometry2"""
+    """apply deformation tensor D to geometry in FILE"""
     import numpy as np
     from ase.io import read
 
@@ -238,28 +238,17 @@ def wrap(file, output_file, format):
     click.echo(f"Wrapped geometry written to {output_file}")
 
 
-@utils.command("make_supercell", context_settings=_default_context_settings)
+@utils.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
-@click.option("-d", "--dimension", type=int, nargs=9)
-@click.option("-dd", "--diagonal_dimension", type=int, nargs=3)
-@click.option("-n", "--n_target", type=int)
-@click.option("-o", "--output_file")
+@click.option("-d", "--dimension", type=int, nargs=9, help="9 values for SC matrix")
+@click.option("-dd", "--diagonal_dimension", type=int, nargs=3, help="3 values")
+@click.option("-n", "--n_target", type=int, help="target size of the supercell")
+@click.option("-o", "--outfile")
 @click.option("--deviation", default=0.2)
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
-@click.option("-frac", "--fractional", is_flag=True)
-@click.option("--wrap", is_flag=False)
-def tool_make_supercell(
-    file,
-    dimension,
-    diagonal_dimension,
-    output_file,
-    n_target,
-    deviation,
-    dry,
-    format,
-    fractional,
-    wrap,
+def make_supercell(
+    file, dimension, diagonal_dimension, outfile, n_target, deviation, dry, format,
 ):
     """create a supercell of desired shape or size"""
     from .scripts.make_supercell import make_supercell
@@ -268,15 +257,7 @@ def tool_make_supercell(
         dimension = diagonal_dimension
 
     make_supercell(
-        file,
-        dimension,
-        n_target,
-        deviation,
-        dry,
-        format,
-        fractional,
-        output_file=output_file,
-        wrap=wrap,
+        file, dimension, n_target, deviation, dry, format, output_file=outfile,
     )
 
 
@@ -284,14 +265,13 @@ def tool_make_supercell(
 @click.argument("filename", type=complete_files)
 @click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
-@click.option("-fc", "--force_constants_file", type=complete_files)
+@click.option("-fc", "--fc_file", type=complete_files, help="remapped force constants")
 @click.option("--rattle", type=float, help="atoms.rattle(stdev=X) (ASE default: 0.001)")
-@click.option("--quantum", is_flag=True, help="use quantum distribution function")
-@click.option("--deterministic", is_flag=True, help="create a deterministic sample")
-@click.option("--gauge_eigenvectors", is_flag=True)
-@click.option("--zacharias", is_flag=True, help="Zacharias Sampling (deterministic)")
-@click.option("--ignore_negative", is_flag=True)
-@click.option("-seed", "--random_seed", type=int, help="seed the random numbers")
+@click.option("--quantum", is_flag=True, help="use Bose-Einstein distribution")
+# @click.option("--deterministic", is_flag=True, help="create a deterministic sample")
+@click.option("--zacharias", is_flag=True, help="Zacharias one-shot sampling")
+@click.option("--ignore_negative", is_flag=True, help="freeze imaginary modes")
+@click.option("-seed", "--random_seed", type=int, help="seed for random numbers")
 @click.option("--propagate", type=float, help="propagate this many fs")
 @click.option("--format", default="aims")
 def create_samples(filename, **kwargs):
@@ -313,21 +293,11 @@ def force_constants():
 @click.option("-uc", "--primitive", default=filenames.primitive)
 @click.option("-sc", "--supercell", default=filenames.supercell)
 @click.option("-nsc", "--new_supercell")
-@click.option("-o", "--output_file")
+@click.option("-o", "--outfile")
 @click.option("--symmetrize", is_flag=True)
-@click.option("--python", is_flag=True)
 @click.option("--format", default="aims")
 def remap(
-    file,
-    primitive,
-    supercell,
-    new_supercell,
-    output_file,
-    symmetrize,
-    python,
-    eps=1e-13,
-    tol=1e-5,
-    format="aims",
+    file, primitive, supercell, new_supercell, outfile, symmetrize, format="aims",
 ):
     """remap phonopy force constants in FILENAME to [3N, 3N] shape"""
     # copy: from vibes.scripts.remap_phonopy_forceconstants import remap_force_constants
@@ -346,9 +316,6 @@ def remap(
     kwargs = {
         "primitive": uc,
         "supercell": sc,
-        "fortran": not python,
-        "eps": eps,
-        "tol": tol,
     }
 
     fc = parse_force_constants(fc_file=file, two_dim=False, **kwargs)
@@ -357,11 +324,11 @@ def remap(
 
     fc = remap_force_constants(fc, **kwargs)
 
-    if not output_file:
-        output_file = f"{file}_remapped"
+    if not outfile:
+        outfile = f"{file}_remapped"
 
     msg = f"remapped force constants from {file}, shape [{fc.shape}]"
-    np.savetxt(output_file, fc, header=msg)
+    np.savetxt(outfile, fc, header=msg)
 
     click.echo(f".. remapped force constants written to {output_file}")
 
@@ -374,7 +341,7 @@ def remap(
 @click.option("--symmetrize", is_flag=True)
 @click.option("--format", default="aims")
 def frequencies(file, supercell, show_n_frequencies, output_file, symmetrize, format):
-    """compute the frequency spectrum"""
+    """compute the frequencies for remapped force constants"""
     import numpy as np
     from ase.io import read
     from vibes.harmonic_analysis.dynamical_matrix import get_frequencies

@@ -101,8 +101,6 @@ Commands:
   singlepoint  submit singlepoint calculations from FILE (default: aims.in)
 ```
 
-
-
 ## `vibes output`
 
 ```
@@ -118,5 +116,28 @@ Options:
 Commands:
   phonopy          perform phonopy postprocess for trajectory in FILE
   trajectory (md)  write trajectory data in FILE to xarray.Dataset
+```
+
+## `vibes utils`
+
+```
+$ vibes utils --help
+
+Usage: vibes utils [OPTIONS] COMMAND [ARGS]...
+
+  tools and utilities
+
+Options:
+  -h, --help  Show this message and exit.
+
+Commands:
+  anharmonicity (a)     utils for quantifying anharmonicity
+  backup                backup FOLDER to TARGET
+  create-samples        create samples from geometry in FILENAME
+  force-constants (fc)  utils for working with force constants
+  geometry              utils for manipulating structures (wrap, refine, etc.)
+  hash                  create sha hash for FILE
+  make-supercell        create a supercell of desired shape or size
+  trajectory            trajectory utils
 ```
 

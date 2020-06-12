@@ -33,7 +33,7 @@ def make_supercell(
     deviation,
     dry,
     format,
-    scaled,
+    scaled=True,
     wrap=False,
     output_file=None,
 ):
