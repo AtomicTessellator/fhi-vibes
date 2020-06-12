@@ -1,7 +1,7 @@
 # Postprocessing
 
 !!! warning
-	We assume you successfully ran the simulation of Lennard-Jones Argon at $20\,{\rm K}$ from the [previous chapter](3_md_canonical_sampling.md) and created a `trajectory.nc` dataset.
+	We assume you successfully ran the simulation of Lennard-Jones Argon at $20\,{\rm K}$ from the [previous chapter](3_md_canonical_sampling.md) and created a `trajectory.nc` dataset. You can can also take the reference data from [here](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/3_molecular_dynamics/LJ_Argon).
 
 ### Example: Pressure
 
@@ -121,7 +121,7 @@ pp = p - p.mean()
 
 # get the autocorrelation function from
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.correlate.html
-corr = si.correlate(pp, pp)[len(s) - 1 :]
+corr = si.correlate(pp, pp)[len(pp) - 1 :]
 
 # normalize to C(0) = 1
 corr /= corr[0]
@@ -183,7 +183,7 @@ which means that our result is converged within an estimated precision of $1\,\%
     
     print(f"Mean:  {mean:.5f} GPa")
     print(f"Std.:  {std:.5f} GPa")
-    print(f"Error: {err:.5f} GPa ({err / mean * 100:.2f} %)")
+    print(f"Error: {err:.5f} GPa ({abs(err / mean) * 100:.2f} %)")
     ```
 
 ### More examples

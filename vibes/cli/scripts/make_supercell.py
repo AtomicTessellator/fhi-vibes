@@ -35,7 +35,7 @@ def make_supercell(
     format,
     scaled=True,
     wrap=False,
-    output_file=None,
+    outfile=None,
 ):
     """create or find a supercell
 
@@ -93,12 +93,12 @@ def make_supercell(
 
     if not dry:
         spacegroup = get_spacegroup(cell)
-        if not output_file:
-            output_file = f"{file}.supercell_{len(supercell)}"
+        if not outfile:
+            outfile = f"{file}.supercell_{len(supercell)}"
         info_str = get_info_str(supercell, spacegroup)
         info_str += [f"Supercell matrix:    {smatrix.flatten()}"]
-        supercell.write(output_file, format=format, scaled=scaled, info_str=info_str)
-        print(f"\nSupercell written to {output_file}")
+        supercell.write(outfile, format=format, scaled=scaled, info_str=info_str)
+        print(f"\nSupercell written to {outfile}")
 
     timer()
 
