@@ -6,33 +6,31 @@
 ## <a name="Phonons"></a> Phonons: Harmonic vibrations in solids
 
 To determine the vibrations in a solid, we approximate the potential energy surface
-for the nuclei by performing a Taylor expansion of the total energy $E$ around the equilibrium positions:
-
+for the nuclei by performing a Taylor expansion of the total energy $\mathcal V({\bf R})$ around the equilibrium positions:
 $$
 \require{cancel}
 \begin{aligned}
 \def\vec#1{{\mathbf{#1}}}
 \def\t#1{\text{#1}}
-E \left(\{\vec{R}^0 + \Delta \vec{R}\}\right) 
+\mathcal V \left(\{\vec{R}^0 + \Delta \vec{R}\}\right) 
 & \approx 
-E\left(\{\vec{R}^0\}\right) \\
-& + \cancel{ \sum\limits_{I} \left.\frac{\partial E}{\partial \vec{R}_I}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I} } \\
-& + \frac{1}{2} \sum\limits_{I,J} \left.\frac{\partial^2 E}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I}\Delta\vec{R}_{J} \\
+\mathcal V\left(\{\vec{R}^0\}\right) \\
+& + \cancel{ \sum\limits_{I} \left.\frac{\partial \mathcal V}{\partial \vec{R}_I}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I} } \\
+& + \frac{1}{2} \sum\limits_{I,J} \left.\frac{\partial^2 \mathcal V}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I}\Delta\vec{R}_{J} \\
 & + \mathcal{O}(\Delta\vec{R}^3)
 \end{aligned}
 $$
 
-The linear term vanishes, since no forces $\vec{F} = - \nabla E$ are acting on the system in equilibrium $\vec{R}^0$. 
-Assessing the Hessian $\Phi_{IJ} = \frac{\partial^2 E}{\partial \vec{R}_I\partial \vec{R}_J}$ involves some additional
+The linear term vanishes, since no forces $\vec{F} = - \nabla \mathcal V$ are acting on the system in equilibrium $\vec{R}^0$. 
+Assessing the Hessian $\Phi_{IJ} = \frac{\partial^2 \mathcal V}{\partial \vec{R}_I\partial \vec{R}_J}$ involves some additional
 complications: In contrast to the forces $\vec{F}$, which only depend on the density, the Hessian $\Phi_{IJ}$ also depends
 on its derivative with respect to the nuclear coordinates, i.e., on its _response_ to nuclear displacements. One can either 
 use _Density Functional Perturbation Theory (DFPT)_ [[Baroni2001](references.md#baroni2001)] to compute the response 
 or one can circumvent this problem by performing the second order derivative _numerically by finite differences_
-
 $$
 \begin{align}
 \Phi_{IJ} 
-= \left.\frac{\partial^2 E}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} 
+= \left.\frac{\partial^2 \mathcal V}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} 
 = - \left.\frac{\partial }{\partial \vec{R}_I} \vec{F}_J\right\vert_{\vec{R}^0}
 \approx - \frac{ \vec{F}_J(\vec{R}_I^0 + \varepsilon \,\vec{d}_I)}{\varepsilon}~,
 \label{eq:FinDiff}
@@ -157,7 +155,7 @@ first [Brillouin zone](https://en.wikipedia.org/wiki/Phonon\#Crystal_momentum).
 The Brillouin zone of our Silicon fcc diamond structure is displayed below
 
 ??? info "Plot of Brillouin zone if fcc lattice"
-	![image](../assets/BZ_fcc.png)
+	![image](assets/BZ_fcc.png)
 
 The labelled points correspond to $\bf q$ 
 values of high symmetry. This means that there are symmetry operations in the 

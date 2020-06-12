@@ -102,7 +102,7 @@ vibes info geometry geometry.in.primitive.supercell_108
 Additionally you can inspect the generated structure with the structure viewer of your choice, e.g., with [`jmol`](http://jmol.sourceforge.net/).
 
 ??? info "`jmol geometry.in.primitive.supercell_108`"
-	![image](../assets/geometry.in.supercell.png)
+	![image](assets/geometry.in.supercell.png)
 
 
 
@@ -342,7 +342,7 @@ Temperature (last 1/2):         19.863 +/-       1.4301 K
 The pdf file `md_summary.pdf` provides a visualization of the simulated properties for quick sanity checking that  the simulation went according to plan:
 
 ??? info "`md_summary.pdf`"
-	![image](../assets/md_summary.png)
+	![image](assets/md_summary.png)
 	
 ### Visualize trajectory
 The trajectory can be exported to an `xyz` file for visualizing the atomic motion, e.g., with [`VMD`](https://www.ks.uiuc.edu/Research/vmd/). To this end, run
@@ -353,4 +353,4 @@ vmd trajectory.xyz
 ```
 
 ??? info "`vmd trajectory.xyz`"
-	![image](../assets/LJ-Argon.gif)
+	![image](assets/LJ-Argon.gif)

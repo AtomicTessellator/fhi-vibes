@@ -29,7 +29,7 @@ df[["temperature", "temperature_mean"]].plot()
 ```
 
 ??? info "`df.plot`"
-	![image](../assets/md_temperature.png)
+	![image](assets/md_temperature.png)
 	
 Since the calculation starts with all atoms located at their equilibrium positions, the initial potential energy is zero and the kinetic energy given to the system is converted to potential energy at early simulation times. In turn, the temperature drops from $20\,{\rm K}$ to about $10\,{\rm K}$. The missing energy is gradually provided by the thermostat, bringing the nuclear temperature back to $\sim 20\,{\rm K}$ after a few $\rm ps$.
 
@@ -46,7 +46,7 @@ df[['temperature', 'temperature_mean']].plot()
 ```
 
 ??? info "`df.plot` after removing 2500 simulation steps ($5\,{\rm ps}$)"
-	![image](../assets/md_temperature_thermalized.png)
+	![image](assets/md_temperature_thermalized.png)
 
 #### Inspect the pressure
 We are now ready to inspect the pressure observed in the simulation and plot it with a cumulative average:
@@ -62,7 +62,7 @@ p.expanding().mean().plot(ax=ax, color="k")
 ```
 
 ??? info "Plot pressure"
-	![image](../assets/md_pressure.png)
+	![image](assets/md_pressure.png)
 	
 #### Expectation value and convergence estimation
 
@@ -139,7 +139,7 @@ ax.set_title(f"$\\tau$ is {int(tau)} steps")
 ```
 
 ??? info "Plot pressure"
-	![image](../assets/md_autocorr.png)
+	![image](assets/md_autocorr.png)
 
 In the  present example, the observable decorrelates after about 192 time steps ($\equiv 768\,{\rm fs}$). We therefore estimate the number of uncorrelated samples to be 
 
@@ -180,7 +180,7 @@ which means that our result is converged within an estimated precision of $1\,\%
     mean = p.mean()
     std = p.std()
     err = std / (len(p) / tau) ** 0.5
-
+    
     print(f"Mean:  {mean:.5f} GPa")
     print(f"Std.:  {std:.5f} GPa")
     print(f"Error: {err:.5f} GPa ({err / mean * 100:.2f} %)")

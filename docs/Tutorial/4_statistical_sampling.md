@@ -226,7 +226,7 @@ vibes output md
 
 Since this is not an MD, the time axis in the dataset will simply label the samples instead of corresponding to an actual simulation time.
 
-The dataset in `trajectory.nc` can be inspected similar to [the MD case](3_md_postprocessing.md).
+The dataset in `trajectory.nc` can be inspected similar to [the MD case](3_md_postprocess.md).
 
 ```python
 import xarray as xr
@@ -244,7 +244,7 @@ p.expanding().mean().plot(ax=ax, color="k")
 ```
 
 ??? info "Pressure plot"
-	![image](../assets/mc_pressure.png)
+	![image](assets/mc_pressure.png)
 	
 The [mean pressure and standard error](3_md_postprocess.md#expectation-value-and-convergence-estimation)[^footnote1] are
 

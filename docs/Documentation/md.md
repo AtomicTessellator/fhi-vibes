@@ -1,5 +1,5 @@
 !!! info
-	A hands-on example for setting up and running a molecular dynamics run [Tutorial](../Tutorial/3_md.md).
+	A hands-on example for setting up and running a molecular dynamics run [Tutorial](../Tutorial/3_md_intro.md).
 
 vibes supports running molecular dynamics simulations via [ASE](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md) om NVE, NVT, and NPT ensembles. A minimal `md.in` for running 1000 steps of [Velocity Verlet dynamics](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md.verlet) with a Lennard Jones calculator would be
 
@@ -40,7 +40,7 @@ maxsteps:                      1000
     maxsteps:                      1000
     compute_stresses:              False
     workdir:                       md
-
+    
     [md.kwargs]
     temperature:                   300
     friction:                      0.02
@@ -54,7 +54,7 @@ maxsteps:                      1000
     maxsteps:                      1000
     compute_stresses:              False
     workdir:                       md
-
+    
     [md.kwargs]
     temperature:                   300
     taut:                          500.0
