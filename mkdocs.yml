@@ -27,9 +27,10 @@ nav:
     - Documentation: 
         - Overview: Documentation/0_intro.md
         - "Units": Documentation/units.md
-        - "Input Files": Documentation/input_files.md
-        - "Output Files": Documentation/output_files.md
-        - "Calculator Setup": Documentation/calculator_setup.md
+        - "Input Files": 
+            - Documentation/input_files.md
+            - Documentation/calculator_setup.md
+        - Documentation/output_files.md
         - Documentation/cli.md
         - Workflows:
             - "Relaxation": Documentation/relaxation.md

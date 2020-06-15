@@ -1,36 +1,22 @@
-Calculator Setup
-===
+# Calculator Setup
+
+FHI-vibes can set up any [ASE calculator](https://wiki.fysik.dtu.dk/ase/ase/calculators/calculators.html#module-ase.calculators) for performing a calculation by providing the  calculator class `name` and the respective `parameters` in the input file.
 
 ## Example
 
 ```
-[files]
-geometry:                      geometry.in
-
+...
 [calculator]
 name:                          lj
 
 [calculator.parameters]
 sigma:                         3.4
+...
 ```
+
+This would set up a [Lennard Jones calculator](https://wiki.fysik.dtu.dk/ase/ase/calculators/others.html#lennard-jones) with a `sigma` value of 3.4 and default parameters otherwise.
 
 ## Sections
-
-### `[files]`
-
-This section contains filenames. 
-
-#### `geometry`
-
-`geometry` gives the name of the geometry input file to be used for a calculation:
-
-```python
-file = settings.files.get("geometry")
-
-atoms = ase.io.read(file)
-```
-
-
 
 ### `[calculator]`
 
@@ -50,7 +36,9 @@ cls = get_calculator_class(settings.calculator.get("name"))
 calculator = cls(**settings.calculator.get("parameters"))
 ```
 
-## More Options for `FHI-aims`
+## Options for `FHI-aims`
+
+FHI-vibes is most tightly integrated with the FHI-aims calculator and provides some extra features for performing _ab initio_ calculations with FHI-aims. A minimal input section to set up an FHI-aims calculator looks like this:
 
 ```
 [calculator]
@@ -77,11 +65,11 @@ port:                          12345
 
 These keywords correspond one-to-one to the FHI-aims keywords that  are written to `control.in`.
 
-### `[calculator.kpoints]`
+### `[calculator.kpoints]` (optional)
 
 #### `density`
 
-Compute `k_grid` such that the density of kpoints does not fall below this value in $\require{mediawiki-texvc} \AA^{-3}$ .
+Instead of giving a `k_grid` explicitly, FHI-vibes can compute `k_grid` such that the density of kpoints does not fall below this value in $\require{mediawiki-texvc} \AA^{-3}$ . This is optional, including `k_grid` in `[calculator.parameters]` is equally valid.
 
 ### `[calculator.basissets]`
 
@@ -99,9 +87,9 @@ The fallback option in case the specified basis set could not be found (`interme
 
 The basis set can be given per chemical species by including the species and its desired basis set (uncomment, e.g., `O` in the example above.)
 
-### `[calculator.socketio]`
+### `[calculator.socketio]` (optional)
 
-Set up socket communication via [`SocketIOCalculator`](https://wiki.fysik.dtu.dk/ase/ase/calculators/socketio/socketio.html?highlight=socketio#ase.calculators.socketio.SocketIOCalculator)
+Set up socket communication via [`SocketIOCalculator`](https://wiki.fysik.dtu.dk/ase/ase/calculators/socketio/socketio.html?highlight=socketio#ase.calculators.socketio.SocketIOCalculator). This has the potential to speed up calculations since a complete restart of FHI-aims after each completed SCF cycle is avoided. This feature is optional but recommended to use when performing calculations for related structures, e.g., during molecular dynamics simulations or phonon calculations.
 
 #### `port`
 
