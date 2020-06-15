@@ -77,7 +77,10 @@ file = settings.files.get("geometry")
 atoms = ase.io.read(file)
 ```
 
+If there is just one geometry necessary for the given task and it is stored in `geometry.in`, this section can be omitted altogether.
+
 #### `geometries`
+
 Via `geometries`, a wildcard expression for finding geometry files for computation can be given, e.g. `geometries: samples/geometry.in.*` would specifiy to run a calculation for all geometry input files found in the folder `samples`.
 
 ```python

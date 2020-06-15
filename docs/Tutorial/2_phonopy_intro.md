@@ -7,6 +7,7 @@
 
 To determine the vibrations in a solid, we approximate the potential energy surface
 for the nuclei by performing a Taylor expansion of the total energy $\mathcal V({\bf R})$ around the equilibrium positions:
+
 $$
 \require{cancel}
 \begin{aligned}
@@ -27,6 +28,7 @@ complications: In contrast to the forces $\vec{F}$, which only depend on the den
 on its derivative with respect to the nuclear coordinates, i.e., on its _response_ to nuclear displacements. One can either 
 use _Density Functional Perturbation Theory (DFPT)_ [[Baroni2001](references.md#baroni2001)] to compute the response 
 or one can circumvent this problem by performing the second order derivative _numerically by finite differences_
+
 $$
 \begin{align}
 \Phi_{IJ} 

@@ -6,7 +6,7 @@ The aim of this tutorial is to learn how to perform a molecular dynamics simulat
 	This tutorial mimics the essential steps for performing MD simulations in bulk systems. How you obtain initial structures in your project is, of course, highly dependent on the systems you aim to study etc.
 
 !!! info
-	For this tutorial, we study solid Argon at $20\,{\rm K}$ with a Lennard-Jones force field. We use this as a toy system that  can be calculated quickly on a laptop for illustrating the basic workflow. All steps are transferable to performing _ab initio_ molecular dynamics simulations by exchanging the calculator with `FHI-aims`. We will explain the _ab initio_ aspects of performing MD in the [next chapter](3_md_ab_initio.md).
+	For this tutorial, we usw [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$ as a toy system that  can be calculated quickly on a laptop for illustrating the basic workflow. All steps are transferable to performing _ab initio_ molecular dynamics simulations by exchanging the calculator with `FHI-aims`. We will explain the _ab initio_ aspects of performing MD in the [next chapter](3_md_ab_initio.md).
 
 ##  Structure preparation
 
@@ -160,20 +160,16 @@ We will use this structure and the chosen velocities as the initial structure fo
 
 ### Prepare `md.in`
 
-Before we can run the MD, we need to create an input file. We can use the CLI command `template` to do this:
+Before we can run the MD, we need to create an input file. To this end, copy the calculator section [for the Lennard-Jones calculator](0_intro.md#lj-argon) to a file called `md.in`. Next, we use the CLI command `template` to add settings for performing a NVT simulation:
 
 ```
-vibes template lj > md.in 
 vibes template md --nvt >> md.in
 ```
 
 ??? info "The generated `md.in`"
 
     ```
-    [files]
-    geometry:                      geometry.in
-    
-    [calculator]
+	[calculator]
     name:                          lj
     
     [calculator.parameters]
@@ -199,32 +195,25 @@ vibes template md --nvt >> md.in
 We suggest to add and/or adjust the following  keywords:
 
 ```
-[files]
-primitive:                     geometry.in.primitive
-supercell:                     geometry.in.supercell
-
-[calculator.parameters]
-rc:       8.0
-
 [md]
 timestep:                      4
 maxsteps:                      7500
 
 [md.kwargs]
 temperature:                   20
+
+[files]
+geometry:                      geometry.in
+primitive:                     geometry.in.primitive
+supercell:                     geometry.in.supercell
 ```
 
-Decreasing `rc` will speed up the calculation, as this is a tutorial. `timestep` can be increased to $4\,{\rm fs}$ for Argon at $20\,{\rm K}$. With `maxsteps: 7500` we will run a total of 7500 MD steps, i.e., $30\,{\rm ps}$ simulation time. **The total simulation time depends on the system and the quantitiy of interest!**`temperature` should be set to $20\,{\rm K}$, our target temperature.
+The `timestep` can be increased to $4\,{\rm fs}$ for Argon at $20\,{\rm K}$. With `maxsteps: 7500` we will run a total of 7500 MD steps, i.e., $30\,{\rm ps}$ simulation time. **The total simulation time depends on the system and the quantitiy of interest!**`temperature` should be set to $20\,{\rm K}$, our target temperature.
 Adding `primitive: geometry.in.primitive` and `supercell: geometry.in.supercell` in the `[files]` section is not necessary to run the calculation. However, `vibes` will automatically attach this information to the trajectory so that it cannot get lost. This also makes life easer when post processing. For example, the displacements $\Delta {\bf R}_I(t)$ can only be properly calculated, when the reference supercell is known.
 
 The final `md.in` should look like this:
 
 ```
-[files]
-geometry:                      geometry.in
-primitive:                     geometry.in.primitive
-supercell:                     geometry.in.supercell
-
 [calculator]
 name:                          lj
 
@@ -233,7 +222,6 @@ name:                          lj
 sigma:    3.405
 epsilon:  0.010325 
 rc:       8.0
-
 
 [md]
 driver:                        Langevin
@@ -246,6 +234,11 @@ workdir:                       md
 temperature:                   20
 friction:                      0.02
 logfile:                       md.log
+
+[files]
+geometry:                      geometry.in
+primitive:                     geometry.in.primitive
+supercell:                     geometry.in.supercell
 ```
 
 We are now ready to  run the simulation!

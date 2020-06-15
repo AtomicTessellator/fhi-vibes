@@ -148,21 +148,67 @@ This will:
 ## More post processing
 
 ### DOS and Thermal Properties
-After you managed to compute the band structure, we proceed with evaluating and plotting the density of states. You can do this as well with the CLI command `vibes output phonopy`:
+After you managed to compute the band structure, we proceed with evaluating and plotting the density of states and thermal properties. You can do this as with the CLI command `vibes output phonopy –full`:
 ```
-vibes output phonopy phonopy/trajectory.son --density_of_states
+vibes output phonopy phonopy/trajectory.son --full
 ```
-This will compute the frequencies on a grid of $45 \times 45 \times 45$ $\bf q$ points per default and uses the so-called Tetrahedron method to 
-interpolate between the points~\cite{Bloechl:1994}. Afterwards it  counts the number of frequencies in bins of finite size. Depending on the calculation, the q-grid can be adjusted by specifying it with an additional flag 
+This will compute the frequencies on a grid of $45 \times 45 \times 45$ $\bf q$ points per default and uses the so-called Tetrahedron method to interpolate between the points. Afterwards it  counts the number of frequencies in bins of finite size. Depending on the calculation, the q-grid can be adjusted by specifying it with an additional flag 
 `--q_mesh`, for example
+
 ```
 vibes output phonopy phonopy/trajectory.son -dos --q_mesh 26 26 26
 ```
 The density of states will be plotted alongside the bandstructure to a file `output/bandstructure_dos.pdf`, and written to a data file [`total_dos.dat`](https://phonopy.github.io/phonopy/output-files.html#total-dos-dat-and-projected-dos-dat).
 
-The DOS can then be used to evaluate the harmonic free energy $F^{\rm ha}$ and the harmonic heat capacity at constant volume, $C_V$, i.\,e., 
-the thermal properties accessible in the harmonic approximation. You can compute and plot the thermal properties by running
+The DOS is then used to evaluate the harmonic free energy $F^{\rm ha}$ and the harmonic heat capacity at constant volume, $C_V$, i.e., the thermal properties accessible in the harmonic approximation.  An overview plot is saved to `output/thermal_properties.pdf` and the detailed output is written to [`output/thermal_properties.yaml`](https://phonopy.github.io/phonopy/output-files.html#thermal-properties-yaml).
+
+## Choosing a supercell size
+
+!!! info
+	The ideal supercell size and shape depends on your problem at hand and it is difficult to give definite advice. In practice, the supercell size needs to be converged until the target property of interest is not changing anymore.  However there is a CLI tool that can help you to create supercells of different sizes.
+
+There is a [CLI utility](Documentation/cli/#vibes-utils)  in`FHI-vibes` that can help you to find supercells of different sizes:
+
 ```
-vibes output phonopy phonopy/trajectory.son --thermal_properties
+vibes utils make-supercell
 ```
-Carefully inspect all the files you produced.
+
+For example
+
+```
+vibes utils make-supercell geometry.in -n 8
+```
+
+will find the conventional, cubic cell of silicon with 8 atoms:
+
+```
+...
+Settings:
+  Target number of atoms: 8
+
+Supercell matrix:
+ python:  [-1,  1,  1,  1, -1,  1,  1,  1, -1]
+ cmdline: -1 1 1 1 -1 1 1 1 -1
+ 2d:
+[[-1, 1, 1],
+ [1, -1, 1],
+ [1, 1, -1]]
+
+Superlattice:
+[[5.42906529 0.         0.        ]
+ [0.         5.42906529 0.        ]
+ [0.         0.         5.42906529]]
+
+Number of atoms:  8
+  Cubicness:         1.000 (1.000)
+  Largest Cutoff:    2.715 AA
+  Number of displacements: 1 (1)
+
+Supercell written to geometry.in.supercell_8
+```
+
+It will tell you the supercell matrix that you can use in `phonopy.in` (`python:  [-1,  1,  1,  1, -1,  1,  1,  1, -1]`), the generated superlattice, a "cubicness" score based on the filling ratio of the largest sphere fitting into the cell, the largest cutoff in which any neighbor is not a periodic image of a closer neighbor to estimate boundary effects, and the number of supercells with displacements that  `phonopy` will create. It will also write the structure to `geometry.in.supercell_8` which you can inspect, e.g., with `jmol`.
+
+### Practical guideline
+
+In practice, you should go at least for about 200 atoms in semiconductors and try to find a cubic-as-possible supercell shape. Playing around with `utils make-supercell` and a little bit of experience will do the job.
