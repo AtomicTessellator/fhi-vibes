@@ -56,10 +56,8 @@ def molecular_dynamics(
         traj.compute_heat_fluxes_from_stresses()
 
     if "auto" in outfile.lower():
-        file = Path(trajectory).stem
-        if heat_flux:
-            file += "_hf"
-        outfile = file + ".nc"
+        outfile = Path(trajectory).stem
+        outfile += ".nc"
 
     DS = get_trajectory_dataset(traj, metadata=True)
     DS.to_netcdf(outfile)
