@@ -5,8 +5,8 @@ Welcome to `FHI-vibes`, a `python` package for _ab initio_ modeling of vibration
 
 ## Overview
 
-- [Documentation](Documentation/0_intro/)
 - [Tutorial](Tutorial/0_intro/)
+- [Documentation](Documentation/0_intro/)
 - If you are interested in scientific work that was performed using `FHI-vibes`, please have a look at [References](References.md)
 
 `FHI-vibes` is preparing a submission to [JOSS](https://joss.theoj.org/).

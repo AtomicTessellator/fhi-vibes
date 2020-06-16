@@ -24,6 +24,24 @@ nav:
         - Welcome!: README.md
         - References: References.md
         - License: license.md
+    - Tutorial:
+        - Overview: Tutorial/0_intro.md
+        - "Geometry Optimization": Tutorial/1_geometry_optimization.md
+        - "Phonon Calculations":
+            - "Background": Tutorial/2_phonopy_intro.md
+            - "Running a phonon calculation": Tutorial/2_phonopy.md
+        - "Molecular Dynamics":
+            - "Background": Tutorial/3_md_intro.md
+            - "Canonical Sampling": Tutorial/3_md_canonical_sampling.md
+            - Tutorial/3_md_postprocess.md
+            - "ab initio MD": Tutorial/3_md_ab_initio.md
+        - Tutorial/4_statistical_sampling.md
+        - Tutorial/5_anharmonicity_quantification.md
+        - High-Throughput:
+            - "Phonon Calculations": High_Throughput/Tutorial/0_phonopy.md
+            - "Multistep Workflows": High_Throughput/Tutorial/1_multistep.md
+        - Tutorial/acknowledgments.md
+        - Tutorial/references.md
     - Documentation: 
         - Overview: Documentation/0_intro.md
         - "Units": Documentation/units.md
@@ -46,24 +64,6 @@ nav:
                 - Phonon Calculations: High_Throughput/Documentation/5_phonons.md
                 - Monte Carlo Sampling: High_Throughput/Documentation/6_statistical_sampling.md
                 - Molecular Dynamics: High_Throughput/Documentation/7_md.md
-    - Tutorial:
-        - Overview: Tutorial/0_intro.md
-        - "Geometry Optimization": Tutorial/1_geometry_optimization.md
-        - "Phonon Calculations":
-            - "Background": Tutorial/2_phonopy_intro.md
-            - "Running a phonon calculation": Tutorial/2_phonopy.md
-        - "Molecular Dynamics":
-            - "Background": Tutorial/3_md_intro.md
-            - "Canonical Sampling": Tutorial/3_md_canonical_sampling.md
-            - Tutorial/3_md_postprocess.md
-            - "ab initio MD": Tutorial/3_md_ab_initio.md
-        - Tutorial/4_statistical_sampling.md
-        - Tutorial/5_anharmonicity_quantification.md
-        - High-Throughput:
-            - "Phonon Calculations": High_Throughput/Tutorial/0_phonopy.md
-            - "Multistep Workflows": High_Throughput/Tutorial/1_multistep.md
-        - Tutorial/acknowledgments.md
-        - Tutorial/references.md
 
 plugins:
   - search
