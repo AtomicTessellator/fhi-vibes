@@ -18,10 +18,7 @@ vibes template phonopy >> phonopy.in
 
 ??? info "`phonopy.in`"
 	```
-    [files]
-    geometry:                      geometry.in
-
-    [calculator]
+	[calculator]
     name:                          aims
     
     [calculator.parameters]
@@ -46,7 +43,7 @@ vibes template phonopy >> phonopy.in
     workdir:                       phonopy
     ```
 
-Obviously the most important section in the `phonopy.in` input file is `[phonopy]` which containts information about how the supercells with displacements should be set up to compute the force constants from the [finite-differences method](0_intro.md#Phonons).
+Obviously the most important section in the `phonopy.in` input file is `[phonopy]` which containts information about how the supercells with displacements should be set up to compute the force constants from the [finite-differences method](0_intro.md#Phonons). An explanation for the full list of keywords is found in the [documentation](../Documentation/phonopy.md). The most important two are explaned in the following:
 
 ### Supercell Matrix (`supercell_matrix`)
 
@@ -153,11 +150,7 @@ After you managed to compute the band structure, we proceed with evaluating and 
 vibes output phonopy phonopy/trajectory.son --full
 ```
 This will compute the frequencies on a grid of $45 \times 45 \times 45$ $\bf q$ points per default and uses the so-called Tetrahedron method to interpolate between the points. Afterwards it  counts the number of frequencies in bins of finite size. Depending on the calculation, the q-grid can be adjusted by specifying it with an additional flag 
-`--q_mesh`, for example
-
-```
-vibes output phonopy phonopy/trajectory.son -dos --q_mesh 26 26 26
-```
+`--q_mesh`.
 The density of states will be plotted alongside the bandstructure to a file `output/bandstructure_dos.pdf`, and written to a data file [`total_dos.dat`](https://phonopy.github.io/phonopy/output-files.html#total-dos-dat-and-projected-dos-dat).
 
 The DOS is then used to evaluate the harmonic free energy $F^{\rm ha}$ and the harmonic heat capacity at constant volume, $C_V$, i.e., the thermal properties accessible in the harmonic approximation.  An overview plot is saved to `output/thermal_properties.pdf` and the detailed output is written to [`output/thermal_properties.yaml`](https://phonopy.github.io/phonopy/output-files.html#thermal-properties-yaml).

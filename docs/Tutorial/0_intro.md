@@ -1,13 +1,17 @@
 # Tutorial
 
-In this tutorial, we introduce some of the functionality of `FHI-vibes` with hands-on examples.
+!!! warning
+	All tutorials assume you have a background in (_ab initio_) vibrational modeling. The background theory is written down to establish a common notation and cannot replace professional training by any means.
 
 !!! warning
 	The settings used throughout the tutorials are chosen in order to allow for smooth calculations. They are _not_ sufficient for producing publication-ready scientific results.
 
-!!! info
-	We assume that you are familiar with running *FHI-aims* calculations, and that you have [installed](../README.md#installation) and [configured](../README.md#configuration) `FHI-vibes` successfully.
-	
+!!! warning
+	We assume you have [installed](../README.md#installation) and [configured](../README.md#configuration) `FHI-vibes` successfully.
+
+
+In this tutorial, we introduce the functionality of `FHI-vibes` with hands-on examples.
+
 ### Outline
 
 The following tutorials are available:
@@ -20,6 +24,9 @@ The following tutorials are available:
 - [High-Throughput workflows](../High_Throughput/Tutorial/0_phonopy.md)
 
 ## Test systems for the tutorials
+
+!!! info
+	We assume that you are familiar with running *FHI-aims* for performing _ab initio_ calculations.
 
 There are two test system available for running the tutorials:
 

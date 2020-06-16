@@ -126,8 +126,8 @@ corr = si.correlate(pp, pp)[len(pp) - 1 :]
 # normalize to C(0) = 1
 corr /= corr[0]
 
-# create as pandas.Series for plotting
-s = pd.Series(corr)
+# create as pandas.Series for plotting and smoothen out the data a bit
+s = pd.Series(corr).rolling(min_periods=0, window=10).mean()
 ax = s.plot()
 
 # estimate correlation time from the drop below 0.1

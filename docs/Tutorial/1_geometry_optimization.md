@@ -3,13 +3,11 @@
 In this tutorial, you will learn how to perform a geometry optimization with `FHI-vibes`.
 
 !!! info
-	We give explicit references for LDA-Silicon. When using LJ-Argon, the only difference lies in how the `calculator` is defined and your `geometry.in` input file.
+	We give explicit references for LDA-Silicon. When using LJ-Argon, the only difference lies the definition of the calculator in the `[calculator]` section, and the respective structure defined in `geometry.in`.
 
 ## Define Inputs
 
-[Choose a test system](0_intro.md#test-systems) and copy the geometry information into a file called `geometry.in`. Next, we generate an input file for running a relaxation via the command line interface (CLI) of `FHI-vibes`. To this end, please copy the [calculator information for your test system](0_intro.md#test-systems) to a file called `relaxation.in`.
-
-Next we add template settings for performing the relaxation:
+[Choose a test system](0_intro.md#test-systems) and copy the geometry information into a file called `geometry.in`. Generate a task input file for running a relaxation by copying the [calculator information for your test system](0_intro.md#test-systems) to a file called `relaxation.in`. Next, use the command line interface (CLI) of `FHI-vibes` to obtain default settings for performing the relaxation and appending them to the input file:
 
 ```
 vibes template relaxation >> relaxation.in
@@ -52,7 +50,7 @@ In case of LDA-Silicon with `FHI-aims` calculator, the newly generated input fil
     restart:                       bfgs.restart
     ```
 
-The settings file template you just generated contains all the necessary settings to set up and run a geometry optimization with `FHI-vibes` using `FHI-aims` as the force/stress calculator (or Lennard-Jones if you're working with Argon).
+The settings file template you just generated contains all the necessary settings to set up and run a geometry optimization with `FHI-vibes` using `FHI-aims` as the force/stress calculator (or Lennard-Jones if you're working with Argon). The keywords are explained in the [documentation](../Documentation/relaxation.md).
 
 ## Run calculation
 You can start the calculation with `vibes run relaxation`. We suggest pipe the output, e.g., like this:
@@ -61,7 +59,7 @@ You can start the calculation with `vibes run relaxation`. We suggest pipe the o
 vibes run relaxation > log.relaxation &
 ```
 
-`vibes` will create a working directory with the default name `relaxation` and will handle running the `aims` calculations and using a [straightforward BFGS algorithm implemented in ASE](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs). You will find the converged structure in `relaxation/geometry.in.next_step`, and a summary of the relaxtion path in `relaxation/relaxation.log`.
+`vibes` will create a working directory with the default name `relaxation` and will handle running the `aims` calculations necessary to perform a [straightforward BFGS optimization of the structure as implemented in ASE](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs). You will find the converged structure in `relaxation/geometry.in.next_step`, and a summary of the relaxtion path in `relaxation/relaxation.log`.
 
 For a detailed summary of the relaxation path, you may run
 
