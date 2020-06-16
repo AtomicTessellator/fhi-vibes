@@ -1,8 +1,8 @@
 """obtain standardised stresses from atoms"""
 
 import numpy as np
-from ase.constraints import voigt_6_to_full_3x3_stress
 from ase.calculators.calculator import PropertyNotImplementedError
+from ase.constraints import voigt_6_to_full_3x3_stress
 
 
 def get_stresses(atoms):
@@ -14,9 +14,7 @@ def get_stresses(atoms):
         raise RuntimeError("Cannot obtain `stresses` if `stress` is not available.")
 
     stresses = enforce_3x3(atoms.get_stresses())
-    stresses = enforce_intensive(
-        stress, stresses, atoms.get_volume()
-    )
+    stresses = enforce_intensive(stress, stresses, atoms.get_volume())
 
     return stresses
 
@@ -39,7 +37,7 @@ def enforce_intensive(stress, stresses, volume):
         return stresses
 
     else:
-        np.testing.assert_allclose(stress, summed_stresses / volume)
+        assert np.allclose(stress, summed_stresses / volume)
 
         return stresses / volume
 
