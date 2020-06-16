@@ -43,7 +43,7 @@ def trajectory(
         traj.compute_heat_fluxes_from_stresses()
 
     if "auto" in outfile.lower():
-        outfile = Path(trajectory).stem
+        outfile = Path(file).stem
         outfile += ".nc"
 
     DS = get_trajectory_dataset(traj, metadata=True)
