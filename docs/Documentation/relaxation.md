@@ -50,7 +50,7 @@ Currently only [BFGS](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs) is s
 
 #### `fmax`
 
-`float`: Maximum residual force in $\require{mediawiki-texvc} \text{eV}/\AA$ ($\text{eV}/\AA^3$ for the stress components).
+`float`: Maximum residual force in $\require{mediawiki-texvc} \text{eV}/\AA$ (for the stress components: $\text{eV}/\AA^3$ ).
 
 #### `unit_cell`
 

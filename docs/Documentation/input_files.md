@@ -42,7 +42,7 @@ sigma:                         3.4
 [relaxation]
 driver:                        BFGS
 fmax:                          0.001
-workdir:                       ${calculator.parameters:xc}.relaxation
+workdir:                       ${calculator:name}.relaxation
 
 [relaxation.kwargs]
 maxstep:                       0.2

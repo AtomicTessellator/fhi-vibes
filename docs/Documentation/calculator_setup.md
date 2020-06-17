@@ -28,7 +28,7 @@ The name of the [ASE calculator class name](https://wiki.fysik.dtu.dk/ase/ase/ca
 
 ### `[calculator.parameters]`
 
-These keywords are used 1:1 to set up the ASE calculator:
+These are the keywords used 1:1 to set up the ASE calculator:
 
 ```python
 cls = get_calculator_class(settings.calculator.get("name"))
@@ -63,7 +63,17 @@ port:                          12345
 
 ### `[calculator.parameters]`
 
-These keywords correspond one-to-one to the FHI-aims keywords that  are written to `control.in`.
+These keywords correspond one-to-one to the FHI-aims keywords that  are written to `control.in`. Keyword-only arguments like `vdw_correction_hirshfeld` or `use_gpu` should be given with the value `true`:
+
+```
+[calculator.parameters]
+xc:                            pw-lda
+vdw_correction_hirshfeld:      true
+use_gpu:                       true
+...
+```
+
+
 
 ### `[calculator.kpoints]` (optional)
 
@@ -96,5 +106,5 @@ Set up socket communication via [`SocketIOCalculator`](https://wiki.fysik.dtu.dk
 The socket port to use.
 
 - `null`: don't use the socket.
-- `0`-`65535`: use this port.
+- `1024`-`65535`: use this port.
 

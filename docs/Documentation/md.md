@@ -1,7 +1,7 @@
 !!! info
 	A hands-on example for setting up and running a molecular dynamics run [Tutorial](../Tutorial/3_md_intro.md).
 
-vibes supports running molecular dynamics simulations via [ASE](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md) om NVE, NVT, and NPT ensembles. A minimal `md.in` for running 1000 steps of [Velocity Verlet dynamics](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md.verlet) with a Lennard Jones calculator would be
+vibes supports running molecular dynamics simulations via [ASE](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md) in NVE, NVT, and NPT ensembles. A minimal `md.in` for running 1000 steps of [Velocity Verlet dynamics](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md.verlet) with a Lennard Jones calculator would be
 
 ```fo
 [files]

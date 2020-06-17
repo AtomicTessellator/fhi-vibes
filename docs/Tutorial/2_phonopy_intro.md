@@ -7,7 +7,6 @@
 
 To determine the vibrations in a solid, we approximate the potential energy surface
 for the nuclei by performing a Taylor expansion of the total energy $\mathcal V({\bf R})$ around the equilibrium positions:
-
 $$
 \require{cancel}
 \begin{aligned}
@@ -44,7 +43,7 @@ The definition in Eq.$~\eqref{eq:FinDiff}$ is helpful to realize that the Hessia
 if we displace atom $\vec{R}_I$, as you have already learned in tutorial 1. However, an additional complexity arises in the case of _periodic boundary conditions_,
 since beside the atoms in the unit cell $\vec{R}_J$ we also need to account for the periodic images $\vec{R}_{J'}$. Accordingly, the Hessian is in principle a matrix 
 of infinite size. In non-ionic crystals, however, the interaction between two atoms$~I$ and $J$ quickly decays with their distance$~\vec{R}_{IJ}$, so that we can compute the Hessian from
-finite supercells, the size convergence of which must be accurately inspected (cf. Exercise \hyperref[ex2]{2}).
+finite supercells, the size convergence of which must be accurately inspected.
 
 Once the real-space representation of the Hessian is computed, we can determine the _dynamical matrix_ by adding up the contributions
 from all periodic images$~J'$ in the mass-scaled Fourier transform of the Hessian:
@@ -135,7 +134,7 @@ foundations, we refer to [[BornHuang](references.md#BornHuang)].
 To compute the quantities introduced above, we will use 
 `FHI-vibes`, which uses the package _phonopy_ [[Togo2015](references.md#Togo2015)] as a backend to compute vibrational properties via the finite-displacements method as outlined above. Please note that 
 _phonopy_ makes extensive use of symmetry 
-analysis [[Parlinski1997](references.md#Parlinski1997)], which allows to reduce numerical noise and to speed up the calculations considerably. Out system of choice will be fcc-diamond Silicon.
+analysis [[Parlinski1997](references.md#Parlinski1997)], which allows to reduce numerical noise and to speed up the calculations considerably. Our system of choice will be fcc-diamond Silicon (you can run the tutorial as well with [LJ-Argon](0_intro.md#test-systems-for-the-tutorials)).
 
 !!! warning
     In the following exercises, the computational settings, in particular the reciprocal space grid (tag `k_grid`), the basisset and supercell sizes, have been chosen to allow a rapid computation of the exercises. In a _real_ production calculation, the reciprocal space grid, the basis set, and the supercells would all have to be converged with much more care,  although the qualitative trends hold already with the present settings.
@@ -185,7 +184,7 @@ vibes info geometry geometry.in -v
     
 Please note that the list of points is given in
 fractional coordinates as coefficients of the _reciprocal_ lattice. For 
-the meaning of the Symbols $\Gamma$, $X$, etc., you can take a look at [the Wikipedia article](https://en.wikipedia.org/wiki/Brillouin_zone#Critical_points).
+the meaning of the Symbols $\Gamma$ (G), $X$, etc., you can take a look at [the Wikipedia article](https://en.wikipedia.org/wiki/Brillouin_zone#Critical_points).
 
 ### Bandstructure
 If we connect two or more $\bf q$ points from the Brillouin zone, solve the eigenvalue 
