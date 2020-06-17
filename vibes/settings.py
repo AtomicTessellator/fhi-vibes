@@ -12,8 +12,6 @@ from vibes._defaults import (
     DEFAULT_GEOMETRY_FILE,
     DEFAULT_SETTINGS_FILE,
 )
-from vibes.helpers.dict import merge
-from vibes.helpers.warnings import warn
 
 
 class SettingsError(Exception):
@@ -36,6 +34,8 @@ def verify_key(
         section: If True key is a section in obj
         allowed_to_fail: If True use wannings not errors
     """
+    from vibes.helpers.warnings import warn
+
     if not hint:
         hint = str(obj)
 
@@ -91,6 +91,9 @@ class Settings(Config):
             debug: add verbosity for debugging
 
         """
+        from vibes.helpers.dict import merge
+        from vibes.helpers.warnings import warn
+
         if debug and dct is None and settings_file is None:
             warn("`settings_file` is `None`", level=1)
 
@@ -145,6 +148,7 @@ class Settings(Config):
 
     def write(self, file=None):
         """write settings to file"""
+        from vibes.helpers.warnings import warn
 
         if not file:
             file = Path(self.file).name
@@ -164,6 +168,7 @@ class Settings(Config):
         """parse the geometry described in settings.in and return as atoms
         """
         from ase.io import read
+        from vibes.helpers.warnings import warn
 
         if "files" in self and "geometry" in self["files"]:
             path = Path(self.files.geometry)

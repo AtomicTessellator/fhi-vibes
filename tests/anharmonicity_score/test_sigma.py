@@ -5,15 +5,11 @@ from pathlib import Path
 import numpy as np
 
 import vibes.anharmonicity_score as score
-from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
 from vibes.trajectory import reader
 
 parent = Path(__file__).parent
 
-fc = parse_tdep_remapped_forceconstant(parent / "outfile.forceconstant_remapped")
-
-trajectory = reader(parent / "trajectory.son")
-trajectory.set_force_constants_remapped(fc)
+trajectory = reader(parent / "trajectory.nc")
 
 
 # def test_r2():

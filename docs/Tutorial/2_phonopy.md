@@ -1,5 +1,8 @@
 <a name="2_Phonopy"></a>
 
+!!! info
+	For vibrational studies, it is crucial to use structures that are accurately  relaxed. Before starting with actual phonon calculations, make sure you are familiar with [geometry optimization](1_geometry_optimization.md).
+
 ??? info "Prerequisite"
 	Create a new working directory and copy over the `geometry.in.next_step` file you obtained from the previous geometry optimization as your new `geometry.in` file.
 
@@ -15,17 +18,14 @@ vibes template phonopy >> phonopy.in
 
 ??? info "`phonopy.in`"
 	```
-    [files]
-    geometry:                      geometry.in
-
-    [calculator]
+	[calculator]
     name:                          aims
     
     [calculator.parameters]
     xc:                            pw-lda
     
     [calculator.kpoints]
-    density:                       1
+    density:                       2
     
     [calculator.basissets]
     default:                       light
@@ -37,18 +37,17 @@ vibes template phonopy >> phonopy.in
     supercell_matrix:              [1, 1, 1]
     displacement:                  0.01
     is_diagonal:                   False
-    is_trigonal:                   False
     is_plusminus:                  auto
     symprec:                       1e-05
     q_mesh:                        [45, 45, 45]
     workdir:                       phonopy
     ```
 
-Obviously the most important section in the `phonopy.in` input file is `[phonopy]` which containts information about how the supercells with displacements should be set up to compute the force constants from the [finite-differences method](0_intro.md#Phonons).
+Obviously the most important section in the `phonopy.in` input file is `[phonopy]` which containts information about how the supercells with displacements should be set up to compute the force constants from the [finite-differences method](0_intro.md#Phonons). An explanation for the full list of keywords is found in the [documentation](../Documentation/phonopy.md). The most important two are explaned in the following:
 
 ### Supercell Matrix (`supercell_matrix`)
 
-The supercell matrix $M_\t{s}$ given as `supercell_matrix` will be used to [generate the lattice of the supercell from the lattice of the primitive unitcell by matrix multiplication:](https://phonopy.github.io/phonopy/phonopy-module.html#supercell-matrix)
+The supercell matrix $M_{\rm S}$ given as `supercell_matrix` will be used to [generate the lattice of the supercell from the lattice of the primitive unitcell by matrix multiplication:](https://phonopy.github.io/phonopy/phonopy-module.html#supercell-matrix)
 
 $$
 \begin{align}
@@ -142,3 +141,67 @@ This will:
 	![image](bandstructure.png)
 	
 **Congratulations!** You have just performed a full _ab initio_ phonon bandstructure calculation.
+
+## More post processing
+
+### DOS and Thermal Properties
+After you managed to compute the band structure, we proceed with evaluating and plotting the density of states and thermal properties. You can do this as with the CLI command `vibes output phonopy –full`:
+```
+vibes output phonopy phonopy/trajectory.son --full
+```
+This will compute the frequencies on a grid of $45 \times 45 \times 45$ $\bf q$ points per default and uses the so-called Tetrahedron method to interpolate between the points. Afterwards it  counts the number of frequencies in bins of finite size. Depending on the calculation, the q-grid can be adjusted by specifying it with an additional flag 
+`--q_mesh`.
+The density of states will be plotted alongside the bandstructure to a file `output/bandstructure_dos.pdf`, and written to a data file [`total_dos.dat`](https://phonopy.github.io/phonopy/output-files.html#total-dos-dat-and-projected-dos-dat).
+
+The DOS is then used to evaluate the harmonic free energy $F^{\rm ha}$ and the harmonic heat capacity at constant volume, $C_V$, i.e., the thermal properties accessible in the harmonic approximation.  An overview plot is saved to `output/thermal_properties.pdf` and the detailed output is written to [`output/thermal_properties.yaml`](https://phonopy.github.io/phonopy/output-files.html#thermal-properties-yaml).
+
+## Choosing a supercell size
+
+!!! info
+	The ideal supercell size and shape depends on your problem at hand and it is difficult to give definite advice. In practice, the supercell size needs to be converged until the target property of interest is not changing anymore.  However there is a CLI tool that can help you to create supercells of different sizes.
+
+There is a [CLI utility](Documentation/cli/#vibes-utils)  in`FHI-vibes` that can help you to find supercells of different sizes:
+
+```
+vibes utils make-supercell
+```
+
+For example
+
+```
+vibes utils make-supercell geometry.in -n 8
+```
+
+will find the conventional, cubic cell of silicon with 8 atoms:
+
+```
+...
+Settings:
+  Target number of atoms: 8
+
+Supercell matrix:
+ python:  [-1,  1,  1,  1, -1,  1,  1,  1, -1]
+ cmdline: -1 1 1 1 -1 1 1 1 -1
+ 2d:
+[[-1, 1, 1],
+ [1, -1, 1],
+ [1, 1, -1]]
+
+Superlattice:
+[[5.42906529 0.         0.        ]
+ [0.         5.42906529 0.        ]
+ [0.         0.         5.42906529]]
+
+Number of atoms:  8
+  Cubicness:         1.000 (1.000)
+  Largest Cutoff:    2.715 AA
+  Number of displacements: 1 (1)
+
+Supercell written to geometry.in.supercell_8
+```
+
+It will tell you the supercell matrix that you can use in `phonopy.in` (`python:  [-1,  1,  1,  1, -1,  1,  1,  1, -1]`), the generated superlattice, a "cubicness" score based on the filling ratio of the largest sphere fitting into the cell, the largest cutoff in which any neighbor is not a periodic image of a closer neighbor to estimate boundary effects, and the number of supercells with displacements that  `phonopy` will create. It will also write the structure to `geometry.in.supercell_8` which you can inspect, e.g., with `jmol`.
+
+### Practical guideline
+
+In practice, you should go at least for about 200 atoms in semiconductors and try to find a cubic-as-possible supercell shape. Playing around with `utils make-supercell` and a little bit of experience will do the job.

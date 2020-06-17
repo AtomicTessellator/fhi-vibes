@@ -3,7 +3,7 @@ import subprocess as sp
 import pytest
 
 command = "vibes template "
-templates = ["aims", "phonopy", "md", "relaxation"]
+templates = ["calculator aims", "calculator lj", "phonopy", "md", "relaxation"]
 
 
 def _run(cmd, cwd):

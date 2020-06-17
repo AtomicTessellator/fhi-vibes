@@ -5,7 +5,6 @@ from fireworks.fw_config import CONFIG_FILE_DIR, LAUNCHPAD_LOC
 from vibes.cli.misc import AliasedGroup
 from vibes.fireworks._defaults import FW_DEFAULTS
 from vibes.helpers import talk
-from vibes.structure.misc import get_sysname
 
 
 class ListOption(click.Option):
@@ -52,6 +51,7 @@ def add_wf(workflow, launchpad):
     from vibes.context import TaskContext
     from vibes.fireworks.workflows.workflow_generator import generate_workflow
     from vibes.settings import Settings
+    from vibes.structure.misc import get_sysname
 
     settings = Settings(settings_file=workflow)
     structure_files = []

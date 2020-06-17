@@ -1,60 +1,28 @@
 # Phonons
 
-## Outline
-
-During the course of this workshop, we have used periodic boundary conditions 
-in first-principles calculations to efficiently describe macroscopic, crystalline materials. It is important
-to realize that the application of periodic boundary conditions relies on the 
-assumption that the nuclei constitute an immobile grid with fixed periodicity. 
-However, thermodynamic fluctuations constantly lead to displacements from this
-perfectly periodic grid of equilibrium positions --  even at zero temperature 
-due to the quantum mechanical zero point motion. Accounting for this dynamics 
-is essential to understand the physics of many fundamental material properties
-such as the specific heat, the thermal expansion, as well as charge and heat
-transport.
-
-To introduce you to these effects, this tutorial consists of two parts:
-
-1. **Phonons: Harmonic Vibrations in Solids**
-   - Using `phonopy` via `vibes`
-   - Supercell size convergence
-   - Lattice Expansion: The Quasi-Harmonic Approximation
-2. **Electron-Phonon Coupling: Band Gap Renormalization**
-   - The Role of the Lattice Expansion
-   - The Role of the Atomic Motion
-
-In part I, we will compute the vibrational properties
-of a solid using the _harmonic approximation_. In particular, we will discuss and 
-investigate the convergence with respect to the supercell size used in the calculations.
-Furthermore, we will learn how the harmonic approximation can be extended in a straightforward
-fashion to approximatively account for a certain degree of anharmonic effects~(quasi-harmonic
-approximation) and how this technique can be used to compute the thermal lattice expansion.
-
-In [part 1](#Phonons), we will then go back to electronic structure theory and investigate
-how the fact that the nuclei are not immobile affects the electronic band structure. Both the role
-of the lattice expansion and of the atomic motion will be discussed and analyzed. 
+!!! info
+	We assume that you are familiar with the basics of phonon theory and you are here to learn how to perform them with `FHI-vibes`. We give a short recap on the background below.
 
 ## <a name="Phonons"></a> Phonons: Harmonic vibrations in solids
 
 To determine the vibrations in a solid, we approximate the potential energy surface
-for the nuclei by performing a Taylor expansion of the total energy $E$ around the equilibrium positions:
-
+for the nuclei by performing a Taylor expansion of the total energy $\mathcal V({\bf R})$ around the equilibrium positions:
 $$
 \require{cancel}
 \begin{aligned}
 \def\vec#1{{\mathbf{#1}}}
 \def\t#1{\text{#1}}
-E \left(\{\vec{R}^0 + \Delta \vec{R}\}\right) 
+\mathcal V \left(\{\vec{R}^0 + \Delta \vec{R}\}\right) 
 & \approx 
-E\left(\{\vec{R}^0\}\right) \\
-& + \cancel{ \sum\limits_{I} \left.\frac{\partial E}{\partial \vec{R}_I}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I} } \\
-& + \frac{1}{2} \sum\limits_{I,J} \left.\frac{\partial^2 E}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I}\Delta\vec{R}_{J} \\
+\mathcal V\left(\{\vec{R}^0\}\right) \\
+& + \cancel{ \sum\limits_{I} \left.\frac{\partial \mathcal V}{\partial \vec{R}_I}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I} } \\
+& + \frac{1}{2} \sum\limits_{I,J} \left.\frac{\partial^2 \mathcal V}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} \Delta\vec{R}_{I}\Delta\vec{R}_{J} \\
 & + \mathcal{O}(\Delta\vec{R}^3)
 \end{aligned}
 $$
 
-The linear term vanishes, since no forces $\vec{F} = - \nabla E$ are acting on the system in equilibrium $\vec{R}^0$. 
-Assessing the Hessian $\Phi_{IJ} = \frac{\partial^2 E}{\partial \vec{R}_I\partial \vec{R}_J}$ involves some additional
+The linear term vanishes, since no forces $\vec{F} = - \nabla \mathcal V$ are acting on the system in equilibrium $\vec{R}^0$. 
+Assessing the Hessian $\Phi_{IJ} = \frac{\partial^2 \mathcal V}{\partial \vec{R}_I\partial \vec{R}_J}$ involves some additional
 complications: In contrast to the forces $\vec{F}$, which only depend on the density, the Hessian $\Phi_{IJ}$ also depends
 on its derivative with respect to the nuclear coordinates, i.e., on its _response_ to nuclear displacements. One can either 
 use _Density Functional Perturbation Theory (DFPT)_ [[Baroni2001](references.md#baroni2001)] to compute the response 
@@ -63,7 +31,7 @@ or one can circumvent this problem by performing the second order derivative _nu
 $$
 \begin{align}
 \Phi_{IJ} 
-= \left.\frac{\partial^2 E}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} 
+= \left.\frac{\partial^2 \mathcal V}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} 
 = - \left.\frac{\partial }{\partial \vec{R}_I} \vec{F}_J\right\vert_{\vec{R}^0}
 \approx - \frac{ \vec{F}_J(\vec{R}_I^0 + \varepsilon \,\vec{d}_I)}{\varepsilon}~,
 \label{eq:FinDiff}
@@ -75,7 +43,7 @@ The definition in Eq.$~\eqref{eq:FinDiff}$ is helpful to realize that the Hessia
 if we displace atom $\vec{R}_I$, as you have already learned in tutorial 1. However, an additional complexity arises in the case of _periodic boundary conditions_,
 since beside the atoms in the unit cell $\vec{R}_J$ we also need to account for the periodic images $\vec{R}_{J'}$. Accordingly, the Hessian is in principle a matrix 
 of infinite size. In non-ionic crystals, however, the interaction between two atoms$~I$ and $J$ quickly decays with their distance$~\vec{R}_{IJ}$, so that we can compute the Hessian from
-finite supercells, the size convergence of which must be accurately inspected (cf. Exercise \hyperref[ex2]{2}).
+finite supercells, the size convergence of which must be accurately inspected.
 
 Once the real-space representation of the Hessian is computed, we can determine the _dynamical matrix_ by adding up the contributions
 from all periodic images$~J'$ in the mass-scaled Fourier transform of the Hessian:
@@ -166,10 +134,65 @@ foundations, we refer to [[BornHuang](references.md#BornHuang)].
 To compute the quantities introduced above, we will use 
 `FHI-vibes`, which uses the package _phonopy_ [[Togo2015](references.md#Togo2015)] as a backend to compute vibrational properties via the finite-displacements method as outlined above. Please note that 
 _phonopy_ makes extensive use of symmetry 
-analysis [[Parlinski1997](references.md#Parlinski1997)], which allows to reduce numerical noise and to speed up the calculations considerably. Out system of choice will be fcc-diamond Silicon.
+analysis [[Parlinski1997](references.md#Parlinski1997)], which allows to reduce numerical noise and to speed up the calculations considerably. Our system of choice will be fcc-diamond Silicon (you can run the tutorial as well with [LJ-Argon](0_intro.md#test-systems-for-the-tutorials)).
 
 !!! warning
     In the following exercises, the computational settings, in particular the reciprocal space grid (tag `k_grid`), the basisset and supercell sizes, have been chosen to allow a rapid computation of the exercises. In a _real_ production calculation, the reciprocal space grid, the basis set, and the supercells would all have to be converged with much more care,  although the qualitative trends hold already with the present settings.
+
+## Recap on solid state physics
+
+### Brillouin Zone
+
+As you know, the periodicity of the atomic positions 
+in a lattice is reflected by the fact that it is sufficient to look at $\bf q$ 
+values within the first Brillouin zone of the reciprocal lattice: A wave vector 
+$\bf q$ that lies outside the first Brillouin zone corresponds to a wave whose 
+wavelength is _shorter than the distance between periodic images of the 
+same atom. It can thus be represented equally well by a wave with longer 
+wavelength, i.e. a smaller wave vector ${\bf q}'$ taken from within the 
+first [Brillouin zone](https://en.wikipedia.org/wiki/Phonon\#Crystal_momentum).
+
+### High Symmetry Points
+The Brillouin zone of our Silicon fcc diamond structure is displayed below
+
+??? info "Plot of Brillouin zone if fcc lattice"
+	![image](assets/BZ_fcc.png)
+
+The labelled points correspond to $\bf q$ 
+values of high symmetry. This means that there are symmetry operations in the 
+point group of the lattice that leave this point invariant (up to a reciprocal space vector) 
+[p. 218 in Dresselhaus].
+
+You can list the high symmetry points of the lattice of your geometry with `vibes` by 
+running
+
+```
+vibes info geometry geometry.in -v
+```
+
+??? info "list  of high symmetry points"
+    ```
+    ...
+    Special k points:
+    G: [0. 0. 0.]
+    K: [0.375 0.375 0.75 ]
+    L: [0.5 0.5 0.5]
+    U: [0.625 0.25  0.625]
+    W: [0.5  0.25 0.75]
+    X: [0.5 0.  0.5]
+    ```
+    
+Please note that the list of points is given in
+fractional coordinates as coefficients of the _reciprocal_ lattice. For 
+the meaning of the Symbols $\Gamma$ (G), $X$, etc., you can take a look at [the Wikipedia article](https://en.wikipedia.org/wiki/Brillouin_zone#Critical_points).
+
+### Bandstructure
+If we connect two or more $\bf q$ points from the Brillouin zone, solve the eigenvalue 
+problem for any $\bf q$ point in between, and plot the 
+obtained dispersions $\omega (q)$ versus $q$, we obtain the so-called phonon bandstructure. The bandstructure is typically computed for a path in the Brillouin 
+zone that connects several or all of the high symmetry points.
+
+
 
 [^footnote1]: Given that the _Bose-Einstein distribution_ is used for
 the derivation of the harmonic free energy in this case, we get the correct quantum-mechanical result including zero-point effects by this means.

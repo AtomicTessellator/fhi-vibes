@@ -5,11 +5,11 @@ Welcome to `FHI-vibes`, a `python` package for _ab initio_ modeling of vibration
 
 ## Overview
 
-- [Documentation](https://flokno.gitlab.io/hilde/Documentation/0_intro/)
-- [Tutorial](https://flokno.gitlab.io/hilde/Tutorial/0_intro/)
+- [Tutorial](Tutorial/0_intro/)
+- [Documentation](Documentation/0_intro/)
 - If you are interested in scientific work that was performed using `FHI-vibes`, please have a look at [References](References.md)
 
-`FHI-vibes` is submitted to [JOSS](https://joss.theoj.org/).
+`FHI-vibes` is preparing a submission to [JOSS](https://joss.theoj.org/).
 
 ## Installation
 
@@ -21,6 +21,7 @@ Welcome to `FHI-vibes`, a `python` package for _ab initio_ modeling of vibration
   
   - `apt-get install gfortran` in Debian-derived systems, or
   - `conda install -c conda-forge fortran-compiler` when `conda` is used.
+- If you want to use `FHI-aims` for running _ab initio_ calculations, make sure you have a recent version that supports the iPi socket communication.
 
 
 ### Install `vibes`

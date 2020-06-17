@@ -3,8 +3,8 @@
 import shutil
 
 import click
-
 import click_completion
+
 from vibes import __version__ as vibes_version
 from vibes._defaults import DEFAULT_CONFIG_FILE
 

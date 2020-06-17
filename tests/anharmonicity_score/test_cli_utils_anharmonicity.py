@@ -6,10 +6,7 @@ import pytest
 parent = Path(__file__).parent
 
 
-commands = (
-    "vibes output md trajectory.son -rfc outfile.forceconstant_remapped",
-    "vibes utils anharmonicity sigma trajectory.nc",
-)
+commands = ("vibes utils anharmonicity sigma trajectory.nc",)
 
 
 @pytest.mark.parametrize("cmd", commands)

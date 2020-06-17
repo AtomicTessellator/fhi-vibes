@@ -5,7 +5,7 @@ import click
 from vibes import keys
 from vibes.templates import config_files, settings
 
-from .misc import AliasedGroup
+from .misc import AliasedGroup, ClickAliasedGroup
 
 try:
     import importlib.resources as pkg_resources
@@ -14,40 +14,43 @@ except ModuleNotFoundError:
 
 
 @click.command(cls=AliasedGroup)
-@click.option("--allow_overwrite", is_flag=True, show_default=True)
-@click.pass_obj
-def template(obj, allow_overwrite):
+def template():
     """provide template input files for tasks and workflows"""
-    obj.allow_overwrite = allow_overwrite
 
 
-@template.command("aims")
-@click.argument("file", default="aims.in")
-@click.pass_obj
-def aims_input(obj, file):
-    """provide template settings.in for aims calculation"""
-
-    print_input(obj, "aims", file)
+@template.command(cls=ClickAliasedGroup)
+def calculator():
+    """Calculator templates: aims, lj"""
 
 
-@template.command("phonopy")
-@click.argument("file", default="phonopy.in")
-@click.pass_obj
-def phonopy_input(obj, file):
-    """provide template phonopy.in for phonopy workflow."""
+@calculator.command()
+def aims():
+    """provide template input for aims calculator"""
+
+    print_input("aims")
+
+
+@calculator.command()
+def lj():
+    """provide template input for Lennard-Jones calculator for solid Argon"""
+
+    print_input("lj")
+
+
+@template.command()
+def phonopy():
+    """provide template input for phonopy workflow."""
     from vibes.phonopy.context import PhonopyContext
 
     ctx = PhonopyContext()
     ctx.settings.print()
 
 
-@template.command("md")
-@click.argument("file", default="md.in")
-@click.option("--nvt", is_flag=True)
-@click.option("--npt", is_flag=True)
-@click.pass_obj
-def md_input(obj, file, nvt, npt):
-    """provide template md.in for molecular dynamics workflow."""
+@template.command()
+@click.option("--nvt", is_flag=True, help="Use Langevin thermostat for NVT simulation")
+@click.option("--npt", is_flag=True, help="Use Berendsen algorithm for NPT simulation")
+def md(nvt, npt):
+    """provide template input for MD simulation (default: NVE)"""
     from vibes.molecular_dynamics.context import MDContext
 
     if nvt:
@@ -61,45 +64,42 @@ def md_input(obj, file, nvt, npt):
     ctx.settings.print()
 
 
-@template.command("relaxation")
-@click.argument("file", default="relaxation.in")
-@click.pass_obj
-def relaxation_input(obj, file):
-    """provide template relaxation.in for relaxation workflow."""
+@template.command()
+def relaxation():
+    """provide template input for relaxation workflow."""
     from vibes.relaxation.context import RelaxationContext
 
     ctx = RelaxationContext()
     ctx.settings.print()
 
 
-@template.command("configuration")
-@click.argument("file", default="vibesrc")
-@click.pass_obj
-def configuration_input(obj, file):
-    """provide template vibesrc.template for the configuration"""
-
-    print_input(obj, "vibesrc.template", file, from_folder=config_files)
+@template.command(cls=ClickAliasedGroup)
+def configuration():
+    """Configuration templates: .vibesrc, .fireworksrc"""
 
 
-@template.command("fireworks_configuration")
-@click.argument("file", default="fireworksrc")
-@click.pass_obj
-def fireworks_configuration_input(obj, file):
-    """provide template fireworksrc.template for the configuration"""
+@configuration.command()
+def vibes():
+    """provide template input for .vibesrc"""
 
-    print_input(obj, "fireworksrc.template", file, from_folder=config_files)
+    print_input("vibesrc.template", from_folder=config_files)
 
 
-@template.command("slurm")
-@click.argument("file", default="slurm.in")
-@click.pass_obj
-def slurm_input(obj, file):
+@configuration.command()
+def fireworks():
+    """provide template inpurt for .fireworksrc"""
+
+    print_input("fireworksrc.template", from_folder=config_files)
+
+
+@template.command()
+def slurm():
     """provide template slurm settings"""
 
-    print_input(obj, "slurm.in", file, from_folder=config_files)
+    print_input("slurm.in", from_folder=config_files)
 
 
-def print_input(obj, name, file, from_folder=settings):
+def print_input(name, from_folder=settings):
     """write the input function"""
 
     input_file = pkg_resources.read_text(from_folder, name)

@@ -32,46 +32,46 @@ def submit(obj, dry):
     obj.dry = dry
 
 
-@submit.command("aims")
-@click.argument("settings", default="aims.in", type=paths)
+@submit.command()
+@click.argument("file", default="aims.in", type=paths)
 @click.pass_obj
-def aims_submit(obj, settings):
-    """submit one or several aims calculations from SETTINGS (default: aims.in)"""
+def singlepoint(obj, file):
+    """submit singlepoint calculations from FILE (default: aims.in)"""
 
-    _start(settings, "aims", dry=obj.dry)
+    _start(file, "singlepoint", dry=obj.dry)
 
 
-@submit.command("phonopy")
-@click.argument("settings", default="phonopy.in", type=paths)
+@submit.command()
+@click.argument("file", default="phonopy.in", type=paths)
 @click.pass_obj
-def phonopy_run(obj, settings):
-    """submit a phonopy calculation for SETTINGS (default: phonopy.in)"""
+def phonopy(obj, file):
+    """submit a phonopy calculation from FILE (default: phonopy.in)"""
 
-    _start(settings, "phonopy", dry=obj.dry)
+    _start(file, "phonopy", dry=obj.dry)
 
 
-@submit.command("phono3py")
-@click.argument("settings", default="phono3py.in", type=paths)
+@submit.command()
+@click.argument("file", default="phono3py.in", type=paths)
 @click.pass_obj
-def phono3py_run(obj, settings):
-    """submit a phonopy calculation for SETTINGS (default: phonopy.in)"""
+def phono3py(obj, file):
+    """submit a phono3py calculation for FILE (default: phono3py.in)"""
 
-    _start(settings, "phono3py", dry=obj.dry)
+    _start(file, "phono3py", dry=obj.dry)
 
 
-@submit.command("md")
-@click.argument("settings", default="md.in", type=paths)
+@submit.command()
+@click.argument("file", default="md.in", type=paths)
 @click.pass_obj
-def md_run(obj, settings):
-    """submit an MD simulation from SETTINS (default: md.in)"""
+def md(obj, file):
+    """submit MD simulation from FILE (default: md.in)"""
 
-    _start(settings, "md", dry=obj.dry)
+    _start(file, "md", dry=obj.dry)
 
 
-@submit.command("relaxation")
-@click.argument("settings", default="relaxation.in", type=paths)
+@submit.command()
+@click.argument("file", default="relaxation.in", type=paths)
 @click.pass_obj
-def relaxation_run(obj, settings):
-    """submit an relaxation from SETTINS (default: relaxation.in)"""
+def relaxation(obj, file):
+    """submit relaxation from FILE (default: relaxation.in)"""
 
-    _start(settings, "relaxation", dry=obj.dry)
+    _start(file, "relaxation", dry=obj.dry)

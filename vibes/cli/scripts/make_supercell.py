@@ -33,9 +33,9 @@ def make_supercell(
     deviation,
     dry,
     format,
-    scaled,
+    scaled=True,
     wrap=False,
-    output_file=None,
+    outfile=None,
 ):
     """create or find a supercell
 
@@ -58,6 +58,7 @@ def make_supercell(
     wrap: bool
         wrap atoms back to cell
     """
+    from vibes.phonopy.wrapper import preprocess
 
     timer = Timer()
     print(f"Find supercell for")
@@ -77,6 +78,12 @@ def make_supercell(
     else:
         exit("Please specify either a target cell size or a supercell matrix")
 
+    # find number of phonopy displacements
+    _, _, scs_ref = preprocess(cell, supercell_matrix=1)
+
+    if dimension is not None:
+        _, _, scs = preprocess(cell, supercell_matrix=smatrix)
+
     print(f"\nSupercell matrix:")
     print(" python:  {}".format(np.array2string(smatrix.flatten(), separator=", ")))
     print(" cmdline: {}".format(" ".join([f"{el}" for el in smatrix.flatten()])))
@@ -87,18 +94,19 @@ def make_supercell(
     print(supercell.cell.array)
     print(f"\nNumber of atoms:  {len(supercell)}")
     cub = get_cubicness(supercell.cell)
-    print(f"  Cubicness:         {cub:.3f} ({cub**3:.3f})")
-    sh = inscribed_sphere_in_box(supercell.cell)
-    print(f"  Largest Cutoff:    {sh:.3f} AA")
+    cutoff = inscribed_sphere_in_box(supercell.cell)
+    print(f"  Cubicness:               {cub:.3f} ({cub**3:.3f})")
+    print(f"  Largest Cutoff:          {cutoff:.3f} AA")
+    print(f"  Number of displacements: {len(scs)} ({len(scs_ref)})")
 
     if not dry:
         spacegroup = get_spacegroup(cell)
-        if not output_file:
-            output_file = f"{file}.supercell_{len(supercell)}"
+        if not outfile:
+            outfile = f"{file}.supercell_{len(supercell)}"
         info_str = get_info_str(supercell, spacegroup)
         info_str += [f"Supercell matrix:    {smatrix.flatten()}"]
-        supercell.write(output_file, format=format, scaled=scaled, info_str=info_str)
-        print(f"\nSupercell written to {output_file}")
+        supercell.write(outfile, format=format, scaled=scaled, info_str=info_str)
+        print(f"\nSupercell written to {outfile}")
 
     timer()
 

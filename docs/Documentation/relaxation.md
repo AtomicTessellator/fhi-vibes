@@ -1,21 +1,44 @@
-```
+!!! info
+	An hands-on example for setting up and running a relaxation can be found in the [Tutorial](../Tutorial/1_geometry_optimization.md).
+
+vibes supports geometry optimization by setting up a `relaxation.in` file. A minimal `relaxation.in` would look like
+
+```fo
+[files]
+geometry:                      geometry.in
+
+[calculator]
+name:                          lj
+
+[calculator.parameters]
+sigma:                         3.4
+
 [relaxation]
 driver:                        BFGS
 fmax:                          0.001
-unit_cell:                     True
-fix_symmetry:                  False
-hydrostatic_strain:            False
-constant_volume:               False
-scalar_pressure:               0.0
-decimals:                      12
-symprec:                       1e-05
-workdir:                       relaxation
-
-[relaxation.kwargs]
-maxstep:                       0.2
-logfile:                       relaxation.log
-restart:                       bfgs.restart
 ```
+
+for performing a BFGS optimization of the structure found in `geometry.in` until forces are converged below $\require{mediawiki-texvc} 1\,\text{meV}/\AA$.
+
+??? info "Click: Default values for the complete list of supported keywords"
+    ```
+    [relaxation]
+    driver:                        BFGS
+    fmax:                          0.001
+    unit_cell:                     True
+    fix_symmetry:                  False
+    hydrostatic_strain:            False
+    constant_volume:               False
+    scalar_pressure:               0.0
+    decimals:                      12
+    symprec:                       1e-05
+    workdir:                       relaxation
+
+    [relaxation.kwargs]
+    maxstep:                       0.2
+    logfile:                       relaxation.log
+    restart:                       bfgs.restart
+    ```
 
 ## Sections
 
@@ -27,7 +50,7 @@ Currently only [BFGS](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs) is s
 
 #### `fmax`
 
-`float`: Maximum residual force in $\require{mediawiki-texvc} \text{eV}/\AA$ ($\text{eV}/\AA^3$) for the stress components).
+`float`: Maximum residual force in $\require{mediawiki-texvc} \text{eV}/\AA$ (for the stress components: $\text{eV}/\AA^3$ ).
 
 #### `unit_cell`
 

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
+from vibes import defaults
 from vibes.filenames import filenames
 from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
 from vibes.helpers.pickle import pread
@@ -13,8 +14,23 @@ from vibes.phonopy.postprocess import extract_results, postprocess
 from vibes.phonopy.wrapper import summarize_bandstructure
 
 
-def preprocess(file, settings_file, dimension, format, write_supercell=False):
-    """inform about a phonopy calculation a priori"""
+def preprocess(
+    file: str = None,
+    settings_file: str = None,
+    dimension: np.ndarray = None,
+    format: str = defaults.format.geometry,
+    write_supercell: bool = False,
+):
+    """inform about a phonopy calculation a priori
+
+    Args:
+        file: geometry input file
+        settings_file: settings file (phonopy.in)
+        dimensions: supercell dimension
+        format: geometry file format (aims)
+        write_supercell: write the supercell to geometry.in.supercell
+
+    """
     from ase.io import read
     from vibes.settings import Settings
     from vibes.phonopy.wrapper import preprocess
