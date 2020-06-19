@@ -12,7 +12,7 @@ from ._defaults import (
 )
 from .settings import Configuration, Settings
 
-__version__ = str(pkg_resources.require("vibes")[0].version)
+__version__ = str(pkg_resources.require("fhi-vibes")[0].version)
 
 
 # from .templates.aims import setup_aims
