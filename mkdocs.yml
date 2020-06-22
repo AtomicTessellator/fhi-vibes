@@ -1,8 +1,8 @@
 site_name: FHI-vibes
 
-repo_url: https://gitlab.com/flokno/hilde
+repo_url: https://gitlab.com/vibes-developers/vibes
 
-copyright: 'Copyright &copy; 2020 Florian Knoop'
+copyright: 'Copyright &copy; 2020 Florian Knoop, Thomas A.R. Purcell'
 
 theme:
     name: 'material'
@@ -88,7 +88,7 @@ extra_javascript:
 extra:
   social:
     - type: gitlab
-      link: https://gitlab.com/flokno/hilde
+      link: https://gitlab.com/vibes-developers/vibes
     - type: twitter
       link: https://twitter.com/floknoo
 

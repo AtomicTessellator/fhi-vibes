@@ -5,7 +5,7 @@ description = "Fritz Haber Institute Vibrational Simulations"
 authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
 license = "MIT"
 readme = "README.md"
-repository = "https://gitlab.com/flokno/hilde"
+repository = "https://gitlab.com/vibes-developers/vibes"
 packages = [
     { include = "vibes" },
 ]
