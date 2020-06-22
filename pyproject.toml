@@ -1,11 +1,14 @@
 [tool.poetry]
-name = "vibes"
-version = "1.0.0-alpha.1"
+name = "fhi-vibes"
+version = "1.0.0-alpha.2"
 description = "Fritz Haber Institute Vibrational Simulations"
 authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
-license = "ISC"
+license = "MIT"
 readme = "README.md"
 repository = "https://gitlab.com/flokno/hilde"
+packages = [
+    { include = "vibes" },
+]
 
 keywords = ['physics']
 

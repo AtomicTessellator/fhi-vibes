@@ -7,6 +7,7 @@
 
 To determine the vibrations in a solid, we approximate the potential energy surface
 for the nuclei by performing a Taylor expansion of the total energy $\mathcal V({\bf R})$ around the equilibrium positions:
+
 $$
 \require{cancel}
 \begin{aligned}

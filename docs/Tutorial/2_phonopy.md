@@ -160,7 +160,7 @@ The DOS is then used to evaluate the harmonic free energy $F^{\rm ha}$ and the h
 !!! info
 	The ideal supercell size and shape depends on your problem at hand and it is difficult to give definite advice. In practice, the supercell size needs to be converged until the target property of interest is not changing anymore.  However there is a CLI tool that can help you to create supercells of different sizes.
 
-There is a [CLI utility](Documentation/cli/#vibes-utils)  in`FHI-vibes` that can help you to find supercells of different sizes:
+There is a [CLI utility](../Documentation/cli.md#vibes-utils)  in`FHI-vibes` that can help you to find supercells of different sizes:
 
 ```
 vibes utils make-supercell

@@ -1,7 +1,7 @@
 # Input File Format
 
 ## Geometry input files
-`FHI-vibes` uses the `FHI-aims` geometry description format `geometry.in`. A detailed documentation of the file format can be found [here](https://doi.org/10.1016/j.cpc.2009.06.022).
+`FHI-vibes` uses the `FHI-aims` geometry description format `geometry.in`. A detailed documentation of the file format can be found [here](https://doi.org/10.6084/m9.figshare.12413477.v1).
 
 ### Example
 An example `geometry.in` for fcc-silicon reads

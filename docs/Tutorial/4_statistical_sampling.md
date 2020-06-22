@@ -35,7 +35,7 @@ $$
 \end{align}
 $$
 
-with the $3 \times 3$ force constant matrices $\Phi_{IJ}$ and atomic displacements $\Delta {\bf R}_I$. Equation $\eqref{eq:Newton}$ therefore reads
+with the $3 \times 3$ force constant matrices $\Phi_{IJ}$ and atomic displacements $\Delta {\bf R}_I$. The Newton equations of motion therefore read
 
 $$
 \begin{align}
@@ -260,7 +260,7 @@ which is converged with a precision of $\sim 0.5\,\%$. **However**, the superscr
 
 The sampling trick can be used to rapidly estimate the expectation value of a static observable and typically converges 1-2 orders of magnitude faster than a MD simulation[^footnote2].
 
-The sampling trick only works if the harmonic approximation is a good reference for the system of interest. This might or might not be the case and is difficult to tell _ a priori_. We present a scheme to estimate the importance of anharmonic effects in the next chapter of the tutorial.
+The sampling trick only works if the harmonic approximation is a good reference for the system of interest. This might or might not be the case and is difficult to tell _a priori_. We present a scheme to estimate the importance of anharmonic effects in the next chapter of the tutorial.
 
 
 
