@@ -6,7 +6,7 @@ The aim of this tutorial is to learn how to perform a molecular dynamics simulat
 	This tutorial mimics the essential steps for performing MD simulations in bulk systems. How you obtain initial structures in your project is, of course, highly dependent on the systems you aim to study etc.
 
 !!! info
-	For this tutorial, we usw [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$ as a toy system that  can be calculated quickly for illustrating the basic workflow. All steps are transferable to performing _ab initio_ molecular dynamics simulations by exchanging the calculator with `FHI-aims`. [The _ab initio_ aspects of performing MD are addressed later](3_md_ab_initio.md).
+	For this tutorial, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$ as a toy system that  can be calculated quickly for illustrating the basic workflow. All steps are transferable to performing _ab initio_ molecular dynamics simulations by exchanging the calculator with `FHI-aims`. [The _ab initio_ aspects of performing MD are addressed later](3_md_ab_initio.md).
 
 ##  Structure preparation
 
