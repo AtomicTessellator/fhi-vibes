@@ -125,3 +125,5 @@ calculator = "calculator"
 parameters = "parameters"
 calculator_parameters = ".".join([calculator, parameters])
 settings = "settings"
+
+aims_uuid = "aims_uuid"

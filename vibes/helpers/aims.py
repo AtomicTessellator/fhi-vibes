@@ -1,5 +1,6 @@
 """helpers for aims"""
 
+from vibes import keys
 from vibes.filenames import filenames
 from vibes.helpers import talk, warn
 
@@ -40,5 +41,5 @@ def get_aims_uuid_dict(file: str = filenames.output.aims) -> dict:
     uuid = peek_aims_uuid(file)
 
     if uuid:
-        return {"aims_uuid": uuid}
+        return {keys.aims_uuid: uuid}
     return {}
