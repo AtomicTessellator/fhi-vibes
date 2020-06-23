@@ -5,6 +5,7 @@ from vibes.filenames import filenames
 
 from .misc import AliasedGroup, ClickAliasedGroup, Path, click, complete_files
 
+
 xrange = range
 
 # from click 7.1 on
@@ -545,24 +546,30 @@ def anharmonicity():
 
 
 @anharmonicity.command(context_settings=_default_context_settings)
-@click.argument("file", type=complete_files)
+@click.argument("files", nargs=-1, type=complete_files)
 @click.option("-o", "--outfile")
 @click.option("--per_sample", is_flag=True)
 @click.option("--describe", is_flag=True)
-def sigma(file, outfile, per_sample, describe):
+def sigma(files, outfile, per_sample, describe):
     """Compute sigmaA for trajectory dataset in FILE"""
+    import pandas as pd
     import xarray as xr
     from vibes import keys
     from vibes.anharmonicity_score import get_dataframe
 
-    click.echo(f"Compute anharmonicity measure for {file}:")
+    dfs = []
+    for file in files:
+        click.echo(f"Compute anharmonicity measure for {file}:")
 
-    click.echo(f" parse {file}")
+        click.echo(f" parse {file}")
 
-    DS = xr.open_dataset(file)
+        DS = xr.open_dataset(file)
 
-    name = DS.attrs[keys.system_name]
-    df = get_dataframe(DS, per_sample=per_sample,)
+        name = DS.attrs[keys.system_name]
+        df = get_dataframe(DS, per_sample=per_sample)
+        dfs.append(df)
+
+    df = pd.concat(dfs)
 
     click.echo("\nDataFrame:")
     click.echo(df)
@@ -573,12 +580,6 @@ def sigma(file, outfile, per_sample, describe):
     if outfile is not None:
         df.to_csv(outfile, index_label="material", float_format="%15.12e")
         click.echo(f"\n.. Dataframe for {name} written to {outfile}")
-
-    # if store_hdf5:
-    #     outfile += ".h5"
-    #     with pd.HDFStore(outfile) as store:
-    #         click.echo(f".. append dataframe for {name} to {outfile}")
-    #         store[name] = df
 
 
 @anharmonicity.command(context_settings=_default_context_settings)
