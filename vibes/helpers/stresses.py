@@ -37,7 +37,8 @@ def enforce_intensive(stress, stresses, volume):
         return stresses
 
     else:
-        assert np.allclose(stress, summed_stresses / volume)
+        summed_stresses /= volume
+        assert np.allclose(stress, summed_stresses), (stress, summed_stresses)
 
         return stresses / volume
 
