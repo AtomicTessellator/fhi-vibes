@@ -163,6 +163,7 @@ def get_trajectory_dataset(trajectory, metadata=False):
         "cell": (dims.time_tensor, trajectory.cells),
         keys.reference_positions: positions_reference,
         keys.reference_lattice: lattice_reference,
+        keys.aims_uuid: (dims.time, trajectory.aims_uuid),
     }
 
     # heat_flux

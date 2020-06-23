@@ -222,6 +222,11 @@ class Trajectory(list):
         """return the temperatues as 1d array"""
         return np.array([a.get_temperature() for a in self])
 
+    @lazy_property
+    def aims_uuid(self):
+        """return aims uuids as list"""
+        return [a.info.get(keys.aims_uuid) for a in self]
+
     @property
     def ref_positions(self):
         """return reference positions"""
