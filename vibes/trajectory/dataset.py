@@ -207,6 +207,11 @@ def get_trajectory_dataset(trajectory, metadata=False):
     # add pressure
     ds.update(get_pressure_dataset(trajectory))
 
+    # aims uuid
+    aims_uuids = trajectory.aims_uuid
+    if aims_uuids[0] is not None:
+        ds.update({keys.aims_uuid: (dims.time, aims_uuids)})
+
     return ds
 
 
