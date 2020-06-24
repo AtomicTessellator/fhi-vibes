@@ -5,6 +5,9 @@ In this tutorial, you will learn how to perform a geometry optimization with `FH
 !!! info
 	We give explicit references for LDA-Silicon. When using LJ-Argon, the only difference lies the definition of the calculator in the `[calculator]` section, and the respective structure defined in `geometry.in`.
 
+!!! warning
+	The `fix_symmetry` flag needs ASE 3.20, which is not yet released. You can install the most recent ASE version with `pip install https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz`.
+
 ## Define Inputs
 
 [Choose a test system](0_intro.md#test-systems) and copy the geometry information into a file called `geometry.in`. Generate a task input file for running a relaxation by copying the [calculator information for your test system](0_intro.md#test-systems) to a file called `relaxation.in`. Next, use the command line interface (CLI) of `FHI-vibes` to obtain default settings for performing the relaxation and appending them to the input file:
