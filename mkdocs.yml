@@ -22,7 +22,6 @@ theme:
 nav:
     - Home:
         - Welcome!: README.md
-        - Credits.md
         - References.md
         - License: license.md
     - Tutorial:
