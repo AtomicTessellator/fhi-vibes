@@ -22,7 +22,7 @@ theme:
 nav:
     - Home:
         - Welcome!: README.md
-        - References: References.md
+        - References.md
         - License: license.md
     - Tutorial:
         - Overview: Tutorial/0_intro.md
