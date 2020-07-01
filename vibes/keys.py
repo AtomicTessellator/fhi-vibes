@@ -35,9 +35,11 @@ reference_positions = "positions_reference"
 reference_lattice = "lattice_reference"
 metadata = "raw_metadata"
 
+cell = "cell"
 volume = "volume"
 positions = "positions"
 velocities = "velocities"
+momenta = "momenta"
 
 forces = "forces"
 forces_harmonic = "forces_harmonic"
