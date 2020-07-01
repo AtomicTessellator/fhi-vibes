@@ -376,6 +376,23 @@ def trajectory():
     """trajectory utils"""
 
 
+@trajectory.command("join", context_settings=_default_context_settings)
+@click.argument("files", nargs=-1, type=complete_files)
+@click.option("--dim", default=keys.trajectory)
+@click.option("-o", "--outfile", default="joined.nc")
+def join_xr(files, dim, outfile):
+    """join Datasets in FILES on dim=dim"""
+    import xarray as xr
+
+    dss = [xr.load_dataset(f) for f in files]
+
+    ds = xr.concat(dss, dim=dim)
+    ds.attrs = {}
+
+    ds.to_netcdf(outfile)
+    click.echo(f"Joined datasets written to {outfile}")
+
+
 @trajectory.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-n", "--n_steps", type=int, help="discard this many steps")

@@ -4,6 +4,7 @@ import xarray as xr
 
 # import xrcache as xc
 from ase import units
+
 from vibes import defaults
 from vibes import dimensions as dims
 from vibes import keys
@@ -118,6 +119,9 @@ def get_kappa_cumulative_dataset(
     dct = {da.name: da for da in dataarrays}
     coords = J_corr.coords
     attrs = J_corr.attrs
+
+    dct.update({keys.gk_prefactor: pref})
+    dct.update(dataset[[keys.volume, keys.temperature]])
 
     # (scalar) avalanche function
     if full:

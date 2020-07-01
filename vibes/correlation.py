@@ -11,6 +11,7 @@ from vibes import keys
 from vibes.helpers import Timer, progressbar, talk
 from vibes.helpers.warnings import warn
 
+
 _prefix = "Correlation"
 Timer.prefix = _prefix
 
@@ -25,6 +26,38 @@ def _hann(nsamples: int):
 
 
 hann = _hann
+
+
+def get_unique_dimensions(dims: tuple) -> list:
+    """make dimension labels unique by adding a counter to duplicate dims
+
+    Example:
+        ('time', 'a', 'a') -> ('time', 'a1', 'a2')
+
+    """
+    ar, index, counts = np.unique(dims, return_counts=True, return_inverse=True)
+    ar = list(ar)
+
+    # attach label to duplicate array elements
+    for ii, count in enumerate(counts):
+        if count > 1:
+            elem = ar[ii]
+            unique_elems = []
+            for jj in range(count):
+                unique_elem = elem + f"{jj+1}"
+                unique_elems.append(unique_elem)
+
+            ar[ii] = unique_elems
+
+    # assemble new list
+    new_dims = []
+    for ii in index:
+        elem = ar[ii]
+        if isinstance(elem, list):
+            elem = elem.pop(0)
+        new_dims.append(elem)
+
+    return new_dims
 
 
 def _correlate(f1, f2, normalize=1, hann=True):
@@ -171,6 +204,9 @@ def get_autocorrelationNd(
         # move time axis back to front
         corr = np.moveaxis(corr, -1, 0)
         new_dims = dims
+
+    # make new dimensions unique
+    new_dims = get_unique_dimensions(new_dims)
 
     df_corr = xr.DataArray(
         corr,
