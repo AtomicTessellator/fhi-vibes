@@ -26,7 +26,7 @@ def trajectory(file, heat_flux, discard, minimal, fc_file, outfile):
     from vibes.trajectory import reader
     from vibes.trajectory.dataset import get_trajectory_dataset
 
-    click.echo(f"Extract Trajectory dataset from {trajectory}")
+    click.echo(f"Extract Trajectory dataset from {file}")
     traj = reader(file=file, fc_file=fc_file)
 
     if discard:
@@ -137,7 +137,7 @@ def phono3py(obj, file, q_mesh):
 
 
 @output.command(aliases=["gk"])
-@click.argument("file", default="trajectory_hf.nc")
+@click.argument("file", default="trajectory.nc")
 @click.option("-avg", "--average", default=100, help="average window")
 @click.option("--full", is_flag=True)
 @click.option("--aux", is_flag=True)

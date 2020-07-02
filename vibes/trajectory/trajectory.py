@@ -175,7 +175,9 @@ class Trajectory(list):
     @lazy_property
     def volumes(self):
         """return volume per time step"""
-        return [a.get_volume() for a in self]
+        if all(self.reference_atoms.pbc):
+            return [a.get_volume() for a in self]
+        return [np.nan for _ in self]
 
     @property
     def volume(self):
