@@ -16,10 +16,7 @@ def get_unavailable_ports():
     lines = open("/etc/services").readlines()
     inds = np.where([(line[0] != "#") and (len(line) > 10) for line in lines])[0]
     for ind in inds:
-        try:
-            ports.append(int(lines[ind].split()[1].split("/")[0]))
-        except:
-            pass
+        ports.append(int(lines[ind].split()[1].split("/")[0]))
     return ports
 
 
@@ -52,6 +49,28 @@ def get_free_port(offset=0, min_port_val=10000):
             pp += 1
         if pp > offset:
             return port
+
+
+def get_port(port, offset):
+    """Get the port to use for the socketio calculation
+
+    Args:
+        port (int): Requested port
+        offset (int): Select the next + offset free port (in case multiple sequntial runs)
+
+    Returns
+        port (int): A free port based on the requested value
+    """
+    if port is None:
+        return None
+
+    if port == "auto":
+        port = get_free_port(offset)
+    elif port and not check_port_free(port):
+        warn(f"Port {port} in use, changing to the next free port")
+        port = get_free_port(min_port_val=port)
+
+    return port
 
 
 def get_socket_info(calculator, prefix=_prefix):

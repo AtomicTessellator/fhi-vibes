@@ -6,7 +6,7 @@ from pathlib import Path
 from ase.calculators.aims import Aims
 
 from vibes.helpers.k_grid import d2k
-from vibes.helpers.socketio import get_free_port, check_port_free
+from vibes.helpers.socketio import get_port
 from vibes.helpers.warnings import warn
 
 from ._defaults import talk
@@ -191,17 +191,11 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
     if "socketio" in settings:
         host = settings.socketio.get("host", "localhost")
         port = settings.socketio.port
-
-        if port == "auto":
-            port = get_free_port(settings.socketio.get("port_offset", 0))
-        elif port and not check_port_free(port):
-            warn(f"Port {port} in use, changing to the next free port")
-            port = get_free_port(min_port_val=port)
-
         if settings.socketio.get("unixsocket", None) is not None:
             host = f"UNIX:{settings.socketio.unixsocket}"
             port = settings.socketio.get("port", 31415)
 
+        port = get_port(port, settings.socketio.get("port_offset", 0))
         if port is not None:
             aims_settings.update({"use_pimd_wrapper": (host, port)})
 
