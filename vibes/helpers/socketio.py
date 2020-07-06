@@ -10,6 +10,50 @@ from . import stresses as stresses_helper
 _prefix = "socketio"
 
 
+def get_unavailable_ports():
+    """Read /etc/services to get all used ports"""
+    ports = []
+    lines = open("/etc/services").readlines()
+    inds = np.where([(line[0] != "#") and (len(line) > 10) for line in lines])[0]
+    for ind in inds:
+        try:
+            ports.append(int(lines[ind].split()[1].split("/")[0]))
+        except:
+            pass
+    return ports
+
+
+def check_port_free(port):
+    """Check if port is free
+
+    Args:
+        port (int): port to check
+
+    Returns:
+        bool: True if port is free
+    """
+    return port not in get_unavailable_ports()
+
+
+def get_free_port(offset=0, min_port_val=10000):
+    """Automatically select a free port to use
+
+    Args:
+        offset (int): Select the next + offset free port (in case multiple sequntial runs)
+
+    Returns
+        port (int): The avialable port
+    """
+
+    pp = 0
+    ports = get_unavailable_ports()
+    for port in range(min_port_val, np.max(ports)):
+        if port not in ports:
+            pp += 1
+        if pp > offset:
+            return port
+
+
 def get_socket_info(calculator, prefix=_prefix):
     """return port of the calculator
 
@@ -31,6 +75,7 @@ def get_socket_info(calculator, prefix=_prefix):
     if "use_pimd_wrapper" in calculator.parameters:
         port = calculator.parameters["use_pimd_wrapper"][1]
         host = calculator.parameters["use_pimd_wrapper"][0]
+
         if "UNIX:" in host:
             unixsocket = calculator.parameters["use_pimd_wrapper"][0]
             talk(f"Use SocketIO with unixsocket file {unixsocket}", prefix=prefix)
