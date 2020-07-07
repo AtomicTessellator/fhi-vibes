@@ -66,6 +66,7 @@ Adjust your MD input file:
     temperature =      300
     friction =         0.02
     maxsteps =         2500
+    compute_stresses = 10
     
     [files]
     geometry:                      geometry.in
@@ -104,7 +105,7 @@ To efficiently perform _ab initio_ molecular dynamics simulations for systems la
     #SBATCH --ntasks-per-node=32
     #SBATCH --ntasks-per-core=1
     #SBATCH -t 24:0:00
-
+    
     vibes run md md.in
     ```
 
