@@ -101,10 +101,18 @@ The basis set can be given per chemical species by including the species and its
 
 Set up socket communication via [`SocketIOCalculator`](https://wiki.fysik.dtu.dk/ase/ase/calculators/socketio/socketio.html?highlight=socketio#ase.calculators.socketio.SocketIOCalculator). This has the potential to speed up calculations since a complete restart of FHI-aims after each completed SCF cycle is avoided. This feature is optional but recommended to use when performing calculations for related structures, e.g., during molecular dynamics simulations or phonon calculations.
 
+#### `host`
+
+The IP address to access the socket. Default is `localhost` and will only have to be modified for certain architectures (this will likely be made clear in the system documentation).
+
 #### `port`
 
 The socket port to use.
 
 - `null`: don't use the socket.
-- `1024`-`65535`: use this port.
+- `auto`: Automatically select a port that is not currently in use by the `host` or registered in `/etc/services`
+- `1024`-`65535`: If available use this port (if it's not already being used). We recommend using `auto` for all calculations.
 
+#### `unixsocket`
+
+Filename for the unix socket. If this is active TCP/IP socket will not be used (not recommended, but maybe necessary on some systems)
