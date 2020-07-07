@@ -12,14 +12,20 @@ from . import stresses as stresses_helper
 _prefix = "socketio"
 
 
-def get_long_term_used_ports():
-    """Read /etc/services to get all used ports"""
-    ports = []
-    lines = open("/etc/services").readlines()
-    inds = np.where([(line[0] != "#") and (len(line) > 10) for line in lines])[0]
-    for ind in inds:
-        ports.append(int(lines[ind].split()[1].split("/")[0]))
-    return ports
+def check_if_port_long_term_used_ports(port):
+    """check if a port is registered on the system
+
+    Args:
+        port (int): port to check
+
+    Returns:
+        bool: True if port is registered on the system
+    """
+    try:
+        socket.getservbyport(port)
+        return False
+    except OSError:
+        return False
 
 
 def check_socket(host, port):
@@ -33,7 +39,7 @@ def check_socket(host, port):
         bool: True if socket is able to bind
     """
 
-    if port in get_long_term_used_ports():
+    if check_if_port_long_term_used_ports(port):
         return False
 
     available = True
