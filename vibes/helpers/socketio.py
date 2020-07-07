@@ -23,7 +23,7 @@ def check_if_port_long_term_used_ports(port):
     """
     try:
         socket.getservbyport(port)
-        return False
+        return True
     except OSError:
         return False
 
