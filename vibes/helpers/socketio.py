@@ -12,22 +12,6 @@ from . import stresses as stresses_helper
 _prefix = "socketio"
 
 
-def check_if_port_long_term_used_ports(port):
-    """check if a port is registered on the system
-
-    Args:
-        port (int): port to check
-
-    Returns:
-        bool: True if port is registered on the system
-    """
-    try:
-        socket.getservbyport(port)
-        return True
-    except OSError:
-        return False
-
-
 def check_socket(host, port):
     """Check if socket is able to bind
 
@@ -39,16 +23,18 @@ def check_socket(host, port):
         bool: True if socket is able to bind
     """
 
-    if check_if_port_long_term_used_ports(port):
+    try:
+        socket.getservbyport(port)
         return False
+    except OSError:
+        pass
 
-    available = True
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
         try:
             sock.bind((host, port))
         except OSError:
-            available = False
-    return available
+            return False
+    return True
 
 
 def get_free_port(host, offset=0, min_port_val=10000):
