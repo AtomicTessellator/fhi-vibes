@@ -195,7 +195,7 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
             host = f"UNIX:{settings.socketio.unixsocket}"
             port = settings.socketio.get("port", 31415)
 
-        port = get_port(port, settings.socketio.get("port_offset", 0))
+        port = get_port(host, port, settings.socketio.get("port_offset", 0))
         if port is not None:
             aims_settings.update({"use_pimd_wrapper": (host, port)})
 

@@ -1,6 +1,8 @@
 """ socket io helpers """
 import numpy as np
 from ase import units
+import socket
+from contextlib import closing
 
 from vibes.helpers import talk
 from vibes.helpers.warnings import warn
@@ -10,7 +12,7 @@ from . import stresses as stresses_helper
 _prefix = "socketio"
 
 
-def get_unavailable_ports():
+def get_long_term_used_ports():
     """Read /etc/services to get all used ports"""
     ports = []
     lines = open("/etc/services").readlines()
@@ -20,55 +22,75 @@ def get_unavailable_ports():
     return ports
 
 
-def check_port_free(port):
-    """Check if port is free
+def check_socket(host, port):
+    """Check if socket is able to bind
 
     Args:
-        port (int): port to check
+        host (str): string to the host
+        port (int): port for the socket
 
     Returns:
-        bool: True if port is free
+        bool: True if socket is able to bind
     """
-    return port not in get_unavailable_ports()
+
+    if port in get_long_term_used_ports():
+        return False
+
+    available = True
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        try:
+            sock.bind((host, port))
+        except OSError:
+            available = False
+    return available
 
 
-def get_free_port(offset=0, min_port_val=10000):
+def get_free_port(host, offset=0, min_port_val=10000):
     """Automatically select a free port to use
 
     Args:
+        host (str): String to the host path
+        min_port_val (int): First port to check
         offset (int): Select the next + offset free port (in case multiple sequntial runs)
 
     Returns
-        port (int): The avialable port
+        port (int): The available port
     """
 
     pp = 0
-    ports = get_unavailable_ports()
-    for port in range(min_port_val, np.max(ports)):
-        if port not in ports:
+    for port in range(max(1024, min_port_val), 49151):
+        if check_socket(host, port):
             pp += 1
         if pp > offset:
             return port
+    raise ValueError("No available port found.")
 
 
-def get_port(port, offset):
+def get_port(host, port, offset):
     """Get the port to use for the socketio calculation
 
     Args:
+        host (str): String to the host path
         port (int): Requested port
         offset (int): Select the next + offset free port (in case multiple sequntial runs)
 
     Returns
         port (int): A free port based on the requested value
     """
+    # If a unixsocket is being used then disregard since ports aren't used
+    if "UNIX" in host:
+        return port
+
+    # If None then do nothing this should be an error
     if port is None:
         return None
 
+    # If automatic find a free port, if port is not free get a new port
     if port == "auto":
-        port = get_free_port(offset)
-    elif port and not check_port_free(port):
+        port = get_free_port(host, offset)
+    elif port and not check_socket(host, port):
         warn(f"Port {port} in use, changing to the next free port")
-        port = get_free_port(min_port_val=port)
+        port = get_free_port(host, min_port_val=port)
 
     return port
 
