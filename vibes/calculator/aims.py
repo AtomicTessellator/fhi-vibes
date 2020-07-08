@@ -6,10 +6,12 @@ from pathlib import Path
 from ase.calculators.aims import Aims
 
 from vibes.helpers.k_grid import d2k
+from vibes.helpers.socketio import get_port
 from vibes.helpers.warnings import warn
 
 from ._defaults import talk
 from .context import CalculatorContext
+
 
 _fallback = "light"
 
@@ -163,38 +165,34 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
     aims_settings = settings.parameters
 
     # check for information in settings that imply to set up forces and stress:
-    force, stress, stresses = False, False, False
 
     if "md" in ctx.settings and "phonopy" not in ctx.settings:
-        force = True
+        aims_settings.update({"compute_forces": True})
         if ctx.settings["md"]["compute_stresses"]:
-            stresses = True
+            aims_settings.update({"compute_heat_flux": True})
 
     if "relaxation" in ctx.settings:
-        force = True
+        aims_settings.update({"compute_forces": True})
         if ctx.settings["relaxation"].get("unit_cell"):
-            stress = True
+            aims_settings.update({"compute_analytical_stress": True})
 
     if "phonopy" in ctx.settings:
-        force = True
-
-    if force:
         aims_settings.update({"compute_forces": True})
-    if stress:
-        aims_settings.update({"compute_analytical_stress": True})
-    if stresses:
-        aims_settings.update({"compute_heat_flux": True})
 
     ase_settings = {"aims_command": ctx.settings.machine.aims_command}
 
     if "socketio" in settings:
-        host = settings.socketio.get("host", "localhost")
-        port = settings.socketio.port
+        if settings.get("socketio") is True:
+            host = "localhost"
+            port = get_port(host, port="auto")
+        else:
+            host = settings.socketio.get("host", "localhost")
+            port = settings.socketio.port
+            if settings.socketio.get("unixsocket", None) is not None:
+                host = f"UNIX:{settings.socketio.unixsocket}"
+                port = settings.socketio.get("port", 31415)
 
-        if settings.socketio.get("unixsocket", None) is not None:
-            host = f"UNIX:{settings.socketio.unixsocket}"
-            port = settings.socketio.get("port", 31415)
-
+            port = get_port(host, port, settings.socketio.get("port_offset", 0))
         if port is not None:
             aims_settings.update({"use_pimd_wrapper": (host, port)})
 
