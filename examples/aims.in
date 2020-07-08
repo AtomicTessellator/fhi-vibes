@@ -5,6 +5,7 @@ primitive:                     geometry.in
 
 [calculator]
 name:                          aims
+socketio:                      true
 
 [calculator.parameters]
 xc:                            pw-lda
@@ -15,5 +16,3 @@ density:                       3
 [calculator.basissets]
 Si:                            light
 
-[calculator.socketio]
-port:                          12345

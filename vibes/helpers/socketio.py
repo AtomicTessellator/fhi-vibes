@@ -1,13 +1,15 @@
 """ socket io helpers """
-import numpy as np
-from ase import units
 import socket
 from contextlib import closing
+
+import numpy as np
+from ase import units
 
 from vibes.helpers import talk
 from vibes.helpers.warnings import warn
 
 from . import stresses as stresses_helper
+
 
 _prefix = "socketio"
 
@@ -58,7 +60,7 @@ def get_free_port(host, offset=0, min_port_val=10000):
     raise ValueError("No available port found.")
 
 
-def get_port(host, port, offset):
+def get_port(host, port, offset=0):
     """Get the port to use for the socketio calculation
 
     Args:
