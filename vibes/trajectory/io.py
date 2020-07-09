@@ -151,7 +151,6 @@ def reader(
     file=filenames.trajectory,
     get_metadata=False,
     fc_file=None,
-    with_stresses=False,
     single_point_calculator=True,
     verbose=True,
 ):
@@ -161,7 +160,6 @@ def reader(
         file: Trajectory file to read the structures from
         get_metadata: If True return the metadata
         fc_file: force constants file
-        with_stresses: Return only the atoms with stresses computed
         single_point_calculator: return calculators as SinglePointCalculator
         verbose: If True print more information to the screen
 
@@ -218,10 +216,6 @@ def reader(
     timer2()
 
     timer("done")
-
-    if with_stresses:
-        talk(".. return only atoms with `stresses` computed")
-        trajectory = trajectory.with_stresses
 
     if fc_file:
         fc = io.parse_force_constants(fc_file, two_dim=False)
@@ -349,9 +343,16 @@ def to_db(trajectory, database):
 
 def read_netcdf(file=filenames.trajectory_dataset):
     """read `trajectory.nc` and return Trajectory"""
+    DS = xr.open_dataset(file)
+
+    return parse_dataset(DS)
+
+
+def parse_dataset(dataset: xr.Dataset) -> list:
+    """turn xarray.Datset into Trajectory"""
     from vibes.trajectory.trajectory import Trajectory
 
-    DS = xr.open_dataset(file)
+    DS = dataset
     attrs = DS.attrs
 
     # check mandatory keys
@@ -393,9 +394,14 @@ def read_netcdf(file=filenames.trajectory_dataset):
     else:
         stress = len(positions) * [None]
 
+    if keys.stresses_potential in DS:
+        stresses = DS[keys.stresses_potential].data
+    else:
+        stresses = None
+
     trajectory_list = []
     properties = (positions, cells, velocities, forces, potential_energy, stress)
-    for p, c, v, f, e, s in zip(*properties):
+    for ii, (p, c, v, f, e, s) in enumerate(zip(*properties)):
         atoms = ref_atoms.copy()
         if c is not None:
             atoms.set_cell(c)
@@ -404,6 +410,9 @@ def read_netcdf(file=filenames.trajectory_dataset):
 
         results = {"energy": e, "forces": f}
         results.update({"stress": np.nan_to_num(s)})
+
+        if stresses is not None:
+            results.update({"stresses": stresses[ii]})
 
         calculator = SinglePointCalculator(atoms, **results)
         atoms.calc = calculator

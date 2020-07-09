@@ -56,8 +56,14 @@ class Trajectory(list):
         """ Read trajectory from file """
         from .io import reader
 
-        trajectory = reader(file, **kwargs)
-        return trajectory
+        return reader(file, **kwargs)
+
+    @classmethod
+    def from_dataset(cls, dataset):
+        """parse from xarray.Dataset"""
+        from .io import parse_dataset
+
+        return parse_dataset(dataset)
 
     def __getitem__(self, key):
         """returns `trajectory[key]` as Atoms object or new Trajectory instance"""
@@ -376,7 +382,7 @@ class Trajectory(list):
         return self.stress_kinetic + self.stress_potential
 
     @lazy_property
-    def stresses(self):
+    def stresses_potential(self):
         """return the atomic stress as [N_t, N_a, 3, 3] array"""
         atomic_stresses = []
 
@@ -644,16 +650,14 @@ class Trajectory(list):
             # flux ([N_t, N_a, 3]): the time resolved heat flux in eV/AA**3/ps
             # avg_flux ([N_t, N_a, 3]): high frequency part of heat flux
         """
-        trajectory = self  # self.with_stresses
-
-        stresses = [s for s in trajectory.stresses if not np.isnan(s).any()]
+        stresses = [s for s in self.stresses_potential if not np.isnan(s).any()]
 
         # 1) compute average stresses
         avg_stresses = np.mean(stresses, axis=0)
 
         # 2) compute J_avg from average stresses
         timer = Timer("Compute heat flux:")
-        for a in progressbar(trajectory):
+        for a in progressbar(self):
             try:
                 stresses = get_stresses(a)
             except PropertyNotImplementedError:

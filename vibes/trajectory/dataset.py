@@ -149,6 +149,8 @@ def get_trajectory_dataset(trajectory, metadata=False):
     lattice_reference = (dims.lattice, lat)
 
     dataset = {
+        keys.reference_positions: positions_reference,
+        keys.reference_lattice: lattice_reference,
         "positions": positions,
         "displacements": (dims.time_atom_vec, trajectory.displacements),
         keys.velocities: velocities,
@@ -156,15 +158,18 @@ def get_trajectory_dataset(trajectory, metadata=False):
         keys.forces: (dims.time_atom_vec, trajectory.forces),
         keys.energy_kinetic: (dims.time, trajectory.kinetic_energy),
         keys.energy_potential: (dims.time, trajectory.potential_energy),
-        keys.stress: (dims.time_tensor, trajectory.stress),
-        keys.stress_kinetic: (dims.time_tensor, trajectory.stress_kinetic),
-        keys.stress_potential: (dims.time_tensor, trajectory.stress_potential),
         keys.temperature: (dims.time, trajectory.temperatures),
         keys.cell: (dims.time_tensor, trajectory.cells),
         keys.volume: (dims.time, trajectory.volumes),
-        keys.reference_positions: positions_reference,
-        keys.reference_lattice: lattice_reference,
+        keys.stress: (dims.time_tensor, trajectory.stress),
+        keys.stress_kinetic: (dims.time_tensor, trajectory.stress_kinetic),
+        keys.stress_potential: (dims.time_tensor, trajectory.stress_potential),
     }
+
+    stresses_potential = trajectory.stresses_potential
+    if not np.all(stresses_potential == np.nan):
+        value = (dims.time_atom_tensor, trajectory.stresses_potential)
+        dataset.update({keys.stresses_potential: value})
 
     # heat_flux
     flux = trajectory.get_heat_flux()

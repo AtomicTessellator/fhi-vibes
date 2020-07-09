@@ -17,6 +17,7 @@ from vibes import keys
 from vibes.helpers.lists import expand_list, list_dim, reduce_list
 from vibes.konstanten import n_yaml_digits
 
+
 key_symbols = "symbols"
 key_masses = "masses"
 key_constraints = "constraint"
