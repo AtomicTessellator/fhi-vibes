@@ -9,7 +9,7 @@
   
   - `apt-get install gfortran` in Debian-derived systems, or
   - `conda install -c conda-forge fortran-compiler` when `conda` is used.
-- If you want to use `FHI-aims` for running _ab initio_ calculations, make sure you have a recent version that supports the iPi socket communication (this is the default when using the [CMake build system](https://aims-git.rz-berlin.mpg.de/aims/FHIaims/-/wikis/CMake-Tutorial)).
+- If you want to use `FHI-aims` for running _ab initio_ calculations, make sure you have a recent version that supports the iPi socket communication (this is the default for any version newer than the `200112_2` release when using the [CMake build system](https://aims-git.rz-berlin.mpg.de/aims/FHIaims/-/wikis/CMake-Tutorial)).
 
 
 ## Install `vibes`
@@ -20,7 +20,9 @@
 pip install --user fhi-vibes
 ```
 
-**Important: If you run in to version conflicts that you cannot solve, use a virtual environment created with `python -m venv` or `conda create`.**
+If you install with the `--user` option, make sure that `~/.local/bin` folder is on your `PATH`.
+
+**If you run into problems, please have a look at our [troubleshooting section.](#Troubleshooting)**
 
 ## Configuration
 
@@ -73,3 +75,20 @@ If you use the `fishshell`, add a file `~/.config/fish/completions/vibes.fish` c
 ```bash
 eval (env _VIBES_COMPLETE=source-fish vibes)
 ```
+
+
+
+## Troubleshooting
+
+- `ModuleNotFoundError: No module named 'importlib_resources'` 
+    - Solution: `pip install importlib_resources dataclasses`
+- `RuntimeError: Click will abort further execution because Python 3 was configured to use ASCII as encoding for the environment. Consult https://click.palletsprojects.com/python3/ for mitigation steps` 
+    - Solution:  `export LC_ALL=C.UTF-8 ; export LANG=C.UTF-8`
+- `-bash: vibes: command not found` 
+    - Solution: `export PATH=$PATH:~/.local/bin`
+- `ImportError: numpy.core.multiarray failed to import`
+    - Solution: `pip install numpy -U` (or `conda update numpy` if you use conda)
+- Various version conflicts
+    - Consider using a [virtual environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html), e.g., via `conda create -n py38 -c anaconda python=3.8 numpy scipy`
+
+If your problem is not listed here, please [file an issue in our issue tracker](https://gitlab.com/vibes-developers/vibes/-/issues).
