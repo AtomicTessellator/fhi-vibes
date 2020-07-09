@@ -1,7 +1,8 @@
 """ Provide a full highlevel phonopy workflow """
 from pathlib import Path
 
-from phonopy.file_IO import write_FORCE_CONSTANTS
+from phonopy.file_IO import write_FORCE_CONSTANTS, write_FORCE_SETS
+from phonopy.interface.phonopy_yaml import PhonopyYaml
 
 from vibes.filenames import filenames
 from vibes.helpers import Timer as _Timer
@@ -17,6 +18,7 @@ from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
 from . import displacement_id_str
+
 
 _prefix = "phonopy.postprocess"
 _tdep_fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
@@ -201,6 +203,13 @@ def extract_results(
 
             talk(f".. write force constants to {fc_file}")
             write_FORCE_CONSTANTS(fc, filename=fc_file, p2s_map=p2s_map)
+            write_FORCE_SETS(phonon.dataset)
+
+            # yaml
+            phpy_yaml = PhonopyYaml()
+            phpy_yaml.set_phonon_info(phonon)
+            with open("phonopy.yaml", "w") as f:
+                f.write(str(phpy_yaml))
 
         if bandstructure:
             talk(f"Extract bandstructure")
