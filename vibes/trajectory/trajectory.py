@@ -391,7 +391,7 @@ class Trajectory(list):
         for a in self:
             try:
                 atomic_stress = get_stresses(a)
-            except PropertyNotImplementedError:
+            except (PropertyNotImplementedError, RuntimeError):
                 atomic_stress = np.full_like(zeros, np.nan)
             atomic_stresses.append(atomic_stress)
 
