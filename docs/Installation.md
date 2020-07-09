@@ -91,4 +91,7 @@ eval (env _VIBES_COMPLETE=source-fish vibes)
 - Various version conflicts
     - Consider using a [virtual environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html), e.g., via `conda create -n py38 -c anaconda python=3.8 numpy scipy`
 
+- `/tmp/pip-build-env-xak_2vfy/overlay/lib/python3.7/site-packages/numpy/core/_multiarray_umath.cpython-37m-x86_64-linux-gnu.so: failed to map segment from shared object: Operation not permitted`
+    - This might happen on HPC systems with limited access rights. The solution is to provide a writable `tmp` folder, e.g. via `mkdir ~/condatmp && export TMPDIR=~/condatmp/`
+
 If your problem is not listed here, please [file an issue in our issue tracker](https://gitlab.com/vibes-developers/vibes/-/issues).
