@@ -23,7 +23,7 @@ son = "^0.3.2"
 spglib = "^1.12"
 phonopy = "^2.6, <2.7.0"
 ase = "^3.19.0"
-click = "^7.0"
+click = "^7.1"
 attrs = "^19.1"
 seekpath = "^1.8.4"
 fireworks = {version = "^1.9",optional = true}
