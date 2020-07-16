@@ -22,6 +22,8 @@ theme:
 nav:
     - Home:
         - Welcome!: README.md
+        - Installation.md
+        - Credits.md
         - References.md
         - License: license.md
     - Tutorial:
@@ -90,5 +92,5 @@ extra:
     - type: gitlab
       link: https://gitlab.com/vibes-developers/vibes
     - type: twitter
-      link: https://twitter.com/floknoo
+      link: https://twitter.com/flokno_phys
 

@@ -37,19 +37,20 @@ Running the tutorial with LDA-Silicon will show you how to perform the calculati
 
 ### LDA-Silicon
 
-??? info "`geometry.in"
+??? info "Geometry input file `geometry.in`"
     ```
     lattice_vector 0.0000000000000000 2.7149999999999999 2.7149999999999999 
     lattice_vector 2.7149999999999999 0.0000000000000000 2.7149999999999999 
     lattice_vector 2.7149999999999999 2.7149999999999999 0.0000000000000000 
-    atom_frac 0.0000000000000000 0.0000000000000000 -0.0000000000000000 Si
+    atom_frac 0.0000000000000000 0.0000000000000000 0.0000000000000000 Si
     atom_frac 0.2500000000000000 0.2500000000000000 0.2500000000000000 Si
     ```
 
-??? info "`calculator` section"
+??? info "`calculator` section for task in put file"
     ```
     [calculator]
     name:                          aims
+    ```
 
     [calculator.parameters]
     xc:                            pw-lda
@@ -66,17 +67,18 @@ Running the tutorial with LDA-Silicon will show you how to perform the calculati
 
 ### LJ-Argon
 
-??? info "`geometry.in`"
+??? info "Geometry in put file `geometry.in`"
     ```
     lattice_vector 0.0000000000000000 2.6299999999999999 2.6299999999999999 
     lattice_vector 2.6299999999999999 0.0000000000000000 2.6299999999999999 
     lattice_vector 2.6299999999999999 2.6299999999999999 0.0000000000000000 
     atom 0.0000000000000000 0.0000000000000000 0.0000000000000000 Ar
     ```
-??? info "`calculator` section"
+??? info "`calculator` section for task input file"
     ```
         [calculator]
         name:                          lj
+    ```
 
         [calculator.parameters]
         # parameters for LJ Argon
