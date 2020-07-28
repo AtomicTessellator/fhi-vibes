@@ -1,28 +1,20 @@
 # Molecular Dynamics: Canonical Sampling
 
-The aim of this tutorial is to learn how to perform a molecular dynamics simulation in the canonical ensemble and thermalize a system to a target temperature.
+The aim of this tutorial is to learn how to perform a molecular dynamics simulation in the canonical ensemble and thermalize a system to a target temperature using a simple to calculate toy model.
 
 !!! warning
-	This tutorial mimics the essential steps for performing MD simulations in bulk systems. How you obtain initial structures in your project is, of course, highly dependent on the systems you aim to study etc.
+
+	- This tutorial mimics the essential steps for performing MD simulations in bulk systems. How you obtain initial structures in your project is, of course, highly dependent on the systems you aim to study etc.
+	- This tutorial needs ASE 3.20, which is not yet released. You can install the most recent ASE version with `pip install https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz`.
 
 !!! info
-	For this tutorial, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$ as a toy system that  can be calculated quickly for illustrating the basic workflow. All steps are transferable to performing _ab initio_ molecular dynamics simulations by exchanging the calculator with `FHI-aims`. [The _ab initio_ aspects of performing MD are addressed later](3_md_ab_initio.md).
+	For this tutorial, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$ as a toy system that  can be calculated quickly for illustrating the basic workflow and getting familiar with running MD and postprocessing in an efficient way. All steps are transferable to performing _ab initio_ molecular dynamics simulations by exchanging the calculator with `FHI-aims`. [The _ab initio_ aspects of performing MD are adressed elsewhere](3_md_ab_initio.md).
 
 ##  Structure preparation
 
 ### Generate a structure
 
-We first create an input structure for solid Argon. To this end, we first generate a primitive cell of cubic Argon, which can be performed with ASE:
-
-```python
->>> from ase.build import bulk
->>> 
->>> atoms = bulk('Ar')
->>> 
->>> atoms.write('geometry.in.primitive', format='aims')
-```
-
-From this primitive cell, we can use the CLI to generate a supercell of about 100 atoms:
+Copy the [the Argon structure](0_intro.md#test-systems) to a file called `geometry.in.primitive`. From this primitive cell, we can use the CLI to generate a supercell of about 100 atoms:
 
 ```
 vibes utils make_supercell geometry.in.primitive -n 100

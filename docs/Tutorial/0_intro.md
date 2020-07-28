@@ -1,13 +1,10 @@
 # Tutorial
 
-!!! warning
-	All tutorials assume you have a background in (_ab initio_) vibrational modeling. The background theory is written down to establish a common notation and cannot replace professional training by any means.
+!!! warning "Warnings"
 
-!!! warning
-	The settings used throughout the tutorials are chosen in order to allow for smooth calculations. They are _not_ sufficient for producing publication-ready scientific results.
-
-!!! warning
-	We assume you have [installed](../README.md#installation) and [configured](../README.md#configuration) `FHI-vibes` successfully.
+	- All tutorials assume you have a background in (_ab initio_) vibrational modeling. The background theory is written down to establish a common notation and cannot replace professional training by any means.
+	- The settings used throughout the tutorials are chosen in order to allow for smooth calculations. They are _not_ sufficient for producing publication-ready scientific results.
+	- We assume you have [installed](../Installation.md) and [configured](../Installation.md#configuration) `FHI-vibes` successfully.
 
 
 In this tutorial, we introduce the functionality of `FHI-vibes` with hands-on examples.
@@ -33,7 +30,7 @@ There are two test system available for running the tutorials:
 1. fcc-Silicon with LDA exchange-correlation functional, and 
 2. Lennard-Jones Argon.
 
-Running the tutorial with LDA-Silicon will show you how to perform the calculations at full _ab initio_ quality. Running the tutorial with LJ-Argon is great to get a quick hands-on overview over the features provided by `FHI-vibes`. 
+Running the tutorial with LDA-Silicon will show you how to perform the calculations at full _ab initio_ quality. Running the tutorial with LJ-Argon is great to get a quick hands-on overview over the features provided by `FHI-vibes`.
 
 ### LDA-Silicon
 
@@ -50,7 +47,6 @@ Running the tutorial with LDA-Silicon will show you how to perform the calculati
     ```
     [calculator]
     name:                          aims
-    ```
 
     [calculator.parameters]
     xc:                            pw-lda
@@ -78,7 +74,6 @@ Running the tutorial with LDA-Silicon will show you how to perform the calculati
     ```
         [calculator]
         name:                          lj
-    ```
 
         [calculator.parameters]
         # parameters for LJ Argon

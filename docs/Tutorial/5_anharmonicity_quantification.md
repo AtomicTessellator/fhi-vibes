@@ -53,6 +53,7 @@ is the harmonic contribution to the force.
 ## Evaluating $\sigma^{\rm A}$ with `FHI-vibes`
 
 The necessary ingredient to evaluate Eq. $\eqref{eq:sigmaA}$ are:
+
 - Atomic forces $F_{I, \alpha}$,
 - harmonic force constants $\Phi^{IJ}$ to compute $F_{I, \alpha}^{(2)}$ according to Eq. $\eqref{eq:F2}$ for evaluating Eq. $\eqref{eq:FA}$ , and
 - thermodynamic expectation values according to Eq. $\eqref{eq:meanO}$.

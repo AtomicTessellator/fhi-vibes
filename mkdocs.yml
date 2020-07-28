@@ -34,9 +34,9 @@ nav:
             - "Running a phonon calculation": Tutorial/2_phonopy.md
         - "Molecular Dynamics":
             - "Background": Tutorial/3_md_intro.md
-            - "Canonical Sampling": Tutorial/3_md_canonical_sampling.md
-            - Tutorial/3_md_postprocess.md
             - "ab initio MD": Tutorial/3_md_ab_initio.md
+            - "Rapid Prototyping": Tutorial/3_md_canonical_sampling.md
+            - Tutorial/3_md_postprocess.md
         - Tutorial/4_statistical_sampling.md
         - Tutorial/5_anharmonicity_quantification.md
         - High-Throughput:

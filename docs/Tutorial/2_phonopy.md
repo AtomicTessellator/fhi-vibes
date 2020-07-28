@@ -1,10 +1,9 @@
 <a name="2_Phonopy"></a>
 
-!!! info
-	For vibrational studies, it is crucial to use structures that are accurately  relaxed. Before starting with actual phonon calculations, make sure you are familiar with [geometry optimization](1_geometry_optimization.md).
+!!! info "Prerequisites"
 
-??? info "Prerequisite"
-	Create a new working directory and copy over the `geometry.in.next_step` file you obtained from the previous geometry optimization as your new `geometry.in` file.
+	- For vibrational studies, it is crucial to use structures that are accurately  relaxed. Before starting with actual phonon calculations, make sure you are familiar with [geometry optimization](1_geometry_optimization.md).
+	- Create a new working directory and copy over the `geometry.in.next_step` file you obtained from the previous geometry optimization as your new `geometry.in` file.
 
 
 
@@ -81,6 +80,21 @@ vibes run phonopy | tee log.phonopy
 ```
 
 The calculation should take only a few seconds (depending on you computer).
+
+#### Restart a calculation
+
+If you need to restart a calculation, e.g., because you're working on a cluster and your job does not fit into a walltime or stops for another reason before the total number of simulation steps is reached, you can simply re-run or re-submit `vibes run phonopy`. It will restart the calculation from the last completed step. 
+
+#### Automatic restarts
+
+Optionally, `vibes` can restart the job by itself using a `[restart]` section in `phonopy.in`. To this end, add
+
+```
+[restart]
+command = sbatch submit.sh
+```
+
+to your `phonopy.in`, where `sbatch submit.sh` is the command you use to submit the phonon calculation to the queue.
 
 ### Basic postprocessing
 
@@ -204,4 +218,4 @@ It will tell you the supercell matrix that you can use in `phonopy.in` (`python:
 
 ### Practical guideline
 
-In practice, you should go at least for about 200 atoms in semiconductors and try to find a cubic-as-possible supercell shape. Playing around with `utils make-supercell` and a little bit of experience will do the job.
+In practice, the convergence with supercell size needs always to be checked carefully, since it depends on the range of the interactions present in your system, e.g., long ranged unscreened van-der-Waals interactions require larger supercells than short-ranged covalent ones as here in Si. Along the same lines, the acceptable supercell size depends also on the properties you are interested in. Free energies and specific heats converge faster than individual frquenecies.  Using a cubic-as-possible supercell shape and playing around with `vibes utils make-supercell` and a little bit of experience will do the job.

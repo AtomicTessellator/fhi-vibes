@@ -34,7 +34,7 @@ $$
 \Phi_{IJ} 
 = \left.\frac{\partial^2 \mathcal V}{\partial \vec{R}_I\partial \vec{R}_J}\right\vert_{\vec{R}^0} 
 = - \left.\frac{\partial }{\partial \vec{R}_I} \vec{F}_J\right\vert_{\vec{R}^0}
-\approx - \frac{ \vec{F}_J(\vec{R}_I^0 + \varepsilon \,\vec{d}_I)}{\varepsilon}~,
+= - \lim_{\epsilon \rightarrow 0} \frac{ \vec{F}_J(\vec{R}_I^0 + \epsilon \,\vec{d}_I)}{\epsilon}~,
 \label{eq:FinDiff}
 \end{align}
 $$
