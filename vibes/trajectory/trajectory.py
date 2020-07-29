@@ -240,7 +240,10 @@ class Trajectory(list):
     @lazy_property
     def velocities(self):
         """return the velocities as [N_t, N_a, 3] array"""
-        return np.array([a.get_velocities() for a in self])
+        velocities = np.array([a.get_velocities() for a in self])
+        if None in velocities:
+            velocities = np.full_like(self.positions, np.nan)
+        return velocities
 
     @lazy_property
     def momenta(self):
