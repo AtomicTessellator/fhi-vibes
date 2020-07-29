@@ -170,6 +170,7 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
         aims_settings.update({"compute_forces": True})
         if ctx.settings["md"]["compute_stresses"]:
             aims_settings.update({"compute_heat_flux": True})
+            aims_settings.update({"compute_analytical_stress": True})
 
     if "relaxation" in ctx.settings:
         aims_settings.update({"compute_forces": True})

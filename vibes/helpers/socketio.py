@@ -151,7 +151,7 @@ def socket_stress_off(calculator):
     else:
         talk(f"Calculator {calculator.name} is not a socket calculator.")
         calculator.parameters["compute_heat_flux"] = False
-        calculator.parameters["compute_analytical_stress"] = True
+        calculator.parameters["compute_analytical_stress"] = False
 
 
 def socket_stress_on(calculator):
@@ -169,4 +169,4 @@ def socket_stress_on(calculator):
         if "aims" in calculator.name.lower():
             talk(f"Switch on `compute_heat_flux` for {calculator.name}")
             calculator.parameters["compute_heat_flux"] = True
-            del calculator.parameters["compute_analytical_stress"]
+            calculator.parameters["compute_analytical_stress"] = True
