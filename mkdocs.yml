@@ -36,8 +36,8 @@ nav:
         - "Molecular Dynamics":
             - "Background": Tutorial/3_md_intro.md
             - "ab initio MD": Tutorial/3_md_ab_initio.md
-            - "Rapid Prototyping": Tutorial/3_md_canonical_sampling.md
             - Tutorial/3_md_postprocess.md
+            - "Rapid Prototyping": Tutorial/3_md_canonical_sampling.md
         - Tutorial/4_statistical_sampling.md
         - Tutorial/5_anharmonicity_quantification.md
         - High-Throughput:

@@ -247,7 +247,7 @@ You can perform postprocessing of the pressure by [inspecting the trajectory dat
 ??? info "reference pressure"
 	For 8 atoms LDA-Silicon, you should get a potential pressure of $-0.61 \pm 0.06 {}$
 	
-[A more detailed introduction to postprocessing including example scripts is given below for LJ-Argon.](3_md_postprocess.md)
+[A more detailed introduction to postprocessing including example scripts is given in the next chapter.](3_md_postprocess.md)
 
 ## References
 Running the calculation will take some time depending on the computer your working with. You find references [in our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/3_molecular_dynamics/ab_initio). There you also find reference calculations for 64 and 216 atoms.

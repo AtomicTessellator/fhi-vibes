@@ -1,7 +1,7 @@
 # Postprocessing
 
 !!! warning
-	We assume you successfully ran the simulation of Lennard-Jones Argon at $20\,{\rm K}$ from the [previous chapter](3_md_canonical_sampling.md) and created a `trajectory.nc` dataset. You can can also take the reference data from [here](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/3_molecular_dynamics/LJ_Argon).
+	We assume you successfully ran the simulation of LDA-Silicon at $300\,{\rm K}$ from the [previous chapter](3_md_ab_initio.md) and created a `trajectory.nc` dataset. You can can also take the reference data from [here](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/3_molecular_dynamics/ab_initio/si_8).
 
 ### Example: Pressure
 
@@ -31,14 +31,14 @@ df[["temperature", "temperature_mean"]].plot()
 ??? info "`df.plot`"
 	![image](assets/md_temperature.png)
 	
-Since the calculation starts with all atoms located at their equilibrium positions, the initial potential energy is zero and the kinetic energy given to the system is converted to potential energy at early simulation times. In turn, the temperature drops from $20\,{\rm K}$ to about $10\,{\rm K}$. The missing energy is gradually provided by the thermostat, bringing the nuclear temperature back to $\sim 20\,{\rm K}$ after a few $\rm ps$.
+Since the calculation starts with all atoms located at their equilibrium positions, the initial potential energy is zero and the kinetic energy given to the system is converted to potential energy at early simulation times. In turn, the temperature drops from $300\,{\rm K}$ to about $150\,{\rm K}$. The missing energy is gradually provided by the thermostat, bringing the nuclear temperature back to $\sim 300\,{\rm K}$ after a few $\rm ps$.
 
 #### Discard thermalization period
 We can remove the thermalization period from the simulation data, e.g., by [shifting the dataframe](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.shift.html):
 
 ```python
-# discard 2500 steps (5ps) of thermalization
-shift = 2500
+# discard 500 steps (2ps) of thermalization
+shift = 500
 
 df = df.shift(-shift).dropna()
 
@@ -64,6 +64,7 @@ p.expanding().mean().plot(ax=ax, color="k")
 ??? info "Plot pressure"
 	![image](assets/md_pressure.png)
 	
+
 #### Expectation value and convergence estimation
 
 [As discussed earlier](3_md_intro.md), the expectation value of the pressure is given by the mean of the observed pressures,
@@ -78,17 +79,17 @@ $$
 \end{align}
 $$
 
-In our finite simulation, $N_{\rm t} = 5000 < \infty$, so that
+In our finite simulation, $N_{\rm t} = 2000 < \infty$, so that
 
 $$
 \begin{align}
 \left\langle p_{\rm Pot} \right\rangle
-= \left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} + \Delta~,
+= \left\langle p_{\rm Pot} \right\rangle_{N_t = 2000} + \Delta~,
 \label{eq:p_final}
 \end{align}
 $$
 
-where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 5000} = 0.1064\,{\rm GPa}$ is the mean pressure observed during the finite simulation, and $\Delta$ is the (unknown) difference to the fully converged expectation value. While we are never able to fully converge a calculation, we can nevertheless estimate the magnitude of the error $\Delta$.
+where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 2000} = -0.613\,{\rm GPa}$ is the mean pressure observed during the finite simulation, and $\Delta$ is the (unknown) difference to the fully converged expectation value. While we are never able to fully converge a calculation, we can nevertheless estimate the magnitude of the error $\Delta$.
 
 We estimate this error by computing $\sigma_{\langle p \rangle}$, the [_standard error of the mean_](https://en.wikipedia.org/wiki/Standard_error):
 
@@ -126,7 +127,7 @@ corr = si.correlate(pp, pp)[len(pp) - 1 :]
 # normalize to C(0) = 1
 corr /= corr[0]
 
-# create as pandas.Series for plotting and smoothen out the data a bit
+# create as pandas.Series for plotting
 s = pd.Series(corr).rolling(min_periods=0, window=10).mean()
 ax = s.plot()
 
@@ -134,18 +135,18 @@ ax = s.plot()
 tau = s.index.where(s < 0.1).min()
 ax.axvline(tau)
 
-ax.set_xlim(0, 500)
+ax.set_xlim(0, 100)
 ax.set_title(f"$\\tau$ is {int(tau)} steps")
 ```
 
 ??? info "Plot pressure autocorrelation function"
 	![image](assets/md_autocorr.png)
 
-In the  present example, the observable decorrelates after about 192 time steps ($\equiv 768\,{\rm fs}$). We therefore estimate the number of uncorrelated samples to be 
+In the  present example, the observable decorrelates after about 14 time steps ($\equiv 56\,{\rm fs}$). We therefore estimate the number of uncorrelated samples to be 
 
 $$
 \begin{align*}
-	\tilde N_t = N_t / 192 \approx 26
+	\tilde N_t = N_t / 14 \approx 142
 \end{align*}
 $$
 
@@ -153,14 +154,14 @@ The standard deviation of the pressure distribution is
 
 $$
 \begin{align}
-	\sigma_p = 0.0046\,{\rm GPa}~,
+	\sigma_p = 0.23426\,{\rm GPa}~,
 \end{align}
 $$
 
 so that according to Eq. $\eqref{eq:sigma_O}$,
 
 $$
-\sigma_{\langle p \rangle} = \frac{0.0046}{\sqrt{26}}\,{\rm GPa} \approx 0.0009\,{\rm GPa}~.
+\sigma_{\langle p \rangle} = \frac{0.23426}{\sqrt{142}}\,{\rm GPa} \approx 0.06167\,{\rm GPa}~.
 $$
 
 
@@ -168,11 +169,11 @@ The final result for the pressure according to Eq. $\eqref{eq:p_final}$ is
 
 $$
 \begin{align*}
-	\langle p_{\rm Pot} (20\,{\rm K}) \rangle = (0.1064 \pm 0.0009)\,{\rm GPa}~,
+	\langle p_{\rm Pot} (300\,{\rm K}) \rangle = (-0.61255 \pm 0.06167)\,{\rm GPa}~,
 \end{align*}
 $$
 
-which means that our result is converged within an estimated precision of $1\,\%$. **Remark:** This does _not_ mean that the true expectation lies within the given range. The estimated error is to be understood in the sense of a [confidence interval](https://en.wikipedia.org/wiki/Confidence_interval#Practical_example).
+which means that our result is converged within an estimated precision of $10\,\%$. **Remark:** This does _not_ mean that the true expectation lies within the given range. The estimated error is to be understood in the sense of a [confidence interval](https://en.wikipedia.org/wiki/Confidence_interval#Practical_example).
 
 ??? info "Code snippet to compute the mean and the error estimator"
 
