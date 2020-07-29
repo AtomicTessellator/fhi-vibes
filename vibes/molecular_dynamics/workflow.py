@@ -22,6 +22,7 @@ from vibes.trajectory import metadata2file, step2file
 
 from ._defaults import calculation_timeout, name
 
+
 _calc_dirname = "calculations"
 # _socket_timeout = 60
 _prefix = name
@@ -136,6 +137,9 @@ def run(ctx, backup_folder=default_backup_folder):
             if compute_stresses_now(compute_stresses, md.nsteps):
                 stresses = get_stresses(atoms)
                 atoms.calc.results["stresses"] = stresses
+            else:  # make sure `stresses` are not logged
+                if "stresses" in atoms.calc.results:
+                    del atoms.calc.results["stresses"]
 
             # peek into aims file and grep for uuid
             atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
