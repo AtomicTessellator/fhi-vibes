@@ -28,6 +28,7 @@ nav:
         - License: license.md
     - Tutorial:
         - Overview: Tutorial/0_intro.md
+        - Tutorial/singlepoint.md
         - "Geometry Optimization": Tutorial/1_geometry_optimization.md
         - "Phonon Calculations":
             - "Background": Tutorial/2_phonopy_intro.md

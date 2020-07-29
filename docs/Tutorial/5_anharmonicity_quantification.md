@@ -3,6 +3,9 @@
 !!! info
 	Please refer to [our paper](https://arxiv.org/abs/2006.14672) for background information.
 
+!!! warning
+	The tutorial assumes you are familiar with performing [phonon calculations](3_phonopy.md) and [molecular dynamics simulations](2_md_ab_initio.md).
+
 ## Background
 
 In order to estimate the strength of anharmonic effects in a material, we define the _anharmonicity measure_
@@ -96,11 +99,13 @@ This tells you that the average magnitude of anharmonic contributions to the for
 
 ## Mode resolved anharmonicity
 
+To perform an analysis similar to Fig. 8 in [our paper](https://arxiv.org/pdf/2006.14672.pdf), you can run
+
 ```
 vibes utils anharmonicity mode trajectory.nc 
 ```
 
-
+which will produce a `.csv` file containing mode frequencies $\omega_s$ in THz and the respective mode-resolved anharmonicity $\sigma^{\rm A}_s$. The file can be plotted like this:
 
 ```python
 import pandas as pd

@@ -1,7 +1,9 @@
 # Harmonic Sampling
 
-!!! warning
-	**Never ever rely on estimates obtained by the following method _unless_ you know _exactly_ what you are doing.**
+!!! warning "Warnings"
+
+	- **Never ever rely on estimates obtained by the following method _unless_ you know _exactly_ what you are doing.**
+	- The tutorial assumes you are familiar with performing [phonon calculations](3_phonopy.md).
 
 ### Thermodynamic sampling via MD simulations
 
