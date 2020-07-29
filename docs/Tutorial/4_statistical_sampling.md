@@ -98,38 +98,13 @@ $$
 
 where $\langle A_s \rangle$ is given by Eq. $\eqref{eq:As}$ and each $\zeta_s (n)$ is a normally distributed random number, where  $n$ labels the sample.
 
-## Example: Lj Argon at 20K
+## Example: LDA-Si at 300K
 
 ### Obtain force constants
 
-Prepare a working directory including the `geometry.in.primitive` from the [MD tutorial](3_md_canonical_sampling.md). In this folder, prepare a `phonopy.in` with 
+We will re-use the calculation from [the previous tutorial on phonon calculations](2_phonopy.md). If you didn't run these calculations, you find the respective calculations in [our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/2_phonopy/sc_8).
 
-```
-[files]
-geometry:                      geometry.in.primitive
-
-[calculator]
-name:                          lj
-
-[calculator.parameters]
-# parameters for LJ Argon
-sigma:    3.405
-epsilon:  0.010325 
-rc:       8.0
-
-[phonopy]
-supercell_matrix: [-3,  3,  3,  3, -3,  3,  3,  3, -3]
-```
-
-The supercell matrix will create the same supercell as was used in the [MD tutorial](3_md_canonical_sampling.md#generate-a-structure).
-
-[Run the calculation](2_phonopy.md#run-the-calculation)
-
-```
-vibes run phonopy
-```
-
-and [perform the postprocess](2_phonopy.md#basic-postprocessing) in the `phonopy` folder:
+As start, [perform the postprocess](2_phonopy.md#basic-postprocessing) in the `phonopy` folder:
 
 ```
 cd phonopy
@@ -160,24 +135,24 @@ We are now ready to create samples according to Eq. $\eqref{eq:samples}$.
 
 ### Create samples
 
-Samples can be created with the CLI tool `utils create-samples`. We now create 100 samples according to Eq. $\eqref{eq:samples}$ at a temperature of $20\,{\rm K}$ by running
+Samples can be created with the CLI tool `utils create-samples`. We now create 10 samples according to Eq. $\eqref{eq:samples}$ at a temperature of $300\,{\rm K}$ by running
 
 ```
-vibes utils create-samples geometry.in.supercell -fc FORCE_CONSTANTS_remapped -n 100 -T 20
+vibes utils create-samples geometry.in.supercell -fc FORCE_CONSTANTS_remapped -n 10 -T 300
 ```
 
-The geometry files are written as `geometry.in.supercell.0020K.???` to the  current directory. Let's move them to a folder called `samples_20K`:
+The geometry files are written as `geometry.in.supercell.0300K.???` to the  current directory. Let's move them to a folder called `samples_20K`:
 
 ```
-mkdir samples_20K
-mv geometry.in.supercell.* samples_20K
+mkdir samples_300K
+mv geometry.in.supercell.* samples_300K
 ```
 
 Move back to your root working directory and move the samples folder to it
 
 ```
 cd ../..
-mv phonopy/output/samples_20K .
+mv phonopy/output/samples_300K .
 ```
 
 Also copy the phonopy supercell to the working directory:
@@ -188,41 +163,45 @@ cp phonopy/output/geometry.in.supercell .
 
 ### Compute the samples
 
-In order to compute pressure in all samples, prepare a `lj.in` like this:
+In order to compute pressure in all samples, prepare a `aims.in` like this:
 
 ```
 [files]
-geometries:                    samples_20K/geometry.in.*
-primitive:                     geometry.in.primitive
+geometries:                    samples_300K/geometry.in.*
 supercell:                     geometry.in.supercell
 
 [calculator]
-name:                          lj
-workdir:                       ${name}_020K
+name:                          aims
+socketio:                      true
+workdir:                       aims_300K
 
 [calculator.parameters]
-# parameters for LJ Argon
-sigma:    3.405
-epsilon:  0.010325 
-rc:       8.0
+xc:                            pw-lda
+compute_analytical_stress:     true
+
+[calculator.kpoints]
+density:                       2
+
+[calculator.basissets]
+default:                       light
 ```
 
-This will run a calculation for all structures found in `samples_20K/geometry.in.*` and write the results to a `trajectory.son` file in the directory `lj_020K`.
+[This will run a calculation for all structures found in `samples_300K/geometry.in.*`](singlepoint.md) and write the results to a `trajectory.son` file in the directory `aims_300K`.
 
 Run the calculation with
 
 ```
-vibes run singlepoint lj.in 
+vibes run singlepoint aims.in | tee log.aims
 ```
 
-This should only take a few seconds.
+This will take a few minutes depending on your machine.
 
 ### Compare sampling vs. MD
 
 [Similar to MD](3_md_canonical_sampling.md#create-trajectory-dataset-and-inspect-the-simulation) you can create a trajectory dataset from `trajectory.son` by running `vibes output md`:
 
 ```
-cd  lj_020K
+cd  aims_300K
 vibes output md
 ```
 
