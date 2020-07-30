@@ -23,7 +23,6 @@ def generate_samples(
     zacharias=False,
     gauge_eigenvectors=False,
     ignore_negative=False,
-    sobol=False,
     random_seed=None,
     propagate=None,
     failfast=True,
@@ -41,7 +40,6 @@ def generate_samples(
         zacharias: use +/-
         gauge_eigenvectors: make largest entry positive
         ignore_negative: don't check for negative modes
-        sobol: Use sobol numbers for the sampling
         random_seed: seed for random number generator
         propagate: propagate atoms according to velocities for this many fs
     """
@@ -58,16 +56,6 @@ def generate_samples(
 
     if not seed:
         seed = np.random.randint(2 ** 31)
-        if sobol:
-            seed = np.random.randint(2 ** 16)
-
-    if sobol:
-        from vibes.helpers.sobol import RandomState
-
-        # create sobol generator with dimension 3N - 3
-        # check that `nw` coincides with `nw` in `velocitydistribution.phonon_harmonics`
-        nw = 3 * len(atoms) - 3
-        rng = RandomState(dimension=nw, seed=seed, failsafe=False)
     else:
         rng = np.random.RandomState(seed)
 
@@ -104,7 +92,6 @@ def generate_samples(
         f"deterministic:       {deterministic}",
         f"plus_minus:          {zacharias}",
         f"gauge_eigenvectors:  {gauge_eigenvectors or zacharias}",
-        f"Sobol numbers:       {sobol}",
         f"Random seed:         {seed}",
     ]
 

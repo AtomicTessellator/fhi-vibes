@@ -14,7 +14,6 @@ zacharias = True
 gauge_eigenvectors = True
 ignore_negative = False
 failfast = True
-sobol = Faslse
 random_seed = 13
 propagate = False
 ```
@@ -76,10 +75,6 @@ Used for Monte Carlo sampling of a system for anharmonicity quantification
 #### `failfast`:
 
 `bool`: If True If True fail if any imaginary modes are present or acustic modes are not near zero at Gamma (Default is True)
-
-#### `sobol`:
-
-`bool`: If True use sobol quasi-random numbers (Default is False)
 
 #### `random_seed`:
 

@@ -10,7 +10,6 @@
 #  deterministic:       False
 #  plus_minus:          False
 #  gauge_eigenvectors:  False
-#  Sobol numbers:       False
 #  Random seed:         4
 #  Sample number:       1
 #=======================================================

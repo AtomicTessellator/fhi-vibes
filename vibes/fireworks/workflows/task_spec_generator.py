@@ -92,7 +92,6 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None, add_qadapter=False):
         "plus_minus",
         "gauge_eigenvectors",
         "ignore_negative",
-        "sobol",
         "random_seed",
     ]
 

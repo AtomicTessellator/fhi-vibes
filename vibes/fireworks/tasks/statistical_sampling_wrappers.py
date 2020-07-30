@@ -105,8 +105,6 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
             use Bose-Einstein distribution instead of Maxwell-Boltzmann
         deterministic : bool
             create sample deterministically
-        sobol : bool
-            Use sobol numbers for the sampling
         rng_seed : (int
             seed for random number generator
 
@@ -182,7 +180,6 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
         "gauge_eigenvectors": kwargs.get("gauge_eigenvectors", True),
         "ignore_negative": kwargs.get("ignore_negative", False),
         "failfast": kwargs.get("failfast", True),
-        "sobol": kwargs.get("sobol", False),
         "random_seed": rng_seed,
         "propagate": False,
     }

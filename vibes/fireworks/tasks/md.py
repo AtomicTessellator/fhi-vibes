@@ -1,8 +1,8 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
 from pathlib import Path
 
-from jconfigparser.dict import DotDict
 import numpy as np
+from jconfigparser.dict import DotDict
 
 from vibes.cli.scripts.create_samples import generate_samples
 from vibes.filenames import filenames
@@ -96,7 +96,6 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
                 zacharias=False,
                 gauge_eigenvectors=False,
                 ignore_negative=True,
-                sobol=False,
                 random_seed=np.random.randint(2 ** 32),
                 propagate=0,
             )[0]

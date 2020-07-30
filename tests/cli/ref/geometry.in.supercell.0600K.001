@@ -10,7 +10,6 @@
 #  deterministic:       False
 #  plus_minus:          True
 #  gauge_eigenvectors:  True
-#  Sobol numbers:       False
 #  Random seed:         4
 #  Sample number:       2
 #  Harmonic E_pot:        0.233eV (450.00K)
