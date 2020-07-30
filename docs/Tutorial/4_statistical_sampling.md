@@ -3,7 +3,7 @@
 !!! warning "Warnings"
 
 	- **Never ever rely on estimates obtained by the following method _unless_ you know _exactly_ what you are doing.**
-	- The tutorial assumes you are familiar with performing [phonon calculations](3_phonopy.md).
+	- The tutorial assumes you are familiar with performing [phonon calculations](2_phonopy.md).
 
 ### Thermodynamic sampling via MD simulations
 
@@ -115,7 +115,7 @@ Check the bandstructure in `output/bandstructure.pdf` for plausibility.
 
 #### Remap the force constants to the supercell
 
-The force constants are written to [`output/FORCE_CONSTANTS`](../Documentation/output_files.md#force_constants). For creating samples, they need to be mapped to a full $3 N \times 3N$ shape. This can be done with the CLi tool `utils fc remap`,
+The force constants are written to [`output/FORCE_CONSTANTS`](../Documentation/output_files.md#force_constants). For creating samples, they need to be mapped to a full $3 N \times 3N$ shape. This can be done with the CLi tool `vibes utils fc remap`,
 
 ```
 cd output
@@ -231,11 +231,11 @@ The [mean pressure and standard error](3_md_postprocess.md#expectation-value-and
 
 $$
 \begin{align*}
-\langle p_{\rm Pot} (20\,{\rm K}) \rangle^{(2)} = (0.1104 \pm 0.0006)\,{\rm GPa}~,
+\langle p_{\rm Pot} (300\,{\rm K}) \rangle^{(2)} = (-0.11 \pm 0.05)\,{\rm GPa}~,
 \end{align*}
 $$
 
-which is converged with a precision of $\sim 0.5\,\%$. **However**, the superscript $\langle \cdot \rangle^{(2)}$ reminds us that we used the harmonic approximation to create the samples. Indeed, the pressure found by harmonic sampling is about $2.5\,\%$ larger than the [MD reference computed in the previous tutorial](3_md_postprocess.md#expectation-value-and-convergence-estimation).
+which is converged with a precision of $\sim 20\,\%$. **However**, the superscript $\langle \cdot \rangle^{(2)}$ reminds us that we used the harmonic approximation to create the samples. Indeed, the pressure found by harmonic sampling is about $40\,\%$ larger than the [MD reference computed in the previous tutorial](3_md_postprocess.md#expectation-value-and-convergence-estimation). Yet, the  two values coincide within their error margins. Further sampling on both sides would be needed to compute the actual difference between the two sampling techniques.
 
 ## Take Home Messages
 

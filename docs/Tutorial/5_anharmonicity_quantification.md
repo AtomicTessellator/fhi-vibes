@@ -4,7 +4,7 @@
 	Please refer to [our paper](https://arxiv.org/abs/2006.14672) for background information.
 
 !!! warning
-	The tutorial assumes you are familiar with performing [phonon calculations](3_phonopy.md) and [molecular dynamics simulations](2_md_ab_initio.md).
+	The tutorial assumes you are familiar with performing [phonon calculations](2_phonopy.md) and [molecular dynamics simulations](3_md_ab_initio.md).
 
 ## Background
 
@@ -67,11 +67,11 @@ These ingredients can be obtained with `FHI-vibes` with the following workflow:
 - Obtain force constants for the supercell as introduced in the [phonons tutorial](2_phonopy.md).
 - Run an MD simulation for the supercell as introduced in the [MD tutorial](3_md_canonical_sampling.md).
 
-### Example: LJ-Argon at $20\,{\rm K}$
+### Example: LDA-Silicon at $300\,{\rm K}$
 
 Assuming that  you performed the previous tutorials, we already have all the necessary ingredients available.
 
-In a new working directory, copy your `trajectory.nc` dataset from the the [MD tutorial](3_md_canonical_sampling.md) and your force constants from the [harmonic sampling tutorial](4_statistical_sampling.md#obtain-force-constants), i.e., the file `phonopy/output/FORCE_CONSTANTS`. You can attach the force constants to the trajectory dataset with the CLI tool `utils trajectory update`:
+In a new working directory, copy your `trajectory.nc` dataset from the the [MD tutorial](3_md_ab_initio.md) and your force constants from the [phonopy tutorial](2_phonopy.md), i.e., the file `phonopy/output/FORCE_CONSTANTS`. You can attach the force constants to the trajectory dataset with the CLI tool `utils trajectory update`:
 
 ```
 vibes utils trajectory update trajectory.nc -fc FORCE_CONSTANTS 
@@ -89,11 +89,11 @@ which will give you the total $\sigma^{\rm A}$ value (`sigma`), as well as an in
 
 ```
 DataFrame:
-       sigma  sigma [Ar]  sigma_atom_mean  sigma_mode
-Ar  0.251369    0.251369         0.251369    0.251365
+       sigma  sigma [Si]  sigma_atom_mean  sigma_mode
+Si  0.156109    0.156109         0.156109    0.156026
 ```
 
-This tells you that the average magnitude of anharmonic contributions to the forces, $F^{\rm A}$, in Lennard-Jones Argon at $20\,{\rm K}$ is about $25\,\%$. This is already a larger anharmonic contribution as you would find in silicon at $300\,{\rm K}$.
+This tells you that the average magnitude of anharmonic contributions to the forces, $F^{\rm A}$, in Lennard-Jones Argon at $300\,{\rm K}$ is about $15\,\%$. This is already a larger anharmonic contribution as you would find in silicon at $300\,{\rm K}$.
 
 
 
@@ -105,20 +105,4 @@ To perform an analysis similar to Fig. 8 in [our paper](https://arxiv.org/pdf/20
 vibes utils anharmonicity mode trajectory.nc 
 ```
 
-which will produce a `.csv` file containing mode frequencies $\omega_s$ in THz and the respective mode-resolved anharmonicity $\sigma^{\rm A}_s$. The file can be plotted like this:
-
-```python
-import pandas as pd
-import seaborn as sns
-
-
-s = pd.read_csv("sigmaA_mode_Ar.csv", index_col=0)
-
-ax = sns.kdeplot(s.index, s, shade=True, cmap="gray_r")
-s.plot(marker=".", lw=0, alpha=0.5, ax=ax)
-
-ax.set_xlim(0, 2.5)
-```
-
-??? info "Plot of mode resolved sigma"
-	![image](assets/sigma_mode_Ar.png)
+which will produce a `.csv` file containing mode frequencies $\omega_s$ in THz and the respective mode-resolved anharmonicity $\sigma^{\rm A}_s$.

@@ -89,7 +89,7 @@ $$
 \end{align}
 $$
 
-where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 2000} = -0.613\,{\rm GPa}$ is the mean pressure observed during the finite simulation, and $\Delta$ is the (unknown) difference to the fully converged expectation value. While we are never able to fully converge a calculation, we can nevertheless estimate the magnitude of the error $\Delta$.
+where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 2000} = -0.076\,{\rm GPa}$ is the mean pressure observed during the finite simulation, and $\Delta$ is the (unknown) difference to the fully converged expectation value. While we are never able to fully converge a calculation, we can nevertheless estimate the magnitude of the error $\Delta$.
 
 We estimate this error by computing $\sigma_{\langle p \rangle}$, the [_standard error of the mean_](https://en.wikipedia.org/wiki/Standard_error):
 
@@ -142,11 +142,11 @@ ax.set_title(f"$\\tau$ is {int(tau)} steps")
 ??? info "Plot pressure autocorrelation function"
 	![image](assets/md_autocorr.png)
 
-In the  present example, the observable decorrelates after about 14 time steps ($\equiv 56\,{\rm fs}$). We therefore estimate the number of uncorrelated samples to be 
+In the  present example, the observable decorrelates after about 10 time steps ($\equiv 40\,{\rm fs}$). We therefore estimate the number of uncorrelated samples to be 
 
 $$
 \begin{align*}
-	\tilde N_t = N_t / 14 \approx 142
+	\tilde N_t = N_t / 10 \approx 200
 \end{align*}
 $$
 
@@ -154,14 +154,14 @@ The standard deviation of the pressure distribution is
 
 $$
 \begin{align}
-	\sigma_p = 0.23426\,{\rm GPa}~,
+	\sigma_p = 0.239\,{\rm GPa}~,
 \end{align}
 $$
 
 so that according to Eq. $\eqref{eq:sigma_O}$,
 
 $$
-\sigma_{\langle p \rangle} = \frac{0.23426}{\sqrt{142}}\,{\rm GPa} \approx 0.06167\,{\rm GPa}~.
+\sigma_{\langle p \rangle} = \frac{0.239}{\sqrt{200}}\,{\rm GPa} \approx 0.053\,{\rm GPa}~.
 $$
 
 
@@ -169,11 +169,13 @@ The final result for the pressure according to Eq. $\eqref{eq:p_final}$ is
 
 $$
 \begin{align*}
-	\langle p_{\rm Pot} (300\,{\rm K}) \rangle = (-0.61255 \pm 0.06167)\,{\rm GPa}~,
+	\langle p_{\rm Pot} (300\,{\rm K}) \rangle = (-0.076 \pm 0.053)\,{\rm GPa}~,
 \end{align*}
 $$
 
-which means that our result is converged within an estimated precision of $10\,\%$. **Remark:** This does _not_ mean that the true expectation lies within the given range. The estimated error is to be understood in the sense of a [confidence interval](https://en.wikipedia.org/wiki/Confidence_interval#Practical_example).
+which means that our result is converged within an estimated precision of $70\,\%$. **Remark:** This does _not_ mean that the true expectation lies within the given range. The estimated error is to be understood in the sense of a [confidence interval](https://en.wikipedia.org/wiki/Confidence_interval#Practical_example). The size of the error signals that the calculation is not fully converged and more sampling time would be necessary to report the observed pressure with confidence. You find reference for a total simulation time of $40\,{\rm ps}$ [here](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/3_molecular_dynamics/ab_initio/si_8_longer). How did the value and the error change?
+
+Physics question: The observed potential pressure is negative. _Why?_ Do you expect a positive or negative lattice expansion at $300\,{\rm K}$?
 
 ??? info "Code snippet to compute the mean and the error estimator"
 
