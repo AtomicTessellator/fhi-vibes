@@ -1,4 +1,4 @@
-image: registry.gitlab.com/flokno/hilde:vibes
+image: registry.gitlab.com/vibes-developers/vibes:default
 
 before_script:
   - flake8
