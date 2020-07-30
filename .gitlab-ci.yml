@@ -11,7 +11,7 @@ default:
   script:
     - pytest --cov --cov-config=setup.cfg tests/ --ignore tests/fireworks/
   after_script:
-    - bash <(curl -s https://codecov.io/bash) -t d6fc44a4-f34d-4b5b-bf29-10db36125244
+    - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
 
 fireworks:
   when: manual
