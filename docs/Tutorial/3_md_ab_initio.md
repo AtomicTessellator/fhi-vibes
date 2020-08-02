@@ -166,6 +166,8 @@ To efficiently perform _ab initio_ molecular dynamics simulations for systems la
     vibes run md md.in
     ```
 
+Once you are familiar with running calculations on the cluster, checkout the [`vibes submit` command](../Documentation/input_files_slurm.md#submit-a-job).
+
 ### Restart a calculation
 
 If your calculation does not fit into a walltime or stops for another reason before the total number of simulation steps is reached, you can simply resubmit `vibes run md md.in`. It will restart the calculation from the last completed step. 
