@@ -42,26 +42,26 @@ Once the geometry files are added, create a phonopy workflow in `workflow.in` wi
 
     [fireworks]
     name:                          example_phonon_calculations
-    
+
     [fireworks.workdir]
     local:                         analysis/
     remote:                        run/
-    
+
     [calculator]
     name:                          aims
-    
+
     [calculator.parameters]
     xc:                            pw-lda
-    
+
     [calculator.kpoints]
     density:                       1
-    
+
     [calculator.basissets]
     default:                       light
-    
+
     [calculator.socketio]
     port:                          12345
-    
+
     [phonopy]
     supercell_matrix:              [-2, 2, 2, 2, -2, 2, 2, 2, -2]
     displacement:                  0.01
@@ -71,11 +71,11 @@ Once the geometry files are added, create a phonopy workflow in `workflow.in` wi
     symprec:                       1e-05
     q_mesh:                        [45, 45, 45]
     serial:                        True
-    
+
     [phonopy.convergence]
     minimum_similiarty_score:      0.05
     sc_matrix_base:                [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-    
+
     [phonopy.qadapter]
     nodes:                         1
     walltime:                      00-04:00:00
@@ -113,7 +113,7 @@ The magnitude of these errors is material dependent, and is normally either igno
 For high throughput applications manual inspection is impractical so we developed an automatic metric for determining supercell convergence using the [Tanimoto similarity score](https://en.wikipedia.org/wiki/Jaccard_index#Other_definitions_of_Tanimoto_distance) of two successively larger supercells to check convergence.
 The score is calculated from the DOS on a 45x45x45 q-grid of the smaller, $\mathbf{d_{small}}$, and larger, $\mathbf{d_{large}}$, supercell
 \begin{equation}
-    score = \frac{\mathbf{d_{small}} \cdot \mathbf{d_{large}}}{\left|\mathbf{d_{small}}\right| + \left|\mathbf{d_{large}}\right| - \mathbf{d_{small}} \cdot \mathbf{d_{large}} }.
+    score = \frac{\mathbf{d_{small}} \cdot \mathbf{d_{large}}}{\left|\mathbf{d_{small}}\right|^2 + \left|\mathbf{d_{large}}\right|^2 - \mathbf{d_{small}} \cdot \mathbf{d_{large}} }.
     \label{eq:tanimoto}
 \end{equation}
 
@@ -149,7 +149,7 @@ and you should get the following output
 
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-    
+
     [calculator]   Update aims k_grid with kpt density of 1 to [4, 4, 4]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
@@ -168,10 +168,10 @@ and you should get the following output
     [fireworks]    Generating workflow for MgO
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-    
+
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-    
+
     [calculator]   Update aims k_grid with kpt density of 1 to [4, 4, 4]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
