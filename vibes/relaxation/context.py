@@ -50,6 +50,7 @@ class RelaxationContext(TaskContext):
             "hydrostatic_strain": self.kw.get("hydrostatic_strain"),
             "constant_volume": self.kw.get("constant_volume"),
             "scalar_pressure": self.kw.get("scalar_pressure"),
+            "mask": self.kw.get("mask"),
         }
         return kw
 
