@@ -25,7 +25,6 @@ basisset_default = "light"
 default_control = {
     "sc_accuracy_rho": 1e-6,
     "relativistic": "atomic_zora scalar",
-    "compensate_multipole_errors": False,
     "output_level": "MD_light",
 }
 
@@ -171,6 +170,7 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
         if ctx.settings["md"]["compute_stresses"]:
             aims_settings.update({"compute_heat_flux": True})
             aims_settings.update({"compute_analytical_stress": True})
+            aims_settings.update({"compensate_multipole_errors": False})
 
     if "relaxation" in ctx.settings:
         aims_settings.update({"compute_forces": True})
