@@ -3,35 +3,50 @@
 !!! warning
 	We assume you successfully ran the simulation of LDA-Silicon at $300\,{\rm K}$ from the [previous chapter](3_md_ab_initio.md) and created a `trajectory.nc` dataset. You can can also take the reference data from [here](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/3_molecular_dynamics/ab_initio/si_8).
 
+CC: We are missing an aims: section to explain what one should learn.
+
 ### Example: Pressure
 
 We will now evaluate the potential pressure observed during the simulation, as [introduced earlier](3_md_intro.md#example-pressure). We will use [xarray](http://xarray.pydata.org/) and [pandas](https://pandas.pydata.org/) for the analysis. For interactive data exploration, we recommend to run the code in a [jupyter notebook](https://jupyter.org/) and play around with the suggested parameters like windows sizes etc.
+
+CC: If one does not use Jupyther, the scripts below do not give any output (missing plot.show/save). One should mention that.
+Also, they have to be run subsequently and not as individual scripts. Can we provid the whole script as download and say here
+that we just discuss individaul sections?
 
 #### Load trajectory dataset
 
 We first load the trajectory dataset and visualize the temperature:
 
+CC: In the below script, I made the variable names more explicit and extented the
+comments so that even panda/xarray novices have a chance of grasping what is going
+on. Please use similarly explicit comments and variable names throughout the tutorial
+and explaing each parameter.
+
 ```python
 import xarray as xr
 
 
-# load the trajectory dataset
-ds = xr.load_dataset("trajectory.nc")
+# load the trajectory dataset "trajectory.nc" from disk into the xarray all_data
+all_data = xr.load_dataset("trajectory.nc")
 
-# extract temperature and potential pressure and convert to pandas.DataFrame
-df = ds[["temperature", "pressure_potential"]].to_dataframe()
+# extract temperature and potential pressure from all the data and convert to pandas.DataFrame
+T_and_p = all_data[["temperature", "pressure_potential"]].to_dataframe()
 
-# attach a moving average of the temperature
-df["temperature_mean"] = df.temperature.rolling(window=200).mean()
+# attach a moving average (width=200 timesteps) of the temperature
+T_and_p["temperature_mean"] = T_and_p.temperature.rolling(window=200).mean()
 
-# plot the dataframe
-df[["temperature", "temperature_mean"]].plot()
+# plot temperature and temperature_mean as function of time
+T_and_p[["temperature", "temperature_mean"]].plot()
 ```
 
-??? info "`df.plot`"
+??? info "`T_and_p.plot`"
 	![image](assets/md_temperature.png)
+
+CC: Plot has no units.
 	
-Since the calculation starts with all atoms located at their equilibrium positions, the initial potential energy is zero and the kinetic energy given to the system is converted to potential energy at early simulation times. In turn, the temperature drops from $300\,{\rm K}$ to about $150\,{\rm K}$. The missing energy is gradually provided by the thermostat, bringing the nuclear temperature back to $\sim 300\,{\rm K}$ after a few $\rm ps$.
+Since the calculation starts with all atoms located at their equilibrium positions, the initial potential energy is zero and the kinetic energy corresponds to ~300K, since we have setup the velocities
+using the Maxwell-Boltzmann distribution. In the first 500 steps of the trajectort, the kinetic energy is partially converted to potential energy at. In turn, the temperature drops from $300\,{\rm K}$ to about $150\,{\rm K}$. 
+The missing thermal energy to obtaing a temperature of 300K is then gradually provided by the thermostat, bringing the nuclear temperature back to $\sim 300\,{\rm K}$ after a few $\rm ps$.
 
 #### Discard thermalization period
 We can remove the thermalization period from the simulation data, e.g., by [shifting the dataframe](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.shift.html):
@@ -49,7 +64,7 @@ df[['temperature', 'temperature_mean']].plot()
 	![image](assets/md_temperature_thermalized.png)
 
 #### Inspect the pressure
-We are now ready to inspect the pressure observed in the simulation and plot it with a cumulative average:
+We are now ready to inspect the pressure observed in the simulation and plot it including its cumulative average:
 
 ```python
 from ase.units import GPa
@@ -66,6 +81,9 @@ p.expanding().mean().plot(ax=ax, color="k")
 	
 
 #### Expectation value and convergence estimation
+
+CC: To be honest, I feel that this whole section, although very nice, has almost nothing to do with FHI-vibes itself. I suggest
+to at least mark this explicitly in such a way and explaing what is VIBES related and what is just general thermodynamics/python.
 
 [As discussed earlier](3_md_intro.md), the expectation value of the pressure is given by the mean of the observed pressures,
 
@@ -89,7 +107,8 @@ $$
 \end{align}
 $$
 
-where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 2000} = -0.076\,{\rm GPa}$ is the mean pressure observed during the finite simulation, and $\Delta$ is the (unknown) difference to the fully converged expectation value. While we are never able to fully converge a calculation, we can nevertheless estimate the magnitude of the error $\Delta$.
+where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 2000} = -0.076\,{\rm GPa}$ is the mean pressure observed during the finite simulation, and $\Delta$ is the (unknown) difference to the fully converged expectation value. 
+Although, full converge would require an infinite trajetcory length and is thus formally never reachable, one can get arbitrarily close in practice and estimate the magnitude of the error $\Delta$.
 
 We estimate this error by computing $\sigma_{\langle p \rangle}$, the [_standard error of the mean_](https://en.wikipedia.org/wiki/Standard_error):
 

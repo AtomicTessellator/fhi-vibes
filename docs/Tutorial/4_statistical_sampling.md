@@ -2,7 +2,7 @@
 
 !!! warning "Warnings"
 
-	- **Never ever rely on estimates obtained by the following method _unless_ you know _exactly_ what you are doing.**
+	- **Never ever rely on estimates obtained by the following method _without checking for the relevance of anharmonic effects_ (see Sec Anharmonic).**
 	- The tutorial assumes you are familiar with performing [phonon calculations](2_phonopy.md).
 
 ### Thermodynamic sampling via MD simulations
@@ -102,6 +102,19 @@ where $\langle A_s \rangle$ is given by Eq. $\eqref{eq:As}$ and each $\zeta_s (n
 
 ### Obtain force constants
 
+CC: I find this tutorial clumsy and unclear. Some comments:
+  - Clarify which input files are needed for which part, what they produce, and what to do next.
+  - Clarify which supercells are used for sampling and which phonopy calculations are required to do that.
+  - The remapping is essentially a technicality and not relevant for the user. The cleanliest solution would be to let vibes utils create-samples
+	do it automatically or to let at least vibes output phonopy generate it automatically.
+  - Why must `vibes output phonopy -bs` be executed in the phonopy folder and not in the main folder as usual? In my test, it seems to make no 
+	difference. Is -bs needed and why should one check the bs again? We just discussed it in the previous tutorial?
+  - Why must vibes utils fc remap be executed in the output folder. Again, this is not consistent with all other runs, in which vibes is always
+ 	called in the main folder.
+  - The fact that the samples are created in the phonopy/output and then moved outside is not elegant. Ideally, in a clean UI, since sampling requiers a phonopy
+	calculation as input, the respective phonopy folder should not be altered at all.
+  - We use a supercell tag, but it is unclear (a) if it is needed and (b) why?
+
 We will re-use the calculation from [the previous tutorial on phonon calculations](2_phonopy.md). If you didn't run these calculations, you find the respective calculations in [our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/2_phonopy/sc_8).
 
 As start, [perform the postprocess](2_phonopy.md#basic-postprocessing) in the `phonopy` folder:
@@ -187,6 +200,7 @@ default:                       light
 ```
 
 [This will run a calculation for all structures found in `samples_300K/geometry.in.*`](singlepoint.md) and write the results to a `trajectory.son` file in the directory `aims_300K`.
+CC: Tell that this is nothing else than one what discussed in Single_point calculations
 
 Run the calculation with
 
@@ -209,6 +223,8 @@ Since this is not an MD, the time axis in the dataset will simply label the samp
 
 The dataset in `trajectory.nc` can be inspected similar to [the MD case](3_md_postprocess.md).
 
+CC: See comments on postprocessing scripts.
+
 ```python
 import xarray as xr
 
@@ -223,6 +239,8 @@ ax = p.plot(marker="x", lw=0)
 
 p.expanding().mean().plot(ax=ax, color="k")
 ```
+
+CC: wrong x-axis label.
 
 ??? info "Pressure plot"
 	![image](assets/mc_pressure.png)

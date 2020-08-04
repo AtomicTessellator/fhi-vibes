@@ -3,8 +3,7 @@
 !!! info
 	We will now introduce _ab initio_ Molecular Dynamics simulations where the atomic forces come from a first-principles code. We will use `FHI-aims` as this calculator in the following. We assume:
 
-	- You are familiar with running MD simulations in a different context and are here to learn how to run MD with `FHI-vibes`. [A more detailed introduction to running MD is given below for a toy model.](3_md_canonical_sampling.md).
-	- You are familiar with MD postprocessing. An imcomplete tutorial given [below](3_md_postprocess.md).
+	- You are familiar with running MD simulations in a different context and are here to learn how to run MD with `FHI-vibes`. 
 	- You are familiar with running `FHI-aims` calculations.
 	- Optionally: You are familiar with running `FHI-aims` calculations on a workstation or computing cluster.
 
@@ -17,9 +16,8 @@ $$
 \end{align}
 $$
 
-where the potential energy $\mathcal V({\bf R})$ of a given atomic configuration $\bf R$ is given by the total energy  $E_{\rm tot}^{\rm DFT} ({\bf R})$ of the electronic and nuclear system computed for this structure.
-
-There are however some technical differences, mostly because a single force evaluation is typically several orders of magnitude more expensive when performed by a DFT code compared to an empirical force field.[^footnote1]
+where the potential energy $\mathcal V({\bf R})$ of a given atomic configuration $\bf R$ is given by the total energy  $E_{\rm tot}^{\rm DFT} ({\bf R})$ of the electronic and nuclear system computed for this structure[^footnote1].
+Given that a single DFT calculations is required for each step of the trajectory, MD calculations are computationally more expensive than the calculations performed in the other tutorials.
 
 ## Setting up ab initio MD
 
@@ -36,6 +34,7 @@ vibes utils make-supercell geometry.in.primitive -n 8
 mv geometry.in.primitive.supercell_8 geometry.in.supercell
 ```
 
+CC: Explaing pre-thermalize and why its needed
 Pre-thermalize supercell and create input file
 ```
 vibes utils create-samples geometry.in.supercell -T 300
@@ -137,10 +136,16 @@ We are now ready to  run the simulation!
 
 This step is similar to [before](2_phonopy.md#run-the-calculation), i.e., you run
 
+CC: We do not specify md.in here, but take the default. I suggest to either take the
+default in all examples or specify it everywhere:
+
 ```
 vibes run md >> log.md &
 ```
 
+CC: Again, summarize output!
+
+CC: As mentioned, separate section:
 ### Submit calculation on a cluster
 
 To efficiently perform _ab initio_ molecular dynamics simulations for systems larger than a few atoms, you will need a workstation or access to a computing cluster. To submit a `vibes` simulation to your cluster, follow these steps:
@@ -254,6 +259,6 @@ You can perform postprocessing of the pressure by [inspecting the trajectory dat
 ## References
 Running the calculation will take some time depending on the computer your working with. You find references [in our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/3_molecular_dynamics/ab_initio). There you also find reference calculations for 64 and 216 atoms.
 
-[^footnote1]: There are other differences like the inherent incompleteness of the SCF cycle in Kohn-Sham DFT schemes. Incomplete SCF convergence can introduce a systematic error that introduces energy drifts and other unphysical effects. Choosing the correct convergence settings is an important aspect of performing _ab initio_ MD simulations and is highly materials specific. Devising a strategy on how to choose these settings goes beyond the scope of this tutorial.
+[^footnote1]: Note that a coorect _ab initio_ MD requires also to choose the different numerical settings in the DFT calculation with care. For instance, the inherent incompleteness of the SCF cycle in Kohn-Sham DFT schemes can introduce a systematic error that introduces energy drifts and other unphysical effects. Choosing the correct convergence settings is an important aspect of performing _ab initio_ MD simulations and is highly materials specific. Devising a strategy on how to choose these settings goes beyond the scope of this tutorial.
 
 [^footnote2]: We compute the stress only every 10th step because computing the stress is numerically more expensive in _ab initio_ than computing the atomic forces only. Since we know that consecutive samples generated during MD are highly correlated, we don't loose valuable information by computing this quantity not in every single step.

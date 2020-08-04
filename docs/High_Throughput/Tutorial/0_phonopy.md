@@ -3,6 +3,10 @@
 ??? info "Prerequisite"
     FireWorks dependencies installed and set up for vibes. See the [installation guide](../Installation/0_setup.md) for more information.
 
+CC: See comments in installation.
+
+## Summary
+CC: Summarize what will be done and what will be learned.
 
 ## Setup workflow.in file
 
@@ -10,10 +14,12 @@ Setting up a high-throughput workflow to perform multiple `phonopy` calculation 
 Because the high throughput workflows are designed to be flexible, there is no `vibes template` command to automatically generate them, but modifying the workflows you'll work with here and in [the multi-step tutorial](../1_multistep) should be good guide on how to get started.
 
 In this case only two materials (Si-diamond and MgO-rock salt) will be calculated, but the workflow can be used to generate a harmonic model an arbitrary number of materials.
-Also in order to ensure these tutorials can be run locally, we will not fully converge the results, but will explain how to do that in the relevant sections.
+CC: As usual, we will not fully converge the results for these examples, so to allow for rapid execution and testing.
 
-As the first step in the tutorial, get the starting structures for the materials from the NOMAD repository  [Si](https://encyclopedia.nomad-coe.eu/gui/#/material/17241/structure) and [MgO](https://encyclopedia.nomad-coe.eu/gui/#/material/17916) and store them in `Si/geometry.in` and `MgO/geometry.in`, respectively.
-*Note: Ideally these structures would already be relaxed, we are purposefully not doing that here. Information on how to do that will be explained in [the multistep tutorial](../1_multistep). Please do that after this tutorial is finished.*
+We start from already relaxed structures for [Silicon](https://encyclopedia.nomad-coe.eu/gui/#/material/17241/structure) and [MgO](https://encyclopedia.nomad-coe.eu/gui/#/material/17916) 
+and store them in `Si/geometry.in` and `MgO/geometry.in`, respectively. *Note: Typically, one does not have relaxed structures already available. Information on how to perform a relaxation before
+running the phonon calculations (i.e. a multistep workflow) will be given in [the multistep tutorial](../1_multistep).*
+CC: Just provid relaxed structures already so not to confuse people
 
 ??? info "`Si/geometry.in`"
     ```
@@ -255,6 +261,9 @@ Four additional tasks have now been added to each workflow corresponding to the 
 Now all the workflows have been completed let's analyze the results.
 
 ## Analyzing the Results
+CC: Can you add some figures/bs/outputs so that the user can really check that his calculation
+has run correctly?
+
 The first step in analyzing the results is understanding the file structure of the directories.
 First looking at the run directory there are the following folders:
 ```

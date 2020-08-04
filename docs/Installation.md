@@ -20,27 +20,28 @@
 pip install --user fhi-vibes
 ```
 
-If you install with the `--user` option, make sure that `~/.local/bin` folder is on your `PATH`.
+The `--user` option makes sure that the installation occurs in your homefolder under `~/.local/bin`, as typically
+necessary on computing clusters. Please make sure that the `~/.local/bin` folder is listed in your `PATH`.
 
 **If you run into problems, please have a look at our [troubleshooting section.](#Troubleshooting)**
 
 ## Configuration
 
-Configure `vibes` by creating a `~/.vibesrc` configuration file in the home directory. To this end, first run
+Configure `vibes` by creating a `~/.vibesrc` configuration file template in the home directory. To this end, first run
 
 ```
 vibes template configuration vibes > ~/.vibesrc
 ```
 
-and edit according to system.
+and edit the configuration file as described below:
 
 ### `basissetloc`
 
-The `basissetloc` points to your `/path/to/FHIaims/species_defaults` folder.
+The `basissetloc` should point to the folder containing FHI-aims' species defaults, e.g., the `/path/to/FHIaims/species_defaults` folder.
 
 ### `aims_command`
 
-The `aims_command` should be an executable script that  takes care of running aims, for example a file called `run_aims`  that looks roughly like this (depends on you system!):
+The `aims_command` should be an executable script that takes care of setting up the environment and then running FHI-aims, for example a file called `/path/to/FHIaims/run_aims.sh`  that looks roughly like this (depends on you system!):
 
 ```
 #!/bin/bash -l
@@ -53,10 +54,10 @@ module load intel impi mkl
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${MKLROOT}/lib/intel64/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${INTEL_HOME}/lib/intel64/
 
-srun aims.x
+srun /path/to/FHIaims/build/aims.x
 ```
 
-This file has to live on your `PATH` and has to be made executable, e.g., via `chmod +x`. 
+The script `run_aims.sh` has to be marked as executable, e.g., by running `chmod +x /path/to/FHIaims/run_aims.sh`. 
 
 **You're now good to go!**
 

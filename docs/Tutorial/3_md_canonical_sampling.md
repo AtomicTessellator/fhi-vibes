@@ -1,14 +1,14 @@
-# Molecular Dynamics: Canonical Sampling
+# Rapid Prototyping with Empirical Force-Fields: 
 
-The aim of this tutorial is to learn how to perform a molecular dynamics simulation in the canonical ensemble and thermalize a system to a target temperature using a simple to calculate toy model.
+The aim of this tutorial is to learn how to use force-fields within FHI-vibes. For this purpose, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$ 
+and perfom the exact same calculation steps discussed for LDA-Silicon in Sec.~[XXX]. Since force evaluations for such a toy system are order of magnitudes faster compared to _ab initio_
+methods, this allows to quickly test and illustrate the influence of varios computational parameter on the MD. For instance, we suggest to test the workflow below for various supercell
+sizes, temperatures, timesteps, etc.
 
 !!! warning
 
 	- This tutorial mimics the essential steps for performing MD simulations in bulk systems. How you obtain initial structures in your project is, of course, highly dependent on the systems you aim to study etc.
 	- This tutorial needs ASE 3.20, which is not yet released. You can install the most recent ASE version with `pip install https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz`.
-
-!!! info
-	For this tutorial, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$ as a toy system that  can be calculated quickly for illustrating the basic workflow and getting familiar with running MD and postprocessing in an efficient way. All steps are transferable to performing _ab initio_ molecular dynamics simulations by exchanging the calculator with `FHI-aims`. [The _ab initio_ aspects of performing MD are adressed elsewhere](3_md_ab_initio.md).
 
 ##  Structure preparation
 
@@ -95,7 +95,6 @@ Additionally you can inspect the generated structure with the structure viewer o
 
 ??? info "`jmol geometry.in.primitive.supercell_108`"
 	![image](assets/geometry.in.supercell.png)
-
 
 
 Assuming that we are happy with this structure, we save it as our supercell:
@@ -339,3 +338,5 @@ vmd trajectory.xyz
 
 ??? info "`vmd trajectory.xyz`"
 	![image](assets/LJ-Argon.gif)
+
+CC: I'd suggest to add the postprocessing stuff here as well. Here one can really play with correlation times etc.

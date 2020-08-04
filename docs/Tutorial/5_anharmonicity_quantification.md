@@ -69,6 +69,10 @@ These ingredients can be obtained with `FHI-vibes` with the following workflow:
 
 ### Example: LDA-Silicon at $300\,{\rm K}$
 
+CC: Can we show some more plots and explanations here? This functionality is described/discussed with almost no details,
+despite the fact that it is most probably the thing that will first draw attention to vibes. Similar comments as in the harmonic sampling
+part apply, since some fundamental aspects are just not explained, e.g., that supercell sizes need to be consistent.
+
 Assuming that  you performed the previous tutorials, we already have all the necessary ingredients available.
 
 In a new working directory, copy your `trajectory.nc` dataset from the the [MD tutorial](3_md_ab_initio.md) and your force constants from the [phonopy tutorial](2_phonopy.md), i.e., the file `phonopy/output/FORCE_CONSTANTS`. You can attach the force constants to the trajectory dataset with the CLI tool `utils trajectory update`:
@@ -93,11 +97,14 @@ DataFrame:
 Si  0.156109    0.156109         0.156109    0.156026
 ```
 
+CC: We are not doing Argon, please update.
 This tells you that the average magnitude of anharmonic contributions to the forces, $F^{\rm A}$, in Lennard-Jones Argon at $300\,{\rm K}$ is about $15\,\%$. This is already a larger anharmonic contribution as you would find in silicon at $300\,{\rm K}$.
 
 
 
 ## Mode resolved anharmonicity
+
+CC: Again: Input/Output, what is the code doing, what do we learn, how do we plot.
 
 To perform an analysis similar to Fig. 8 in [our paper](https://arxiv.org/pdf/2006.14672.pdf), you can run
 

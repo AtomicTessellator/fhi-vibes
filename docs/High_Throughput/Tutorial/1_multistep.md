@@ -6,7 +6,7 @@
 
 ## Optimizing the k-point Density and Geometry
 
-Now that basic phonopy calculations have been explained, let's make the workflows more useful by adding two preprocessing tasks to the workflow before the phonopy calculations: k-grid optimization and geometry optimization.
+Now that basic phonopy calculations have been explained, let's make the workflows more useful by adding two preprocessing tasks to the workflow before the phonopy calculations: k-grid convergence and geometry optimization.
 
 ### k-grid Optimization
 ```
@@ -108,6 +108,9 @@ vibes fireworks rlaunch rapidfire
 Once this is completed, we can then compare the results from these workflows and those from using the wrong structure.
 
 ### Analyzing the Results
+CC: Again, some figures/outputs would help to make people understand what was done where and if
+they were able to run the code in the correct fashion.
+
 Looking inside the `run/` directory there are the following directories:
 ```
 run/Si/49833c381b84708fbcd174c47a777478ab5dec26:

@@ -162,10 +162,18 @@ CONFIG_FILE_DIR = $FW_CONFIG
 ```
 To find where the site-packages file is located run `python -m site` and it should appear in the returned list.
 
+
+CC: This VIBES specific section should be a separate section in HT, before Phonon Calculations, and should be
+called Configuring FHI-vibes for interaction with fireworks
+
 ## Creating a `.fireworksrc` file
 Now that FireWorks is installed and setup correctly vibes needs to be configured correctly in order to use it effectively.
 This file sets up default values for running FireWorks utilities that will be consistent throughout all calculation.
-To make this file run `vibes template fireworks_configuration` which will create a template `fireworksrc` in the current working directory with the following input:
+To make this file run 
+`vibes template fireworks_configuration` 
+CC: The correct command seems to be  vibes template configuration fireworks > ~/.fireworksrc 
+CC: Please always put commands in a single line for easier copy/paste
+which will create a template `fireworksrc` in the current working directory with the following input:
 ```
 [fireworks]
 config_dir: "~/.fireworks"
@@ -189,6 +197,11 @@ sleep_time = 60
 ```
 For a complete description of each of these parameters see the [full documentation](../../Documentation/1_general_high_throughput).
 Once completed copy `fireworksrc` to `$HOME/.fireworksrc`.
+CC: Since not all parameters need to be checked/changed, I would explain the parameters here, even as inline comments,e.g.,
+[fireworks]
+config_dir: "~/.fireworks"   # Directory containing the *yaml filed
+tasks2queue = ["vibes.relaxation.bfgs.relax", "vibes.fireworks.tasks.calculate_wrapper.wrap_calc_socket", "vibes.k_grid.converge_kgrid.converge_kgrid", "vibes.fireworks.tasks.calculate_wrapper.wrap_calculate", "vibes.fireworks.tasks.md.run" ]  ## DO NOT CHANGE
+etc...
 
 ## Testing if it works
 Now that your FireWorks installation should be working properly test it with the vibes FireWorks test in `test/fireworks/test_fireworks.py`.
