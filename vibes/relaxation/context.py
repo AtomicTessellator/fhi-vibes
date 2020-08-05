@@ -13,6 +13,7 @@ from vibes.helpers.converters import input2dict
 from ._defaults import name, settings_dict
 from .workflow import _prefix, run_relaxation
 
+
 # duck type ExpCellFilter, see https://gitlab.com/ase/ase/-/issues/603
 # is resolved:
 
@@ -110,7 +111,10 @@ class RelaxationContext(TaskContext):
             try:
                 from ase.spacegroup.symmetrize import FixSymmetry
             except ModuleNotFoundError:
-                msg = "`ase.spacegroup.symmetrize.FixSymmetry` is avaible from ASE 3.20"
+                msg = (
+                    "`ase.spacegroup.symmetrize.FixSymmetry` is available from ASE 3.20,"
+                    " please update."
+                )
                 raise RuntimeError(msg)
 
             constr = FixSymmetry(self.atoms, symprec=self.symprec)
