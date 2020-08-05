@@ -1,4 +1,4 @@
-# Rapid Prototyping with Empirical Force-Fields: 
+# Rapid Prototyping with Empirical Force-Fields 
 
 The aim of this tutorial is to learn how to use force-fields within FHI-vibes. For this purpose, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$ 
 and perfom the exact same calculation steps discussed for LDA-Silicon in Sec.~[XXX]. Since force evaluations for such a toy system are order of magnitudes faster compared to _ab initio_

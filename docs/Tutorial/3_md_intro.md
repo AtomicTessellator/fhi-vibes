@@ -105,7 +105,7 @@ $$
 \end{align}
 $$
 
-is the expectation value of pressure in a simulation with discrete time steps $t_n$. Since consecutive time steps in an MD simulation are necessarily correlated, Eq. $\eqref{eq:<pPot>}$ can converge quite slowly with the number of time steps $N_{\rm t}$. We will further discuss this in the [next tutorial](3_md_canonical_sampling.md).
+is the expectation value of pressure in a simulation with discrete time steps $t_n$. Since consecutive time steps in an MD simulation are necessarily correlated, Eq. $\eqref{eq:<pPot>}$ can converge quite slowly with the number of time steps $N_{\rm t}$. We come back to this in the next tutorials.
 
 ## Canonical Ensemble: Thermostats
 A simulation as described above models a [_microcanonical ensemble_](https://en.wikipedia.org/wiki/Microcanonical_ensemble), where particle number $N$, volume $V$, and energy $E$ are conserved. 

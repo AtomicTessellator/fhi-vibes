@@ -84,7 +84,7 @@ These ingredients can be obtained with `FHI-vibes` with the following workflow:
 
 - Take the materials of interest and generate a reference structure, i.e., a primitive cell and a supercell.
 - Obtain force constants for the supercell as introduced in the [phonons tutorial](2_phonopy.md).
-- Run an MD simulation for the supercell as introduced in the [MD tutorial](3_md_canonical_sampling.md).
+- Run an MD simulation for the supercell as introduced in the [MD tutorial](3_md_ab_initio.md).
 
 ### Example: LDA-Silicon at room temperature
 

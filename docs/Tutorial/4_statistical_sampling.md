@@ -193,7 +193,7 @@ This will take a few minutes depending on your machine.
 
 ### Compare sampling vs. MD
 
-[Similar to MD](3_md_canonical_sampling.md#create-trajectory-dataset-and-inspect-the-simulation) you can create a trajectory dataset from `trajectory.son` by running `vibes output md`:
+[Similar to MD](3_md_ab_initio.md#postprocess) you can create a trajectory dataset from `trajectory.son` by running `vibes output md`:
 
 ```
 cd  aims_300K
