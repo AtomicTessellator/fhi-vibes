@@ -6,14 +6,13 @@
 	    and introduction to these topics can be found various textbooks, some of which you find in the [references](references.md).
 	- The settings used throughout the tutorials are chosen in order to allow for smooth calculations. They are _not_ sufficient for producing publication-ready scientific results.
 	- We assume you have [installed](../Installation.md) and [configured](../Installation.md#configuration) `FHI-vibes` successfully.
+	- We assume you have some working experience with `python`, `numpy`, and `jupyter-notebook`.
 
 In this tutorial, we introduce the functionality of `FHI-vibes` with hands-on examples.
 
 ### Outline
 
 The following tutorials are available:
-
-REM: use consistens file names (1_singlepoint, ...)
 
 - [Single point calculations](singlepoint.md)
 - [Geometry optimization](1_geometry_optimization.md)
@@ -110,7 +109,7 @@ More details for each keyword can be found in the documentation.
 		
         [calculator]
         name:                          lj
-
+    
         [calculator.parameters]
         # parameters for LJ Argon
         sigma:    3.405

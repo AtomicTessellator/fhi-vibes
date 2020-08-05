@@ -1,12 +1,52 @@
 # Anharmonicity Quantification
 
-!!! info
-	Please refer to [our paper](https://arxiv.org/abs/2006.14672) for background information.
-
 !!! warning
 	The tutorial assumes you are familiar with performing [phonon calculations](2_phonopy.md) and [molecular dynamics simulations](3_md_ab_initio.md).
 
 ## Background
+
+As detailed [in our paper](https://arxiv.org/abs/2006.14672), we define the anharmonic contribution to the potential energy $\mathcal V ({\bf R})$ as
+
+$$
+\begin{align}
+	\mathcal{V}^{\rm A}(\mathbf{R}) \equiv \mathcal{V}(\mathbf{R})-\mathcal{V}^{(2)}(\mathbf{R})~,
+	\label{eq:VA}
+\end{align}
+$$
+
+where $\mathcal{V}^{(2)}(\mathbf{R})$ at a given atomic configuration $\bf R$ is given by
+
+$$
+\begin{align}
+	\mathcal{V}^{(2)}\left(\mathbf{R}=\mathbf{R}^{0}+\Delta \mathbf{R}\right)
+	=\frac{1}{2} \sum_{I, J} \Phi_{\alpha \beta}^{I, J} \Delta R_{I}^{\alpha} \Delta R_{J}^{\beta}~,
+\label{eq:V2}
+\end{align}
+$$
+
+with the [harmonic force constants $\Phi^{IJ}$](2_phonopy_intro.md) obtained at the equilibrium configuration ${\bf R}^0$ as
+
+$$
+\begin{align}
+	\Phi_{\alpha, \beta}^{I, J}
+	=\left.\frac{\partial^{2} \mathcal{V}}{\partial R_{I}^{\alpha} \partial R_{J}^{\beta}}\right|_{\mathbf{R}^{0}}~.
+	\label{eq:Phi}
+\end{align}
+$$
+
+Likewise, we define the anharmonic contribution to the force components $F_{I, \alpha} ({\bf R})$ as
+
+$$
+\begin{align}
+	F_{I, \alpha}^{\mathrm{A}}(\mathbf{R})
+	=F_{I, \alpha}(\mathbf{R})-F_{t, \alpha}^{(2)}(\mathbf{R})~.
+	\label{eq:FA}
+\end{align}
+$$
+
+This is a depiction of Eq. $\eqref{eq:VA}$ and $\eqref{eq:FA}$ for a one-dimensional toy potential:
+
+![image](assets/PES_sketch.png)
 
 In order to estimate the strength of anharmonic effects in a material, we define the _anharmonicity measure_
 
@@ -23,33 +63,12 @@ $$
 \begin{align}
 	\left\langle O \right\rangle
 	= \lim _{N_{\mathrm{t}} \rightarrow \infty} 
-	\frac{1}{N_{\mathrm{t}}} \sum_{n}^{N_{\mathrm{t}}} O\left(t_{n}\right)~,
+	\frac{1}{N_{\mathrm{t}}} \sum_{n}^{N_{\mathrm{t}}} \left(t_{n}\right)~.
 	\label{eq:meanO}
 \end{align}
 $$
 
-$F_{I, \alpha} (t)$ is the force component $\alpha$ on atom $I$ at time $t$, and $F^{\rm A}_{I, \alpha}$ is the anharmonic contribution
-
-$$
-\begin{align}
-	F_{I, \alpha}^{\mathrm{A}}(t)
-	=F_{I, \alpha}(t)-F_{I, \alpha}^{(2)}(t)~,
-	\label{eq:FA}
-\end{align}
-$$
-
-where 
-
-$$
-\begin{align}
-	F_{I, \alpha}^{(2)} (t)
-	=
-	-\sum_{J, \beta} \Phi_{\alpha, \beta}^{I, J} \Delta R_{J}^{\beta} (t)
-\label{eq:F2}
-\end{align}
-$$
-
-is the harmonic contribution to the force.
+$F_{I, \alpha} (t) \equiv F_{I, \alpha} [{\bf R} (t)]$ is the force component $\alpha$ on atom $I$ at time $t$, and $F^{\rm A}_{I, \alpha}$ is given by Eq. $\eqref{eq:FA}$. $\sigma^{\rm A} (T)$ therefore quantifies the _average strength of anharmonic force components $F_{I, \alpha}^{\rm A}$, normalized by the average strength of forces $F_{I, \alpha}$, observed at temperature $T$_.
 
 
 
@@ -69,11 +88,7 @@ These ingredients can be obtained with `FHI-vibes` with the following workflow:
 
 ### Example: LDA-Silicon at room temperature
 
-CC: Can we show some more plots and explanations here? This functionality is described/discussed with almost no details,
-despite the fact that it is most probably the thing that will first draw attention to vibes. Similar comments as in the harmonic sampling
-part apply, since some fundamental aspects are just not explained, e.g., that supercell sizes need to be consistent.
-
-Assuming that  you performed the previous tutorials, we already have all the necessary ingredients available.
+Assuming that  you performed the previous tutorials for LDA-Silicon in an 8-atoms supercell, we already have all the necessary ingredients available to evaluate $\sigma^{\rm A}$ for this system!
 
 In a new working directory, copy your `trajectory.nc` dataset from the the [MD tutorial](3_md_ab_initio.md) and your force constants from the [phonopy tutorial](2_phonopy.md), i.e., the file `phonopy/output/FORCE_CONSTANTS`. You can attach the force constants to the trajectory dataset with the CLI tool `utils trajectory update`:
 
@@ -81,7 +96,7 @@ In a new working directory, copy your `trajectory.nc` dataset from the the [MD t
 vibes utils trajectory update trajectory.nc -fc FORCE_CONSTANTS 
 ```
 
-This will attach read the force constants from `FORCE_CONSTANTS` and attach them to the trajectory dataset.
+This will attach read the force constants from `FORCE_CONSTANTS` and attach them to the trajectory dataset. 
 
 To evaluate Eq. $\eqref{eq:sigmaA}$, you can use the CLI tool `utils anharmonicity sigma`:
 
@@ -101,12 +116,31 @@ This tells you that the average magnitude of anharmonic contributions to the for
 
 ## Mode resolved anharmonicity
 
-CC: Again: Input/Output, what is the code doing, what do we learn, how do we plot.
-
-To perform an analysis similar to Fig. 8 in [our paper](https://arxiv.org/pdf/2006.14672.pdf), you can run
+To obtain a mode-resolved $\sigma^{\rm A}_s$ similar to the analysis of Fig. 8 in [our paper](https://arxiv.org/pdf/2006.14672.pdf), you can run
 
 ```
 vibes utils anharmonicity mode trajectory.nc 
 ```
 
 which will produce a `.csv` file containing mode frequencies $\omega_s$ in THz and the respective mode-resolved anharmonicity $\sigma^{\rm A}_s$.
+
+You can plot the file e.g. via
+
+```python
+import pandas as pd
+
+s = pd.read_csv("sigmaA_mode_Si.csv", index_col=0)
+
+ax = s.plot(marker=".", lw=0)
+
+ax.set_xlim(0, 20)
+ax.set_ylim(0, 0.5)
+
+ax.set_xlabel("$\omega_s$ (THz)")
+ax.set_ylabel(r"$\sigma^{\rm A}_s$")
+```
+
+??? info "Plot of $\sigma^{\rm A}_s$"
+	![image](assets/sigma_mode_Si.png)
+	
+The plot won't look too impressive because we're using a small supercell and the anharmonicity in silicon is overall quite weak. But you should be good to go to investigate the anharmonicity of your material of choice by now -- Happy Computing 💪
