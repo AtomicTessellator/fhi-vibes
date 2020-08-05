@@ -143,7 +143,7 @@ vibes run md >> log.md &
 
     ```
     [vibes.run]    run MD workflow with settings from md.in
-
+    
     [md]           driver: Langevin
     [md]           settings:
     [md]             type: molecular-dynamics
@@ -188,7 +188,7 @@ vibes run md >> log.md &
     ...
     ```
 
-For running on a cluster, see [additional remarks](singlepoint.md#submit-calculation-on-a-cluster).
+For running on a cluster, see [additional remarks](0_singlepoint.md#submit-calculation-on-a-cluster).
 
 ## Postprocess
 

@@ -181,7 +181,7 @@ density:                       2
 default:                       light
 ```
 
-This will run a calculation for all structures found in `samples_300K/geometry.in.*` [as discussed earlier in the tutorial on singlepoint calculations](singlepoint.md), and write the results to a `trajectory.son` file in the directory `aims_300K`.
+This will run a calculation for all structures found in `samples_300K/geometry.in.*` [as discussed earlier in the tutorial on singlepoint calculations](0_singlepoint.md), and write the results to a `trajectory.son` file in the directory `aims_300K`.
 
 Run the calculation with
 

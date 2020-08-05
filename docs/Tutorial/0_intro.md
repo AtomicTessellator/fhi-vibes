@@ -14,7 +14,7 @@ In this tutorial, we introduce the functionality of `FHI-vibes` with hands-on ex
 
 The following tutorials are available:
 
-- [Single point calculations](singlepoint.md)
+- [Single point calculations](0_singlepoint.md)
 - [Geometry optimization](1_geometry_optimization.md)
 - [Phonon calculations](2_phonopy_intro.md)
 - [Molecular dynamics](3_md_intro.md)
