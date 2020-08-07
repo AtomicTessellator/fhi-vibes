@@ -1,9 +1,7 @@
 # Rapid Prototyping with Empirical Force-Fields
 
-TP: Sec [XXX]
-
 The aim of this tutorial is to learn how to use force-fields within FHI-vibes. For this purpose, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$
-and perfom the exact same calculation steps discussed for LDA-Silicon in Sec. [XXX]. Since force evaluations for such a toy system are order of magnitudes faster compared to _ab initio_
+and perform the exact same calculation steps discussed for LDA-Silicon in the previous tutorial. Since force evaluations for such a toy system are order of magnitudes faster compared to _ab initio_
 methods, this allows to quickly test and illustrate the influence of varios computational parameter on the MD. For instance, we suggest to test the workflow below for various supercell
 sizes, temperatures, timesteps, etc.
 
@@ -37,10 +35,10 @@ this will try to find a cubic-as-possible supercell with roughly 100 atoms and w
       Spacegroup:          Fm-3m (225)
       Wyckoff positions:   1*a
       Equivalent atoms:    1*0
-
+    
     Settings:
       Target number of atoms: 100
-
+    
     Supercell matrix:
      python:  [-3,  3,  3,  3, -3,  3,  3,  3, -3]
      cmdline: -3 3 3 3 -3 3 3 3 -3
@@ -48,16 +46,16 @@ this will try to find a cubic-as-possible supercell with roughly 100 atoms and w
     [[-3, 3, 3],
      [3, -3, 3],
      [3, 3, -3]]
-
+    
     Superlattice:
     [[15.78  0.    0.  ]
      [ 0.   15.78  0.  ]
      [ 0.    0.   15.78]]
-
+    
     Number of atoms:  108
       Cubicness:         1.000 (1.000)
       Largest Cutoff:    7.890 AA
-
+    
     Supercell written to geometry.in.primitive.supercell_108
     ```
 
@@ -85,7 +83,7 @@ vibes info geometry geometry.in.primitive.supercell_108
       Spacegroup:          Fm-3m (225)
       Wyckoff positions:   108*a
       Equivalent atoms:    108*0
-
+    
     Cell lengths and angles [Å, °]:
       a, b, c:     15.7800     15.7800     15.7800
       α, β, γ:     90.0000     90.0000     90.0000
@@ -132,7 +130,7 @@ vibes utils create-samples geometry.in.supercell -T 20
       Number of atoms:   108
       Species:           Ar (108)
       Periodicity:       [ True  True  True]
-
+    
       Spacegroup:          Fm-3m (225)
       Wyckoff positions:   108*a
       Equivalent atoms:    108*0
@@ -164,7 +162,7 @@ vibes template md --nvt >> md.in
     ```
     [calculator]
     name:                          lj
-
+    
     [calculator.parameters]
     # parameters for LJ Argon
     sigma:    3.405
@@ -178,7 +176,7 @@ vibes template md --nvt >> md.in
     maxsteps:                      1000
     compute_stresses:              False
     workdir:                       md
-
+    
     [md.kwargs]
     temperature:                   300
     friction:                      0.02

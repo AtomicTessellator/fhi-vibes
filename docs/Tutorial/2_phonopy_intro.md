@@ -46,10 +46,7 @@ since beside the atoms in the unit cell $\vec{R}_J$ we also need to account for 
 of infinite size. In non-ionic crystals, however, the interaction between two atoms$~I$ and $J$ quickly decays with their distance$~\vec{R}_{IJ}$, so that we can compute the Hessian from
 finite supercells, the size convergence of which must be accurately inspected.
 
-Once the real-space representation of the Hessian is computed, we can determine the _dynamical matrix_ by adding up the contributions
-from all periodic images$~J'$ in the mass-scaled Fourier transform of the Hessian:
-
-TP: "as you have already learned in tutorial 1" This is not mentioned in the previous tutorial should we cut it or add it to the geo opt?
+Once the real-space representation of the Hessian is computed, we can determine the _dynamical matrix_ by adding up the contributions from all periodic images$~J'$ in the mass-scaled Fourier transform of the Hessian:
 
 $$
 \begin{align}

@@ -39,8 +39,12 @@ Likewise, we define the anharmonic contribution to the force components $F_{I, \
 $$
 \begin{align}
 	F_{I, \alpha}^{\mathrm{A}}(\mathbf{R})
-	=F_{I, \alpha}(\mathbf{R})-F_{t, \alpha}^{(2)}(\mathbf{R})~.
-	\label{eq:FA}
+	&=
+	F_{I, \alpha}(\mathbf{R})-F_{t, \alpha}^{(2)}(\mathbf{R})~,\text{ with} \label{eq:FA} \\
+	F_{I, \alpha}^{(2)}
+	&=
+	-\sum_{J, \beta} \Phi_{\alpha, \beta}^{I, J} \Delta R_{J}^{\beta}
+	\label{eq:F2}
 \end{align}
 $$
 
@@ -77,10 +81,8 @@ $F_{I, \alpha} (t) \equiv F_{I, \alpha} [{\bf R} (t)]$ is the force component $\
 The necessary ingredient to evaluate Eq. $\eqref{eq:sigmaA}$ are:
 
 - Atomic forces $F_{I, \alpha}$,
-- harmonic force constants $\Phi^{IJ}$ to compute $F_{I, \alpha}^{(2)}$ according to Eq. $\eqref{eq:F2}$ for evaluating Eq. $\eqref{eq:FA}$ , and
+- harmonic force constants $\Phi^{IJ}$ to compute $F^{(2)}$ according to Eq. $\eqref{eq:F2}$ for evaluating $F^{\rm A}$ according to Eq. $\eqref{eq:FA}$ , and
 - thermodynamic expectation values according to Eq. $\eqref{eq:meanO}$.
-
-TP: no eq:F2
 
 These ingredients can be obtained with `FHI-vibes` with the following workflow:
 

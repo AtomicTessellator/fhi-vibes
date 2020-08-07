@@ -47,11 +47,8 @@ $$
 
 where Eq. $\eqref{eq:O2}$ holds for [ergodic systems](https://en.wikipedia.org/wiki/Ergodicity).
 
-Compared to approximate treatments of the nuclear dynamics,~e.g.,~the harmonic approximation discussed
-in Sec. [XXX], MD has the advantage that it accounts for the full potential~$\mathcal{V}(\mathbf{R})$ and
+Compared to approximate treatments of the nuclear dynamics, e.g., the [harmonic approximation discussed earlier](2_phonopy_intro.md), MD has the advantage that it accounts for the full potential~$\mathcal{V}(\mathbf{R})$ and
 thus also for _anharmonic effects_ (contributions not captured by a the harmonic approximation).
-
-TP: Define X as 2?
 
 ### Example: Pressure
 
