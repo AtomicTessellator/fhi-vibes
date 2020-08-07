@@ -223,7 +223,7 @@ See [the tutorial](../../Tutorial/3_md_postprocess.md) for postprocessing option
 
 
     [statistical_sampling]
-    # phonon_file:                   analysis/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/sc_natoms_64/phonopy_analysis/trajectory.son
+    phonon_file:                   analysis/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/sc_natoms_64/phonopy_analysis/trajectory.son
     serial:                        True
     temperatures:                  [300, 600]
     supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
@@ -235,7 +235,7 @@ See [the tutorial](../../Tutorial/3_md_postprocess.md) for postprocessing option
     nodes:                         1
 
     [md]
-    # phonon_file:                   run/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/sc_natoms_64/phonopy/trajectory.son
+    phonon_file:                   run/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/sc_natoms_64/phonopy/trajectory.son
     supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
     driver:                        Langevin
     timestep:                      1
