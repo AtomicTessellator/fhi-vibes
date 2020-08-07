@@ -281,7 +281,7 @@ converged  sc_natoms_64
 The `sc_natoms_64` folders each contain a `phonopy_analysis` directory that only contains the final phonopy `trajectory.son` file for those iterations.
 Additionally the last `phonopy` iteration are stored in `converged` for easy access to the converged phonon calculations.
 
-From here you can perform any analysis that is possible within `phonopy` on all the materials, and get results to a similar level of percsion for all of them.
+From here you can perform any analysis that is possible within `phonopy` on all the materials, and get results to a similar level of precision for all of them.
 For example you can see the bandstructure and DOS of both materials by running
 ```
 vibes output phonopy -bs --dos
