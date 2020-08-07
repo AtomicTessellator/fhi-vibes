@@ -6,18 +6,18 @@
 
 ## Summary
 In this section we will learn how to set up and run multiple phonopy calculations using FHI-vibes and FireWorks.
-In the workflow we will also describe how we systematically determine if the supercell size is converged for a given material, so all materials will be calculated to the same level of accuracy.
+In the workflow we will also describe how we systematically determine if the supercell size is converged for a given material, so all materials will be calculated to the same level of precision.
 As an example we will use Si and MgO for this tutorial, but it can be extended to any set of materials.
 
 ## Setup workflow.in file
 
-Setting up a high-throughput workflow to perform multiple `phonopy` calculation is similar to settings up a single calculation, but with a few additional steps to ensure the calculations are done in a similar manner.
-Because the high throughput workflows are designed to be flexible, there is no `vibes template` command to automatically generate them, but modifying the workflows you'll work with here and in [the multi-step tutorial](../1_multistep) should be good guide on how to get started.
+Setting up a high-throughput workflow to perform multiple `phonopy` calculation is similar to setting up a single calculation, but with a few additional steps to ensure the calculations are done in a similar manner.
+Because the high throughput workflows are designed to be flexible, there is no `vibes template` command to automatically generate them, but modifying the workflows you'll work with here and in [the multi-step tutorial](2_multistep.md) should be good guide on how to get started.
 
-In this case only two materials (Si-diamond and MgO-rock salt) will be calculated, but the workflow can be used to generate a harmonic model an arbitrary number of materials.
-As usual, we will not fully converge the results for these examples, so to allow for rapid execution and testing.
+In this case only two materials (Si-diamond and MgO-rock salt) will be calculated, but the workflow can be used to generate a harmonic model for an arbitrary number of materials.
+As before, we will not fully converge the results for these examples, so to allow for rapid execution and testing.
 
-We start from already relaxed structures for silicon and magnesium oxide and store them in `Si/geometry.in` and `MgO/geometry.in`, respectively. *Note: Typically, one does not have relaxed structures already available. Information on how to perform a relaxation before running the phonon calculations (i.e. a multistep workflow) will be given in [the multistep tutorial](../1_multistep).*
+We start from already relaxed structures for silicon and magnesium oxide and store them in `Si/geometry.in` and `MgO/geometry.in`, respectively. *Note: Typically, one does not have relaxed structures already available. Information on how to perform a relaxation before running the phonon calculations (i.e. a multistep workflow) will be given in [the multistep tutorial](2_multistep.md).*
 
 ??? info "`Si/geometry.in`"
     ```
@@ -46,26 +46,26 @@ Once the geometry files are added, create a phonopy workflow in `workflow.in` wi
 
     [fireworks]
     name:                          example_phonon_calculations
-
+    
     [fireworks.workdir]
     local:                         analysis/
     remote:                        run/
-
+    
     [calculator]
     name:                          aims
-
+    
     [calculator.parameters]
     xc:                            pw-lda
-
+    
     [calculator.kpoints]
     density:                       1
-
+    
     [calculator.basissets]
     default:                       light
-
+    
     [calculator.socketio]
     port:                          12345
-
+    
     [phonopy]
     supercell_matrix:              [-2, 2, 2, 2, -2, 2, 2, 2, -2]
     displacement:                  0.01
@@ -75,11 +75,12 @@ Once the geometry files are added, create a phonopy workflow in `workflow.in` wi
     symprec:                       1e-05
     q_mesh:                        [45, 45, 45]
     serial:                        True
-
+    
     [phonopy.convergence]
-    minimum_similiarty_score:      0.05
+    FK: check ->
+    minimum_similarity_score:      0.05
     sc_matrix_base:                [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-
+    
     [phonopy.qadapter]
     nodes:                         1
     walltime:                      00-04:00:00
@@ -92,7 +93,7 @@ This `workflow.in` is very similar to the `phonopy.in` file from the [phonopy tu
 The largest difference between this workflow and the `phonopy.in` from the command line interface is the additional sections defining FireWorks specific parameters.
 The purpose of these sections is to organize both the LaunchPad and file structure of the machines running the workflows.
 `[fireworks.workdir]` specifies the base working directory for where the workflows will run (`fireworks.workdir.remote`) and where all the post-processing will happen (`fireworks.workdir.local`).
-The naming convention was chosen to reflect that in most cases the electronic structure calculations will be done on a remote cluster, while the postprocessing will be done locally on a lap/desktop computer.
+The naming convention was chosen to reflect that in most cases the electronic structure calculations will be done on a remote cluster, while the postprocessing will be done locally on a laptop or desktop computer.
 If `fireworks.workdir.remote` is not set, both post-processing and running the jobs will be done in the base working directory defined in `fireworks.workdir.local`.
 Furthermore to ensure the MgO and Si calculations do not overwrite each other these base working directories are appended with `{material_chemical_formula}/{atoms_hash}/` giving each material a unique working directory to store all of its data in.
 
@@ -106,22 +107,23 @@ Defaults for all of these parameters will be stored in the `my_qadapter.yaml` fi
 In the `[phonopy]` section there are only two changes: no `workdir` keyword and the `serial` keyword.
 For these workflows all working directories have been standardized, so each task does not require its own `workdir` keyword.
 The `serial` keyword controls how FireWorks sets up the force evaluation calculations for phonopy.
-If it is True then all calculations will be run serially on a single job, while if it is False then each force evaluation will be done as a separate calculations and tasks.
-We recommend this is always True to make use of ASE's [socektio calculators](https://wiki.fysik.dtu.dk/ase/ase/calculators/socketio/socketio.html), but it is not necessary to run the calculations.
+If it is True then all calculations will be run serially on a single job, while if it is False then each force evaluation will be done as separate calculations and tasks.
+We recommend this is always True to make use of ASE's [socketio calculators](https://wiki.fysik.dtu.dk/ase/ase/calculators/socketio/socketio.html), but it is not necessary to run the calculations.
 
 ### Phonopy Convergence
 
-This section is used to optionally converge the harmonic model with respect to the supercell size.
+This section is used to converge the harmonic model with respect to the supercell size.
 Because `phonopy` uses finite differences to calculate the harmonic approximation, if the supercell is too small an atomic displacement can interact with a periodic image of itself leading to errors.
 The magnitude of these errors is material dependent, and is normally either ignored by using what is considered a sufficiently large supercell or checked via a manual inspection of the phonon density of states and band structures.
 For high throughput applications manual inspection is impractical so we developed an automatic metric for determining supercell convergence using the [Tanimoto similarity score](https://en.wikipedia.org/wiki/Jaccard_index#Other_definitions_of_Tanimoto_distance) of two successively larger supercells to check convergence.
-The score is calculated from the DOS on a 45x45x45 q-grid of the smaller, $\mathbf{d_{small}}$, and larger, $\mathbf{d_{large}}$, supercell
+The score is calculated from the DOS on a 45x45x45 q-grid of the smaller, $\mathbf{d}_{\rm small}$, and larger, $\mathbf{d}_{\rm large}$, supercell
+
 \begin{equation}
-    score = \frac{\mathbf{d_{small}} \cdot \mathbf{d_{large}}}{\left|\mathbf{d_{small}}\right|^2 + \left|\mathbf{d_{large}}\right|^2 - \mathbf{d_{small}} \cdot \mathbf{d_{large}} }.
+    score = \frac{\mathbf{d}_{\rm small} \cdot \mathbf{d}_{\rm large}}{\left|\mathbf{d}_{\rm small}\right|^2 + \left|\mathbf{d}_{\rm large}\right|^2 - \mathbf{d}_{\rm small} \cdot \mathbf{d}_{\rm large} }.
     \label{eq:tanimoto}
 \end{equation}
 
-If the similarity score is larger than `phonopy.convergence.minimum_similarty_score` then the harmonic model is considered converged and that part of the workflow ends.
+If the similarity score is larger than `phonopy.convergence.minimum_similarity_score` then the harmonic model is considered converged and that part of the workflow ends.
 If it is smaller than the threshold then the supercell is increased to
 \begin{equation}
     M_\text{S, new} = \left(n\right) M_\text{S, base} + M_\text{0}
@@ -131,10 +133,12 @@ where $M_\text{S, base}$ is defined in [`phonopy.convergence.sc_matrix_base`](..
 $M_\text{0}$ must be an integer scalar value of $M_\text{S, base}$, or the workflow will not be added to the `LaunchPad`.
 
 A score of 0.80 is considered to be a good balance between getting fully converged results and not going to very large supercell sizes; however, you may want to increase it if very accurate results are needed or lower it if the unitcell of a material is already very large.
-Here a significantly lower minimum of 0.05 is used to allow the workflows to be easily run on a lap/desktop and so that none of the supercells get above 64 atoms.
+Here a significantly lower minimum of 0.05 is used so that none of the supercells get above 64 atoms and the workflows can be easily run on a laptop or desktop computer.
 
-In this case we set the initial supercell to be a 2x2x2 supercell of the conventional cell in order to reduce the over number of calculations needed to calculate the converged phonon model.
-Instead of explicitly calculating the smaller supercells the force constants from the larger one are mapped onto them and used to check for the convergence.
+FK: this section is not clear to me ->
+
+In this case we set the initial supercell to be a 2x2x2 supercell of the conventional cell in order to reduce the over (FK: overall?) number of calculations needed to calculate the converged phonon model.
+Instead of explicitly calculating the smaller supercells the force constants from the larger one are mapped onto them and used to check for the convergence. (FK: force constants mapping probably goes beyond the tutorial? At least it's not really necessary at this point imo)
 In most cases if a 200 atom supercell is used in this scheme then a converged phonon model can be calculated from a single phonopy calculation.
 
 ## Running the Calculations
@@ -153,7 +157,7 @@ and you should get the following output
 
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-
+    
     [calculator]   Update aims k_grid with kpt density of 1 to [4, 4, 4]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
@@ -172,10 +176,10 @@ and you should get the following output
     [fireworks]    Generating workflow for MgO
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-
+    
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-
+    
     [calculator]   Update aims k_grid with kpt density of 1 to [4, 4, 4]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
@@ -224,7 +228,7 @@ Once the workflows have been added to the LaunchPad you have multiple options to
 
 - `vibes fireworks claunch`: Run electronic structure calculations on clusters and everything else locally
 - `vibes fireworks qlaunch`: Run all jobs on clusters using the queuing system
-- `vibes fireworks rlaunch`: Run all jobs on locally
+- `vibes fireworks rlaunch`: Run all jobs locally
 - The FireWorks utilities:
 
 A more detailed description for each running option can be found in their respective documentation.
@@ -256,7 +260,7 @@ should now be
 ]
 ```
 Four additional tasks have now been added to each workflow corresponding to the force evaluation for the original supercell and three more tasks for the larger supercell for convergence tests.
-Now all the workflows have been completed let's analyze the results.
+Now all the workflows have been completed, let's analyze the results.
 
 ## Analyzing the Results
 
@@ -279,8 +283,10 @@ converged  sc_natoms_64
 analysis/Si/92b4ed53a4691c7621606216cab915fa8d5ac311:
 converged  sc_natoms_64
 ```
-The `sc_natoms_64` folders each contain a `phonopy_analysis` directory that only contain the final phonopy `trajectory.son` file for those iterations.
+The `sc_natoms_64` folders each contain a `phonopy_analysis` directory that only contains the final phonopy `trajectory.son` file for those iterations.
 Additionally the last `phonopy` iteration are stored in `converged` for easy access to the converged phonon calculations.
+
+FK: I don't understand the second part of this sentence ->
 From here you can perform any analysis that is possible within `phonopy` on all the materials, and know that the results standardized with respect to all of the calculation parameters.
 For example you can see the bandstructure and DOS of both materials by running
 ```
@@ -297,4 +303,4 @@ And for MgO it should look like this
 Because of the large variety of possible analysis steps, there is no automated phonopy output scripts in the workflow, but the file structure can be used to easily make bash or python scripts to do all post-processing.
 
 While we can now get converged phonon results, these workflows are incomplete because they require pre-relaxed structures to get physically relevant results.
-It would be possible to separately relax all the structures and then use those in this workflow, but the easier solution would be to use [multi-step workflows](../1_multistep) in the next tutorial.
+It would be possible to separately relax all the structures and then use those in this workflow, but the easier solution would be to use [multi-step workflows](2_multistep.md) in the next tutorial.
