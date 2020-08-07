@@ -1,7 +1,9 @@
-# Rapid Prototyping with Empirical Force-Fields 
+# Rapid Prototyping with Empirical Force-Fields
 
-The aim of this tutorial is to learn how to use force-fields within FHI-vibes. For this purpose, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$ 
-and perfom the exact same calculation steps discussed for LDA-Silicon in Sec.~[XXX]. Since force evaluations for such a toy system are order of magnitudes faster compared to _ab initio_
+TP: Sec [XXX]
+
+The aim of this tutorial is to learn how to use force-fields within FHI-vibes. For this purpose, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$
+and perfom the exact same calculation steps discussed for LDA-Silicon in Sec. [XXX]. Since force evaluations for such a toy system are order of magnitudes faster compared to _ab initio_
 methods, this allows to quickly test and illustrate the influence of varios computational parameter on the MD. For instance, we suggest to test the workflow below for various supercell
 sizes, temperatures, timesteps, etc.
 
@@ -35,10 +37,10 @@ this will try to find a cubic-as-possible supercell with roughly 100 atoms and w
       Spacegroup:          Fm-3m (225)
       Wyckoff positions:   1*a
       Equivalent atoms:    1*0
-    
+
     Settings:
       Target number of atoms: 100
-    
+
     Supercell matrix:
      python:  [-3,  3,  3,  3, -3,  3,  3,  3, -3]
      cmdline: -3 3 3 3 -3 3 3 3 -3
@@ -46,16 +48,16 @@ this will try to find a cubic-as-possible supercell with roughly 100 atoms and w
     [[-3, 3, 3],
      [3, -3, 3],
      [3, 3, -3]]
-    
+
     Superlattice:
     [[15.78  0.    0.  ]
      [ 0.   15.78  0.  ]
      [ 0.    0.   15.78]]
-    
+
     Number of atoms:  108
       Cubicness:         1.000 (1.000)
       Largest Cutoff:    7.890 AA
-    
+
     Supercell written to geometry.in.primitive.supercell_108
     ```
 
@@ -73,7 +75,7 @@ vibes info geometry geometry.in.primitive.supercell_108
       Number of atoms:   108
       Species:           Ar (108)
       Periodicity:       [ True  True  True]
-      Lattice:  
+      Lattice:
         [15.78  0.    0.  ]
         [ 0.   15.78  0.  ]
         [ 0.    0.   15.78]
@@ -83,7 +85,7 @@ vibes info geometry geometry.in.primitive.supercell_108
       Spacegroup:          Fm-3m (225)
       Wyckoff positions:   108*a
       Equivalent atoms:    108*0
-    
+
     Cell lengths and angles [Å, °]:
       a, b, c:     15.7800     15.7800     15.7800
       α, β, γ:     90.0000     90.0000     90.0000
@@ -130,7 +132,7 @@ vibes utils create-samples geometry.in.supercell -T 20
       Number of atoms:   108
       Species:           Ar (108)
       Periodicity:       [ True  True  True]
-    
+
       Spacegroup:          Fm-3m (225)
       Wyckoff positions:   108*a
       Equivalent atoms:    108*0
@@ -162,11 +164,11 @@ vibes template md --nvt >> md.in
     ```
     [calculator]
     name:                          lj
-    
+
     [calculator.parameters]
     # parameters for LJ Argon
     sigma:    3.405
-    epsilon:  0.010325 
+    epsilon:  0.010325
     rc:       13.0
 
 
@@ -176,7 +178,7 @@ vibes template md --nvt >> md.in
     maxsteps:                      1000
     compute_stresses:              False
     workdir:                       md
-    
+
     [md.kwargs]
     temperature:                   300
     friction:                      0.02
@@ -211,7 +213,7 @@ name:                          lj
 [calculator.parameters]
 # parameters for LJ Argon
 sigma:    3.405
-epsilon:  0.010325 
+epsilon:  0.010325
 rc:       8.0
 
 [md]
@@ -250,9 +252,9 @@ Depending on you computer, the calculation will take a few minutes.
 
 The data obtained at each time step will be written to the trajectory file `md/trajectory.son`. The CLI provides a tool to process the trajectory and create an `xarray.Dataset` from it. To this end, run
 
- ```
+```
 vibes output md md/trajectory.son
- ```
+```
 
 This command will create `trajectory.nc`, a dataset representation of the data contained in the MD trajectory saved as an `xarray.Dataset` to a NetCDF file. The included data can be viewed with
 
@@ -327,7 +329,7 @@ The pdf file `md_summary.pdf` provides a visualization of the simulated properti
 
 ??? info "`md_summary.pdf`"
 	![image](assets/md_summary.png)
-	
+
 ### Visualize trajectory
 The trajectory can be exported to an `xyz` file for visualizing the atomic motion, e.g., with [`VMD`](https://www.ks.uiuc.edu/Research/vmd/). To this end, run
 
@@ -339,4 +341,3 @@ vmd trajectory.xyz
 ??? info "`vmd trajectory.xyz`"
 	![image](assets/LJ-Argon.gif)
 
-CC: I'd suggest to add the postprocessing stuff here as well. Here one can really play with correlation times etc.

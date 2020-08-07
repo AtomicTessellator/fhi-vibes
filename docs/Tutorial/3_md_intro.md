@@ -32,10 +32,10 @@ The dynamical information encoded in the phase-space trajectory $\Gamma (t) = \{
 $$
 \begin{align}
 	\langle O\rangle
-	%&= \frac{1}{\mathcal{Z}} 
-	%\int \mathrm{d} \mathbf{R} \mathrm{d} \mathbf{P} ~ 
-	%	\mathrm{e}^{-\beta \mathcal{H}(\mathbf{R}, {\bf P})} 
-	%	O(\mathbf{R}, {\bf P}) 
+	%&= \frac{1}{\mathcal{Z}}
+	%\int \mathrm{d} \mathbf{R} \mathrm{d} \mathbf{P} ~
+	%	\mathrm{e}^{-\beta \mathcal{H}(\mathbf{R}, {\bf P})}
+	%	O(\mathbf{R}, {\bf P})
 	%	\label{eq:O1} \\
 	&=
 	\lim_{T \rightarrow \infty} \frac{1}{T}
@@ -45,11 +45,13 @@ $$
 	\end{align}
 $$
 
-where Eq. $\eqref{eq:O2}$ holds for [ergodic systems](https://en.wikipedia.org/wiki/Ergodicity). 
+where Eq. $\eqref{eq:O2}$ holds for [ergodic systems](https://en.wikipedia.org/wiki/Ergodicity).
 
 Compared to approximate treatments of the nuclear dynamics,~e.g.,~the harmonic approximation discussed
-in Sec.~[XXX], MD has the advantage that it accounts for the full potential~$\mathcal{V}(\mathbf{R})$ and 
+in Sec. [XXX], MD has the advantage that it accounts for the full potential~$\mathcal{V}(\mathbf{R})$ and
 thus also for _anharmonic effects_ (contributions not captured by a the harmonic approximation).
+
+TP: Define X as 2?
 
 ### Example: Pressure
 
@@ -58,9 +60,9 @@ For example, $O$ could be the instantaneous pressure given by
 $$
 \begin{align}
 \def\d\{{\rm d}}
-p({\bf R}, {\bf P}) 
+p({\bf R}, {\bf P})
 	= - \left. \left( \frac{\d \mathcal H ({\bf R}, {\bf P})}{\d V} \right)\right|_T
-	= \frac{1}{3V} \sum_I \frac{{\bf P}_I^2}{M_I} 
+	= \frac{1}{3V} \sum_I \frac{{\bf P}_I^2}{M_I}
 	+ \frac{1}{V} \frac{\d \mathcal V ({\bf R})}{\d V}
 	~,
 	\label{eq:p}
@@ -81,7 +83,7 @@ which can be evaluated independently of each other. We thus have
 $$
 \begin{align}
 	\left\langle p \right\rangle
-		= \left\langle p_{\rm Kin} \right\rangle 
+		= \left\langle p_{\rm Kin} \right\rangle
 		+ \left\langle p_{\rm Pot} \right\rangle~,
 	\label{eq:p3}
 \end{align}
@@ -99,7 +101,7 @@ $$
 \begin{align}
 \left\langle p_{\rm Pot} \right\rangle
 	= \lim_{N_{\rm t} \rightarrow \infty} \frac{1}{N_{\rm t}}
-	\sum_n^{N_{\rm t}} 	
+	\sum_n^{N_{\rm t}}
 	\frac{1}{V} \frac{\d \mathcal V \left({\bf R} (t_n) \right)}{\d V}
 \label{eq:<pPot>}
 \end{align}
@@ -108,7 +110,7 @@ $$
 is the expectation value of pressure in a simulation with discrete time steps $t_n$. Since consecutive time steps in an MD simulation are necessarily correlated, Eq. $\eqref{eq:<pPot>}$ can converge quite slowly with the number of time steps $N_{\rm t}$. We come back to this in the next tutorials.
 
 ## Canonical Ensemble: Thermostats
-A simulation as described above models a [_microcanonical ensemble_](https://en.wikipedia.org/wiki/Microcanonical_ensemble), where particle number $N$, volume $V$, and energy $E$ are conserved. 
+A simulation as described above models a [_microcanonical ensemble_](https://en.wikipedia.org/wiki/Microcanonical_ensemble), where particle number $N$, volume $V$, and energy $E$ are conserved.
 
 In order to simulate a [_canonical ensemble_](https://en.wikipedia.org/wiki/Canonical_ensemble), where instead of the energy $E$ the temperature $T$ is the thermodynamic variable, one typically models the system including an interaction with a fictitious heat bath which allows to control the target temperature of the  system.
 
@@ -118,8 +120,8 @@ In order to simulate a [_canonical ensemble_](https://en.wikipedia.org/wiki/Cano
 $$
 \begin{align}
 	\dot{\bf P}_I(t)
-		= {\bf F}_I 
-		- \gamma {\bf P}_I(t) 
+		= {\bf F}_I
+		- \gamma {\bf P}_I(t)
 		+ \sqrt{2 M_I \gamma T} \xi(t)
 	\label{eq:Langevin}~,
 \end{align}

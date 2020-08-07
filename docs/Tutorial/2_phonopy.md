@@ -20,19 +20,19 @@ vibes template phonopy >> phonopy.in
 	```
 	[calculator]
     name:                          aims
-    
+
     [calculator.parameters]
     xc:                            pw-lda
-    
+
     [calculator.kpoints]
     density:                       2
-    
+
     [calculator.basissets]
     default:                       light
-    
+
     [calculator.socketio]
     port:                          12345
-    
+
     [phonopy]
     supercell_matrix:              [1, 1, 1]
     displacement:                  0.01
@@ -77,7 +77,7 @@ The `displacement` tag will set the amplitude of the finite displacement in $\AA
 Let's stick to the default settings in `phonopy.in` for the moment and run the calculation with
 
 ```
-vibes run phonopy | tee log.phonopy 
+vibes run phonopy | tee log.phonopy
 ```
 
 The calculation should take only a few seconds (depending on you computer).
@@ -100,7 +100,7 @@ vibes output phonopy phonopy/trajectory.son --full
     [progress]        |||||||||||||||||||||||||||||||||||||  1/1
     [trajectory]   .. done in 0.001s
     [phonopy.postprocess] .. done in 0.034s
-    [phonopy.postprocess] 
+    [phonopy.postprocess]
     Extract phonopy results:
     [phonopy.postprocess] .. q_mesh:   [45, 45, 45]
     [phonopy.postprocess] .. write force constants
@@ -118,7 +118,7 @@ vibes output phonopy phonopy/trajectory.son --full
     # Mode   Frequency
         1 -1.62419e-07 THz
         2 -1.15231e-07 THz
-    [phonopy.postprocess] 
+    [phonopy.postprocess]
     Frequencies at Gamma point:
     q = [0. 0. 0.] (weight= 1)
     # Mode   Frequency
@@ -132,18 +132,17 @@ vibes output phonopy phonopy/trajectory.son --full
 This will:
 
 - Compute the phonon bandstructure along [high symmetry paths in the Brillouin zone](https://wiki.fysik.dtu.dk/ase/ase/dft/kpoints.html#high-symmetry-paths) and save it in `phonopy/output/bandstructure.pdf`.
-- Compute the density of states using a $45 \times 45 \times 45$ $\bf q$ point grid and the Tetrahedron method. 
+- Compute the density of states using a $45 \times 45 \times 45$ $\bf q$ point grid and the Tetrahedron method.
   The density of states will be plotted alongside the bandstructure to a file `output/bandstructure_dos.pdf`, and written to a data file [`total_dos.dat`](https://phonopy.github.io/phonopy/output-files.html#total-dos-dat-and-projected-dos-dat).
   The q-grid can be adjusted by specifying it with an additional flag `--q_mesh`.
-- Compute the harmonic free energy $F^{\rm ha}$ and the harmonic heat capacity at constant volume, $C_V$, i.e., the thermal properties accessible in the harmonic approximation using the DOS and it q-point settings.  
+- Compute the harmonic free energy $F^{\rm ha}$ and the harmonic heat capacity at constant volume, $C_V$, i.e., the thermal properties accessible in the harmonic approximation using the DOS and it q-point settings.
   An overview plot is saved to `output/thermal_properties.pdf` and the detailed output is written to [`output/thermal_properties.yaml`](https://phonopy.github.io/phonopy/output-files.html#thermal-properties-yaml).
 - Create animation files for visualization with [`v_sim`](http://www.mem-lab.fr/en/Pages/L_SIM/Softwares/V_Sim.aspx).
 - Write a `phonopy.yaml` for [loading a `Phonopy` object directly within `python`](https://phonopy.github.io/phonopy/phonopy-module.html#shortcut-to-load-input-files-phonopy-load).
 
-CC: Add all discussed plots below:
 ??? info "Bandstructure"
 	![image](bandstructure.png)
-	
+
 **Congratulations!** You have just performed a full (but not yet converged!) _ab initio_ phonon bandstructure calculation.
 
 Note that the CLI also allows to only run a subset of the postprocessing, e.g.,
@@ -155,7 +154,7 @@ only outputs the bandstructure.
 ## Choosing a supercell size
 
 !!! info
-	The ideal supercell size and shape depends on your problem at hand and it is difficult to give definite advice. In practice, the supercell size needs to be converged until the target property of interest is not changing anymore.  
+	The ideal supercell size and shape depends on your problem at hand and it is difficult to give definite advice. In practice, the supercell size needs to be converged until the target property of interest is not changing anymore.
         To facilitate this, there is a CLI tool that can help you creating supercells of different sizes.
 
 There is a [CLI utility](../Documentation/cli.md#vibes-utils)  in`FHI-vibes` that can help you to find supercells of different sizes:

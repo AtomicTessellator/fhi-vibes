@@ -41,14 +41,15 @@ nav:
         - Tutorial/4_statistical_sampling.md
         - Tutorial/5_anharmonicity_quantification.md
         - High-Throughput:
-            - "Phonon Calculations": High_Throughput/Tutorial/0_phonopy.md
-            - "Multistep Workflows": High_Throughput/Tutorial/1_multistep.md
+            - "Configure FHI-vibes with FireWorks": High_Throughput/Tutorial/0_configuring_fw_for_vibes.md
+            - "Phonon Calculations": High_Throughput/Tutorial/1_phonopy.md
+            - "Multistep Workflows": High_Throughput/Tutorial/2_multistep.md
         - Tutorial/acknowledgments.md
         - Tutorial/references.md
-    - Documentation: 
+    - Documentation:
         - Overview: Documentation/0_intro.md
         - "Units": Documentation/units.md
-        - "Input Files": 
+        - "Input Files":
             - Documentation/input_files.md
             - Documentation/calculator_setup.md
             - Workflows:

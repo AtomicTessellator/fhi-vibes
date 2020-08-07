@@ -3,7 +3,7 @@
 !!! info
 	We assume you are familiar with `FHI-aims` calculations and are here to learn how to perform them with `FHI-vibes`. The tutorial is however transferable to any other calculator supported by ASE.
 
-In this tutorial, you will learn how to perform singlepoint calculations with `FHI-vibes`. 
+In this tutorial, you will learn how to perform singlepoint calculations with `FHI-vibes`.
 
 ## Silicon in Equilibrium
 
@@ -14,14 +14,14 @@ As discussed in the introduction, this requires two files. The geometry of the s
     ```
     lattice_vector 0.0000000000000000 2.72 2.72
     lattice_vector 2.72 0.0000000000000000 2.72
-    lattice_vector 2.72 2.72 0.0000000000000000 
+    lattice_vector 2.72 2.72 0.0000000000000000
     atom_frac 0. 0. 0. Si
     atom_frac .25 .25 .25 Si
     ```
 
 and a file desribing the computational taks, which contains the
 calculator settings discussed in the introduction. Additionally,
-in contains a section `files` pointing to the geometry that shall
+it contains a section `files` pointing to the geometry that shall
 be calculated.
 
 ??? info "aims.in"
@@ -29,18 +29,18 @@ be calculated.
     ```
     [files]
     geometry:                      geometry.in
-    
+
     [calculator]
     name:                          aims
     socketio:                      true
-    
+
     [calculator.parameters]
     xc:                            pw-lda
     compute_forces:                true
-    
+
     [calculator.kpoints]
     density:                       3
-    
+
     [calculator.basissets]
     Si:                            light
     ```
@@ -51,7 +51,7 @@ You can run the calculation interactively via
 vibes run singlepoint aims.in | tee log.aims
 ```
 
-or by submitting it to a queuea on a computing cluster.
+or by submitting it to a queue on a computing cluster.
 
 ??? info "Example `submit.sh` for `slurm` queue manager"
     ```
@@ -66,11 +66,11 @@ or by submitting it to a queuea on a computing cluster.
     #SBATCH --ntasks-per-node=32
     #SBATCH --ntasks-per-core=1
     #SBATCH -t 24:0:00
-    
+
     # Make sure that the correct Python environment is set up, e.g.
     module load miniconda/3/4.5.4
     source activate vibes
-    
+
     vibes run singlepoint aims.in &> log.aims
     ```
 
@@ -80,7 +80,7 @@ The calculation should only take a few seconds and yield the following output:
 
     ```
     [vibes.run]    run singlepoint calculations with settings from aims.in
-    
+
     [calculator]   Update aims k_grid with kpt density of 3 to [8, 8, 8]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
@@ -105,9 +105,9 @@ The calculation should only take a few seconds and yield the following output:
     [vibes]        Compute structure 1 of 1: finished.
     ```
 
-The calculation will create a working directory called `aims`, the traditional input files for FHI-aims (control.in and geometry.in) as well as the output file 
+The calculation will create a working directory called `aims`, the traditional input files for FHI-aims (control.in and geometry.in) as well as the output file
 `aims.out` can be found in `aims/calculations/`. Additionally, vibes produces a trajectory file `aims/trajectory.son`, which contains all salient information for
-postprocessing and is particularly useful for the adavanced tasks tackled in the next tutorials. The data from this file can be extracted and stored 
+postprocessing and is particularly useful for the adavanced tasks tackled in the next tutorials. The data from this file can be extracted and stored
 in an `xarray.Dataset` in `trajectory.nc`, see [the documentation on output files](../Documentation/output_files.md). For this purpose, run
 
 ```
@@ -131,7 +131,7 @@ which yields the output
 
     ** Warning from file vibes/trajectory/trajectory.py, line 198, function times:
     --> no time steps found, return time as index
-    
+
     /u/christia/.local/lib/python3.7/site-packages/numpy/core/fromnumeric.py:3373: RuntimeWarning: Mean of empty slice.
       out=out, **kwargs)
     /u/christia/.local/lib/python3.7/site-packages/numpy/core/_methods.py:170: RuntimeWarning: invalid value encountered in double_scalars
@@ -141,7 +141,7 @@ which yields the output
     [trajectory]   .. time elapsed: 0.001s
     ** Warning from file vibes/trajectory/trajectory.py, line 540, function set_displacements:
     --> SUPERCELL NOT SET, compute w.r.t to reference atoms
-    
+
     [trajectory]   Compute displacements
     [trajectory]   .. time elapsed: 0.002s
     [trajectory]   Get pressure from trajectory
@@ -152,15 +152,15 @@ which yields the output
 
 ## Multiple Singlepoint Calculations in One Run
 
-`FHI-vibes` offers the possibility to run a set of related calculations in a single run, where "related calculations" means that the input geometries are allowed to differ in their positions and/or lattice. 
-The stoichometry, the number of atoms, as well as the computational settings must be the same for all systems. For instance, one can run singlepoint calculations for the following two geometries 
+`FHI-vibes` offers the possibility to run a set of related calculations in a single run, where "related calculations" means that the input geometries are allowed to differ in their positions and/or lattice.
+The stoichometry, the number of atoms, as well as the computational settings must be the same for all systems. For instance, one can run singlepoint calculations for the following two geometries
 
 ??? info "geometry.in.000"
 
     ```
     lattice_vector 0.0000000000000000 2.72 2.72
     lattice_vector 2.72 0.0000000000000000 2.72
-    lattice_vector 2.72 2.72 0.0000000000000000 
+    lattice_vector 2.72 2.72 0.0000000000000000
     atom_frac 0.01 0. 0. Si
     atom_frac .25 .25 .25 Si
     ```
@@ -170,12 +170,12 @@ The stoichometry, the number of atoms, as well as the computational settings mus
     ```
     lattice_vector 0.0000000000000000 2.72 2.72
     lattice_vector 2.72 0.0000000000000000 2.72
-    lattice_vector 2.72 2.72 0.0000000000000000 
+    lattice_vector 2.72 2.72 0.0000000000000000
     atom_frac 0.02 0. 0. Si
     atom_frac .25 .25 .25 Si
     ```
 
-which only differ by in the first fractional coordinate of the first atom, by using the 
+which only differ by in the first fractional coordinate of the first atom, by using the
 `geometries` tag in the file `aims.in`
 
 
@@ -184,23 +184,23 @@ which only differ by in the first fractional coordinate of the first atom, by us
     ```
     [files]
     geometries:                    geometry.in.???
-    
+
     [calculator]
     name:                          aims
     socketio:                      true
-    
+
     [calculator.parameters]
     xc:                            pw-lda
     compute_forces:                true
-    
+
     [calculator.kpoints]
     density:                       3
-    
+
     [calculator.basissets]
     Si:                            light
     ```
 
-Note, that `FHI-vibes` supports wildcards to read input files and will sort the input files found by this wildcard alphabetically. 
+Note, that `FHI-vibes` supports wildcards to read input files and will sort the input files found by this wildcard alphabetically.
 
 
 Again, you can run the calculation interactively via
@@ -233,7 +233,7 @@ To efficiently perform _ab initio_ calculations for systems larger than a few at
     #SBATCH --ntasks-per-node=32
     #SBATCH --ntasks-per-core=1
     #SBATCH -t 24:0:00
-    
+
     vibes run singlepoint aims.in
     ```
 

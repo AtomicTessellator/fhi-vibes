@@ -21,7 +21,7 @@ density:                       1
 default:                       light
 
 [calculator.socketio]
-port:                          12345
+port:                          auto
 
 [phonopy]
 supercell_matrix:              [-2, 2, 2, 2, -2, 2, 2, 2, -2]

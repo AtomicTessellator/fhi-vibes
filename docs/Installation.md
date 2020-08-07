@@ -2,13 +2,13 @@
 
 ## Prerequisites
 
-- A working `python3.7+` or `python3.6` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html). 
+- A working `python3.7+` or `python3.6` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html).
 	- On `python3.6`, please `pip install importlib_resources dataclasses`
 
-- A working `fortran` compiler, e.g., obtained by
-  
-  - `apt-get install gfortran` in Debian-derived systems, or
-  - `conda install -c conda-forge fortran-compiler` when `conda` is used.
+- A working `fortran` compiler, e.g., obtained by:
+    - `apt-get install gfortran` in Debian-derived systems, or
+    - `conda install -c conda-forge fortran-compiler` when `conda` is used.
+
 - If you want to use `FHI-aims` for running _ab initio_ calculations, make sure you have a recent version that supports the iPi socket communication (this is the default for any version newer than the `200112_2` release when using the [CMake build system](https://aims-git.rz-berlin.mpg.de/aims/FHIaims/-/wikis/CMake-Tutorial)).
 
 
@@ -57,7 +57,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${INTEL_HOME}/lib/intel64/
 srun /path/to/FHIaims/build/aims.x
 ```
 
-The script `run_aims.sh` has to be marked as executable, e.g., by running `chmod +x /path/to/FHIaims/run_aims.sh`. 
+The script `run_aims.sh` has to be marked as executable, e.g., by running `chmod +x /path/to/FHIaims/run_aims.sh`.
 
 **You're now good to go!**
 
@@ -81,11 +81,11 @@ eval (env _VIBES_COMPLETE=source-fish vibes)
 
 ## Troubleshooting
 
-- `ModuleNotFoundError: No module named 'importlib_resources'` 
+- `ModuleNotFoundError: No module named 'importlib_resources'`
     - Solution: `pip install importlib_resources dataclasses`
-- `RuntimeError: Click will abort further execution because Python 3 was configured to use ASCII as encoding for the environment. Consult https://click.palletsprojects.com/python3/ for mitigation steps` 
+- `RuntimeError: Click will abort further execution because Python 3 was configured to use ASCII as encoding for the environment. Consult https://click.palletsprojects.com/python3/ for mitigation steps`
     - Solution:  `export LC_ALL=C.UTF-8 ; export LANG=C.UTF-8`
-- `-bash: vibes: command not found` 
+- `-bash: vibes: command not found`
     - Solution: `export PATH=$PATH:~/.local/bin`
 - `ImportError: numpy.core.multiarray failed to import`
     - Solution: `pip install numpy -U` (or `conda update numpy` if you use conda)

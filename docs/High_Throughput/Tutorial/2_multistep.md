@@ -3,6 +3,10 @@
 ??? info "Prerequisite"
     Please complete the [high-throughput phonon tutorial](../0_phonopy) before completing this one
 
+## Summary
+In this section we will learn how to set up and run multiple multi-step workflows using FHI-vibes and FireWorks.
+We will start by learning how to converge the `k-grid` parameter for FHI-aims and optimize the structure of Si before performing phonopy calculations.
+Once this is done we then use the converged harmonic model to set up Monte Carlo and Molecular Dynamics based sampling and quantify a material's anharmonicity.
 
 ## Optimizing the k-point Density and Geometry
 
@@ -97,6 +101,18 @@ Below is the complete workflow file for the calculations, we removed the phonon 
     nodes:                         1
     walltime:                      01:00:00
 
+    [relaxation.1]
+    basis:                         light
+    driver:                        BFGS
+    fmax:                          0.001
+    unit_cell:                     True
+    decimals:                      12
+    maxstep:                       0.2
+    fix_symmetry:                  True
+
+    [relaxation.1.qadapter]
+    nodes:                         1
+    walltime:                      00:15:00
     ```
 
 ### Running the Workflow
@@ -108,9 +124,6 @@ vibes fireworks rlaunch rapidfire
 Once this is completed, we can then compare the results from these workflows and those from using the wrong structure.
 
 ### Analyzing the Results
-CC: Again, some figures/outputs would help to make people understand what was done where and if
-they were able to run the code in the correct fashion.
-
 Looking inside the `run/` directory there are the following directories:
 ```
 run/Si/49833c381b84708fbcd174c47a777478ab5dec26:
@@ -122,9 +135,12 @@ By looking at the logs we see that the k-point density is already converged at a
 The `analysis/` directory only have information about the `phonopy` calculations because the optimizations do not have any post-processing steps that need to be stored locally.
 Compare the DOS and bandstructure to those calculated in the [previous tutorial](../0_phonopy) by running
 ```
-vibes output phonopy -bs -dos
+vibes output phonopy -bs --dos
 ```
 These results look similar to what was seen previously, with only slight differences in the bandstructures and density of states because there was only a slight change in the geometry upon relaxation; however, it is always important to relax all geometries before running phonopy to get the correct harmonic model.
+Here is what the bandstructure_dos.pdf should look like:
+![Silicon Bandstructure and DOS](images/Si_ms.png)
+
 
 ## Using the Harmonic Model to Quantify Anharmonicity
 
@@ -197,7 +213,6 @@ friction:                      0.02
 maxsteps:                      Number of Steps (in the hundreds/thousands)
 logfile:                       md.log
 ```
-I'll add more here if there is no MD tutorial....
 The molecular dynamics sections in the high-throughput section is almost identical to those in [the molecular dynamics section ??](../../../Tutorial/3_md), but the initial structures are calculated automatically from phonopy calculation in the previous step or from the trajectory file defined in `md.phonon_file`.
 It is important to note that `phonon_file` in this case must be on the file on the system that the calculations are running on.
 As is the case with the `[statistical_sampling]` section, if the requested `supercell_matrix` is not the same as the one in `phonon_file` the force constants will be remapped onto the new supercell, and if no `supercell_matrix` is given it will default to the on in `phonon_file`.
@@ -276,6 +291,6 @@ The `sigma.dat` file has $\sigma^\text{A}$ value at the requested 300 and 600 K.
 Looking at the file with cat, we see that for Si $\sigma^\text{A}$ is quite low, confirming that it is very harmonic
 ```
 cat analysis/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/statistical_sampling_analysis/sigma.dat
-300.0, 0.11263130393415505
-600.0, 0.15908938499659053
+300.0, 0.13491138013328746
+600.0, 0.1894909564612828
 ```

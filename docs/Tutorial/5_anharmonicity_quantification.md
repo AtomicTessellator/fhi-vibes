@@ -57,12 +57,12 @@ $$
 \end{align}
 $$
 
-where $\langle \cdot \rangle_T$ denotes an [expectation value at a given temperature](3_md_postprocess.md#expectation-value-and-convergence-estimation), 
+where $\langle \cdot \rangle_T$ denotes an [expectation value at a given temperature](3_md_postprocess.md#expectation-value-and-convergence-estimation),
 
 $$
 \begin{align}
 	\left\langle O \right\rangle
-	= \lim _{N_{\mathrm{t}} \rightarrow \infty} 
+	= \lim _{N_{\mathrm{t}} \rightarrow \infty}
 	\frac{1}{N_{\mathrm{t}}} \sum_{n}^{N_{\mathrm{t}}} \left(t_{n}\right)~.
 	\label{eq:meanO}
 \end{align}
@@ -80,6 +80,8 @@ The necessary ingredient to evaluate Eq. $\eqref{eq:sigmaA}$ are:
 - harmonic force constants $\Phi^{IJ}$ to compute $F_{I, \alpha}^{(2)}$ according to Eq. $\eqref{eq:F2}$ for evaluating Eq. $\eqref{eq:FA}$ , and
 - thermodynamic expectation values according to Eq. $\eqref{eq:meanO}$.
 
+TP: no eq:F2
+
 These ingredients can be obtained with `FHI-vibes` with the following workflow:
 
 - Take the materials of interest and generate a reference structure, i.e., a primitive cell and a supercell.
@@ -93,10 +95,10 @@ Assuming that  you performed the previous tutorials for LDA-Silicon in an 8-atom
 In a new working directory, copy your `trajectory.nc` dataset from the the [MD tutorial](3_md_ab_initio.md) and your force constants from the [phonopy tutorial](2_phonopy.md), i.e., the file `phonopy/output/FORCE_CONSTANTS`. You can attach the force constants to the trajectory dataset with the CLI tool `utils trajectory update`:
 
 ```
-vibes utils trajectory update trajectory.nc -fc FORCE_CONSTANTS 
+vibes utils trajectory update trajectory.nc -fc FORCE_CONSTANTS
 ```
 
-This will attach read the force constants from `FORCE_CONSTANTS` and attach them to the trajectory dataset. 
+This will attach read the force constants from `FORCE_CONSTANTS` and attach them to the trajectory dataset.
 
 To evaluate Eq. $\eqref{eq:sigmaA}$, you can use the CLI tool `utils anharmonicity sigma`:
 
@@ -104,7 +106,7 @@ To evaluate Eq. $\eqref{eq:sigmaA}$, you can use the CLI tool `utils anharmonici
 vibes utils anharmonicity sigma trajectory.nc
 ```
 
-which will give you the total $\sigma^{\rm A}$ value (`sigma`), as well as an individual value for each atom species. The output should be 
+which will give you the total $\sigma^{\rm A}$ value (`sigma`), as well as an individual value for each atom species. The output should be
 
 ```
 DataFrame:
@@ -119,7 +121,7 @@ This tells you that the average magnitude of anharmonic contributions to the for
 To obtain a mode-resolved $\sigma^{\rm A}_s$ similar to the analysis of Fig. 8 in [our paper](https://arxiv.org/pdf/2006.14672.pdf), you can run
 
 ```
-vibes utils anharmonicity mode trajectory.nc 
+vibes utils anharmonicity mode trajectory.nc
 ```
 
 which will produce a `.csv` file containing mode frequencies $\omega_s$ in THz and the respective mode-resolved anharmonicity $\sigma^{\rm A}_s$.
@@ -142,5 +144,5 @@ ax.set_ylabel(r"$\sigma^{\rm A}_s$")
 
 ??? info "Plot of $\sigma^{\rm A}_s$"
 	![image](assets/sigma_mode_Si.png)
-	
+
 The plot won't look too impressive because we're using a small supercell and the anharmonicity in silicon is overall quite weak. But you should be good to go to investigate the anharmonicity of your material of choice by now -- Happy Computing 💪

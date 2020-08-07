@@ -1,12 +1,13 @@
 <a name="Running Multiple Phonopy Calculations"></a>
 
 ??? info "Prerequisite"
-    FireWorks dependencies installed and set up for vibes. See the [installation guide](../Installation/0_setup.md) for more information.
+    FHI-vibes configured for use with FireWorks. See the [configuration guide](../0_configuring_fw_for_vibes.md) for more information.
 
-CC: See comments in installation.
 
 ## Summary
-CC: Summarize what will be done and what will be learned.
+In this section we will learn how to set up and run multiple phonopy calculations using FHI-vibes and FireWorks.
+In the workflow we will also describe how we systematically determine if the supercell size is converged for a given material, so all materials will be calculated to the same level of accuracy.
+As an example we will use Si and MgO for this tutorial, but it can be extended to any set of materials.
 
 ## Setup workflow.in file
 
@@ -14,12 +15,9 @@ Setting up a high-throughput workflow to perform multiple `phonopy` calculation 
 Because the high throughput workflows are designed to be flexible, there is no `vibes template` command to automatically generate them, but modifying the workflows you'll work with here and in [the multi-step tutorial](../1_multistep) should be good guide on how to get started.
 
 In this case only two materials (Si-diamond and MgO-rock salt) will be calculated, but the workflow can be used to generate a harmonic model an arbitrary number of materials.
-CC: As usual, we will not fully converge the results for these examples, so to allow for rapid execution and testing.
+As usual, we will not fully converge the results for these examples, so to allow for rapid execution and testing.
 
-We start from already relaxed structures for [Silicon](https://encyclopedia.nomad-coe.eu/gui/#/material/17241/structure) and [MgO](https://encyclopedia.nomad-coe.eu/gui/#/material/17916) 
-and store them in `Si/geometry.in` and `MgO/geometry.in`, respectively. *Note: Typically, one does not have relaxed structures already available. Information on how to perform a relaxation before
-running the phonon calculations (i.e. a multistep workflow) will be given in [the multistep tutorial](../1_multistep).*
-CC: Just provid relaxed structures already so not to confuse people
+We start from already relaxed structures for silicon and magnesium oxide and store them in `Si/geometry.in` and `MgO/geometry.in`, respectively. *Note: Typically, one does not have relaxed structures already available. Information on how to perform a relaxation before running the phonon calculations (i.e. a multistep workflow) will be given in [the multistep tutorial](../1_multistep).*
 
 ??? info "`Si/geometry.in`"
     ```
@@ -133,7 +131,7 @@ where $M_\text{S, base}$ is defined in [`phonopy.convergence.sc_matrix_base`](..
 $M_\text{0}$ must be an integer scalar value of $M_\text{S, base}$, or the workflow will not be added to the `LaunchPad`.
 
 A score of 0.80 is considered to be a good balance between getting fully converged results and not going to very large supercell sizes; however, you may want to increase it if very accurate results are needed or lower it if the unitcell of a material is already very large.
-Here a significantly lower minimum of 0.05 is used to allow the workflows to be easily run on a laptop and so that none of the supercells get above 64 atoms.
+Here a significantly lower minimum of 0.05 is used to allow the workflows to be easily run on a lap/desktop and so that none of the supercells get above 64 atoms.
 
 In this case we set the initial supercell to be a 2x2x2 supercell of the conventional cell in order to reduce the over number of calculations needed to calculate the converged phonon model.
 Instead of explicitly calculating the smaller supercells the force constants from the larger one are mapped onto them and used to check for the convergence.
@@ -261,8 +259,6 @@ Four additional tasks have now been added to each workflow corresponding to the 
 Now all the workflows have been completed let's analyze the results.
 
 ## Analyzing the Results
-CC: Can you add some figures/bs/outputs so that the user can really check that his calculation
-has run correctly?
 
 The first step in analyzing the results is understanding the file structure of the directories.
 First looking at the run directory there are the following folders:
@@ -288,9 +284,16 @@ Additionally the last `phonopy` iteration are stored in `converged` for easy acc
 From here you can perform any analysis that is possible within `phonopy` on all the materials, and know that the results standardized with respect to all of the calculation parameters.
 For example you can see the bandstructure and DOS of both materials by running
 ```
-vibes output phonopy -bs -dos
+vibes output phonopy -bs --dos
 ```
 in each of the `converged` folders.
+
+For Si bandstructure and DOS should look like this
+![Silicon Bandstructure and DOS](images/Si_phonopy.png)
+
+And for MgO it should look like this
+![Magnesium Oxide Bandstructure and DOS](images/MgO_phonopy.png)
+
 Because of the large variety of possible analysis steps, there is no automated phonopy output scripts in the workflow, but the file structure can be used to easily make bash or python scripts to do all post-processing.
 
 While we can now get converged phonon results, these workflows are incomplete because they require pre-relaxed structures to get physically relevant results.

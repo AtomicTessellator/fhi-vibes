@@ -20,32 +20,32 @@ The following tutorials are available:
 - [Molecular dynamics](3_md_intro.md)
 - [Harmonic sampling](4_statistical_sampling.md)
 - [Anharmonicity quantification](5_anharmonicity_quantification.md)
-- [High-Throughput workflows](../High_Throughput/Tutorial/0_phonopy.md)
+- [High-Throughput workflows](../High_Throughput/Tutorial/0_configuring_fw_for_vibes.md)
 
-All tutorials discuss fcc-Silicon, which is treated at the _ab initio_ level using FHI-aims and the LDA exchange-correlation functional.  
-Although only very moderate computational ressources are needed (mostly few minutes of runtime on a modern multi-core node), the tutorials 
-are intended to be run on a computing cluster, since they aim at showcasing typical 
-FHI-vibes usage. 
+All tutorials discuss fcc-Silicon, which is treated at the _ab initio_ level using FHI-aims and the LDA exchange-correlation functional.
+Although only very moderate computational ressources are needed (mostly few minutes of runtime on a modern multi-core node), the tutorials
+are intended to be run on a computing cluster, since they aim at showcasing typical
+FHI-vibes usage.
 
 !!! info
 	We assume that you are familiar with running *FHI-aims* for performing _ab initio_ calculations.
 
 
 
-Typically, FHI-vibes requires two files: One describes the geometry of the system  
-following  syntax used for `geometry.in` files in FHI-aims. For fcc-Silicon in the 
-primitive unit cell, it thus reads 
+Typically, FHI-vibes requires two files: One describes the geometry of the system
+following  syntax used for `geometry.in` files in FHI-aims. For fcc-Silicon in the
+primitive unit cell, it thus reads
 
 ??? info "Geometry input file `geometry.in`"
     ```
-    lattice_vector 0.0000000000000000 2.7149999999999999 2.7149999999999999 
-    lattice_vector 2.7149999999999999 0.0000000000000000 2.7149999999999999 
-    lattice_vector 2.7149999999999999 2.7149999999999999 0.0000000000000000 
+    lattice_vector 0.0000000000000000 2.7149999999999999 2.7149999999999999
+    lattice_vector 2.7149999999999999 0.0000000000000000 2.7149999999999999
+    lattice_vector 2.7149999999999999 2.7149999999999999 0.0000000000000000
     atom_frac 0.0000000000000000 0.0000000000000000 0.0000000000000000 Si
     atom_frac 0.2500000000000000 0.2500000000000000 0.2500000000000000 Si
     ```
 
-The second files describes the computational tasks and the numerical parameters used 
+The second files describes the computational tasks and the numerical parameters used
 in the calculation. Accordingly, it also contains a `calculator` section that specifies
 that FHI-aims shall be used at the LDA level of theory and which numerical settings shall
 be used for the Silicon example in the tutorial. This section thus reads:
@@ -54,18 +54,18 @@ be used for the Silicon example in the tutorial. This section thus reads:
     ```
 	[files]
 	geometry:                      geometry.in
-	
+
     [calculator]
     name:                          aims
     socketio:                      true
-    
+
     [calculator.parameters]
     xc:                            pw-lda
     compute_forces:                true
-    
+
     [calculator.kpoints]
     density:                       2
-    
+
     [calculator.basissets]
     Si:                            light
     ```
@@ -97,22 +97,22 @@ More details for each keyword can be found in the documentation.
 
 ??? info "Geometry in put file `geometry.in`"
     ```
-    lattice_vector 0.0000000000000000 2.6299999999999999 2.6299999999999999 
-    lattice_vector 2.6299999999999999 0.0000000000000000 2.6299999999999999 
-    lattice_vector 2.6299999999999999 2.6299999999999999 0.0000000000000000 
+    lattice_vector 0.0000000000000000 2.6299999999999999 2.6299999999999999
+    lattice_vector 2.6299999999999999 0.0000000000000000 2.6299999999999999
+    lattice_vector 2.6299999999999999 2.6299999999999999 0.0000000000000000
     atom 0.0000000000000000 0.0000000000000000 0.0000000000000000 Ar
     ```
 ??? info "`calculator` section for task input file"
     ```
     	[files]
 		geometry:                      geometry.in
-		
+
         [calculator]
         name:                          lj
-    
+
         [calculator.parameters]
         # parameters for LJ Argon
         sigma:    3.405
-        epsilon:  0.010325 
+        epsilon:  0.010325
         rc:       8.0
     ```

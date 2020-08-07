@@ -19,20 +19,20 @@ In case of LDA-Silicon with `FHI-aims` calculator, the newly generated input fil
     ```
 	[files]
 	geometry:                      geometry.in
-	
+
 	[calculator]
     name:                          aims
     socketio:                      True
-    
+
     [calculator.parameters]
     xc:                            pw-lda
-    
+
     [calculator.kpoints]
     density:                       2
-    
+
     [calculator.basissets]
     default:                       light
-    
+
     [relaxation]
     driver:                        BFGS
     fmax:                          0.001
@@ -44,14 +44,14 @@ In case of LDA-Silicon with `FHI-aims` calculator, the newly generated input fil
     decimals:                      12
     symprec:                       1e-05
     workdir:                       relaxation
-    
+
     [relaxation.kwargs]
     maxstep:                       0.2
     logfile:                       relaxation.log
     restart:                       bfgs.restart
     ```
 
-The settings file template you just generated contains all the necessary settings to set up and run a geometry optimization with `FHI-vibes` using `FHI-aims` as the force/stress calculator. 
+The settings file template you just generated contains all the necessary settings to set up and run a geometry optimization with `FHI-vibes` using `FHI-aims` as the force/stress calculator.
 `FHI-vibes` will perform a [BFGS optimization of the structure as implemented in ASE](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs).
 The keywords are explained in the [documentation](../Documentation/relaxation.md).
 
@@ -61,11 +61,11 @@ in the respectives submission file (see Sec. Singlepoint).
 We suggest pipe the output, e.g., like this:
 
 ```
-vibes run relaxation > log.relaxation 
+vibes run relaxation | tee log.relaxation
 ```
 
 `FHI-vibes` will create a working directory with the default name `relaxation` and will handle running the `FHI-aims` calculations necessary to perform the geometry optimization.
-The log should read like that: 
+The log should read like that:
 
 ??? info "`relaxation.log`"
     ```

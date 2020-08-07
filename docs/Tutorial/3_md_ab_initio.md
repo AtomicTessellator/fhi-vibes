@@ -3,7 +3,7 @@
 !!! info
 	We will now introduce _ab initio_ Molecular Dynamics simulations where the atomic forces come from a first-principles code. We will use `FHI-aims` as this calculator in the following. We assume:
 
-	- You are familiar with running MD simulations in a different context and are here to learn how to run MD with `FHI-vibes`. 
+	- You are familiar with running MD simulations in a different context and are here to learn how to run MD with `FHI-vibes`.
 	- You are familiar with running `FHI-aims` calculations.
 	- Optionally: You are familiar with running `FHI-aims` calculations on a workstation or computing cluster.
 
@@ -53,26 +53,26 @@ vibes template md --nvt >> md.in
     ```
     [calculator]
     name:                          aims
-    
+
     [calculator.parameters]
     xc:                            pw-lda
-    
+
     [calculator.kpoints]
     density:                       2
-    
+
     [calculator.basissets]
     default:                       light
-    
+
     [calculator.socketio]
     port:                          12345
-    
+
     [md]
     driver:                        Langevin
     timestep:                      1
     maxsteps:                      1000
     compute_stresses:              False
     workdir:                       md
-    
+
     [md.kwargs]
     temperature:                   300
     friction:                      0.02
@@ -143,7 +143,7 @@ vibes run md >> log.md &
 
     ```
     [vibes.run]    run MD workflow with settings from md.in
-    
+
     [md]           driver: Langevin
     [md]           settings:
     [md]             type: molecular-dynamics
@@ -255,12 +255,12 @@ You can perform postprocessing of the pressure by [inspecting the trajectory dat
 
 ??? info "reference pressure"
 	For 8 atoms LDA-Silicon, you should get a potential pressure of $-0.61 \pm 0.06 {}$
-	
+
 [A more detailed introduction to postprocessing including example scripts is given in the next chapter.](3_md_postprocess.md)
 
 ## References
 Running the calculation will take some time depending on the computer your working with. You find references [in our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/3_molecular_dynamics/ab_initio). There you also find reference calculations for 64 and 216 atoms.
 
-[^footnote1]: Note that a coorect _ab initio_ MD requires also to choose the different numerical settings in the DFT calculation with care. For instance, the inherent incompleteness of the SCF cycle in Kohn-Sham DFT schemes can introduce a systematic error that introduces energy drifts and other unphysical effects. Choosing the correct convergence settings is an important aspect of performing _ab initio_ MD simulations and is highly materials specific. Devising a strategy on how to choose these settings goes beyond the scope of this tutorial.
+[^footnote1]: Note that a corect _ab initio_ MD requires also to choose the different numerical settings in the DFT calculation with care. For instance, the inherent incompleteness of the SCF cycle in Kohn-Sham DFT schemes can introduce a systematic error that introduces energy drifts and other unphysical effects. Choosing the correct convergence settings is an important aspect of performing _ab initio_ MD simulations and is highly materials specific. Devising a strategy on how to choose these settings goes beyond the scope of this tutorial.
 
 [^footnote2]: We compute the stress only every 10th step because computing the stress is numerically more expensive in _ab initio_ than computing the atomic forces only. Since we know that consecutive samples generated during MD are highly correlated, we don't loose valuable information by computing this quantity not in every single step.

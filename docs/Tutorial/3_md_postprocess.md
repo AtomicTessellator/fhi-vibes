@@ -7,7 +7,7 @@ In this tutorial, you learn how to access the data you obtained from the MD calc
 
 ## Load and Inspect Dataset
 
-The data in `trajectory.nc` is stored in an [`xarray.Dataset`](http://xarray.pydata.org/en/stable/data-structures.html#dataset), which is a collection of labelled `numpy` arrays. Let's open the file and inspect the content:
+The data in `trajectory.nc` is stored in an [`xarray.Dataset`](http://xarray.pydata.org/en/stable/data-structures.html#dataset), which is a collection of labeled `numpy` arrays. Let's open the file and inspect the content:
 
 ```python
 import xarray as xr
@@ -106,8 +106,8 @@ ax.set_ylabel("Temperature (K)")
 	![image](assets/md_temperature.png)
 
 Since the calculation starts with all atoms located at their equilibrium positions, the initial potential energy is zero and the kinetic energy corresponds to ~300K, since we have setup the velocities
-using the Maxwell-Boltzmann distribution. In the first 500 steps of the trajectort, the kinetic energy is partially converted to potential energy at. In turn, the temperature drops from $300\,{\rm K}$ to about $150\,{\rm K}$. 
-The missing thermal energy to obtaing a temperature of 300K is then gradually provided by the thermostat, bringing the nuclear temperature back to $\sim 300\,{\rm K}$ after a few $\rm ps$.
+using the Maxwell-Boltzmann distribution. In the first 500 steps of the trajectory, the kinetic energy is partially converted to potential energy at. In turn, the temperature drops from $300\,{\rm K}$ to about $150\,{\rm K}$.
+The missing thermal energy to obtain a temperature of 300K is then gradually provided by the thermostat, bringing the nuclear temperature back to $\sim 300\,{\rm K}$ after a few $\rm ps$.
 
 ### Discard thermalization period
 We can remove the thermalization period from the simulation data, e.g., by [shifting the dataframe](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.shift.html):
@@ -139,7 +139,7 @@ p.expanding().mean().plot(ax=ax, color="k")
 
 ??? info "Plot pressure"
 	![image](assets/md_pressure.png)
-	
+
 
 ### Expectation value and convergence estimation
 
@@ -149,7 +149,7 @@ $$
 \begin{align}
 \left\langle p_{\rm Pot} \right\rangle
 	= \lim_{N_{\rm t} \rightarrow \infty} \frac{1}{N_{\rm t}}
-	\sum_n^{N_{\rm t}} 	
+	\sum_n^{N_{\rm t}}
 	p_{\rm Pot}({\bf R} (t_n))~.
 \label{eq:<pPot>}
 \end{align}
@@ -165,7 +165,7 @@ $$
 \end{align}
 $$
 
-where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 2000} = -0.076\,{\rm GPa}$ is the mean pressure observed during the finite simulation, and $\Delta$ is the (unknown) difference to the fully converged expectation value. 
+where $\left\langle p_{\rm Pot} \right\rangle_{N_t = 2000} = -0.076\,{\rm GPa}$ is the mean pressure observed during the finite simulation, and $\Delta$ is the (unknown) difference to the fully converged expectation value.
 Although, full converge would require an infinite trajetcory length and is thus formally never reachable, one can get arbitrarily close in practice and estimate the magnitude of the error $\Delta$.
 
 We estimate this error by computing $\sigma_{\langle p \rangle}$, the [_standard error of the mean_](https://en.wikipedia.org/wiki/Standard_error):
@@ -219,7 +219,7 @@ ax.set_title(f"$\\tau$ is {int(tau)} steps")
 ??? info "Plot pressure autocorrelation function"
 	![image](assets/md_autocorr.png)
 
-In the  present example, the observable decorrelates after about 10 time steps ($\equiv 40\,{\rm fs}$). We therefore estimate the number of uncorrelated samples to be 
+In the  present example, the observable decorrelates after about 10 time steps ($\equiv 40\,{\rm fs}$). We therefore estimate the number of uncorrelated samples to be
 
 $$
 \begin{align*}
@@ -260,7 +260,7 @@ Physics question: The observed potential pressure is negative. _Why?_ Do you exp
     mean = p.mean()
     std = p.std()
     err = std / (len(p) / tau) ** 0.5
-    
+
     print(f"Mean:  {mean:.5f} GPa")
     print(f"Std.:  {std:.5f} GPa")
     print(f"Error: {err:.5f} GPa ({abs(err / mean) * 100:.2f} %)")

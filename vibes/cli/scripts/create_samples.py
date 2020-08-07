@@ -56,8 +56,8 @@ def generate_samples(
 
     if not seed:
         seed = np.random.randint(2 ** 31)
-    else:
-        rng = np.random.RandomState(seed)
+
+    rng = np.random.RandomState(seed)
 
     if force_constants is not None:
         # if 3Nx3N shaped force_constants:
