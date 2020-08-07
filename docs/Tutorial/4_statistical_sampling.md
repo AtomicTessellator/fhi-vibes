@@ -2,7 +2,7 @@
 
 !!! warning "Warnings"
 
-	- **Never ever rely on estimates obtained by the following method _without checking for the relevance of anharmonic effects_ (see Sec Anharmonic).**
+	- **Never ever rely on estimates obtained by the following method _without checking for the relevance of anharmonic effects_ (see [next tutorial](5_anharmonicity_quantification.md)).**
 	- The tutorial assumes you are familiar with performing [phonon calculations](2_phonopy.md).
 
 ### Thermodynamic sampling via MD simulations
@@ -102,20 +102,7 @@ where $\langle A_s \rangle$ is given by Eq. $\eqref{eq:As}$ and each $\zeta_s (n
 
 ### Obtain force constants
 
-CC: I find this tutorial clumsy and unclear. Some comments:
-  - Clarify which input files are needed for which part, what they produce, and what to do next.
-  - Clarify which supercells are used for sampling and which phonopy calculations are required to do that.
-  - The remapping is essentially a technicality and not relevant for the user. The cleanliest solution would be to let vibes utils create-samples
-	do it automatically or to let at least vibes output phonopy generate it automatically.
-  - Why must `vibes output phonopy -bs` be executed in the phonopy folder and not in the main folder as usual? In my test, it seems to make no 
-	difference. Is -bs needed and why should one check the bs again? We just discussed it in the previous tutorial?
-  - Why must vibes utils fc remap be executed in the output folder. Again, this is not consistent with all other runs, in which vibes is always
- 	called in the main folder.
-  - The fact that the samples are created in the phonopy/output and then moved outside is not elegant. Ideally, in a clean UI, since sampling requiers a phonopy
-	calculation as input, the respective phonopy folder should not be altered at all.
-  - We use a supercell tag, but it is unclear (a) if it is needed and (b) why?
-
-We will re-use the calculation from [the previous tutorial on phonon calculations](2_phonopy.md). If you didn't run these calculations, you find the respective calculations in [our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/2_phonopy/sc_8).
+We will re-use the calculation from [the previous tutorial on phonon calculations](2_phonopy.md) in the conventional cell with 8 atoms. If you didn't run these calculations, you find the respective calculations in [our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/2_phonopy/sc_8).
 
 As start, [perform the postprocess](2_phonopy.md#basic-postprocessing) in the `phonopy` folder:
 
@@ -128,7 +115,7 @@ Check the bandstructure in `output/bandstructure.pdf` for plausibility.
 
 #### Remap the force constants to the supercell
 
-The force constants are written to [`output/FORCE_CONSTANTS`](../Documentation/output_files.md#force_constants). For creating samples, they need to be mapped to a full $3 N \times 3N$ shape. This can be done with the CLi tool `vibes utils fc remap`,
+The force constants are written to [`output/FORCE_CONSTANTS`](../Documentation/output_files.md#force_constants) which is a condensed representation in $(N_{\rm prim}, N, 3, 3)$ shape, where $N_{\rm prim}$ is the number of atoms in the primitive cell and $N$ is the number of atoms in the supercell. For creating samples, they need to be mapped to a full $3 N \times 3N$ shape. This can be done with the CLI tool `vibes utils fc remap`,
 
 ```
 cd output
@@ -161,26 +148,21 @@ mkdir samples_300K
 mv geometry.in.supercell.* samples_300K
 ```
 
-Move back to your root working directory and move the samples folder to it
+Create a new working directory where you
 
-```
-cd ../..
-mv phonopy/output/samples_300K .
-```
+- copy the  files `geometry.in.primitive` and `geometry.in.supercell`,
+- copy your samples-folder `samples_300K`.
 
-Also copy the phonopy supercell to the working directory:
-
-```
-cp phonopy/output/geometry.in.supercell .
-```
+Move to that directory. _Remark: copying the `geometry.in.primitive` is optional. However, you should always know from where you started, it might save some hours of unnecesary work at some point :-)._
 
 ### Compute the samples
 
-In order to compute pressure in all samples, prepare a `aims.in` like this:
+In order to compute pressure in all samples, prepare an `aims.in` like this:
 
 ```
 [files]
 geometries:                    samples_300K/geometry.in.*
+primitive:                     geometry.in.primitive
 supercell:                     geometry.in.supercell
 
 [calculator]
@@ -199,8 +181,7 @@ density:                       2
 default:                       light
 ```
 
-[This will run a calculation for all structures found in `samples_300K/geometry.in.*`](singlepoint.md) and write the results to a `trajectory.son` file in the directory `aims_300K`.
-CC: Tell that this is nothing else than one what discussed in Single_point calculations
+This will run a calculation for all structures found in `samples_300K/geometry.in.*` [as discussed earlier in the tutorial on singlepoint calculations](singlepoint.md), and write the results to a `trajectory.son` file in the directory `aims_300K`.
 
 Run the calculation with
 
@@ -221,13 +202,10 @@ vibes output md
 
 Since this is not an MD, the time axis in the dataset will simply label the samples instead of corresponding to an actual simulation time.
 
-The dataset in `trajectory.nc` can be inspected similar to [the MD case](3_md_postprocess.md).
-
-CC: See comments on postprocessing scripts.
+The dataset in `trajectory.nc` can be inspected similar to [the MD case](3_md_postprocess.md). For example, run
 
 ```python
 import xarray as xr
-
 from ase.units import GPa
 
 
@@ -238,9 +216,9 @@ p = ds.pressure_potential.to_series() / GPa
 ax = p.plot(marker="x", lw=0)
 
 p.expanding().mean().plot(ax=ax, color="k")
-```
 
-CC: wrong x-axis label.
+ax.set_xlabel('Sample number')
+```
 
 ??? info "Pressure plot"
 	![image](assets/mc_pressure.png)

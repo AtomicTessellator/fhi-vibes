@@ -34,8 +34,7 @@ vibes utils make-supercell geometry.in.primitive -n 8
 mv geometry.in.primitive.supercell_8 geometry.in.supercell
 ```
 
-CC: Explaing pre-thermalize and why its needed
-Pre-thermalize supercell and create input file
+To speed up the thermalization, we pre-thermalize the supercell by giving the kinetic energy corresponding to a temperature of $300\,{\rm K}$ with the following command:
 ```
 vibes utils create-samples geometry.in.supercell -T 300
 mv geometry.in.supercell.0300K geometry.in
@@ -136,57 +135,60 @@ We are now ready to  run the simulation!
 
 This step is similar to [before](2_phonopy.md#run-the-calculation), i.e., you run
 
-CC: We do not specify md.in here, but take the default. I suggest to either take the
-default in all examples or specify it everywhere:
-
 ```
 vibes run md >> log.md &
 ```
 
-CC: Again, summarize output!
+??? info "`log.md"
 
-CC: As mentioned, separate section:
-### Submit calculation on a cluster
-
-To efficiently perform _ab initio_ molecular dynamics simulations for systems larger than a few atoms, you will need a workstation or access to a computing cluster. To submit a `vibes` simulation to your cluster, follow these steps:
-
-1. [Install `FHI-vibes` on your cluster](../../#installation),
-2. set up a calculation as you have done earlier on your laptop,
-3. submit the `vibes run` command to the queue.
-
-??? info "Example `submit.sh` for `slurm` queue manager"
     ```
-    #!/bin/bash -l
+    [vibes.run]    run MD workflow with settings from md.in
 
-    #SBATCH -J md|vibes
-    #SBATCH -o log/md.%j
-    #SBATCH -e log/md.%j
-    #SBATCH --mail-type=all
-    #SBATCH --mail-user=your@mail.com
-    #SBATCH --nodes=1
-    #SBATCH --ntasks-per-node=32
-    #SBATCH --ntasks-per-core=1
-    #SBATCH -t 24:0:00
-    
-    vibes run md md.in
+    [md]           driver: Langevin
+    [md]           settings:
+    [md]             type: molecular-dynamics
+    [md]             md-type: Langevin
+    [md]             timestep: 0.39290779153856253
+    [md]             temperature: 0.02585199101165164
+    [md]             friction: 0.02
+    [md]             fix-cm: True
+    [md]           ** /scratch/usr/becflokn/vibes/tutorial/3_md/ab_initio/si_8/md/trajectory.son does not exist, nothing to prepare
+    [calculator]   Update aims k_grid with kpt density of 2 to [4, 4, 4]
+    [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
+    [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
+    [calculator]   .. add `compensate_multipole_errors: False` to parameters (default)
+    [calculator]   .. add `output_level: MD_light` to parameters (default)
+    [calculator]   Add basisset `light` for atom `Si` to basissets folder.
+    [calculator]   Calculator: aims
+    [calculator]   settings:
+    [calculator]     xc: pw-lda
+    [calculator]     k_grid: [4, 4, 4]
+    [calculator]     sc_accuracy_rho: 1e-06
+    [calculator]     relativistic: atomic_zora scalar
+    [calculator]     compensate_multipole_errors: False
+    [calculator]     output_level: MD_light
+    [calculator]     compute_forces: True
+    [calculator]     compute_heat_flux: True
+    [calculator]     use_pimd_wrapper: ('localhost', 12345)
+    [calculator]     aims_command: run_aims
+    [calculator]     species_dir: /scratch/usr/becflokn/vibes/tutorial/3_md/ab_initio/si_8/md/basissets
+    [socketio]     Use SocketIO with host localhost and port 12345
+    [backup]       /scratch/usr/becflokn/vibes/tutorial/3_md/ab_initio/si_8/md/calculations does not exists, nothing to back up.
+    Module for Intel Parallel Studio XE Composer Edition (version 2019 Update 5) loaded.
+    Module for Intel-MPI (version 2018.5) loaded.
+    [md]           Step 1 finished, log.
+    [md]           switch stresses computation off
+    [md]           Step 2 finished, log.
+    [md]           switch stresses computation off
+    [md]           Step 3 finished, log.
+    [md]           switch stresses computation off
+    [md]           Step 4 finished, log.
+    [md]           switch stresses computation off
+    [md]           Step 5 finished, log.
+    ...
     ```
 
-Once you are familiar with running calculations on the cluster, checkout the [`vibes submit` command](../Documentation/input_files_slurm.md#submit-a-job).
-
-### Restart a calculation
-
-If your calculation does not fit into a walltime or stops for another reason before the total number of simulation steps is reached, you can simply resubmit `vibes run md md.in`. It will restart the calculation from the last completed step. 
-
-#### Automatic restarts
-
-Optionally, `vibes` can restart the job by itself using a `[restart]` section in `md.in`. To this end, add
-
-```
-[restart]
-command = sbatch submit.sh
-```
-
-to your `md.in`, where `sbatch submit.sh` is the command you use to submit the MD calculation to the queue.
+For running on a cluster, see [additional remarks](singlepoint.md#submit-calculation-on-a-cluster).
 
 ## Postprocess
 

@@ -53,7 +53,7 @@ is the harmonic contribution to the force.
 
 
 
-## Evaluating $\sigma^{\rm A}$ with `FHI-vibes`
+## Evaluating anharmonicity with `FHI-vibes`
 
 The necessary ingredient to evaluate Eq. $\eqref{eq:sigmaA}$ are:
 
@@ -67,7 +67,7 @@ These ingredients can be obtained with `FHI-vibes` with the following workflow:
 - Obtain force constants for the supercell as introduced in the [phonons tutorial](2_phonopy.md).
 - Run an MD simulation for the supercell as introduced in the [MD tutorial](3_md_canonical_sampling.md).
 
-### Example: LDA-Silicon at $300\,{\rm K}$
+### Example: LDA-Silicon at room temperature
 
 CC: Can we show some more plots and explanations here? This functionality is described/discussed with almost no details,
 despite the fact that it is most probably the thing that will first draw attention to vibes. Similar comments as in the harmonic sampling
@@ -97,10 +97,7 @@ DataFrame:
 Si  0.156109    0.156109         0.156109    0.156026
 ```
 
-CC: We are not doing Argon, please update.
-This tells you that the average magnitude of anharmonic contributions to the forces, $F^{\rm A}$, in Lennard-Jones Argon at $300\,{\rm K}$ is about $15\,\%$. This is already a larger anharmonic contribution as you would find in silicon at $300\,{\rm K}$.
-
-
+This tells you that the average magnitude of anharmonic contributions to the forces, $F^{\rm A}$, in LDA-Silicon at $300\,{\rm K}$ is about $16\,\%$.
 
 ## Mode resolved anharmonicity
 

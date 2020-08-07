@@ -29,18 +29,18 @@ be calculated.
     ```
     [files]
     geometry:                      geometry.in
-
+    
     [calculator]
     name:                          aims
     socketio:                      true
-
+    
     [calculator.parameters]
     xc:                            pw-lda
     compute_forces:                true
-
+    
     [calculator.kpoints]
     density:                       3
-
+    
     [calculator.basissets]
     Si:                            light
     ```
@@ -66,12 +66,12 @@ or by submitting it to a queuea on a computing cluster.
     #SBATCH --ntasks-per-node=32
     #SBATCH --ntasks-per-core=1
     #SBATCH -t 24:0:00
-
+    
     # Make sure that the correct Python environment is set up, e.g.
     module load miniconda/3/4.5.4
     source activate vibes
-
-    vibes run singlepoint aims.in > tee log.aims
+    
+    vibes run singlepoint aims.in &> log.aims
     ```
 
 The calculation should only take a few seconds and yield the following output:
@@ -105,9 +105,6 @@ The calculation should only take a few seconds and yield the following output:
     [vibes]        Compute structure 1 of 1: finished.
     ```
 
-CC: If aims failes (in my case because of a typo in run_aims.sh for the binary path), vibes will not report an error. This can
-be misleading for novice users, since the log above seems correct.    
-
 The calculation will create a working directory called `aims`, the traditional input files for FHI-aims (control.in and geometry.in) as well as the output file 
 `aims.out` can be found in `aims/calculations/`. Additionally, vibes produces a trajectory file `aims/trajectory.son`, which contains all salient information for
 postprocessing and is particularly useful for the adavanced tasks tackled in the next tutorials. The data from this file can be extracted and stored 
@@ -118,41 +115,39 @@ vibes output trajectory aims/trajectory.son
 ```
 
 which yields the output
-??? info 
-```
-Extract Trajectory dataset from <Command trajectory>
-[trajectory]   Parse `aims/trajectory.son`
-[son] read file:  aims/trajectory.son
-[son] process:    |||||||||||||||||||||||||||||||||||||  2/2
-[trajectory]   .. time elapsed: 0.000s
-[trajectory]   .. create atoms
-[trajectory]   .. time elapsed: 0.256s
-[trajectory]   .. done in 0.257s
-[trajectory]   Get positions from trajectory
-* Message from file vibes/trajectory/trajectory.py, line 192, function times:
---> time unit not found in trajectory metadata, use ase.units.fs
+??? info "Output of `vibes output trajectory`"
+    ```
+    Extract Trajectory dataset from <Command trajectory>
+    [trajectory]   Parse `aims/trajectory.son`
+    [son] read file:  aims/trajectory.son
+    [son] process:    |||||||||||||||||||||||||||||||||||||  2/2
+    [trajectory]   .. time elapsed: 0.000s
+    [trajectory]   .. create atoms
+    [trajectory]   .. time elapsed: 0.256s
+    [trajectory]   .. done in 0.257s
+    [trajectory]   Get positions from trajectory
+    * Message from file vibes/trajectory/trajectory.py, line 192, function times:
+    --> time unit not found in trajectory metadata, use ase.units.fs
 
-** Warning from file vibes/trajectory/trajectory.py, line 198, function times:
---> no time steps found, return time as index
-
-/u/christia/.local/lib/python3.7/site-packages/numpy/core/fromnumeric.py:3373: RuntimeWarning: Mean of empty slice.
-  out=out, **kwargs)
-/u/christia/.local/lib/python3.7/site-packages/numpy/core/_methods.py:170: RuntimeWarning: invalid value encountered in double_scalars
-  ret = ret.dtype.type(ret / rcount)
-[trajectory]   .. time elapsed: 0.071s
-[trajectory]   Get velocities from trajectory
-[trajectory]   .. time elapsed: 0.001s
-** Warning from file vibes/trajectory/trajectory.py, line 540, function set_displacements:
---> SUPERCELL NOT SET, compute w.r.t to reference atoms
-
-[trajectory]   Compute displacements
-[trajectory]   .. time elapsed: 0.002s
-[trajectory]   Get pressure from trajectory
-[trajectory]   .. time elapsed: 0.001s
-Trajectory dataset written to trajectory.nc
-```
-
-CC: Always add ouputs, especially if warnings are contained that can mislead users.
+    ** Warning from file vibes/trajectory/trajectory.py, line 198, function times:
+    --> no time steps found, return time as index
+    
+    /u/christia/.local/lib/python3.7/site-packages/numpy/core/fromnumeric.py:3373: RuntimeWarning: Mean of empty slice.
+      out=out, **kwargs)
+    /u/christia/.local/lib/python3.7/site-packages/numpy/core/_methods.py:170: RuntimeWarning: invalid value encountered in double_scalars
+      ret = ret.dtype.type(ret / rcount)
+    [trajectory]   .. time elapsed: 0.071s
+    [trajectory]   Get velocities from trajectory
+    [trajectory]   .. time elapsed: 0.001s
+    ** Warning from file vibes/trajectory/trajectory.py, line 540, function set_displacements:
+    --> SUPERCELL NOT SET, compute w.r.t to reference atoms
+    
+    [trajectory]   Compute displacements
+    [trajectory]   .. time elapsed: 0.002s
+    [trajectory]   Get pressure from trajectory
+    [trajectory]   .. time elapsed: 0.001s
+    Trajectory dataset written to trajectory.nc
+    ```
 
 
 ## Multiple Singlepoint Calculations in One Run
@@ -189,31 +184,24 @@ which only differ by in the first fractional coordinate of the first atom, by us
     ```
     [files]
     geometries:                    geometry.in.???
-    # Note: This is equivalent to 
-    # geometry:                    geometry.in.001
-    # geometry:                    geometry.in.002
-
+    
     [calculator]
     name:                          aims
     socketio:                      true
-
+    
     [calculator.parameters]
     xc:                            pw-lda
     compute_forces:                true
-
+    
     [calculator.kpoints]
     density:                       3
-
+    
     [calculator.basissets]
     Si:                            light
     ```
 
 Note, that `FHI-vibes` supports wildcards to read input files and will sort the input files found by this wildcard alphabetically. 
 
-
-CC: I removed the geometry reference, because it is not clear why this is useful here and what it does exactly. Feel free to add it
-again, but then one needs to make its practical purpose clear.
-The tag `geometry` specifies the first geometry to be read, which will also serve as a reference geometry. `geometries` specifies all other files with structures that will be calculated afterwards. Note that `geometry` can be omitted if there is no reference structure to be computed.
 
 Again, you can run the calculation interactively via
 
@@ -223,3 +211,45 @@ vibes run singlepoint aims.in | tee log.aims
 
 or by submitting to queue as above.
 
+## Submit calculation on a cluster
+
+To efficiently perform _ab initio_ calculations for systems larger than a few atoms, you will need a workstation or access to a computing cluster. To submit a `vibes` simulation to your cluster, follow these steps:
+
+1. [Install `FHI-vibes` on your cluster](../../#installation),
+2. set up a calculation as you have done earlier on your laptop,
+3. submit the `vibes run` command to the queue.
+
+??? info "Example `submit.sh` for `slurm` queue manager"
+
+    ```
+    #!/bin/bash -l
+
+    #SBATCH -J md|vibes
+    #SBATCH -o log/md.%j
+    #SBATCH -e log/md.%j
+    #SBATCH --mail-type=all
+    #SBATCH --mail-user=your@mail.com
+    #SBATCH --nodes=1
+    #SBATCH --ntasks-per-node=32
+    #SBATCH --ntasks-per-core=1
+    #SBATCH -t 24:0:00
+    
+    vibes run singlepoint aims.in
+    ```
+
+The log file will be written to a `log` folder.
+
+## Restart a calculation
+
+If your calculation does not fit into a walltime or stops for another reason before the total number of simulation steps is reached, you can simply resubmit `vibes run`. It will restart the calculation from the last completed step. This also holds for `vibes run phonopy` and `vibes run md` as explained later.
+
+### Automatic restarts
+
+Optionally, `vibes` can restart the job by itself using a `[restart]` section in the input file, e.g., `aims.in`. To this end, add
+
+```
+[restart]
+command = sbatch submit.sh
+```
+
+to your `aims.in`, where `sbatch submit.sh` is the command you use to submit the calculation to the queue.

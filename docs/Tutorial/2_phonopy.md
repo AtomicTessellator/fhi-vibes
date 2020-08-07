@@ -4,6 +4,7 @@
 
 	- For vibrational studies, it is crucial to use structures that are accurately  relaxed. Before starting with actual phonon calculations, make sure you are familiar with [geometry optimization](1_geometry_optimization.md).
 	- Create a new working directory and copy over the `geometry.in.next_step` file you obtained from the previous geometry optimization as your new `geometry.in` file.
+	- We assume you already have some working knowledge for working with [`phonopy`](https://phonopy.github.io/phonopy/index.html) and understand [the underlying method](https://phonopy.github.io/phonopy/formulation.html).
 
 
 
@@ -81,37 +82,13 @@ vibes run phonopy | tee log.phonopy
 
 The calculation should take only a few seconds (depending on you computer).
 
-
-CC: This Restart and submission settings are too hidden and also not really applicable here, given that there is only 1 displacement: 
-I suggest to make separate section "Running/Restarting on Clusters" after the Anharmonicity/before the High-throughput Section and
-just point to it from here and in other sections 
-
-#### Restart a calculation
-
-If you need to restart a calculation, e.g., because you're working on a cluster and your job does not fit into a walltime or stops for another reason before the total number of simulation steps is reached, you can simply re-run or re-submit `vibes run phonopy`. It will restart the calculation from the last completed step. 
-
-#### Automatic restarts
-
-Optionally, `vibes` can restart the job by itself using a `[restart]` section in `phonopy.in`. To this end, add
-
-```
-[restart]
-command = sbatch submit.sh
-```
-
-to your `phonopy.in`, where `sbatch submit.sh` is the command you use to submit the phonon calculation to the queue.
-
 ### Postprocessing
 
-The `vibes run` command takes care that all _ab initio_ calculations are performed, but some additional, rapid postprocessing
-is needed to obtain the phonon-related quantities. The postprocessing  itself can be performed interactivley with
+The `vibes run` command takes care that all _ab initio_ calculations are performed, but some additional,  postprocessing is needed to obtain the phonon-related quantities. The postprocessing  itself can be performed interactivley with
 
 ```
 vibes output phonopy phonopy/trajectory.son --full
 ```
-
-
-CC:UPDATE OUTPUT BELOW:
 
 ??? note "Terminal output"
 	```
@@ -154,18 +131,14 @@ CC:UPDATE OUTPUT BELOW:
     ```
 This will:
 
-CC: I removed the internal work not interesting for beginners.
-
-- Compute the phonon bandstructure along CC:WHICH PATH and save it in `phonopy/output/bandstructure.pdf`.
+- Compute the phonon bandstructure along [high symmetry paths in the Brillouin zone](https://wiki.fysik.dtu.dk/ase/ase/dft/kpoints.html#high-symmetry-paths) and save it in `phonopy/output/bandstructure.pdf`.
 - Compute the density of states using a $45 \times 45 \times 45$ $\bf q$ point grid and the Tetrahedron method. 
   The density of states will be plotted alongside the bandstructure to a file `output/bandstructure_dos.pdf`, and written to a data file [`total_dos.dat`](https://phonopy.github.io/phonopy/output-files.html#total-dos-dat-and-projected-dos-dat).
   The q-grid can be adjusted by specifying it with an additional flag `--q_mesh`.
-CC: My phonpy.in already contains   q_mesh:  [45, 45, 45] What is the preferred method that can be used to change qmesh?
 - Compute the harmonic free energy $F^{\rm ha}$ and the harmonic heat capacity at constant volume, $C_V$, i.e., the thermal properties accessible in the harmonic approximation using the DOS and it q-point settings.  
   An overview plot is saved to `output/thermal_properties.pdf` and the detailed output is written to [`output/thermal_properties.yaml`](https://phonopy.github.io/phonopy/output-files.html#thermal-properties-yaml).
-- CC: What about the animations?
-
-CC: Add a sentence/paragraph that explains when/why the AI calculations need to be run again and when not (e.g. for the q-mesh)
+- Create animation files for visualization with [`v_sim`](http://www.mem-lab.fr/en/Pages/L_SIM/Softwares/V_Sim.aspx).
+- Write a `phonopy.yaml` for [loading a `Phonopy` object directly within `python`](https://phonopy.github.io/phonopy/phonopy-module.html#shortcut-to-load-input-files-phonopy-load).
 
 CC: Add all discussed plots below:
 ??? info "Bandstructure"
@@ -227,15 +200,20 @@ Supercell written to geometry.in.supercell_8
 
 It will tell you the supercell matrix that you can use in `phonopy.in` (`python:  [-1,  1,  1,  1, -1,  1,  1,  1, -1]`), the generated superlattice, a "cubicness" score based on the filling ratio of the largest sphere fitting into the cell, the largest cutoff in which any neighbor is not a periodic image of a closer neighbor to estimate boundary effects, and the number of supercells with displacements that  `phonopy` will create. It will also write the structure to `geometry.in.supercell_8` which you can inspect, e.g., with `jmol`.
 
-To run a calculation for such a supercell, one just needs to...
-CC: Describe and show results as above.
+To run a calculation for such a supercell, one just needs to replace the `supercell` keyword in the `[phonopy]` section is the required value:
 
-CC: Add Warning: Please save this results since they are needed for the latter tutorial Harmonic Sampling.
+```
+...
+[phonopy]
+supercell_matrix: [-1,  1,  1,  1, -1,  1,  1,  1, -1]
+...
+```
+
+Remember to use a new working directory to not mess up your previous results!
+
+!!! info
+	The force constants obtained for the `[-1,  1,  1,  1, -1,  1,  1,  1, -1]` supercell with 8 atoms are re-used in later tutorials, please don't delete them.
 
 ### Practical guideline
 
-In practice, the convergence with supercell size needs always to be checked carefully, since it depends on the range of the interactions present in your system, e.g., long ranged unscreened van-der-Waals interactions require larger supercells than short-ranged covalent ones as here in Si. Along the same lines, the acceptable supercell size depends also on the properties you are interested in. Free energies and specific heats converge faster than individual frquenecies.  Using a cubic-as-possible supercell shape and playing around with `vibes utils make-supercell` and a little bit of experience will do the job. For the example at hand, it might for instance be instructive to check the convergence of different properties for the supercell sizes A, B, and C. CC: Add A, B, C
-As a reference,a supercell of CxCxC gives very nicely converged band structures for the system inspected here:
-
-CC: Add output/image for that!
-
+In practice, the convergence with supercell size needs always to be checked carefully, since it depends on the range of the interactions present in your system, e.g., long ranged unscreened van-der-Waals interactions require larger supercells than short-ranged covalent ones as here in Si. Along the same lines, the acceptable supercell size depends also on the properties you are interested in. Free energies and specific heats converge faster than individual frquenecies.  Using a cubic-as-possible supercell shape and playing around with `vibes utils make-supercell` and a little bit of experience will do the job. For the example at hand, it might for instance be instructive to check the convergence of different properties for larger supercell sizes. You find calculations for supercell sizes up 1728 atoms in our [tutorial repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/2_phonopy). When do you consider the calculations as converged?

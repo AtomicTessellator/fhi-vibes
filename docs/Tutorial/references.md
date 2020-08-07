@@ -9,3 +9,4 @@
 7. <a name="West2006"></a> [D. West, and S. K. Estreicher, Phys. Rev. Lett. **96**, 115504 (2006)](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.96.115504)
 8. <a name="Dove1993"></a> M. Dove, _Introduction to Lattice Dynamics_, Cambridge University Press (1993)
 9. <a name="HansenMcDonald"></a> J.P. Hansen, and I.R. McDonald, _Theory of simple liquids_, Elsevier, 1990.
+10. <a name="Nocedal"></a> J. Nocedal, and S. Wright, _Numerical optimization_, Springer Science & Business Media, 2006.
