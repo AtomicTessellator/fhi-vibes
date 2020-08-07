@@ -465,8 +465,12 @@ def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
         update_settings["basisset_type"] = settings[name].pop("basisset_type")
 
     if "socketio" in settings.calculator and settings.calculator.name.lower() == "aims":
-        port = settings.calculator.socketio["port"]
-        host = settings.calculator.socketio.get("host", "localhost")
+        if isinstance(settings.calculator["socketio"], bool):
+            port = 12345
+            host = "localhost"
+        else:
+            port = settings.calculator.socketio["port"]
+            host = settings.calculator.socketio.get("host", "localhost")
         update_settings["use_pimd_wrapper"] = [host, port]
     elif "use_pimd_wrapper" in settings.calculator.get("parameters", {}):
         update_settings["use_pimd_wrapper"] = settings.calculator.parameters.pop(

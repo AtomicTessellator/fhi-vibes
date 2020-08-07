@@ -67,7 +67,7 @@ nav:
                 - K-Point Density Optimization: High_Throughput/Documentation/3_optimize_k_grid.md
                 - Relaxation: High_Throughput/Documentation/4_relaxation.md
                 - Phonon Calculations: High_Throughput/Documentation/5_phonons.md
-                - Monte Carlo Sampling: High_Throughput/Documentation/6_statistical_sampling.md
+                - Harmonic Sampling: High_Throughput/Documentation/6_statistical_sampling.md
                 - Molecular Dynamics: High_Throughput/Documentation/7_md.md
 
 plugins:

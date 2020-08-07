@@ -46,26 +46,26 @@ Once the geometry files are added, create a phonopy workflow in `workflow.in` wi
 
     [fireworks]
     name:                          example_phonon_calculations
-    
+
     [fireworks.workdir]
     local:                         analysis/
     remote:                        run/
-    
+
     [calculator]
     name:                          aims
-    
+
     [calculator.parameters]
     xc:                            pw-lda
-    
+
     [calculator.kpoints]
     density:                       1
-    
+
     [calculator.basissets]
     default:                       light
-    
+
     [calculator.socketio]
     port:                          12345
-    
+
     [phonopy]
     supercell_matrix:              [-2, 2, 2, 2, -2, 2, 2, 2, -2]
     displacement:                  0.01
@@ -75,12 +75,11 @@ Once the geometry files are added, create a phonopy workflow in `workflow.in` wi
     symprec:                       1e-05
     q_mesh:                        [45, 45, 45]
     serial:                        True
-    
+
     [phonopy.convergence]
-    FK: check ->
     minimum_similarity_score:      0.05
     sc_matrix_base:                [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-    
+
     [phonopy.qadapter]
     nodes:                         1
     walltime:                      00-04:00:00
@@ -134,11 +133,7 @@ $M_\text{0}$ must be an integer scalar value of $M_\text{S, base}$, or the workf
 
 A score of 0.80 is considered to be a good balance between getting fully converged results and not going to very large supercell sizes; however, you may want to increase it if very accurate results are needed or lower it if the unitcell of a material is already very large.
 Here a significantly lower minimum of 0.05 is used so that none of the supercells get above 64 atoms and the workflows can be easily run on a laptop or desktop computer.
-
-FK: this section is not clear to me ->
-
-In this case we set the initial supercell to be a 2x2x2 supercell of the conventional cell in order to reduce the over (FK: overall?) number of calculations needed to calculate the converged phonon model.
-Instead of explicitly calculating the smaller supercells the force constants from the larger one are mapped onto them and used to check for the convergence. (FK: force constants mapping probably goes beyond the tutorial? At least it's not really necessary at this point imo)
+Because this supercell matrix used for this phonon model is `[-2, 2, 2, 2, -2, 2, 2, 2, -2]`, the forceconstants for $\mathbf{d}_{\rm small}$ do not have to be calculated explicitly, but are obtained from remapping the force constants of the larger supercell onto the smaller one.
 In most cases if a 200 atom supercell is used in this scheme then a converged phonon model can be calculated from a single phonopy calculation.
 
 ## Running the Calculations
@@ -157,7 +152,7 @@ and you should get the following output
 
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-    
+
     [calculator]   Update aims k_grid with kpt density of 1 to [4, 4, 4]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
@@ -176,10 +171,10 @@ and you should get the following output
     [fireworks]    Generating workflow for MgO
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-    
+
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-    
+
     [calculator]   Update aims k_grid with kpt density of 1 to [4, 4, 4]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
@@ -286,8 +281,7 @@ converged  sc_natoms_64
 The `sc_natoms_64` folders each contain a `phonopy_analysis` directory that only contains the final phonopy `trajectory.son` file for those iterations.
 Additionally the last `phonopy` iteration are stored in `converged` for easy access to the converged phonon calculations.
 
-FK: I don't understand the second part of this sentence ->
-From here you can perform any analysis that is possible within `phonopy` on all the materials, and know that the results standardized with respect to all of the calculation parameters.
+From here you can perform any analysis that is possible within `phonopy` on all the materials, and get results to a similar level of percsion for all of them.
 For example you can see the bandstructure and DOS of both materials by running
 ```
 vibes output phonopy -bs --dos

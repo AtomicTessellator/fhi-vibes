@@ -6,7 +6,7 @@ serial = True
 displacement = 0.01
 
 [phonopy.convergence]
-minimum_similiarty_score = 0.80
+minimum_similarity_score = 0.80
 sc_matrix_base = [1, 1, 1]
 
 [gruneisen]

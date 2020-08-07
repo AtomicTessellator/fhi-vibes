@@ -34,7 +34,7 @@ serial = True
 displacement = 0.01
 
 [phonopy.convergence]
-minimum_similiarty_score = 0.05
+minimum_similarity_score = 0.05
 sc_matrix_base = [2, 2, 0, -2, 2, 0, 0, 0, 1]
 
 [phonopy.qadapter]

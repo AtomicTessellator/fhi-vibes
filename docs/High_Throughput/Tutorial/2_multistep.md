@@ -6,11 +6,8 @@
 ## Summary
 In this section we will learn how to set up and run multiple multi-step workflows using FHI-vibes and FireWorks.
 
-FK: technically we optimize the k-point density of the Monkhorst-Pack grid in FHI-aims (which is normally defined by setting k_grid) ->
-We will start by learning how to converge the `k_grid` parameter for FHI-aims and optimize the structure of Si before performing phonopy calculations.
-
-FK: why do we do both? ->
-Once this is done we then use the converged harmonic model to set up Monte Carlo and Molecular Dynamics based sampling and quantify a material's anharmonicity.
+We will start by learning how to converge the `k_grid` setting for FHI-aims and optimize the structure of Si before performing phonopy calculations.
+We then go on to define how we can perform harmonic and molecular dynamics based sampling, and use the harmonic sampling quantify a material's anharmonicity.
 
 ## Optimizing the k-point Density and Geometry
 
@@ -64,49 +61,39 @@ Below is the complete workflow file for the calculations, we removed the phonon 
 
     [fireworks]
     name:                          example_multistep_calculations
-    
+
     [fireworks.workdir]
     local:                         analysis/
     remote:                        run/
-    
+
     [calculator]
     name:                          aims
-    
+    socketio:                      True
+
     [calculator.parameters]
     xc:                            pw-lda
-    
+
     [calculator.kpoints]
     density:                       1
-    
+
     [calculator.basissets]
     default:                       light
-    
-    FK: move to [calculator] as socketio: True + check above ->
-    [calculator.socketio]
-    port:                          12345
-    
+
     [phonopy]
     supercell_matrix:              [-2, 2, 2, 2, -2, 2, 2, 2, -2]
-    FK: I would remove all default values to reduce the file length ->
-    displacement:                  0.01
-    is_diagonal:                   False
-    is_plusminus:                  auto
-    symprec:                       1e-05
-    q_mesh:                        [45, 45, 45]
     serial:                        True
-    
+
     [phonopy.qadapter]
     nodes:                         1
-    FK: in the [slurm] section `walltime` is given in minutes ->
     walltime:                      00-01:00:00
-    
+
     [optimize_kgrid]
     dfunc_min:                     1e-3
-    
+
     [optimize_kgrid.qadapter]
     nodes:                         1
     walltime:                      01:00:00
-    
+
     [relaxation.1]
     basis:                         light
     driver:                        BFGS
@@ -114,9 +101,7 @@ Below is the complete workflow file for the calculations, we removed the phonon 
     unit_cell:                     True
     decimals:                      12
     maxstep:                       0.2
-    FK: this wasn't used before and requires ASE 3.20, will throw an error in current pip installs (Ask is working on the release) ->
-    fix_symmetry:                  True
-    
+
     [relaxation.1.qadapter]
     nodes:                         1
     walltime:                      00:15:00
@@ -152,46 +137,13 @@ Here is what the bandstructure_dos.pdf should look like:
 
 ## Using the Harmonic Model to Quantify Anharmonicity
 
-Once the a converged harmonic model is generated, the anharmonicity of the material can be quantified using the methods published [here](https://arxiv.org/abs/2006.14672).
+Once the a converged harmonic model is generated, the anharmonicity of the material can be quantified using the methods published [here](https://arxiv.org/abs/2006.14672) and previously described [here](../../Tutorial/5_anharmonicity_quantification.md).
 
-FK: I would use the notation from the paper and reference to (../../Tutorial/5_anharm...) ->
-This method compares the atomic forces of an ensemble of thermally displaced supercells calculated from DFT, $\mathbf{F}$, to those predicted by the harmonic model, $\mathbf{F}^{\rm HA}$, to get a measure of the anharmonicity of a material, $\sigma^\text{A}$
+### Harmonic Sampling
 
-\begin{equation}
-    \sigma^\text{A} = \sqrt{\frac{\sum_{I, \alpha} \left\langle \left(F_{I, \alpha} - F_{I, \alpha}^{HA}\right)^2 \right\rangle}{\sum_{I, \alpha} \left\langle F^2_{I, \alpha} \right\rangle}},
-\end{equation}
+The `[statistical_sampling]` section calculates the anharmonicity of a material from a harmonic sampling of a its harmonic vibrational potential energy surface.
 
-where $I$ is the atomic index and $\alpha$ is a component of the force, $\mathbf{F}_{I}$.
-The high-throughput workflows in `FHI-vibes` provide two ways of generating these thermal ensembles from a converged phonon model: Monte Carlo sampling and molecular dynamics.
-
-FK: We use "Harmonic Sampling" in the paper and in the previous tutorial ->
-
-### Monte Carlo Sampling
-
-The `[statistical_sampling]` section calculates the anharmonicity of a material from a Monte Carlo sampling of a its harmonic vibrational potential energy surface.
-
-FK: notation ->
-
-This task uses the harmonic model to generate a series of thermally displaced supercells by using the eigenvectors, $\nu_{s}(\Gamma)$, of dynamical matrix at the $\Gamma$ point, $D(\Gamma)$, to generate a series of atomic displacements, $\mathbf{d}_{s}$,
-
-$$
-\begin{aligned}
-    D(\Gamma)\left[\nu_{s}(\Gamma)\right] &=\omega_{s}^{2}(\Gamma)[\nu(\Gamma)] \\
-    A_{s} &=\frac{\sqrt{k_{B} T}}{\omega_{s}} \\
-    \mathbf{d}_s &= A_{s} \nu_{s}(\Gamma),
-\end{aligned}
-$$
-
-where $A_s$ is amplitude of the displacement, $k_B$ is Boltzmann's constant, $T$ is the temperature, and $\omega_s^2$ is the eigenvalue of $s^{th}$ mode.
-From here the amplitudes are scaled by a random number taken from a gaussian distribution, $r_s$, and a random phase, $\phi_s$, and used to get the final displacements for each atom, $\mathbf{d}_I$
-
-FK: Not sure if folks will recognize this as Eq. (21) from the paper ->
-
-\begin{equation}
-    d_{I,\alpha} = \sum_{s=3}^{n_{w}} \frac{r_s \sin\left(\phi_s\right) d_{s, I, \alpha}}{\sqrt{m_I}},
-\end{equation}
-
-where $m_I$ is the mass of atom $I$.
+This task uses the harmonic model to generate a series of thermally displaced supercells as discussed [here](../../Tutorial/4_statistical_sampling.md).
 
 Here is the section will be used to calculate $\sigma^\text{A}$ for Si at 300 and 600 K.
 ```
@@ -216,7 +168,7 @@ This scheme replaces the random scaling by deterministic one that approximates a
 \end{equation}
 
 If this scheme is not used, then `statistical_sampling.n_samples` should be large enough to ensure convergence for all materials tested (normally on the order of 10-30 samples).
-For a complete description of possible Monte-Carlo sampling keywords, habe a look at the [documentation](../Documentation/6_statistical_sampling.md).
+For a complete description of possible harmonic sampling keywords, have a look at the [documentation](../Documentation/6_statistical_sampling.md).
 
 ### Molecular Dynamics (MD)
 
@@ -228,23 +180,21 @@ driver:                        Langevin
 timestep:                      1
 temperatures:                  [300, 600]
 friction:                      0.02
-maxsteps:                      Number of Steps (in the hundreds/thousands)
+maxsteps:                      50
 logfile:                       md.log
 ```
 
 The settings in the `[md]` section used for high-throughput calculations are almost identical to those introduced in [the molecular dynamics tutorial](../../Tutorial/3_md_ab_initio.md), but the initial structures are calculated automatically from phonopy calculation in the previous step or from the trajectory file defined in `md.phonon_file`.
+If you are not chaining the `[phonopy]` and `[md]` steps together please ensure the `phonon_file` is on the resource that you intend to run the calculation on (most likely the remote host not your local machine).
 
-FK: don't understand ->
-
-It is important to note that `phonon_file` in this case must be on the file on the system that the calculations are running on.
 As is the case with the `[statistical_sampling]` section, if the requested `supercell_matrix` is not the same as the one in `phonon_file` the force constants will be remapped onto the new supercell, and if no `supercell_matrix` is given it will default to the one in `phonon_file`.
 
-If you want to run MD for multiple temperatures replace `md.temperature` with `md.temperatures` (FK: and give a list of temperatures?) and multiple Molecular Dynamics tasks will be generated, as is done above (FK: -> statistical sampling?).
+If you want to run MD for multiple temperatures replace `md.temperature` with `md.temperatures` and give a list of temperatures and multiple Molecular Dynamics tasks will be generated, as is done above for the harmonic sampling example.
 
 ### The Full Workflow
 Below is the complete workflow file for the calculations.
-The molecular dynamics calculations are not run here, since they are too expensive (FK: expect an email from MS :D. You can run a few steps so that people see what to expect. There is also the reference repository).
-See the tutorial for postprocessing options.
+The molecular dynamics calculations are not run here, since they are too expensive
+See [the tutorial](../../Tutorial/3_md_postprocess.md) for postprocessing options for MD.
 
 ??? info "`workflow_anharmonicty.in`"
     ```
@@ -253,39 +203,54 @@ See the tutorial for postprocessing options.
 
     [fireworks]
     name:                          example_anharmonicity_calculations
-    
+
     [fireworks.workdir]
     local:                         analysis/
     remote:                        run/
-    
+
     [calculator]
     name:                          aims
     socketio:                      True
-    
+
     [calculator.parameters]
     xc:                            pw-lda
-    
+
     [calculator.kpoints]
     density:                       1
-    
+
     [calculator.basissets]
     default:                       light
-    
-   
+
+
     [statistical_sampling]
-    phonon_file:                   analysis/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/sc_natoms_64/phonopy_analysis/trajectory.son
+    # phonon_file:                   analysis/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/sc_natoms_64/phonopy_analysis/trajectory.son
     serial:                        True
     temperatures:                  [300, 600]
     supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
     n_samples:                     1
     plus_minus:                    True
-    
+
     [statistical_sampling.qadapter]
     walltime:                      0:30:00
     nodes:                         1
+
+    [md]
+    # phonon_file:                   run/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/sc_natoms_64/phonopy/trajectory.son
+    supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+    driver:                        Langevin
+    timestep:                      1
+    temperatures:                  [300, 600]
+    friction:                      0.02
+    maxsteps:                      5
+    logfile:                       md.log
+    compute_stresses:              5
+
+    [md.qadapter]
+    walltime:                      01:00:00
+    nodes:                         1
     ```
 
-For both `[statistial_sampling]` and `[molecular_dynamics]` the structure that is used is the one in their respective `phonon_file`, not the one defined in `files.geometry`, but it is important to keep (FK: ..to keep the reference file?) that there so the correct atoms hashed is used.
+For both `[statistial_sampling]` and `[md]` the structure that is used is the one in their respective `phonon_file`, not the one defined in `files.geometry`, but it is important to keep the reference file there so the correct atoms hashed is used.
 
 ### Running the Workflow
 We can now run the calculations as we did previously, but with passing the workflow file name in explicitly.
@@ -313,6 +278,6 @@ The `sigma.dat` file has $\sigma^\text{A}$ value at the requested 300 and 600 K.
 Looking at the file with, e.g., `cat`, we see that for Si $\sigma^\text{A}$ is quite low, confirming that it is very harmonic
 ```
 cat analysis/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/statistical_sampling_analysis/sigma.dat
-300.0, 0.13491138013328746
-600.0, 0.1894909564612828
+300.0, 0.1312671429298908
+600.0, 0.18100681527473686
 ```

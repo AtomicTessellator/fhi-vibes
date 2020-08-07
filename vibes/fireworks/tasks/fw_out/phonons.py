@@ -464,7 +464,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         ),
         "qadapter": qadapter,
         "convergence": {
-            "minimum_similiarty_score": kwargs["conv_crit"],
+            "minimum_similarity_score": kwargs["conv_crit"],
             "sc_matrix_base": update_job["sc_matrix_base"],
         },
     }

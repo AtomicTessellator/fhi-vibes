@@ -183,7 +183,7 @@ def gen_phonon_analysis_task_spec(
             conv_crit = 0.80
         else:
             conv = True
-            conv_crit = func_kwargs["convergence"].get("minimum_similiarty_score", 0.80)
+            conv_crit = func_kwargs["convergence"].get("minimum_similarity_score", 0.80)
             supercell_matrix = get_3x3_matrix(func_kwargs["supercell_matrix"]).flatten()
             sc_matrix_base = get_3x3_matrix(
                 func_kwargs["convergence"].get("sc_matrix_base", supercell_matrix)

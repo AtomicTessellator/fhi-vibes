@@ -1,0 +1,49 @@
+[files]
+geometry:                      Si/geometry.in
+
+[fireworks]
+name:                          example_multistep_calculations
+
+[fireworks.workdir]
+local:                         analysis/
+remote:                        run/
+
+[calculator]
+name:                          aims
+socketio:                      True
+
+[calculator.parameters]
+xc:                            pw-lda
+
+[calculator.kpoints]
+density:                       1
+
+[calculator.basissets]
+default:                       light
+
+[phonopy]
+supercell_matrix:              [-2, 2, 2, 2, -2, 2, 2, 2, -2]
+serial:                        True
+
+[phonopy.qadapter]
+nodes:                         1
+walltime:                      00-01:00:00
+
+[optimize_kgrid]
+dfunc_min:                     1e-3
+
+[optimize_kgrid.qadapter]
+nodes:                         1
+walltime:                      01:00:00
+
+[relaxation.1]
+basis:                         light
+driver:                        BFGS
+fmax:                          0.001
+unit_cell:                     True
+decimals:                      12
+maxstep:                       0.2
+
+[relaxation.1.qadapter]
+nodes:                         1
+walltime:                      00:15:00
