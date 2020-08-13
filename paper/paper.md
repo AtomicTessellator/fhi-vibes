@@ -24,7 +24,7 @@ date: July 2020
 bibliography: paper.bib
 ---
 
-# Summary
+# Introduction
 
 The vibrational motion of nuclei determines many important properties of materials, including their thermodynamic (phase) stability and their transport coefficients. Accurately assessing the nuclear dynamics and the associated material properties is therefore an important task for computational materials scientists in a broad range of sub-fields. Of particular importance are simulation techniques that build on first-principles electronic-structure simulations and thereby allow to systematically investigate the virtually infinite space of materials, even for systems where little or no experimental data is available [@Curtarolo2013].
 
@@ -41,6 +41,8 @@ In the field of nuclear dynamics, probably the most famous example is the _phono
 # Statement of need
 
 There are no frameworks that allow for an integrated and easy to extend production workflow for a range of vibrational simulation techniques with a unified syntax for inputs and output, independent of the force calculator. Such a framework is however needed for methods that depend both on full-dimensional MD simulations and the harmonic model, such as the _ab initio_ Green Kubo technique which uses a harmonic model to map out certain contributions to an otherwise fully anharmonic heat flux [@Carbogno2016], or the recently developed anharmonicity measure which deliberately compares harmonic to anharmonic forces occurring at thermodynamic conditions [@Knoop2020]. The aspect of _integration_ becomes all the more important when one aims at (semi-)automatizing these workflows to enable high-throughput screening of material classes in a systematic and comparable fashion. Last but not least, providing coherent input/output file formats is a prerequisite for sharing raw data and results in a transparent and interpretable way in the spirit of open science and the FAIR Principles [@Wilkinson2016].
+
+# Summary
 
 _FHI-vibes_ is a _python_ package that allows for such an integrated workflow by using _ASE_ as a backend in order to be able to represent materials and connect to force calculators, implement methods like geometry optimization and MD, and connect to external codes like _phonopy_ [@Togo2015], _phono3py_ [@Togo2015b], and _hiphive_ [@Eriksson2019] that implement lattice dynamics techniques. For all these tasks, _FHI-vibes_ provides defined input and output files and a command line interface. It can help to set up and run calculations on local machines and clusters using the _slurm_ submission system, provides tools for performing standard postprocessing and analyzing raw data like MD trajectories, and ships utilities for manipulating and sharing results. For advanced analysis, it provides a _python_ API fully compatible either with _ASE_ [@Larsen2017], or a combination of _numpy_ [@Walt2011], _pandas_ [@McKinney2011], and _xarray_ [@Hoyer2017]. Furthermore, _FHI-vibes_ provides a connection to *FireWorks* [@Jain2015], a workflow management system for running simulation workflows on extensive sets of materials in _high-throughput_ fashion. _FHI-vibes_ is tightly integrated with *FHI-aims* [@Blum2009] to perform energy and force calculations, but extending the functionality to any calculator available via *ASE* is straightforward.
 
