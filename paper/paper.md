@@ -28,7 +28,6 @@ bibliography: paper.bib
 
 The vibrational motion of nuclei determines many important properties of materials, including their thermodynamic equilibrium and non-equilibrium properties. Accurately assessing the nuclear dynamics and the associated material properties is therefore an important task for computational materials scientists in a broad range of sub-fields. Of particular importance are simulation techniques that build on first-principles electronic-structure simulations and thereby allow to systematically investigate the virtually infinite space of materials, including those systems for which little or no experimental data is hitherto available [@Curtarolo2013]. This allows one
 to design novel and improved materials with optimal properties for many applications, e.g., high-performance thermal insulators for gas and airplane turbines[@Miller2017b, @Chen2019c, @Juneja2019], organic semicondcutors with long-term phase stabilities [@Salzillo2016], thermoelectric generators [@Snyder2008], and improved thermal management systems [@Tian2019].
-<!-- CC: Please add citations and improve examples to showcase technological relevance. -->
 
 Essentially, there are two, quite distinct routes towards assessing vibrational properties:
 In perturbative _lattice dynamics_ techniques, the potential-energy surface on which the nuclei move is approximated with a Taylor expansion around equilibrium.
@@ -36,17 +35,16 @@ Typically, one starts from a second-order expansion, i.e., the _harmonic approxi
 and thus for a straightforward evaluation of observables (thermodynamic expectation values). Higher-order terms in the Taylor expansion can be accounted for perturbatively.
 Conversely, _molecular dynamics_ (MD) based approaches account for the full, non-perturbative potential-energy surface _without_ approximating the actual interactions. This requires
 one to solve the equations of motion numerically by propagating the atoms in time; physical properties can then be extracted as time  averages of properly chosen observables [@Tuckerman2010].
-Although both _lattice dynamics_ and _molecular dynamics_ techniques aim at computing the same physical observables, the involved methodologies, formalisms, and challenges are very different.
+Although both _lattice dynamics_ and _molecular dynamics_ techniques aim at computing the same physical observables, the involved methodologies, formalisms, and challenges are quite different.
 Accordingly, both methodologies also have different strengths and weaknesses: For instance, performing and analyzing MD simulations is typically computationally and conceptually more challenging,
 whereas _lattice dynamics_ calculations inherently rely on perturbative approximations that are hard to validate.
-
 
 To date, a variety of different software packages exists at different degrees of sophistication in both fields. Prominent examples are the _phonopy_ code [@Togo2015] for performing _lattice dynamics_
 calculations using Parlinski's finite-difference formalism [@Parlinski1997] and the _i-PI_ code [@Kapil2019] for performing classical MD and quantum-mechanical path-integral MD simulations.
 Note that both packages interface with a wide variety of first-principles codes like *VASP* [@Kresse1996], *QuantumEspresso* [@Giannozzi2009], *FHI-aims* [@Blum2009], and many other. There is, however,
 no software solution that allows for the seamless bridging of _lattice dynamics_ and  _molecular dynamics_ based approaches, despite the fact that actual material science studies can profit in accuracy
-and efficiency by exploiting both approaches. For instance, _MD_ simulations can be used to proof the validity of the approximations on which the _lattice dynamics_ approach relies [KNOOP]; similarly,
-_MD_ simulations can be sped up and interpreted more efficiently using techniques and data from _lattice dynamics_ calculations [WEST].
+and efficiency by exploiting both approaches. For instance, _MD_ simulations can be used to proof the validity of the approximations on which the _lattice dynamics_ approach relies [@Knoop2020]; similarly,
+_MD_ simulations can be sped up and interpreted more efficiently using techniques and data from _lattice dynamics_ calculations [@West2006].
 
 
 # Statement of need
