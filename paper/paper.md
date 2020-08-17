@@ -27,7 +27,7 @@ bibliography: paper.bib
 # Introduction
 
 The vibrational motion of nuclei determines many important properties of materials, including their thermodynamic equilibrium and non-equilibrium properties. Accurately assessing the nuclear dynamics and the associated material properties is therefore an important task for computational materials scientists in a broad range of sub-fields. Of particular importance are simulation techniques that build on first-principles electronic-structure simulations and thereby allow to systematically investigate the virtually infinite space of materials, including those systems for which little or no experimental data is hitherto available [@Curtarolo2013]. This allows one
-to design novel and improved materials with optimal properties for many applications, e.g., high-performance thermal insulators for gas and airplane turbines[@Miller2017b, @Chen2019c, @Juneja2019], organic semicondcutors with long-term phase stabilities [@Salzillo2016], thermoelectric generators [@Snyder2008], and improved thermal management systems [@Tian2019].
+to design novel and improved materials with optimal properties for many applications, e.g., high-performance thermal insulators for gas and airplane turbines [@Evans2008], organic semicondcutors with long-term phase stabilities [@Salzillo2016], thermoelectric generators [@Snyder2008], and improved thermal management systems [@Tian2019].
 
 Essentially, there are two, quite distinct routes towards assessing vibrational properties:
 In perturbative _lattice dynamics_ techniques, the potential-energy surface on which the nuclei move is approximated with a Taylor expansion around equilibrium.
