@@ -1,5 +1,5 @@
 ---
-title: 'FHI-vibes: _Ab initio_ Vibrational Simulations'
+title: 'FHI-vibes: _Ab Initio_ Vibrational Simulations'
 tags:
   - Python
   - Physics
