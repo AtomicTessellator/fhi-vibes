@@ -72,6 +72,10 @@ Currently only [BFGS](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs) is s
 
 `float`: apply external pressure given in $\text{eV}/\AA^3$
 
+#### `mask`
+
+`list`: `(6, 1)` shaped mask to enable/disable relaxation of strain components in Voigt notation, see [ASE documentation of `mask` keyword in `ExpCellFilter` class](https://wiki.fysik.dtu.dk/ase/ase/constraints.html?highlight=expcellfilter#ase.constraints.ExpCellFilter)
+
 #### `decimals`
 
 `int`: number of digits used to round positions before writing `geometry.in.next_step`
