@@ -74,7 +74,7 @@ Currently only [BFGS](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs) is s
 
 #### `mask`
 
-`list`: `(6, 1)` shaped mask to enable/disable relaxation of strain components in Voigt notation, see [ASE documentation of `mask` keyword in `ExpCellFilter` class](https://wiki.fysik.dtu.dk/ase/ase/constraints.html?highlight=expcellfilter#ase.constraints.ExpCellFilter)
+`list`: `(6, 1)` shaped mask to enable/disable relaxation of strain components in Voigt notation, e.g., to allow for shape-preserving relation. See [ASE documentation of `mask` keyword in `ExpCellFilter` class for details](https://wiki.fysik.dtu.dk/ase/ase/constraints.html?highlight=expcellfilter#ase.constraints.ExpCellFilter). **Using the `mask` keyword will alter the effective stress used to relax the lattice and changes the behavior of `fmax`. Check!**.
 
 #### `decimals`
 

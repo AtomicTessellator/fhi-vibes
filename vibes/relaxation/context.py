@@ -52,6 +52,10 @@ class RelaxationContext(TaskContext):
             "scalar_pressure": self.kw.get("scalar_pressure"),
             "mask": self.kw.get("mask"),
         }
+        if kw["mask"] is not None:
+            msg = "`mask` keyword is set, `fmax` might behave unexpectedly. Check!"
+            warn(msg, level=1)
+
         return kw
 
     @property
