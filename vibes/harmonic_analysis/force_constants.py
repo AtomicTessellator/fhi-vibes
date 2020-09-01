@@ -8,7 +8,12 @@ from vibes.phonopy.utils import remap_force_constants
 
 
 def reshape_force_constants(
-    primitive, supercell, force_constants, scale_mass=False, lattice_points=None
+    primitive,
+    supercell,
+    force_constants,
+    scale_mass=False,
+    lattice_points=None,
+    symmetrize=True,
 ):
     """ reshape from (N_prim x N_super x 3 x 3) into 3x3 blocks labelled by (i,L)
 
@@ -39,6 +44,7 @@ def reshape_force_constants(
                 new_supercell=None,
                 reduce_fc=False,
                 two_dim=True,
+                symmetrize=symmetrize,
             )
         else:
             force_constants = force_constants.swapaxes(1, 2).reshape(
