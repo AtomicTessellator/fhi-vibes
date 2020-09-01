@@ -114,15 +114,15 @@ def get_lattice_points(
 
             frac_lp = fractional(lp, superlattice)
 
-            # Check if is inside supercell [0, 1) and discard if no
-            if (np.all(np.array(frac_lp) > -tolerance)) and (
-                np.all(np.array(frac_lp) < 1 - tolerance)
+            # Check if is inside supercell [-0.5, 0.5) and discard if no
+            if (np.all(np.array(frac_lp) > -0.5 - tolerance)) and (
+                np.all(np.array(frac_lp) < 0.5 - tolerance)
             ):
                 lattice_points.append(lp)
 
-            # Check if is inside extended supercell [0, 1] and discard if no
-            elif (np.all(np.array(frac_lp) > -tolerance)) and (
-                np.all(np.array(frac_lp) < 1 + tolerance)
+            # Check if is inside extended supercell [-0.5, 0.5] and discard if no
+            elif (np.all(np.array(frac_lp) > -0.5 - tolerance)) and (
+                np.all(np.array(frac_lp) < 0.5 + tolerance)
             ):
                 lattice_points_extended.append(lp)
 
@@ -147,7 +147,7 @@ def get_lattice_points(
 
         frac_lp = fractional(lp, superlattice)
 
-        elp_mult = []
+        elp_mult = [lp]
 
         for elp in lattice_points_extended:
             frac_elp = fractional(elp, superlattice)
@@ -155,9 +155,9 @@ def get_lattice_points(
             if la.norm((frac_elp - frac_lp + tol) % 1 % 1 - tol) < tol:
                 elp_mult.append(elp)
 
-        lattice_points_ext_w_multiplicites.append(elp_mult)
+        lattice_points_ext_w_multiplicites.append(np.array(elp_mult))
 
-    return lattice_points, lattice_points_ext_w_multiplicites
+    return np.array(lattice_points), np.array(lattice_points_ext_w_multiplicites)
 
 
 def sort_lattice_points(lattice_points, tol=1e-5):
