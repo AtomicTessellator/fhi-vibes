@@ -311,7 +311,7 @@ def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose
             "**Warning: Cubicness of supercell is "
             + f"{cub_ness:.3f} ({cub_ness**3:.3f})"
         )
-        print(f"**-> Sytems: {get_sysname(prim_cell)}, target size {target_size}")
+        print(f"**-> Systems: {get_sysname(prim_cell)}, target size {target_size}")
     return supercell, smatrix
 
 

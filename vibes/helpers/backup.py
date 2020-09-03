@@ -47,7 +47,7 @@ def backup_folder(
     output_file = backup_file(target_folder)
 
     if not Path(source_dir).exists():
-        talk(f"{source_dir} does not exists, nothing to back up.", prefix=_prefix)
+        talk(f"{source_dir} does not exist, nothing to back up.", prefix=_prefix)
         return False
 
     try:
