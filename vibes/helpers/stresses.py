@@ -2,7 +2,9 @@
 
 import numpy as np
 from ase.calculators.calculator import PropertyNotImplementedError
-from ase.constraints import voigt_6_to_full_3x3_stress
+from ase.constraints import full_3x3_to_voigt_6_stress, voigt_6_to_full_3x3_stress
+
+from vibes.helpers import talk, warn
 
 
 def get_stresses(atoms):
@@ -38,7 +40,13 @@ def enforce_intensive(stress, stresses, volume):
 
     else:
         summed_stresses /= volume
-        assert np.allclose(stress, summed_stresses), (stress, summed_stresses)
+        diff = np.linalg.norm(stress - summed_stresses)
+
+        if diff > 1e-7:
+            msg = f"Stress and stresses differ by {diff}"
+            warn(msg, level=1)
+            talk(full_3x3_to_voigt_6_stress(stress), prefix="stress")
+            talk(full_3x3_to_voigt_6_stress(summed_stresses), prefix="stresses")
 
         return stresses / volume
 
