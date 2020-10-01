@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fhi-vibes"
-version = "1.0.0-alpha.4"
+version = "1.0.0-alpha.5"
 description = "Fritz Haber Institute Vibrational Simulations"
 authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
 license = "MIT"
@@ -71,6 +71,6 @@ vibes = 'vibes.cli:cli'
 target-version = ['py37']
 
 [build-system]
-requires = ["setuptools", "poetry>=0.12", "numpy"]
+requires = ["setuptools", "wheel", "poetry>=0.12", "numpy"]
 build-backend = "poetry.masonry.api"
 
