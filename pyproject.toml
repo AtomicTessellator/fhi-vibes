@@ -71,6 +71,6 @@ vibes = 'vibes.cli:cli'
 target-version = ['py37']
 
 [build-system]
-requires = ["poetry>=0.12", "numpy"]
+requires = ["setuptools", "poetry>=0.12", "numpy"]
 build-backend = "poetry.masonry.api"
 
