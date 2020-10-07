@@ -1,6 +1,7 @@
 # Calculator Setup
 
-FHI-vibes can set up any [ASE calculator](https://wiki.fysik.dtu.dk/ase/ase/calculators/calculators.html#module-ase.calculators) for performing a calculation by providing the  calculator class `name` and the respective `parameters` in the input file.
+FHI-vibes can set up any [ASE calculator](https://wiki.fysik.dtu.dk/ase/ase/calculators/calculators.html#module-ase.calculators) for performing a calculation by providing the  calculator class `name` and the respective `parameters` in the input file. If a `module` is specified, `vibes` will attempt to import the calculator from that module instead of `ase`. This can be used to work with custom calculators that are not (yet) included in `ase`.
+
 
 ## Example
 
@@ -16,6 +17,21 @@ sigma:                         3.4
 
 This would set up a [Lennard Jones calculator](https://wiki.fysik.dtu.dk/ase/ase/calculators/others.html#lennard-jones) with a `sigma` value of 3.4 and default parameters otherwise.
 
+For a non-`ase` calculator, this would be:
+
+```
+...
+[calculator]
+name:                          MyCalculator
+module:                        mymodule
+
+[calculator.parameters]
+a:                             1.23
+...
+```
+
+`vibes` will then attempt to import `MyCalculator` from `mymodule` and instantiate it with `a=1.23`. 
+
 ## Sections
 
 ### `[calculator]`
@@ -25,6 +41,12 @@ This section specifies which `ase.Calculator` should be set up and how.
 #### `name`
 
 The name of the [ASE calculator class name](https://wiki.fysik.dtu.dk/ase/ase/calculators/calculators.html#supported-calculators).
+
+Note that for non-`ase` calculators, `name` must be spelled identically to the class name in the module, i.e. typically `CamelCase`.
+
+#### `module` (optional)
+
+If specified, `vibes` will run `from module import name` to obtain the calculator class, instead of importing it from `ase`. 
 
 ### `[calculator.parameters]`
 
