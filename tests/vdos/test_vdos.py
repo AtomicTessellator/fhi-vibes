@@ -13,6 +13,7 @@ from vibes.harmonic_analysis import dynamical_matrix as dm
 from vibes.tdep.wrapper import parse_tdep_forceconstant
 from vibes.trajectory import reader
 
+
 parent = Path(__file__).parent
 
 
@@ -43,7 +44,7 @@ def test_vdos(
 ):
     traj = reader(parent / traj_file)
 
-    df_vdos = get_vdos(traj.dataset.velocities)
+    df_vdos = get_vdos(traj.dataset.velocities, npad=0).real
 
     # get analytical frequencies
     freqs = test_frequencies_from_force_constants()
@@ -52,21 +53,22 @@ def test_vdos(
     ds = df_vdos.sum(axis=(1, 2)).to_series()
 
     # compare peak positions and analytical frequencies
-    peaks = ds.iloc[sl.find_peaks(ds.to_numpy().real)[0]].index
+    peaks = ds.iloc[sl.find_peaks(ds.to_numpy())[0]].index
 
     unique_freqs = np.unique(np.round(freqs.real, decimals=3))[1:]
 
     for peak, freq in zip(peaks, unique_freqs):
         assert abs(peak - freq) / peak < 0.1, (peak, freq)
 
-    # compare to ref
-    velocities = xr.load_dataarray(parent / vdos_file)
+    # check zero padding
+    df_vdos_pad = get_vdos(traj.dataset.velocities, npad=100000).real
+    ds_pad = df_vdos_pad.sum(axis=(1, 2)).to_series()
 
-    vdos = get_vdos(velocities=velocities).sum(axis=(1, 2)).to_series().abs()
+    peaks_pad = ds_pad.iloc[sl.find_peaks(ds_pad, height=0.2)[0]].index
 
-    vdos_ref = pd.read_csv(parent / ref_file, index_col=vdos.index.name, squeeze=True)
-
-    assert (vdos - vdos_ref).std() < 1e-12
+    for peak, freq in zip(peaks_pad, unique_freqs):
+        diff = abs(peak - freq) / peak
+        assert diff < 0.1, (peak, freq)
 
 
 if __name__ == "__main__":

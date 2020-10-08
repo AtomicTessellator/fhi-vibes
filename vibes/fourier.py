@@ -1,6 +1,5 @@
 """Fourier Transforms"""
 import numpy as np
-import pandas as pd
 import xarray as xr
 
 from vibes import dimensions as dims
@@ -8,7 +7,12 @@ from vibes import keys
 from vibes.helpers import Timer, talk, warn
 from vibes.konstanten.einheiten import THz_to_cm
 
+
 _prefix = "Fourier"
+
+
+def _talk(msg, **kwargs):
+    return talk(msg, prefix=_prefix, **kwargs)
 
 
 def get_timestep(times, tol=1e-9):
@@ -51,12 +55,12 @@ def get_frequencies(
     dw = w[1] - w[0]
 
     if verbose:
-        msg = f".. get frequencies for time series\n"
-        msg += f".. timestep:               {np.asarray(dt)} fs\n"
-        msg += f"-> maximum frequency:      {np.max(w):.5} THz\n"
-        msg += f".. Number of steps:        {N}\n"
-        msg += f"-> frequency resolution:   {dw:.5f} THz\n"
-        talk(msg, prefix=_prefix)
+        msg = [f".. get frequencies for time series"]
+        msg += [f".. timestep:               {np.asarray(dt)} fs"]
+        msg += [f"-> maximum frequency:      {np.max(w):.5} THz"]
+        msg += [f".. Number of steps:        {N}"]
+        msg += [f"-> frequency resolution:   {dw:.5f} THz"]
+        _talk(msg)
 
     if to_cm:
         w *= THz_to_cm
@@ -86,42 +90,80 @@ def get_fft(series):
     return velocities.swapaxes(-1, 0)[: N // 2]
 
 
-def get_fourier_transformed(series, verbose=True):
+def zero_pad_array(
+    array: xr.DataArray, times: np.ndarray, npad: int = 10000, verbose: bool = True
+):
+    """zero pad time axis of array
+
+    Args:
+        array ([N_t, ...]): the array which is supposed to be zero padded
+        times: the time axis
+        npad: pad with this many zeros
+    Returns:
+        DataArray ([N_t, ...]): the zero padded array including the time axis
+
+    """
+    data = array.data
+
+    if npad > 0:
+        _talk(f".. use zero padding with {npad} zeros", verbose=verbose)
+        # use linear_ramp for time, build new DataArray
+        # only pad time (assume 1. dimension)
+        pad_width = [(0, npad)]
+        for _ in array.shape[1:]:
+            pad_width.append((0, 0))
+
+        data = np.pad(data, pad_width)
+
+        # pad time using linear_ramp
+        t = times
+        dt = t[-1] - t[-2]
+        times = np.pad(t, (0, npad), mode="linear_ramp", end_values=t[-1] + npad * dt)
+
+    coords = {keys.time: times}
+    dims = (keys.time, *array.dims[1:])
+
+    return xr.DataArray(data, dims=dims, coords=coords)
+
+
+def get_fourier_transformed(array: xr.DataArray, npad: int = 0, verbose: bool = True):
     """Perform Fourier Transformation of Series/DataArray
 
     Args:
-        series ([N_t, ...]): pandas.Series/xarray.DataArray with `time` axis in fs
-        verbose (bool): be verbose
+        array ([N_t, ...]): xarray.DataArray with `time` axis in fs
+        npad: Use zero padding with this many zeros
+        verbose: be verbose
     Return:
         DataArray ([N_t, ...]): FT(series) with `omega` axis in THz
     """
     timer = Timer("Compute FFT", verbose=verbose, prefix=_prefix)
 
-    fft = get_fft(series)
+    assert isinstance(array, xr.DataArray), type(array)
 
-    if isinstance(series, np.ndarray):
-        result = fft
-    elif isinstance(series, pd.Series):
-        omegas = get_frequencies(times=series.index, verbose=verbose)
-        result = pd.Series(fft, index=omegas)
-        result.index.name = keys.omega
-    elif isinstance(series, xr.DataArray):
-        try:
-            times = np.asarray(series[keys.time])
-            omegas = get_frequencies(times=times, verbose=verbose)
-        except (KeyError, IndexError):
-            warn(f"time coordinate not found, use `coords=arange`", level=1)
-            omegas = get_frequencies(times=np.arange(len(series)), verbose=verbose)
+    # figure out the time axis
+    if hasattr(array, keys.time):  # as it is supposed to be
+        times = np.asarray(array[keys.time])
+    elif hasattr(array, "index"):  # compatibility with pd.Series
+        times = np.asarray(array.index)
+    else:  # maybe this used to be a numpy array
+        warn(f"time coordinate not found, use `coords=arange`", level=0)
+        times = np.arange(len(array))
 
-        da = xr.DataArray(
-            fft,
-            dims=(keys.omega, *series.dims[1:]),
-            coords={keys.omega: omegas},
-            name=keys._join(series.name, keys.fourier_transform),
-        )
-        result = da
-    else:
-        raise TypeError("`series` not of type ndarray, Series, or DataArray?")
+    array = zero_pad_array(array, times=times, npad=npad, verbose=verbose)
+
+    # perform FFT
+    fft = get_fft(array)
+
+    # get frequencies from time axis
+    omegas = get_frequencies(times=array[keys.time], verbose=verbose)
+
+    da = xr.DataArray(
+        fft,
+        dims=(keys.omega, *array.dims[1:]),
+        coords={keys.omega: omegas},
+        name=keys._join(array.name, keys.fourier_transform),
+    )
+    result = da
 
     timer()
 

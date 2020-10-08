@@ -187,7 +187,8 @@ def greenkubo(dataset, plot, no_hann, logx, xlim, average):
 @click.option("-p", "--plot", is_flag=True, help="plot the DOS")
 @click.option("--peak", type=float, help="height for peak detection", show_default=1)
 @click.option("-mf", "--max_frequency", default=30.0, help="max. freq. in THz")
-def vdos(file, output_file, plot, peak, max_frequency):
+@click.option("--npad", default=10000, help="number of zeros for padding")
+def vdos(file, output_file, plot, peak, max_frequency, npad):
     """compute and write velocity autocorrelation function to output file"""
     import xarray as xr
 
@@ -196,7 +197,7 @@ def vdos(file, output_file, plot, peak, max_frequency):
     click.echo(f"Read {file} and extract velocities")
     velocities = xr.open_dataset(file).velocities
 
-    vdos = get_vdos(velocities=velocities, hann=False, verbose=True)
+    vdos = get_vdos(velocities=velocities, hann=False, npad=npad, verbose=True)
 
     # sum atoms and coordinates
     df = vdos.real.sum(axis=(1, 2)).to_series()
