@@ -12,21 +12,23 @@ def plot_summary(dataset, avg=50, logx=True, xlim=None):
     import matplotlib
     from matplotlib import pyplot as plt
 
-    from vibes.helpers.plotting import tableau_colors as tc
+    # from vibes.helpers.plotting import tableau_colors as tc
 
     matplotlib.use("pdf")
 
     try:
         import seaborn as sns
 
-        sns.set_style("whitegrid")
+        sns.set_style("white")
         sns.set_palette("colorblind")
     except ModuleNotFoundError:
         pass
 
+    dataset = dataset.mean(dim=keys.trajectory)
+
     # settings for the immediate plot
     alpha = 0.5
-    color = tc[3]
+    color = "k"  # tc[3]
     kw1 = {"color": color, "alpha": alpha}
     kw2 = {"color": color, "linewidth": 2}
     kw_roll = {"min_periods": 5, "center": True}
@@ -45,7 +47,7 @@ def plot_summary(dataset, avg=50, logx=True, xlim=None):
         jc.rolling({keys.time: 5}, **kw_roll).mean().to_series().plot(ax=ax11, lw=0.5)
     jc = xtrace(j_corr) / 3
     jc.rolling({keys.time: 5}, **kw_roll).mean().to_series().plot(ax=ax11, **kw2)
-    ax11.set_ylim([j_corr.min(), j_corr[min(11, len(j_corr)) - 1].max() * 1.1])
+    ax11.set_ylim([j_corr.min(), j_corr[min(2, len(j_corr)) - 1].max() * 1.1])
 
     # plot 3 kappas
     kappa = dataset[keys.kappa_cumulative]
@@ -71,13 +73,14 @@ def plot_summary(dataset, avg=50, logx=True, xlim=None):
     for ii in range(3):
         jw = pow[:, ii, ii]
         jw.to_series().plot(ax=ax12, **kw1)
+        adjust_y(ax12, jw)
 
     if keys.heat_flux_total_power_spectrum in dataset:
         pow = dataset[keys.heat_flux_total_power_spectrum]
         for ii in range(3):
-            jw = pow[:, ii, ii]
+            jw = pow[:, ii, ii].real
             jw.to_series().plot(ax=ax22, **kw1)
-        ax22.set_ylim([10, 1.1 * jw.max()])
+            adjust_y(ax22, jw)
         ax22.set_yscale("log")
         ax22.set_title(r"$\vert J_\mathrm{aux} (\omega)\vert^2$")
     else:
@@ -91,3 +94,10 @@ def plot_summary(dataset, avg=50, logx=True, xlim=None):
     ax12.set_title(r"$\vert J (\omega)\vert^2$")
     ax22.set_xlabel("Omega (THz)")
     return fig
+
+
+def adjust_y(ax, data, positive=True):
+    y0, y1 = ax.get_ylim()
+    y0 = abs(min(y0, np.min(abs(data)) * 0.9))
+    y1 = max(y1, 1.2 * np.max(abs(data)))
+    ax.set_ylim([y0, y1])

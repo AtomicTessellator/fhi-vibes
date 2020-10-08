@@ -1,6 +1,9 @@
 """`vibes info` backend"""
 from pathlib import Path
 
+import numpy as np
+
+from vibes import keys
 from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup, click, complete_files
@@ -153,26 +156,41 @@ def csv(file, max_rows, describe, half, to_json):
 
 
 @info.command(aliases=["gk"], context_settings=_default_context_settings)
-@click.argument("dataset", default="greenkubo.nc")
+@click.argument("files", nargs=-1)
 @click.option("-p", "--plot", is_flag=True, help="plot summary")
 @click.option("--no_hann", is_flag=True)
 @click.option("--logx", is_flag=True)
 @click.option("--xlim", type=float, help="xlim range in ps")
 @click.option("-avg", "--average", default=100, help="average window")
-def greenkubo(dataset, plot, no_hann, logx, xlim, average):
+def greenkubo(files, plot, no_hann, logx, xlim, average):
     """visualize heat flux and thermal conductivity"""
     import xarray as xr
 
     from .plotting.green_kubo import plot_summary
 
-    DS = xr.load_dataset(dataset)
+    if len(files) < 1:
+        files = ["greenkubo.nc"]
 
-    click.echo(f"Kappa: {DS.kappa}")
+    datasets = [xr.load_dataset(f) for f in files]
+
+    # concatentate trajectories
+    ds = xr.concat(datasets, dim=keys.trajectory)
+    attrs = {ii: d.attrs for (ii, d) in enumerate(datasets)}
+    ds.attrs = attrs
+
+    ks = np.array([np.diag(k) for k in ds.kappa]).flatten()
+    kappa = ds.kappa.mean(axis=0)
+    k_mean = ks.mean()
+    k_dev = (ks.var() / (len(ks))) ** 0.5
+    click.echo(f"Kappa:    {k_mean:.3f} +/- {k_dev:.3f}")
+    click.echo(f"Kappa^ab: {kappa}")
+
+    # fkdev: write summary to json
 
     if plot:
-        fig = plot_summary(DS, logx=logx, xlim=xlim, avg=average,)
+        fig = plot_summary(ds, logx=logx, xlim=xlim, avg=average,)
 
-        file = Path(dataset).stem + "_summary.pdf"
+        file = "greenkubo_summary.pdf"
         fig.savefig(file, bbox_inches="tight")
         click.echo(f".. summary plotted to {file}")
 
