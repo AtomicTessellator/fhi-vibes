@@ -181,15 +181,16 @@ def get_trajectory_dataset(trajectory, metadata=False):
     if flux is not None:
         dataset.update({keys.heat_flux_aux: (dims.time_vec, flux)})
 
-    # heat_fluxes
-    flux = trajectory.get_heat_fluxes()
-    if flux is not None:
-        dataset.update({keys.heat_fluxes: (dims.time_atom_vec, flux)})
+    # these are not needed, in any case can be recovered from stresses
+    # # heat_fluxes
+    # flux = trajectory.get_heat_fluxes()
+    # if flux is not None:
+    #     dataset.update({keys.heat_fluxes: (dims.time_atom_vec, flux)})
 
-    # heat_fluxes_aux
-    flux = trajectory.get_heat_fluxes(aux=True)
-    if flux is not None:
-        dataset.update({keys.heat_fluxes_aux: (dims.time_atom_vec, flux)})
+    # # heat_fluxes_aux
+    # flux = trajectory.get_heat_fluxes(aux=True)
+    # if flux is not None:
+    #     dataset.update({keys.heat_fluxes_aux: (dims.time_atom_vec, flux)})
 
     coords = _time_coords(trajectory)
     attrs = _attrs(trajectory, metadata=metadata)
