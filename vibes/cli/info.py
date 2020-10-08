@@ -163,7 +163,7 @@ def greenkubo(dataset, plot, no_hann, logx, xlim, average):
     """visualize heat flux and thermal conductivity"""
     import xarray as xr
 
-    from vibes.green_kubo.analysis import plot_summary
+    from .plotting.green_kubo import plot_summary
 
     DS = xr.load_dataset(dataset)
 

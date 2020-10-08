@@ -45,7 +45,7 @@ def plot_summary(dataset, avg=50, logx=True, xlim=None):
         jc.rolling({keys.time: 5}, **kw_roll).mean().to_series().plot(ax=ax11, lw=0.5)
     jc = xtrace(j_corr) / 3
     jc.rolling({keys.time: 5}, **kw_roll).mean().to_series().plot(ax=ax11, **kw2)
-    ax11.set_ylim([j_corr.min(), j_corr[10].max() * 1.1])
+    ax11.set_ylim([j_corr.min(), j_corr[min(11, len(j_corr)) - 1].max() * 1.1])
 
     # plot 3 kappas
     kappa = dataset[keys.kappa_cumulative]
