@@ -7,7 +7,7 @@ import scipy.optimize as so
 import scipy.signal as sl
 import xarray as xr
 
-from vibes import keys
+from vibes import dimensions, keys
 from vibes.helpers import Timer, progressbar, talk
 from vibes.helpers.warnings import warn
 
@@ -49,12 +49,13 @@ def get_unique_dimensions(dims: tuple) -> list:
 
             ar[ii] = unique_elems
 
-    # assemble new list
+    # assemble new list and replace common unknowns
     new_dims = []
     for ii in index:
         elem = ar[ii]
         if isinstance(elem, list):
             elem = elem.pop(0)
+            elem = dimensions.dim_replace.get(elem, elem)
         new_dims.append(elem)
 
     return new_dims
@@ -207,6 +208,7 @@ def get_autocorrelationNd(
 
     # make new dimensions unique
     new_dims = get_unique_dimensions(new_dims)
+    # new_dims = np.unique(new_dims)
 
     df_corr = xr.DataArray(
         corr,
