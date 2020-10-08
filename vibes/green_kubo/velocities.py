@@ -5,8 +5,7 @@ from vibes.correlation import get_autocorrelationNd
 from vibes.fourier import get_fourier_transformed
 from vibes.integrate import trapz
 
-from .utils import Timer
-from .utils import _talk as talk
+from . import Timer, _talk
 
 
 def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True):
@@ -33,7 +32,7 @@ def get_vdos(velocities=None, hann=False, normalize=False, npad=10000, verbose=T
 
     if normalize:
         norm = trapz(df_vdos)
-        talk(f"Normalize with {norm}")
+        _talk(f"Normalize with {norm}")
         df_vdos /= norm
 
     timer()
@@ -58,7 +57,7 @@ def simple_plot(series, file="vdos.pdf", height=-1, max_frequency=30.0, logy=Fal
     if height and height > 0:
         peaks, *_ = sl.find_peaks(series, height=height)
         high_freq = series.index[peaks[-1]]
-        talk(f".. highest peak found at   {high_freq:.2f} THz")
+        _talk(f".. highest peak found at   {high_freq:.2f} THz")
     else:
         high_freq = max_frequency
     ax = series.plot()
@@ -68,5 +67,5 @@ def simple_plot(series, file="vdos.pdf", height=-1, max_frequency=30.0, logy=Fal
     ax.set_xlabel("Omega [THz]")
     fig = ax.get_figure()
     fig.savefig(file, bbox_inches="tight")
-    talk(f".. max. frequency for plot:  {high_freq:.2f} THz")
-    talk(f".. plot saved to {file}")
+    _talk(f".. max. frequency for plot:  {high_freq:.2f} THz")
+    _talk(f".. plot saved to {file}")

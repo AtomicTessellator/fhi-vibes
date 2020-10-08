@@ -3,9 +3,7 @@
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import scipy.signal as sl
-import xarray as xr
 from ase.io import read
 
 from vibes.green_kubo.velocities import get_vdos

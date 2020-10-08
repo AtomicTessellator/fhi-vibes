@@ -10,11 +10,9 @@ from vibes import dimensions as dims
 from vibes import keys
 from vibes.correlation import get_autocorrelationNd
 from vibes.fourier import get_fourier_transformed, get_power_spectrum
-from vibes.helpers import warn
 from vibes.integrate import get_cumtrapz
 
-from .utils import Timer
-from .utils import _talk as talk
+from . import Timer, _talk, warn
 
 
 def gk_prefactor(
@@ -40,7 +38,7 @@ def gk_prefactor(
         f".. factor to fs.: {fs_factor:10.5f}",
         f"-> Prefactor:     {prefactor:10.2f}  W/mK / (eV/AA^/fs)",
     ]
-    talk(msg, verbose=verbose)
+    _talk(msg, verbose=verbose)
     return float(prefactor)
 
 
@@ -73,6 +71,13 @@ def get_kappa_cumulative_dataset(
     Returns:
         dataset containing
             hfacf, hfacf_scalar, kappa_cumulative, kappa_cumulative_scalar
+
+    Remarks:
+        The Avalanche function F is a windowed noise/signal ratio
+            - see J. Chen et al. / Phys. Lett. A 374 (2010) 2392
+            - see also: Parzen, Modern Probability Theory and it's Applications,
+                        Chp. 8.6, p. 378f
+
     """
     dataset = array.copy()
     pref = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
@@ -95,7 +100,7 @@ def get_kappa_cumulative_dataset(
     dataarrays = [JJ, J_corr, kappa]
 
     if keys.heat_flux_aux in dataset:
-        talk(".. aux. heat flux found in dataset")
+        _talk(".. aux. heat flux found in dataset")
         J_aux = dataset[keys.heat_flux_aux].dropna(keys.time)
         J_total = JJ + J_aux
         J_total.name = keys.heat_flux_total
@@ -112,7 +117,7 @@ def get_kappa_cumulative_dataset(
     dct.update(dataset[[keys.volume, keys.temperature]])
 
     # DEV: compute separately for each component
-    talk(f"Compute avalanche function with F_max={Fmax} and F_window={F_window}")
+    _talk(f"Compute avalanche function with F_max={Fmax} and F_window={F_window}")
 
     # compute avalanche function F
     kw = {"min_periods": 5, "center": True}
@@ -145,9 +150,9 @@ def get_kappa_cumulative_dataset(
     # report
     if verbose:
         k_diag = np.diag(ks)
-        talk(["Avalanche times (fs):", *np.array2string(ts, precision=3).split("\n")])
-        talk(f"Kappa is:       {np.mean(k_diag):.3f} +/- {np.std(k_diag) / 3**.5:.3f}")
-        talk(["Kappa^ab is: ", *np.array2string(ks, precision=3).split("\n")])
+        _talk(["Avalanche times (fs):", *np.array2string(ts, precision=3).split("\n")])
+        _talk(f"Kappa is:       {np.mean(k_diag):.3f} +/- {np.std(k_diag) / 3**.5:.3f}")
+        _talk(["Kappa^ab is: ", *np.array2string(ks, precision=3).split("\n")])
 
     # power spectrum
     Jw1 = get_fourier_transformed(J_corr).real
