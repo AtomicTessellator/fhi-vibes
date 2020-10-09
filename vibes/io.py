@@ -1,10 +1,40 @@
 from pathlib import Path
 
+from ase import Atoms
+from ase.formula import Formula
 from ase.io import read as ase_read
+from ase.spacegroup import get_spacegroup
 
 from vibes.filenames import filenames
 from vibes.spglib.wrapper import get_symmetry_dataset
 from vibes.structure.io import inform  # noqa: F401
+
+
+def get_identifier(atoms: Atoms, fix_names: dict = None) -> dict:
+    """Get geometry identifier as dictionary.
+
+    Args:
+        atoms: the structure
+        fix_names: dict for correcting material names (e.g. OMg -> MgO)
+    Returns:
+        dict: w/ space_group, n_formula, material (name)
+
+    """
+    name = atoms.get_chemical_formula(mode="metal", empirical=True)
+    formula = Formula(name)
+
+    count = formula.count()
+    nf = sum(count.values())
+    sg = get_spacegroup(atoms).no
+
+    if fix_names is not None and name in fix_names:
+        name = fix_names[name]
+
+    return {
+        "space_group": int(sg),
+        "n_formula": int(nf),
+        "material": name,
+    }
 
 
 def get_info_str(atoms, spacegroup=False):
