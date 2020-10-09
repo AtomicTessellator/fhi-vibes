@@ -607,15 +607,19 @@ def perform_backup(folder, target, nozip):
     backup_folder(folder, target_folder=target, zip=not nozip)
 
 
-@utils.group(aliases=["ph3"])
+@utils.group(aliases=["dev"])
+def developer():
+    """developer utils for FHI-vibes. Use at own risk"""
+    ...
+
+
+@developer.group()
 def phono3py():
     """utils for working with phono3py"""
     ...
 
 
-@phono3py.command(
-    "run_thermal_conductivity", context_settings=_default_context_settings
-)
+@phono3py.command(context_settings=_default_context_settings)
 @click.argument("folder", default="output", type=complete_files)
 @click.option("--q_mesh", nargs=3, help="q_mesh")
 @click.option("--outfile", default="kappa_QMESH.log")

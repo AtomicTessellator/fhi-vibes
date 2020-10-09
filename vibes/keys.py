@@ -81,7 +81,7 @@ avalanche_data = "avalanche_function"
 time_avalanche = "avalanche_time"
 avalanche_function = "avalanche_function"
 avalanche_index = "avalanche_index"
-power_spectrum = 'power_spectrum'
+power_spectrum = "power_spectrum"
 
 # molecular dynamics
 nve = "NVE"

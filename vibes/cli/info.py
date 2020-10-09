@@ -185,8 +185,6 @@ def greenkubo(files, plot, no_hann, logx, xlim, average):
     click.echo(f"Kappa:    {k_mean:.3f} +/- {k_dev:.3f}")
     click.echo(f"Kappa^ab: {kappa}")
 
-    # fkdev: write summary to json
-
     if plot:
         fig = plot_summary(ds, logx=logx, xlim=xlim, avg=average,)
 
