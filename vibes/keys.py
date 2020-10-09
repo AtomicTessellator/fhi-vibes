@@ -12,6 +12,7 @@ symprec = "symprec"
 
 # generic suffixes
 aux = "aux"
+total = "total"
 scalar = "scalar"
 cumulative = "cumulative"
 remapped = "remapped"
@@ -60,12 +61,16 @@ heat_flux = "heat_flux"
 heat_fluxes = "heat_fluxes"
 heat_flux_aux = _join(heat_flux, aux)
 heat_fluxes_aux = _join(heat_fluxes, aux)
+heat_flux_total = _join(heat_flux, total)
+
+kappa = "kappa"
 
 gk_prefactor = "gk_prefactor"
 
 sigma = "sigma"
 sigma_mode = "sigma_mode"
 sigma_per_sample = "sigma_per_sample"
+
 
 # time
 time = "time"
@@ -76,6 +81,7 @@ avalanche_data = "avalanche_function"
 time_avalanche = "avalanche_time"
 avalanche_function = "avalanche_function"
 avalanche_index = "avalanche_index"
+power_spectrum = 'power_spectrum'
 
 # molecular dynamics
 nve = "NVE"
@@ -102,7 +108,8 @@ heat_flux_aux_autocorrelation = _join(heat_flux_aux, autocorrelation)
 heat_flux_autocorrelation_scalar = _join(heat_flux_autocorrelation, scalar)
 kappa_cumulative = _join(heat_flux_autocorrelation, cumtrapz)
 kappa_cumulative_scalar = _join(kappa_cumulative, scalar)
-heat_flux_power_spectrum = _join(heat_flux_autocorrelation, fourier_transform)
+heat_flux_power_spectrum = _join(heat_flux, power_spectrum)
+heat_flux_total_power_spectrum = _join(heat_flux_total, power_spectrum)
 heat_flux_power_spectrum_scalar = _join(heat_flux_power_spectrum, scalar)
 heat_flux_aux_power_spectrum = _join(heat_flux_aux_autocorrelation, fourier_transform)
 heat_flux_aux_power_spectrum_scalar = _join(heat_flux_aux_power_spectrum, scalar)

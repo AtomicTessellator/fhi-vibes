@@ -9,13 +9,12 @@ from vibes import defaults
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.correlation import get_autocorrelationNd
-from vibes.fourier import get_power_spectrum
-from vibes.helpers.xarray import xtrace
+from vibes.fourier import get_fourier_transformed, get_power_spectrum
+from vibes.helpers import warn
 from vibes.integrate import get_cumtrapz
 
 from .utils import Timer
 from .utils import _talk as talk
-from .utils import get_avalanche_data
 
 
 def gk_prefactor(
@@ -55,23 +54,21 @@ def get_gk_prefactor_from_dataset(dataset: xr.Dataset, verbose: bool = True) -> 
 # @xc.stored(verbose=True)
 def get_kappa_cumulative_dataset(
     array: xr.Dataset,
-    full: bool = False,
-    aux: bool = False,
     delta: str = "auto",
     verbose: bool = True,
     discard: int = 0,
-    Fmax: int = defaults.Fmax,
+    Fmax: int = defaults.F_max,
+    F_window: int = defaults.F_window,
     **kw_correlate,
 ) -> xr.Dataset:
     """compute heat flux autocorrelation and cumulative kappa from heat_flux_dataset
 
     Args:
         dataset (xr.Dataset): contains heat flux per atom
-        full (bool): return correlation function per atom
-        aux (bool): add auxiliary heat flux
         delta: compute mode for avalanche time
         discard: discard this many time steps
-        fmax: cutoff for avalanche function
+        Fmax: max. value for avalanche function
+        F_window: window size for avalanche function
         kw_correlate (dict): kwargs for `correlate`
     Returns:
         dataset containing
@@ -91,29 +88,20 @@ def get_kappa_cumulative_dataset(
         return get_heat_flux_aurocorrelation(flux, **kw)
 
     # compute hfacf
-    if full:
-        talk("** not yet fully implemented, return partially summed heat flux")
-        fluxes = dataset[keys.heat_fluxes]
-        J_corr = get_jcorr(fluxes).sum(axis=3)
-        if aux:
-            fluxes = dataset[keys.heat_fluxes] + dataset[keys.heat_fluxes_aux]
-            fluxes.name = keys.heat_fluxes_aux
-            J_corr_aux = get_jcorr(fluxes)
-
-    else:
-        J_corr = get_jcorr(dataset[keys.heat_flux])
-        if aux:
-            flux = dataset[keys.heat_flux] + dataset[keys.heat_flux_aux]
-            flux.name = keys.heat_flux_aux
-            J_corr_aux = get_jcorr(flux)
-
+    JJ = dataset[keys.heat_flux].dropna(keys.time)
+    J_corr = get_jcorr(JJ)
     # compute cumulative kappa
     kappa = get_cumtrapz(J_corr)
-    dataarrays = [J_corr, kappa]
+    dataarrays = [JJ, J_corr, kappa]
 
-    # add aux. heat flux if requested
-    if aux:
-        dataarrays += [J_corr_aux]
+    if keys.heat_flux_aux in dataset:
+        talk(".. aux. heat flux found in dataset")
+        J_aux = dataset[keys.heat_flux_aux].dropna(keys.time)
+        J_total = JJ + J_aux
+        J_total.name = keys.heat_flux_total
+        J_corr_total = get_jcorr(J_total)
+        kappa_aux = get_cumtrapz(J_corr_total)
+        dataarrays += [J_total, J_corr_total, kappa_aux]
 
     # create dataset
     dct = {da.name: da for da in dataarrays}
@@ -123,26 +111,49 @@ def get_kappa_cumulative_dataset(
     dct.update({keys.gk_prefactor: pref})
     dct.update(dataset[[keys.volume, keys.temperature]])
 
-    # (scalar) avalanche function
-    if full:
-        Js = xtrace(J_corr.sum(axis=(1))) / 3
-        Ks = xtrace(kappa.sum(axis=(1))) / 3
-        kappa = kappa.sum(axis=(1, 3))
-    else:
-        Js = xtrace(J_corr) / 3
-        Ks = xtrace(kappa) / 3
+    # DEV: compute separately for each component
+    talk(f"Compute avalanche function with F_max={Fmax} and F_window={F_window}")
 
-    f_data = get_avalanche_data(Js.to_series(), Fmax=Fmax, verbose=verbose)
-    dct.update({keys.avalanche_function: f_data.pop(keys.avalanche_function)})
-    attrs.update(f_data)
+    # compute avalanche function F
+    kw = {"min_periods": 5, "center": True}
+    R = J_corr.rolling({keys.time: F_window}, **kw)
+    E = R.mean()
+    S = R.std()
+    F = abs(S / E).dropna(keys.time)
+
+    # get avalanche times per component and save the respective kappa
+    ts = np.zeros([3, 3])
+    ks = np.zeros([3, 3])
+
+    for (ii, jj) in np.ndindex(ts.shape):
+        f = F[:, ii, jj]
+        k = kappa[:, ii, jj]
+        try:
+            t = f[f > Fmax].time[0]
+        except IndexError:
+            warn("Avalanche time not found", level=1)
+            t = f.time[-1]
+        ts[ii, jj] = t
+        ks[ii, jj] = k.sel({keys.time: t})
+
+    dct.update({keys.avalanche_function: F})
+    attrs.update({"F_max": Fmax, "F_window": F_window})
+
+    dct.update({keys.kappa: (dims.tensor, ks)})
+    dct.update({keys.time_avalanche: (dims.tensor, ts)})
 
     # report
     if verbose:
-        t_ps = f_data[keys.time_avalanche] / 1000
-        n_avalanche = f_data[keys.avalanche_index]
-        talk(f"Avalanche time: {t_ps:.3f} ps ({n_avalanche} datapoints)")
-        talk(f"Kappa is:       {np.asarray(Ks[n_avalanche])}")
-        talk(f"Kappa^ab is: \n{np.asarray(kappa[n_avalanche])}")
+        k_diag = np.diag(ks)
+        talk(["Avalanche times (fs):", *np.array2string(ts, precision=3).split("\n")])
+        talk(f"Kappa is:       {np.mean(k_diag):.3f} +/- {np.std(k_diag) / 3**.5:.3f}")
+        talk(["Kappa^ab is: ", *np.array2string(ks, precision=3).split("\n")])
+
+    # power spectrum
+    Jw1 = get_fourier_transformed(J_corr).real
+    Jw2 = get_fourier_transformed(J_corr_total, verbose=False).real
+    dct.update({keys.heat_flux_power_spectrum: Jw1})
+    dct.update({keys.heat_flux_total_power_spectrum: Jw2})
 
     DS = xr.Dataset(dct, coords=coords, attrs=attrs)
 

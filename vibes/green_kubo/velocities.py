@@ -14,7 +14,7 @@ def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True)
     return get_autocorrelationNd(velocities, normalize=True, hann=False)
 
 
-def get_vdos(velocities=None, hann=False, normalize=False, verbose=True):
+def get_vdos(velocities=None, hann=False, normalize=False, npad=10000, verbose=True):
     r"""compute vibrational DOS for trajectory
 
     vdos(w) = FT{\sum_i corr(v_i, v_i)(t)}(w)
@@ -23,12 +23,13 @@ def get_vdos(velocities=None, hann=False, normalize=False, verbose=True):
         velocities (xarray.DataArray [N_t, N_a, 3]): the velocities
         hann: use Hann window when computing the autocorrelation
         normalize: normalize VDOS to 1
+        npad: number of zeros for zero padding
     Returns:
         vdos (xarray.DataArray [N_t, N_a, 3])
     """
     timer = Timer("Get VDOS", verbose=verbose)
     v_corr = get_autocorrelationNd(velocities, normalize=True, hann=hann)
-    df_vdos = get_fourier_transformed(v_corr)
+    df_vdos = get_fourier_transformed(v_corr, npad=npad)
 
     if normalize:
         norm = trapz(df_vdos)

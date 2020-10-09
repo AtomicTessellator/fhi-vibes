@@ -75,7 +75,7 @@ def phonopy(
 ):
     """perform phonopy postprocess for trajectory in FILE"""
     from vibes.phonopy import _defaults as defaults
-    from vibes.phonopy.postprocess import postprocess, extract_results, plot_results
+    from vibes.phonopy.postprocess import extract_results, plot_results, postprocess
 
     if not q_mesh:
         q_mesh = defaults.kwargs.q_mesh.copy()
@@ -123,7 +123,7 @@ def phonopy(
 def phono3py(obj, file, q_mesh):
     """perform phono3py postprocess for trajectory in FILE"""
     from vibes.phono3py._defaults import kwargs
-    from vibes.phono3py.postprocess import postprocess, extract_results
+    from vibes.phono3py.postprocess import extract_results, postprocess
 
     if not q_mesh:
         q_mesh = kwargs.q_mesh.copy()
@@ -139,21 +139,18 @@ def phono3py(obj, file, q_mesh):
 @output.command(aliases=["gk"])
 @click.argument("file", default="trajectory.nc")
 @click.option("-avg", "--average", default=100, help="average window")
-@click.option("--full", is_flag=True)
 @click.option("--aux", is_flag=True)
 @click.option("-o", "--outfile", default="greenkubo.nc", show_default=True, type=Path)
 @click.option("-d", "--discard", default=0)
-def greenkubo(file, average, full, aux, outfile, discard):
+def greenkubo(file, average, aux, outfile, discard):
     """perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
+
     import vibes.green_kubo.heat_flux as hf
 
     ds = xr.load_dataset(file)
 
-    ds_kappa = hf.get_kappa_cumulative_dataset(ds, full=full, aux=aux, discard=discard)
-
-    if full:
-        outfile = outfile.parent / f"{outfile.stem}_full.nc"
+    ds_kappa = hf.get_kappa_cumulative_dataset(ds, aux=aux, discard=discard)
 
     click.echo(f".. write to {outfile}")
     ds_kappa.to_netcdf(outfile)

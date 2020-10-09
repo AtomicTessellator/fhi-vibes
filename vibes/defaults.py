@@ -1,7 +1,9 @@
 import collections
 
+
 # Avalanche
-Fmax = 100
+F_max = 10
+F_window = 50
 
 # file formats
 _dct = {"geometry": "aims"}

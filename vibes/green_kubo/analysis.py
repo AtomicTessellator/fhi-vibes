@@ -1,63 +1,17 @@
 """gather statistics about trajectory data"""
-import pandas as pd
+import numpy as np
 
 from vibes import keys
-from vibes.correlation import get_autocorrelation_exponential
-from vibes.fourier import get_fourier_transformed
+
+# from vibes.correlation import get_autocorrelation_exponential
 from vibes.helpers.xarray import xtrace
 
 
-def summary(dataset, **kwargs):
-    """summarize heat_flux data in xarray DATASET
-
-    Args:
-        dataset(xarray.Dataset): the trajectory.dataset
-
-    Returns:
-        (pd.Dataframe, pd.Dataframe): One dataframe each for time resolved
-              hf_acf, cumulative kappa, and frequency resolved spectra
-    """
-
-    assert keys.hf_acf in dataset
-    assert keys.k_cum in dataset
-
-    J1 = dataset[keys.hf_acf]
-    Jw1 = get_fourier_transformed(J1).real
-
-    js1 = Jw1.sum(axis=(1, 2))
-    dct_freq = {keys.hf_power: js1}
-
-    # get auxiliary heat_flux
-    J2 = None
-    if keys.hf_aux_acf in dataset:
-        J2 = dataset[keys.hf_aux_acf]
-        Jw2 = get_fourier_transformed(J2).real
-        js2 = Jw2.sum(axis=(1, 2))
-        dct_freq.update({keys.hf_aux_power: js2})
-
-    # scalar
-    kappa = dataset[keys.kappa_cumulative]
-    kappa_scalar = xtrace(kappa) / 3
-    J = xtrace(J1) / 3
-
-    # time resolved
-    d = {
-        keys.hf_acf: J,
-        keys.kappa_cumulative_scalar: kappa_scalar,
-        keys.avalanche_function: dataset[keys.avalanche_function],
-    }
-    df_time = pd.DataFrame(d, index=dataset.time)
-
-    # freq resolved
-    df_freq = pd.DataFrame(dct_freq, index=Jw1.omega)
-
-    return (df_time, df_freq)  #
-
-
-def plot_summary(df_time, df_freq, t_avalanche=None, avg=50, logx=True, xlim=None):
-    """plot a summary of the data in DATAFRAME"""
+def plot_summary(dataset, avg=50, logx=True, xlim=None):
+    """plot a summary of the data in DATASET"""
     import matplotlib
     from matplotlib import pyplot as plt
+
     from vibes.helpers.plotting import tableau_colors as tc
 
     matplotlib.use("pdf")
@@ -73,81 +27,58 @@ def plot_summary(df_time, df_freq, t_avalanche=None, avg=50, logx=True, xlim=Non
     # settings for the immediate plot
     alpha = 0.5
     color = tc[3]
-    plot_kw = {
-        "alpha": alpha,
-        "linewidth": 0.5,
-        "label": "",
-        "color": color,
-        "marker": ".",
-    }
-    kw_avalanche = {"color": tc[0], "linestyle": "--", "linewidth": 2}
-    avg_kw = {"linewidth": 3, "color": "k"}
-    fig_kw = {
-        "figsize": (11.69, 8.27),
-        "gridspec_kw": {"width_ratios": [3, 2]},
-        "sharex": "col",
-    }
-    kw_roll = {"window": avg, "min_periods": 0, "center": True}
-    # kw_exp1 = {"min_periods": 0, "center": False}
-    # kw_exp2 = {"min_periods": 0}  # "center": True}
-
-    df_time.index /= 1000
-
-    jc = df_time[keys.hf_acf] / df_time[keys.hf_acf].iloc[0]
-    kc = df_time[keys.kappa_cumulative_scalar]
-    js = df_freq[keys.hf_power]
-
-    # estimate correlation time
-    e = get_autocorrelation_exponential(jc, ps=True, verbose=False)
+    kw1 = {"color": color, "alpha": alpha}
+    kw2 = {"color": color, "linewidth": 2}
+    kw_roll = {"min_periods": 5, "center": True}
+    gridspec = {"width_ratios": [3, 2]}
+    fig_kw = {"figsize": (11.69, 8.27), "gridspec_kw": gridspec, "sharex": "col"}
 
     fig, ((ax11, ax12), (ax21, ax22)) = plt.subplots(nrows=2, ncols=2, **fig_kw)
 
-    jc.rolling(5, min_periods=0).mean().plot(ax=ax11)
+    dataset[keys.time] = dataset[keys.time] / 1000
+    time = dataset[keys.time]
 
-    e.plot(ax=ax11, zorder=10)
+    # plot 3 hf autocorrelation functions
+    j_corr = dataset[keys.heat_flux_autocorrelation]
+    for ii in range(3):
+        jc = j_corr[:, ii, ii]
+        jc.rolling({keys.time: 5}, **kw_roll).mean().to_series().plot(ax=ax11, lw=0.5)
+    jc = xtrace(j_corr) / 3
+    jc.rolling({keys.time: 5}, **kw_roll).mean().to_series().plot(ax=ax11, **kw2)
+    ax11.set_ylim([j_corr.min(), j_corr[10].max() * 1.1])
 
-    # plot
-    # HFACF
-    jc.plot(ax=ax11, **plot_kw)
-    jc.rolling(**kw_roll).mean().plot(ax=ax11, **avg_kw)
+    # plot 3 kappas
+    kappa = dataset[keys.kappa_cumulative]
+    # t_avalanche = dataset[keys.time_avalanche] / 1000
+    for ii in range(3):
+        kc = kappa[:, ii, ii]  # .sel({keys.time: slice(0, t)})
+        kc.rolling({keys.time: 5}, **kw_roll).mean().to_series().plot(ax=ax21, **kw1)
+        ax21.axhline(dataset.kappa[ii, ii], c="k", alpha=alpha, lw=0.2)
+        # ax21.axvline(t_avalanche[ii, ii], c="k", alpha=alpha)
+    k_diag = np.diag(dataset.kappa)
+    mean = k_diag.mean()
+    dev = k_diag.std() / 3 ** 0.5
+    ax21.axhline(mean, c="k", lw=2)
+    ax21.fill_between(time, mean - dev, mean + dev, color="k", alpha=0.3)
+    kc = xtrace(kappa) / 3
+    kc.rolling({keys.time: 5}, **kw_roll).mean().to_series().plot(ax=ax21, **kw2)
 
-    # avalanche
-    twin = ax11.twinx()
-    fig.align_ylabels()
-    # twin.set_yticks([]), twin.set_yticklabels([])
-    f = df_time[keys.avalanche_function]
-    f.plot(ax=twin)
-    twin.grid(False)
-    if t_avalanche is not None:
-        ax11.axvline(t_avalanche / 1000, **kw_avalanche)
+    ax21.set_xlim([-1, xlim or time.max()])
+    # ax21.set_xscale("log")
 
-    # Kappa
-    kc.plot(ax=ax21, **{**avg_kw, "color": tc[1], "linewidth": 2})
-    ax21.axvline(t_avalanche, **kw_avalanche)
+    # plot power spectrum
+    pow = dataset[keys.heat_flux_power_spectrum]
+    for ii in range(3):
+        jw = pow[:, ii, ii]
+        jw.to_series().plot(ax=ax12, **kw1)
 
-    # plot spectra
-    js.plot(ax=ax12, **plot_kw)
-    js.rolling(**kw_roll).mean().plot(ax=ax12, **avg_kw)
-
-    if xlim:
-        ax21.set_xlim((-1, xlim))
-    else:
-        ax21.set_xlim((-1, kc.index.max()))
-    ax21.set_ylim((0, 1.1 * kc.max()))
-    if logx:
-        ax21.set_xscale("log")
-        ax21.set_xlim(kc.index[2], kc.index.max())
-
-    # aux flux
-    if keys.hf_aux_power in df_freq:
-        js_aux = df_freq[keys.hf_aux_power]
-        js_aux.plot(ax=ax22, **plot_kw)
-        js_aux.rolling(**kw_roll).mean().plot(ax=ax22, **avg_kw)
-        linthreshy = 0.1 * max(1, js_aux.max())
-        ax22.set_yscale("symlog", linthreshy=linthreshy)
-        ax22.axhline(linthreshy, ls="--", color="purple")
-        ax22.set_xlim((-1, js_aux.index.max()))
-        ax22.set_xlabel("Omega (THz)")
+    if keys.heat_flux_total_power_spectrum in dataset:
+        pow = dataset[keys.heat_flux_total_power_spectrum]
+        for ii in range(3):
+            jw = pow[:, ii, ii]
+            jw.to_series().plot(ax=ax22, **kw1)
+        ax22.set_ylim([10, 1.1 * jw.max()])
+        ax22.set_yscale("log")
         ax22.set_title(r"$\vert J_\mathrm{aux} (\omega)\vert^2$")
     else:
         ax22.set_title(r"$J_\mathrm{aux} (\omega)$ missing.")
@@ -158,4 +89,5 @@ def plot_summary(df_time, df_freq, t_avalanche=None, avg=50, logx=True, xlim=Non
     ax21.set_title(r"$\kappa (t)$ (W/mK)")
     ax21.set_xlabel("Time $t$ (ps)")
     ax12.set_title(r"$\vert J (\omega)\vert^2$")
+    ax22.set_xlabel("Omega (THz)")
     return fig

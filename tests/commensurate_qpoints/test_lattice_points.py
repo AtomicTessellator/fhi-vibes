@@ -4,6 +4,7 @@ from vibes.helpers.lattice_points import get_lattice_points
 from vibes.helpers.supercell import get_commensurate_q_points
 from vibes.io import read
 
+
 tolerance = 1e-5
 parent = Path(__file__).parent
 materials = ["si", "gan", "gao"]

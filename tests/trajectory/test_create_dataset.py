@@ -6,6 +6,7 @@ from pathlib import Path
 from vibes import keys
 from vibes.trajectory import Trajectory
 
+
 parent = Path(__file__).parent
 
 file = parent / "mgo.son"
@@ -19,8 +20,6 @@ def test_parse_trajectory(file=file):
     for key in (
         keys.heat_flux,
         keys.heat_flux_aux,
-        keys.heat_fluxes,
-        keys.heat_fluxes_aux,
     ):
         assert key in DS
 

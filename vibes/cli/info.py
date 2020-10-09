@@ -109,13 +109,17 @@ def trajectory(file):
 
 @info.command()
 @click.argument("file", type=complete_files)
-def netcdf(file):
+@click.option("--key", type=str, default=None, help="print DS[key]")
+def netcdf(file, key):
     """show contents of netCDF FILE"""
     import xarray as xr
 
     DS = xr.open_dataset(file)
 
-    print(DS)
+    if key is not None:
+        print(DS[key])
+    else:
+        print(DS)
 
 
 @info.command(context_settings=_default_context_settings)
@@ -159,22 +163,14 @@ def greenkubo(dataset, plot, no_hann, logx, xlim, average):
     """visualize heat flux and thermal conductivity"""
     import xarray as xr
 
-    from vibes import keys
-    from vibes.green_kubo.analysis import plot_summary, summary
+    from vibes.green_kubo.analysis import plot_summary
 
     DS = xr.load_dataset(dataset)
 
-    (df_time, df_freq) = summary(DS)
+    click.echo(f"Kappa: {DS.kappa}")
 
     if plot:
-        fig = plot_summary(
-            df_time,
-            df_freq,
-            t_avalanche=DS.attrs[keys.time_avalanche],
-            logx=logx,
-            xlim=xlim,
-            avg=average,
-        )
+        fig = plot_summary(DS, logx=logx, xlim=xlim, avg=average,)
 
         file = Path(dataset).stem + "_summary.pdf"
         fig.savefig(file, bbox_inches="tight")

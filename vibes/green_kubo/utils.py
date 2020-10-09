@@ -5,6 +5,7 @@ from vibes import defaults, keys
 from vibes.correlation import get_correlation_time_estimate
 from vibes.helpers import Timer, talk, warn
 
+
 _prefix = "GreenKubo"
 
 Timer.prefix = _prefix
@@ -16,7 +17,7 @@ def _talk(msg, **kw):
 
 
 def get_avalanche_data(
-    series: pd.Series, Fmax: float = defaults.Fmax, verbose: bool = True, **kwargs
+    series: pd.Series, Fmax: float = defaults.F_max, verbose: bool = True, **kwargs
 ) -> (pd.Series, float, int):
     """Return (avalanche_function, avalanche_time in fs, avalanche_index) as dict
 
@@ -89,7 +90,7 @@ def F_avalanche(
     return F
 
 
-def t_avalanche(series, Fmax=defaults.Fmax, verbose=True):
+def t_avalanche(series, Fmax=defaults.F_max, verbose=True):
     """get avalanche time for series from F_avalanche
 
     Args:

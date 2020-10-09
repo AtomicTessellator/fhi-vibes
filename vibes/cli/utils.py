@@ -104,20 +104,25 @@ def get_deformation(files, supercell_file, outfile, dry, format):
 
 @geometry.command(context_settings=_default_context_settings)  # aliases=['ad'])
 @click.argument("file", type=complete_files)
+@click.option("--scalar", type=float, default=None)
 @click.option("--deformation", type=complete_files, default=filenames.deformation)
 @click.option("--outfile", type=Path)
 @click.option("--dry", is_flag=True)
 @click.option("--cartesian", is_flag=True)
 @click.option("--format", default="aims")
-def apply_deformation(file, deformation, outfile, dry, cartesian, format):
+def apply_deformation(file, scalar, deformation, outfile, dry, cartesian, format):
     """apply deformation tensor D to geometry in FILE"""
     import numpy as np
     from ase.io import read
 
-    D = np.loadtxt(deformation)
+    if scalar is not None:
+        click.echo(f"Apply scalar deformation w/ factor {scalar}:")
+        D = np.eye(3) * scalar
+    else:
+        click.echo(f"Apply deformation tensor from {deformation}:")
+        D = np.loadtxt(deformation)
     atoms = read(file, format=format)
 
-    click.echo(f"Apply deformation tensor from {deformation}:")
     click.echo(D)
 
     new_atoms = atoms.copy()
@@ -387,7 +392,7 @@ def join_xr(files, dim, outfile):
     dss = [xr.load_dataset(f) for f in files]
 
     ds = xr.concat(dss, dim=dim)
-    ds.attrs = {}
+    ds.attrs = dss[0].attrs
 
     ds.to_netcdf(outfile)
     click.echo(f"Joined datasets written to {outfile}")
