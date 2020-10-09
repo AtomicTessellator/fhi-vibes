@@ -24,8 +24,9 @@ def utils():
 def hash(file, dry, outfile):
     """create SHA1 hash for FILE"""
     import time
-    from vibes.helpers.utils import talk
+
     from vibes.helpers.hash import hashfunc
+    from vibes.helpers.utils import talk
 
     timestr = time.strftime("%Y/%m/%d_%H:%M:%S")
 
@@ -73,6 +74,7 @@ def get_deformation(files, supercell_file, outfile, dry, format):
     """
     import numpy as np
     from ase.io import read
+
     from vibes.helpers.geometry import get_deformation
 
     atoms1 = read(files[0], format=format)
@@ -304,6 +306,7 @@ def remap(
     # copy: from vibes.scripts.remap_phonopy_forceconstants import remap_force_constants
     import numpy as np
     from ase.io import read
+
     from vibes.io import parse_force_constants
     from vibes.phonopy.utils import remap_force_constants
 
@@ -345,6 +348,7 @@ def frequencies(file, supercell, show_n_frequencies, outfile, symmetrize, format
     """compute the frequencies for remapped force constants"""
     import numpy as np
     from ase.io import read
+
     from vibes.harmonic_analysis.dynamical_matrix import get_frequencies
 
     atoms = read(supercell, format=format)
@@ -450,9 +454,11 @@ def update(file, uc, sc, fc, rfc, outfile, format):
     """update reference data in trajectory file"""
     # copy: from vibes.scripts.update_md_trajectory import update_trajectory
     import shutil
+
     from ase.io import read
-    from vibes.trajectory import reader
+
     from vibes.io import parse_force_constants
+    from vibes.trajectory import reader
 
     traj = reader(file, fc_file=fc)
 
@@ -539,76 +545,6 @@ def average_trajectory(file, range, cartesian, outfile):
     click.echo(f".. geometry with averaged positions written to {outfile}")
 
 
-@utils.group(aliases=["a"])
-def anharmonicity():
-    """utils for quantifying anharmonicity"""
-    ...
-
-
-@anharmonicity.command(context_settings=_default_context_settings)
-@click.argument("files", nargs=-1, type=complete_files)
-@click.option("-o", "--outfile")
-@click.option("--per_sample", is_flag=True)
-@click.option("--describe", is_flag=True)
-def sigma(files, outfile, per_sample, describe):
-    """Compute sigmaA for trajectory dataset in FILE"""
-    import pandas as pd
-    import xarray as xr
-    from vibes import keys
-    from vibes.anharmonicity_score import get_dataframe
-
-    dfs = []
-    for file in files:
-        click.echo(f"Compute anharmonicity measure for {file}:")
-
-        click.echo(f" parse {file}")
-
-        DS = xr.open_dataset(file)
-
-        name = DS.attrs[keys.system_name]
-        df = get_dataframe(DS, per_sample=per_sample)
-        dfs.append(df)
-
-    df = pd.concat(dfs)
-
-    click.echo("\nDataFrame:")
-    click.echo(df)
-    if describe:
-        click.echo("\nDataFrame.describe():")
-        click.echo(df.describe())
-
-    if outfile is not None:
-        df.to_csv(outfile, index_label="material", float_format="%15.12e")
-        click.echo(f"\n.. Dataframe for {name} written to {outfile}")
-
-
-@anharmonicity.command(context_settings=_default_context_settings)
-@click.argument("file", type=complete_files)
-@click.option("-o", "--outfile")
-@click.option("--describe", is_flag=True)
-def mode(file, outfile, describe):
-    """Compute sigmaA per mode for trajectory dataset in FILE"""
-    import xarray as xr
-    from vibes import keys
-    from vibes.anharmonicity_score import get_sigma_per_mode
-
-    click.echo(f"Compute anharmonicity measure per mode for {file}")
-
-    DS = xr.open_dataset(file)
-
-    name = DS.attrs[keys.system_name]
-
-    series = get_sigma_per_mode(DS)
-
-    if describe:
-        click.echo("\nSeries.describe():")
-        click.echo(series.describe())
-
-    outfile = outfile or f"sigmaA_mode_{name}.csv"
-    series.to_csv(outfile, index_label=keys.omega)
-    click.echo(f"\n.. mode resolved sigmaA for {name} written to {outfile}")
-
-
 @utils.command("backup", context_settings=_default_context_settings)
 @click.argument("folder", type=complete_files)
 @click.option("--target", default=keys.default_backup_folder)
@@ -636,9 +572,10 @@ def phono3py():
 def run_thermal_conductivity(obj, folder, q_mesh, outfile):
     """run a phono3py thermal conductivity calculation in FOLDER"""
     import sys
+
+    from vibes.cli.scripts import run_thermal_conductivity as rtc
     from vibes.helpers.utils import talk
     from vibes.phono3py._defaults import kwargs
-    from vibes.cli.scripts import run_thermal_conductivity as rtc
 
     if q_mesh is None:
         q_mesh = kwargs.q_mesh

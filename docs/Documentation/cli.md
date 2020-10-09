@@ -49,6 +49,7 @@ Options:
   -h, --help  Show this message and exit.
 
 Commands:
+  anharmonicity   Compute sigmaA for trajectory dataset in FILE
   csv             show contents of csv FILE
   geometry        inform about a structure in a geometry input file
   md              inform about MD simulation in FILE
@@ -131,7 +132,6 @@ Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  anharmonicity (a)     utils for quantifying anharmonicity
   backup                backup FOLDER to TARGET
   create-samples        create samples from geometry in FILENAME
   force-constants (fc)  utils for working with force constants

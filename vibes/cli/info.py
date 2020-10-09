@@ -5,6 +5,7 @@ from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup, click, complete_files
 
+
 # from click 7.1 on
 _default_context_settings = {"show_default": True}
 
@@ -36,6 +37,7 @@ def settings(obj, file):
 def geometry(obj, file, format, symprec, verbose):
     """inform about a structure in a geometry input file"""
     from ase.io import read
+
     from vibes.structure.io import inform
 
     atoms = read(file, format=format)
@@ -55,8 +57,11 @@ def geometry(obj, file, format, symprec, verbose):
 def md(file, plot, avg, verbose):
     """inform about MD simulation in FILE"""
     import xarray as xr
+
+    from vibes.trajectory import analysis as al
+    from vibes.trajectory import reader
+
     from .scripts.md_sum import md_sum
-    from vibes.trajectory import analysis as al, reader
 
     file = Path(file)
 
@@ -122,6 +127,7 @@ def netcdf(file):
 def csv(file, max_rows, describe, half, to_json):
     """show contents of csv FILE"""
     import json
+
     import pandas as pd
 
     pd.options.display.max_rows = max_rows
@@ -152,8 +158,9 @@ def csv(file, max_rows, describe, half, to_json):
 def greenkubo(dataset, plot, no_hann, logx, xlim, average):
     """visualize heat flux and thermal conductivity"""
     import xarray as xr
+
     from vibes import keys
-    from vibes.green_kubo.analysis import summary, plot_summary
+    from vibes.green_kubo.analysis import plot_summary, summary
 
     DS = xr.load_dataset(dataset)
 
@@ -183,6 +190,7 @@ def greenkubo(dataset, plot, no_hann, logx, xlim, average):
 def vdos(file, output_file, plot, peak, max_frequency):
     """compute and write velocity autocorrelation function to output file"""
     import xarray as xr
+
     from vibes.green_kubo.velocities import get_vdos, simple_plot
 
     click.echo(f"Read {file} and extract velocities")
@@ -207,10 +215,11 @@ def vdos(file, output_file, plot, peak, max_frequency):
 def relaxation(obj, file, verbose):
     """summarize geometry optimization in FILE"""
     from ase.constraints import full_3x3_to_voigt_6_stress
+
+    from vibes.relaxation._defaults import keys, kwargs, name, relaxation_options
     from vibes.relaxation.context import MyExpCellFilter as ExpCellFilter
-    from vibes.trajectory import reader
     from vibes.spglib.wrapper import get_spacegroup
-    from vibes.relaxation._defaults import keys, kwargs, relaxation_options, name
+    from vibes.trajectory import reader
 
     traj, metadata = reader(file, get_metadata=True, verbose=False)
 
@@ -294,3 +303,53 @@ def relaxation(obj, file, verbose):
 
     if max(res_forces, res_stress) < fmax * 1000:
         click.echo("--> converged.")
+
+
+@info.command(context_settings=_default_context_settings)
+@click.argument("files", nargs=-1, type=complete_files)
+@click.option("-o", "--outfile")
+@click.option("--per_sample", is_flag=True, help="analyze per sample")
+@click.option("--per_mode", is_flag=True, help="analyze per mode (no --per_sample)")
+@click.option("--describe", is_flag=True)
+@click.option("--dry", is_flag=True, help="don't write output files")
+def anharmonicity(files, outfile, per_sample, per_mode, describe, dry):
+    """Compute sigmaA for trajectory dataset in FILE"""
+    import pandas as pd
+    import xarray as xr
+
+    from vibes import keys
+    from vibes.anharmonicity_score import get_dataframe, get_sigma_per_mode
+
+    if len(files) < 1:
+        files = [filenames.trajectory_dataset]
+
+    dfs = []
+    for file in files:
+        click.echo(f"Compute anharmonicity measure for {file}:")
+
+        click.echo(f" parse {file}")
+
+        DS = xr.open_dataset(file)
+
+        name = DS.attrs[keys.system_name]
+        if per_mode:
+            df = get_sigma_per_mode(DS)
+            outfile = outfile or f"sigmaA_mode_{name}.csv"
+            index_label = keys.omega
+        else:
+            df = get_dataframe(DS, per_sample=per_sample)
+            outfile = outfile or f"sigmaA_{name}.csv"
+            index_label = "material"
+        dfs.append(df)
+
+    df = pd.concat(dfs)
+
+    click.echo("\nDataFrame:")
+    click.echo(df)
+    if describe:
+        click.echo("\nDataFrame.describe():")
+        click.echo(df.describe())
+
+    if outfile is not None and not dry:
+        df.to_csv(outfile, index_label=index_label, float_format="%15.12e")
+        click.echo(f"\n.. Dataframe for {name} written to {outfile}")

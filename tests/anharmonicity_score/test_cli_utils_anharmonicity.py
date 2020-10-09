@@ -3,10 +3,15 @@ from pathlib import Path
 
 import pytest
 
+
 parent = Path(__file__).parent
 
 
-commands = ("vibes utils anharmonicity sigma trajectory.nc",)
+commands = (
+    "vibes info anharmonicity trajectory.nc",
+    "vibes info anharmonicity trajectory.nc --per_sample",
+    "vibes info anharmonicity trajectory.nc --per_mode --dry",
+)
 
 
 @pytest.mark.parametrize("cmd", commands)

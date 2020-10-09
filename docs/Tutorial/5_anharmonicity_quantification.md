@@ -102,10 +102,10 @@ vibes utils trajectory update trajectory.nc -fc FORCE_CONSTANTS
 
 This will attach read the force constants from `FORCE_CONSTANTS` and attach them to the trajectory dataset.
 
-To evaluate Eq. $\eqref{eq:sigmaA}$, you can use the CLI tool `utils anharmonicity sigma`:
+To evaluate Eq. $\eqref{eq:sigmaA}$, you can use the CLI tool `info anharmonicity`:
 
 ```
-vibes utils anharmonicity sigma trajectory.nc
+vibes info anharmonicity trajectory.nc
 ```
 
 which will give you the total $\sigma^{\rm A}$ value (`sigma`), as well as an individual value for each atom species. The output should be
@@ -123,7 +123,7 @@ This tells you that the average magnitude of anharmonic contributions to the for
 To obtain a mode-resolved $\sigma^{\rm A}_s$ similar to the analysis of Fig. 8 in [our paper](https://arxiv.org/pdf/2006.14672.pdf), you can run
 
 ```
-vibes utils anharmonicity mode trajectory.nc
+vibes info anharmonicity trajectory.nc --per_mode
 ```
 
 which will produce a `.csv` file containing mode frequencies $\omega_s$ in THz and the respective mode-resolved anharmonicity $\sigma^{\rm A}_s$.
