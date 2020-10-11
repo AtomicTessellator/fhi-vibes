@@ -25,9 +25,21 @@ def hashfunc(string, empty_str="", digest=True):
     """
     if string in ("", "[]", "{}", "None"):
         string = empty_str
+
+    if isinstance(string, bytes):
+        string = string
+    else:
+        string = string.encode("utf8")
+
     if digest:
-        return hash_sha(string.encode("utf8")).hexdigest()
-    return hash_sha(string.encode("utf8"))
+        return hash_sha(string).hexdigest()
+
+    return hash_sha(string)
+
+
+def hash_file(file, **kwargs):
+    """wrapper for hashfunc when file should be hashed"""
+    return hashfunc(open(file, mode="rb").read(), **kwargs)
 
 
 def hash_atoms(atoms, velocities=False):

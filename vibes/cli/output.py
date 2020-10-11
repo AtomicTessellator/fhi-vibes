@@ -21,10 +21,33 @@ def output():
 @click.option("--minimal", is_flag=True, help="omit redundant information")
 @click.option("-fc", "--fc_file", type=Path, help="add force constants from file")
 @click.option("-o", "--outfile", default="auto", show_default=True)
-def trajectory(file, heat_flux, discard, minimal, fc_file, outfile):
+@click.option("--force", is_flag=True, help="enfore parsing of output file")
+def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
     """write trajectory data in FILE to xarray.Dataset"""
+    from vibes import keys
     from vibes.trajectory import reader
     from vibes.trajectory.dataset import get_trajectory_dataset
+
+    if "auto" in outfile.lower():
+        outfile = Path(file).stem
+        outfile += ".nc"
+    outfile = Path(outfile)
+
+    if not force and outfile.exists():
+        import xarray as xr
+
+        from vibes.helpers.hash import hash_file
+
+        click.echo(f"Check if {file} has been parsed already")
+        raw_hash = hash_file(file)
+        raw_hash_is = xr.open_dataset(outfile).attrs.get(keys.hash_raw)
+
+        if raw_hash == raw_hash_is:
+            click.echo(f".. file with hash {raw_hash} has been parsed, skip.")
+            click.echo(".. (use --force to parse anyway)")
+            return
+        else:
+            click.echo(".. hash has changed, parse the file.")
 
     click.echo(f"Extract Trajectory dataset from {file}")
     traj = reader(file=file, fc_file=fc_file)
@@ -38,10 +61,6 @@ def trajectory(file, heat_flux, discard, minimal, fc_file, outfile):
 
     if heat_flux:
         traj.compute_heat_fluxes_from_stresses()
-
-    if "auto" in outfile.lower():
-        outfile = Path(file).stem
-        outfile += ".nc"
 
     DS = get_trajectory_dataset(traj, metadata=True)
     DS.to_netcdf(outfile)

@@ -17,6 +17,7 @@ from vibes import io, keys, son
 from vibes.filenames import filenames
 from vibes.helpers import warn
 from vibes.helpers.converters import dict2atoms, dict2json, results2dict
+from vibes.helpers.hash import hash_file
 from vibes.helpers.utils import progressbar
 
 from .utils import Timer, talk
@@ -215,6 +216,10 @@ def reader(
     trajectory = Trajectory(list, metadata=metadata)
     timer2()
 
+    timer3 = Timer(".. set raw hash")
+    trajectory.hash_raw = hash_file(file)
+    timer3()
+
     timer("done")
 
     if fc_file:
@@ -223,6 +228,7 @@ def reader(
 
     if get_metadata:
         return trajectory, metadata
+
     return trajectory
 
 
@@ -233,8 +239,8 @@ def to_tdep(trajectory, folder=".", skip=1):
         folder: Directory to store tdep files
         skip: Number of structures to skip
     """
-    from pathlib import Path
     from contextlib import ExitStack
+    from pathlib import Path
 
     folder = Path(folder)
     folder.mkdir(exist_ok=True)
@@ -428,5 +434,8 @@ def parse_dataset(dataset: xr.Dataset) -> list:
 
     if keys.fc_remapped in DS:
         trajectory.set_force_constants_remapped(np.asarray(DS[keys.fc_remapped]))
+
+    if keys.hash_raw in attrs:
+        trajectory.hash_raw = attrs[keys.hash_raw]
 
     return trajectory

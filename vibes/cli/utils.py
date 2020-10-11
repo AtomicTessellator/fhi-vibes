@@ -25,12 +25,12 @@ def hash(file, dry, outfile):
     """create SHA1 hash for FILE"""
     import time
 
-    from vibes.helpers.hash import hashfunc
+    from vibes.helpers.hash import hash_file
     from vibes.helpers.utils import talk
 
     timestr = time.strftime("%Y/%m/%d_%H:%M:%S")
 
-    hash = hashfunc(open(file).read())
+    hash = hash_file(file)
     talk(f'Hash for "{file}":\n  {hash}')
 
     if not dry:
@@ -537,7 +537,7 @@ def pick_samples(file, outfile, number, range, cartesian):
 
     for number in rge:
         click.echo(f"Extract sample {number}:")
-        file = outfile or f"{filenames.atoms}.{number}"
+        file = outfile or f"{filenames.atoms}.{number:05d}"
         atoms = traj[number]
         info_str = f"Sample no.: {number:7d}"
         kw = {"velocities": True, "scaled": not cartesian, "info_str": info_str}

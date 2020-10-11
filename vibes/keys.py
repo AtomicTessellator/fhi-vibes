@@ -99,6 +99,7 @@ workdir = "workdir"
 # hash
 name = "name"
 hash = "hash"
+hash_raw = "hash_raw"
 trajectory = "trajectory"
 
 
