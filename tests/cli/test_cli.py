@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+
 # from vibes.cli.scripts.nomad_upload import upload_folder_dry as nomad_upload_folder
 
 parent = Path(__file__).parent
@@ -21,17 +22,26 @@ gs = "geometry.in.supercell"
 commands_files = [
     ["vibes run singlepoint lj.in", "lj/trajectory.son"],
     ["vibes utils backup calculations", "backups/backup.00002.19636B4A.tgz"],
-    ["vibes output md", "trajectory.nc"],
     ["vibes output phonopy phonopy.son --full --q_mesh 5 5 5", "output"],
     ["vibes utils trajectory 2db", "trajectory.db"],
     ["vibes utils trajectory 2tdep", "tdep"],
     ["vibes utils trajectory 2csv", "trajectory.csv"],
     ["vibes utils trajectory 2xyz", "trajectory.xyz"],
-    ["vibes utils trajectory pick -n 1", "geometry.in.1"],
+    ["vibes utils trajectory pick -n 1", "geometry.in.00001"],
     ["vibes utils hash trajectory.son", "hash.toml"],
     ["vibes utils fc frequencies", "frequencies.dat"],
-    [f"vibes utils geometry get-deformation {gp} {gs}", "deformation.dat"],
-    [f"vibes utils geometry apply-deformation {gp}", f"{gp}.deformed"],
+]
+
+commands_files_depend = [
+    [
+        [f"vibes utils geometry get-deformation {gp} {gs}", "deformation.dat"],
+        [f"vibes utils geometry apply-deformation {gp}", f"{gp}.deformed"],
+    ],
+    [
+        ["vibes output md", "trajectory.nc"],
+        ["vibes output md", "trajectory.nc"],
+        ["vibes output md --force", "trajectory.nc"],
+    ],
 ]
 
 
@@ -48,13 +58,22 @@ def _exists(file, cwd=True):
 
 @pytest.mark.parametrize("cmd", commands)
 def test_cmd(cmd):
+    """check command"""
     _run(cmd)
 
 
 @pytest.mark.parametrize("cmd,file", commands_files)
 def test_cmd_and_files(cmd, file):
+    """check command and see if output file exists"""
     _run(cmd)
     _exists(file)
+
+
+@pytest.mark.parametrize("group", commands_files_depend)
+def test_cmd_and_files_depend(group):
+    """check command and see if output file exists with dependencies"""
+    for (c, f) in group:
+        test_cmd_and_files(c, f)
 
 
 if __name__ == "__main__":

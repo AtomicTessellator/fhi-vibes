@@ -6,7 +6,7 @@ test_basic:
 test_coverage:
 	flake8 .
 	flake8 ../vibes
-	pytest --cov --cov-config=../setup.cfg --ignore fireworks
+	pytest --cov --cov-config=../setup.cfg --ignore fireworks -x
 
 test_all:
 	pytest
