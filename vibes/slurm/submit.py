@@ -31,7 +31,7 @@ def submit(
 
     cmd = [submit_command, file]
 
-    submit_output = sp.run(cmd, text=True, capture_output=True)
+    submit_output = sp.run(cmd, universal_newlines=True, capture_output=True)
 
     if submit_output == "":
         submit_output = "empty (e.g. local computation)"
