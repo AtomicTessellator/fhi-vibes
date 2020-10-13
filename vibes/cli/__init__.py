@@ -78,12 +78,14 @@ def vibes_status(obj, verbose):
         click.echo(f"This is the configuration found in {configfile}")
         click.echo(config)
 
-    try:
-        assert "machine" in config
-        check_path(config.machine.basissetloc)
-        check_path(shutil.which(config.machine.aims_command))
-    except (AssertionError, click.FileError):
-        msg = f"Check your configuration file in {configfile}"
-        click.ClickException(msg)
+    click.echo("check if `[machine]` is in `.vibesrc`")
+    assert "machine" in config
+    click.echo(".. pass")
+    click.echo("check basisset location in `machine.basissetloc`")
+    check_path(config.machine.basissetloc)
+    click.echo(".. pass")
+    click.echo("check aims command in `machine.aims_command`")
+    check_path(shutil.which(config.machine.aims_command))
+    click.echo(".. pass")
 
     click.secho("It seems we are good to go!", bold=True)
