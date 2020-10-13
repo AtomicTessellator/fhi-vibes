@@ -31,18 +31,20 @@ def submit(
 
     cmd = [submit_command, file]
 
-    submit_output = sp.run(cmd, universal_newlines=True, capture_output=True)
+    submit_err = None
+    try:
+        submit_output = sp.run(cmd, universal_newlines=True)
+    except sp.CalledProcessError as err:
+        submit_err = err.stderr
 
     if submit_output == "":
         submit_output = "empty (e.g. local computation)"
 
-    print(submit_output.stdout, submit_output.stderr)
-
     try:
         timestr = time.strftime("%Y/%m/%d_%H:%M:%S")
         with open(submit_log, "a") as f:
-            f.write(f"{timestr}: {submit_output.stdout}\n")
-            if submit_output.stderr:
-                f.write(f"{timestr} [STDERR]: \n{submit_output.stderr}\n")
+            f.write(f"{timestr}: {submit_output}\n")
+            if submit_err is not None:
+                f.write(f"{timestr} [STDERR]: \n{submit_err}\n")
     except (IndexError, ValueError):
-        print("Error during slurm submission: {:s}".format(submit_output))
+        print("Error during slurm submission: {:s}".format(submit_err))
