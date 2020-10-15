@@ -2,6 +2,7 @@ import subprocess as sp
 import time
 from pathlib import Path
 
+from . import _talk
 from .generate import generate_jobscript
 
 
@@ -26,25 +27,30 @@ def submit(
     generate_jobscript(dct, file=file)
 
     if dry:
-        print(f"DRY RUN requested: Jobscript written to {file}. STOP")
+        _talk(f"DRY RUN requested: Jobscript written to {file}. STOP")
         return
 
     cmd = [submit_command, file]
 
-    submit_err = None
-    try:
-        submit_output = sp.run(cmd, universal_newlines=True)
-    except sp.CalledProcessError as err:
-        submit_err = err.stderr
+    proc = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, encoding="utf8")
 
-    if submit_output == "":
-        submit_output = "empty (e.g. local computation)"
+    out = proc.stdout.read()
+    err = proc.stderr.read()
+
+    if not out and not err:
+        out = "empty (e.g. local computation)"
+
+    if out:
+        _talk(out)
+    if err:
+        _talk(f"ERROR: {err}")
 
     try:
         timestr = time.strftime("%Y/%m/%d_%H:%M:%S")
         with open(submit_log, "a") as f:
-            f.write(f"{timestr}: {submit_output}\n")
-            if submit_err is not None:
-                f.write(f"{timestr} [STDERR]: \n{submit_err}\n")
+            if err:
+                f.write(f"{timestr} [ERROR]: \n{err}\n")
+            else:
+                f.write(f"{timestr}: {out}\n")
     except (IndexError, ValueError):
-        print("Error during slurm submission: {:s}".format(submit_err))
+        _talk("Error during slurm submission: {:s}".format(out))
