@@ -2,8 +2,7 @@
 
 ## Prerequisites
 
-- A working `python3.7+` or `python3.6` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html).
-	- On `python3.6`, please `pip install importlib_resources dataclasses`
+- A working`python3.6+` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html).
 
 - A working `fortran` compiler, e.g., obtained by:
     - `apt-get install gfortran` in Debian-derived systems, or
