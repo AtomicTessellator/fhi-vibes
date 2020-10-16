@@ -347,6 +347,29 @@ def to_db(trajectory, database):
     timer("done")
 
 
+def to_ase_trajectory(trajectory, outfile):
+    """Write vibes trajectory as ase trajectory
+
+    Will overwrite outfile if it exists.
+
+    Args:
+        trajectory: Trajectory instance
+        outfile: Filename of trajectory
+
+    """
+    from ase.io import Trajectory
+
+    timer = Timer(f"Save as ase trajectory {outfile}")
+
+    traj = Trajectory(outfile, mode="w")
+
+    talk("write ase trajectory")
+    for atoms in progressbar(trajectory):
+        traj.write(atoms)
+
+    timer("done")
+
+
 def read_netcdf(file=filenames.trajectory_dataset):
     """read `trajectory.nc` and return Trajectory"""
     from vibes.trajectory.trajectory import Trajectory

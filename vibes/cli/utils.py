@@ -428,6 +428,17 @@ def t2db(file, outfile):
     traj.to_db(outfile)
 
 
+@trajectory.command("t2traj", context_settings=_default_context_settings)
+@click.argument("file", default=filenames.trajectory, type=complete_files)
+@click.option("-o", "--outfile", default="trajectory.traj")
+def t2traj(file, outfile):
+    """extract trajectory in FILENAME and store as ase trajectory"""
+    from vibes.trajectory import reader
+
+    traj = reader(file)
+    traj.to_traj(outfile)
+
+
 @trajectory.command("2csv", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", default="trajectory.csv")
