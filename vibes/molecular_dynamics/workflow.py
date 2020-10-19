@@ -3,7 +3,7 @@
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 
-from vibes import son
+from vibes import keys, son
 from vibes.helpers import talk, warn
 from vibes.helpers.aims import get_aims_uuid_dict
 from vibes.helpers.backup import backup_folder as backup
@@ -116,7 +116,7 @@ def run(ctx, backup_folder=default_backup_folder):
             # log metadata
             metadata2file(metadata, file=trajectory_file)
             # log initial structure computation
-            atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
+            atoms.info.update({keys.nsteps: md.nsteps, keys.dt: md.dt})
             meta = get_aims_uuid_dict()
             if compute_stresses:
                 stresses = get_stresses(atoms)
@@ -142,7 +142,7 @@ def run(ctx, backup_folder=default_backup_folder):
                     del atoms.calc.results["stresses"]
 
             # peek into aims file and grep for uuid
-            atoms.info.update({"nsteps": md.nsteps, "dt": md.dt})
+            atoms.info.update({keys.nsteps: md.nsteps, keys.dt: md.dt})
             meta = get_aims_uuid_dict()
             step2file(atoms, atoms.calc, trajectory_file, metadata=meta)
 

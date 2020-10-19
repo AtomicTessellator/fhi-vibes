@@ -78,6 +78,8 @@ avalanche_index = "avalanche_index"
 nve = "NVE"
 nvt = "NVT"
 npt = "NPT"
+nsteps = "nsteps"
+dt = "dt"
 
 # file management
 file = "file"
