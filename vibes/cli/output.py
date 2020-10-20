@@ -33,21 +33,19 @@ def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
         outfile += ".nc"
     outfile = Path(outfile)
 
+    file_size = Path(file).stat().st_size
     if not force and outfile.exists():
         import xarray as xr
 
-        from vibes.helpers.hash import hash_file
-
         click.echo(f"Check if {file} has been parsed already")
-        raw_hash = hash_file(file)
-        raw_hash_is = xr.open_dataset(outfile).attrs.get(keys.hash_raw)
+        file_size_is = xr.open_dataset(outfile).attrs.get(keys.st_size)
 
-        if raw_hash == raw_hash_is:
-            click.echo(f".. file with hash {raw_hash} has been parsed, skip.")
+        if file_size == file_size_is:
+            click.echo(f".. file size has not changed, skip.")
             click.echo(".. (use --force to parse anyway)")
             return
         else:
-            click.echo(".. hash has changed, parse the file.")
+            click.echo(".. file size has changed, parse the file.")
 
     click.echo(f"Extract Trajectory dataset from {file}")
     traj = reader(file=file, fc_file=fc_file)
@@ -63,6 +61,9 @@ def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
         traj.compute_heat_fluxes_from_stresses()
 
     DS = get_trajectory_dataset(traj, metadata=True)
+    # attach file size
+    DS.attrs.update({keys.st_size: file_size})
+    # write to disk
     DS.to_netcdf(outfile)
     click.echo(f"Trajectory dataset written to {outfile}")
 

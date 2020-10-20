@@ -101,7 +101,7 @@ name = "name"
 hash = "hash"
 hash_raw = "hash_raw"
 trajectory = "trajectory"
-
+st_size = "st_size"
 
 # composite keys
 heat_flux_autocorrelation = _join(heat_flux, autocorrelation)
