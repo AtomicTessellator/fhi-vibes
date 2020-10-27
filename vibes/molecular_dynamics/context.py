@@ -10,7 +10,7 @@ from ase.md.md import MolecularDynamics
 from vibes import keys, son
 from vibes.context import TaskContext
 from vibes.helpers import talk, warn
-from vibes.helpers.converters import input2dict
+from vibes.helpers.converters import input2dict, dict2atoms
 
 from ._defaults import keys as md_keys
 from ._defaults import name, npt_dict, nve_dict, nvt_dict
@@ -21,7 +21,11 @@ class MDContext(TaskContext):
     """context for molecular dynamics calculation"""
 
     def __init__(
-        self, settings=None, workdir=None, trajectory_file=None, ensemble=keys.nve
+        self,
+        settings=None,
+        workdir=None,
+        trajectory_file=None,
+        ensemble=keys.nve,
     ):
         """Context for MD
 
@@ -40,7 +44,9 @@ class MDContext(TaskContext):
         else:
             raise ValueError(f"{ensemble} not implemented, choose (NVE/NVT/NPT")
 
-        super().__init__(settings, name, workdir=workdir, template_dict=settings_dict)
+        super().__init__(
+            settings, name, workdir=workdir, template_dict=settings_dict
+        )
 
         self._md = None
         self._primitive = None
@@ -74,7 +80,8 @@ class MDContext(TaskContext):
             md_settings = {
                 "atoms": self.atoms,
                 "timestep": obj.timestep * u.fs,
-                "logfile": Path(self.workdir) / obj["kwargs"].pop("logfile", "md.log"),
+                "logfile": Path(self.workdir)
+                / obj["kwargs"].pop("logfile", "md.log"),
             }
             if "verlet" in obj.driver.lower():
                 md = ase_md.VelocityVerlet(**md_settings)
@@ -99,7 +106,10 @@ class MDContext(TaskContext):
                 warn(f"MD driver {obj.driver} not supported.", level=2)
 
             talk(f"driver: {obj.driver}", prefix=_prefix)
-            msg = ["settings:", *[f"  {k}: {v}" for k, v in md.todict().items()]]
+            msg = [
+                "settings:",
+                *[f"  {k}: {v}" for k, v in md.todict().items()],
+            ]
             talk(msg, prefix=_prefix)
 
             self._md = md
@@ -166,32 +176,45 @@ class MDContext(TaskContext):
 
         return {"MD": md_dict, **dct}
 
+    def prepare_from_trajectory(self):
+        """Initialize MD from last step of trajectory"""
+
+        trajectory_file = Path(self.trajectory_file)
+        if trajectory_file.exists():
+            try:
+                last_atoms = son.last_from(trajectory_file)
+            except IndexError:
+                warn(
+                    f"** trajectory lacking the first step, please CHECK!",
+                    level=2,
+                )
+
+            # if this wasn't the case,
+            # we couldn't set a new self.atoms
+            # without causing a mismatch!
+            assert self._md is None
+
+            self.atoms = dict2atoms(last_atoms["atoms"])
+            self.md  # initialises MD instance
+            self.md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
+
+            talk(
+                f"Resumed from step {self.md.nsteps} in {trajectory_file}",
+                prefix=_prefix,
+            )
+            return True
+
+        talk(
+            f"** {trajectory_file} does not exist, nothing to prepare",
+            prefix=_prefix,
+        )
+        return False
+
     def resume(self):
         """resume from trajectory"""
-        prepare_from_trajectory(self.atoms, self.md, self.trajectory_file)
+        self.prepare_from_trajectory()
 
     def run(self, timeout=None):
         """run the context workflow"""
         self.resume()
         run_md(self, timeout=timeout)
-
-
-def prepare_from_trajectory(atoms, md, trajectory_file):
-    """Take the last step from trajectory and initialize atoms + md accordingly"""
-
-    trajectory_file = Path(trajectory_file)
-    if trajectory_file.exists():
-        try:
-            last_atoms = son.last_from(trajectory_file)
-        except IndexError:
-            warn(f"** trajectory lacking the first step, please CHECK!", level=2)
-        assert "info" in last_atoms["atoms"]
-        md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
-
-        atoms.set_positions(last_atoms["atoms"]["positions"])
-        atoms.set_velocities(last_atoms["atoms"]["velocities"])
-        talk(f"Resume from step {md.nsteps} in {trajectory_file}", prefix=_prefix)
-        return True
-
-    talk(f"** {trajectory_file} does not exist, nothing to prepare", prefix=_prefix)
-    return False
