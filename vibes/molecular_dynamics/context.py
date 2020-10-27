@@ -92,10 +92,16 @@ class MDContext(TaskContext):
                     **md_settings,
                 )
             elif "berendsen" in obj.driver.lower():
-                from ase.md.nptberendsen import NPTBerendsen
-
                 kw = obj.kwargs.copy()
-                md = NPTBerendsen(
+
+                if kw.pop(md_keys.homogeneous, True):
+                    from ase.md.nptberendsen import NPTBerendsen as Berendsen
+                else:
+                    from ase.md.nptberendsen import (
+                        Inhomogeneous_NPTBerendsen as Berendsen,
+                    )
+
+                md = Berendsen(
                     **md_settings,
                     taut=kw.pop(md_keys.taut) * u.fs,
                     taup=kw.pop(md_keys.taup) * u.fs,
