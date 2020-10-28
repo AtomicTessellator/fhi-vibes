@@ -1,8 +1,9 @@
 """Phonopy workflow context managing"""
 
-import numpy as np
+from functools import partial
 from pathlib import Path
 
+import numpy as np
 from ase import md as ase_md
 from ase import units as u
 from ase.io import read
@@ -12,14 +13,12 @@ from vibes import keys, son
 from vibes.context import TaskContext
 from vibes.helpers import talk as _talk
 from vibes.helpers import warn
-from vibes.helpers.converters import input2dict, dict2atoms
+from vibes.helpers.converters import dict2atoms, input2dict
 
 from ._defaults import keys as md_keys
 from ._defaults import name, npt_dict, nve_dict, nvt_dict
 from .workflow import _prefix, run_md
 
-
-from functools import partial
 
 talk = partial(_talk, prefix=_prefix)
 
@@ -28,11 +27,7 @@ class MDContext(TaskContext):
     """context for molecular dynamics calculation"""
 
     def __init__(
-        self,
-        settings=None,
-        workdir=None,
-        trajectory_file=None,
-        ensemble=keys.nve,
+        self, settings=None, workdir=None, trajectory_file=None, ensemble=keys.nve,
     ):
         """Context for MD
 
@@ -190,10 +185,8 @@ class MDContext(TaskContext):
             try:
                 last_atoms = son.last_from(trajectory_file)
             except IndexError:
-                warn(
-                    f"** trajectory lacking the first step, please CHECK!",
-                    level=2,
-                )
+                msg = f"** trajectory lacking the first step, please CHECK!"
+                warn(msg, level=2)
 
             # we can't set self.atoms = dict2atoms because that would
             # break references to it in self.md and self.calculator
