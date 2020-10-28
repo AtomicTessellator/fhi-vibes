@@ -98,12 +98,12 @@ class MDContext(TaskContext):
             elif "berendsen" in obj.driver.lower():
                 kw = obj.kwargs.copy()
 
-                if kw.pop(md_keys.homogeneous, True):
-                    from ase.md.nptberendsen import NPTBerendsen as Berendsen
-                else:
+                if kw.pop(md_keys.inhomogeneous, False):
                     from ase.md.nptberendsen import (
                         Inhomogeneous_NPTBerendsen as Berendsen,
                     )
+                else:
+                    from ase.md.nptberendsen import NPTBerendsen as Berendsen
 
                 md = Berendsen(
                     **md_settings,

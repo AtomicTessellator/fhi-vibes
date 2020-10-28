@@ -19,7 +19,7 @@ _keys = [
     "pressure",
     "compressibility",
     "workdir",
-    "homogeneous",
+    "inhomogeneous",
 ]
 keys = collections.namedtuple("md_keywords", _keys)(*_keys)
 
@@ -56,7 +56,7 @@ kwargs_npt["kwargs"] = {
     keys.taup: 1e3,  # * units.fs,
     keys.pressure: 1.01325,  # in bar
     keys.compressibility: 4.57e-5,  # in bar^-1
-    keys.homogeneous: True,  # use Inhomogeneous_NPTBerendsen?
+    keys.inhomogeneous: False,  # use Inhomogeneous_NPTBerendsen?
     **base_dict["kwargs"],
 }
 npt_dict = {name: kwargs_npt}
