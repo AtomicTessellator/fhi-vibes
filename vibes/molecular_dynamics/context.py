@@ -10,12 +10,18 @@ from ase.md.md import MolecularDynamics
 
 from vibes import keys, son
 from vibes.context import TaskContext
-from vibes.helpers import talk, warn
+from vibes.helpers import talk as _talk
+from vibes.helpers import warn
 from vibes.helpers.converters import input2dict, dict2atoms
 
 from ._defaults import keys as md_keys
 from ._defaults import name, npt_dict, nve_dict, nvt_dict
 from .workflow import _prefix, run_md
+
+
+from functools import partial
+
+talk = partial(_talk, prefix=_prefix)
 
 
 class MDContext(TaskContext):
@@ -109,12 +115,12 @@ class MDContext(TaskContext):
             else:
                 warn(f"MD driver {obj.driver} not supported.", level=2)
 
-            talk(f"driver: {obj.driver}", prefix=_prefix)
+            talk(f"driver: {obj.driver}")
             msg = [
                 "settings:",
                 *[f"  {k}: {v}" for k, v in md.todict().items()],
             ]
-            talk(msg, prefix=_prefix)
+            talk(msg)
 
             self._md = md
 
@@ -199,16 +205,10 @@ class MDContext(TaskContext):
 
             self.md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
 
-            talk(
-                f"Resumed from step {self.md.nsteps} in {trajectory_file}",
-                prefix=_prefix,
-            )
+            talk(f"Resumed from step {self.md.nsteps} in {trajectory_file}")
             return True
 
-        talk(
-            f"** {trajectory_file} does not exist, nothing to prepare",
-            prefix=_prefix,
-        )
+        talk(f"** {trajectory_file} does not exist, nothing to prepare")
         return False
 
     def resume(self):
