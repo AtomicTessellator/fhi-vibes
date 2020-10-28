@@ -62,6 +62,7 @@ maxsteps:                      1000
     pressure:                      1.01325
     compressibility:               4.57e-05
     logfile:                       md.log
+    inhomogeneous:                 False
     ```
 
 
@@ -100,7 +101,9 @@ The keywords are documented in ASE:
 
 - [`VelocityVerlet`](https://wiki.fysik.dtu.dk/ase/ase/md.html#ase.md.verlet.VelocityVerlet)
 - [`Langevin`](https://wiki.fysik.dtu.dk/ase/ase/md.html#ase.md.langevin.Langevin)
-- [`NPTBerendsen`](https://wiki.fysik.dtu.dk/ase/ase/md.html#ase.md.nvtberendsen.NVTBerendsen)
+- [`NPTBerendsen`](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md.nptberendsen)
+
+For `NPTBerendsen`, we add the `inhomogeneous` keyword, which decides if the `Inhomogeneous_NPTBerendsen` driver is used instead of `NPTBerendsen`. With `Inhomogeneous_NPTBerendsen`, the basis vectors are scaled independently, i.e. the size of the unit cell can change in three directions, but the angles remain constant. By default, `inhomogeneous=False`.
 
 !!! warning
 	In ASE, the `temperature` is usually given as an energy in ${\rm eV}$. In FHI-vibes, we use Kelvin consistently. `temperature: 300` thus corresponds to setting the thermostat to $300\,{\rm K}$.
