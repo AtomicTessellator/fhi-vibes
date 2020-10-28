@@ -1,5 +1,6 @@
 """Phonopy workflow context managing"""
 
+from functools import partial
 import numpy as np
 from pathlib import Path
 
@@ -18,9 +19,6 @@ from ._defaults import keys as md_keys
 from ._defaults import name, npt_dict, nve_dict, nvt_dict
 from .workflow import _prefix, run_md
 
-
-from functools import partial
-
 talk = partial(_talk, prefix=_prefix)
 
 
@@ -28,11 +26,7 @@ class MDContext(TaskContext):
     """context for molecular dynamics calculation"""
 
     def __init__(
-        self,
-        settings=None,
-        workdir=None,
-        trajectory_file=None,
-        ensemble=keys.nve,
+        self, settings=None, workdir=None, trajectory_file=None, ensemble=keys.nve
     ):
         """Context for MD
 
