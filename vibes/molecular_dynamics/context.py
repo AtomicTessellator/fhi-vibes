@@ -1,5 +1,6 @@
 """Phonopy workflow context managing"""
 
+import numpy as np
 from pathlib import Path
 
 from ase import md as ase_md
@@ -44,9 +45,7 @@ class MDContext(TaskContext):
         else:
             raise ValueError(f"{ensemble} not implemented, choose (NVE/NVT/NPT")
 
-        super().__init__(
-            settings, name, workdir=workdir, template_dict=settings_dict
-        )
+        super().__init__(settings, name, workdir=workdir, template_dict=settings_dict)
 
         self._md = None
         self._primitive = None
@@ -80,8 +79,7 @@ class MDContext(TaskContext):
             md_settings = {
                 "atoms": self.atoms,
                 "timestep": obj.timestep * u.fs,
-                "logfile": Path(self.workdir)
-                / obj["kwargs"].pop("logfile", "md.log"),
+                "logfile": Path(self.workdir) / obj["kwargs"].pop("logfile", "md.log"),
             }
             if "verlet" in obj.driver.lower():
                 md = ase_md.VelocityVerlet(**md_settings)
@@ -195,13 +193,10 @@ class MDContext(TaskContext):
                     level=2,
                 )
 
-            # if this wasn't the case,
-            # we couldn't set a new self.atoms
-            # without causing a mismatch!
-            assert self._md is None
+            # we can't set self.atoms = dict2atoms because that would
+            # break references to it in self.md and self.calculator
+            update_atoms(self.atoms, dict2atoms(last_atoms["atoms"]))
 
-            self.atoms = dict2atoms(last_atoms["atoms"])
-            self.md  # initialises MD instance
             self.md.nsteps = last_atoms["atoms"]["info"]["nsteps"]
 
             talk(
@@ -224,3 +219,14 @@ class MDContext(TaskContext):
         """run the context workflow"""
         self.resume()
         run_md(self, timeout=timeout)
+
+
+def update_atoms(atoms, new_atoms):
+    """Update atoms with MD-relevant properties"""
+    # sanity check
+    assert np.array_equal(atoms.get_atomic_numbers(), new_atoms.get_atomic_numbers())
+
+    atoms.set_positions(new_atoms.get_positions())
+    atoms.set_velocities(new_atoms.get_velocities())
+    atoms.set_pbc(new_atoms.get_pbc())
+    atoms.set_cell(new_atoms.get_cell())
