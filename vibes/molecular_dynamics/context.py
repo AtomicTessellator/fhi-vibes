@@ -116,11 +116,7 @@ class MDContext(TaskContext):
                 warn(f"MD driver {obj.driver} not supported.", level=2)
 
             talk(f"driver: {obj.driver}")
-            msg = [
-                "settings:",
-                *[f"  {k}: {v}" for k, v in md.todict().items()],
-            ]
-            talk(msg)
+            talk(["settings:", *[f"  {k}: {v}" for k, v in md.todict().items()]])
 
             self._md = md
 
