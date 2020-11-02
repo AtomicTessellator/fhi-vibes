@@ -158,19 +158,18 @@ def phono3py(obj, file, q_mesh):
 
 @output.command(aliases=["gk"])
 @click.argument("file", default="trajectory.nc")
-@click.option("-avg", "--average", default=100, help="average window")
-@click.option("--aux", is_flag=True)
 @click.option("-o", "--outfile", default="greenkubo.nc", show_default=True, type=Path)
-@click.option("-d", "--discard", default=0)
-def greenkubo(file, average, aux, outfile, discard):
+# @click.option("-d", "--discard", default=0)
+def greenkubo(file, outfile):
     """perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
 
-    import vibes.green_kubo.heat_flux as hf
+    import vibes.green_kubo as gk
 
     ds = xr.load_dataset(file)
 
-    ds_kappa = hf.get_kappa_cumulative_dataset(ds, aux=aux, discard=discard)
+    ds_gk = gk.get_gk_dataset(ds)
 
     click.echo(f".. write to {outfile}")
-    ds_kappa.to_netcdf(outfile)
+
+    ds_gk.to_netcdf(outfile)
