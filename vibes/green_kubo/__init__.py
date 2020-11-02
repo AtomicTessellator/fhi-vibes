@@ -224,6 +224,9 @@ def get_gk_dataset(
     # 2. get lowest significant frequency (from VDOS) in THz
     freq = get_lowest_vibrational_frequency(dataset[keys.velocities])
 
+    if abs(freq) < 0.001:
+        warn(f"Lowest significant vib. freq is {freq} THz, CHECK VDOS!", level=2)
+
     # window in fs from freq.:
     window_fs = window_factor / freq * 1000
 
@@ -251,7 +254,12 @@ def get_gk_dataset(
 
     for (ii, jj) in np.ndindex(3, 3):
         j = j_filtered[:, ii, jj]
-        ta = j.time[j < 0].min()
+        times = j.time[j < 0]
+        if len(times) > 1:
+            ta = times.min()
+        else:
+            warn(f"no cutoff time found", level=1)
+            ta = 0
         ks[ii, jj] = k_filtered[:, ii, jj].sel(time=ta)
         ts[ii, jj] = ta
 
