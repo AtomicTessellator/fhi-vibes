@@ -6,6 +6,7 @@ import xarray as xr
 from ase import units
 from scipy import signal as sl
 
+from vibes import defaults
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.correlation import get_autocorrelationNd
@@ -189,11 +190,16 @@ def get_filtered(
     return new_array
 
 
-def get_gk_dataset(dataset: xr.Dataset, verbose: bool = True) -> xr.Dataset:
+def get_gk_dataset(
+    dataset: xr.Dataset,
+    window_factor: int = defaults.window_factor,
+    verbose: bool = True,
+) -> xr.Dataset:
     """get Green-Kubo data from trajectory dataset
 
     Args:
         dataset: a dataset containing `heat_flux` and describing attributes
+        window_factor: factor for filter width estimated from VDOS (default: 1)
 
     Returns:
         xr.Dataset: the processed data
@@ -219,11 +225,13 @@ def get_gk_dataset(dataset: xr.Dataset, verbose: bool = True) -> xr.Dataset:
     freq = get_lowest_vibrational_frequency(dataset[keys.velocities])
 
     # window in fs from freq.:
-    window_fs = 2 / freq * 1000
+    window_fs = window_factor / freq * 1000
 
     kw_talk = {"verbose": verbose}
+    _talk(f"Estimate filter window size", **kw_talk)
     _talk(f".. lowest vibrational frequency: {freq:.4f} THz", **kw_talk)
     _talk(f".. corresponding window size:    {window_fs:.4f} fs", **kw_talk)
+    _talk(f".. window multiplicator used:    {window_factor:.4f} fs", **kw_talk)
 
     # 3. filter integrated HFACF (kappa) with this window respecting antisymmetry in time
     k_filtered = get_filtered(kappa, window_fs=window_fs, antisymmetric=True)

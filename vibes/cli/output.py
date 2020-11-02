@@ -3,10 +3,14 @@ from pathlib import Path
 
 import click
 
+from vibes import defaults
 from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup as AliasedGroup
 from .misc import complete_files, default_context_settings
+
+
+_default_context_settings = {"show_default": True}
 
 
 @click.command(cls=AliasedGroup)
@@ -94,11 +98,11 @@ def phonopy(
     verbose,
 ):
     """perform phonopy postprocess for trajectory in FILE"""
-    from vibes.phonopy import _defaults as defaults
+    from vibes.phonopy import _defaults
     from vibes.phonopy.postprocess import extract_results, plot_results, postprocess
 
     if not q_mesh:
-        q_mesh = defaults.kwargs.q_mesh.copy()
+        q_mesh = _defaults.kwargs.q_mesh.copy()
         click.echo(f"q_mesh not given, use default {q_mesh}")
 
     phonon = postprocess(
@@ -156,11 +160,12 @@ def phono3py(obj, file, q_mesh):
     extract_results(phonon, output_dir=output_directory)
 
 
-@output.command(aliases=["gk"])
+@output.command(aliases=["gk"], context_settings=_default_context_settings)
 @click.argument("file", default="trajectory.nc")
-@click.option("-o", "--outfile", default="greenkubo.nc", show_default=True, type=Path)
+@click.option("-o", "--outfile", default="greenkubo.nc", type=Path)
 # @click.option("-d", "--discard", default=0)
-def greenkubo(file, outfile):
+@click.option("-w", "--window_factor", default=defaults.window_factor)
+def greenkubo(file, outfile, window_factor):
     """perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
 
@@ -168,7 +173,7 @@ def greenkubo(file, outfile):
 
     ds = xr.load_dataset(file)
 
-    ds_gk = gk.get_gk_dataset(ds)
+    ds_gk = gk.get_gk_dataset(ds, window_factor=window_factor)
 
     click.echo(f".. write to {outfile}")
 
