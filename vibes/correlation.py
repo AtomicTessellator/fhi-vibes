@@ -16,6 +16,10 @@ _prefix = "Correlation"
 Timer.prefix = _prefix
 
 
+def _talk(msg, verbose=True):
+    return talk(msg, prefix=_prefix, verbose=verbose)
+
+
 def _hann(nsamples: int):
     """Return one-side Hann function
 
@@ -136,14 +140,13 @@ def get_autocorrelation(series, verbose=True, **kwargs):
     return result
 
 
-def _map_correlate(data):
+def _map_correlate(data, verbose=False):
     """compute autocorrelation with multiprocessing"""
     Nd = len(data)
 
+    kw = {"len_it": Nd ** 2, "verbose": verbose}
     with multiprocessing.Pool() as p:
-        res = [
-            *progressbar(p.imap(c1, product(data, data), chunksize=Nd), len_it=Nd ** 2,)
-        ]
+        res = [*progressbar(p.imap(c1, product(data, data), chunksize=Nd), **kw)]
 
     return np.asarray(res)
 
@@ -183,11 +186,12 @@ def get_autocorrelationNd(
         data = np.asarray(array).reshape(Nt, -1).swapaxes(0, 1)
 
         # compute correlation function
+        kw = {"verbose": verbose}
         if distribute:  # use multiprocessing
-            corr = _map_correlate(data)
+            corr = _map_correlate(data, **kw)
         else:
             corr = np.zeros([data.shape[0] ** 2, Nt])
-            for ii, X in enumerate(progressbar([*product(data, data)])):
+            for ii, X in enumerate(progressbar([*product(data, data)], **kw)):
                 corr[ii] = c1(X)
 
         # shape back and move time axis to the front
@@ -255,8 +259,8 @@ def get_correlation_time_estimate(
     Returns:
         (float, float): tau (IN FS!!!), y0
     """
-    kw = {"verbose": verbose, "prefix": _prefix}
-    talk("Estimate correlation time from fitting exponential to normalized data", **kw)
+    kw = {"verbose": verbose}
+    _talk("Estimate correlation time from fitting exponential to normalized data", **kw)
 
     # smoothen the bare series
     series = series.rolling(pre_smoothen_window, min_periods=1).mean()
@@ -277,11 +281,11 @@ def get_correlation_time_estimate(
 
     (tau, y0), _ = so.curve_fit(_exp, x, y, bounds=bounds)
 
-    talk(f"Correlation time tau:       {tau:7.3f} ps", **kw)
-    talk(f"Intersection y0:            {y0:7.3f}", **kw)
-    talk(f"90% integral (2.30 * tau):  {2.3 * tau:7.3f} ps", **kw)
-    talk(f"95% integral (3.00 * tau):  {3.0 * tau:7.3f} ps", **kw)
-    talk(f"99% integral (4.61 * tau):  {4.605 * tau:7.3f} ps", **kw)
+    _talk(f"Correlation time tau:       {tau:7.3f} ps", **kw)
+    _talk(f"Intersection y0:            {y0:7.3f}", **kw)
+    _talk(f"90% integral (2.30 * tau):  {2.3 * tau:7.3f} ps", **kw)
+    _talk(f"95% integral (3.00 * tau):  {3.0 * tau:7.3f} ps", **kw)
+    _talk(f"99% integral (4.61 * tau):  {4.605 * tau:7.3f} ps", **kw)
 
     if not ps:
         tau *= 1000
