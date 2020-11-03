@@ -92,7 +92,7 @@ def get_hf_data(flux: xr.DataArray, dropna_dim=keys.time) -> namedtuple:
 
 def get_lowest_vibrational_frequency(
     velocities: xr.DataArray,
-    threshold: float = 0.1,
+    threshold: float = defaults.filter_threshold,
     freq_key: str = keys.omega,
     verbose: bool = False,
 ) -> float:
@@ -193,6 +193,7 @@ def get_filtered(
 def get_gk_dataset(
     dataset: xr.Dataset,
     window_factor: int = defaults.window_factor,
+    filter_threshold: float = defaults.filter_threshold,
     verbose: bool = True,
 ) -> xr.Dataset:
     """get Green-Kubo data from trajectory dataset
@@ -200,6 +201,7 @@ def get_gk_dataset(
     Args:
         dataset: a dataset containing `heat_flux` and describing attributes
         window_factor: factor for filter width estimated from VDOS (default: 1)
+        filter_threshold: threshold for choosing vibr. freq. for filtering (default: 0.1)
 
     Returns:
         xr.Dataset: the processed data
@@ -222,7 +224,8 @@ def get_gk_dataset(
     kappa *= pref
 
     # 2. get lowest significant frequency (from VDOS) in THz
-    freq = get_lowest_vibrational_frequency(dataset[keys.velocities])
+    kw = {"threshold": filter_threshold}
+    freq = get_lowest_vibrational_frequency(dataset[keys.velocities], **kw)
 
     if abs(freq) < 0.001:
         warn(f"Lowest significant vib. freq is {freq} THz, CHECK VDOS!", level=2)
