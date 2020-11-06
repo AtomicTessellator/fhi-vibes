@@ -55,7 +55,8 @@ def _attrs(trajectory, dct=None, metadata=False):
         attrs.update({keys.metadata: raw_metadata})
 
     attrs.update({keys.hash: trajectory.hash})  # add hash
-    attrs.update({keys.hash_raw: trajectory.hash_raw})  # add raw hash
+    if trajectory.hash_raw:
+        attrs.update({keys.hash_raw: trajectory.hash_raw})  # add raw hash
 
     return attrs
 
@@ -182,17 +183,6 @@ def get_trajectory_dataset(trajectory, metadata=False):
     if flux is not None:
         dataset.update({keys.heat_flux_aux: (dims.time_vec, flux)})
 
-    # these are not needed, in any case can be recovered from stresses
-    # # heat_fluxes
-    # flux = trajectory.get_heat_fluxes()
-    # if flux is not None:
-    #     dataset.update({keys.heat_fluxes: (dims.time_atom_vec, flux)})
-
-    # # heat_fluxes_aux
-    # flux = trajectory.get_heat_fluxes(aux=True)
-    # if flux is not None:
-    #     dataset.update({keys.heat_fluxes_aux: (dims.time_atom_vec, flux)})
-
     coords = _time_coords(trajectory)
     attrs = _attrs(trajectory, metadata=metadata)
 
@@ -221,48 +211,3 @@ def get_trajectory_dataset(trajectory, metadata=False):
         ds.update({keys.aims_uuid: (dims.time, aims_uuids)})
 
     return ds
-
-
-def get_heat_flux_dataset(trajectory, only_flux=False, metadata=False):
-    """compute heat fluxes from TRAJECTORY and return as xarray
-
-    Args:
-        trajectory: list of atoms objects WITH ATOMIC STRESS computed
-        only_flux (bool): only return heat flux and attrs
-        metadata (bool): include `raw_metadata` in `attrs`
-
-    Returns:
-        xarray.Dataset:
-            heat_flux
-            avg_heat_flux
-    """
-    # add velocities and pressure
-    data = get_trajectory_dataset(trajectory, metadata=metadata)
-
-    flux = [a.calc.results[keys.heat_flux] for a in trajectory]
-
-    dataset = {
-        keys.heat_flux: (dims.time_vec, np.array(flux)),
-        "pressure": data.pressure,
-        "temperature": data.temperature,
-    }
-
-    if not only_flux:
-        fluxes = [a.calc.results[keys.heat_fluxes] for a in trajectory]
-        flux_aux = [a.calc.results[keys.heat_flux_aux] for a in trajectory]
-        fluxes_aux = [a.calc.results[keys.heat_fluxes_aux] for a in trajectory]
-
-        dataset.update(
-            {
-                keys.heat_fluxes: (dims.time_atom_vec, np.array(fluxes)),
-                keys.heat_flux_aux: (dims.time_vec, np.array(flux_aux)),
-                keys.heat_fluxes_aux: (dims.time_atom_vec, np.array(fluxes_aux)),
-                "positions": data.positions,
-                "velocities": data.velocities,
-                keys.forces: data.forces,
-            }
-        )
-    coords = _time_coords(trajectory)
-    attrs = _attrs(trajectory)
-
-    return xr.Dataset(dataset, coords=coords, attrs=attrs)

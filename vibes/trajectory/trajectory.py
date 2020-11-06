@@ -640,7 +640,7 @@ class Trajectory(list):
 
         al.pressure(DS.pressure)
 
-    def compute_heat_fluxes_from_stresses(self):
+    def compute_heat_flux_from_stresses(self):
         """attach `heat_flux` to each `atoms`
 
         Args:
@@ -677,9 +677,7 @@ class Trajectory(list):
 
             d = {
                 keys.heat_flux: flux,
-                keys.heat_fluxes: fluxes,
                 keys.heat_flux_aux: flux_aux,
-                keys.heat_fluxes_aux: fluxes_aux,
             }
 
             a.calc.results.update(d)
@@ -696,29 +694,6 @@ class Trajectory(list):
             key = keys.heat_flux_aux
         else:
             key = keys.heat_flux
-
-        for a in self:
-            try:
-                f = a.calc.results[key]
-            except KeyError:
-                f = nan
-            flux.append(f)
-
-        if np.isnan(flux).all():
-            return None
-        else:
-            return np.array(flux, dtype=float)
-
-    def get_heat_fluxes(self, aux=False):
-        """return the heat fluxes as [N_t, N_a, 3] array"""
-        flux = []
-
-        nan = np.full_like(np.zeros((len(self.reference_atoms), 3)), np.nan)
-
-        if aux:
-            key = keys.heat_fluxes_aux
-        else:
-            key = keys.heat_fluxes
 
         for a in self:
             try:

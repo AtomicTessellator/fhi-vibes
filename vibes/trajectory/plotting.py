@@ -60,9 +60,10 @@ def plot_summary(dataframe, avg=50, natoms=None):
         # ax3 = fig.add_subplot(gs[4])
         # ax4 = fig.add_subplot(gs[5])
         # fig, (ax, ax2, ax3) = plt.subplots(nrows=3, **fig_kw)
-        kw = {"lw": 0, "marker": ".", "mec": None, "alpha": 0.5, "label": ""}
-        for ii, (_, series) in enumerate(df_p.iteritems()):
-            series.plot(ax=ax3, color=tc[ii], **kw)
+        kw = {"lw": 0, "marker": ".", "mec": None, "alpha": 0.5, "label": "", "ms": 0.5}
+        if len(df_p) < 5000:
+            for ii, (_, series) in enumerate(df_p.iteritems()):
+                series.plot(ax=ax3, color=tc[ii], **kw)
 
         for ii, (_, series) in enumerate(df_p_int.iteritems()):
             series.plot(ax=ax3, color=tc[ii], alpha=0.8)

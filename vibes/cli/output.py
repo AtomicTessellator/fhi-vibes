@@ -62,7 +62,7 @@ def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
         traj.set_forces_harmonic()
 
     if heat_flux:
-        traj.compute_heat_fluxes_from_stresses()
+        traj.compute_heat_flux_from_stresses()
 
     DS = get_trajectory_dataset(traj, metadata=True)
     # attach file size
