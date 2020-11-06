@@ -22,7 +22,7 @@ matplotlib = "^3.1"
 son = "^0.3.2"
 spglib = "^1.12"
 phonopy = "^2.6, <2.7.0"
-ase = "^3.19.0"
+ase = "^3.20.0"
 click = "^7.1"
 attrs = "^19.1"
 seekpath = "^1.8.4"
@@ -44,6 +44,7 @@ jconfigparser = "^0.1.2"
 pandas = "^1.0"
 importlib_resources = { version = "*", python = "3.6.*" }
 dataclasses = { version = "*", python = "3.6.*" }
+seaborn = "^0.11.0"
 
 [tool.poetry.extras]
 fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
