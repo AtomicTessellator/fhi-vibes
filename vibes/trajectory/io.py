@@ -363,6 +363,8 @@ def to_ase_trajectory(trajectory, outfile):
 
     traj = Trajectory(outfile, mode="w")
 
+    traj.description = trajectory.metadata
+
     talk("write ase trajectory")
     for atoms in progressbar(trajectory):
         traj.write(atoms)
