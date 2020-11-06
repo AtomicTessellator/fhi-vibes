@@ -542,6 +542,17 @@ class Trajectory(list):
 
         to_db(self, database)
 
+    def to_traj(self, trajectory):
+        """Convert to ase trajectory
+
+        Args:
+            trajectory: Filename of ase trajectory
+
+        """
+        from .io import to_ase_trajectory
+
+        to_ase_trajectory(self, trajectory)
+
     def set_displacements(self):
         """calculate the displacements for `reference_atoms`"""
         if not self.supercell:
