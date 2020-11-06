@@ -22,7 +22,15 @@ Most of the functionality is high-throughput ready via [fireworks](https://mater
 - [References](https://vibes-developers.gitlab.io/vibes/References/)
 
 
-
 ## News
 
+- [Our anharmonicity measure got published.](https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.4.083809)
 - [the best is yet to come](https://www.youtube.com/watch?v=B-Jq26BCwDs)
+
+## Changelog
+
+#### v1.0.0a10
+
+- Enable conversion of trajectories to `ase.io.Trajectory` files for viewing with ASE [(!37)](https://gitlab.com/vibes-developers/vibes/-/merge_requests/37)
+- Important fix for running NPT dynamics [(!36)](https://gitlab.com/vibes-developers/vibes/-/merge_requests/36)
+- We have a changelog now!
