@@ -527,19 +527,19 @@ def pick_samples(file, outfile, number, range, cartesian):
     click.echo(f"Read trajectory from {file}:")
     traj = reader(file)
 
-    if number < 0:
-        number = len(traj) + number
-
     if len(range) == 3:
         rge = xrange(*range)
     else:
         rge = [number]
 
     for number in rge:
-        click.echo(f"Extract sample {number}:")
-        file = outfile or f"{filenames.atoms}.{number:05d}"
+        number_positive = number
+        if number < 0:
+            number_positive += len(traj)
+        click.echo(f"Extract sample {number_positive}:")
+        file = outfile or f"{filenames.atoms}.{number_positive:05d}"
         atoms = traj[number]
-        info_str = f"Sample no.: {number:7d}"
+        info_str = f"Sample no.: {number_positive:7d}"
         kw = {"velocities": True, "scaled": not cartesian, "info_str": info_str}
         atoms.write(file, format="aims", **kw)
         click.echo(f".. sample written to {file}")
