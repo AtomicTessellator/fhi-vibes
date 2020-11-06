@@ -194,6 +194,7 @@ def get_gk_dataset(
     dataset: xr.Dataset,
     window_factor: int = defaults.window_factor,
     filter_threshold: float = defaults.filter_threshold,
+    total: bool = False,
     verbose: bool = True,
 ) -> xr.Dataset:
     """get Green-Kubo data from trajectory dataset
@@ -216,7 +217,12 @@ def get_gk_dataset(
 
     """
     # 1. get HFACF and integrated kappa
-    hfacf, kappa = get_hf_data(dataset.heat_flux)
+    heat_flux = dataset[keys.heat_flux]
+
+    if total:  # add non-gauge-invariant contribution
+        heat_flux += dataset[keys.heat_flux_aux]
+
+    hfacf, kappa = get_hf_data(heat_flux)
 
     # convert to W/mK
     pref = get_gk_prefactor_from_dataset(dataset, verbose=True)

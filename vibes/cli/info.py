@@ -160,7 +160,8 @@ def csv(file, max_rows, describe, half, to_json):
 @click.option("-p", "--plot", is_flag=True, help="plot summary")
 @click.option("--logx", is_flag=True)
 @click.option("--cmap", default="colorblind", help="the matplotlib colormap")
-def greenkubo(files, plot, logx, cmap):
+@click.option("--outfile", default="greenkubo_summary.pdf")
+def greenkubo(files, plot, logx, cmap, outfile):
     """visualize heat flux and thermal conductivity"""
     import xarray as xr
 
@@ -248,9 +249,8 @@ def greenkubo(files, plot, logx, cmap):
         else:
             ax2.set_xlim([0, tmax])
 
-        file = "greenkubo_summary.pdf"
-        fig.savefig(file, bbox_inches="tight")
-        click.echo(f".. summary plotted to {file}")
+        fig.savefig(outfile, bbox_inches="tight")
+        click.echo(f".. summary plotted to {outfile}")
 
 
 @info.command(context_settings=_default_context_settings)

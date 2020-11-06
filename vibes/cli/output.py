@@ -163,17 +163,24 @@ def phono3py(obj, file, q_mesh):
 @output.command(aliases=["gk"], context_settings=_default_context_settings)
 @click.argument("file", default="trajectory.nc")
 @click.option("-o", "--outfile", default="greenkubo.nc", type=Path)
-# @click.option("-d", "--discard", default=0)
 @click.option("-w", "--window_factor", default=defaults.window_factor)
-def greenkubo(file, outfile, window_factor):
+@click.option("--filter_threshold", default=defaults.filter_threshold)
+@click.option("--total", is_flag=True, help="compute total flux")
+# @click.option("-d", "--discard", default=0)
+def greenkubo(file, outfile, window_factor, filter_threshold, total):
     """perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
 
     import vibes.green_kubo as gk
 
-    ds = xr.load_dataset(file)
+    ds = xr.open_dataset(file)
 
-    ds_gk = gk.get_gk_dataset(ds, window_factor=window_factor)
+    ds_gk = gk.get_gk_dataset(
+        ds, window_factor=window_factor, filter_threshold=filter_threshold, total=total
+    )
+
+    if total:
+        outfile = outfile.parent / f"{outfile.stem}.total.nc"
 
     click.echo(f".. write to {outfile}")
 
