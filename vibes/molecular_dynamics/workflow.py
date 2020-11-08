@@ -12,12 +12,11 @@ from vibes.helpers.paths import cwd
 from vibes.helpers.restarts import restart
 from vibes.helpers.socketio import (
     get_socket_info,
-    get_stresses,
-    socket_stress_off,
-    socket_stress_on,
+    get_stresses
 )
 from vibes.helpers.utils import Timeout
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
+from vibes.helpers.calculator import virials_off, virials_on
 from vibes.trajectory import metadata2file, step2file
 
 from ._defaults import calculation_timeout, name
@@ -116,8 +115,10 @@ def run(ctx, backup_folder=default_backup_folder):
             atoms.info.update({keys.nsteps: md.nsteps, keys.dt: md.dt})
             meta = get_aims_uuid_dict()
             if compute_stresses:
+                virials_on(atoms.calc)
                 stresses = get_stresses(atoms)
                 atoms.calc.results["stresses"] = stresses
+                virials_off(atoms.calc)
 
             step2file(atoms, file=trajectory_file, metadata=meta)
 
@@ -132,6 +133,7 @@ def run(ctx, backup_folder=default_backup_folder):
             talk(f"Step {md.nsteps} finished, log.", prefix=_prefix)
 
             if compute_stresses_now(compute_stresses, md.nsteps):
+                virials_on(atoms.calc)
                 stresses = get_stresses(atoms)
                 atoms.calc.results["stresses"] = stresses
             else:  # make sure `stresses` are not logged
@@ -146,10 +148,10 @@ def run(ctx, backup_folder=default_backup_folder):
             if compute_stresses:
                 if compute_stresses_next(compute_stresses, md.nsteps):
                     talk("switch stresses computation on", prefix=_prefix)
-                    socket_stress_on(atoms.calc)
+                    virials_on(atoms.calc)
                 else:
                     talk("switch stresses computation off", prefix=_prefix)
-                    socket_stress_off(atoms.calc)
+                    virials_off(atoms.calc)
 
         talk("Stop.\n", prefix=_prefix)
 
