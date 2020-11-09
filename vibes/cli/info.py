@@ -127,19 +127,19 @@ def netcdf(file, key):
 
 @info.command(context_settings=_default_context_settings)
 @click.argument("file", type=complete_files)
-@click.option("--max_rows", default=100, help="max. no. of rows to print")
 @click.option("--describe", is_flag=True, help="print description of data")
 @click.option("--half", is_flag=True, help="print only the second half of data")
 @click.option("--to_json", type=Path, help="Write to json file")
-def csv(file, max_rows, describe, half, to_json):
+def csv(file, describe, half, to_json):
     """show contents of csv FILE"""
     import json
 
     import pandas as pd
 
-    pd.options.display.max_rows = max_rows
-
     df = pd.read_csv(file)
+
+    pd.options.display.max_rows = len(df)
+    pd.options.display.max_columns = len(df.columns)
 
     if half:
         df = df.iloc[len(df) // 2 :]
