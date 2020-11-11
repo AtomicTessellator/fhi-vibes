@@ -1,19 +1,16 @@
 """obtain standardised stresses from atoms"""
 
 import numpy as np
-from ase.calculators.calculator import PropertyNotImplementedError
 from ase.constraints import full_3x3_to_voigt_6_stress, voigt_6_to_full_3x3_stress
 
 from vibes.helpers import talk, warn
+from .stress import has_stress
 
 
 def get_stresses(atoms):
     """Obtain intensive Nx3x3 stresses"""
 
-    try:
-        stress = atoms.get_stress(voigt=False)
-    except PropertyNotImplementedError:
-        raise RuntimeError("Cannot obtain `stresses` if `stress` is not available.")
+    stress = atoms.get_stress(voigt=False)
 
     stresses = enforce_3x3(atoms.get_stresses())
     stresses = enforce_intensive(stress, stresses, atoms.get_volume())
@@ -66,3 +63,22 @@ def is_voigt(stresses):
         assert stresses.shape[1::] == (3, 3)
 
         return False
+
+
+def has_stresses(atoms):
+    """Check if we can obtain stresses with get_stresses
+
+    get_stresses requires that the stress is also avaible, so that's checked as well.
+
+    The helper is supposed to be run on atoms with a SinglePointCalculator attached,
+    not with a "live" calculator.
+
+    Args:
+        atoms: ase.Atoms object, with SinglePointCalculator attached.
+
+    Returns:
+        Whether get_stresses will be able to obtain stresses from atoms.
+
+    """
+
+    return "stresses" in atoms.calc.results and has_stress(atoms)

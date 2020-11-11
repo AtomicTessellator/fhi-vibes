@@ -2,7 +2,6 @@
 
 import numpy as np
 from ase import Atoms, units
-from ase.calculators.calculator import PropertyNotImplementedError
 from ase.geometry import find_mic
 
 from vibes import keys
@@ -11,7 +10,8 @@ from vibes.filenames import filenames
 from vibes.helpers import lazy_property, warn
 from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.helpers.hash import hash_atoms, hashfunc
-from vibes.helpers.stresses import get_stresses
+from vibes.helpers.stress import has_stress
+from vibes.helpers.stresses import get_stresses, has_stresses
 from vibes.helpers.utils import progressbar
 
 from . import analysis as al
@@ -350,13 +350,11 @@ class Trajectory(list):
         zeros = np.zeros((3, 3))
         stresses = []
         for a in self:
-            if "stress" in a.calc.results:
+            if has_stress(a):
                 stress = a.get_stress(voigt=False, include_ideal_gas=False)
             else:
                 stress = np.full_like(zeros, np.nan)
-            # exact zero means was not computed
-            if np.abs(stress).max() < 1e-14:
-                stress = np.full_like(zeros, np.nan)
+
             stresses.append(stress)
 
         return np.array(stresses, dtype=float)
@@ -367,7 +365,7 @@ class Trajectory(list):
         zeros = np.zeros((3, 3))
         stresses = []
         for a in self:
-            if "stress" in a.calc.results:
+            if has_stress(a):
                 stress_potential = a.get_stress(voigt=False)
                 stress_full = a.get_stress(voigt=False, include_ideal_gas=True)
                 stress_kinetic = stress_full - stress_potential
@@ -390,9 +388,9 @@ class Trajectory(list):
         zeros = np.zeros((len(self.reference_atoms), 3, 3))
 
         for a in self:
-            try:
+            if has_stresses(a):
                 atomic_stress = get_stresses(a)
-            except (PropertyNotImplementedError, RuntimeError):
+            else:
                 atomic_stress = np.full_like(zeros, np.nan)
             atomic_stresses.append(atomic_stress)
 
@@ -670,9 +668,9 @@ class Trajectory(list):
         # 2) compute J_avg from average stresses
         timer = Timer("Compute heat flux:")
         for a in progressbar(self):
-            try:
+            if has_stresses(a):
                 stresses = get_stresses(a)
-            except PropertyNotImplementedError:
+            else:
                 continue
 
             ds = stresses - avg_stresses
