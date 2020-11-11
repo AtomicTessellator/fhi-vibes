@@ -109,7 +109,8 @@ def get_lowest_vibrational_frequency(
 
     """
     # get VDOS (= fourier transform of velocity autocorrelation)
-    velocties_corr = get_autocorrelationNd(velocities, verbose=verbose).sum(axis=(1, 2))
+    v = velocities.dropna("time")
+    velocties_corr = get_autocorrelationNd(v, verbose=verbose).sum(axis=(1, 2))
 
     vdos = get_fourier_transformed(velocties_corr, npad=10000, verbose=verbose).real
 
@@ -194,6 +195,7 @@ def get_gk_dataset(
     dataset: xr.Dataset,
     window_factor: int = defaults.window_factor,
     filter_threshold: float = defaults.filter_threshold,
+    discard: int = 0,
     total: bool = False,
     verbose: bool = True,
 ) -> xr.Dataset:
@@ -203,6 +205,8 @@ def get_gk_dataset(
         dataset: a dataset containing `heat_flux` and describing attributes
         window_factor: factor for filter width estimated from VDOS (default: 1)
         filter_threshold: threshold for choosing vibr. freq. for filtering (default: 0.1)
+        discard: discard this many timesteps from the beginning of the trajectory
+        total: postprocess gauge-invariant terms of heat flux as well
 
     Returns:
         xr.Dataset: the processed data
@@ -225,7 +229,7 @@ def get_gk_dataset(
     hfacf, kappa = get_hf_data(heat_flux)
 
     # convert to W/mK
-    pref = get_gk_prefactor_from_dataset(dataset, verbose=True)
+    pref = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
     hfacf *= pref
     kappa *= pref
 
@@ -246,7 +250,8 @@ def get_gk_dataset(
     _talk(f".. window multiplicator used:    {window_factor:.4f} fs", **kw_talk)
 
     # 3. filter integrated HFACF (kappa) with this window respecting antisymmetry in time
-    k_filtered = get_filtered(kappa, window_fs=window_fs, antisymmetric=True)
+    kw = {"window_fs": window_fs, "antisymmetric": True, "verbose": verbose}
+    k_filtered = get_filtered(kappa, **kw)
 
     # 4. get the respective HFACF by differentiating w.r.t. time and filtering again
     k_gradient = kappa.copy()
