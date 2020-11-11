@@ -58,11 +58,8 @@ def run(ctx, backup_folder=default_backup_folder):
     compute_stresses = ctx.compute_stresses
     settings = ctx.settings
 
-    # create watchdog
-    buffer = 3
-    if compute_stresses > 0:
-        buffer = 5
-    watchdog = Watchdog(buffer=buffer)
+    # create watchdog with buffer size of 3
+    watchdog = Watchdog(buffer=3)
 
     # create working directories
     workdir = ctx.workdir
