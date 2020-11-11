@@ -244,7 +244,8 @@ class SlurmWatchdog(WallTimeWatchdog):
         try:
             jobid = os.environ["SLURM_JOB_ID"]
             self.jobid = jobid
-            walltime = get_timelimit(jobid)
+            # substract extra time but make sure number stays positive
+            walltime = min(extra_time, get_timelimit(jobid) - extra_time)
             super().__init__(walltime, history, buffer, log, verbose)
         except KeyError:
             if verbose:
