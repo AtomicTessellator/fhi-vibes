@@ -9,7 +9,7 @@ before_script:
 
 default:
   script:
-    - pytest --cov --cov-config=setup.cfg tests/ --ignore tests/fireworks/
+    - pytest --cov --cov-config=setup.cfg tests/ --ignore tests/fireworks/ --ignore tests/aims/
   after_script:
     - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
 
