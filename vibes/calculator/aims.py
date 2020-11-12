@@ -18,7 +18,7 @@ _fallback = "light"
 name = "aims"
 
 basisset_key = "basissets"
-basisset_choices = ("light", "intermediate", "tight", "really_tight")
+basisset_choices = ("minimal", "light", "intermediate", "tight", "really_tight")
 basisset_default = "light"
 
 
