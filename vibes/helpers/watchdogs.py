@@ -95,7 +95,7 @@ class WallTimeWatchdog:
         verbose: bool = True,
         **kwargs,
     ):
-        """ Watchdog that controls the walltime everytime it is called
+        """Watchdog that controls the walltime everytime it is called
 
         Args:
             walltime: Walltime in seconds
@@ -230,7 +230,7 @@ class SlurmWatchdog(WallTimeWatchdog):
         log: str = "watchdog.log",
         verbose: bool = True,
     ):
-        """ Watchdog that controls the walltime everytime it is called
+        """Watchdog that controls the walltime everytime it is called
 
         Args
             buffer: Defaults to 2. How many steps of buffer before watchdog should alert.
@@ -245,7 +245,10 @@ class SlurmWatchdog(WallTimeWatchdog):
             jobid = os.environ["SLURM_JOB_ID"]
             self.jobid = jobid
             # substract extra time but make sure number stays positive
-            walltime = min(extra_time, get_timelimit(jobid) - extra_time)
+            walltime = max(0, get_timelimit(jobid) - extra_time)
+            if walltime == 0:
+                talk("cleanup time exceeds walltime, please increase", prefix=_prefix)
+
             super().__init__(walltime, history, buffer, log, verbose)
         except KeyError:
             if verbose:
