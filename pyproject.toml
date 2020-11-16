@@ -45,9 +45,10 @@ pandas = "^1.0"
 importlib_resources = { version = "*", python = "3.6.*" }
 dataclasses = { version = "*", python = "3.6.*" }
 seaborn = "^0.11.0"
+requests = {version = "^2.25", optional=true}
 
 [tool.poetry.extras]
-fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko"]
+fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko", "requests"]
 phono3py = ["phono3py"]
 hiphive = ["hiphive"]
 postgresql = ["psycopg2"]
