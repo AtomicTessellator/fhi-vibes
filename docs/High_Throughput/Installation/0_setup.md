@@ -83,7 +83,7 @@ Now that you have a database set up now it is time to install FireWorks
 
 ## Installing FireWorks
 The first step in using FireWorks is installing the python library.
-By installing vibes with the FireWorks dependency by typing `poetry install -E fireworks` or `pip install vibes[fireworks]` this is already included, but you may want to install your own version of FireWorks locally.
+By installing vibes with the FireWorks dependency by typing `poetry install -E fireworks` (if `pypoetry` is installed) or `pip install fhi-vibes[fireworks]` this is already included, but you may want to install your own version of FireWorks locally.
 You can do this either by cloning the [git repository](https://github.com/materialsproject/fireworks) and using the python setup tools or via pip/conda.
 In addition to FireWorks, if you want to use the remote clients/database you'll need to install paramiko and fabric or if you are using the NEWT queuing system you'll have to install requests.
 To do all of this with pip simply type in
@@ -94,6 +94,8 @@ pip install fabric  # (only needed if using daemon mode of qlaunch!)
 pip install requests  # (only needed if you want to use the NEWT queue adapter!)
 ```
 The fireworks extension of vibes already includes paramiko and fabric, but requests would have to be installed via pip.
+As a note to install fireworks using pip the Kerberos 5 develop package must be installed.
+Please ensure this is installed for your system.
 
 Once FireWorks is installed you can test your installation by attempting to connect to FireWorks read-only test database, by creating `my_launchpad_testing.yaml` with the following contents:
 ```
