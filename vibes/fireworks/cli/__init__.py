@@ -37,7 +37,7 @@ class ListOption(click.Option):
 
 @click.command(cls=AliasedGroup)
 def fireworks():
-    """Access HiLDe's FireWorks wrappers"""
+    """Access to fhi-vibes's FireWorks wrappers"""
 
 
 @fireworks.command("add_wf")
