@@ -183,7 +183,9 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
     ase_settings = {"aims_command": ctx.settings.machine.aims_command}
 
     if "socketio" in settings:
-        if settings.get("socketio") is True:
+        if settings.get("socketio") is False:
+            port = None
+        elif settings.get("socketio") is True:
             host = "localhost"
             port = get_port(host, port="auto")
         else:
