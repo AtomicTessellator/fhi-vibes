@@ -1,7 +1,4 @@
 """ run molecular dynamics simulations using the ASE classes """
-
-from pathlib import Path
-
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 
@@ -65,17 +62,18 @@ def run(ctx, backup_folder=default_backup_folder):
     workdir = ctx.workdir
     trajectory_file = ctx.trajectory_file
     calc_dir = workdir / _calc_dirname
-    backup_folder = workdir / backup_folder
+    backup_folder = (workdir / backup_folder).absolute()
 
     # prepare the socketio stuff
     socketio_port, socketio_unixsocket = get_socket_info(calculator)
+
+    iocalc = None
     if socketio_port is None:
-        socket_calc = None
-        # choose some 5 digit number
-        socketio_port = np.random.randint(0, 65000)
+        atoms.calc = calculator
     else:
-        socket_calc = calculator
-    atoms.calc = calculator
+        kw = {"port": socketio_port, "unixsocket": socketio_unixsocket}
+        iocalc = SocketIOCalculator(calculator, **kw)
+        atoms.calc = iocalc
 
     # does it make sense to start everything?
     if md.nsteps >= maxsteps:
@@ -97,14 +95,10 @@ def run(ctx, backup_folder=default_backup_folder):
         with cwd(workdir, mkdir=True):
             settings.write()
 
+    # start a timeout
     timeout = Timeout(calculation_timeout)
-    with SocketIOCalculator(
-        socket_calc, port=socketio_port, unixsocket=socketio_unixsocket
-    ) as iocalc, cwd(calc_dir, mkdir=True):
-        # make sure the socket is entered
-        if socket_calc is not None:
-            atoms.calc = iocalc
 
+    with cwd(calc_dir, mkdir=True):
         # log very initial step and metadata
         if md.nsteps == 0:
             # carefully compute forces
@@ -153,6 +147,11 @@ def run(ctx, backup_folder=default_backup_folder):
                 else:
                     talk("switch stresses computation off")
                     virials_off(atoms.calc)
+
+        # close socket
+        if iocalc is not None:
+            talk("Close the socket")
+            iocalc.close()
 
         talk("Stop.\n")
 
