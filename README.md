@@ -1,15 +1,15 @@
 FHI-vibes
 ===
 
-Welcome to `FHI-vibes`, a `python` package for calculating, analyzing, and understanding the vibrational properties of anharmonic solids from first principles. `FHI-vibes` is intended to bridge between different methodologies, so to allow for a seamless assessment of vibrational properties with different approaches, ranging from the harmonic approximation to anharmonic MD. `FHI-vibes` builds on several [existing packages](https://vibes-developers.gitlab.io/vibes/Credits/) and interfaces them in a consistent and user-friendly fashion. 
+Welcome to `FHI-vibes`, a `python` package for calculating, analyzing, and understanding the vibrational properties of solids from first principles. `FHI-vibes` is intended to seamlessly bridge between the harmonic approximation and fully anharmonic molecular dynamics simulations. To this end, `FHI-vibes` builds on several [existing packages](https://vibes-developers.gitlab.io/vibes/Credits/) and interfaces them in a consistent and user-friendly fashion. While basic knowledge of first-principles simulations as well as working experience with codes such as [FHI-aims](https://aimsclub.fhi-berlin.mpg.de/) are assumed, additional experience with the [Atomic Simulation Environment (ASE)](https://wiki.fysik.dtu.dk/ase/) or [Phonopy](https://atztogo.github.io/phonopy/) is helpful, but not needed.
 
-Its main features are:
+Our main features are:
 
 - Geometry optimization via [ASE](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-ase.optimize),
 - harmonic phonon calculations via [Phonopy](https://atztogo.github.io/phonopy/),
 - molecular dynamics simulations in [NVE](https://wiki.fysik.dtu.dk/ase/ase/md.html#constant-nve-simulations-the-microcanonical-ensemble), [NVT](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md.langevin), and [NPT](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md.nptberendsen) ensembles,
 - [harmonic sampling](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.96.115504), and
-- [anharmonicity quantification](https://arxiv.org/abs/2006.14672).
+- [anharmonicity quantification](https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.4.083809).
 
 Most of the functionality is high-throughput ready via [fireworks](https://materialsproject.github.io/fireworks/#).
 
@@ -24,8 +24,8 @@ Most of the functionality is high-throughput ready via [fireworks](https://mater
 
 ## News
 
-- [Our anharmonicity measure got published.](https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.4.083809)
-- [the best is yet to come](https://www.youtube.com/watch?v=B-Jq26BCwDs)
+- [Our anharmonicity measure got published!](https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.4.083809)
+- [… the best is yet to come.](https://www.youtube.com/watch?v=B-Jq26BCwDs)
 
 ## Changelog
 
