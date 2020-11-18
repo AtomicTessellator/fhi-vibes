@@ -250,6 +250,10 @@ class SlurmWatchdog(WallTimeWatchdog):
                 talk("cleanup time exceeds walltime, please increase", prefix=_prefix)
 
             super().__init__(walltime, history, buffer, log, verbose)
+
+            # if time elapsed before watchdog got initiated,
+            # this corrects the start time
+            self.start_time -= self.job_elapsed
         except KeyError:
             if verbose:
                 msg = "seems we are not on a cluster, nothing to do for watchdog"
@@ -257,6 +261,6 @@ class SlurmWatchdog(WallTimeWatchdog):
             super().__init__(None, history, buffer, log, verbose=False)
 
     @property
-    def elapsed(self) -> float:
+    def job_elapsed(self) -> float:
         """how much time has elapsed since the job started in seconds"""
         return get_time(self.jobid)
