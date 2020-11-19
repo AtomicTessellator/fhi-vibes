@@ -1,0 +1,19 @@
+[files]
+geometry = geometry.in
+
+[calculator]
+name     = aims
+socketio = false
+
+[calculator.parameters]
+xc       = pw-lda
+k_grid   = [4, 4, 4]
+
+[calculator.basissets]
+default  = minimal
+
+[md]
+driver:                        Verlet
+timestep:                      1
+maxsteps:                      3
+compute_stresses:              2
