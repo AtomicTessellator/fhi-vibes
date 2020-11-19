@@ -50,24 +50,37 @@ potential use cases include
 accelerating _MD_ calculations by starting from harmonic equilibrium configurations [@West2006], 
 analyzing _MD_ simulations in terms of harmonic phonons [@Turney2009], 
 investigating the range of validity of the perturbative expansion used in _lattice dynamics_ [@Knoop2020], 
-and overcoming finite size- and time-effects in _ab initio_ Green Kubo simulations of the thermal conductivity [@Carbogno2016]. 
+and overcoming finite-size and finite-time effects in _ab initio_ Green Kubo simulations of the thermal conductivity [@Carbogno2016]. 
 Given the wide opportunities for application, the aspect of _integration_, i.e., the ability to utilize different methodologies from distinct codes in a flexible fashion using a consistent user interface, is paramount. In particular, this is a prerequisite for automatizing these workflows to enable hierarchical high-throughput screening of whole material classes in a systematic fashion. For example, such a workflow would start from geometry optimizations followed by a study of harmonic properties for many materials, so to single out candidate materials for more involved, fully anharmonic aiMD simulation techniques. Along these lines, let us mention that providing descriptive input and output files is a prerequisite for sharing raw data and results in a transparent and interpretable way in the spirit of open science and the FAIR Principles [@Draxl2018]. On top of that, tracking the provenance [@AiiDA] across different codes facilitates the repurposing and analysis of the obtained data.
-
-To facilitate the described scientific studies, _FHI-vibes 1.0_ offers the following main features:
-*Add list from readme, maybe even longer, just make sure that we can tick all points/problems (NOT THE APPLICATIONS!) described above.*
-More advanced features and workflows will be added in future releases.
 
 # Summary
 
-_FHI-vibes_ is a _python_ package that allows for such an integrated workflow. 
-It uses the _Atomistic Simulation Environment (ASE)_ [@Larsen2017] as a backend in order to represent materials and to connect to various first-principles codes. Via _ASE_, _FHI-vibes_ provides a flexible framework for geometry optimization and MD, and connects to external codes like _spglib_ [@Togo2018], _phonopy_ [@Togo2015], _phono3py_ [@Togo2015b], and _hiphive_ [@Eriksson2019] that implement lattice dynamics techniques based on the harmonic approximation. For all these tasks, _FHI-vibes_ provides defined input files and a command line interface to set up and run calculations on local machines and clusters using the _slurm_ submission system. The output is organized in self-contained and descriptive output files that enable a straightforward exchange of the data obtained with different methodologies.
+_FHI-vibes_ is a _python_ package that allows for such an integrated workflow. It uses the _Atomistic Simulation Environment (ASE)_ [@Larsen2017] as a backend in order to represent materials and to connect to various first-principles codes. Via _ASE_, _FHI-vibes_ provides a flexible framework for geometry optimization and MD, and connects to external codes like _spglib_ [@Togo2018], _phonopy_ [@Togo2015], _phono3py_ [@Togo2015b], and _hiphive_ [@Eriksson2019] that implement lattice dynamics techniques based on the harmonic approximation. For all these tasks, _FHI-vibes_ provides defined input files and a command line interface to set up and run calculations on local machines and clusters using the _slurm_ submission system. The output is organized in self-contained and descriptive output files that enable a straightforward exchange of the data obtained with different methodologies.
 For advanced analysis, it provides an API fully compatible  with _ASE_ as well as _numpy_ [@Walt2011], _pandas_ [@McKinney2011], and _xarray_ [@Hoyer2017]; several user-friendly utilities allow to perform the most common postprocessing tasks within the command-line interface, such as providing comprehensive summaries of MD simulations or phonon calculations.
 
-_FHI-vibes_ provides a connection to *FireWorks* [@Jain2015], a workflow management system for running simulation workflows on extensive sets of materials in _high-throughput_ fashion. _FHI-vibes_ is tightly integrated with *FHI-aims* [@Blum2009] to perform energy and force calculations, but extending the functionality to any calculator available via *ASE* is straightforward.
-
-An extensive user guide including a comprehensive list of the available features, tutorials, and a reference documentation is available at [`vibes.fhi-berlin.mpg.de`](http://vibes.fhi-berlin.mpg.de/).
+_FHI-vibes_ provides a connection to *FireWorks* [@Jain2015], a workflow management system for running simulation workflows on extensive sets of materials in high-throughput fashion. _FHI-vibes_ is tightly integrated with *FHI-aims* [@Blum2009] to perform energy and force calculations, but extending the functionality to any calculator available via *ASE* is straightforward.
 
 _FHI-vibes_ was used to produce the results in [@Knoop2020].
+
+## Features
+
+_FHI-vibes 1.0_ offers the following main features:
+
+- Free and symmetry-constrained geometry optimization, 
+
+- harmonic phonon calculations, 
+
+- molecular dynamics simulations, 
+
+- harmonic sampling, and 
+
+- anharmonicity quantification. 
+
+These tasks can be combined to define workflows for high-throughput screening of material space.
+
+The codebase and user interface of *FHI-vibes* are designed as a modular framework such that more advanced features and workflows are straightforward to add in the future.
+
+An extensive user guide including a comprehensive list of the available features, tutorials, and a reference documentation is available at [`vibes.fhi-berlin.mpg.de`](http://vibes.fhi-berlin.mpg.de/).
 
 # Acknowledgements
 The authors would like to thank Roman Kempt and Marcel Hülsberg for testing and providing valuable feedback. F.K. would like to thank Marcel Langer and Zhenkun Yuan for feedback and Ask Hjorth Larsen for valuable discussions. T.P. would like to thank the Alexander von Humboldt Foundation for their support through the Alexander von Humboldt Postdoctoral Fellowship Program. This project was supported by TEC1p (the European Research Council (ERC) Horizon 2020 research and innovation programme, grant agreement No. 740233), BigMax (the Max Planck Society’s Research Network on Big-Data-Driven Materials-Science), and the NOMAD pillar of the FAIR-DI e.V. association.
