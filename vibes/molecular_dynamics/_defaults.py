@@ -1,7 +1,9 @@
 """ vibes defaults for md"""
 import collections
 
+from vibes.helpers import talk as _talk
 from vibes.helpers.dict import AttributeDict as adict
+
 
 name = "md"
 
@@ -63,3 +65,7 @@ npt_dict = {name: kwargs_npt}
 
 
 calculation_timeout = 30 * 60  # 30 minutes
+
+
+def talk(msg, verbose=True):
+    return _talk(msg, verbose=verbose, prefix=name)

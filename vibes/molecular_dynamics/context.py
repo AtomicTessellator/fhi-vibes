@@ -1,9 +1,8 @@
 """Phonopy workflow context managing"""
 
-from functools import partial
-import numpy as np
 from pathlib import Path
 
+import numpy as np
 from ase import md as ase_md
 from ase import units as u
 from ase.io import read
@@ -11,15 +10,12 @@ from ase.md.md import MolecularDynamics
 
 from vibes import keys, son
 from vibes.context import TaskContext
-from vibes.helpers import talk as _talk
 from vibes.helpers import warn
-from vibes.helpers.converters import input2dict, dict2atoms
+from vibes.helpers.converters import dict2atoms, input2dict
 
 from ._defaults import keys as md_keys
-from ._defaults import name, npt_dict, nve_dict, nvt_dict
-from .workflow import _prefix, run_md
-
-talk = partial(_talk, prefix=_prefix)
+from ._defaults import name, npt_dict, nve_dict, nvt_dict, talk
+from .workflow import run_md
 
 
 class MDContext(TaskContext):
@@ -185,8 +181,7 @@ class MDContext(TaskContext):
                 last_atoms = son.last_from(trajectory_file)
             except IndexError:
                 warn(
-                    f"** trajectory lacking the first step, please CHECK!",
-                    level=2,
+                    f"** trajectory lacking the first step, please CHECK!", level=2,
                 )
 
             # we can't set self.atoms = dict2atoms because that would

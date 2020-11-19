@@ -1,10 +1,12 @@
 """ run molecular dynamics simulations using the ASE classes """
 
+from pathlib import Path
+
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 
 from vibes import keys, son
-from vibes.helpers import talk, warn
+from vibes.helpers import warn
 from vibes.helpers.aims import get_aims_uuid_dict
 from vibes.helpers.backup import backup_folder as backup
 from vibes.helpers.backup import default_backup_folder
@@ -19,12 +21,11 @@ from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.helpers.calculator import virials_off, virials_on
 from vibes.trajectory import metadata2file, step2file
 
-from ._defaults import calculation_timeout, name
+from ._defaults import calculation_timeout, talk
 
 
 _calc_dirname = "calculations"
 # _socket_timeout = 60
-_prefix = name
 
 
 def run_md(ctx, timeout=None):
@@ -33,10 +34,10 @@ def run_md(ctx, timeout=None):
     converged = run(ctx)
 
     if not converged:
-        talk("restart", prefix=_prefix)
+        talk("restart")
         restart(ctx.settings, trajectory_file=ctx.trajectory_file)
     else:
-        talk("done.", prefix=_prefix)
+        talk("done.")
 
 
 def run(ctx, backup_folder=default_backup_folder):
@@ -79,7 +80,7 @@ def run(ctx, backup_folder=default_backup_folder):
     # does it make sense to start everything?
     if md.nsteps >= maxsteps:
         msg = f"run already finished, please inspect {workdir.absolute()}"
-        talk(msg, prefix=_prefix)
+        talk(msg)
         return True
 
     # is the calculation similar enough?
@@ -130,7 +131,7 @@ def run(ctx, backup_folder=default_backup_folder):
             if not md_step(md):
                 break
 
-            talk(f"Step {md.nsteps} finished, log.", prefix=_prefix)
+            talk(f"Step {md.nsteps} finished, log.")
 
             if compute_stresses_now(compute_stresses, md.nsteps):
                 virials_on(atoms.calc)
@@ -147,13 +148,13 @@ def run(ctx, backup_folder=default_backup_folder):
 
             if compute_stresses:
                 if compute_stresses_next(compute_stresses, md.nsteps):
-                    talk("switch stresses computation on", prefix=_prefix)
+                    talk("switch stresses computation on")
                     virials_on(atoms.calc)
                 else:
-                    talk("switch stresses computation off", prefix=_prefix)
+                    talk("switch stresses computation off")
                     virials_off(atoms.calc)
 
-        talk("Stop.\n", prefix=_prefix)
+        talk("Stop.\n")
 
     # restart
     if md.nsteps < maxsteps:
