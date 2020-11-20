@@ -89,6 +89,7 @@ class WallTimeWatchdog:
     def __init__(
         self,
         walltime: int = None,
+        start_time: float = None,
         history: int = 10,
         buffer: int = 2,
         log: str = "watchdog.log",
@@ -99,22 +100,28 @@ class WallTimeWatchdog:
 
         Args:
             walltime: Walltime in seconds
+            start_time: Start time of job to be watched, in seconds since the epoch,
+                if None, time() from initialisation of this class will be used
             history: How many steps should be used to project the runtime
             buffer: How many steps of buffer before watchdog should alert.
             log: Path to log file
             verbose: If True print more logging information
 
         """
+        if start_time is None:
+            start_time = time()
+
+        self.start_time = start_time
+
         if walltime is None:
             if verbose:
                 talk("walltime not set, disable watchdog", prefix=_prefix)
             self.walltime = None
         else:
-            self.walltime = walltime + time()
+            self.walltime = self.start_time + walltime
 
         self.buffer = buffer
-        self.start_time = time()
-        self.history = [time()]
+        self.history = [self.start_time]
         self.n_calls = 0
         self.logfile = None
         self.max_depth = history
@@ -249,16 +256,24 @@ class SlurmWatchdog(WallTimeWatchdog):
             if walltime == 0:
                 talk("cleanup time exceeds walltime, please increase", prefix=_prefix)
 
-            super().__init__(walltime, history, buffer, log, verbose)
+            # correct start_time by startup time before
+            # watchdog got initialised
+            start_time = time() - self.job_elapsed
 
-            # if time elapsed before watchdog got initiated,
-            # this corrects the start time
-            self.start_time -= self.job_elapsed
+            super().__init__(
+                walltime=walltime,
+                start_time=start_time,
+                history=history,
+                buffer=buffer,
+                log=log,
+                verbose=verbose,
+            )
+
         except KeyError:
             if verbose:
                 msg = "seems we are not on a cluster, nothing to do for watchdog"
                 talk(msg, prefix=_prefix)
-            super().__init__(None, history, buffer, log, verbose=False)
+            super().__init__(walltime=None)
 
     @property
     def job_elapsed(self) -> float:
