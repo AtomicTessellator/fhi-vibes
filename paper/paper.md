@@ -64,7 +64,7 @@ _FHI-vibes_ was used to produce the results in [@Knoop2020].
 
 ## Features
 
-_FHI-vibes 1.0_ offers the following main features:
+To facilitate the scientific studies described in the [statement of need](#statement-of-need), _FHI-vibes 1.0_ offers the following main features:
 
 - Free and symmetry-constrained geometry optimization, 
 
@@ -76,11 +76,9 @@ _FHI-vibes 1.0_ offers the following main features:
 
 - anharmonicity quantification. 
 
-These tasks can be combined to define workflows for high-throughput screening of material space.
+An extensive user guide including tutorials and a reference documentation for these features is available at [`vibes.fhi-berlin.mpg.de`](http://vibes.fhi-berlin.mpg.de/). As demonstrated in a dedicated tutorial, the tasks can be easily combined and tailored to define workflows for high-throughput screening of material space.
 
 The codebase and user interface of *FHI-vibes* are designed as a modular framework such that more advanced features and workflows are straightforward to add in the future.
-
-An extensive user guide including a comprehensive list of the available features, tutorials, and a reference documentation is available at [`vibes.fhi-berlin.mpg.de`](http://vibes.fhi-berlin.mpg.de/).
 
 # Acknowledgements
 The authors would like to thank Roman Kempt and Marcel Hülsberg for testing and providing valuable feedback. F.K. would like to thank Marcel Langer and Zhenkun Yuan for feedback and Ask Hjorth Larsen for valuable discussions. T.P. would like to thank the Alexander von Humboldt Foundation for their support through the Alexander von Humboldt Postdoctoral Fellowship Program. This project was supported by TEC1p (the European Research Council (ERC) Horizon 2020 research and innovation programme, grant agreement No. 740233), BigMax (the Max Planck Society’s Research Network on Big-Data-Driven Materials-Science), and the NOMAD pillar of the FAIR-DI e.V. association.
