@@ -9,21 +9,27 @@ vibes template slurm >> your_input.in
 ??? info "Task input file with `[slurm]` section"
 
 	```
-    ...
-    [slurm]
-    name:         test
-    tag:          vibes
-    mail_type:    all
-    mail_address: your@mail.com
-    nodes:        1
-    cores:        32
-    queue:        express
-    timeout:      30
-    ```
+	...
+	[slurm]
+	name:         test
+	tag:          vibes
+	mail_type:    all
+	mail_address: your@mail.com
+	nodes:        1
+	cores:        32
+	queue:        express
+	timeout:      30
+	```
 
 ## Submit a job
 
-A job is submitted by using `vibes submit` instead of `vibes run`. For example, you would run `vibes submit md md.in` on a cluster to submit the calculation to the queue instead of running `vibes run md md.in` locally. `vibes submit` will submit the job to the cluster according to the specification it finds in the `[slurm]` section, see [below](#the-slurm-section)
+A job is submitted by using `vibes submit` instead of `vibes run`. For example, you would run `vibes submit md md.in` on a cluster to submit the calculation to the queue instead of running `vibes run md md.in` locally. `vibes submit` will submit the job to the cluster according to the specification it finds in the `[slurm]` section, see [below](#the-slurm-section).
+
+The command will do the following:
+
+- Write a `submit.sh` script according to the specifications found in the `[slurm]` section,
+- submit the job to the queue via `sbatch submit.sh`, and
+- log the time of submission and the job ID to a file called `.submit.log`.
 
 ## Restart a job
 
@@ -35,7 +41,7 @@ A job is submitted by using `vibes submit` instead of `vibes run`. For example, 
 command: the command to restart the calculation, e.g., `vibes submit md md.in`
 ```
 
-to your task input file.
+to your task input file. This will run the command specified here shortly before the walltime is over.
 
 ## The `[slurm`] section
 

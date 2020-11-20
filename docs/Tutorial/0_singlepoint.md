@@ -29,18 +29,18 @@ be calculated.
     ```
     [files]
     geometry:                      geometry.in
-
+    
     [calculator]
     name:                          aims
     socketio:                      true
-
+    
     [calculator.parameters]
     xc:                            pw-lda
     compute_forces:                true
-
+    
     [calculator.kpoints]
     density:                       3
-
+    
     [calculator.basissets]
     Si:                            light
     ```
@@ -66,11 +66,11 @@ or by submitting it to a queue on a computing cluster.
     #SBATCH --ntasks-per-node=32
     #SBATCH --ntasks-per-core=1
     #SBATCH -t 24:0:00
-
+    
     # Make sure that the correct Python environment is set up, e.g.
     module load miniconda/3/4.5.4
     source activate vibes
-
+    
     vibes run singlepoint aims.in &> log.aims
     ```
 
@@ -80,7 +80,7 @@ The calculation should only take a few seconds and yield the following output:
 
     ```
     [vibes.run]    run singlepoint calculations with settings from aims.in
-
+    
     [calculator]   Update aims k_grid with kpt density of 3 to [8, 8, 8]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
@@ -131,7 +131,7 @@ which yields the output
 
     ** Warning from file vibes/trajectory/trajectory.py, line 198, function times:
     --> no time steps found, return time as index
-
+    
     /u/christia/.local/lib/python3.7/site-packages/numpy/core/fromnumeric.py:3373: RuntimeWarning: Mean of empty slice.
       out=out, **kwargs)
     /u/christia/.local/lib/python3.7/site-packages/numpy/core/_methods.py:170: RuntimeWarning: invalid value encountered in double_scalars
@@ -141,7 +141,7 @@ which yields the output
     [trajectory]   .. time elapsed: 0.001s
     ** Warning from file vibes/trajectory/trajectory.py, line 540, function set_displacements:
     --> SUPERCELL NOT SET, compute w.r.t to reference atoms
-
+    
     [trajectory]   Compute displacements
     [trajectory]   .. time elapsed: 0.002s
     [trajectory]   Get pressure from trajectory
@@ -184,18 +184,18 @@ which only differ by in the first fractional coordinate of the first atom, by us
     ```
     [files]
     geometries:                    geometry.in.???
-
+    
     [calculator]
     name:                          aims
     socketio:                      true
-
+    
     [calculator.parameters]
     xc:                            pw-lda
     compute_forces:                true
-
+    
     [calculator.kpoints]
     density:                       3
-
+    
     [calculator.basissets]
     Si:                            light
     ```
@@ -223,7 +223,7 @@ To efficiently perform _ab initio_ calculations for systems larger than a few at
 
     ```
     #!/bin/bash -l
-
+    
     #SBATCH -J md|vibes
     #SBATCH -o log/md.%j
     #SBATCH -e log/md.%j
@@ -233,11 +233,13 @@ To efficiently perform _ab initio_ calculations for systems larger than a few at
     #SBATCH --ntasks-per-node=32
     #SBATCH --ntasks-per-core=1
     #SBATCH -t 24:0:00
-
+    
     vibes run singlepoint aims.in
     ```
 
 The log file will be written to a `log` folder.
+
+For default tasks, `vibes` can write and submit the `submit.sh` file in a single command, see [documentation of slurm submission](../Documentation/input_files_slurm.md)
 
 ## Restart a calculation
 
@@ -252,4 +254,4 @@ Optionally, `vibes` can restart the job by itself using a `[restart]` section in
 command = sbatch submit.sh
 ```
 
-to your `aims.in`, where `sbatch submit.sh` is the command you use to submit the calculation to the queue.
+to your `aims.in`, where `sbatch submit.sh` is the command you use to submit the calculation to the queue. `vibes` will run this command shortly before the walltime is over to restart the job.
