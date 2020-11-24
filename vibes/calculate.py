@@ -163,10 +163,8 @@ def calculate_socket(
 
                 # update calculation_atoms and compute force
                 atoms.info = cell.info
-                atoms.positions = cell.positions
-
-                # check the cell
-                check_cell(atoms, cell)
+                atoms.cell = cell.cell  # update cell
+                atoms.positions = cell.positions  # update positions
 
                 # when socketio is used: calculate here, backup was already performed
                 # else: calculate in subfolder and backup if necessary
@@ -255,14 +253,3 @@ def check_precomputed_hashes(
     if hash == pre_hash:
         talk(f"Structure {index + 1} already computed, skip.")
         return True
-
-
-def check_cell(atoms: Atoms, new_atoms: Atoms):
-    """check if the lattice has changed"""
-    try:
-        diff = np.linalg.norm(atoms.cell.array - new_atoms.cell.array)
-    except AttributeError:
-        diff = np.linalg.norm(atoms.cell - new_atoms.cell)
-    if diff > 1e-10:
-        msg = "lattice has changed by {diff}, FIXME!"
-        raise RuntimeError(msg)
