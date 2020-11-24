@@ -3,11 +3,11 @@ from pathlib import Path
 
 import numpy as np
 
+from vibes.calculate import calculate, calculate_socket
 from vibes.filenames import filenames
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.hash import hash_dict
 from vibes.settings import Settings
-from vibes.tasks.calculate import calculate, calculate_socket
 
 
 T_S_LINE = (

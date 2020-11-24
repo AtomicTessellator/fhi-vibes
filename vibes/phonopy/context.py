@@ -96,9 +96,9 @@ class PhonopyContext(TaskContext):
 
     def run(self, dry=False):
         """run phonopy workflow """
+        from vibes.calculate import calculate_socket
         from vibes.helpers import talk
         from vibes.helpers.restarts import restart
-        from vibes.tasks import calculate_socket
 
         args = self.bootstrap(dry=dry)
 

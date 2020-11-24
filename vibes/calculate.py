@@ -5,7 +5,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from ase.calculators.socketio import SocketIOCalculator
+from ase import Atoms
+from ase.calculators.socketio import Calculator, SocketIOCalculator
 
 from vibes.filenames import filenames
 from vibes.helpers import talk, warn
@@ -20,106 +21,66 @@ from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.son import son
 from vibes.trajectory import get_hashes_from_trajectory_file, metadata2file, step2file
 
+
 calc_dirname = "calculations"
 
 
-def cells_and_workdirs(cells, base_dir):
-    """generate tuples of atoms object and workingdirectory path
-
-    Parameters
-    ----------
-    cells: list of ase.atoms.Atoms
-        The cells to assign workdirs to
-    base_dir: str
-        Path to the base working directory
-
-    Yields
-    ------
-    cell: ase.atoms.Atoms
-        The particular cell
-    workdir: Path
-        The working directory for cell
-    """
-    for ii, cell in enumerate(cells):
-        workdir = Path(base_dir) / f"{ii:05d}"
-        yield cell, workdir
-
-
-def calculate(atoms, calculator, workdir="."):
+def calculate(atoms: Atoms, calculator: Calculator, workdir: str = ".") -> Atoms:
     """Perform a dft calculation with ASE
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        The structure to calculate
-    calculator: ase.calculators.calulator.Calculator:
-        The calculator to used to get the properties
-    workdir: str or Path
-        Path to the working directory
+    Args:
+        atoms: The structure to calculate
+        calculator: The calculator to used to get the properties
+        workdir: Path to the working directory
 
-    Returns
-    -------
-    calc_atoms: ase.atoms.Atoms
+    Returns:
         atoms with all properties calculated
-    """
 
+    """
     if atoms is None:
+        warn("No atoms given, do nothing.")
         return atoms
+
     calc_atoms = atoms.copy()
     calc_atoms.calc = calculator
+
     with cwd(workdir, mkdir=True):
         calc_atoms.calc.calculate(calc_atoms)
+
     return calc_atoms
 
 
 def calculate_socket(
-    atoms_to_calculate,
-    calculator,
-    metadata=None,
-    settings=None,
-    trajectory_file=filenames.trajectory,
-    workdir="calculations",
-    save_input=False,
-    backup_folder="backups",
-    backup_after_calculation=True,
-    check_settings_before_resume=True,
-    dry=False,
+    atoms_to_calculate: list,
+    calculator: Calculator,
+    metadata: dict = None,
+    settings: dict = None,
+    trajectory_file: str = filenames.trajectory,
+    workdir: str = "calculations",
+    save_input: bool = False,
+    backup_folder: str = "backups",
+    backup_after_calculation: bool = True,
+    check_settings_before_resume: bool = True,
+    dry: bool = False,
     **kwargs,
-):
+) -> bool:
     """perform calculations for a set of atoms objects, while able to use the socket
 
-    Parameters
-    ----------
-    atoms_to_calculate: list of ase.atoms.Atoms
-        list with atoms to calculate
-    calculator: ase.calculators.calulator.Calculator
-        calculator to use
-    metadata: dict
-        metadata information to store to trajectory
-    settings: dict
-        the settings used to set up the calculation
-    trajectory_file: str or Path
-        path to write trajectory to
-    workdir: str or Path
-        working directory
-    backup_folder: str or Path
-        directory to back up calculations to
-    check_settings_before_resume: bool
-        only resume when settings didn't change
-    dry: bool
-        only create working directory and write metadata to trajectory
+    Args:
+        atoms_to_calculate: list with atoms to calculate
+        calculator: calculator to use
+        metadata: metadata information to store to trajectory
+        settings: the settings used to set up the calculation
+        trajectory_file: path to write trajectory to
+        workdir: working directory
+        backup_folder: directory to back up calculations to
+        check_settings_before_resume: only resume when settings didn't change
+        dry: only create working directory and write metadata to trajectory
 
-    Returns
-    -------
-    bool
+    Returns:
         Wether all structures were computed or not
 
-    Raises
-    ------
-    RuntimeError
-        If the lattice changes significantly
     """
-
     # create watchdog
     watchdog = Watchdog()
 
@@ -241,22 +202,14 @@ def calculate_socket(
     return True
 
 
-def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
+def check_metadata(new_metadata: dict, old_metadata: dict, keys: list = ["calculator"]):
     """check if metadata sets coincide and sanity check geometry
 
-    Parameters
-    ----------
-    new_metadata: dict
-        The metadata of the current calculation
-    old_metadata: dict
-        The metadata from the trajectory.son file
-    keys: list of str
-        Keys to check if the metadata agree with
+    Args:
+        new_metadata: The metadata of the current calculation
+        old_metadata: The metadata from the trajectory.son file
+        keys: Keys to check if the metadata agree with
 
-    Raises
-    ------
-    ValueError
-        If the keys do not coincide
     """
     nm = new_metadata
     om = old_metadata
@@ -280,8 +233,8 @@ def check_metadata(new_metadata, old_metadata, keys=["calculator"]):
             warn(msg, level=1)
 
 
-def fix_emt(atoms, calculator):
-    """necessary to use EMT with socket"""
+def fix_emt(atoms: Atoms, calculator: Calculator):
+    """fix when using EMT calculator with socket"""
     try:
         calculator.initialize(atoms)
         talk("calculator initialized.")
@@ -289,7 +242,9 @@ def fix_emt(atoms, calculator):
         pass
 
 
-def check_precomputed_hashes(atoms, precomputed_hashes, index):
+def check_precomputed_hashes(
+    atoms: Atoms, precomputed_hashes: list, index: int
+) -> bool:
     """check if atoms was computed before"""
     hash = hash_atoms(atoms)
     try:
@@ -302,7 +257,7 @@ def check_precomputed_hashes(atoms, precomputed_hashes, index):
         return True
 
 
-def check_cell(atoms, new_atoms):
+def check_cell(atoms: Atoms, new_atoms: Atoms):
     """check if the lattice has changed"""
     try:
         diff = np.linalg.norm(atoms.cell.array - new_atoms.cell.array)

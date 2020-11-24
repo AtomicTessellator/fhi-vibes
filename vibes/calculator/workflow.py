@@ -3,10 +3,10 @@
     Input: geometry.in and settings.in
     Output: geometry.in.supercell and trajectory.son """
 
+from vibes.calculate import calculate_socket
 from vibes.helpers import talk
 from vibes.helpers.converters import atoms2dict, input2dict
 from vibes.helpers.restarts import restart
-from vibes.tasks import calculate_socket
 
 from .context import CalculatorContext
 
