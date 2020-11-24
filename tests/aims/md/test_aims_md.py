@@ -28,12 +28,12 @@ def test_aims_md(tmp_path, md_input_file):
     old_traj = reader(trajectory_ref_file)
     new_traj = reader(tmp_path / "md" / "trajectory.son")
 
-    for (a0, a1) in zip(old_traj, new_traj):
+    _check_ref(old_traj, new_traj)
+
+
+def _check_ref(trajectory1, trajectory2):
+    for (a0, a1) in zip(trajectory1, trajectory2):
         r0, r1 = a0.calc.results, a1.calc.results
         for key in r0:
             if key in r1:
                 np.testing.assert_allclose(r0[key], r1[key], rtol=1e-3)
-
-
-if __name__ == "__main__":
-    test_aims_md()

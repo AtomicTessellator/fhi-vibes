@@ -1,0 +1,14 @@
+[files]
+geometries:                    geometry.in.???
+
+[calculator]
+name:                          aims
+socketio:                      SOCKETIO
+
+[calculator.parameters]
+xc:                            pw-lda
+k_grid:                        [4, 4, 4]
+
+[calculator.basissets]
+Si:                            minimal
+
