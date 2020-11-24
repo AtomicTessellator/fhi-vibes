@@ -4,7 +4,6 @@
 import sys
 from pathlib import Path
 
-import numpy as np
 from ase import Atoms
 from ase.calculators.socketio import Calculator, SocketIOCalculator
 
@@ -93,18 +92,19 @@ def calculate_socket(
     # save fist atoms object for computation
     atoms = atoms_to_calculate[0].copy()
 
-    # handle the socketio
+    # handle the socketio (initially introduced in MD workflow)
     socketio_port, socketio_unixsocket = get_socket_info(calculator)
 
-    # is the socket used?
-    socketio = socketio_port is not None
-
-    if socketio:
-        socket_calc = calculator
+    iocalc = None
+    if socketio_port is None:
+        atoms.calc = calculator
     else:
-        socket_calc = None
-        # choose some 5 digit number
-        socketio_port = np.random.randint(0, 65000)
+        kw = {"port": socketio_port, "unixsocket": socketio_unixsocket}
+        iocalc = SocketIOCalculator(calculator, **kw)
+        atoms.calc = iocalc
+
+    # fix for EMT calculator
+    fix_emt(atoms)
 
     # perform backup if calculation folder exists
     backup(calc_dir, target_folder=backup_folder)
@@ -136,59 +136,51 @@ def calculate_socket(
             sys.exit()
 
         # launch socket
-        with SocketIOCalculator(
-            socket_calc, port=socketio_port, unixsocket=socketio_unixsocket
-        ) as iocalc:
+        for n_cell, cell in enumerate(atoms_to_calculate):
+            # skip if cell is None or already computed
+            if cell is None:
+                talk("`atoms is None`, skip.")
 
-            if socketio:
-                calc = iocalc
+                continue
+            if check_precomputed_hashes(cell, precomputed_hashes, n_cell):
+                continue
+
+            # make sure a new calculation is started
+            atoms.calc.results = {}
+
+            # update calculation_atoms and compute force
+            atoms.info = cell.info
+            atoms.cell = cell.cell  # update cell
+            atoms.positions = cell.positions  # update positions
+
+            # when socketio is used: calculate here, backup was already performed
+            # else: calculate in subfolder and backup if necessary
+            if iocalc is None and len(atoms_to_calculate) > 1:
+                wd = f"{n_cell:05d}"
+                # perform backup if calculation folder exists
+                backup(wd, target_folder=f"{backup_folder}")
             else:
-                calc = calculator
+                wd = "."
 
-                # fix for EMT calculator
-                fix_emt(atoms, calc)
+            # compute and save the aims UUID
+            msg = f"{'[vibes]':15}Compute structure "
+            msg += f"{n_cell + 1} of {len(atoms_to_calculate)}"
 
-            for n_cell, cell in enumerate(atoms_to_calculate):
-                # skip if cell is None or already computed
-                if cell is None:
-                    talk("`atoms is None`, skip.")
+            with cwd(wd, mkdir=True):
+                with Spinner(msg):
+                    atoms.calc.calculate(atoms, system_changes=["positions"])
 
-                    continue
-                if check_precomputed_hashes(cell, precomputed_hashes, n_cell):
-                    continue
+                # log the step including aims_uuid if possible
+                meta = get_aims_uuid_dict()
+                step2file(atoms, atoms.calc, trajectory_file, metadata=meta)
 
-                # make sure a new calculation is started
-                calc.results = {}
-                atoms.calc = calc
+            if watchdog():
+                break
 
-                # update calculation_atoms and compute force
-                atoms.info = cell.info
-                atoms.cell = cell.cell  # update cell
-                atoms.positions = cell.positions  # update positions
-
-                # when socketio is used: calculate here, backup was already performed
-                # else: calculate in subfolder and backup if necessary
-                if not socketio and len(atoms_to_calculate) > 1:
-                    wd = f"{n_cell:05d}"
-                    # perform backup if calculation folder exists
-                    backup(wd, target_folder=f"{backup_folder}")
-                else:
-                    wd = "."
-
-                # compute and save the aims UUID
-                msg = f"{'[vibes]':15}Compute structure "
-                msg += f"{n_cell + 1} of {len(atoms_to_calculate)}"
-
-                with cwd(wd, mkdir=True):
-                    with Spinner(msg):
-                        atoms.calc.calculate(atoms, system_changes=["positions"])
-
-                    # log the step including aims_uuid if possible
-                    meta = get_aims_uuid_dict()
-                    step2file(atoms, atoms.calc, trajectory_file, metadata=meta)
-
-                if watchdog():
-                    break
+        # close socket
+        if iocalc is not None:
+            talk("Close the socket")
+            iocalc.close()
 
     # backup
     if backup_after_calculation:
@@ -231,10 +223,10 @@ def check_metadata(new_metadata: dict, old_metadata: dict, keys: list = ["calcul
             warn(msg, level=1)
 
 
-def fix_emt(atoms: Atoms, calculator: Calculator):
+def fix_emt(atoms: Atoms):
     """fix when using EMT calculator with socket"""
     try:
-        calculator.initialize(atoms)
+        atoms.calc.initialize(atoms)
         talk("calculator initialized.")
     except AttributeError:
         pass
