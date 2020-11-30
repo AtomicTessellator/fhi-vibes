@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fhi-vibes"
-version = "1.0.0"
+version = "1.0.1"
 description = "Fritz Haber Institute Vibrational Simulations"
 authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
 license = "MIT"
