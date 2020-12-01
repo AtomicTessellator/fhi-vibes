@@ -26,10 +26,16 @@ Most of the functionality is high-throughput ready via [fireworks](https://mater
 
 ## News
 
+- `FHI-vibes` passed the JOSS review successfully!
 - [Our anharmonicity measure got published!](https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.4.083809)
 - [… the best is yet to come.](https://www.youtube.com/watch?v=B-Jq26BCwDs)
 
 ## Changelog
+
+#### v1.0.2
+
+- First official release after passing the [JOSS review](https://github.com/openjournals/joss-reviews/issues/2671).
+- Several additions to the documentation.
 
 #### v1.0.0a10
 
