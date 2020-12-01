@@ -81,6 +81,9 @@ doc/
 *.ignore
 ignore/
 
+# releases
+*.zip
+
 my_pyproject.toml
 
 vibes.md
