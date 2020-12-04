@@ -42,9 +42,7 @@ class NumpyEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def atoms2dict(
-    atoms: Atoms, reduce: bool = True, add_constraints: bool = False
-) -> dict:
+def atoms2dict(atoms: Atoms, reduce: bool = True, add_constraints: bool = False) -> dict:
     """Converts an Atoms object into a dict
 
     Args:
@@ -254,11 +252,24 @@ def dict2atoms(
         if "results" in calculator_dict:
             results = calculator_dict.pop("results")
         if single_point_calculator:
+            # remove properties not allowed by ase so the SinglePointCalculator
+            # doesn't complain
+            additional_properties = [
+                prop for prop in results.keys() if prop not in all_properties
+            ]
+            additional_results = {p: results.pop(p) for p in additional_properties}
+
             calculator = SinglePointCalculator(atoms, **results)
             if "calculator" in calculator_dict:
                 calculator.name = calculator_dict["calculator"].lower()
             if "calculator_parameters" in calculator_dict:
                 calculator.parameters.update(calculator_dict["calculator_parameters"])
+
+            # restore properties that are not in ase's all_properties
+            # (will be removed once ase allows it)
+            for prop, result in additional_results.items():
+                calculator.results[prop] = result
+
         else:
             calculator = get_calculator_class(calculator_dict["calculator"].lower())(
                 **calculator_dict["calculator_parameters"]
