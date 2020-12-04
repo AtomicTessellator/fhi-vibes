@@ -9,10 +9,7 @@ from vibes.helpers.backup import backup_folder as backup
 from vibes.helpers.backup import default_backup_folder
 from vibes.helpers.paths import cwd
 from vibes.helpers.restarts import restart
-from vibes.helpers.socketio import (
-    get_socket_info,
-    get_stresses
-)
+from vibes.helpers.socketio import get_socket_info, get_stresses
 from vibes.helpers.utils import Timeout
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.helpers.calculator import virials_off, virials_on
@@ -38,7 +35,23 @@ def run_md(ctx, timeout=None):
 
 
 def run(ctx, backup_folder=default_backup_folder):
-    """run and MD for a specific time
+    """run MD for a specific time
+
+    Green-Kubo runs, we treat calculators as follows:
+
+    Ideally, a Calculator should implement a `.virials` property that
+    enables/disables the computation of virials. If `calc.virials=True`,
+    they should be computed when `.calculate()` is  called. The `virials`
+    should be written into `results`. They will be logged. If `virials=True`,
+    the `stress` property should also be computed for legacy reasons.
+
+    Calculators that do not implement this are expected to write `stresses`
+    into their `results` when `calculate()` is called. Turning `stresses`
+    computation on and off every n-th step is not supported for those, so
+    make sure that for a GK run, the calculator is set up to compute them.
+
+    FHI-aims with socketio is a special case. Here turning on and off is
+    supported through custom means.
 
     Args:
         ctx (MDContext): context of the MD
@@ -52,7 +65,7 @@ def run(ctx, backup_folder=default_backup_folder):
     calculator = ctx.calculator
     md = ctx.md
     maxsteps = ctx.maxsteps
-    compute_stresses = ctx.compute_stresses
+    compute_virials = ctx.compute_stresses
     settings = ctx.settings
 
     # create watchdog with buffer size of 3
@@ -74,6 +87,8 @@ def run(ctx, backup_folder=default_backup_folder):
         kw = {"port": socketio_port, "unixsocket": socketio_unixsocket}
         iocalc = SocketIOCalculator(calculator, **kw)
         atoms.calc = iocalc
+
+    is_socketio = socketio_port is not None  # do we have to do aims+socketio workarounds?
 
     # does it make sense to start everything?
     if md.nsteps >= maxsteps:
@@ -99,54 +114,52 @@ def run(ctx, backup_folder=default_backup_folder):
     timeout = Timeout(calculation_timeout)
 
     with cwd(calc_dir, mkdir=True):
-        # log very initial step and metadata
+        # log initial step and metadata
         if md.nsteps == 0:
-            # carefully compute forces
+            if compute_virials:
+                virials_on(atoms.calc)
+
+            # carefully compute forces, run calc.calculate()
             if not get_forces(atoms):
                 return False
+
             # log metadata
             metadata2file(metadata, file=trajectory_file)
-            # log initial structure computation
-            atoms.info.update({keys.nsteps: md.nsteps, keys.dt: md.dt})
-            meta = get_aims_uuid_dict()
-            if compute_stresses:
-                virials_on(atoms.calc)
-                stresses = get_stresses(atoms)
-                atoms.calc.results["stresses"] = stresses
-                virials_off(atoms.calc)
 
-            step2file(atoms, file=trajectory_file, metadata=meta)
+            if compute_virials and is_socketio:
+                stresses_to_results(atoms)
+
+            # log initial structure computation
+            log_step(atoms, md, trajectory_file)
 
         while not watchdog() and md.nsteps < maxsteps:
+
+            if compute_virials_next(compute_virials, md.nsteps):
+                talk("switch virials computation on")
+                virials_on(atoms.calc)
+            else:
+                talk("switch virials computation off")
+                virials_off(atoms.calc)
 
             # reset timeout
             timeout()
 
+            # actually run md step
             if not md_step(md):
                 break
 
             talk(f"Step {md.nsteps} finished, log.")
 
-            if compute_stresses_now(compute_stresses, md.nsteps):
-                virials_on(atoms.calc)
-                stresses = get_stresses(atoms)
-                atoms.calc.results["stresses"] = stresses
-            else:  # make sure `stresses` are not logged
-                if "stresses" in atoms.calc.results:
-                    del atoms.calc.results["stresses"]
-
-            # peek into aims file and grep for uuid
-            atoms.info.update({keys.nsteps: md.nsteps, keys.dt: md.dt})
-            meta = get_aims_uuid_dict()
-            step2file(atoms, atoms.calc, trajectory_file, metadata=meta)
-
-            if compute_stresses:
-                if compute_stresses_next(compute_stresses, md.nsteps):
-                    talk("switch stresses computation on")
-                    virials_on(atoms.calc)
+            if is_socketio:
+                if compute_virials_now(compute_virials, md.nsteps):
+                    stresses_to_results(atoms)
                 else:
-                    talk("switch stresses computation off")
-                    virials_off(atoms.calc)
+                    # socketio returns dummy stresses,
+                    # which we do not want to log
+                    if "stresses" in atoms.calc.results:
+                        del atoms.calc.results["stresses"]
+
+            log_step(atoms, md, trajectory_file)
 
         # close socket
         if iocalc is not None:
@@ -161,14 +174,25 @@ def run(ctx, backup_folder=default_backup_folder):
     return True
 
 
-def compute_stresses_now(compute_stresses, nsteps):
-    """Return if stress should be computed in this step"""
-    return compute_stresses and (nsteps % compute_stresses == 0)
+def log_step(atoms, md, trajectory_file):
+    atoms.info.update({keys.nsteps: md.nsteps, keys.dt: md.dt})
+    meta = get_aims_uuid_dict()  # peek into aims file and grep for uuid
+    step2file(atoms, atoms.calc, trajectory_file, metadata=meta)
 
 
-def compute_stresses_next(compute_stresses, nsteps):
-    """Return if stress should be computed in the NEXT step"""
-    return compute_stresses_now(compute_stresses, nsteps + 1)
+def compute_virials_now(compute_virials, nsteps):
+    """Return if virials should be computed in this step"""
+    return compute_virials and (nsteps % compute_virials == 0)
+
+
+def compute_virials_next(compute_virials, nsteps):
+    """Return if virials should be computed in the NEXT step"""
+    return compute_virials_now(compute_virials, nsteps + 1)
+
+
+def stresses_to_results(atoms):
+    """Get stresses through socket and save to calc.results"""
+    atoms.calc.results["stresses"] = get_stresses(atoms)
 
 
 def check_metadata(new_metadata, old_metadata):
