@@ -12,6 +12,7 @@ from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.stress import has_stress
 from vibes.helpers.stresses import get_stresses, has_stresses
+from vibes.helpers.virials import get_virials, has_virials
 from vibes.helpers.utils import progressbar
 
 from . import analysis as al
@@ -19,9 +20,9 @@ from .utils import Timer, talk
 
 
 class Trajectory(list):
-    """ A Trajectory is basically a list of Atoms objects with some functionality, e.g.
-           - extract and plot several statistics on the MD trajectory
-           - convert to other formats like xyz or TDEP """
+    """A Trajectory is basically a list of Atoms objects with some functionality, e.g.
+    - extract and plot several statistics on the MD trajectory
+    - convert to other formats like xyz or TDEP"""
 
     def __init__(self, *args, metadata=None, debug=False):
         """Initializer
@@ -396,6 +397,22 @@ class Trajectory(list):
 
         return np.array(atomic_stresses, dtype=float)
 
+    @lazy_property
+    def virials(self):
+        """return the virials as [N_t, N_a, 3, 3] array"""
+        virials = []
+
+        zeros = np.zeros((len(self.reference_atoms), 3, 3))
+
+        for a in self:
+            if has_virials(a):
+                atom_virials = get_virials(a)
+            else:
+                atom_virials = np.full_like(zeros, np.nan)
+            virials.append(atom_virials)
+
+        return np.array(virials, dtype=float)
+
     def get_pressure(self, kinetic=False):
         """return the pressure as [N_t] array"""
         if kinetic:
@@ -598,7 +615,7 @@ class Trajectory(list):
         return avg_displacement
 
     def get_average_positions(self, window=-1, wrap=False):
-        """ Return averaged positions
+        """Return averaged positions
 
         Args:
             window: This does nothing
@@ -649,37 +666,49 @@ class Trajectory(list):
 
         al.pressure(DS.pressure)
 
-    def compute_heat_flux_from_stresses(self):
-        """attach `heat_flux` to each `atoms`
+    def compute_heat_flux(self):
+        """attach `heat_flux` to each `atoms`"""
 
-        Args:
-            trajectory: list of atoms objects
+        have_virials = not np.isnan(self.virials).all()
+        have_stresses = not np.isnan(self.stresses_potential).all()
 
-        Returns:
-            trajectory: with heat flux attached to atoms
-            # flux ([N_t, N_a, 3]): the time resolved heat flux in eV/AA**3/ps
-            # avg_flux ([N_t, N_a, 3]): high frequency part of heat flux
-        """
-        stresses = [s for s in self.stresses_potential if not np.isnan(s).any()]
+        if have_virials:
+            if have_stresses:
+                talk(f"We have both virials and stresses, using virials.")
 
-        # 1) compute average stresses
-        avg_stresses = np.mean(stresses, axis=0)
+            talk(f"Computing heat flux using virials.")
+            raw_virials = self.virials
+        else:
+            if not have_stresses:
+                talk(f"We have neither virials nor stresses, can't compute heat flux.")
+                return None
 
-        # 2) compute J_avg from average stresses
+            talk(f"Computing heat flux using stresses.")
+            raw_virials = self.stresses_potential
+
+        # 0) obtain virials and decide for which timesteps to compute heat flux
+        idx = []
+        all_virials = []
+        for i, virials in enumerate(raw_virials):
+            if not np.isnan(virials).any():
+                idx.append(i)
+                all_virials.append(virials)
+
+        # 1) compute average virials
+        avg_virials = np.mean(all_virials, axis=0)
+
+        # 2) compute J_avg from average virials
         timer = Timer("Compute heat flux:")
-        for a in progressbar(self):
-            if has_stresses(a):
-                stresses = get_stresses(a)
-            else:
-                continue
-
-            ds = stresses - avg_stresses
+        for i, ii in progressbar(list(enumerate(idx))):
+            a = self[ii]
+            virials = all_virials[i]
+            ds = virials - avg_virials
 
             # velocity in \AA / ps
             vs = a.get_velocities() * units.fs * 1000
 
             fluxes = np.squeeze(ds @ vs[:, :, None])
-            fluxes_aux = np.squeeze(avg_stresses @ vs[:, :, None])
+            fluxes_aux = np.squeeze(avg_virials @ vs[:, :, None])
 
             flux = fluxes.sum(axis=0)
             flux_aux = fluxes_aux.sum(axis=0)
@@ -692,6 +721,13 @@ class Trajectory(list):
             a.calc.results.update(d)
 
         timer()
+
+    def compute_heat_flux_from_stresses(self):
+        """attach `heat_flux` to each `atoms`
+
+        Retained for legacy reasons.
+        """
+        self.compute_heat_flux()
 
     def get_heat_flux(self, aux=False):
         """return the heat flux as [N_t, 3] array"""

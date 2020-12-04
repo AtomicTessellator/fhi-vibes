@@ -173,6 +173,11 @@ def get_trajectory_dataset(trajectory, metadata=False):
         value = (dims.time_atom_tensor, trajectory.stresses_potential)
         dataset.update({keys.stresses_potential: value})
 
+    virials = trajectory.virials
+    if not np.all(virials == np.nan):
+        value = (dims.time_atom_tensor, trajectory.virials)
+        dataset.update({keys.virials: value})
+
     # heat_flux
     flux = trajectory.get_heat_flux()
     if flux is not None:

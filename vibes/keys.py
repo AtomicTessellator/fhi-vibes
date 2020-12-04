@@ -55,6 +55,7 @@ stress_kinetic = "stress_kinetic"
 stress_potential = "stress_potential"
 stresses = "stresses"
 stresses_potential = "stresses_potential"
+virials = "virials"
 temperature = "temperature"
 
 heat_flux = "heat_flux"
