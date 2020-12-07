@@ -94,6 +94,7 @@ def get_lowest_vibrational_frequency(
     velocities: xr.DataArray,
     threshold: float = defaults.filter_threshold,
     freq_key: str = keys.omega,
+    remove_offset: bool = True,
     verbose: bool = False,
 ) -> float:
     """get the lowest significant vibrational density from VDOS
@@ -102,6 +103,7 @@ def get_lowest_vibrational_frequency(
         velocities [N_t, N_a, 3]: DataArray with atomic velocites
         threshold: fraction of the max. density used to determine lowest significant
         freq_key: name of the frequency axis (default: `omega`)
+        remove_offset: remove offset from VDOS
         verbose: print additional information
 
     Returns:
@@ -113,6 +115,9 @@ def get_lowest_vibrational_frequency(
     velocties_corr = get_autocorrelationNd(v, verbose=verbose).sum(axis=(1, 2))
 
     vdos = get_fourier_transformed(velocties_corr, npad=10000, verbose=verbose).real
+
+    if remove_offset:
+        vdos -= vdos.min()
 
     # normalize
     vdos /= vdos.max()
