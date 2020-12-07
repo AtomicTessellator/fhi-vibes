@@ -12,7 +12,7 @@ from vibes.helpers.restarts import restart
 from vibes.helpers.socketio import get_socket_info, get_stresses
 from vibes.helpers.utils import Timeout
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
-from vibes.helpers.calculator import virials_off, virials_on
+from vibes.helpers.virials import virials_off, virials_on, supports_virials
 from vibes.trajectory import metadata2file, step2file
 
 from ._defaults import calculation_timeout, talk
@@ -34,7 +34,7 @@ def run_md(ctx, timeout=None):
         talk("done.")
 
 
-def run(ctx, backup_folder=default_backup_folder):
+def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
     """run MD for a specific time
 
     Green-Kubo runs, we treat calculators as follows:
@@ -89,6 +89,7 @@ def run(ctx, backup_folder=default_backup_folder):
         atoms.calc = iocalc
 
     is_socketio = socketio_port is not None  # do we have to do aims+socketio workarounds?
+    use_virials = supports_virials(atoms.calc)  # do we need to use stresses?
 
     # does it make sense to start everything?
     if md.nsteps >= maxsteps:
@@ -116,18 +117,34 @@ def run(ctx, backup_folder=default_backup_folder):
     with cwd(calc_dir, mkdir=True):
         # log initial step and metadata
         if md.nsteps == 0:
-            if compute_virials:
-                virials_on(atoms.calc)
+            if is_socketio:
+                # workaround to deal with the fact that the socket server only exists
+                # *after* calculate is called for the first time, i.e. we can't turn
+                # virials on before calculating someting. we can't do this in general,
+                # because calculators with virials would now compute all their results
+                # WITHOUT virials, and the later call to get_forces would not re-run
+                # because atoms hasn't changed, only the virials flag.
 
-            # carefully compute forces, run calc.calculate()
-            if not get_forces(atoms):
-                return False
+                if not get_forces(atoms):
+                    return False
 
             # log metadata
             metadata2file(metadata, file=trajectory_file)
 
-            if compute_virials and is_socketio:
-                stresses_to_results(atoms)
+            if compute_virials:
+                virials_on(atoms.calc)
+
+                if use_virials:
+                    # trigger calculation, which should compute virials
+                    get_forces(atoms)
+                else:
+                    # if we're using socketio this will compute stresses and retrieve them
+                    # if not, it'll just retrieve stresses from calc.results
+                    stresses_to_results(atoms)
+            else:
+                if not is_socketio:
+                    # case: non-GK MD, we need to compute properties for 0th step
+                    get_forces(atoms)
 
             # log initial structure computation
             log_step(atoms, md, trajectory_file)
@@ -150,13 +167,13 @@ def run(ctx, backup_folder=default_backup_folder):
 
             talk(f"Step {md.nsteps} finished, log.")
 
-            if is_socketio:
+            if not use_virials:
                 if compute_virials_now(compute_virials, md.nsteps):
-                    stresses_to_results(atoms)
+                    stresses_to_results(atoms)  # properly format stresses
                 else:
                     # socketio returns dummy stresses,
                     # which we do not want to log
-                    if "stresses" in atoms.calc.results:
+                    if is_socketio and "stresses" in atoms.calc.results:
                         del atoms.calc.results["stresses"]
 
             log_step(atoms, md, trajectory_file)
@@ -191,7 +208,19 @@ def compute_virials_next(compute_virials, nsteps):
 
 
 def stresses_to_results(atoms):
-    """Get stresses through socket and save to calc.results"""
+    """Write stresses to results
+
+    This has two functions:
+
+    1. For the aims socketio calculator, it makes sure that stresses actually
+    are written into results, which does not happen automatically: They need
+    to be explicitly requested via the socket.
+
+    2. Ensure that the stresses are in 3x3 form and extensive.
+
+    The latter is also important for calculators that aren't socketio+aims,
+    and the former doesn't hurt, so we always do both.
+    """
     atoms.calc.results["stresses"] = get_stresses(atoms)
 
 
