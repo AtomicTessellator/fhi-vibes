@@ -24,6 +24,8 @@ def list_dim(a: list) -> int:
     """dimension of a (nested) pure Python list, similar to np.shape"""
     if not type(a) == list:
         return []
+    if a == []:
+        return 0
     return [len(a)] + list_dim(a[0])
 
 

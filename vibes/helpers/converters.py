@@ -305,6 +305,8 @@ def dict2json(dct: dict, indent: int = 0, outer: bool = True) -> str:
         elif isinstance(val, dict):
             # recursive formatting
             rep = f"{{\n{dict2json(val, 2*(1 + indent // 2), False)}}}"
+        elif val == []:  # empty list
+            rep = json.dumps(val, cls=NumpyEncoder)
         elif (
             isinstance(val, list)
             and len(list_dim(val)) == 2
