@@ -1,6 +1,8 @@
 """compute and analyze heat fluxes"""
+import pandas as pd
 import scipy.signal as sl
 
+from vibes import defaults
 from vibes.correlation import get_autocorrelationNd
 from vibes.fourier import get_fourier_transformed
 from vibes.integrate import trapz
@@ -40,32 +42,53 @@ def get_vdos(velocities=None, hann=False, normalize=False, npad=10000, verbose=T
     return df_vdos
 
 
-def simple_plot(series, file="vdos.pdf", height=-1, max_frequency=30.0, logy=False):
+def simple_plot(
+    series: pd.Series,
+    file: str = "vdos.pdf",
+    prominence: float = defaults.filter_prominence,
+    threshold_freq: float = 0.1,
+    max_frequency: float = None,
+    logy: bool = False,
+):
     """simple plot of VDOS for overview purpose
 
     Args:
-        series (pandas.Series): Intensity vs. omega
-        file (str): file to store the plot to
-        height (float): minimal height to detect peaks
+        series: Intensity vs. omega
+        file: file to store the plot to
+        prominence: for peak detection with `scipy.signal.find_peaks`
+        threshold:_freq: neglect data up to this freq in THz (default: 0.1 THz)
         max_frequency (float): max. frequency in THz
         logy (bool): use semilogy
     """
     # normalize peaks
-    series /= series.max()
+    series -= series.min()
+    series /= series[series.index > threshold_freq].max()
 
     # find peaks:
-    if height and height > 0:
-        peaks, *_ = sl.find_peaks(series, height=height)
-        high_freq = series.index[peaks[-1]]
-        _talk(f".. highest peak found at   {high_freq:.2f} THz")
-    else:
-        high_freq = max_frequency
+    peaks, *_ = sl.find_peaks(series, prominence=prominence)
+
+    _talk(f".. {len(peaks)} peaks found w/ prominence={prominence}")
+
+    high_freq = series.index[series > 0.05].max()
+    _talk(f".. highest non-vanishin freq. found at   {high_freq:.2f} THz")
+
     ax = series.plot()
+
+    # plot peaks
+    ax.scatter(series.index[peaks], series.iloc[peaks], marker=".", c="k", zorder=5)
+
     if logy:
         ax.set_yscale("log")
-    ax.set_xlim([0, 1.2 * high_freq])
-    ax.set_xlabel("Omega [THz]")
+
+    if max_frequency is None:
+        max_frequency = 1.2 * high_freq
+
+    ax.set_xlim([0, max_frequency])
+    ax.set_xlabel("Omega (THz)")
+    ax.set_ylabel("VDOS (1)")
+
     fig = ax.get_figure()
     fig.savefig(file, bbox_inches="tight")
+
     _talk(f".. max. frequency for plot:  {high_freq:.2f} THz")
     _talk(f".. plot saved to {file}")

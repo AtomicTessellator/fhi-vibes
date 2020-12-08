@@ -1,4 +1,4 @@
-"""ab initio Green-Kubo post processing"""
+"""Green-Kubo post processing"""
 from collections import namedtuple
 
 import numpy as np
@@ -92,16 +92,18 @@ def get_hf_data(flux: xr.DataArray, dropna_dim=keys.time) -> namedtuple:
 
 def get_lowest_vibrational_frequency(
     velocities: xr.DataArray,
-    threshold: float = defaults.filter_threshold,
+    threshold_freq: float = 0.1,
+    prominence: float = 0.2,
     freq_key: str = keys.omega,
     remove_offset: bool = True,
     verbose: bool = False,
 ) -> float:
-    """get the lowest significant vibrational density from VDOS
+    """get the lowest significant vibrational density from VDOS by peak analysis
 
     Args:
         velocities [N_t, N_a, 3]: DataArray with atomic velocites
-        threshold: fraction of the max. density used to determine lowest significant
+        threshold:_freq: neglect data up to this freq in THz (default: 0.1 THz)
+        prominence: required prominence for `scipy.signal.find_peaks`
         freq_key: name of the frequency axis (default: `omega`)
         remove_offset: remove offset from VDOS
         verbose: print additional information
@@ -119,13 +121,29 @@ def get_lowest_vibrational_frequency(
     if remove_offset:
         vdos -= vdos.min()
 
-    # normalize
-    vdos /= vdos.max()
+    # normalize considering threshold freq.
+    vdos /= vdos[vdos[freq_key] > threshold_freq].max()
 
-    # pick and return the lowest significant frequency
-    freq = float(vdos[freq_key][vdos > threshold].min())
+    # find peaks
+    peaks, _ = sl.find_peaks(vdos, prominence=prominence)
 
-    return freq
+    # convert to frequencies
+    freqs = vdos[freq_key][peaks]
+
+    # check lowest peak and zero freq.
+    if vdos[0] > 0.1:
+        warn(f"normalized VDOS at omega -> 0 is {vdos[0]:.3f}. CHECK?", level=1)
+
+    freq = freqs[0]
+    if freq < threshold_freq:
+        if freqs[1] > threshold_freq:
+            freq = freqs[1]
+        else:
+            msg = f"Significant peaks are below threshold of {threshold_freq} THZ.\n"
+            msg = +f"These Peaks have been found in VDOS (THz), please CHECK!\n,{freqs}"
+            warn(msg, level=2)
+
+    return float(freq)
 
 
 def get_filtered(
@@ -199,7 +217,7 @@ def get_filtered(
 def get_gk_dataset(
     dataset: xr.Dataset,
     window_factor: int = defaults.window_factor,
-    filter_threshold: float = defaults.filter_threshold,
+    filter_prominence: float = defaults.filter_prominence,
     discard: int = 0,
     total: bool = False,
     verbose: bool = True,
@@ -209,7 +227,7 @@ def get_gk_dataset(
     Args:
         dataset: a dataset containing `heat_flux` and describing attributes
         window_factor: factor for filter width estimated from VDOS (default: 1)
-        filter_threshold: threshold for choosing vibr. freq. for filtering (default: 0.1)
+        filter_prominence: prominence for peak detection
         discard: discard this many timesteps from the beginning of the trajectory
         total: postprocess gauge-invariant terms of heat flux as well
 
@@ -239,7 +257,7 @@ def get_gk_dataset(
     kappa *= pref
 
     # 2. get lowest significant frequency (from VDOS) in THz
-    kw = {"threshold": filter_threshold}
+    kw = {"prominence": filter_prominence}
     freq = get_lowest_vibrational_frequency(dataset[keys.velocities], **kw)
 
     if abs(freq) < 0.001:
