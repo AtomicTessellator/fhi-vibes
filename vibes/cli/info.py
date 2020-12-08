@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
-from vibes import keys
+from vibes import defaults, keys
 from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup, click, complete_files
@@ -159,9 +159,10 @@ def csv(file, describe, half, to_json):
 @click.argument("files", nargs=-1)
 @click.option("-p", "--plot", is_flag=True, help="plot summary")
 @click.option("--logx", is_flag=True)
+@click.option("--xlim", type=float, default=None)
 @click.option("--cmap", default="colorblind", help="the matplotlib colormap")
 @click.option("--outfile", default="greenkubo_summary.pdf")
-def greenkubo(files, plot, logx, cmap, outfile):
+def greenkubo(files, plot, logx, xlim, cmap, outfile):
     """visualize heat flux and thermal conductivity"""
     import xarray as xr
 
@@ -243,11 +244,14 @@ def greenkubo(files, plot, logx, cmap, outfile):
 
         tmax = 3 * np.diag(cutoff_time).max()
 
+        if xlim is None:
+            xlim = tmax
+
         if logx:
-            ax2.set_xlim([0.01 * tmax, tmax])
+            ax2.set_xlim([0.01 * xlim, xlim])
             ax2.set_xscale("log")
         else:
-            ax2.set_xlim([0, tmax])
+            ax2.set_xlim([0, xlim])
 
         fig.savefig(outfile, bbox_inches="tight")
         click.echo(f".. summary plotted to {outfile}")
@@ -257,10 +261,10 @@ def greenkubo(files, plot, logx, cmap, outfile):
 @click.argument("file", default=filenames.trajectory_dataset, type=complete_files)
 @click.option("-o", "--output_file", default="vdos.csv")
 @click.option("-p", "--plot", is_flag=True, help="plot the DOS")
-@click.option("--peak", type=float, help="height for peak detection", show_default=1)
-@click.option("-mf", "--max_frequency", default=30.0, help="max. freq. in THz")
+@click.option("--prominence", default=defaults.filter_prominence, help="for find_peaks")
+@click.option("-mf", "--max_frequency", type=float, help="max. freq. in THz")
 @click.option("--npad", default=10000, help="number of zeros for padding")
-def vdos(file, output_file, plot, peak, max_frequency, npad):
+def vdos(file, output_file, plot, prominence, max_frequency, npad):
     """compute and write velocity autocorrelation function to output file"""
     import xarray as xr
 
@@ -275,7 +279,7 @@ def vdos(file, output_file, plot, peak, max_frequency, npad):
     df = vdos.real.sum(axis=(1, 2)).to_series()
 
     if plot:
-        simple_plot(df, height=peak, max_frequency=max_frequency)
+        simple_plot(df, prominence=prominence, max_frequency=max_frequency)
 
     click.echo(f".. write VDOS to {output_file}")
     df.to_csv(output_file, index_label="omega", header=True)

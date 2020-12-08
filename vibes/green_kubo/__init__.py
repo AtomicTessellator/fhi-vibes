@@ -131,8 +131,9 @@ def get_lowest_vibrational_frequency(
     freqs = vdos[freq_key][peaks]
 
     # check lowest peak and zero freq.
-    if vdos[0] > 0.1:
-        warn(f"normalized VDOS at omega -> 0 is {vdos[0]:.3f}. CHECK?", level=1)
+    v0 = float(vdos[0])
+    if v0 > 0.1:
+        warn(f"normalized VDOS at omega -> 0 is {v0:.3f}. CHECK?", level=1)
 
     freq = freqs[0]
     if freq < threshold_freq:

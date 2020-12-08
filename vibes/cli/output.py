@@ -164,10 +164,10 @@ def phono3py(obj, file, q_mesh):
 @click.argument("file", default="trajectory.nc")
 @click.option("-o", "--outfile", default="greenkubo.nc", type=Path)
 @click.option("-w", "--window_factor", default=defaults.window_factor)
-@click.option("--filter_threshold", default=defaults.filter_threshold)
+@click.option("--filter_prominence", default=defaults.filter_prominence)
 @click.option("--total", is_flag=True, help="compute total flux")
 # @click.option("-d", "--discard", default=0)
-def greenkubo(file, outfile, window_factor, filter_threshold, total):
+def greenkubo(file, outfile, window_factor, filter_prominence, total):
     """perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
 
@@ -176,7 +176,10 @@ def greenkubo(file, outfile, window_factor, filter_threshold, total):
     ds = xr.open_dataset(file)
 
     ds_gk = gk.get_gk_dataset(
-        ds, window_factor=window_factor, filter_threshold=filter_threshold, total=total
+        ds,
+        window_factor=window_factor,
+        filter_prominence=filter_prominence,
+        total=total,
     )
 
     if total:

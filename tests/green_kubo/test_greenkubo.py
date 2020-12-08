@@ -35,4 +35,4 @@ def test_get_filtered():
 
 
 def test_get_gk_dataset():
-    gk.get_gk_dataset(ds, filter_threshold=0.8)
+    gk.get_gk_dataset(ds, filter_prominence=0.2)
