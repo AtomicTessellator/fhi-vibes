@@ -32,6 +32,10 @@ Most of the functionality is high-throughput ready via [fireworks](https://mater
 
 ## Changelog
 
+#### v1.0.3
+
+- update dependencies to allow `phonopy` versions up to 2.8
+
 #### v1.0.2
 
 - First official release after passing the [JOSS review](https://github.com/openjournals/joss-reviews/issues/2671).
