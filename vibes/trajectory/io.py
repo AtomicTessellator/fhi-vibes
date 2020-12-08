@@ -206,10 +206,15 @@ def reader(
         return Trajectory([])
 
     timer2 = Timer(".. create atoms", verbose=verbose)
+    if "MD" in metadata:
+        map_metadata = {"MD": metadata["MD"]}
+    else:
+        map_metadata = {}
+
     kw = {
         "pre_atoms_dict": pre_atoms_dict,
         "pre_calc_dict": pre_calc_dict,
-        "metadata": metadata,
+        "metadata": map_metadata,
         "single_point_calculator": single_point_calculator,
     }
     list = _map_create_atoms(pre_trajectory, **kw)
