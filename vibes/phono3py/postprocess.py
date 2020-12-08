@@ -49,11 +49,11 @@ def postprocess(
             continue
         warn(f"Displacement ids are not in order. Inspect {trajectory}!", level=2)
 
-    if "duplicates" in metadata["Phono3py"]["displacement_dataset"]:
-        d = metadata["Phono3py"]["displacement_dataset"]["duplicates"]
-        metadata["Phono3py"]["displacement_dataset"]["duplicates"] = {
-            int(k): int(v) for (k, v) in d.items()
-        }
+    # if "duplicates" in metadata["Phono3py"]["displacement_dataset"]:
+    #     d = metadata["Phono3py"]["displacement_dataset"]["duplicates"]
+    #     metadata["Phono3py"]["displacement_dataset"]["duplicates"] = {
+    #         int(k): int(v) for (k, v) in d.items()
+    #     }
 
     for disp in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
         disp["number"] = int(disp["number"])
@@ -107,6 +107,7 @@ def postprocess(
 
 def extract_results(phonon, output_dir="output"):
     from phono3py import file_IO as io
+
     from .wrapper import phono3py_save
 
     primitive = phonon.get_unitcell()
