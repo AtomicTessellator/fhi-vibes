@@ -178,9 +178,9 @@ def get_dos(
 
     if total:
         if freq_max == "auto":
-            freq_max = phonon.get_mesh()[2].max() * 1.05
+            freq_max = phonon.get_mesh_dict()["frequencies"].max() * 1.05
         if freq_min == "auto":
-            freq_min = phonon.get_mesh()[2].min()
+            freq_min = phonon.get_mesh_dict()["frequencies"].min()
             if freq_min < 0.0:
                 freq_min *= 1.05
             else:
@@ -199,7 +199,7 @@ def get_dos(
         return phonon.get_total_dos_dict()
 
     if freq_max == "auto":
-        freq_max = phonon.get_mesh()[2].max() * 1.05
+        freq_max = phonon.get_mesh_dict()["frequencies"].max() * 1.05
 
     phonon.run_projected_dos(
         freq_min=freq_min,

@@ -145,6 +145,7 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
             raise IOError(
                 "Debye Temp must be calculated with phonopy, please add phonon_file"
             )
+        phonon.run_mesh([35, 35, 35])
         debye_temp = get_debye_temperature(phonon, 5e-3)[-1]
         temperatures += [tt * debye_temp for tt in debye_temp_fact]
     elif temperatures is None:
