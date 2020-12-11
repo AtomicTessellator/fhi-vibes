@@ -14,6 +14,7 @@ from vibes.helpers.fileformats import last_from_yaml
 from vibes.phonopy._defaults import displacement_id_str
 from vibes.structure.convert import to_Atoms
 
+
 _prefix = "phonopy.utils"
 
 
@@ -329,7 +330,7 @@ def remap_force_constants(
             pairs=sc_r,
             fc_in=force_constants,
             map2prim=map2prim,
-            inv_lattice=new_supercell.get_reciprocal_cell(),
+            inv_lattice=new_supercell.cell.reciprocal(),
             tol=tol,
             eps=eps,
         )

@@ -2,8 +2,8 @@
 
 import numpy as np
 import scipy.linalg as la
-
 from ase import Atoms
+
 from vibes.helpers import Timer, lazy_property, progressbar, warn
 from vibes.helpers.displacements import get_dUdt, get_U
 from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
@@ -15,6 +15,7 @@ from vibes.structure.misc import get_sysname
 from .dynamical_matrix import fc2dynmat, get_frequencies
 from .normal_modes import get_A_qst2, get_phi_qst, get_Zqst
 from .normal_modes import projector as mode_projector
+
 
 Timer.prefix = "mode"
 
@@ -277,7 +278,7 @@ class HarmonicAnalysis:
         """ return irreducible qpoints in cartesian """
         ir_grid = self.get_irreducible_q_points_frac()
 
-        return clean_matrix(ir_grid @ self.supercell.get_reciprocal_cell())
+        return clean_matrix(ir_grid @ self.supercell.cell.reciprocal())
 
     @property
     def irreducible_q_points_frac(self):
