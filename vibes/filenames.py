@@ -5,6 +5,7 @@ from pathlib import Path
 from vibes import keys
 from vibes._defaults import DEFAULT_GEOMETRY_FILE
 
+
 _filename = Path(__file__).stem
 
 _geometry = DEFAULT_GEOMETRY_FILE
@@ -41,6 +42,7 @@ _dct = {
     "trajectory": keys.trajectory + ".son",
     "trajectory_dataset": keys.trajectory + ".nc",
     "deformation": "deformation.dat",
+    "frequencies": "frequencies.dat",
     _output: output,
     _fc: fc,
     _suffixes: suffixes,
