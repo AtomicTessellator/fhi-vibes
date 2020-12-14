@@ -2,6 +2,7 @@
 
 from vibes import keys
 from vibes.filenames import filenames
+from vibes.konstanten import THzToEv
 
 from .misc import AliasedGroup, ClickAliasedGroup, Path, click, complete_files
 
@@ -365,7 +366,7 @@ def remap(
 @click.argument("file", default="FORCE_CONSTANTS_remapped", type=complete_files)
 @click.option("-sc", "--supercell", default=filenames.supercell)
 @click.option("-n", "--show_n_frequencies", default=6, type=int)
-@click.option("-o", "--outfile", default="frequencies.dat")
+@click.option("-o", "--outfile", default=filenames.frequencies)
 @click.option("--symmetrize", is_flag=True)
 @click.option("--format", default="aims")
 def frequencies(file, supercell, show_n_frequencies, outfile, symmetrize, format):
@@ -676,3 +677,48 @@ def run_thermal_conductivity(obj, folder, q_mesh, outfile):
     sys.stdout = open(outfile, "w")
 
     rtc.run_thermal_conductivity_in_folder(folder, mesh=q_mesh)
+
+
+@utils.group(aliases=["td"])
+def thermodynamics():
+    """provide thermodynamics utils"""
+    ...
+
+
+@thermodynamics.command(context_settings=_default_context_settings)
+@click.argument("temperatures", nargs=-1, type=float)
+@click.option("--file", default=filenames.frequencies, help="read freq. from here")
+@click.option("--eV", default=THzToEv, help="factor to convert freq. to eV")
+@click.option("--classical", is_flag=True, help="use class. statistics")
+@click.option("--cutoff", default=1e-6, help="cutoff in eV")
+@click.option("-o", "--outfile", type=str, help="write dataframe to this csv file")
+def harmonic(
+    temperatures: list,
+    file: str,
+    ev: float,
+    classical: bool,
+    cutoff: float,
+    outfile: str,
+):
+    """get harmonic energy, entropy, and free energy from frequencies in --file"""
+    import numpy as np
+
+    from vibes.td import get_harmonic_properties_df
+
+    click.echo(f"Read frequencies from {file}")
+    freqs = np.loadtxt(file)
+
+    click.echo(f".. multiply w/ {ev:.6f} to convert to eV")
+
+    if len(temperatures) < 1:
+        raise click.UsageError(f"you should provide at least one temperature")
+
+    df = get_harmonic_properties_df(
+        ev * freqs, temperatures=temperatures, classical=classical, cutoff=cutoff
+    )
+
+    if outfile:
+        click.echo(f".. write data to {outfile}")
+        df.to_csv(outfile)
+    else:
+        click.echo(df)
