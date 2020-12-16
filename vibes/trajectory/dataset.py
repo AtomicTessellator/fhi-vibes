@@ -169,12 +169,12 @@ def get_trajectory_dataset(trajectory, metadata=False):
     }
 
     stresses_potential = trajectory.stresses_potential
-    if not np.all(stresses_potential == np.nan):
+    if not np.isnan(stresses_potential).all():
         value = (dims.time_atom_tensor, trajectory.stresses_potential)
         dataset.update({keys.stresses_potential: value})
 
     virials = trajectory.virials
-    if not np.all(virials == np.nan):
+    if not np.isnan(virials).all():
         value = (dims.time_atom_tensor, trajectory.virials)
         dataset.update({keys.virials: value})
 
