@@ -44,6 +44,7 @@ momenta = "momenta"
 
 forces = "forces"
 forces_harmonic = "forces_harmonic"
+energy = "energy"
 energy_kinetic = "energy_kinetic"
 energy_potential = "energy_potential"
 energy_potential_harmonic = "energy_potential_harmonic"

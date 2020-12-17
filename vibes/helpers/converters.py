@@ -252,23 +252,9 @@ def dict2atoms(
         if "results" in calculator_dict:
             results = calculator_dict.pop("results")
         if single_point_calculator:
-            # remove properties not allowed by ase so the SinglePointCalculator
-            # doesn't complain
-            additional_properties = [
-                prop for prop in results.keys() if prop not in all_properties
-            ]
-            additional_results = {p: results.pop(p) for p in additional_properties}
-
-            calculator = SinglePointCalculator(atoms, **results)
-            if "calculator" in calculator_dict:
-                calculator.name = calculator_dict["calculator"].lower()
-            if "calculator_parameters" in calculator_dict:
-                calculator.parameters.update(calculator_dict["calculator_parameters"])
-
-            # restore properties that are not in ase's all_properties
-            # (will be removed once ase allows it)
-            for prop, result in additional_results.items():
-                calculator.results[prop] = result
+            calculator = results2singlepoint(
+                atoms=atoms, results=results, calculator_dict=calculator_dict
+            )
 
         else:
             calculator = get_calculator_class(calculator_dict["calculator"].lower())(
@@ -287,6 +273,35 @@ def dict2atoms(
         atoms.info = {}
     atoms.info["unique_id"] = uuid
     return atoms
+
+
+def results2singlepoint(results=None, atoms=None, calculator_dict=None):
+    """Make SinglePointCalculator with non-ase properties"""
+
+    if results is None:
+        results = {}
+    if calculator_dict is None:
+        calculator_dict = {}
+
+    # remove properties not allowed by ase so the SinglePointCalculator
+    # doesn't complain
+    additional_properties = [
+        prop for prop in results.keys() if prop not in all_properties
+    ]
+    additional_results = {p: results.pop(p) for p in additional_properties}
+
+    calculator = SinglePointCalculator(atoms, **results)
+    if "calculator" in calculator_dict:
+        calculator.name = calculator_dict["calculator"].lower()
+    if "calculator_parameters" in calculator_dict:
+        calculator.parameters.update(calculator_dict["calculator_parameters"])
+
+    # restore properties that are not in ase's all_properties
+    # (will be removed once ase allows it)
+    for prop, result in additional_results.items():
+        calculator.results[prop] = result
+
+    return calculator
 
 
 def dict2json(dct: dict, indent: int = 0, outer: bool = True) -> str:

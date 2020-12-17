@@ -10,13 +10,17 @@ import numpy as np
 import xarray as xr
 from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
-from ase.calculators.singlepoint import SinglePointCalculator
 
 from vibes import __version__ as version
 from vibes import io, keys, son
 from vibes.filenames import filenames
 from vibes.helpers import warn
-from vibes.helpers.converters import dict2atoms, dict2json, results2dict
+from vibes.helpers.converters import (
+    dict2atoms,
+    dict2json,
+    results2dict,
+    results2singlepoint,
+)
 from vibes.helpers.hash import hash_file
 from vibes.helpers.utils import progressbar
 
@@ -408,7 +412,7 @@ def parse_dataset(dataset: xr.Dataset) -> list:
     # popping `velocities` is obsolete if
     # https://gitlab.com/ase/ase/merge_requests/1563
     # is accepted
-    velocities = atoms_dict.pop("velocities", None)
+    velocities = atoms_dict.pop(keys.velocities, None)
 
     ref_atoms = Atoms(**atoms_dict)
 
@@ -420,7 +424,7 @@ def parse_dataset(dataset: xr.Dataset) -> list:
     forces = DS.forces.data
     potential_energy = DS[keys.energy_potential].data
 
-    if "cell" in DS:
+    if keys.cell in DS:
         cells = DS.cell.data
     else:
         cells = [None for _ in positions]
@@ -435,6 +439,11 @@ def parse_dataset(dataset: xr.Dataset) -> list:
     else:
         stresses = None
 
+    if keys.virials in DS:
+        virials = DS[keys.virials].data
+    else:
+        virials = None
+
     trajectory_list = []
     properties = (positions, cells, velocities, forces, potential_energy, stress)
     for ii, (p, c, v, f, e, s) in enumerate(zip(*properties)):
@@ -444,13 +453,16 @@ def parse_dataset(dataset: xr.Dataset) -> list:
         atoms.set_positions(p)
         atoms.set_velocities(v)
 
-        results = {"energy": e, "forces": f}
-        results.update({"stress": np.nan_to_num(s)})
+        results = {keys.energy: e, keys.forces: f}
+        results.update({keys.stress: np.nan_to_num(s)})
 
         if stresses is not None:
-            results.update({"stresses": stresses[ii]})
+            results.update({keys.stresses: stresses[ii]})
 
-        calculator = SinglePointCalculator(atoms, **results)
+        if virials is not None:
+            results.update({keys.virials: virials[ii]})
+
+        calculator = results2singlepoint(atoms=atoms, results=results)
         atoms.calc = calculator
 
         trajectory_list.append(atoms)
