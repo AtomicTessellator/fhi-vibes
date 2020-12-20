@@ -115,18 +115,19 @@ def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
     timeout = Timeout(calculation_timeout)
 
     with cwd(calc_dir, mkdir=True):
+        if is_socketio:
+            # workaround to deal with the fact that the socket server only exists
+            # *after* calculate is called for the first time, i.e. we can't turn
+            # virials on before calculating someting.
+            # we have to *only* do it for socketio because other calculators would
+            # not re-run their computations when virials are enabled, and so they
+            # would be missing later
+
+            if not get_forces(atoms):
+                return False
+
         # log initial step and metadata
         if md.nsteps == 0:
-            if is_socketio:
-                # workaround to deal with the fact that the socket server only exists
-                # *after* calculate is called for the first time, i.e. we can't turn
-                # virials on before calculating someting. we can't do this in general,
-                # because calculators with virials would now compute all their results
-                # WITHOUT virials, and the later call to get_forces would not re-run
-                # because atoms hasn't changed, only the virials flag.
-
-                if not get_forces(atoms):
-                    return False
 
             # log metadata
             metadata2file(metadata, file=trajectory_file)
