@@ -1,9 +1,8 @@
 """gather statistics about trajectory data"""
 import numpy as np
-
-# import pandas as pd
 import xarray as xr
 from ase.units import GPa
+from scipy import stats as st
 
 from vibes import keys
 from vibes.helpers import talk, warn
@@ -11,27 +10,7 @@ from vibes.helpers import talk, warn
 from .plotting import plot_summary
 
 
-def np_thirds(array):
-    """subdivide numpy or xarray array into thirds"""
-    len_3 = len(array) // 3
-    sub_1 = array[:len_3]
-    sub_2 = array[len_3 : 2 * len_3]
-    sub_3 = array[2 * len_3 :]
-
-    return sub_1, sub_2, sub_3
-
-
-def pd_thirds(series):
-    """subdivide pandas.Series/DataFrame into thirds"""
-    len_3 = len(series) // 3
-    sub_1 = series.iloc[:len_3]
-    sub_2 = series.iloc[len_3 : 2 * len_3]
-    sub_3 = series.iloc[2 * len_3 :]
-
-    return sub_1, sub_2, sub_3
-
-
-def pprint(msg1, msg2, width1=25):
+def pprint(msg1, msg2, width1=30):
     """pretty print with fixed field size for first message"""
     print(f"{msg1:{width1}s} {msg2}")
 
@@ -78,9 +57,6 @@ def pressure(series, interpolate=None):
     # time in ps
     time = series.index / 1000
 
-    # thirds
-    # thirds = pd_thirds(series)
-
     msg = f"{time[-1] - time[0]:8.3f} ps ({len(time)} of {len_orig} steps)"
     pprint("Simulation time:", msg)
     pprint("Pressure:", p_sum(series))
@@ -95,37 +71,20 @@ def temperature(series):
     if isinstance(series, xr.core.dataarray.DataArray):
         series = series.to_series()
 
+    y = series
+    x = series.index
+
+    slope, *_ = st.linregress(x, y)  # get slope in K/fs
+
     # time in ps
     time = series.index / 1000
-
-    # thirds
-    thirds = pd_thirds(series)
 
     msg = f"{time[-1] - time[0]:8.3f} ps ({len(time)} steps)"
     pprint("Simulation time:", msg)
     pprint("Temperature:", T_sum(series))
-    for ii, T in enumerate(thirds):
-        pprint(f"Temperature ({ii+1}st 1/3):", T_sum(T))
-    pprint(f"Temperature (last 1/2):  ", T_sum(series.iloc[len(series) // 2 :]))
-
-
-def energy(series):
-    """summarize energies from MD"""
-
-    if isinstance(series, xr.core.dataarray.DataArray):
-        series = series.to_series()
-
-    # time in ps
-    time = series.index / 1000
-
-    # thirds
-    thirds = pd_thirds(series)
-
-    msg = f"{time[-1] - time[0]:8.3f} ps ({len(time)} steps)"
-    pprint("Simulation time:", msg)
-    pprint("Pot. Energy:", e_sum(series))
-    for ii, e in enumerate(thirds):
-        pprint(f"Pot. Energy ({ii+1}st 1/3):", e_sum(e))
+    pprint(f"Temperature (first 1/2):  ", T_sum(series.iloc[: len(series) // 2]))
+    pprint(f"Temperature (last  1/2):  ", T_sum(series.iloc[len(series) // 2 :]))
+    pprint(f"Temperature drift:        ", f"{slope*1000:14.5f} K/ps")
 
 
 def summary(dataset, plot=False, **kwargs):
@@ -163,11 +122,6 @@ def summary(dataset, plot=False, **kwargs):
     talk("Summarize Temperature", prefix="info")
     temperature(dataset.temperature)
     print()
-    talk("Summarize Potential Energy", prefix="info")
-    energy(dataset[keys.energy_potential])
-    print()
-    talk("Summarize Kinetic Pressure", prefix="info")
-    pressure(dataset.pressure_kinetic)
     talk("Summarize Potential Pressure", prefix="info")
     pressure(dataset.pressure_potential)
     talk("Summarize Total Pressure (Kinetic + Potential)", prefix="info")
@@ -180,9 +134,23 @@ def summary(dataset, plot=False, **kwargs):
     rep = np.array2string(momenta_mean, precision=4)
     print()
     talk("Drift", prefix="info")
-    pprint(f"Mean abs. Momentum:", f"{rep}")
+    pprint(f"Mean abs. Momentum:", f"{rep} AA/fs")
     if any(momenta_mean > 1e-12):
         warn("Is is this drift problematic?", level=1)
+
+    # energy drift
+    natoms = len(dataset[keys.positions][0])
+    e_kin, e_pot = dataset[keys.energy_kinetic], dataset[keys.energy_potential]
+    y = (e_kin + e_pot).dropna(keys.time)
+    y -= y[0]
+    x = y[keys.time]
+    dt = float(x[1] - x[0])
+    slope, *_ = st.linregress(x, y)  # slope in eV/fs
+    pprint(f"Energy drift:", f"{slope*dt :.5e}  eV / timestep")
+    de = slope * 1e5
+    pprint(f"Energy change after 100ps:", f"{de :.5e}  eV")
+    de *= 1000 / natoms
+    pprint(f"Energy change after 100ps:", f"{de :.5e}  meV / atom (n={natoms})")
 
     if plot:
         _keys = [
@@ -198,7 +166,5 @@ def summary(dataset, plot=False, **kwargs):
 
         df["dr_mean"] = dr_mean
         df["dr_std"] = dr_std
-        # df["dr"] = displacements
-        # df["dr_std"] = dr_std
 
         plot_summary(df, **kwargs)
