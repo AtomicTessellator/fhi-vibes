@@ -16,7 +16,7 @@ from vibes.structure.misc import get_sysname
 
 
 def get_lattice_points(
-    cell, supercell, tolerance=1e-5, sort=True, fortran=True, verbose=False
+    cell, supercell, tolerance=1e-5, sort=True, fortran=True, decimals=16, verbose=False
 ):
     """
         S = M . L
@@ -35,14 +35,16 @@ def get_lattice_points(
         If True sort results
     fortran: bool
         If True use the Fortran routines
+    decimals: int
+        how many digits to round to
     verbose: bool
         If True print more information on the console
 
     Returns
     -------
     lattice_points: np.ndarray
-        The list of lattice points in the supercell
-    lattice_points_ext_w_multiplicites
+        Array of lattice points in the supercell
+    lattice_points_ext_w_multiplicites: list
         The list of lattice points in the supercell including multiplicities
     """
 
@@ -137,9 +139,9 @@ def get_lattice_points(
     timer(f"found {nlp} ({nlpe}) lattice points")
 
     if sort:
-        lattice_points = np.asarray(sort_lattice_points(lattice_points))
-    else:
-        lattice_points = np.asarray(lattice_points)
+        lattice_points = sort_lattice_points(lattice_points)
+
+    lattice_points = np.around(lattice_points, decimals=decimals)
 
     # find multiplicities of the extended lattice points
     lattice_points_ext_w_multiplicites = []
@@ -155,9 +157,10 @@ def get_lattice_points(
             if la.norm((frac_elp - frac_lp + tol) % 1 % 1 - tol) < tol:
                 elp_mult.append(elp)
 
-        lattice_points_ext_w_multiplicites.append(np.array(elp_mult))
+        elp_mult = np.around(elp_mult, decimals=decimals)
+        lattice_points_ext_w_multiplicites.append(elp_mult)
 
-    return np.array(lattice_points), np.array(lattice_points_ext_w_multiplicites)
+    return lattice_points, lattice_points_ext_w_multiplicites
 
 
 def sort_lattice_points(lattice_points, tol=1e-5):
