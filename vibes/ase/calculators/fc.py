@@ -55,26 +55,25 @@ class FCCalculator(Calculator):
         self,
         atoms_reference: Atoms = None,
         force_constants: np.ndarray = None,
+        force_constants_qha: np.ndarray = None,
         pbc: bool = True,
-        fast: bool = True,
-        **kwargs,
     ):
         r"""
         Args:
             atoms_reference: reference structure
             force_constants [3*N, 3*N]: force contants w.r.t. the reference structure
+            force_constants_qha [3*N, 3*N]: quasiharmonic force constants d fc / d Vol
             pbc: compute stress correctly accounting for p.b.c.
-            fast: use vectorized algorithm to speed up computation of stress
 
         Background:
             When `pbc` is chosen, compute virial stresses according to
 
-                s_i = -1/2 \sum_j (u_i - u_j) \otimes f_ij
+                s_i = -1/2V \sum_j (u_i - u_j) \otimes f_ij
 
             correctly accounting for periodic images and their multiplicity.
             Otherwise compute stresss according to
 
-                s_i = -u_i \otimes f_i
+                s_i = -1/V u_i \otimes f_i
 
             which is also correct for LennardJones-type force fields.
 
@@ -84,12 +83,16 @@ class FCCalculator(Calculator):
                 f_ij: force on atom i stemming from atom j
 
         """
-        Calculator.__init__(self, **kwargs)
+        Calculator.__init__(self)
 
         self._pbc = pbc
-        self._fast = fast
         self.atoms_reference = atoms_reference
         self.force_constants = force_constants
+
+        if force_constants_qha is not None:
+            self.force_constants_qha = force_constants_qha
+        else:
+            self.force_constants_qha = np.zeros_like(force_constants)
 
         if self._pbc:
             # save pair vectors and multiplicities
@@ -100,7 +103,7 @@ class FCCalculator(Calculator):
             self.mask = np.zeros(self.pairs.shape[:3])
             for (ii, jj) in np.ndindex(self.pairs.shape[:2]):
                 m = self.mult[ii, jj]
-                self.mask[ii, jj, :m] = 1
+                self.mask[ii, jj, :m] = 1 / m
 
     def calculate(self, atoms, *unused_args, **unused_kw):
 
@@ -114,82 +117,74 @@ class FCCalculator(Calculator):
         reference_positions = self.atoms_reference.positions
         displacements = find_mic(positions - reference_positions, cell)[0]
 
-        # forces are always f_i = - phi_ij @ dr_j
+        # forces are always f_i = - phi_ij @ u_j
         fc = self.force_constants
         forces = -(fc @ displacements.flatten()).reshape(displacements.shape)
 
-        # stress:es
-        # i) vectorized
-        if self._pbc and self._fast:
-            # reshape force constants from 3Nx3N to NxNx3x3
-            fc = self.force_constants.reshape(n_atoms, 3, n_atoms, 3).swapaxes(1, 2)
-            dr = displacements[np.newaxis, :, np.newaxis, :]
-            # forceconstants * displacements [N, N, 3]
-            Du = (fc * dr).sum(axis=-1)
-            # pair displacemnts as matrix [N, N, 3]
-            d_ij = displacements[:, np.newaxis] - displacements[np.newaxis, :]
-            # pair vectors w.r.t. reference pos. including multiplicites [N, N, 27, 3]
-            r0_ijm = self.pairs @ self.atoms_reference.cell
-            # pair vectors including displacements and multiplicites [N, N, 27, 3]
-            r_ijm = r0_ijm + d_ij[:, :, None, :]
-            # sum over equivalent periodic images [N, N, 3]
-            r_ij = (self.mask[:, :, :, None] * r_ijm).sum(axis=2)
-            # s_ij = r_ij * D_ij @ u_j [N, N, 3, 3]
-            s_ij = r_ij[:, :, :, None] * Du[:, :, None, :]
-
-            # s_i [N, 3, 3]
-            stresses = s_ij.sum(axis=1)
-
-            # dev: perform sum over multiple images later, more memory consuming
-            # s_ijm = r_ijm[:, :, :, :, None] * Du[:, :, None, None, :]
-            # s_ij = (self.mask[:, :, :, None, None] * s_ijm).sum(axis=2)
-        # ii) naive implementation w/ loops
-        elif self._pbc and not self._fast:
-            forces = np.zeros((n_atoms, n_atoms, 3))
-            stresses = np.zeros((n_atoms, n_atoms, 3, 3))
-            for (ii, jj) in np.ndindex(n_atoms, n_atoms):
-                n_mult = self.mult[ii, jj]
-                d_ij = displacements[ii] - displacements[jj]
-                p_ij = fc[3 * ii : 3 * (ii + 1), 3 * jj : 3 * (jj + 1)]
-                f_ij = -p_ij @ displacements[jj]
-
-                # REM: fully antisymmetric force f_ij = -f_ji looks like this
-                # p_ji = fc[3 * jj : 3 * (jj + 1), 3 * ii : 3 * (ii + 1)]
-                # f_ij = -p_ij @ displacements[jj] + p_ji @ displacements[ii]
-
-                forces[ii, jj] = f_ij
-
-                # sum up including equivalent images
-                for mm in range(n_mult):
-                    r_ij_m = (self.pairs[ii, jj, mm] @ self.atoms_reference.cell) + d_ij
-                    stresses[ii, jj] -= np.outer(r_ij_m, f_ij)  # / 2 when antisym. f_ij
-
-                # sanity check
-                if ii == jj:
-                    assert np.allclose(stresses[ii, jj], 0)
-
-            forces = forces.sum(axis=1)
-            stresses = stresses.sum(axis=1)
-
-        # iii) w/o p.b.c or in very simple force fields life is easy:
+        # volume
+        if atoms.cell.rank == 3:
+            volume = atoms.get_volume()
         else:
-            stresses = np.zeros((n_atoms, 3, 3))
-            for ii in range(n_atoms):
-                stresses[ii] = -np.outer(displacements[ii], forces[ii])
+            volume = 1.0
+
+        # prepare calculation using following notation for indices:
+        # I, J: 1 ... N (atom index)
+        # a, b: 1 ... 3 (vector component)
+        # m: 1 ... M (m.i.c. multiplicity, at most 27)
+        dr = displacements  # [I, a]
+        # reshape force constants from [Ia, Jb] -> [I, J, a, b]
+        fc_shape = (n_atoms, 3, n_atoms, 3)
+        fc = self.force_constants.reshape(*fc_shape).swapaxes(1, 2)
+        # PU = forceconstants P [I, J, a, b] * displacements U [J, b] | sum b
+        PU = (fc * dr[None, :, None, :]).sum(axis=-1)  # -> [I, J, a]
+        # same for QHA force constants (0 if not given)
+        fc_qha = self.force_constants_qha
+        fc_qha = fc_qha.reshape(*fc_shape).swapaxes(1, 2)  # [I, J, a, b]
+        PU_qha = (fc_qha * dr[None, :, None, :]).sum(axis=-1)  # [I, J, a]
+
+        # i) account for m.i.c. multiplicity
+        if self._pbc:
+            # pair displacements as matrix
+            d_ij = dr[:, None, :] - dr[None, :, :]  # [I, J, a]
+            # pair vectors w.r.t. reference pos. including multiplicites
+            r0_ijm = self.pairs @ self.atoms_reference.cell  # [I, J, m, a]
+            # pair vectors including displacements and multiplicites
+            r_ijm = r0_ijm + d_ij[:, :, None, :]  # [I, J, m, a]
+            # average equivalent periodic images m (mask comes w/ factor 1/M)
+            r_ij = (self.mask[:, :, :, None] * r_ijm).sum(axis=2)  # -> [I, J, a]
+            # stress matrix s_ij = r_ij [I, J, a] * PU [I, J, b] / volume
+            s_ij = r_ij[:, :, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
+            s_ij /= volume
+
+        # ii) w/o p.b.c or in very simple force fields life is easy:
+        else:
+            # reshape force constants from 3Nx3N to NxNx3x3
+            # s_ij [I, J, a, b] = u_i [I, :, a, :] * PU [I, J, :, b]
+            s_ij = dr[:, None, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
+            s_ij /= volume
+
+        # from here on the two cases are similar
+        #  atomic stresses s_i [I, a, b] = sum_j s_ij [I, J, a, b]
+        stresses = s_ij.sum(axis=1)  # -> [I, a, b]
+
+        # QHA contribution (similar to ha. case, but prefactor 3/2 instead of 1/V)
+        s_ij_qha = dr[:, None, :, None] * PU_qha[:, :, None, :]  # -> [I, J, a, b]
+        s_ij_qha *= 3 / 2
+
+        stresses += s_ij_qha.sum(axis=1)
 
         # assign properties
-        # potential energy = - dr * f
-        energies = -(displacements * forces).sum(axis=1)
-        energy = energies.sum()
+        # potential energy [I] = sum_a - dr [I, a] * f [I, a]
+        energies = -(displacements * forces).sum(axis=1)  # -> [I]
+        energy = energies.sum()  # -> [1]
 
+        self.results["forces"] = forces
         self.results["energy"] = energy
         self.results["energies"] = energies
         self.results["free_energy"] = energy
 
-        self.results["forces"] = forces
-
         # no lattice, no stress
         if atoms.cell.rank == 3:
             stresses = full_3x3_to_voigt_6_stress(stresses)
-            self.results["stress"] = stresses.sum(axis=0) / atoms.get_volume()
-            self.results["stresses"] = stresses / atoms.get_volume()
+            self.results["stress"] = stresses.sum(axis=0)
+            self.results["stresses"] = stresses
