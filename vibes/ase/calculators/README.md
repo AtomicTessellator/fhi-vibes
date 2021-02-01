@@ -38,14 +38,14 @@ forces = -(fc @ displacements.flatten()).reshape(displacements.shape)
 
 The energy is given by computing the displacements $\bf U$ according to Eq.$\,\eqref{eq:U}$, and performing the matrix product given by Eq.$\,\eqref{eq:H}$, i.e., by scalar multiplication of the displacements $\bf U$ with the forces $\bf F$,
 $$
-E^{\rm pot} = - {\bf F} \cdot {\bf U}~.
+E^{\rm pot} = - \frac{1}{2} {\bf F} \cdot {\bf U}~.
 $$
 In python:
 
 ```python
 # energies: [N, 3] * [N, 3] -> [N]
-energies = -(displacements * forces).sum(axis=1)
-# energys: [N] -> [1]
+energies = -(displacements * forces).sum(axis=1) / 2
+# energy: [N] -> [1]
 energy = energies.sum()
 ```
 
