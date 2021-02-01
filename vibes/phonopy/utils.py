@@ -428,8 +428,8 @@ def parse_phonopy_force_constants(
     fortran=True,
     symmetrize=True,
     two_dim=True,
-    eps=1e-13,
-    tol=1e-5,
+    eps=1e-5,
+    tol=1e-4,
     format="aims",
 ):
     """parse phonopy FORCE_CONSTANTS file and return as 2D array
