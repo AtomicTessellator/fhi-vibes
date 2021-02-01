@@ -135,7 +135,7 @@ class FCCalculator(Calculator):
         # reshape force constants from [Ia, Jb] -> [I, J, a, b]
         fc_shape = (n_atoms, 3, n_atoms, 3)
         fc = self.force_constants.reshape(*fc_shape).swapaxes(1, 2)
-        # PU = forceconstants P [I, J, a, b] * displacements U [J, b] | sum b
+        # PU = sum_b forceconstants P [I, J, a, b] * displacements U [J, b]
         PU = (fc * dr[None, :, None, :]).sum(axis=-1)  # -> [I, J, a]
         # same for QHA force constants (0 if not given)
         fc_qha = self.force_constants_qha
@@ -174,8 +174,8 @@ class FCCalculator(Calculator):
         stresses += s_ij_qha.sum(axis=1)
 
         # assign properties
-        # potential energy [I] = sum_a - dr [I, a] * f [I, a]
-        energies = -(displacements * forces).sum(axis=1)  # -> [I]
+        # potential energy [I] = 1/2 * sum_a - dr [I, a] * f [I, a]
+        energies = -(displacements * forces).sum(axis=1) / 2  # -> [I]
         energy = energies.sum()  # -> [1]
 
         self.results["forces"] = forces
