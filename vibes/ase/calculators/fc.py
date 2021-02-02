@@ -56,26 +56,27 @@ class FCCalculator(Calculator):
         atoms_reference: Atoms = None,
         force_constants: np.ndarray = None,
         force_constants_qha: np.ndarray = None,
-        pbc: bool = True,
+        virials: bool = True,
     ):
         r"""
         Args:
             atoms_reference: reference structure
             force_constants [3*N, 3*N]: force contants w.r.t. the reference structure
             force_constants_qha [3*N, 3*N]: quasiharmonic force constants d fc / d Vol
-            pbc: compute stress correctly accounting for p.b.c.
+            virials: compute stress via virial formula
 
         Background:
-            When `pbc` is chosen, compute virial stresses according to
+            When `virials` is chosen, compute virial stresses according to
 
-                s_i = -1/2V \sum_j (u_i - u_j) \otimes f_ij
+                s_i = -1/2V \sum_j (r_i - r_j) \otimes f_ij
 
             correctly accounting for periodic images and their multiplicity.
             Otherwise compute stresss according to
 
                 s_i = -1/V u_i \otimes f_i
 
-            which is also correct for LennardJones-type force fields.
+            which discards the relative position of atoms. This might be besser to
+            approximate pressure, but the stress tensor components will be off.
 
             where
                 u_i: displacement of atom i
@@ -85,7 +86,7 @@ class FCCalculator(Calculator):
         """
         Calculator.__init__(self)
 
-        self._pbc = pbc
+        self._virials = virials
         self.atoms_reference = atoms_reference
         self.force_constants = force_constants
 
@@ -94,7 +95,7 @@ class FCCalculator(Calculator):
         else:
             self.force_constants_qha = np.zeros_like(force_constants)
 
-        if self._pbc:
+        if self._virials:
             # save pair vectors and multiplicities
             atoms = atoms_reference
             self.pairs, self.mult = get_smallest_vectors(atoms, atoms)
@@ -137,17 +138,18 @@ class FCCalculator(Calculator):
         fc = self.force_constants.reshape(*fc_shape).swapaxes(1, 2)
         # PU = sum_b forceconstants P [I, J, a, b] * displacements U [J, b]
         PU = (fc * dr[None, :, None, :]).sum(axis=-1)  # -> [I, J, a]
+
         # same for QHA force constants (0 if not given)
         fc_qha = self.force_constants_qha
         fc_qha = fc_qha.reshape(*fc_shape).swapaxes(1, 2)  # [I, J, a, b]
         PU_qha = (fc_qha * dr[None, :, None, :]).sum(axis=-1)  # [I, J, a]
 
         # i) account for m.i.c. multiplicity
-        if self._pbc:
+        if self._virials:
             # pair displacements as matrix
             d_ij = dr[:, None, :] - dr[None, :, :]  # [I, J, a]
             # pair vectors w.r.t. reference pos. including multiplicites
-            r0_ijm = self.pairs @ self.atoms_reference.cell  # [I, J, m, a]
+            r0_ijm = self.pairs @ self.atoms_reference.cell
             # pair vectors including displacements and multiplicites
             r_ijm = r0_ijm + d_ij[:, :, None, :]  # [I, J, m, a]
             # average equivalent periodic images m (mask comes w/ factor 1/M)
