@@ -170,7 +170,6 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
         if ctx.settings["md"]["compute_stresses"]:
             aims_settings.update({"compute_heat_flux": True})
             aims_settings.update({"compute_analytical_stress": True})
-            aims_settings.update({"compensate_multipole_errors": False})
 
     if "relaxation" in ctx.settings:
         aims_settings.update({"compute_forces": True})
@@ -179,6 +178,10 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
 
     if "phonopy" in ctx.settings:
         aims_settings.update({"compute_forces": True})
+
+    # legacy
+    if aims_settings.get("compute_heat_flux"):
+        aims_settings.update({"compensate_multipole_errors": False})
 
     ase_settings = {"aims_command": ctx.settings.machine.aims_command}
 
