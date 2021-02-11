@@ -1,5 +1,6 @@
 import numpy as np
 from ase import Atoms
+from ase import units as u
 from ase.calculators.calculator import Calculator
 from ase.constraints import full_3x3_to_voigt_6_stress
 from ase.geometry import find_mic
@@ -91,8 +92,10 @@ class FCCalculator(Calculator):
         self.force_constants = force_constants
 
         if force_constants_qha is not None:
+            self.qha = True
             self.force_constants_qha = force_constants_qha
         else:
+            self.qha = False
             self.force_constants_qha = np.zeros_like(force_constants)
 
         if self._virials:
@@ -139,11 +142,6 @@ class FCCalculator(Calculator):
         # PU = sum_b forceconstants P [I, J, a, b] * displacements U [J, b]
         PU = (fc * dr[None, :, None, :]).sum(axis=-1)  # -> [I, J, a]
 
-        # same for QHA force constants (0 if not given)
-        fc_qha = self.force_constants_qha
-        fc_qha = fc_qha.reshape(*fc_shape).swapaxes(1, 2)  # [I, J, a, b]
-        PU_qha = (fc_qha * dr[None, :, None, :]).sum(axis=-1)  # [I, J, a]
-
         # i) account for m.i.c. multiplicity
         if self._virials:
             # pair displacements as matrix
@@ -152,11 +150,20 @@ class FCCalculator(Calculator):
             r0_ijm = self.pairs @ self.atoms_reference.cell
             # pair vectors including displacements and multiplicites
             r_ijm = r0_ijm + d_ij[:, :, None, :]  # [I, J, m, a]
-            # average equivalent periodic images m (mask comes w/ factor 1/M)
+            # average over equivalent periodic images m (mask comes w/ factor 1/M)
             r_ij = (self.mask[:, :, :, None] * r_ijm).sum(axis=2)  # -> [I, J, a]
+            # dev:
+            # r0_ij = (self.mask[:, :, :, None] * r0_ijm).sum(axis=2)  # -> [I, J, a]
+            # dr_ij = (self.mask[:, :, :, None] * d_ij[:, :, None, :]).sum(axis=2)
+
             # stress matrix s_ij = r_ij [I, J, a] * PU [I, J, b] / volume
             s_ij = r_ij[:, :, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
             s_ij /= volume
+            # dev:
+            # s0_ij = r0_ij[:, :, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
+            # sd_ij = dr_ij[:, :, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
+            # s0_ij /= volume
+            # sd_ij /= volume
 
         # ii) w/o p.b.c or in very simple force fields life is easy:
         else:
@@ -166,14 +173,14 @@ class FCCalculator(Calculator):
             s_ij /= volume
 
         # from here on the two cases are similar
-        #  atomic stresses s_i [I, a, b] = sum_j s_ij [I, J, a, b]
-        stresses = s_ij.sum(axis=1)  # -> [I, a, b]
-
         # QHA contribution (similar to ha. case, but prefactor 3/2 instead of 1/V)
-        s_ij_qha = dr[:, None, :, None] * PU_qha[:, :, None, :]  # -> [I, J, a, b]
-        s_ij_qha *= 3 / 2
+        if self.qha:
+            fc_qha = self.force_constants_qha
+            fc_qha = fc_qha.reshape(*fc_shape).swapaxes(1, 2)  # [I, J, a, b]
+            PU_qha = (fc_qha * dr[None, :, None, :]).sum(axis=-1)  # [I, J, a]
 
-        stresses += s_ij_qha.sum(axis=1)
+            s_ij_qha = dr[:, None, :, None] * PU_qha[:, :, None, :]  # -> [I, J, a, b]
+            s_ij_qha *= 3 / 2
 
         # assign properties
         # potential energy [I] = 1/2 * sum_a - dr [I, a] * f [I, a]
@@ -187,6 +194,26 @@ class FCCalculator(Calculator):
 
         # no lattice, no stress
         if atoms.cell.rank == 3:
-            stresses = full_3x3_to_voigt_6_stress(stresses)
-            self.results["stress"] = stresses.sum(axis=0)
-            self.results["stresses"] = stresses
+            #  atomic stresses s_i [I, a, b] = sum_j s_ij [I, J, a, b]
+            if self.qha:
+                s_ij += s_ij_qha
+            s_i = s_ij.sum(axis=1)  # -> [I, a, b]
+            # dev
+            # s0_i = s0_ij.sum(axis=1)  # -> [I, a, b]
+            # sd_i = sd_ij.sum(axis=1)
+
+            stress = full_3x3_to_voigt_6_stress(s_i.sum(axis=0))
+            self.results["stress"] = stress
+            self.results["stresses"] = s_i
+            # dev
+            # self.results["stresses_0"] = s0_i
+            # self.results["stresses_d"] = sd_i
+            if self.qha:
+                self.results["stresses_qha"] = s_ij_qha.sum(axis=1)
+
+            # # compute heat flux in eV / AA**2 / fs
+            # J = 1/2 * sum_i s_i \cdot p_i
+            pref = 0.5
+            v = atoms.get_velocities() / u.fs
+            j = pref * (s_i * v[:, None, :]).sum(axis=-1).sum(axis=0)
+            self.results["heat_flux"] = j
