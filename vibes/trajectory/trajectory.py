@@ -12,8 +12,8 @@ from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.stress import has_stress
 from vibes.helpers.stresses import get_stresses, has_stresses
-from vibes.helpers.virials import get_virials, has_virials
 from vibes.helpers.utils import progressbar
+from vibes.helpers.virials import get_virials, has_virials
 
 from . import analysis as al
 from .utils import Timer, talk
@@ -280,55 +280,47 @@ class Trajectory(list):
             return fc
 
     def set_force_constants(self, fc):
-        """set force constants"""
+        """set force constants and remap"""
+        from vibes.phonopy.utils import remap_force_constants
+
         Np, Na = len(self.primitive), len(self.supercell)
         # assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
         assert fc.shape == (Np, Na, 3, 3), fc.shape
         self.metadata[keys.fc] = fc
 
+        # remapped fc
+        uc, sc = self.primitive, self.supercell
+        fc = remap_force_constants(fc, uc, sc, two_dim=True, symmetrize=True)
+        self.set_force_constants_remapped(fc)
+
     @property
     def force_constants_remapped(self):
         """return remapped force constants [3 * Na, 3 * Na]"""
-        if self._force_constants_remapped is None:
-            fc = self.force_constants
-            if fc is not None:
-                uc, sc = self.primitive, self.supercell
-                from vibes.phonopy.utils import remap_force_constants
-
-                fc = remap_force_constants(fc, uc, sc, two_dim=True, symmetrize=True)
-
-                self._force_constants_remapped = fc
         return self._force_constants_remapped
 
     def set_force_constants_remapped(self, fc):
-        """set remapped force constants"""
+        """set remapped force constants and compute harmonic forces"""
         Na = len(self.reference_atoms)
         assert fc.shape == (3 * Na, 3 * Na), fc.shape
         self._force_constants_remapped = fc
+        self.set_forces_harmonic()
 
-    def set_forces_harmonic(self, force_constants=None, average_reference=False):
-        """return harmonic force computed from force_constants"""
+    def set_forces_harmonic(self, average_reference=False):
+        """compute harmonic force computed from self.force_constants"""
         if average_reference:
             talk("Compute harmonic force constants with average positions as reference")
             self.reference_atoms = self.average_atoms
 
-        if force_constants is None:
-            force_constants = self.force_constants_remapped
-
         timer = Timer("Set harmonic forces")
-
-        forces_ha = [-force_constants @ d.flatten() for d in self.displacements]
-        timer()
-
+        displacements = self.displacements
+        force_constants = self.force_constants_remapped
+        forces_ha = [-force_constants @ d.flatten() for d in displacements]
         self._forces_harmonic = np.array(forces_ha).reshape(self.positions.shape)
+        timer()
 
     @property
     def forces_harmonic(self):
         """return harmonic forces, None if not set via `set_force_constants`"""
-        if self._forces_harmonic is None:
-            if self.force_constants_remapped is not None:
-                self.set_forces_harmonic()
-
         return self._forces_harmonic
 
     @lazy_property
@@ -574,7 +566,7 @@ class Trajectory(list):
             # warn("Supercell not set, let us stop here.", level=2)
             warn("SUPERCELL NOT SET, compute w.r.t to reference atoms", level=1)
 
-        timer = Timer("Compute displacements")
+        talk("Compute displacements")
 
         cell = np.asarray(self.reference_atoms.cell)
         shape = self.positions.shape
@@ -582,7 +574,6 @@ class Trajectory(list):
 
         displacements = find_mic(displacements.reshape(-1, 3), cell)[0]
         self.displacements = displacements.reshape(*shape)
-        timer()
 
     @property
     def displacements(self):
@@ -770,3 +761,19 @@ class Trajectory(list):
         assert self._hash_raw is None
         assert isinstance(string, str)
         self._hash_raw = string
+
+    def compute_heat_flux_harmonic(self):
+        """compute harmonic properties from FCCalculator"""
+        from vibes.ase.calculators.fc import FCCalculator
+
+        calc_ha = FCCalculator(
+            atoms_reference=self.reference_atoms,
+            force_constants=self.force_constants_remapped,
+        )
+
+        timer = Timer("Set harmonic properties")
+        for atoms in progressbar(self):
+            calc_ha.calculate(atoms)
+            for key in calc_ha.results:
+                atoms.calc.results[f"{key}_harmonic"] = calc_ha.results[key]
+        timer()
