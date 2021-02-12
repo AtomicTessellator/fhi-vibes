@@ -43,11 +43,9 @@ velocities = "velocities"
 momenta = "momenta"
 
 forces = "forces"
-forces_harmonic = "forces_harmonic"
 energy = "energy"
 energy_kinetic = "energy_kinetic"
 energy_potential = "energy_potential"
-energy_potential_harmonic = "energy_potential_harmonic"
 pressure = "pressure"
 pressure_kinetic = "pressure_kinetic"
 pressure_potential = "pressure_potential"
@@ -66,8 +64,16 @@ heat_fluxes_aux = _join(heat_fluxes, aux)
 heat_flux_total = _join(heat_flux, total)
 
 kappa = "kappa"
-
 gk_prefactor = "gk_prefactor"
+
+# harmonic properties
+forces_harmonic = "forces_harmonic"
+energy_potential_harmonic = "energy_potential_harmonic"
+stress_harmonic = "stress_harmonic"
+stresses_harmonic = "stresses_harmonic"
+heat_flux_harmonic = "heat_flux_harmonic"
+heat_flux_harmonic_0 = "heat_flux_harmonic_0"
+
 
 sigma = "sigma"
 sigma_mode = "sigma_mode"
