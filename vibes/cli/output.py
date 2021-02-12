@@ -21,12 +21,10 @@ def output():
 @output.command(aliases=["md"], context_settings=default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
-@click.option("-d", "--discard", type=int, help="discard this many steps")
-@click.option("--minimal", is_flag=True, help="omit redundant information")
 @click.option("-fc", "--fc_file", type=Path, help="add force constants from file")
 @click.option("-o", "--outfile", default="auto", show_default=True)
 @click.option("--force", is_flag=True, help="enfore parsing of output file")
-def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
+def trajectory(file, heat_flux, fc_file, outfile, force):
     """write trajectory data in FILE to xarray.Dataset"""
     from vibes import keys
     from vibes.trajectory import reader
@@ -54,15 +52,10 @@ def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
     click.echo(f"Extract Trajectory dataset from {file}")
     traj = reader(file=file, fc_file=fc_file)
 
-    if discard:
-        traj = traj.discard(discard)
-
-    # harmonic forces?
-    if fc_file:
-        traj.set_forces_harmonic()
-
     if heat_flux:
         traj.compute_heat_flux_from_stresses()
+        if traj.force_constants is not None:
+            traj.compute_heat_flux_harmonic()
 
     DS = get_trajectory_dataset(traj, metadata=True)
     # attach file size
