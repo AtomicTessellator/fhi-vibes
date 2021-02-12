@@ -62,7 +62,7 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
             sc_list = sorted(sc_list, key=lambda s: int(str(s).split("_")[-1]))
             md_settings["phonon_file"] = str(sc_list[-1] / "phonopy/trajectory.son")
 
-        _, ph_metadata = reader(md_settings["phonon_file"], get_metadata=True)
+        ph_metadata = reader(md_settings["phonon_file"]).metadata
         ph_workdir = str(Path(md_settings["phonon_file"]).parent)
         ph_trajectory_file = str(Path(md_settings["phonon_file"]).name)
         phonon = postprocess(ph_trajectory_file, ph_workdir, verbose=False)
