@@ -49,25 +49,23 @@ def get_smallest_vectors(supercell: Atoms, primitive: Atoms, symprec: float = 1e
 class FCCalculator(Calculator):
     """Harmonic Force Constants Calculator"""
 
-    implemented_properties = ["energy", "energies", "forces", "free_energy"]
-    implemented_properties += ["stress", "stresses"]  # bulk properties
+    implemented_properties = ["energy", "energies", "forces"]
+    implemented_properties += ["stress", "stresses", "heat_flux"]  # bulk properties
 
     def __init__(
         self,
         atoms_reference: Atoms = None,
         force_constants: np.ndarray = None,
         force_constants_qha: np.ndarray = None,
-        virials: bool = True,
     ):
         r"""
         Args:
             atoms_reference: reference structure
             force_constants [3*N, 3*N]: force contants w.r.t. the reference structure
             force_constants_qha [3*N, 3*N]: quasiharmonic force constants d fc / d Vol
-            virials: compute stress via virial formula
 
         Background:
-            When `virials` is chosen, compute virial stresses according to
+            In 3D periodic systems, compute virial stresses according to
 
                 s_i = -1/2V \sum_j (r_i - r_j) \otimes f_ij
 
@@ -76,10 +74,9 @@ class FCCalculator(Calculator):
 
                 s_i = -1/V u_i \otimes f_i
 
-            which discards the relative position of atoms. This might be besser to
-            approximate pressure, but the stress tensor components will be off.
+            which is sufficient in non-periodic systems.
 
-            where
+
                 u_i: displacement of atom i
                 f_i: force on atom i
                 f_ij: force on atom i stemming from atom j
@@ -87,18 +84,17 @@ class FCCalculator(Calculator):
         """
         Calculator.__init__(self)
 
-        self._virials = virials
         self.atoms_reference = atoms_reference
         self.force_constants = force_constants
+        self.pbc = self.atoms_reference.cell.rank == 3
 
         if force_constants_qha is not None:
             self.qha = True
             self.force_constants_qha = force_constants_qha
         else:
             self.qha = False
-            self.force_constants_qha = np.zeros_like(force_constants)
 
-        if self._virials:
+        if self.pbc:
             # save pair vectors and multiplicities
             atoms = atoms_reference
             self.pairs, self.mult = get_smallest_vectors(atoms, atoms)
@@ -108,6 +104,11 @@ class FCCalculator(Calculator):
             for (ii, jj) in np.ndindex(self.pairs.shape[:2]):
                 m = self.mult[ii, jj]
                 self.mask[ii, jj, :m] = 1 / m
+
+            # pair vectors w.r.t. reference pos. including multiplicites
+            r0_ijm = self.pairs @ self.atoms_reference.cell  # [I, J, m, a]
+            # average over equivalent periodic images m
+            self.r0_ij = (self.mask[:, :, :, None] * r0_ijm).sum(axis=2)  # -> [I, J, a]
 
     def calculate(self, atoms, *unused_args, **unused_kw):
 
@@ -126,7 +127,7 @@ class FCCalculator(Calculator):
         forces = -(fc @ displacements.flatten()).reshape(displacements.shape)
 
         # volume
-        if atoms.cell.rank == 3:
+        if self.pbc:
             volume = atoms.get_volume()
         else:
             volume = 1.0
@@ -143,34 +144,27 @@ class FCCalculator(Calculator):
         PU = (fc * dr[None, :, None, :]).sum(axis=-1)  # -> [I, J, a]
 
         # i) account for m.i.c. multiplicity
-        if self._virials:
-            # pair displacements as matrix
-            d_ij = dr[:, None, :] - dr[None, :, :]  # [I, J, a]
-            # pair vectors w.r.t. reference pos. including multiplicites
-            r0_ijm = self.pairs @ self.atoms_reference.cell
-            # pair vectors including displacements and multiplicites
-            r_ijm = r0_ijm + d_ij[:, :, None, :]  # [I, J, m, a]
+        if self.pbc:
+            # pair displacements as matrix including multiplicites
+            d_ijm = (dr[:, None, :] - dr[None, :, :])[:, :, :, None]  # [I, J, a, m]
             # average over equivalent periodic images m (mask comes w/ factor 1/M)
-            r_ij = (self.mask[:, :, :, None] * r_ijm).sum(axis=2)  # -> [I, J, a]
-            # dev:
-            # r0_ij = (self.mask[:, :, :, None] * r0_ijm).sum(axis=2)  # -> [I, J, a]
-            # dr_ij = (self.mask[:, :, :, None] * d_ij[:, :, None, :]).sum(axis=2)
+            d_ij = (self.mask[:, :, None, :] * d_ijm).sum(axis=-1)  # -> [I, J, a]
 
             # stress matrix s_ij = r_ij [I, J, a] * PU [I, J, b] / volume
-            s_ij = r_ij[:, :, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
-            s_ij /= volume
-            # dev:
-            # s0_ij = r0_ij[:, :, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
-            # sd_ij = dr_ij[:, :, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
-            # s0_ij /= volume
-            # sd_ij /= volume
+            # stress term from reference positions for heat flux:
+            s0_ij = self.r0_ij[:, :, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
+            s0_ij /= volume
+            # stress term due to displacements for stress/pressure
+            sd_ij = d_ij[:, :, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
+            sd_ij /= volume
 
         # ii) w/o p.b.c or in very simple force fields life is easy:
         else:
             # reshape force constants from 3Nx3N to NxNx3x3
             # s_ij [I, J, a, b] = u_i [I, :, a, :] * PU [I, J, :, b]
-            s_ij = dr[:, None, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
-            s_ij /= volume
+            sd_ij = dr[:, None, :, None] * PU[:, :, None, :]  # -> [I, J, a, b]
+            sd_ij /= volume
+            s0_ij = np.zeros_like(sd_ij)
 
         # from here on the two cases are similar
         # QHA contribution (similar to ha. case, but prefactor 3/2 instead of 1/V)
@@ -182,6 +176,9 @@ class FCCalculator(Calculator):
             s_ij_qha = dr[:, None, :, None] * PU_qha[:, :, None, :]  # -> [I, J, a, b]
             s_ij_qha *= 3 / 2
 
+            # add to displacemnt-stress sd:
+            sd_ij += s_ij_qha
+
         # assign properties
         # potential energy [I] = 1/2 * sum_a - dr [I, a] * f [I, a]
         energies = -(displacements * forces).sum(axis=1) / 2  # -> [I]
@@ -190,24 +187,19 @@ class FCCalculator(Calculator):
         self.results["forces"] = forces
         self.results["energy"] = energy
         self.results["energies"] = energies
-        self.results["free_energy"] = energy
 
         # no lattice, no stress
-        if atoms.cell.rank == 3:
+        if self.pbc:
             #  atomic stresses s_i [I, a, b] = sum_j s_ij [I, J, a, b]
-            if self.qha:
-                s_ij += s_ij_qha
-            s_i = s_ij.sum(axis=1)  # -> [I, a, b]
-            # dev
-            # s0_i = s0_ij.sum(axis=1)  # -> [I, a, b]
-            # sd_i = sd_ij.sum(axis=1)
+            s0_i = s0_ij.sum(axis=1)  # -> [I, a, b]
+            sd_i = sd_ij.sum(axis=1)  # -> [I, a, b]
+            s_i = s0_i + sd_i
 
             stress = full_3x3_to_voigt_6_stress(s_i.sum(axis=0))
             self.results["stress"] = stress
             self.results["stresses"] = s_i
-            # dev
-            # self.results["stresses_0"] = s0_i
-            # self.results["stresses_d"] = sd_i
+            self.results["stresses_0"] = s0_i
+
             if self.qha:
                 self.results["stresses_qha"] = s_ij_qha.sum(axis=1)
 
@@ -215,5 +207,7 @@ class FCCalculator(Calculator):
             # J = 1/2 * sum_i s_i \cdot p_i
             pref = 0.5
             v = atoms.get_velocities() / u.fs
-            j = pref * (s_i * v[:, None, :]).sum(axis=-1).sum(axis=0)
+            j = pref * (s_i * v[:, None, :]).sum(axis=(0, -1))
+            j0 = pref * (s0_i * v[:, None, :]).sum(axis=(0, -1))
             self.results["heat_flux"] = j
+            self.results["heat_flux_0"] = j0
