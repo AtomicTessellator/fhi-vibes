@@ -333,7 +333,7 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
 
     # Get equilibrium phonon
     eq_phonon = postprocess(trajectory_file)
-    _, metadata = reader(trajectory_file, get_metadata=True)
+    metadata = reader(trajectory_file).metadata
 
     settings["phonopy"]["supercell_matrix"] = eq_phonon.get_supercell_matrix()
     settings["phonopy"]["symprec"] = metadata["Phonopy"].get("symprec", 1e-5)

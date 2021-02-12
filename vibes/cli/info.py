@@ -298,9 +298,9 @@ def relaxation(obj, file, verbose):
     from vibes.spglib.wrapper import get_spacegroup
     from vibes.trajectory import reader
 
-    traj, metadata = reader(file, get_metadata=True, verbose=False)
+    traj = reader(file, verbose=False)
 
-    relaxation_kwargs = metadata[name].get(relaxation_options, {})
+    relaxation_kwargs = traj.metadata[name].get(relaxation_options, {})
 
     try:
         fmax = relaxation_kwargs[keys.fmax]
@@ -329,7 +329,7 @@ def relaxation(obj, file, verbose):
         import json
 
         click.echo("Metadata for relaxation:")
-        click.echo(json.dumps(metadata[name], indent=2))
+        click.echo(json.dumps(traj.metadata[name], indent=2))
 
     if fix_symmetry:
         from ase.spacegroup.symmetrize import FixSymmetry

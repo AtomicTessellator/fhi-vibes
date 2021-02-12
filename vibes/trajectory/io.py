@@ -153,24 +153,18 @@ def _map_create_atoms(pre_trajectory, **kwargs):
 
 
 def reader(
-    file=filenames.trajectory,
-    get_metadata=False,
-    fc_file=None,
-    single_point_calculator=True,
-    verbose=True,
+    file=filenames.trajectory, fc_file=None, single_point_calculator=True, verbose=True,
 ):
     """Convert information in file to Trajectory
 
     Args:
         file: Trajectory file to read the structures from
-        get_metadata: If True return the metadata
         fc_file: force constants file
         single_point_calculator: return calculators as SinglePointCalculator
         verbose: If True print more information to the screen
 
     Returns:
         trajectory: The trajectory from the file
-        metadata: The metadata for the trajectory
     """
     from vibes.trajectory.trajectory import Trajectory
 
@@ -178,65 +172,53 @@ def reader(
 
     if Path(file).suffix == ".nc":
         trajectory = read_netcdf(file)
-        if fc_file:
-            fc = io.parse_force_constants(fc_file, two_dim=False)
-            trajectory.set_force_constants(fc)
-
         timer()
 
-        return trajectory
-
-    metadata, pre_trajectory = son.load(file, verbose=verbose)
-    timer()
-
-    # legacy of trajectory.yaml
-    if metadata is None:
-        msg = f"metadata in {file} appears to be empty, assume old convention w/o === "
-        msg += f"was used. Let's see"
-        warn(msg, level=1)
-        metadata = pre_trajectory.pop(0)
-
-    pre_calc_dict = metadata["calculator"]
-    pre_atoms_dict = metadata["atoms"]
-
-    if "numbers" in pre_atoms_dict and "symbols" in pre_atoms_dict:
-        del pre_atoms_dict["symbols"]
-
-    if not pre_trajectory:
-        if get_metadata:
-            talk(".. trajectory empty, return (Trajectory([]), metadata)")
-            return Trajectory([]), metadata
-        talk(".. trajectory empty, return Trajectory([])")
-        return Trajectory([])
-
-    timer2 = Timer(".. create atoms", verbose=verbose)
-    if "MD" in metadata:
-        map_metadata = {"MD": metadata["MD"]}
     else:
-        map_metadata = {}
+        metadata, pre_trajectory = son.load(file, verbose=verbose)
+        timer()
 
-    kw = {
-        "pre_atoms_dict": pre_atoms_dict,
-        "pre_calc_dict": pre_calc_dict,
-        "metadata": map_metadata,
-        "single_point_calculator": single_point_calculator,
-    }
-    list = _map_create_atoms(pre_trajectory, **kw)
-    trajectory = Trajectory(list, metadata=metadata)
-    timer2()
+        # legacy of trajectory.yaml
+        if metadata is None:
+            msg = f"metadata in {file} appears to be empty. "
+            msg += f"Assume old convention w/o `===` was used. Let's see"
+            warn(msg, level=1)
+            metadata = pre_trajectory.pop(0)
 
-    timer3 = Timer(".. set raw hash")
-    trajectory.hash_raw = hash_file(file)
-    timer3()
+        pre_calc_dict = metadata["calculator"]
+        pre_atoms_dict = metadata["atoms"]
 
-    timer("done")
+        if "numbers" in pre_atoms_dict and "symbols" in pre_atoms_dict:
+            del pre_atoms_dict["symbols"]
+
+        if not pre_trajectory:
+            talk(".. trajectory empty, return Trajectory([])")
+            return Trajectory([])
+
+        timer2 = Timer(".. create atoms", verbose=verbose)
+        if "MD" in metadata:
+            map_metadata = {"MD": metadata["MD"]}
+        else:
+            map_metadata = {}
+
+        kw = {
+            "pre_atoms_dict": pre_atoms_dict,
+            "pre_calc_dict": pre_calc_dict,
+            "metadata": map_metadata,
+            "single_point_calculator": single_point_calculator,
+        }
+        list = _map_create_atoms(pre_trajectory, **kw)
+        trajectory = Trajectory(list, metadata=metadata)
+        timer2()
+
+        talk(".. set raw hash")
+        trajectory.hash_raw = hash_file(file)
+
+        timer("done")
 
     if fc_file:
         fc = io.parse_force_constants(fc_file, two_dim=False)
         trajectory.set_force_constants(fc)
-
-    if get_metadata:
-        return trajectory, metadata
 
     return trajectory
 
