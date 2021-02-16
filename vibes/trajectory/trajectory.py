@@ -9,6 +9,7 @@ from vibes.anharmonicity_score import get_sigma
 from vibes.filenames import filenames
 from vibes.helpers import lazy_property, warn
 from vibes.helpers.converters import atoms2dict, dict2atoms
+from vibes.helpers.force_constants import ForceConstants
 from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.stress import has_stress
 from vibes.helpers.stresses import get_stresses, has_stresses
@@ -46,6 +47,7 @@ class Trajectory(list):
         self._avg_heat_flux = None
         self._forces_harmonic = None
         self._displacements = None
+        self._force_constants = None
         self._force_constants_remapped = None
         self._hash_raw = None
         if keys.fc not in self._metadata:
@@ -109,10 +111,6 @@ class Trajectory(list):
     @property
     def ref_atoms(self):
         return self.reference_atoms
-
-    @ref_atoms.setter
-    def ref_atoms(self, atoms):
-        self.reference_atoms = atoms
 
     @property
     def primitive(self):
@@ -266,7 +264,7 @@ class Trajectory(list):
         return np.array([a.get_forces() for a in self])
 
     @property
-    def force_constants(self):
+    def force_constants_raw(self):
         """return (reduced) force constants or warn if not set"""
         fc = self.metadata[keys.fc]
         if any(x is None for x in (fc, self.primitive, self.supercell)):
@@ -280,22 +278,22 @@ class Trajectory(list):
             return fc
 
     def set_force_constants(self, fc):
-        """set force constants and remap"""
-        from vibes.helpers.force_constants import remap_force_constants
+        """attach force constants as ForceConstants object"""
+        fcs = ForceConstants(
+            force_constants=fc, primitive=self.primitive, supercell=self.supercell
+        )
+        self._force_constants = fcs
 
-        Np, Na = len(self.primitive), len(self.supercell)
-        # assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
-        assert fc.shape == (Np, Na, 3, 3), fc.shape
-        self.metadata[keys.fc] = fc
-
-        # remapped fc
-        uc, sc = self.primitive, self.supercell
-        fc = remap_force_constants(fc, uc, sc, two_dim=True, symmetrize=True)
-        self.set_force_constants_remapped(fc)
+    @property
+    def force_constants(self):
+        """return ForceConstants object representing the force constants"""
+        return self._force_constants
 
     @property
     def force_constants_remapped(self):
         """return remapped force constants [3 * Na, 3 * Na]"""
+        if self.force_constants is not None:
+            return self.force_constants.remapped
         return self._force_constants_remapped
 
     def set_force_constants_remapped(self, fc):
@@ -566,7 +564,7 @@ class Trajectory(list):
             # warn("Supercell not set, let us stop here.", level=2)
             warn("SUPERCELL NOT SET, compute w.r.t to reference atoms", level=1)
 
-        talk("Compute displacements")
+        timer = Timer("Compute displacements")
 
         cell = np.asarray(self.reference_atoms.cell)
         shape = self.positions.shape
@@ -574,6 +572,7 @@ class Trajectory(list):
 
         displacements = find_mic(displacements.reshape(-1, 3), cell)[0]
         self.displacements = displacements.reshape(*shape)
+        timer()
 
     @property
     def displacements(self):
@@ -773,7 +772,7 @@ class Trajectory(list):
 
         calc_ha = FCCalculator(
             atoms_reference=self.reference_atoms,
-            force_constants=self.force_constants_remapped,
+            force_constants=self.force_constants.remapped,
         )
 
         timer = Timer("Set harmonic properties")

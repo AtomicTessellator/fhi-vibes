@@ -500,17 +500,15 @@ def t2csv(file, outfile):
 @click.option("-uc", help="Add a (primitive) unit cell", type=complete_files)
 @click.option("-sc", help="Add the respective supercell", type=complete_files)
 @click.option("-fc", help="Add the force constants", type=complete_files)
-@click.option("-rfc", help="Add remapped force constants", type=complete_files)
 @click.option("-o", "--outfile")
 @click.option("--format", default="aims")
-def update(file, uc, sc, fc, rfc, outfile, format):
+def update(file, uc, sc, fc, outfile, format):
     """update reference data in trajectory file"""
     # copy: from vibes.scripts.update_md_trajectory import update_trajectory
     import shutil
 
     from ase.io import read
 
-    from vibes.io import parse_force_constants
     from vibes.trajectory import reader
 
     traj = reader(file, fc_file=fc)
@@ -523,11 +521,6 @@ def update(file, uc, sc, fc, rfc, outfile, format):
         atoms = read(sc, format=format)
         traj.supercell = atoms
         traj.set_displacements()
-
-    if rfc:
-        fc = parse_force_constants(rfc)
-        print(fc)
-        traj.set_force_constants_remapped(fc)
 
     if not outfile:
         suffix = Path(file).suffix

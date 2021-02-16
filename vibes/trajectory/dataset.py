@@ -191,9 +191,12 @@ def get_trajectory_dataset(trajectory, metadata=False):
     coords = _time_coords(trajectory)
     attrs = _attrs(trajectory, metadata=metadata)
 
+    if trajectory.force_constants is not None:
+        fc = trajectory.force_constants.array
+        dataset.update({keys.fc: (dims.fc, fc)})
     if trajectory.force_constants_remapped is not None:
-        fc = trajectory.force_constants_remapped
-        dataset.update({keys.fc_remapped: (dims.fc_remapped, fc)})
+        rfc = trajectory.force_constants_remapped
+        dataset.update({keys.fc_remapped: (dims.fc_remapped, rfc)})
 
     if trajectory.forces_harmonic is not None:
         epot_ha = trajectory.potential_energy_harmonic

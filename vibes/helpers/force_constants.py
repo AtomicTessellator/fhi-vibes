@@ -62,6 +62,11 @@ class ForceConstants:
         rep = f"Force Constants for {name} (sg {sg}) of shape {self.fc_phonopy.shape}"
         return repr(rep)
 
+    @property
+    def array(self):
+        """view on the raw phonopy-like force constants array"""
+        return self.fc_phonopy
+
     def get_remapped_to(self, atoms: Atoms, symmetrize: bool = True):
         return remap_force_constants(
             force_constants=self.fc_phonopy,
@@ -79,6 +84,11 @@ class ForceConstants:
     def remapped_to_supercell_3N_by_3N(self):
         N, *_ = self.remapped_to_supercell.shape
         return self.remapped_to_supercell.swapaxes(1, 2).reshape((3 * N, 3 * N))
+
+    @property
+    def remapped(self):
+        """shorthand for remapped_to_supercell_3N_by_3N"""
+        return self.remapped_to_supercell_3N_by_3N
 
     @property
     def reshaped_to_lattice_points(self):
