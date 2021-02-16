@@ -4,14 +4,98 @@ import numpy as np
 from ase import Atoms
 from ase.geometry import get_distances
 
-from vibes.helpers import Timer, progressbar, talk, warn
+from vibes.ase.calculators.fc import get_smallest_vectors
+from vibes.helpers import Timer, lazy_property, progressbar, talk
 from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.supercell import map2prim
 from vibes.helpers.supercell.supercell import supercell as fort
+from vibes.io import get_identifier
 
 
 _prefix = "force_constants"
+
+
+def _talk(msg, verbose=True):
+    return talk(msg, prefix=_prefix, verbose=verbose)
+
+
+class ForceConstants:
+    """Represents (phonopy) force constants and bundles related functionality"""
+
+    def __init__(
+        self, force_constants: np.ndarray, primitive: Atoms, supercell: Atoms, **kwargs,
+    ):
+        """instantiate ForceConstants with fc. in phonopy shape + ref. structures
+
+        Args:
+            force_constants: the force constant matrix in phonopy shape ([Np, Ns, 3, 3])
+            primitive: the reference primitive structure
+            supercell: the reference supercell
+
+        """
+        assert isinstance(supercell, Atoms)
+        self.supercell = supercell.copy()
+        # if primitive is None:  # create prim. cell if not given
+        #     primitive = standardize_cell(supercell, to_primitive=True)
+        assert isinstance(primitive, Atoms)
+        self.primitive = primitive.copy()
+        self.fc_phonopy = force_constants.copy()
+
+        # map from supercell to primitive cell
+        self._sc2pc = map2prim(primitive=self.primitive, supercell=self.supercell)
+
+        # get lattice points in supercell
+        lps, elps = get_lattice_points(primitive.cell, supercell.cell)
+        self._lattice_points, self._lattice_points_extended = lps, elps
+
+        # get mapping to lattice points
+        I2iL, iL2I = map_I_to_iL(primitive, supercell, lattice_points=lps)
+        self._I2iL, self._iL2I = I2iL, iL2I
+
+        # get smallest vectors and their weights
+        self.smallest_vectors = get_smallest_vectors(self.supercell, self.primitive)
+
+    def __repr__(self):
+        dct = get_identifier(self.primitive)
+        sg, name = dct["space_group"], dct["material"]
+        rep = f"Force Constants for {name} (sg {sg}) of shape {self.fc_phonopy.shape}"
+        return repr(rep)
+
+    def get_remapped_to(self, atoms: Atoms, symmetrize: bool = True):
+        return remap_force_constants(
+            force_constants=self.fc_phonopy,
+            primitive=self.primitive,
+            supercell=self.supercell,
+            new_supercell=atoms,
+            symmetrize=symmetrize,
+        )
+
+    @lazy_property
+    def remapped_to_supercell(self):
+        return self.get_remapped_to(self.supercell)
+
+    @property
+    def remapped_to_supercell_3N_by_3N(self):
+        N, *_ = self.remapped_to_supercell.shape
+        return self.remapped_to_supercell.swapaxes(1, 2).reshape((3 * N, 3 * N))
+
+    @property
+    def reshaped_to_lattice_points(self):
+        return reshape_force_constants(
+            primitive=self.primitive,
+            supercell=self.supercell,
+            force_constants=self.remapped_to_supercell,
+            lattice_points=self.lattice_points,
+        )
+
+    @property
+    def lattice_points(self):
+        return self._lattice_points
+
+    @property
+    def lattice_points_extended(self):
+        return self._lattice_points_extended
 
 
 def remap_force_constants(
@@ -72,7 +156,6 @@ def remap_force_constants(
     sc2pc = map2prim(primitive, new_supercell)
 
     if fortran:
-        talk(".. use fortran", prefix=_prefix)
         fc_out = fort.remap_force_constants(
             positions=new_supercell.positions,
             pairs=sc_r,
@@ -84,6 +167,7 @@ def remap_force_constants(
         )
     else:
 
+        _talk(".. use python")
         ref_struct_pos = new_supercell.get_scaled_positions(wrap=True)
         sc_temp = new_supercell.get_cell(complete=True)
 
@@ -111,7 +195,7 @@ def remap_force_constants(
             msg = f"Force constants are not symmetric by {violation:.2e}."
             warn(msg, level=1)
             if symmetrize:
-                talk("Symmetrize force constants.")
+                _talk("Symmetrize force constants.")
                 fc_out = 0.5 * (fc_out + fc_out.T)
 
         # sum rule 1
