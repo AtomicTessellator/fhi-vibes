@@ -455,8 +455,7 @@ def parse_dataset(dataset: xr.Dataset) -> list:
 
     if keys.fc in DS:
         trajectory.set_force_constants(np.asarray(DS[keys.fc]))
-
-    if keys.fc_remapped in DS:
+    elif keys.fc_remapped in DS:
         trajectory.set_force_constants_remapped(np.asarray(DS[keys.fc_remapped]))
 
     if keys.hash_raw in attrs:
