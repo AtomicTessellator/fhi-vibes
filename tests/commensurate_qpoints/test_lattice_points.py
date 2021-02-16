@@ -1,7 +1,6 @@
 from pathlib import Path
 
-from vibes.helpers.lattice_points import get_lattice_points
-from vibes.helpers.supercell import get_commensurate_q_points
+from vibes.helpers.lattice_points import get_lattice_points, get_commensurate_q_points
 from vibes.io import read
 
 
