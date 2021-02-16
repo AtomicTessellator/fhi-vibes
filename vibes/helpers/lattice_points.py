@@ -1,12 +1,169 @@
 """ helps to find lattice points in supercell, match positions to images in the
 unit cell etc. """
 
+from itertools import product
+
 import numpy as np
 import scipy.linalg as la
+from ase.cell import Cell
 
-from vibes.helpers.lattice import fractional
-from vibes.helpers.supercell import get_lattice_points
+from vibes.helpers.supercell import supercell as sc
 from vibes.helpers.utils import Timer
+
+
+_prefix = "lattice_points"
+
+
+def get_lattice_points(
+    cell: np.ndarray,
+    supercell: np.ndarray,
+    tolerance: float = 1e-5,
+    sort: bool = True,
+    fortran: bool = True,
+    decimals: int = 16,
+    verbose: bool = False,
+) -> (np.ndarray, list):
+    """
+        S = M . L
+
+        M = supercell_matrix
+
+    Args:
+        cell: lattice matrix of primitive cell
+        supercell: lattice matrix of supercell
+        tolerance: tolerance used to detect multiplicities
+        sort: If True sort results
+        fortran: If True use the Fortran routines
+        decimals: how many digits to round to
+        verbose: If True print more information on the console
+
+    Returns:
+        lattice_points: Array of lattice points in the supercell
+        lattice_points_ext_w_multiplicites: lattice points including multiplicities
+    """
+
+    timer = Timer(prefix=_prefix)
+    tol = tolerance
+
+    # check if cells are arrays
+    pcell = Cell(cell)
+    scell = Cell(supercell)
+
+    lattice = pcell[:]
+    superlattice = scell[:]
+
+    inv_lattice = la.inv(lattice)
+    inv_superlattice = la.inv(superlattice)
+
+    supercell_matrix = np.round(superlattice @ inv_lattice).astype(int)
+
+    # How many lattice points are to be expected?
+    n_lattice_points = int(np.round(np.linalg.det(supercell_matrix)))
+
+    # Maximum number of iterations:
+    max_iterations = abs(supercell_matrix).sum()
+
+    if verbose:
+        print(f"Maximum number of iterations: {max_iterations}")
+        print(f"\nSupercell matrix:             \n{supercell_matrix}")
+        print(f"\nlattice:                      \n{lattice}")
+        print(f"\ninv_lattice:                  \n{inv_lattice}\n")
+
+    # maximal distance = diagonal of the cell
+    # points generated beyond this won't lie inside the supercell
+    dmax = 2.5 * np.linalg.norm(superlattice.sum(axis=1))
+
+    if fortran:
+        all_lattice_points = sc.supercell.find_lattice_points(
+            lattice.T, inv_superlattice.T, n_lattice_points, max_iterations, tolerance
+        ).T
+        lattice_points = all_lattice_points[:n_lattice_points]
+        lattice_points_extended = [
+            p
+            for p in all_lattice_points[n_lattice_points:]
+            if sum(p) > -30000 + tolerance
+        ]
+
+    else:
+        # find lattice points by enumeration
+        lattice_points = []
+        lattice_points_extended = []
+
+        for (n1, n2, n3) in product(
+            range(-max_iterations, max_iterations + 1), repeat=3
+        ):
+
+            lp = [n1, n2, n3] @ lattice
+
+            if la.norm(lp) > dmax:
+                continue
+
+            frac_lp = scell.scaled_positions(lp)
+
+            # Check if is inside supercell [-0.5, 0.5) and discard if no
+            if (np.all(np.array(frac_lp) > -0.5 - tolerance)) and (
+                np.all(np.array(frac_lp) < 0.5 - tolerance)
+            ):
+                lattice_points.append(lp)
+
+            # Check if is inside extended supercell [-0.5, 0.5] and discard if no
+            elif (np.all(np.array(frac_lp) > -0.5 - tolerance)) and (
+                np.all(np.array(frac_lp) < 0.5 + tolerance)
+            ):
+                lattice_points_extended.append(lp)
+
+    assert len(np.unique(lattice_points, axis=0)) == n_lattice_points, (
+        len(np.unique(lattice_points, axis=0)),
+        n_lattice_points,
+        lattice_points[:3],
+    )
+
+    nlp = len(lattice_points)
+    nlpe = len(lattice_points_extended)
+    timer(f"found {nlp} ({nlpe}) lattice points")
+
+    if sort:
+        lattice_points = sort_lattice_points(lattice_points)
+
+    lattice_points = np.around(lattice_points, decimals=decimals)
+
+    # find multiplicities of the extended lattice points
+    lattice_points_ext_w_multiplicites = []
+    for lp in lattice_points:
+
+        frac_lp = scell.scaled_positions(lp)
+
+        elp_mult = [lp]
+
+        for elp in lattice_points_extended:
+            frac_elp = scell.scaled_positions(elp)
+
+            if la.norm((frac_elp - frac_lp + tol) % 1 % 1 - tol) < tol:
+                elp_mult.append(elp)
+
+        elp_mult = np.around(elp_mult, decimals=decimals)
+        lattice_points_ext_w_multiplicites.append(elp_mult)
+
+    return lattice_points, lattice_points_ext_w_multiplicites
+
+
+def sort_lattice_points(lattice_points, tol=1e-5):
+    """sort according to x, y, z coordinates and finally length
+
+    Parameters
+    ----------
+    lattice_points: np.ndarray
+        The list of lattice points in the supercell
+    tol: float
+        tolerance for small numbers
+
+    Returns
+    -------
+    np.ndarray
+        sorted lattice point list
+    """
+
+    return sorted(lattice_points, key=lambda x: la.norm(x + [0, 2 * tol, 4 * tol]))
 
 
 def map_L_to_i(indeces):
@@ -30,42 +187,27 @@ def map_L_to_i(indeces):
     return mappings
 
 
-def _get_lattice_points(atoms, supercell, lattice_points, extended=False):
-    """local wrapper for `get_lattice_points`"""
-    if lattice_points is None:
-        if extended:
-            _, lattice_points = get_lattice_points(atoms.cell, supercell.cell)
-        else:
-            lattice_points, _ = get_lattice_points(atoms.cell, supercell.cell)
-
-    return lattice_points
-
-
-def map_I_to_iL(
-    in_atoms, in_supercell, lattice_points=None, extended=False, tolerance=1e-5
-):
+def map_I_to_iL(in_atoms, in_supercell, lattice_points=None, tolerance=1e-5):
     """Map from supercell index I to (i, L), i is the unit cell index and L lattice p.
 
     Args:
         in_atoms (ase.atoms.Atoms): primitive cell
         in_supercell (ase.atoms.Atoms): supercell
         lattice_points (list, optional): list of pre-computed lattice points L
-        extended (bool, optional): return lattice points at supercell surface
         tolerance (float, optional): tolerance for wrapping
 
     Returns:
         list, list: I_to_iL map, inverse map
     """
-    timer = Timer()
+    timer = Timer(prefix=_prefix)
 
     atoms = in_atoms.copy()
     supercell = in_supercell.copy()
     atoms.wrap()
     supercell.wrap()
 
-    lattice_points = _get_lattice_points(
-        atoms, supercell, lattice_points, extended=extended
-    )
+    if lattice_points is None:
+        lattice_points, _ = get_lattice_points(atoms.cell, supercell.cell)
 
     # create all positions R = r_i + L
     all_positions = []
@@ -102,7 +244,7 @@ def map_I_to_iL(
                 pos, sym, ii = atom.position, atom.symbol, atom.index
                 if ssym != sym:
                     continue
-                fpos = fractional(spos - pos - lp, supercell.cell)
+                fpos = supercell.cell.scaled_positions(spos - pos - lp)
                 tol = tolerance
                 if la.norm((fpos + tol) % 1 - tol) < tolerance:
                     indices[jj] = (ii, LL)
@@ -163,3 +305,38 @@ def _map_iL_to_I(I_to_iL_map):
         assert II == I, (II, iL, I)
 
     return iL2I.squeeze()
+
+
+def get_commensurate_q_points(
+    cell: np.ndarray, supercell: np.ndarray, tolerance: float = 1e-5, **kwargs
+) -> np.ndarray:
+    """For a commensurate q_points we have
+
+        exp( 2*pi q . L_k ) = 1 for any k and L_k being the supercell lattice vectors
+
+        in other workds, q is a linear combination of G_k, where G_k are the inverse
+        lattice vectors of the supercell lattice. Only those are counted which fit into
+        the inverse lattice of the primitive cell.
+        This means we have to call lattice_points.get_lattice_points with the inverse
+        lattices.
+
+    Args:
+        cell: cell matrix of primitive cell
+        supercell: cell matrix of supercell
+        tolerance: tolearnce used to detect multiplicities
+
+    Returns:
+        List of commensurate q_points
+
+    """
+    lattice = cell.T
+    superlattice = supercell.T
+
+    inv_lattice = la.inv(lattice)
+    inv_superlattice = la.inv(superlattice)
+
+    inv_lattice_points, _ = get_lattice_points(
+        inv_superlattice, inv_lattice, tolerance, **kwargs
+    )
+
+    return inv_lattice_points
