@@ -17,7 +17,7 @@ from vibes.materials_fp.material_fingerprint import (
 from vibes.phonopy.utils import remap_force_constants
 from vibes.phonopy.wrapper import preprocess as ph_preprocess
 from vibes.settings import Settings
-from vibes.helpers.supercell import get_lattice_points
+from vibes.helpers.supercell import get_commensurate_q_points
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
@@ -231,7 +231,7 @@ def get_converge_phonon_update(
     # Calculate the phonon DOS
     primitive = to_Atoms(phonon.get_primitive())
     supercell = to_Atoms(phonon.get_supercell())
-    brav_pts, _ = get_lattice_points(primitive.cell, supercell.cell)
+    brav_pts = get_commensurate_q_points(primitive.cell, supercell.cell)
     for k in brav_pts:
         if np.any(phonon.get_frequencies(k) < -1.0e-1):
             raise ValueError("Negative frequencies at an included lattice point.")
