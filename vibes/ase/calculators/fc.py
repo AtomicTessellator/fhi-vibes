@@ -1,3 +1,5 @@
+import collections
+
 import numpy as np
 from ase import Atoms
 from ase import units as u
@@ -7,15 +9,17 @@ from ase.geometry import find_mic
 from phonopy.structure.cells import get_smallest_vectors as _get_smallest_vectors
 
 
-def get_smallest_vectors(supercell: Atoms, primitive: Atoms, symprec: float = 1e-5):
+def get_smallest_vectors(
+    supercell: Atoms, primitive: Atoms, symprec: float = 1e-5
+) -> collections.namedtuple:
     """get all pair vectors between atoms in supercell and primitive cell
 
     the routine respects m.i.c. and possible multiplicities when atoms are located
     at the boundary of the supercell.
 
     Returns:
-        svecs, mult: smallest vectors in fractional coordinates (w.r.t. supercell) and
-            multiplicities
+        svecs, multi, weights: smallest vectors in fractional coordinates
+            (w.r.t. supercell), their multiplicities, and weights (inverse mult.)
 
     """
     # save bases
@@ -40,10 +44,18 @@ def get_smallest_vectors(supercell: Atoms, primitive: Atoms, symprec: float = 1e
     trans_mat_float = np.dot(supercell_bases, np.linalg.inv(primitive_bases))
     trans_mat = np.rint(trans_mat_float).astype(int)
     assert (np.abs(trans_mat_float - trans_mat) < 1e-8).all()
+    svecs = np.array(np.dot(svecs, trans_mat), dtype="double", order="C")
+
+    # compute weights based on multiplicity
+    weights = np.zeros(svecs.shape[:3])
+    for (ii, jj) in np.ndindex(svecs.shape[:2]):
+        m = multi[ii, jj]
+        weights[ii, jj, :m] = 1 / m
 
     # return
-    svecs = np.array(np.dot(svecs, trans_mat), dtype="double", order="C")
-    return svecs, multi
+    return collections.namedtuple("smallest_vectors", ("svecs", "multi", "weights"))(
+        svecs, multi, weights
+    )
 
 
 class FCCalculator(Calculator):
@@ -97,18 +109,14 @@ class FCCalculator(Calculator):
         if self.pbc:
             # save pair vectors and multiplicities
             atoms = atoms_reference
-            self.pairs, self.mult = get_smallest_vectors(atoms, atoms)
-
-            # create a mask to correctly account for multiple images
-            self.mask = np.zeros(self.pairs.shape[:3])
-            for (ii, jj) in np.ndindex(self.pairs.shape[:2]):
-                m = self.mult[ii, jj]
-                self.mask[ii, jj, :m] = 1 / m
+            self.pairs, _, self.weights = get_smallest_vectors(atoms, atoms)
 
             # pair vectors w.r.t. reference pos. including multiplicites
             r0_ijm = self.pairs @ self.atoms_reference.cell  # [I, J, m, a]
             # average over equivalent periodic images m
-            self.r0_ij = (self.mask[:, :, :, None] * r0_ijm).sum(axis=2)  # -> [I, J, a]
+            self.r0_ij = (self.weights[:, :, :, None] * r0_ijm).sum(
+                axis=2
+            )  # -> [I, J, a]
 
     def calculate(self, atoms, *unused_args, **unused_kw):
 
@@ -148,7 +156,7 @@ class FCCalculator(Calculator):
             # pair displacements as matrix including multiplicites
             d_ijm = (dr[:, None, :] - dr[None, :, :])[:, :, :, None]  # [I, J, a, m]
             # average over equivalent periodic images m (mask comes w/ factor 1/M)
-            d_ij = (self.mask[:, :, None, :] * d_ijm).sum(axis=-1)  # -> [I, J, a]
+            d_ij = (self.weights[:, :, None, :] * d_ijm).sum(axis=-1)  # -> [I, J, a]
 
             # stress matrix s_ij = r_ij [I, J, a] * PU [I, J, b] / volume
             # stress term from reference positions for heat flux:
