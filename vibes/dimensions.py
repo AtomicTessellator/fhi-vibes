@@ -3,7 +3,7 @@
     Atom labels: I, J
     Cartesian coordinates: a, b
 """
-I, J, a, b = "I", "J", "a", "b"
+i, j, I, J, a, b = "i", "j", "I", "J", "a", "b"
 
 # composite
 Ia, Jb = "Ia", "Jb"
@@ -23,6 +23,7 @@ time_atom_tensor = (time, I, *tensor)
 lattice = tensor
 positions = (I, a)
 
+fc = (i, J, a, b)
 fc_remapped = (Ia, Jb)
 
 dim_replace = {"a1": a, "a2": b, "I1": I, "I2": J}
