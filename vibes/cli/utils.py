@@ -313,8 +313,8 @@ def remap(
     import numpy as np
     from ase.io import read
 
+    from vibes.helpers.force_constants import remap_force_constants
     from vibes.io import parse_force_constants
-    from vibes.phonopy.utils import remap_force_constants
 
     uc = read(primitive, format=format)
     sc = read(supercell, format=format)
