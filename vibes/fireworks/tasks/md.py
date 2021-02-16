@@ -7,12 +7,12 @@ from jconfigparser.dict import DotDict
 from vibes.cli.scripts.create_samples import generate_samples
 from vibes.filenames import filenames
 from vibes.helpers.converters import dict2atoms
+from vibes.helpers.force_constants import remap_force_constants
 from vibes.helpers.k_grid import k2d, update_k_grid
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.helpers.supercell import make_supercell
 from vibes.molecular_dynamics.context import MDContext
 from vibes.phonopy.postprocess import extract_results, postprocess
-from vibes.phonopy.utils import remap_force_constants
 from vibes.settings import Settings
 from vibes.trajectory import reader
 

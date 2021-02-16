@@ -281,7 +281,7 @@ class Trajectory(list):
 
     def set_force_constants(self, fc):
         """set force constants and remap"""
-        from vibes.phonopy.utils import remap_force_constants
+        from vibes.helpers.force_constants import remap_force_constants
 
         Np, Na = len(self.primitive), len(self.supercell)
         # assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape

@@ -7,9 +7,9 @@ from ase import Atoms
 from ase.io import read
 
 from vibes.helpers import Timer
+from vibes.helpers.force_constants import remap_force_constants
 from vibes.helpers.paths import cwd
 from vibes.phonopy.postprocess import extract_results
-from vibes.phonopy.utils import remap_force_constants
 from vibes.trajectory import reader
 
 

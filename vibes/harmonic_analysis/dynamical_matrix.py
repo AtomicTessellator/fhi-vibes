@@ -2,10 +2,10 @@
 
 import numpy as np
 
+from vibes.helpers.force_constants import reshape_force_constants
 from vibes.konstanten import omega_to_THz
 
 from . import get_lattice_points
-from .force_constants import reshape_force_constants
 
 
 def _prefactor(q, r):
