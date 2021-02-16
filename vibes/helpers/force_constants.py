@@ -186,31 +186,24 @@ def remap_force_constants(
 
     timer()
 
+    # check symmetries:
+    fc_2d = fc_out.swapaxes(1, 2).reshape((3 * n_sc_new, 3 * n_sc_new))  # -> 3Nx3N
+    violation = np.linalg.norm(fc_2d - fc_2d.T)
+    if violation > 1e-5:
+        _talk(f"** Force constants are not symmetric by {violation:.2e}.")
+    if symmetrize:
+        _talk("-> Symmetrize force constants.")
+        fc_2d = 0.5 * (fc_2d + fc_2d.T)
+
+    # sum rule 1
+    violation = abs(fc_2d.sum(axis=0)).mean()
+    if violation > 1e-9:
+        _talk(f"** Sum rule violated by {violation:.2e} (axis 1).")
+
     if two_dim:
-        fc_out = fc_out.swapaxes(1, 2).reshape(2 * (3 * fc_out.shape[1],))
+        return fc_2d
 
-        # symmetrize
-        violation = np.linalg.norm(fc_out - fc_out.T)
-        if violation > 1e-5:
-            msg = f"Force constants are not symmetric by {violation:.2e}."
-            warn(msg, level=1)
-            if symmetrize:
-                _talk("Symmetrize force constants.")
-                fc_out = 0.5 * (fc_out + fc_out.T)
-
-        # sum rule 1
-        violation = abs(fc_out.sum(axis=0)).mean()
-        if violation > 1e-9:
-            msg = f"Sum rule violated by {violation:.2e} (axis 1)."
-            warn(msg, level=1)
-
-        # sum rule 2
-        violation = abs(fc_out.sum(axis=1)).mean()
-        if violation > 1e-9:
-            msg = f"Sum rule violated by {violation:.2e} (axis 2)."
-            warn(msg, level=1)
-
-        return fc_out
+    fc_out = fc_2d.reshape((n_sc_new, 3, n_sc_new, 3)).swapaxes(1, 2)  # -> NxNx3x3
 
     if reduce_fc:
         p2s_map = np.zeros(len(primitive), dtype=int)
@@ -278,14 +271,13 @@ def reshape_force_constants(
                 force_constants,
                 primitive,
                 supercell,
-                new_supercell=None,
-                reduce_fc=False,
                 two_dim=True,
                 symmetrize=symmetrize,
             )
         else:
+            n_sc = force_constants.shape[0]
             force_constants = force_constants.swapaxes(1, 2).reshape(
-                2 * (3 * force_constants.shape[0])
+                (3 * n_sc, 3 * n_sc)
             )
 
     if lattice_points is None:
