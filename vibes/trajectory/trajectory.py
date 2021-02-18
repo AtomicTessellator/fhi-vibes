@@ -49,7 +49,6 @@ class Trajectory(list):
         self._displacements = None
         self._force_constants = None
         self._force_constants_remapped = None
-        self._hash_raw = None
         if keys.fc not in self._metadata:
             self._metadata[keys.fc] = None
 
@@ -748,18 +747,6 @@ class Trajectory(list):
         hashes = self.get_hashes()
 
         return hashfunc("".join(hashes))
-
-    @property
-    def hash_raw(self):
-        """raw hash for input trajectory file (like trajectory.son)"""
-        return self._hash_raw
-
-    @hash_raw.setter
-    def hash_raw(self, string: str):
-        """set raw hash for input trajectory file, can be set only once"""
-        assert self._hash_raw is None
-        assert isinstance(string, str)
-        self._hash_raw = string
 
     def compute_heat_flux_harmonic(self):
         """compute harmonic properties from FCCalculator"""

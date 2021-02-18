@@ -21,7 +21,6 @@ from vibes.helpers.converters import (
     results2dict,
     results2singlepoint,
 )
-from vibes.helpers.hash import hash_file
 from vibes.helpers.utils import progressbar
 
 from .utils import Timer, talk
@@ -210,9 +209,6 @@ def reader(
         list = _map_create_atoms(pre_trajectory, **kw)
         trajectory = Trajectory(list, metadata=metadata)
         timer2()
-
-        talk(".. set raw hash")
-        trajectory.hash_raw = hash_file(file)
 
         timer("done")
 
@@ -457,8 +453,5 @@ def parse_dataset(dataset: xr.Dataset) -> list:
         trajectory.set_force_constants(np.asarray(DS[keys.fc]))
     elif keys.fc_remapped in DS:
         trajectory.set_force_constants_remapped(np.asarray(DS[keys.fc_remapped]))
-
-    if keys.hash_raw in attrs:
-        trajectory.hash_raw = attrs[keys.hash_raw]
 
     return trajectory
