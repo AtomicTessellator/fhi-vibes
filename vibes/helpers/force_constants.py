@@ -3,8 +3,9 @@
 import numpy as np
 from ase import Atoms
 from ase.geometry import get_distances
+from phonopy import Phonopy
 
-from vibes.ase.calculators.fc import get_smallest_vectors
+# from vibes.ase.calculators.fc import get_smallest_vectors
 from vibes.helpers import Timer, lazy_property, progressbar, talk
 from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
 from vibes.helpers.numerics import clean_matrix
@@ -23,9 +24,7 @@ def _talk(msg, verbose=True):
 class ForceConstants:
     """Represents (phonopy) force constants and bundles related functionality"""
 
-    def __init__(
-        self, force_constants: np.ndarray, primitive: Atoms, supercell: Atoms, **kwargs,
-    ):
+    def __init__(self, force_constants: np.ndarray, primitive: Atoms, supercell: Atoms):
         """instantiate ForceConstants with fc. in phonopy shape + ref. structures
 
         Args:
@@ -40,7 +39,7 @@ class ForceConstants:
         #     primitive = standardize_cell(supercell, to_primitive=True)
         assert isinstance(primitive, Atoms)
         self.primitive = primitive.copy()
-        self.fc_phonopy = force_constants.copy()
+        self._fc_phonopy = force_constants.copy()
 
         # map from supercell to primitive cell
         self._sc2pc = map2prim(primitive=self.primitive, supercell=self.supercell)
@@ -54,22 +53,32 @@ class ForceConstants:
         self._I2iL, self._iL2I = I2iL, iL2I
 
         # get smallest vectors and their weights
-        self.smallest_vectors = get_smallest_vectors(self.supercell, self.primitive)
+        # self.smallest_vectors = get_smallest_vectors(self.supercell, self.primitive)
+
+        # attach phonopy object
+        smatrix = np.rint(supercell.cell @ primitive.cell.reciprocal().T).T
+        phonon = Phonopy(unitcell=primitive, supercell_matrix=smatrix)
+        phonon.force_constants = self._fc_phonopy
+        self._phonon = phonon
 
     def __repr__(self):
         dct = get_identifier(self.primitive)
         sg, name = dct["space_group"], dct["material"]
-        rep = f"Force Constants for {name} (sg {sg}) of shape {self.fc_phonopy.shape}"
+        rep = f"Force Constants for {name} (sg {sg}) of shape {self._fc_phonopy.shape}"
         return repr(rep)
 
     @property
-    def array(self):
+    def array(self) -> np.ndarray:
         """view on the raw phonopy-like force constants array"""
-        return self.fc_phonopy
+        return self._fc_phonopy.copy()
 
-    def get_remapped_to(self, atoms: Atoms, symmetrize: bool = True):
+    @property
+    def phonon(self) -> Phonopy:
+        return self._phonon
+
+    def get_remapped_to(self, atoms: Atoms, symmetrize: bool = True) -> np.ndarray:
         return remap_force_constants(
-            force_constants=self.fc_phonopy,
+            force_constants=self._fc_phonopy,
             primitive=self.primitive,
             supercell=self.supercell,
             new_supercell=atoms,
@@ -77,21 +86,21 @@ class ForceConstants:
         )
 
     @lazy_property
-    def remapped_to_supercell(self):
+    def remapped_to_supercell(self) -> np.ndarray:
         return self.get_remapped_to(self.supercell)
 
     @property
-    def remapped_to_supercell_3N_by_3N(self):
+    def remapped_to_supercell_3N_by_3N(self) -> np.ndarray:
         N, *_ = self.remapped_to_supercell.shape
         return self.remapped_to_supercell.swapaxes(1, 2).reshape((3 * N, 3 * N))
 
     @property
-    def remapped(self):
+    def remapped(self) -> np.ndarray:
         """shorthand for remapped_to_supercell_3N_by_3N"""
         return self.remapped_to_supercell_3N_by_3N
 
     @property
-    def reshaped_to_lattice_points(self):
+    def reshaped_to_lattice_points(self) -> np.ndarray:
         return reshape_force_constants(
             primitive=self.primitive,
             supercell=self.supercell,
@@ -100,11 +109,11 @@ class ForceConstants:
         )
 
     @property
-    def lattice_points(self):
+    def lattice_points(self) -> np.ndarray:
         return self._lattice_points
 
     @property
-    def lattice_points_extended(self):
+    def lattice_points_extended(self) -> list:
         return self._lattice_points_extended
 
 
