@@ -55,8 +55,6 @@ def _attrs(trajectory, dct=None, metadata=False):
         attrs.update({keys.metadata: raw_metadata})
 
     attrs.update({keys.hash: trajectory.hash})  # add hash
-    if trajectory.hash_raw:
-        attrs.update({keys.hash_raw: trajectory.hash_raw})  # add raw hash
 
     return attrs
 
