@@ -116,6 +116,14 @@ class ForceConstants:
     def lattice_points_extended(self) -> list:
         return self._lattice_points_extended
 
+    def get_dynamical_matrix(self) -> object:
+        """return mass-weighted forceconstants as DynamicalMatrix object"""
+        return DynamicalMatrix(
+            force_constants=self._fc_phonopy,
+            primitive=self.primitive,
+            supercell=self.supercell,
+        )
+
 
 def remap_force_constants(
     force_constants: np.ndarray,
@@ -323,3 +331,87 @@ def reshape_force_constants(
             new_force_constants[i1, L1, i2, L2] = clean_matrix(phi)
 
     return new_force_constants
+
+
+class DynamicalMatrix(ForceConstants):
+    """Mass-weighted force constants"""
+
+    def __init__(
+        self,
+        force_constants: np.ndarray,
+        primitive: Atoms,
+        supercell: Atoms,
+        tol: float = 1e-12,
+    ):
+        """see ForceConstants.__init__, but with mass weighting"""
+        self.tol = tol
+        # init ForceConstants
+        super().__init__(
+            force_constants=force_constants, primitive=primitive, supercell=supercell,
+        )
+        # now scale the forceconstants array
+        w = primitive.get_masses()[:, None] * supercell.get_masses()[None, :]
+        self._fc_phonopy /= w[:, :, None, None] ** 0.5
+
+        # prepare fourier transforms q-space
+        # prepare matrices
+        n_lps = len(self.lattice_points)
+        n_prim = len(self.primitive)
+        w_Lm = np.zeros((n_lps, 8))  # weight of lattice point in extended supercell
+        R_ijLm = np.zeros((n_prim, n_prim, n_lps, 8, 3))  # pair vectors incl. MIC imag.
+
+        R_ij = self.primitive.positions[:, None] - self.primitive.positions[None, :]
+
+        # get pair vectors which are within extended supercell
+        cart2frac = self.supercell.cell.scaled_positions  # for fractional coords
+        frac2cart = self.supercell.cell.cartesian_positions
+        for LL, shell in enumerate(self.lattice_points_extended):
+            for mm, lp in enumerate(shell):
+                w_Lm[LL, mm] = 1 / len(shell)
+                R_ijLm_frac = cart2frac(-R_ij.reshape(-1, 3) + lp).reshape(R_ij.shape)
+
+                # map to to extended supercell [-0.5, 0.5] in frac. coords
+                R1 = R_ijLm_frac
+                d = 0.5 - tol * np.sign(R1)
+                R = (R1 + d) % 1 - d
+                R_ijLm[:, :, LL, mm] = frac2cart(R)
+
+        # sanity check:
+        shape = R_ijLm.shape
+        R_ijLm_frac = cart2frac(R_ijLm.reshape(-1, 3)).reshape(shape)
+        rmin, rmax = R_ijLm_frac.min(), R_ijLm_frac.max()
+        assert rmin > -0.5 - tol, rmin
+        assert rmax < +0.5 + tol, rmax
+
+        # attach
+        self._w_Lm = w_Lm  # [L, m]
+        self._dm_ijL = self.reshaped_to_lattice_points[:, 0]  # [i, j, L, a, b]
+        self._R_ijLm = R_ijLm  # [i, j, L, m, a]
+
+    def at_qs(self, q_points: np.ndarray) -> np.ndarray:
+        """compute dynamical matrices for a list of q-points"""
+        _ = None  # shorthand for vector notation
+        n_prim = len(self.primitive)
+        pcell_inv = self.primitive.cell.reciprocal().T
+        q_points_frac = (pcell_inv[_, :] * q_points[:, _, :]).sum(axis=-1)  # -> [q, a]
+
+        # compute phases accounting for MIC images according to their weight
+        e_qijLm = (q_points_frac[:, _, _, _, _, :] * self._R_ijLm[_, :]).sum(axis=-1)
+        # -> [q, i, j, L, m]
+        p_qijLm = np.exp(-2j * np.pi * e_qijLm)
+        p_qijL = (self._w_Lm[_, _, _, :, :] * p_qijLm).sum(axis=-1)  # -> [q, i, j, L]
+
+        Dq_L = p_qijL[:, :, :, :, _, _] * self._dm_ijL[_, :]  # [q, i, j, L a, b]
+        Dq = Dq_L.sum(axis=3)  # -> [q, i, j, a, b]
+
+        # reshape to [Nq, 3N, 3N]
+        Dq = Dq.swapaxes(2, 3).reshape(len(q_points), 3 * n_prim, 3 * n_prim)
+
+        # check if hermitian
+        assert np.linalg.norm(Dq - Dq.swapaxes(1, 2).conj()) < self.tol
+
+        return Dq
+
+    def at_q(self, q_point: np.ndarray) -> np.ndarray:
+        """return dynamical matrix at given q-point"""
+        return self.at_qs(np.array([q_point]))[0]
