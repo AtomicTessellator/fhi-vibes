@@ -5,10 +5,9 @@ from ase import Atoms
 from ase.geometry import get_distances
 from phonopy import Phonopy
 
-# from vibes.ase.calculators.fc import get_smallest_vectors
+from vibes.ase.calculators.fc import get_smallest_vectors
 from vibes.helpers import Timer, lazy_property, progressbar, talk
 from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
-from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.supercell import map2prim
 from vibes.helpers.supercell.supercell import supercell as fort
 from vibes.io import get_identifier
@@ -53,7 +52,7 @@ class ForceConstants:
         self._I2iL, self._iL2I = I2iL, iL2I
 
         # get smallest vectors and their weights
-        # self.smallest_vectors = get_smallest_vectors(self.supercell, self.primitive)
+        self.smallest_vectors = get_smallest_vectors(self.supercell, self.supercell)
 
         # attach phonopy object
         smatrix = np.rint(supercell.cell @ primitive.cell.reciprocal().T).T
@@ -85,6 +84,10 @@ class ForceConstants:
             symmetrize=symmetrize,
         )
 
+    @property
+    def I2iL_map(self):
+        return self._I2iL.copy()
+
     @lazy_property
     def remapped_to_supercell(self) -> np.ndarray:
         return self.get_remapped_to(self.supercell)
@@ -99,7 +102,7 @@ class ForceConstants:
         """shorthand for remapped_to_supercell_3N_by_3N"""
         return self.remapped_to_supercell_3N_by_3N
 
-    @property
+    @lazy_property
     def reshaped_to_lattice_points(self) -> np.ndarray:
         return reshape_force_constants(
             primitive=self.primitive,
@@ -107,6 +110,15 @@ class ForceConstants:
             force_constants=self.remapped_to_supercell,
             lattice_points=self.lattice_points,
         )
+
+    @property
+    def iLjK(self) -> np.ndarray:
+        return self.reshaped_to_lattice_points
+
+    @lazy_property
+    def ijLK(self) -> np.ndarray:
+        M_iLjK = self.iLjK
+        return M_iLjK.swapaxes(1, 2)
 
     @property
     def lattice_points(self) -> np.ndarray:
@@ -328,7 +340,7 @@ def reshape_force_constants(
             if scale_mass:
                 phi /= np.sqrt(masses[i1] * masses[i2])
 
-            new_force_constants[i1, L1, i2, L2] = clean_matrix(phi)
+            new_force_constants[i1, L1, i2, L2] = phi
 
     return new_force_constants
 
@@ -341,10 +353,20 @@ class DynamicalMatrix(ForceConstants):
         force_constants: np.ndarray,
         primitive: Atoms,
         supercell: Atoms,
+        lattice_convention: bool = True,
         tol: float = 1e-12,
     ):
-        """see ForceConstants.__init__, but with mass weighting"""
-        self.tol = tol
+        """see ForceConstants.__init__, but with mass weighting
+
+        Args:
+            force_constants: the force constant matrix in phonopy shape ([Np, Ns, 3, 3])
+            primitive: the reference primitive structure
+            supercell: the reference supercell
+            lattice_convention: use lattice points for Fourier transform, i.e., no
+                relative phases between atoms (plane wave ansatz as in phonopy)
+
+        """
+        self._lattice_convention = lattice_convention
         # init ForceConstants
         super().__init__(
             force_constants=force_constants, primitive=primitive, supercell=supercell,
@@ -353,65 +375,68 @@ class DynamicalMatrix(ForceConstants):
         w = primitive.get_masses()[:, None] * supercell.get_masses()[None, :]
         self._fc_phonopy /= w[:, :, None, None] ** 0.5
 
-        # prepare fourier transforms q-space
-        # prepare matrices
-        n_lps = len(self.lattice_points)
-        n_prim = len(self.primitive)
-        w_Lm = np.zeros((n_lps, 8))  # weight of lattice point in extended supercell
-        R_ijLm = np.zeros((n_prim, n_prim, n_lps, 8, 3))  # pair vectors incl. MIC imag.
+        # prepare Fourier transform
+        _ = None  # vector shorthand
 
-        R_ij = self.primitive.positions[:, None] - self.primitive.positions[None, :]
+        I2iL = self.I2iL_map
 
-        # get pair vectors which are within extended supercell
-        cart2frac = self.supercell.cell.scaled_positions  # for fractional coords
-        frac2cart = self.supercell.cell.cartesian_positions
-        for LL, shell in enumerate(self.lattice_points_extended):
-            for mm, lp in enumerate(shell):
-                w_Lm[LL, mm] = 1 / len(shell)
-                R_ijLm_frac = cart2frac(-R_ij.reshape(-1, 3) + lp).reshape(R_ij.shape)
+        sv = self.smallest_vectors
 
-                # map to to extended supercell [-0.5, 0.5] in frac. coords
-                R1 = R_ijLm_frac
-                d = 0.5 - tol * np.sign(R1)
-                R = (R1 + d) % 1 - d
-                R_ijLm[:, :, LL, mm] = frac2cart(R)
+        Np, Na = len(self.primitive), len(self.supercell)
+        Nq = Na // Np  # number of lattice/q-points
 
-        # sanity check:
-        shape = R_ijLm.shape
-        R_ijLm_frac = cart2frac(R_ijLm.reshape(-1, 3)).reshape(shape)
-        rmin, rmax = R_ijLm_frac.min(), R_ijLm_frac.max()
-        assert rmin > -0.5 - tol, rmin
-        assert rmax < +0.5 + tol, rmax
+        # distance vectors and phases and weights in [i, L, j, K, m]
+        w_iLjKm = np.zeros([Np, Nq, Np, Nq, 27])  # [i, L, j, K, m]
+        R_iLjKm = np.zeros([Np, Nq, Np, Nq, 27, 3])  # [i, L, j, K, m, a]
+
+        ppos = self.primitive.positions
+        for I, J in np.ndindex(Na, Na):
+            i, L = I2iL[I]
+            j, K = I2iL[J]
+            dR = sv.svecs[I, J]  # [m, a]
+            if self._lattice_convention:  # discard relative phases
+                dR -= ppos[None, i] - ppos[None, j]
+            # assign distance vector and MIC weight
+            R_iLjKm[i, L, j, K] = dR
+            w_iLjKm[i, L, j, K] = sv.weights[I, J]  # [m]
 
         # attach
-        self._w_Lm = w_Lm  # [L, m]
-        self._dm_ijL = self.reshaped_to_lattice_points[:, 0]  # [i, j, L, a, b]
-        self._R_ijLm = R_ijLm  # [i, j, L, m, a]
+        self._w_iLjKm = w_iLjKm
+        self._R_iLjKm = R_iLjKm
 
-    def at_qs(self, q_points: np.ndarray) -> np.ndarray:
-        """compute dynamical matrices for a list of q-points"""
+    def at_qs(self, q_points: np.ndarray, fractional: bool = True) -> np.ndarray:
+        """compute dynamical matrices for a list of q-points
+
+        Args:
+            q_points: list of q-points to compute dyn. matrices on
+            fractional: q-points are in fractional coords w.r.t reciprocal lattice
+
+        """
         _ = None  # shorthand for vector notation
-        n_prim = len(self.primitive)
-        pcell_inv = self.primitive.cell.reciprocal().T
-        q_points_frac = (pcell_inv[_, :] * q_points[:, _, :]).sum(axis=-1)  # -> [q, a]
 
-        # compute phases accounting for MIC images according to their weight
-        e_qijLm = (q_points_frac[:, _, _, _, _, :] * self._R_ijLm[_, :]).sum(axis=-1)
-        # -> [q, i, j, L, m]
-        p_qijLm = np.exp(-2j * np.pi * e_qijLm)
-        p_qijL = (self._w_Lm[_, _, _, :, :] * p_qijLm).sum(axis=-1)  # -> [q, i, j, L]
+        if fractional:  # convert to Cartesian coords (lattice points are Cart.)
+            q_points = self.primitive.cell.reciprocal().cartesian_positions(q_points)
 
-        Dq_L = p_qijL[:, :, :, :, _, _] * self._dm_ijL[_, :]  # [q, i, j, L a, b]
-        Dq = Dq_L.sum(axis=3)  # -> [q, i, j, a, b]
+        # exponents including MIC images
+        Np, Na = len(self.primitive), len(self.supercell)
+        Nq = Na / Np  # number of lattice/q-points
+        w_iLjKm = self._w_iLjKm
+        R_iLjKm = self._R_iLjKm
+        e_qiLjKm = (-2.0j * np.pi * q_points[:, _, _, _, _, _, :] * R_iLjKm[_, :]).sum(
+            axis=-1
+        )
+        # sum phases respecting MIC weights
+        p_qiLjK = (w_iLjKm[_, :] * np.exp(e_qiLjKm)).sum(axis=-1)  # -> [q, i, L, j, K]
+
+        # perform Fourier transform by summing over lattice points -> [q, i, j, a, b]
+        D_iLjK = self.reshaped_to_lattice_points
+        D_qij = (1 / Nq * p_qiLjK[:, :, :, :, :, _, _] * D_iLjK[_, :]).sum(axis=(2, 4))
 
         # reshape to [Nq, 3N, 3N]
-        Dq = Dq.swapaxes(2, 3).reshape(len(q_points), 3 * n_prim, 3 * n_prim)
-
-        # check if hermitian
-        assert np.linalg.norm(Dq - Dq.swapaxes(1, 2).conj()) < self.tol
+        Dq = D_qij.swapaxes(2, 3).reshape(len(q_points), 3 * Np, 3 * Np)
 
         return Dq
 
-    def at_q(self, q_point: np.ndarray) -> np.ndarray:
+    def at_q(self, q_point: np.ndarray, fractional: bool = True) -> np.ndarray:
         """return dynamical matrix at given q-point"""
         return self.at_qs(np.array([q_point]))[0]
