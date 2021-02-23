@@ -26,7 +26,7 @@ Most of the functionality is high-throughput ready via [fireworks](https://mater
 
 ## News
 
-- `FHI-vibes` passed the JOSS review successfully!
+- `FHI-vibes` got [published in JOSS](https://joss.theoj.org/papers/10.21105/joss.02671)!
 - [Our anharmonicity measure got published!](https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.4.083809)
 - [… the best is yet to come.](https://www.youtube.com/watch?v=B-Jq26BCwDs)
 

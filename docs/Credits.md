@@ -20,4 +20,4 @@ Please make sure to give credit to the right people when using `FHI-vibes`:
 - [How to cite phono3py](https://phonopy.github.io/phono3py/citation.html)
 - [How to cite fireworks](https://materialsproject.github.io/fireworks/#citing-fireworks)
 - [How to cite hiphive](https://hiphive.materialsmodeling.org/credits.html)
-- [How to cite FHI-vibes: coming soon]()
+- [How to cite FHI-vibes](References.md#how-to-cite-fhi-vibes)
