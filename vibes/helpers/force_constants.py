@@ -1,13 +1,18 @@
 """ Tools for dealing with force constants """
 
 import numpy as np
+import scipy.linalg as la
 from ase import Atoms
 from ase.geometry import get_distances
 from phonopy import Phonopy
 
-from vibes.ase.calculators.fc import get_smallest_vectors
 from vibes.helpers import Timer, lazy_property, progressbar, talk
-from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
+from vibes.helpers.lattice_points import (
+    get_commensurate_q_points,
+    get_lattice_points,
+    map_I_to_iL,
+)
+from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.supercell import map2prim
 from vibes.helpers.supercell.supercell import supercell as fort
 from vibes.io import get_identifier
@@ -28,6 +33,7 @@ class ForceConstants:
 
         Args:
             force_constants: the force constant matrix in phonopy shape ([Np, Ns, 3, 3])
+                             or in remapped shape [3 * Na, 3 * Na]
             primitive: the reference primitive structure
             supercell: the reference supercell
 
@@ -38,10 +44,17 @@ class ForceConstants:
         #     primitive = standardize_cell(supercell, to_primitive=True)
         assert isinstance(primitive, Atoms)
         self.primitive = primitive.copy()
-        self._fc_phonopy = force_constants.copy()
 
         # map from supercell to primitive cell
         self._sc2pc = map2prim(primitive=self.primitive, supercell=self.supercell)
+
+        Na = len(supercell)
+        if force_constants.shape == (3 * Na, 3 * Na):
+            fc_full = force_constants.reshape([Na, 3, Na, 3]).swapaxes(1, 2)
+            force_constants = reduce_force_constants(fc_full, map2prim=self._sc2pc)
+
+        self._fc_phonopy = force_constants.copy()
+        self._mass_weights = np.ones([len(primitive), len(supercell)])
 
         # get lattice points in supercell
         lps, elps = get_lattice_points(primitive.cell, supercell.cell)
@@ -51,82 +64,60 @@ class ForceConstants:
         I2iL, iL2I = map_I_to_iL(primitive, supercell, lattice_points=lps)
         self._I2iL, self._iL2I = I2iL, iL2I
 
-        # get smallest vectors and their weights
-        self.smallest_vectors = get_smallest_vectors(self.supercell, self.supercell)
-
-        # attach phonopy object
-        smatrix = np.rint(supercell.cell @ primitive.cell.reciprocal().T).T
-        phonon = Phonopy(unitcell=primitive, supercell_matrix=smatrix)
-        phonon.force_constants = self._fc_phonopy
-        self._phonon = phonon
-
     def __repr__(self):
         dct = get_identifier(self.primitive)
         sg, name = dct["space_group"], dct["material"]
-        rep = f"Force Constants for {name} (sg {sg}) of shape {self._fc_phonopy.shape}"
+        rep = f"Force Constants for {name} (sg {sg}) of shape {self.array.shape}"
         return repr(rep)
 
+    # data
     @property
     def array(self) -> np.ndarray:
-        """view on the raw phonopy-like force constants array"""
-        return self._fc_phonopy.copy()
+        """view on the raw phonopy-like force constants array INCLUDING mass-weighting"""
+        return self._fc_phonopy.copy() * self._mass_weights[:, :, None, None]
 
-    @property
-    def phonon(self) -> Phonopy:
-        return self._phonon
-
-    def get_remapped_to(self, atoms: Atoms, symmetrize: bool = True) -> np.ndarray:
+    # remapping to supercell
+    @lazy_property
+    def remapped_to_supercell(self) -> np.ndarray:
+        """"return in [I, J, a, b] including symmetrization"""
         return remap_force_constants(
-            force_constants=self._fc_phonopy,
+            force_constants=self.array,
             primitive=self.primitive,
             supercell=self.supercell,
-            new_supercell=atoms,
-            symmetrize=symmetrize,
+            new_supercell=self.supercell,
+            symmetrize=True,
         )
 
     @property
-    def I2iL_map(self):
-        return self._I2iL.copy()
-
-    @lazy_property
-    def remapped_to_supercell(self) -> np.ndarray:
-        return self.get_remapped_to(self.supercell)
-
-    @property
     def remapped_to_supercell_3N_by_3N(self) -> np.ndarray:
+        """"return in [I, a, J, b]"""
         N, *_ = self.remapped_to_supercell.shape
         return self.remapped_to_supercell.swapaxes(1, 2).reshape((3 * N, 3 * N))
 
     @property
     def remapped(self) -> np.ndarray:
-        """shorthand for remapped_to_supercell_3N_by_3N"""
+        """"shorthand for `remapped_to_supercell_3N_by_3N, return in [I, a, J, b]"""
         return self.remapped_to_supercell_3N_by_3N
+
+    # lattice points things
+    @property
+    def I2iL_map(self):
+        return self._I2iL.copy()
+
+    @property
+    def lattice_points(self) -> np.ndarray:
+        """return list of lattice points contained in supercell"""
+        return self._lattice_points
 
     @lazy_property
     def reshaped_to_lattice_points(self) -> np.ndarray:
+        """"return in [i, L, j, K, a, b"""
         return reshape_force_constants(
             primitive=self.primitive,
             supercell=self.supercell,
             force_constants=self.remapped_to_supercell,
             lattice_points=self.lattice_points,
         )
-
-    @property
-    def iLjK(self) -> np.ndarray:
-        return self.reshaped_to_lattice_points
-
-    @lazy_property
-    def ijLK(self) -> np.ndarray:
-        M_iLjK = self.iLjK
-        return M_iLjK.swapaxes(1, 2)
-
-    @property
-    def lattice_points(self) -> np.ndarray:
-        return self._lattice_points
-
-    @property
-    def lattice_points_extended(self) -> list:
-        return self._lattice_points_extended
 
     def get_dynamical_matrix(self) -> object:
         """return mass-weighted forceconstants as DynamicalMatrix object"""
@@ -275,7 +266,7 @@ def reduce_force_constants(fc_full: np.ndarray, map2prim: np.ndarray):
         The reduced force constants
 
     """
-    uc_index = np.unique(map2prim)
+    _, uc_index = np.unique(map2prim, return_index=True)
     fc_out = np.zeros((len(uc_index), fc_full.shape[1], 3, 3))
     for ii, uc_ind in enumerate(uc_index):
         fc_out[ii, :, :, :] = fc_full[uc_ind, :, :, :]
@@ -340,7 +331,7 @@ def reshape_force_constants(
             if scale_mass:
                 phi /= np.sqrt(masses[i1] * masses[i2])
 
-            new_force_constants[i1, L1, i2, L2] = phi
+            new_force_constants[i1, L1, i2, L2] = clean_matrix(phi)
 
     return new_force_constants
 
@@ -356,7 +347,7 @@ class DynamicalMatrix(ForceConstants):
         lattice_convention: bool = True,
         tol: float = 1e-12,
     ):
-        """see ForceConstants.__init__, but with mass weighting
+        """like ForceConstants, but with mass weighting and q-space things
 
         Args:
             force_constants: the force constant matrix in phonopy shape ([Np, Ns, 3, 3])
@@ -372,71 +363,130 @@ class DynamicalMatrix(ForceConstants):
             force_constants=force_constants, primitive=primitive, supercell=supercell,
         )
         # now scale the forceconstants array
-        w = primitive.get_masses()[:, None] * supercell.get_masses()[None, :]
-        self._fc_phonopy /= w[:, :, None, None] ** 0.5
+        pmasses = self.primitive.get_masses()
+        smasses = self.supercell.get_masses()
+        self._mass_weights = (pmasses[:, None] * smasses[None, :]) ** -0.5
 
-        # prepare Fourier transform
-        _ = None  # vector shorthand
+        # attach phonopy object
+        smatrix = np.rint(supercell.cell @ primitive.cell.reciprocal().T).T
+        phonon = Phonopy(unitcell=primitive, supercell_matrix=smatrix)
+        phonon.force_constants = self._fc_phonopy
+        self._phonon = phonon
 
-        I2iL = self.I2iL_map
+        # attach commensurate q-points (= inverse lattice points)
+        pcell, scell = self.primitive.cell, self.supercell.cell
+        self._commensurate_q_points = get_commensurate_q_points(pcell, scell)
 
-        sv = self.smallest_vectors
+        # create eigenvectors at commensurate q-points
+        # indices:
+        # i: (i, alpha) = primitive atom label and cart. coord
+        # s: band index
+        # q: q point index
+        Np, Na, Nq = len(self.primitive), len(self.supercell), len(self.lattice_points)
+        w2_sq = np.zeros([3 * Np, Nq])
+        e_isq = np.zeros([3 * Np, 3 * Np, Nq], dtype=complex)
+        for iq, D in enumerate(self.at_commensurate_q):
+            w2, ev = la.eigh(D)
+            w2_sq[:, iq], e_isq[:, :, iq] = w2, ev
 
-        Np, Na = len(self.primitive), len(self.supercell)
-        Nq = Na // Np  # number of lattice/q-points
+        # make 0s 0, take 4th smallest absolute eigenvalue as reference
+        thresh = sorted(abs(w2_sq.flatten()))[3] * 0.9
+        w2_sq[abs(w2_sq) < thresh] = 0
+        self._w2_sq, self._e_isq = w2_sq, e_isq
 
-        # distance vectors and phases and weights in [i, L, j, K, m]
-        w_iLjKm = np.zeros([Np, Nq, Np, Nq, 27])  # [i, L, j, K, m]
-        R_iLjKm = np.zeros([Np, Nq, Np, Nq, 27, 3])  # [i, L, j, K, m, a]
+        # map eigenvectors to supercell
+        # I: (I, alpha) = supercell atom label and cart. coord
+        e_Isq = np.zeros([3 * Na, 3 * Np, Nq], dtype=complex)  # [Ia, s, q]
+        ilps = self.commensurate_q_points
+        spos = self.phonon.supercell.positions
 
-        ppos = self.primitive.positions
-        for I, J in np.ndindex(Na, Na):
-            i, L = I2iL[I]
-            j, K = I2iL[J]
-            dR = sv.svecs[I, J]  # [m, a]
-            if self._lattice_convention:  # discard relative phases
-                dR -= ppos[None, i] - ppos[None, j]
-            # assign distance vector and MIC weight
-            R_iLjKm[i, L, j, K] = dR
-            w_iLjKm[i, L, j, K] = sv.weights[I, J]  # [m]
+        for I in range(Na):
+            i, _ = self.I2iL_map[I]
+            for q, s in np.ndindex(Nq, 3 * Np):
+                e_i = e_isq[3 * i : 3 * (i + 1), s, q]
+                e_I = Nq ** -0.5 * np.exp(2j * np.pi * ilps[q] @ spos[I]) * e_i
+                e_Isq[3 * I : 3 * (I + 1), s, q] = e_I
 
-        # attach
-        self._w_iLjKm = w_iLjKm
-        self._R_iLjKm = R_iLjKm
+        self._e_Isq = e_Isq
+
+    def __repr__(self):
+        dct = get_identifier(self.primitive)
+        sg, name = dct["space_group"], dct["material"]
+        rep = f"Dynamical Matrix for {name} (sg {sg}) of shape {self.array.shape}"
+        return repr(rep)
+
+    @property
+    def phonon(self) -> Phonopy:
+        return self._phonon
 
     def at_qs(self, q_points: np.ndarray, fractional: bool = True) -> np.ndarray:
-        """compute dynamical matrices for a list of q-points
+        """compute dynamical matrices for a list of q-points via phonopy
 
         Args:
             q_points: list of q-points to compute dyn. matrices on
             fractional: q-points are in fractional coords w.r.t reciprocal lattice
 
         """
-        _ = None  # shorthand for vector notation
+        if not fractional:  # convert to fractional coords for phonopy
+            q_points = self.primitive.cell.reciprocal().scaled_positions(q_points)
 
-        if fractional:  # convert to Cartesian coords (lattice points are Cart.)
-            q_points = self.primitive.cell.reciprocal().cartesian_positions(q_points)
-
-        # exponents including MIC images
-        Np, Na = len(self.primitive), len(self.supercell)
-        Nq = Na / Np  # number of lattice/q-points
-        w_iLjKm = self._w_iLjKm
-        R_iLjKm = self._R_iLjKm
-        e_qiLjKm = (-2.0j * np.pi * q_points[:, _, _, _, _, _, :] * R_iLjKm[_, :]).sum(
-            axis=-1
-        )
-        # sum phases respecting MIC weights
-        p_qiLjK = (w_iLjKm[_, :] * np.exp(e_qiLjKm)).sum(axis=-1)  # -> [q, i, L, j, K]
-
-        # perform Fourier transform by summing over lattice points -> [q, i, j, a, b]
-        D_iLjK = self.reshaped_to_lattice_points
-        D_qij = (1 / Nq * p_qiLjK[:, :, :, :, :, _, _] * D_iLjK[_, :]).sum(axis=(2, 4))
-
-        # reshape to [Nq, 3N, 3N]
-        Dq = D_qij.swapaxes(2, 3).reshape(len(q_points), 3 * Np, 3 * Np)
-
-        return Dq
+        return np.array([self.phonon.get_dynamical_matrix_at_q(q) for q in q_points])
 
     def at_q(self, q_point: np.ndarray, fractional: bool = True) -> np.ndarray:
         """return dynamical matrix at given q-point"""
         return self.at_qs(np.array([q_point]))[0]
+
+    @property
+    def commensurate_q_points(self):
+        """return commensurate q-points in Cartesian coords [Nq, 3]"""
+        return self._commensurate_q_points.copy()
+
+    @property
+    def commensurate_q_points_frac(self):
+        """return commensurate q-points in fractional coords [Nq, 3]"""
+        qs = self.commensurate_q_points
+        return self.primitive.cell.reciprocal().scaled_positions(
+            qs
+        )  # .round(decimals=12)
+
+    @property
+    def at_commensurate_q(self):
+        """return dynamical matrices at commensurate q-points"""
+        return self.at_qs(self.commensurate_q_points, fractional=False)
+
+    @property
+    def w2_sq(self):
+        """eigenvalues [3 * Np, Nq]"""
+        return self._w2_sq.copy()
+
+    @property
+    def w_sq(self):
+        """eigenfrequencies in ASE units [3 * Np, Nq]"""
+        w2 = self.w2_sq
+        return np.sign(w2) * np.sqrt(abs(w2))
+
+    @property
+    def w_inv_sq(self):
+        """inverse eigenfrequencies [3 * Np, Nq] respecting sign"""
+        w = self.w_sq
+        thresh = sorted(abs(w.flatten()))[3] * 0.9
+        w[abs(w) < thresh] = 1e20
+        w_inv_sq = 1 / w
+        w_inv_sq[abs(w_inv_sq) < 1e-9] = 0
+        return w_inv_sq
+
+    @property
+    def e_isq(self):
+        """|i, sq> [3 * Np, 3 * Np, Nq]"""
+        return self._e_isq.copy()
+
+    @property
+    def e_Isq(self):
+        """|I, sq> [3 * Na, 3 * Np, Nq]"""
+        return self._e_Isq.copy()
+
+    @property
+    def e_sqI(self):
+        """<sq, I| [3 * Np, Nq, 3 * Na]"""
+        e_Isq = self.e_Isq
+        return np.moveaxis(e_Isq, 0, -1)

@@ -7,6 +7,7 @@ import numpy as np
 import scipy.linalg as la
 from ase.cell import Cell
 
+from vibes.ase.calculators.fc import get_smallest_vectors  # noqa: F401
 from vibes.helpers.supercell import supercell as sc
 from vibes.helpers.utils import Timer
 
@@ -308,7 +309,11 @@ def _map_iL_to_I(I_to_iL_map):
 
 
 def get_commensurate_q_points(
-    cell: np.ndarray, supercell: np.ndarray, tolerance: float = 1e-5, **kwargs
+    cell: np.ndarray,
+    supercell: np.ndarray,
+    fractional: bool = False,
+    tolerance: float = 1e-5,
+    **kwargs,
 ) -> np.ndarray:
     """For a commensurate q_points we have
 
@@ -323,6 +328,7 @@ def get_commensurate_q_points(
     Args:
         cell: cell matrix of primitive cell
         supercell: cell matrix of supercell
+        fractional: return in fractional coords
         tolerance: tolearnce used to detect multiplicities
 
     Returns:
@@ -338,5 +344,8 @@ def get_commensurate_q_points(
     inv_lattice_points, _ = get_lattice_points(
         inv_superlattice, inv_lattice, tolerance, **kwargs
     )
+
+    if fractional:
+        inv_lattice_points = (inv_lattice_points @ cell.T).round(decimals=10)
 
     return inv_lattice_points
