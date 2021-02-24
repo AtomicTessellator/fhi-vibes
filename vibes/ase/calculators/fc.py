@@ -18,8 +18,8 @@ def get_smallest_vectors(
     at the boundary of the supercell.
 
     Returns:
-        svecs, multi, weights: smallest vectors in fractional coordinates
-            (w.r.t. supercell), their multiplicities, and weights (inverse mult.)
+        svecs, svecs_frac, multi, weights: smallest vectors in Cartesian and fractional
+        coordinates (w.r.t. supercell), multiplicities, and weights (inverse mult.)
 
     """
     # save bases
@@ -33,7 +33,7 @@ def get_smallest_vectors(
     primitive_pos = primitive_w_supercell_basis.get_scaled_positions()
 
     # get the smallest vectors and multiplicites
-    svecs, multi = _get_smallest_vectors(
+    svecs_frac, multi = _get_smallest_vectors(
         supercell_bases=supercell_bases,
         supercell_pos=supercell_pos,
         primitive_pos=primitive_pos,
@@ -44,7 +44,12 @@ def get_smallest_vectors(
     trans_mat_float = np.dot(supercell_bases, np.linalg.inv(primitive_bases))
     trans_mat = np.rint(trans_mat_float).astype(int)
     assert (np.abs(trans_mat_float - trans_mat) < 1e-8).all()
-    svecs = np.array(np.dot(svecs, trans_mat), dtype="double", order="C")
+    svecs_frac = np.array(np.dot(svecs_frac, trans_mat), dtype="double", order="C")
+
+    # compute Cartesian vectors
+    svecs = supercell.cell.cartesian_positions(svecs_frac.reshape(-1, 3)).reshape(
+        svecs_frac.shape
+    )
 
     # compute weights based on multiplicity
     weights = np.zeros(svecs.shape[:3])
@@ -52,10 +57,9 @@ def get_smallest_vectors(
         m = multi[ii, jj]
         weights[ii, jj, :m] = 1 / m
 
-    # return
-    return collections.namedtuple("smallest_vectors", ("svecs", "multi", "weights"))(
-        svecs, multi, weights
-    )
+    return collections.namedtuple(
+        "smallest_vectors", ("svecs", "svecs_frac", "multi", "weights")
+    )(svecs, svecs_frac, multi, weights)
 
 
 class FCCalculator(Calculator):
@@ -109,10 +113,10 @@ class FCCalculator(Calculator):
         if self.pbc:
             # save pair vectors and multiplicities
             atoms = atoms_reference
-            self.pairs, _, self.weights = get_smallest_vectors(atoms, atoms)
+            self.pairs, *_, self.weights = get_smallest_vectors(atoms, atoms)
 
             # pair vectors w.r.t. reference pos. including multiplicites
-            r0_ijm = self.pairs @ self.atoms_reference.cell  # [I, J, m, a]
+            r0_ijm = self.pairs  # [I, J, m, a]
             # average over equivalent periodic images m
             self.r0_ij = (self.weights[:, :, :, None] * r0_ijm).sum(
                 axis=2
