@@ -5,6 +5,7 @@ import numpy as np
 from ase import Atoms
 from ase.spacegroup import get_spacegroup
 
+from vibes.ase.calculators.fc import get_smallest_vectors  # noqa: F401
 from vibes.helpers.geometry import get_cubicness
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.warnings import warn

@@ -1,6 +1,4 @@
-"""
-A leightweight wrapper for Phonopy()
-"""
+"""A leightweight wrapper for Phonopy()"""
 
 import json
 from pathlib import Path
