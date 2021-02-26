@@ -1,7 +1,6 @@
 """ Tools for dealing with force constants """
 
 import numpy as np
-import scipy.linalg as la
 from ase import Atoms
 from ase.geometry import get_distances
 from phonopy import Phonopy
@@ -16,6 +15,9 @@ from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.supercell import map2prim
 from vibes.helpers.supercell.supercell import supercell as fort
 from vibes.io import get_identifier
+
+
+la = np.linalg
 
 
 _prefix = "force_constants"
@@ -377,25 +379,36 @@ class DynamicalMatrix(ForceConstants):
         pcell, scell = self.primitive.cell, self.supercell.cell
         self._commensurate_q_points = get_commensurate_q_points(pcell, scell)
 
-        # create eigenvectors at commensurate q-points
-        # indices:
+        # use phonopy API to get frequencies (w/o unit), group velocities, eigenvectors,
+        # dynamical matrices at commensurate q-points
+        # index notation:
         # i: (i, alpha) = primitive atom label and cart. coord
         # s: band index
         # q: q point index
-        Np, Na, Nq = len(self.primitive), len(self.supercell), len(self.lattice_points)
-        w2_sq = np.zeros([3 * Np, Nq])
-        e_isq = np.zeros([3 * Np, 3 * Np, Nq], dtype=complex)
-        for iq, D in enumerate(self.at_commensurate_q):
-            w2, ev = la.eigh(D)
-            w2_sq[:, iq], e_isq[:, :, iq] = w2, ev
+
+        self.phonon.run_qpoints(
+            self.commensurate_q_points_frac,
+            with_eigenvectors=True,
+            with_group_velocities=True,
+            with_dynamical_matrices=True,
+        )
+        data = self.phonon.get_qpoints_dict()
+
+        w_sq = data["frequencies"].swapaxes(0, 1) / self.phonon._factor
+        v_sq = data["group_velocities"].swapaxes(0, 1)
+        e_isq = np.moveaxis(data["eigenvectors"], 0, -1)
+        D_qij = data["dynamical_matrices"]
 
         # make 0s 0, take 4th smallest absolute eigenvalue as reference
-        thresh = sorted(abs(w2_sq.flatten()))[3] * 0.9
-        w2_sq[abs(w2_sq) < thresh] = 0
-        self._w2_sq, self._e_isq = w2_sq, e_isq
+        thresh = sorted(abs(w_sq.flatten()))[3] * 0.9
+        w_sq[abs(w_sq) < thresh] = 0
+        w2_sq = np.sign(w_sq) * w_sq ** 2  # eigenvalues
+        self._w_sq, self._w2_sq, self._v_sq = w_sq, w2_sq, v_sq
+        self._e_isq, self._D_qij = e_isq, D_qij
 
         # map eigenvectors to supercell
         # I: (I, alpha) = supercell atom label and cart. coord
+        Np, Na, Nq = len(self.primitive), len(self.supercell), len(self.lattice_points)
         e_Isq = np.zeros([3 * Na, 3 * Np, Nq], dtype=complex)  # [Ia, s, q]
         ilps = self.commensurate_q_points
         spos = self.phonon.supercell.positions
@@ -445,25 +458,27 @@ class DynamicalMatrix(ForceConstants):
     def commensurate_q_points_frac(self):
         """return commensurate q-points in fractional coords [Nq, 3]"""
         qs = self.commensurate_q_points
-        return self.primitive.cell.reciprocal().scaled_positions(
-            qs
-        )  # .round(decimals=12)
+        return self.primitive.cell.reciprocal().scaled_positions(qs)
 
     @property
     def at_commensurate_q(self):
-        """return dynamical matrices at commensurate q-points"""
-        return self.at_qs(self.commensurate_q_points, fractional=False)
+        """return dynamical matrices at commensurate q-points [Nq, 3 * Np, 3 * Np]"""
+        return self._D_qij.copy()
+
+    @property
+    def v_sq(self):
+        """group velocities in [3 * Np, Nq, 3]"""
+        return self._v_sq
+
+    @property
+    def w_sq(self):
+        """eigenfrequencies in ASE units [3 * Np, Nq]"""
+        return self._w_sq.copy()
 
     @property
     def w2_sq(self):
         """eigenvalues [3 * Np, Nq]"""
         return self._w2_sq.copy()
-
-    @property
-    def w_sq(self):
-        """eigenfrequencies in ASE units [3 * Np, Nq]"""
-        w2 = self.w2_sq
-        return np.sign(w2) * np.sqrt(abs(w2))
 
     @property
     def w_inv_sq(self):
