@@ -53,7 +53,7 @@ def trajectory(file, green_kubo, fc_file, outfile, force):
     traj = reader(file=file, fc_file=fc_file)
 
     if green_kubo:
-        traj.compute_heat_flux_from_stresses()
+        traj.compute_heat_flux()
         if traj.force_constants is not None:
             traj.compute_heat_flux_harmonic()
 

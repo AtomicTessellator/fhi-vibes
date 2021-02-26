@@ -737,13 +737,6 @@ class Trajectory(list):
 
         timer()
 
-    def compute_heat_flux_from_stresses(self):
-        """attach `heat_flux` to each `atoms`
-
-        Retained for legacy reasons.
-        """
-        self.compute_heat_flux()
-
     def set_heat_flux(self) -> None:
         flux = []
         flux_aux = []
