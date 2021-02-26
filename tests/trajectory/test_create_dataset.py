@@ -14,7 +14,7 @@ file = parent / "mgo.son"
 
 def test_parse_trajectory(file=file):
     trajectory = Trajectory.read(file)
-    trajectory.compute_heat_flux_from_stresses()
+    trajectory.compute_heat_flux()
     DS = trajectory.dataset
 
     for key in (
