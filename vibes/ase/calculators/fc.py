@@ -103,10 +103,13 @@ class FCCalculator(Calculator):
         self.atoms_reference = atoms_reference
         self.force_constants = force_constants
         self.pbc = self.atoms_reference.cell.rank == 3
+        # reshape force constants from [Ia, Jb] -> [I, J, a, b]
+        fc_shape = (len(atoms_reference), 3, len(atoms_reference), 3)
+        self.fc_IJab = force_constants.reshape(*fc_shape).swapaxes(1, 2)
 
         if force_constants_qha is not None:
             self.qha = True
-            self.force_constants_qha = force_constants_qha
+            self.fc_qha_IJab = force_constants_qha.reshape(*fc_shape).swapaxes(1, 2)
         else:
             self.qha = False
 
@@ -149,9 +152,8 @@ class FCCalculator(Calculator):
         # a, b: 1 ... 3 (vector component)
         # m: 1 ... M (m.i.c. multiplicity, at most 27)
         dr = displacements  # [I, a]
-        # reshape force constants from [Ia, Jb] -> [I, J, a, b]
-        fc_shape = (n_atoms, 3, n_atoms, 3)
-        fc = self.force_constants.reshape(*fc_shape).swapaxes(1, 2)
+        # reshaped force constants [I, J, a, b]
+        fc = self.fc_IJab
         # PU = sum_b forceconstants P [I, J, a, b] * displacements U [J, b]
         PU = (fc * dr[None, :, None, :]).sum(axis=-1)  # -> [I, J, a]
 
@@ -181,8 +183,7 @@ class FCCalculator(Calculator):
         # from here on the two cases are similar
         # QHA contribution (similar to ha. case, but prefactor 3/2 instead of 1/V)
         if self.qha:
-            fc_qha = self.force_constants_qha
-            fc_qha = fc_qha.reshape(*fc_shape).swapaxes(1, 2)  # [I, J, a, b]
+            fc_qha = self.fc_qha_IJab  # [I, J, a, b]
             PU_qha = (fc_qha * dr[None, :, None, :]).sum(axis=-1)  # [I, J, a]
 
             s_ij_qha = dr[:, None, :, None] * PU_qha[:, :, None, :]  # -> [I, J, a, b]
@@ -193,7 +194,7 @@ class FCCalculator(Calculator):
 
         # assign properties
         # potential energy [I] = 1/2 * sum_a - dr [I, a] * f [I, a]
-        energies = -(displacements * forces).sum(axis=1) / 2  # -> [I]
+        energies = -(displacements * forces).sum(axis=-1) / 2  # -> [I]
         energy = energies.sum()  # -> [1]
 
         self.results["forces"] = forces
@@ -218,7 +219,7 @@ class FCCalculator(Calculator):
             # # compute heat flux in eV / AA**2 / fs
             # J = 1/2 * sum_i s_i \cdot p_i
             pref = 0.5
-            v = atoms.get_velocities() / u.fs
+            v = atoms.get_velocities() * u.fs
             j = pref * (s_i * v[:, None, :]).sum(axis=(0, -1))
             j0 = pref * (s0_i * v[:, None, :]).sum(axis=(0, -1))
             self.results["heat_flux"] = j
