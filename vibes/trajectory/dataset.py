@@ -201,7 +201,6 @@ def get_trajectory_dataset(trajectory, metadata=False):
     if trajectory.force_constants is not None:
         fc = trajectory.force_constants.array
         dataset.update({keys.fc: (dims.fc, fc)})
-    if trajectory.force_constants_remapped is not None:
         rfc = trajectory.force_constants_remapped
         dataset.update({keys.fc_remapped: (dims.fc_remapped, rfc)})
 
