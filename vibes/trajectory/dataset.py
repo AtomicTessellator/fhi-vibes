@@ -212,7 +212,7 @@ def get_trajectory_dataset(trajectory, metadata=False):
             keys.sigma_per_sample: (dims.time, trajectory.sigma_per_sample),
         }
         dataset.update(update_dict)
-        attrs.update({"sigma": trajectory.sigma})
+        attrs.update({keys.sigma: trajectory.sigma})
 
     ds = xr.Dataset(dataset, coords=coords, attrs=attrs)
 

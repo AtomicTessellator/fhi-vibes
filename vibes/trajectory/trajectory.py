@@ -317,7 +317,7 @@ class Trajectory(list):
     @property
     def forces_harmonic(self):
         """return harmonic forces, None if not set via `set_force_constants`"""
-        return self._forces_harmonic
+        return self._forces_harmonic.copy()
 
     @lazy_property
     def kinetic_energy(self):
@@ -329,9 +329,10 @@ class Trajectory(list):
         """return the potential energy as [N_t] array"""
         return np.array([a.get_potential_energy() for a in self])
 
-    @lazy_property
+    @property
     def potential_energy_harmonic(self):
-        return -0.5 * (self.forces_harmonic * self.displacements).sum(axis=(1, 2))
+        if self._forces_harmonic is not None:
+            return -0.5 * (self.forces_harmonic * self.displacements).sum(axis=(1, 2))
 
     @lazy_property
     def stress_potential(self):
