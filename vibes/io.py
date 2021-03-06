@@ -120,7 +120,7 @@ def parse_force_constants(fc_file, **kwargs):
     file = Path(fc_file)
     name = file.name
 
-    if name == filenames.fc.phonopy or name == filenames.fc.phonopy_hdf5:
+    if filenames.fc.phonopy in name or filenames.fc.phonopy_hdf5 in name:
         from vibes.phonopy.utils import parse_phonopy_force_constants
 
         return parse_phonopy_force_constants(file, **kwargs)
