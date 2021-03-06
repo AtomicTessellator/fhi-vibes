@@ -1,6 +1,7 @@
 """ vibes quality of life """
 from pathlib import Path
 
+import numpy as np
 from ase import Atoms
 from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS, read_force_constants_hdf5
@@ -230,7 +231,7 @@ def parse_phonopy_force_constants(
     supercell="geometry.supercell",
     fortran=True,
     symmetrize=True,
-    two_dim=True,
+    two_dim=False,
     eps=1e-5,
     tol=1e-4,
     format="aims",
@@ -252,6 +253,11 @@ def parse_phonopy_force_constants(
     """
     if "hdf5" in str(fc_file):
         fc = read_force_constants_hdf5(fc_file)
+    elif "remapped" in str(fc_file):
+        fc = np.loadtxt(fc_file)
+        Na = len(fc) // 3
+        fc.resize(Na, 3, Na, 3)
+        fc = fc.swapaxes(1, 2)
     else:
         fc = parse_FORCE_CONSTANTS(fc_file)
 
