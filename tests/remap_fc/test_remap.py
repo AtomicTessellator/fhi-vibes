@@ -24,6 +24,7 @@ def _parse(folder, fortran=True):
         primitive=parent / folder / "geometry.in.primitive",
         supercell=parent / folder / "geometry.in.supercell",
         fortran=fortran,
+        two_dim=True,
     )
     return fc
 
