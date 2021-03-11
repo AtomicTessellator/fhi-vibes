@@ -27,7 +27,7 @@ def test_reduce_fc():
 
     diff = np.linalg.norm(fc_phonopy - fc_reduced)
 
-    print(diff)
+    assert np.allclose(diff, 0), f"diff should be 0, is {diff}"
 
 
 if __name__ == "__main__":
