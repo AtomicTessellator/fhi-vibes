@@ -317,7 +317,7 @@ class Trajectory(list):
     @property
     def forces_harmonic(self):
         """return harmonic forces, None if not set via `set_force_constants`"""
-        return self._forces_harmonic.copy()
+        return self._forces_harmonic
 
     @lazy_property
     def kinetic_energy(self):
