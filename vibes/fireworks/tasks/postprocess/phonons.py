@@ -224,7 +224,7 @@ def get_converge_phonon_update(
     """
     calc_time = np.sum(calc_times)
 
-    _, metadata = reader(f"{workdir}/{trajectory_file}", True)
+    metadata = reader(f"{workdir}/{trajectory_file}").metadata
     calculator_dict = metadata["calculator"]
     calculator_dict["calculator"] = calculator_dict["calculator"].lower()
 
