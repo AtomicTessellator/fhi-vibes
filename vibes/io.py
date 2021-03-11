@@ -120,7 +120,12 @@ def parse_force_constants(fc_file, **kwargs):
     file = Path(fc_file)
     name = file.name
 
-    if filenames.fc.phonopy in name or filenames.fc.phonopy_hdf5 in name:
+    if ".dat" in name or filenames.fc.phonopy_remapped in name:
+        import numpy as np
+
+        return np.loadtxt(fc_file)
+
+    elif filenames.fc.phonopy in name or filenames.fc.phonopy_hdf5 in name:
         from vibes.phonopy.utils import parse_phonopy_force_constants
 
         return parse_phonopy_force_constants(file, **kwargs)
@@ -134,11 +139,6 @@ def parse_force_constants(fc_file, **kwargs):
         from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
 
         return parse_tdep_remapped_forceconstant(file, **kwargs)
-
-    elif ".dat" in name or name == filenames.fc.phonopy_remapped:
-        import numpy as np
-
-        return np.loadtxt(fc_file)
 
     else:
         raise RuntimeError(f"{file} is neither phonopy nor tdep force constants")
