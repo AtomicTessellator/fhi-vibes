@@ -1,6 +1,8 @@
 """Generate FWActions after setting Phonon Calculations"""
 
 from fireworks import FWAction, Workflow
+
+from vibes.context import TaskContext
 from vibes.fireworks.tasks.postprocess.phonons import (
     get_converge_phonon_update,
     time2str,
@@ -8,13 +10,11 @@ from vibes.fireworks.tasks.postprocess.phonons import (
 from vibes.fireworks.utils.converters import phonon3_to_dict, phonon_to_dict
 from vibes.fireworks.workflows.firework_generator import generate_firework
 from vibes.fireworks.workflows.workflow_generator import process_phonons
-
-from vibes.context import TaskContext
-
 from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms
 from vibes.helpers.k_grid import k2d
 from vibes.helpers.watchdogs import str2time
-from vibes.phonopy._defaults import keys, kwargs as ph_kwargs
+from vibes.phonopy._defaults import keys
+from vibes.phonopy._defaults import kwargs as ph_kwargs
 from vibes.settings import Settings
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
@@ -311,7 +311,7 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     """
     trajectory_file = f"{kwargs['workdir']}/{kwargs['trajectory_file']}"
-    _, metadata = reader(trajectory_file, True)
+    metadata = reader(trajectory_file).metadata
     calculator_dict = metadata["calculator"]
     calculator_dict["calculator"] = calculator_dict["calculator"].lower()
     calculator_dict["calculator"] == "aims"
@@ -438,7 +438,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
     primitive = to_Atoms(phonon.get_primitive())
 
-    _, metadata = reader(f"{workdir}/{trajectory_file}", True)
+    metadata = reader(f"{workdir}/{trajectory_file}").metadata
 
     fireworks_dct = {
         "name": "phonon_continuation",

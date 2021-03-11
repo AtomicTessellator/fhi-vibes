@@ -238,21 +238,9 @@ def remap_force_constants(
     fc_out = fc_2d.reshape((n_sc_new, 3, n_sc_new, 3)).swapaxes(1, 2)  # -> NxNx3x3
 
     if reduce_fc:
-        p2s_map = np.zeros(len(primitive), dtype=int)
+        s2p_map = map2prim(primitive, new_supercell)
 
-        primitive.cell = new_supercell.cell
-
-        new_supercell.wrap(eps=tol)
-        primitive.wrap(eps=tol)
-
-        for aa, a1 in enumerate(primitive):
-            diff = new_supercell.positions - a1.position
-            p2s_map[aa] = np.where(np.linalg.norm(diff, axis=1) < tol)[0][0]
-
-        primitive.cell = primitive_cell
-        primitive.wrap(eps=tol)
-
-        return reduce_force_constants(fc_out, p2s_map)
+        return reduce_force_constants(fc_out, s2p_map)
 
     return fc_out
 
