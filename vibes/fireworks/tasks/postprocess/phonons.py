@@ -265,7 +265,9 @@ def get_converge_phonon_update(
                 reduce_fc=True,
             )
         )
-        brav_pts = get_commensurate_q_points(primitive.cell, supercell.cell)
+        brav_pts = get_commensurate_q_points(
+            primitive.cell, supercell.cell, fractional=True
+        )
         for k in brav_pts:
             if np.any(phonon_small.get_frequencies(k) < -1.0e-1):
                 raise ValueError("Negative frequencies at an included lattice point.")
