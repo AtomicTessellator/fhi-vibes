@@ -1,6 +1,7 @@
 """ helps to find lattice points in supercell, match positions to images in the
 unit cell etc. """
 
+import collections
 from itertools import product
 
 import numpy as np
@@ -18,6 +19,7 @@ _prefix = "lattice_points"
 def get_lattice_points(
     cell: np.ndarray,
     supercell: np.ndarray,
+    extended: bool = True,
     tolerance: float = 1e-5,
     sort: bool = True,
     fortran: bool = True,
@@ -32,6 +34,7 @@ def get_lattice_points(
     Args:
         cell: lattice matrix of primitive cell
         supercell: lattice matrix of supercell
+        extended: return extendes lattice points at supercell boundary
         tolerance: tolerance used to detect multiplicities
         sort: If True sort results
         fortran: If True use the Fortran routines
@@ -43,7 +46,7 @@ def get_lattice_points(
         lattice_points_ext_w_multiplicites: lattice points including multiplicities
     """
 
-    timer = Timer(prefix=_prefix)
+    timer = Timer(prefix=_prefix, verbose=verbose)
     tol = tolerance
 
     # check if cells are arrays
@@ -128,6 +131,9 @@ def get_lattice_points(
 
     lattice_points = np.around(lattice_points, decimals=decimals)
 
+    if not extended:
+        return lattice_points
+
     # find multiplicities of the extended lattice points
     lattice_points_ext_w_multiplicites = []
     for lp in lattice_points:
@@ -188,19 +194,22 @@ def map_L_to_i(indeces):
     return mappings
 
 
-def map_I_to_iL(in_atoms, in_supercell, lattice_points=None, tolerance=1e-5):
+def map_I_to_iL(
+    in_atoms, in_supercell, lattice_points=None, tol=1e-5, verbose=True
+) -> tuple:
     """Map from supercell index I to (i, L), i is the unit cell index and L lattice p.
 
     Args:
         in_atoms (ase.atoms.Atoms): primitive cell
         in_supercell (ase.atoms.Atoms): supercell
         lattice_points (list, optional): list of pre-computed lattice points L
-        tolerance (float, optional): tolerance for wrapping
+        tol (float, optional): tolerance for wrapping
 
     Returns:
         list, list: I_to_iL map, inverse map
+
     """
-    timer = Timer(prefix=_prefix)
+    timer = Timer(prefix=_prefix, verbose=verbose)
 
     atoms = in_atoms.copy()
     supercell = in_supercell.copy()
@@ -230,7 +239,7 @@ def map_I_to_iL(in_atoms, in_supercell, lattice_points=None, tolerance=1e-5):
             if ssym != sym:
                 continue
             for LL, lp in enumerate(lattice_points):
-                if la.norm(spos - pos - lp) < tolerance:
+                if la.norm(spos - pos - lp) < tol:
                     indices[jj] = (ii, LL)
                     matches.append(jj)
                     break
@@ -246,8 +255,7 @@ def map_I_to_iL(in_atoms, in_supercell, lattice_points=None, tolerance=1e-5):
                 if ssym != sym:
                     continue
                 fpos = supercell.cell.scaled_positions(spos - pos - lp)
-                tol = tolerance
-                if la.norm((fpos + tol) % 1 - tol) < tolerance:
+                if la.norm((fpos + tol) % 1 - tol) < tol:
                     indices[jj] = (ii, LL)
                     matches.append(jj)
                     break
@@ -312,8 +320,8 @@ def get_commensurate_q_points(
     cell: np.ndarray,
     supercell: np.ndarray,
     fractional: bool = False,
+    decimals: int = 14,
     tolerance: float = 1e-5,
-    **kwargs,
 ) -> np.ndarray:
     """For a commensurate q_points we have
 
@@ -329,23 +337,79 @@ def get_commensurate_q_points(
         cell: cell matrix of primitive cell
         supercell: cell matrix of supercell
         fractional: return in fractional coords
+        decimals: use to clean zeros
         tolerance: tolearnce used to detect multiplicities
 
     Returns:
         List of commensurate q_points
 
     """
-    lattice = cell.T
-    superlattice = supercell.T
+    lattice = cell
+    superlattice = supercell
 
-    inv_lattice = la.inv(lattice)
-    inv_superlattice = la.inv(superlattice)
+    inv_lattice = la.inv(lattice).T
+    inv_superlattice = la.inv(superlattice).T
 
-    inv_lattice_points, _ = get_lattice_points(
-        inv_superlattice, inv_lattice, tolerance, **kwargs
+    inv_lattice_points = get_lattice_points(
+        inv_superlattice, inv_lattice, extended=False, tolerance=tolerance
     )
 
     if fractional:
-        inv_lattice_points = (inv_lattice_points @ cell.T).round(decimals=10)
+        filps = la.solve(inv_lattice.T, np.transpose(inv_lattice_points)).T
+        assert np.allclose(filps, inv_lattice_points @ cell.T), "FIX ME"
+        inv_lattice_points = filps.round(decimals=decimals)
 
     return inv_lattice_points
+
+
+def get_unit_grid_extended(
+    q_points_frac: np.ndarray, only_gamma: bool = False, tol: float = 1e-9
+) -> tuple:
+    """map q_points to units cube [0, 1] and add boundary elements for interpolation
+
+    Args:
+        q_points_frac: q-points to be extended, e.g. in interval [-0.5, 0.5)
+        only_gamma: only include gamma point (for symmetry-reduced grids).
+                    REM: assume gamma point is the first point
+
+    Returns:
+        (grid, grid_extended, map_to_extended):
+            grid on unit cube [0, 1), extended to [0, 1], map from extended to orig.
+    """
+    # map to [0, 1]
+    q_points_frac_unit = (q_points_frac + tol) % 1 - tol
+
+    map_to_extended = []
+    extended_q_points_unit = []
+    for iq, q in enumerate(q_points_frac_unit):
+        if (abs(q) < tol).any():
+            # print(iq, q)
+            # create all reciprocal lattice vector displacements from 0 -> 1
+            mask = abs(q) < tol  # find elements that are 0
+            rge = np.ones(3)
+            for ii in range(3):  # create range for ndindex
+                if mask[ii]:
+                    rge[ii] = 2
+
+            for ii, jj, kk in np.ndindex(*rge.astype(int)):
+                if ii == jj == kk == 0:
+                    continue
+                disp = np.array([ii, jj, kk])
+                new_q = q + disp
+                # print(new_q)
+                extended_q_points_unit.append(new_q)
+                map_to_extended.append(iq)
+
+        if only_gamma:
+            assert la.norm(q) < tol, "first point was not gamma, not implemented, ADD!"
+            break
+
+    q_points_frac_unit_extended = np.concatenate(
+        (q_points_frac_unit, extended_q_points_unit)
+    )
+    map_to_extended = np.concatenate((range(len(q_points_frac)), map_to_extended))
+    # w_sq_extended = np.concatenate((dmx.w_sq, np.asarray(extended_w_sq).T), axis=1)
+
+    return collections.namedtuple(
+        "unit_grid_extended", ("grid", "grid_extended", "map2extended"),
+    )(q_points_frac_unit, q_points_frac_unit_extended, map_to_extended)
