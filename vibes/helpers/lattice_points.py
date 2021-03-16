@@ -365,7 +365,7 @@ def get_commensurate_q_points(
 def get_unit_grid_extended(
     q_points_frac: np.ndarray, only_gamma: bool = False, tol: float = 1e-9
 ) -> tuple:
-    """map q_points to units cube [0, 1] and add boundary elements for interpolation
+    """map q-points to units cube [0, 1] adding boundary elements for interpolation
 
     Args:
         q_points_frac: q-points to be extended, e.g. in interval [-0.5, 0.5)

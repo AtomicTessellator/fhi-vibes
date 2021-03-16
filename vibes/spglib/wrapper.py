@@ -2,7 +2,7 @@
 import collections
 
 import numpy as np
-import spglib as spg
+import spglib
 from ase.atoms import Atoms
 
 from vibes.konstanten import symprec as default_symprec
@@ -54,7 +54,7 @@ def get_symmetry_dataset(
 
     """
     spg_cell = to_spglib_cell(atoms)
-    data = spg.get_symmetry_dataset(spg_cell, symprec=symprec)
+    data = spglib.get_symmetry_dataset(spg_cell, symprec=symprec)
 
     uwcks, count = np.unique(data["wyckoffs"], return_counts=True)
     data["wyckoffs_unique"] = [(w, c) for (w, c) in zip(uwcks, count)]
@@ -131,7 +131,7 @@ def get_spacegroup(atoms, symprec=default_symprec):
         The spglib space group
     """
 
-    return spg.get_spacegroup(to_spglib_cell(atoms), symprec=symprec)
+    return spglib.get_spacegroup(to_spglib_cell(atoms), symprec=symprec)
 
 
 def refine_cell(atoms, symprec=default_symprec):
@@ -149,7 +149,9 @@ def refine_cell(atoms, symprec=default_symprec):
     ase.atoms.Atoms:
         The refined structure of atoms
     """
-    lattice, scaled_positions, numbers = spg.refine_cell(to_spglib_cell(atoms), symprec)
+    lattice, scaled_positions, numbers = spglib.refine_cell(
+        to_spglib_cell(atoms), symprec
+    )
 
     return cell_to_Atoms(lattice, scaled_positions, numbers)
 
@@ -177,7 +179,7 @@ def standardize_cell(
     """
 
     cell = to_spglib_cell(atoms)
-    args = spg.standardize_cell(cell, to_primitive, no_idealize, symprec)
+    args = spglib.standardize_cell(cell, to_primitive, no_idealize, symprec)
 
     return cell_to_Atoms(*args)
 
@@ -228,3 +230,45 @@ def get_index_maps(atoms: Atoms, spg_data: collections.namedtuple) -> np.ndarray
         "translations_cartesian": spg_data.translations_cartesian,
     }
     return _get_index_maps(atoms, **kw)
+
+
+def get_ir_reciprocal_mesh(
+    mesh: np.ndarray,
+    atoms: Atoms,
+    monkhorst: bool = True,
+    symprec: float = 1e-5,
+    eps: float = 1e-9,
+) -> collections.namedtuple:
+    """wrapper for spglib.get_ir_reciprocal_mesh
+
+    Args:
+        mesh: array specifying number of points per axis
+        atoms: structure that determines symmetry
+        monkhorst: return monkhorst-pack-style grid (gamma incl. when odd grid number)
+
+    Returns:
+        (points, weights): frac. grid points in interval [-0.5, 0.5), their weights
+
+    """
+    mesh = np.asarray(mesh)
+    spg_cell = to_spglib_cell(atoms)
+
+    if monkhorst:  # apply shift
+        is_shift = -(np.asarray(mesh) % 2) + 1
+    else:
+        is_shift = np.zeros(3)
+
+    mapping, grid = spglib.get_ir_reciprocal_mesh(
+        mesh, cell=spg_cell, is_shift=is_shift
+    )
+
+    map2ir, weights = np.unique(mapping, return_counts=True)
+    ir_points = grid[map2ir].astype(float) / mesh  # to frac. coords
+    ir_points += 0.5 * is_shift / mesh  # restore shift
+
+    # map to [-0.5, 0.5)
+    ir_points = ((ir_points + 0.5 + eps) % 1 - 0.5 - eps).round(decimals=14)
+
+    return collections.namedtuple("ir_reciprocal_mesh", ("points", "weights"))(
+        ir_points, weights
+    )
