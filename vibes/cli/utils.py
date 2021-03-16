@@ -377,6 +377,31 @@ def frequencies(file, supercell, show_n_frequencies, outfile, symmetrize, format
         click.echo(f".. frequencies written to {outfile}")
 
 
+@force_constants.command(context_settings=_default_context_settings)
+@click.argument("file", default="trajectory.nc", type=complete_files)
+@click.option("--sum_rules", is_flag=True, help="enforce sum rules")
+@click.option("--enlarge_cutoff", is_flag=True, help="enlarge the fit cutoff")
+@click.option("--plot", is_flag=True, help="inspect bandstructure")
+@click.option("--stride", default=100, help="take every STRIDE steps for fit")
+def fit_hiphive(**kwargs):
+    """get force constants from trajectory in FILE via hiphive"""
+    from vibes.cli.scripts.hiphive_fc_fit import main
+
+    main(**kwargs)
+
+
+@force_constants.command(context_settings=_default_context_settings)
+@click.argument("fc_file", default="FORCE_CONSTANTS", type=complete_files)
+@click.option("-primitive", "--primitive_file", default="geometry.in.primitive")
+@click.option("-supercell", "--supercell_file", default="geometry.in.supercell")
+@click.option("--format", default="aims")
+def enforce_sum_rules(**kwargs):
+    """get force constants from trajectory in FILE via hiphive"""
+    from vibes.cli.scripts.hiphive_enforce_sum_rules import main
+
+    main(**kwargs)
+
+
 @utils.group(cls=ClickAliasedGroup)
 def trajectory():
     """trajectory utils"""
