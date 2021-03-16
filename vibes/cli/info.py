@@ -295,7 +295,7 @@ def relaxation(obj, file, verbose):
 
     from vibes.relaxation._defaults import keys, kwargs, name, relaxation_options
     from vibes.relaxation.context import MyExpCellFilter as ExpCellFilter
-    from vibes.spglib.wrapper import get_spacegroup
+    from vibes.spglib import get_spacegroup
     from vibes.trajectory import reader
 
     traj = reader(file, verbose=False)

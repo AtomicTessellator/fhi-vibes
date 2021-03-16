@@ -11,7 +11,7 @@ from vibes.helpers import supercell as sc
 from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.io import get_info_str, read
-from vibes.spglib.wrapper import get_spacegroup
+from vibes.spglib import get_spacegroup
 from vibes.structure.io import inform
 
 

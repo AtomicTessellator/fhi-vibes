@@ -12,7 +12,7 @@ from vibes.helpers import talk, warn
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.materials_fp.material_fingerprint import get_phonon_bs_fp, to_dict
 from vibes.phonopy.utils import get_supercells_with_displacements
-from vibes.spglib.wrapper import map_unique_to_atoms
+from vibes.spglib import map_unique_to_atoms
 from vibes.structure.convert import to_Atoms, to_phonopy_atoms
 
 from . import _defaults as defaults

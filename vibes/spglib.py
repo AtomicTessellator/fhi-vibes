@@ -5,28 +5,23 @@ import numpy as np
 import spglib
 from ase.atoms import Atoms
 
-from vibes.konstanten import symprec as default_symprec
 from vibes.structure.convert import to_spglib_cell
 
 
-def cell_to_Atoms(lattice, scaled_positions, numbers, info=None):
+def cell_to_Atoms(
+    lattice: list, scaled_positions: list, numbers: list, info: dict = None
+) -> Atoms:
     """convert from spglib cell to Atoms
 
-    Parameters
-    ----------
-    lattice: np.ndarray
-        The lattice vectors of the structure
-    scaled_positions: np.ndarray
-        The scaled positions of the atoms
-    numbers: list
-        Atomic numbers of all the atoms in the cell
-    info: dict
-        additional information on the structure
+    Args:
+        lattice: The lattice vectors of the structure
+        scaled_positions: The scaled positions of the atoms
+        numbers: Atomic numbers of all the atoms in the cell
+        info: additional information on the structure
 
-    Returns
-    -------
-    ase.atoms.Atoms:
+    Returns:
         The ASE Atoms object representation of the material
+
     """
     atoms_dict = {
         "cell": lattice,
@@ -85,22 +80,16 @@ def get_symmetry_dataset(
     return collections.namedtuple("spg_dataset", data.keys())(**data)
 
 
-def map_unique_to_atoms(atoms, symprec=default_symprec):
+def map_unique_to_atoms(atoms: Atoms, symprec: float = 1e-5) -> list:
     """map each symmetry unique atom to other atoms as used by phonopy PDOS
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        The structure to get the dataset of
-    symprec: float
-        The tolerance for determining symmetry and the space group
+    Args:
+        atoms: The structure to get the dataset of
 
-    Returns
-    -------
-    mapping: np.ndarray
+    Returns:
         The mapping of symmetry unique atoms to other atoms
-    """
 
+    """
     ds = get_symmetry_dataset(atoms, symprec=symprec)
 
     uniques = np.unique(ds.equivalent_atoms)
@@ -115,39 +104,28 @@ def map_unique_to_atoms(atoms, symprec=default_symprec):
     return mapping
 
 
-def get_spacegroup(atoms, symprec=default_symprec):
+def get_spacegroup(atoms: Atoms, symprec: float = 1e-5) -> str:
     """return spglib spacegroup
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        The structure to get the dataset of
-    symprec: float
-        The tolerance for determining symmetry and the space group
+    Args:
+        atoms: The structure to get the dataset of
 
-    Returns
-    -------
-    str:
+    Returns:
         The spglib space group
-    """
 
+    """
     return spglib.get_spacegroup(to_spglib_cell(atoms), symprec=symprec)
 
 
-def refine_cell(atoms, symprec=default_symprec):
+def refine_cell(atoms: Atoms, symprec: float = 1e-5) -> Atoms:
     """refine the structure
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        The structure to get the dataset of
-    symprec: float
-        The tolerance for determining symmetry and the space group
+    Args:
+        atoms: The structure to get the dataset of
 
-    Returns
-    -------
-    ase.atoms.Atoms:
+    Returns:
         The refined structure of atoms
+
     """
     lattice, scaled_positions, numbers = spglib.refine_cell(
         to_spglib_cell(atoms), symprec
@@ -157,27 +135,22 @@ def refine_cell(atoms, symprec=default_symprec):
 
 
 def standardize_cell(
-    atoms, to_primitive=False, no_idealize=False, symprec=default_symprec
-):
+    atoms: Atoms,
+    to_primitive: bool = False,
+    no_idealize: bool = False,
+    symprec: float = 1e-5,
+) -> Atoms:
     """wrap spglib.standardize_cell
 
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        The structure to get the dataset of
-    to_primitive: bool
-        If True go to the primitive cell
-    no_idealize: bool
-        If True do not idealize the cell
-    symprec: float
-        The tolerance for determining symmetry and the space group
+    Args:
+        atoms: The structure to get the dataset of
+        to_primitive: If True go to the primitive cell
+        no_idealize: If True do not idealize the cell
 
-    Returns
-    -------
-    ase.atoms.Atoms
+    Returns:
         The standardized structure of atoms
-    """
 
+    """
     cell = to_spglib_cell(atoms)
     args = spglib.standardize_cell(cell, to_primitive, no_idealize, symprec)
 

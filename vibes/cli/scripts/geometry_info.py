@@ -1,7 +1,7 @@
 from argparse import ArgumentParser as argpars
 
 from vibes.io import inform, read
-from vibes.spglib.wrapper import get_symmetry_dataset
+from vibes.spglib import get_symmetry_dataset
 from vibes.structure.misc import get_sysname
 
 

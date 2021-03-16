@@ -6,7 +6,7 @@ from ase.io import read as ase_read
 from ase.spacegroup import get_spacegroup
 
 from vibes.filenames import filenames
-from vibes.spglib.wrapper import get_symmetry_dataset
+from vibes.spglib import get_symmetry_dataset
 from vibes.structure.io import inform  # noqa: F401
 
 
