@@ -6,8 +6,8 @@ from pathlib import Path
 import numpy as np
 from phonopy import Phonopy
 
+from vibes import brillouin as bz
 from vibes import konstanten as const
-from vibes.helpers import brillouinzone as bz
 from vibes.helpers import talk, warn
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.materials_fp.material_fingerprint import get_phonon_bs_fp, to_dict

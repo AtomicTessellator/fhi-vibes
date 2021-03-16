@@ -4,11 +4,11 @@ from pathlib import Path
 from phonopy.file_IO import write_FORCE_CONSTANTS, write_FORCE_SETS
 from phonopy.interface.phonopy_yaml import PhonopyYaml
 
+from vibes.brillouin import get_special_points
 from vibes.filenames import filenames
 from vibes.helpers import Timer as _Timer
 from vibes.helpers import talk as _talk
 from vibes.helpers import warn
-from vibes.helpers.brillouinzone import get_special_points
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.paths import cwd
 from vibes.io import write

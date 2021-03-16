@@ -5,6 +5,7 @@ from ase import Atoms
 from ase.geometry import get_distances
 from phonopy import Phonopy
 
+from vibes.brillouin import get_ir_grid
 from vibes.helpers import Timer, lazy_property, progressbar, talk
 from vibes.helpers.lattice_points import (
     get_commensurate_q_points,
@@ -15,7 +16,6 @@ from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.supercell import map2prim
 from vibes.helpers.supercell.supercell import supercell as fort
 from vibes.io import get_identifier
-from vibes.spglib.q_mesh import get_ir_grid
 
 
 la = np.linalg

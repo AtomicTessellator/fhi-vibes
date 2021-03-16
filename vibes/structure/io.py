@@ -4,7 +4,7 @@ import datetime
 
 import numpy as np
 
-from vibes.helpers.brillouinzone import get_special_points
+from vibes.brillouin import get_special_points
 from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.utils import talk
