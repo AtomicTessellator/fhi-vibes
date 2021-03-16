@@ -53,7 +53,7 @@ def geometry(obj, file, format, symprec, verbose):
 
 
 @info.command(context_settings=_default_context_settings)
-@click.argument("file", default=filenames.trajectory, type=complete_files)
+@click.argument("file", default=filenames.trajectory_dataset, type=complete_files)
 @click.option("-p", "--plot", is_flag=True, help="plot a summary")
 @click.option("--avg", default=100, help="window size for running avg")
 @click.option("-v", "--verbose", is_flag=True, help="be verbose")
