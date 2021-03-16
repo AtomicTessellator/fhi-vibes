@@ -111,4 +111,6 @@ def get_ir_grid(
         "symop2ir": symop2ir,
     }
 
-    return collections.namedtuple("q_grid", data.keys())(**data)
+    QGrid = collections.namedtuple("q_grid", data.keys())
+
+    return QGrid(**data)
