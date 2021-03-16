@@ -5,7 +5,7 @@ import xarray as xr
 
 from vibes import keys
 from vibes.helpers import progressbar, warn
-from vibes.spglib.wrapper import get_symmetry_dataset
+from vibes.spglib import get_symmetry_dataset
 
 
 def _check_shape(f1, f2):
@@ -183,6 +183,7 @@ def get_sigma_dict(f, fh, ref_atoms, by_symmetry=False, per_direction=False):
 def get_dataframe(dataset, per_sample=False, per_direction=False, by_symmetry=False):
     """return anharmonicity dataframe for xarray.Dataset DS"""
     import pandas as pd
+
     from vibes.helpers.converters import json2atoms
 
     DS = dataset
@@ -269,8 +270,8 @@ def _get_forces_per_mode(dataset):
     Returns:
         (x, y, f): forces_mode, harmonic_forces_mode, frequencies
     """
-    from vibes.helpers.converters import json2atoms
     from vibes.harmonic_analysis.mode_projection import SimpleModeProjection
+    from vibes.helpers.converters import json2atoms
 
     ds = dataset
 

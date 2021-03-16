@@ -13,7 +13,7 @@ from vibes.brillouin import get_special_points
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.utils import talk
 from vibes.konstanten import n_geom_digits, symprec, v_unit
-from vibes.spglib.wrapper import get_symmetry_dataset
+from vibes.spglib import get_symmetry_dataset
 from vibes.structure.misc import get_sysname
 
 
