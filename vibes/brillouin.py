@@ -13,7 +13,7 @@ from vibes.spglib import get_symmetry_dataset
 
 def get_paths(atoms: np.ndarray) -> list:
     """nothing but atoms.get_bravais_lattice().special_path.split(',')"""
-    return atoms.cell.get_bravais_lattice().special_path().split(",")
+    return atoms.cell.get_bravais_lattice().special_path.split(",")
 
 
 def get_bands(atoms: Atoms, paths: np.ndarray = None, npoints: int = 50) -> list:
