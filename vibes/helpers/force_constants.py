@@ -340,7 +340,6 @@ class DynamicalMatrix(ForceConstants):
         force_constants: np.ndarray,
         primitive: Atoms,
         supercell: Atoms,
-        lattice_convention: bool = True,
         tol: float = 1e-12,
     ):
         """like ForceConstants, but with mass weighting and q-space things
@@ -349,11 +348,8 @@ class DynamicalMatrix(ForceConstants):
             force_constants: the force constant matrix in phonopy shape ([Np, Ns, 3, 3])
             primitive: the reference primitive structure
             supercell: the reference supercell
-            lattice_convention: use lattice points for Fourier transform, i.e., no
-                relative phases between atoms (plane wave ansatz as in phonopy)
 
         """
-        self._lattice_convention = lattice_convention
         # init ForceConstants
         super().__init__(
             force_constants=force_constants, primitive=primitive, supercell=supercell,
