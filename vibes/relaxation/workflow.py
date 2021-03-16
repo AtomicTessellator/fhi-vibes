@@ -9,10 +9,11 @@ from vibes.helpers.restarts import restart
 from vibes.helpers.socketio import get_socket_info
 from vibes.helpers.structure import clean_atoms
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
-from vibes.spglib.wrapper import get_spacegroup
+from vibes.spglib import get_spacegroup
 from vibes.trajectory import metadata2file, step2file
 
 from ._defaults import name
+
 
 _prefix = name
 _calc_dirname = "calculation"

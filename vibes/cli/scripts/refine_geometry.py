@@ -6,7 +6,7 @@ import numpy as np
 
 from vibes.helpers import bold, talk, warn
 from vibes.io import inform, read, write
-from vibes.spglib.wrapper import refine_cell, standardize_cell
+from vibes.spglib import refine_cell, standardize_cell
 
 
 def refine_geometry(
