@@ -126,6 +126,8 @@ class ForceConstants:
 
     def get_dynamical_matrix(self) -> object:
         """return mass-weighted forceconstants as DynamicalMatrix object"""
+        from .dynamical_matrix import DynamicalMatrix
+
         return DynamicalMatrix(
             force_constants=self._fc_phonopy,
             primitive=self.primitive,
