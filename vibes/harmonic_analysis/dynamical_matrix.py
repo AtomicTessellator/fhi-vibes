@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from vibes.helpers.force_constants import reshape_force_constants
+from vibes.force_constants import reshape_force_constants
 from vibes.konstanten import omega_to_THz
 
 from . import get_lattice_points
