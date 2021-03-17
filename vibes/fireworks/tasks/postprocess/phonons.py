@@ -6,8 +6,8 @@ import numpy as np
 
 from vibes.filenames import filenames
 from vibes.fireworks.utils.converters import phonon_to_dict
+from vibes.force_constants import remap_force_constants
 from vibes.helpers.converters import atoms2dict
-from vibes.helpers.force_constants import remap_force_constants
 from vibes.helpers.k_grid import update_k_grid
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.helpers.paths import cwd

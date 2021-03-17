@@ -6,8 +6,8 @@ import numpy as np
 from ase import Atoms
 from ase.io import read
 
+from vibes.force_constants import remap_force_constants
 from vibes.helpers import Timer
-from vibes.helpers.force_constants import remap_force_constants
 from vibes.helpers.paths import cwd
 from vibes.phonopy.postprocess import extract_results
 from vibes.trajectory import reader

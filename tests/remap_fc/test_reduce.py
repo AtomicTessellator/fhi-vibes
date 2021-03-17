@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from ase.io import read
 
-from vibes.helpers.force_constants import reduce_force_constants, remap_force_constants
+from vibes.force_constants import reduce_force_constants, remap_force_constants
 from vibes.helpers.supercell import map2prim
 from vibes.phonopy.utils import parse_phonopy_force_constants
 
