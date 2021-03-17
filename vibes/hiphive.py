@@ -3,10 +3,10 @@
 import numpy as np
 from ase import Atoms
 
+from vibes.force_constants import ForceConstants as MyForceConstants
 from vibes.helpers import Timer as _Timer
 from vibes.helpers import talk as _talk
 from vibes.helpers import warn
-from vibes.helpers.force_constants import ForceConstants as MyForceConstants
 from vibes.helpers.geometry import inscribed_sphere_in_box
 
 
