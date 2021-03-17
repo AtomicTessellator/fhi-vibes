@@ -241,7 +241,10 @@ def get_ir_reciprocal_mesh(
 
     # map to [-0.5, 0.5)
     ir_points = ((ir_points + 0.5 + eps) % 1 - 0.5 - eps).round(decimals=14)
+    ir_points_cart = atoms.cell.reciprocal().cartesian_positions(ir_points)
 
-    return collections.namedtuple("ir_reciprocal_mesh", ("points", "weights"))(
-        ir_points, weights
-    )
+    data = {"points": ir_points, "points_cartesian": ir_points_cart, "weights": weights}
+
+    IrReciprocalMesh = collections.namedtuple("ir_reciprocal_mesh", data.keys())
+
+    return IrReciprocalMesh(**data)
