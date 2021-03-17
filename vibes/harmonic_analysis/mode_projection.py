@@ -4,7 +4,7 @@ import numpy as np
 import scipy.linalg as la
 from ase import Atoms
 
-from vibes.force_constants import DynamicalMatrix
+from vibes.dynamical_matrix import DynamicalMatrix
 from vibes.helpers import Timer, lazy_property, progressbar, warn
 from vibes.helpers.displacements import get_dUdt, get_U
 
