@@ -205,7 +205,7 @@ class DynamicalMatrix(ForceConstants):
 
         # create solution tuple
         w_sq = data["frequencies"].swapaxes(0, 1) / self.phonon._factor
-        v_sq_cart = data["group_velocities"].swapaxes(0, 1) / self.phonon._factor ** 2
+        v_sq_cart = data["group_velocities"].swapaxes(0, 1) / self.phonon._factor
         if eigenvectors:
             e_isq = np.moveaxis(data["eigenvectors"], 0, -1)
         else:
