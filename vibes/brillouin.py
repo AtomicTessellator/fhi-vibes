@@ -105,7 +105,7 @@ def get_bands_and_labels(
     )
 
 
-def get_ir_grid(
+def get_q_grid(
     q_points: np.ndarray,
     primitive: Atoms,
     is_time_reversal: bool = True,
@@ -190,22 +190,28 @@ def get_ir_grid(
     q_points = q_points.copy()
     q_points_cart = primitive.cell.reciprocal().cartesian_positions(q_points)
 
-    ir_points = q_points[ir_indices]
+    # irreducible grid
+    data = {
+        "points": q_points[ir_indices],
+        "points_cartesian": q_points_cart[ir_indices],
+        "weights": ir_weigths,
+        "map2points": ir_indices,
+    }
 
-    timer(f"q-points reduced from {len(q_points)} to {len(ir_points)} points.")
+    IrGrid = collections.namedtuple("ir_grid", data.keys())
 
     data = {
         "points": q_points,
         "points_cartesian": q_points_cart,
-        "ir_indices": ir_indices,
-        "ir_points": ir_points,
-        "ir_weights": ir_weigths,
         "map2ir_points": map2ir_points,
         "map2ir_indices": map2ir_indices,
         "spg_data": spg_dataset,
         "symop2ir": symop2ir,
+        "ir": IrGrid(**data),
     }
 
     QGrid = collections.namedtuple("q_grid", data.keys())
+
+    timer(f"q-points reduced from {len(q_points)} to {len(ir_indices)} points.")
 
     return QGrid(**data)
