@@ -1,15 +1,16 @@
 """ Tools for dealing with force constants """
-
+import collections
 import numpy as np
 from ase import Atoms
 from phonopy import Phonopy
 
-from vibes.brillouin import get_ir_grid
+from vibes.brillouin import get_q_grid
 from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import get_identifier
 
 from .force_constants import ForceConstants
+from .spglib import get_ir_reciprocal_mesh
 
 
 la = np.linalg
@@ -20,6 +21,74 @@ _prefix = "dynamical_matrix"
 
 def _talk(msg, verbose=True):
     return talk(msg, prefix=_prefix, verbose=verbose)
+
+
+solution_keys = ("w_sq", "w_inv_sq", "w2_sq", "v_sq_cartesian", "e_isq")
+
+Solution = collections.namedtuple("solution", solution_keys)
+
+
+def get_full_solution_from_ir(q_grid, ir_solution):
+    """use symmetry to reconstruct the solution at each q from the information at ir. qs
+
+    Args:
+        q_grid: grid including the symmetry information
+        ir_solution: solution for the irred. grid poins
+
+    Returns:
+        solution at each q in the grid
+
+    """
+    Ns, Nq = len(ir_solution.w_sq), len(q_grid.points)
+    w_sq = np.zeros([Ns, Nq])
+    w_inv_sq = np.zeros([Ns, Nq])
+    v_sq_cartesian = np.zeros([Ns, Nq, 3])
+    w2_sq = np.zeros([Ns, Nq])
+    e_isq = np.zeros([Ns, Ns, Nq], dtype=complex)
+
+    for iq, q in enumerate(q_grid.points_cartesian):
+
+        # index of prototype in the full grid
+        ip = q_grid.map2ir_points[iq]
+
+        # index of the symmetry op from prototype to q
+        ir = q_grid.symop2ir[iq]
+
+        index_map = q_grid.spg_data.index_maps[ir]
+
+        # cartesian rotation matrix
+        rot = q_grid.spg_data.rotations_cartesian[ir]
+
+        # check that q = rot . p
+        p = q_grid.ir.points_cartesian[ip]
+        assert np.allclose(q @ rot, p), (iq, ip, ir, p, q @ rot, rot)
+
+        # symmetry operator matrix representation
+        permutation = np.eye(len(index_map))[index_map]
+        G = np.kron(permutation, rot)
+
+        # rotate velocities
+
+        # check group velocities
+        # vq = rot @ vp = vp @ rot.T
+        vp = ir_solution.v_sq_cartesian[:, ip]
+        vq = vp @ rot.T
+
+        # rotate eigenvector
+        e_isq_rot = G @ ir_solution.e_isq[:, :, ip]
+
+        # assign rotated quantities
+        v_sq_cartesian[:, iq] = vq
+        e_isq[:, :, iq] = e_isq_rot
+
+        # assign unchanged properties
+        w_sq[:, iq] = ir_solution.w_sq[:, ip]
+        w_inv_sq[:, iq] = ir_solution.w_inv_sq[:, ip]
+
+    # restore squared frequencies
+    w2_sq = np.sign(w_sq) * w_sq ** 2
+
+    return Solution(w_sq, w_inv_sq, w2_sq, v_sq_cartesian, e_isq)
 
 
 class DynamicalMatrix(ForceConstants):
@@ -49,7 +118,7 @@ class DynamicalMatrix(ForceConstants):
         smasses = self.supercell.get_masses()
         self._mass_weights = (pmasses[:, None] * smasses[None, :]) ** -0.5
 
-        # attach phonopy object
+        # attach phonopy object for computing eigensolutions fast
         smatrix = np.rint(supercell.cell @ primitive.cell.reciprocal().T).T
         phonon = Phonopy(unitcell=primitive, supercell_matrix=smatrix)
         phonon.force_constants = self._fc_phonopy
@@ -57,17 +126,21 @@ class DynamicalMatrix(ForceConstants):
 
         # attach commensurate q-points (= inverse lattice points)
         pcell, scell = self.primitive.cell, self.supercell.cell
-        self._commensurate_q_points = get_commensurate_q_points(
-            pcell, scell, fractional=True
-        )
+        q_points_commensurate = get_commensurate_q_points(pcell, scell, fractional=True)
 
-        self.set_at_commensurate_qs()
+        # create a grid including symmetry information
+        self._q_grid = get_q_grid(q_points_commensurate, primitive=primitive)
+
+        # solve on the irreducible grid
+        kw = {"eigenvectors": True}
+        ir_solution = self.get_solution(q_points=self.q_grid.ir.points, **kw)
+        self._solution = get_full_solution_from_ir(self.q_grid, ir_solution)
 
         # map eigenvectors to supercell
         # e_Isq = 1/N**.5 * e^iq.R_I e_isq in vectorized form
         # I: (I, alpha) = supercell atom label and cart. coord
         Rs = self.phonon.supercell.positions
-        qs = self.get_commensurate_q_points_cartesian()
+        qs = self.q_points_cartesian
         Nq = len(qs)
 
         p_indices = self.I2iL_map[:, 0]
@@ -103,124 +176,115 @@ class DynamicalMatrix(ForceConstants):
     def phonon(self) -> Phonopy:
         return self._phonon
 
-    def set_at_qs(self, q_points: np.ndarray, fractional: bool = True):
-        """prepare solution at given q_points via phonopy in ASE units
+    def get_solution(
+        self,
+        q_points: np.ndarray,
+        # weights: np.ndarray = None,
+        eigenvectors: bool = False,
+    ) -> collections.namedtuple:
+        """solve at each q-point, optionally with eigenvectors
 
-        Index notation:
-            - i: (i, alpha) = primitive atom label and cart. coord
-            - s: band index
-            - q: q point index
+        Args:
+            q_points: the q points to compute solutions for
+            weights: their corresponding weights (if working with symmetry-reduced grid)
+            eigenvectors: include eigenvectors
+
+        Return:
+            solution
+                .w_sq: frequencies
+                .w_inv_sq: inverse frequencies respecting zeros
+                .w2_sq: squared frequencies (eigenvalues)
+                .v_sq_cartesian: group velocities in Cart. coords
+                # .weights: weight of each q-point
+                .e_isq: eigenvectors
 
         """
-        if not fractional:  # convert to fractional coords for phonopy
-            q_points = self.primitive.cell.reciprocal().scaled_positions(q_points)
-
-        self.phonon.run_qpoints(
-            q_points, with_eigenvectors=True, with_group_velocities=True,
-        )
+        kw = {"with_group_velocities": True, "with_eigenvectors": eigenvectors}
+        self.phonon.run_qpoints(q_points, **kw)
         data = self.phonon.get_qpoints_dict()
 
-        self._set_data(data)
-        self._q_points = q_points
-
-    def _set_data(self, data: dict) -> None:
-        """assign phonopy data to attributes"""
+        # create solution tuple
         w_sq = data["frequencies"].swapaxes(0, 1) / self.phonon._factor
-        v_sq = data["group_velocities"].swapaxes(0, 1) / self.phonon._factor ** 2
-        e_isq = np.moveaxis(data["eigenvectors"], 0, -1)
-
-        if "weights" in data:
-            weights_q = data["weights"]
+        v_sq_cart = data["group_velocities"].swapaxes(0, 1) / self.phonon._factor ** 2
+        if eigenvectors:
+            e_isq = np.moveaxis(data["eigenvectors"], 0, -1)
         else:
-            weights_q = np.ones(w_sq.shape[1])
+            e_isq = None
 
         # make 0s 0, take 4th smallest absolute eigenvalue as reference
         thresh = sorted(abs(w_sq.flatten()))[3] * 0.1
         w_sq[abs(w_sq) < thresh] = 0
         w2_sq = np.sign(w_sq) * w_sq ** 2  # eigenvalues
 
-        # build dynamical matrices
-        ket_isq = e_isq[:, None, :, :]
-        bra_jsq = e_isq[None, :, :, :].conj()
-        D_ijq = (ket_isq * w2_sq[None, None, :] * bra_jsq).sum(axis=(2))
-
-        # assign attributes
-        self._w_sq, self._w2_sq, self._v_sq = w_sq, w2_sq, v_sq
-        self._e_isq, self._D_ijq = e_isq, D_ijq
-        self._weights_q = weights_q
-
-        if (w_sq < 0).any():
-            n_freq = len(w_sq[w_sq < 0])
-            _talk(f"** {n_freq} negative frequencies! Check:")
-
-    def set_at_commensurate_qs(self):
-        """set mesh etc. at commensurate q-points"""
-        self.set_at_qs(self.get_commensurate_q_points())
-
-    @property
-    def q_points(self):
-        """return current set of q_points in fractional coords"""
-        return self._q_points.copy()
-
-    @property
-    def q_points_cartesian(self):
-        """return current set of q_points in Cartesian coords"""
-        qs = self.q_points
-        return self.primitive.cell.reciprocal().cartesian_positions(qs)
-
-    def get_commensurate_q_points_cartesian(self):
-        """return commensurate q-points in Cartesian coords [Nq, 3]"""
-        qs = self.get_commensurate_q_points()
-        return self.primitive.cell.reciprocal().cartesian_positions(qs)
-
-    def get_commensurate_q_points(self):
-        """return commensurate q-points in fractional coords [Nq, 3]"""
-        return self._commensurate_q_points.copy()
-
-    @property
-    def qij(self):
-        """return dynamical matrices at commensurate q-points [Nq, 3 * Np, 3 * Np]"""
-        return np.moveaxis(self._D_ijq.copy(), -1, 0)
-
-    @property
-    def ijq(self):
-        """return dynamical matrices at commensurate q-points [3 * Np, 3 * Np, Nq]"""
-        return self._D_ijq.copy()
-
-    @property
-    def v_sq(self):
-        """fractional group velocities in [3 * Np, Nq, 3]"""
-        return self._v_sq
-
-    @property
-    def v_sq_cartesian(self):
-        """Cartesian group velocities in [3 * Np, Nq, 3]"""
-        return self.primitive.cell.cartesian_positions(self.v_sq)
-
-    @property
-    def w_sq(self):
-        """eigenfrequencies in ASE units [3 * Np, Nq]"""
-        return self._w_sq.copy()
-
-    @property
-    def w2_sq(self):
-        """eigenvalues [3 * Np, Nq]"""
-        return self._w2_sq.copy()
-
-    @property
-    def w_inv_sq(self):
-        """inverse eigenfrequencies [3 * Np, Nq] respecting sign and zeros"""
-        w = self.w_sq
+        w = w_sq.copy()
         thresh = sorted(abs(w.flatten()))[3] * 0.9
         w[abs(w) < thresh] = 1e20
         w_inv_sq = 1 / w
         w_inv_sq[abs(w_inv_sq) < 1e-9] = 0
-        return w_inv_sq
+
+        return Solution(w_sq, w_inv_sq, w2_sq, v_sq_cart, e_isq)
+
+    def get_mesh_and_solution(self, mesh: list) -> tuple:
+        """create a qpoints mesh and solutions on the mesh
+
+        Args:
+            mesh: mesh numbers, e.g. [4, 4, 4]
+        Returns:
+            q_grid: the q-points and their weights
+            solution: the solution on the mesh
+
+        """
+        assert len(mesh) == 3, len(mesh)
+        kw = {"atoms": self.primitive, "monkhorst": True}
+        ir_mesh = get_ir_reciprocal_mesh(mesh=mesh, **kw)
+        ir_solution = self.get_solution(q_points=ir_mesh.points)
+
+        return ir_mesh, ir_solution
+
+    @property
+    def q_grid(self):
+        """return the grid object representing the commensurate q-point grid"""
+        return self._q_grid
+
+    @property
+    def q_points(self):
+        """return commensurate set of q_points in fractional coords"""
+        return self.q_grid.points
+
+    @property
+    def q_points_cartesian(self):
+        """return commensurate set of q_points in Cartesian coords"""
+        return self.q_grid.points_cartesian
+
+    @property
+    def solution(self):
+        """return commensurate solution"""
+        return self._solution
+
+    @property
+    def v_sq_cartesian(self):
+        """cartesian group velocities in [3 * Np, Nq, 3]"""
+        return self.solution.v_sq_cartesian
+
+    @property
+    def w_sq(self):
+        """eigenfrequencies in ASE units [3 * Np, Nq]"""
+        return self.solution.w_sq.copy()
+
+    @property
+    def w2_sq(self):
+        """eigenvalues [3 * Np, Nq]"""
+        return self.solution.w2_sq.copy()
+
+    @property
+    def w_inv_sq(self):
+        """inverse eigenfrequencies [3 * Np, Nq] respecting sign and zeros"""
+        return self.solution.w_inv_sq.copy()
 
     @property
     def e_isq(self):
         """|i, sq> [3 * Np, 3 * Np, Nq]"""
-        return self._e_isq.copy()
+        return self.solution.e_isq.copy()
 
     @property
     def e_Isq(self):
@@ -233,26 +297,15 @@ class DynamicalMatrix(ForceConstants):
         return np.moveaxis(self.e_Isq, 0, -1)
 
     @property
-    def weights_q(self):
-        """return irreducible q-points weights [Nq_irred]"""
-        return self._weights_q.copy()
+    def qij(self):
+        """get dynamical matrices at commensurate q-points"""
+        D_ijq = (
+            self.e_isq[:, None, :, :]
+            * self.w2_sq[None, None, :, :]
+            * self.e_isq.conj()[None, :, :, :]
+        ).sum(axis=-2)
 
-    def set_mesh(self, mesh: np.ndarray, is_mesh_symmetry: bool = True):
-        """set new q-points mesh via phonopy"""
-        self.phonon.run_mesh(
-            mesh,
-            is_mesh_symmetry=is_mesh_symmetry,
-            with_eigenvectors=True,
-            with_group_velocities=True,
-        )
-        data = self.phonon.get_mesh_dict()
-        self._q_points = data["qpoints"]
-        self._set_data(data)
-
-    def get_q_grid(self) -> tuple:
-        """get q_points grid with symmetry information"""
-
-        return get_ir_grid(self.q_points, primitive=self.primitive)
+        return np.moveaxis(D_ijq, -1, 0)
 
     def copy(self):
         """return copy"""
