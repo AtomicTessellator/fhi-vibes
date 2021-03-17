@@ -7,9 +7,9 @@ from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS, read_force_constants_hdf5
 from phonopy.structure.atoms import PhonopyAtoms
 
+from vibes.force_constants import remap_force_constants
 from vibes.helpers.converters import input2dict
 from vibes.helpers.fileformats import last_from_yaml
-from vibes.helpers.force_constants import remap_force_constants
 from vibes.phonopy._defaults import displacement_id_str
 from vibes.structure.convert import to_Atoms
 

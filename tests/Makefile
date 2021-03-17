@@ -1,7 +1,7 @@
 test: test_coverage clean
 
 test_basic:
-	pytest --ignore fireworks
+	pytest --ignore aims --ignore fireworks
 
 test_coverage:
 	flake8 .

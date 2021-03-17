@@ -7,9 +7,9 @@ from ase.geometry import find_mic
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
 from vibes.filenames import filenames
+from vibes.force_constants import ForceConstants
 from vibes.helpers import lazy_property, warn
 from vibes.helpers.converters import atoms2dict, dict2atoms
-from vibes.helpers.force_constants import ForceConstants
 from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.stress import has_stress
 from vibes.helpers.stresses import get_stresses, has_stresses
