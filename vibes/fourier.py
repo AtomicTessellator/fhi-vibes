@@ -5,7 +5,7 @@ import xarray as xr
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.helpers import Timer, talk, warn
-from vibes.konstanten.einheiten import THz_to_cm
+from vibes.konstanten import THz_to_cm
 
 
 _prefix = "Fourier"
