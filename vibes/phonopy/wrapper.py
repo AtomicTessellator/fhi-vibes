@@ -385,8 +385,6 @@ def summarize_bandstructure(phonon, fp_file=None):
     max_freq: float
         The maximum frequency at the gamma point
     """
-    from vibes.konstanten.einheiten import THz_to_cm
-
     set_bandstructure(phonon, add_labels=False)
 
     qpts = np.array(phonon.band_structure.qpoints).reshape(-1, 3)
@@ -406,7 +404,7 @@ def summarize_bandstructure(phonon, fp_file=None):
             json.dump(fp_dict, outfile, indent=4)
 
     mf = max_freq
-    mf_cm = mf * THz_to_cm
+    mf_cm = mf * const.THz_to_cm
     talk(f"The maximum frequency is: {mf:.3f} THz ({mf_cm:.3f} cm^-1)")
     talk(f"The frequencies at the gamma point are:")
     talk(f"              THz |        cm^-1")

@@ -8,6 +8,7 @@ from vibes.brillouin import get_q_grid
 from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import get_identifier
+from vibes.konstanten import gv_to_AA_fs
 
 from .force_constants import ForceConstants
 from .spglib import get_ir_reciprocal_mesh
@@ -194,7 +195,7 @@ class DynamicalMatrix(ForceConstants):
                 .w_sq: frequencies
                 .w_inv_sq: inverse frequencies respecting zeros
                 .w2_sq: squared frequencies (eigenvalues)
-                .v_sq_cartesian: group velocities in Cart. coords
+                .v_sq_cartesian: group velocities in Cart. coords in (AA/fs)
                 # .weights: weight of each q-point
                 .e_isq: eigenvectors
 
@@ -206,6 +207,7 @@ class DynamicalMatrix(ForceConstants):
         # create solution tuple
         w_sq = data["frequencies"].swapaxes(0, 1) / self.phonon._factor
         v_sq_cart = data["group_velocities"].swapaxes(0, 1) / self.phonon._factor
+        v_sq_cart *= gv_to_AA_fs
         if eigenvectors:
             e_isq = np.moveaxis(data["eigenvectors"], 0, -1)
         else:
