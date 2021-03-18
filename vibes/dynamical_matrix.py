@@ -100,6 +100,7 @@ class DynamicalMatrix(ForceConstants):
         force_constants: np.ndarray,
         primitive: Atoms,
         supercell: Atoms,
+        symmetry: bool = True,
         tol: float = 1e-12,
     ):
         """like ForceConstants, but with mass weighting and q-space things
@@ -108,6 +109,7 @@ class DynamicalMatrix(ForceConstants):
             force_constants: the force constant matrix in phonopy shape ([Np, Ns, 3, 3])
             primitive: the reference primitive structure
             supercell: the reference supercell
+            symmetry: use symmetry to reduce q-points
 
         """
         # init ForceConstants
@@ -134,8 +136,13 @@ class DynamicalMatrix(ForceConstants):
 
         # solve on the irreducible grid
         kw = {"eigenvectors": True}
-        ir_solution = self.get_solution(q_points=self.q_grid.ir.points, **kw)
-        self._solution = get_full_solution_from_ir(self.q_grid, ir_solution)
+        if symmetry:
+            self._ir_solution = self.get_solution(q_points=self.q_grid.ir.points, **kw)
+            solution = get_full_solution_from_ir(self.q_grid, self.ir_solution)
+        else:
+            self._ir_solution = None
+            solution = self.get_solution(q_points=self.q_grid.points, **kw)
+        self._solution = solution
 
         # map eigenvectors to supercell
         # e_Isq = 1/N**.5 * e^iq.R_I e_isq in vectorized form
@@ -172,6 +179,16 @@ class DynamicalMatrix(ForceConstants):
         sg, name = dct["space_group"], dct["material"]
         rep = f"Dynamical Matrix for {name} (sg {sg}) of shape {self.array.shape}"
         return repr(rep)
+
+    @property
+    def solution(self):
+        """return commensurate solution"""
+        return self._solution
+
+    @property
+    def ir_solution(self):
+        """return commensurate solution on reduced grid"""
+        return self._ir_solution
 
     @property
     def phonon(self) -> Phonopy:
@@ -257,11 +274,6 @@ class DynamicalMatrix(ForceConstants):
     def q_points_cartesian(self):
         """return commensurate set of q_points in Cartesian coords"""
         return self.q_grid.points_cartesian
-
-    @property
-    def solution(self):
-        """return commensurate solution"""
-        return self._solution
 
     @property
     def v_sq_cartesian(self):

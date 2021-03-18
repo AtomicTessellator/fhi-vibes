@@ -195,7 +195,8 @@ def get_q_grid(
         "points": q_points[ir_indices],
         "points_cartesian": q_points_cart[ir_indices],
         "weights": ir_weigths,
-        "map2points": ir_indices,
+        "indices": ir_indices,
+        "map2full": map2ir_points,
     }
 
     IrGrid = collections.namedtuple("ir_grid", data.keys())
