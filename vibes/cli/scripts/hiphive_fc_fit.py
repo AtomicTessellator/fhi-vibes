@@ -12,7 +12,6 @@ from hiphive import (
     enforce_rotational_sum_rules,
 )
 from hiphive.fitting import Optimizer
-from matplotlib import pyplot as plt
 from phonopy import Phonopy
 from phonopy.file_IO import write_FORCE_CONSTANTS
 
@@ -149,11 +148,14 @@ def main(
 
         x, xticks, xticklabels = bandpath.get_linear_kpoint_axis()
 
+        # let's plot bandstructure and DOS
+        phonon.run_mesh([45, 45, 45])
+        phonon.run_total_dos(use_tetrahedron_method=True)
         phonon.run_band_structure([bandpath.kpts])
 
-        fig, ax = plt.subplots()
-
-        phonon.band_structure.plot([ax])
+        # phonon.band_structure.plot([ax])
+        plt = phonon.plot_band_structure_and_dos()
+        fig, ax = plt.gcf(), plt.gca()
 
         ax.set_xticks(xticks * ax.get_xlim()[1] / xticks.max())
         ax.set_xticklabels(xticklabels)
