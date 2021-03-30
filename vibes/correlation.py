@@ -3,7 +3,6 @@ from itertools import product
 
 import numpy as np
 import pandas as pd
-import scipy.optimize as so
 import scipy.signal as sl
 import xarray as xr
 
@@ -171,6 +170,9 @@ def get_autocorrelationNd(
         xarray.DataArray [N_t, N_a, 3]: autocorrelation along axis=0, or
         xarray.DataArray [N_t, N_a, 3, N_a, 3]: autocorrelation along axis=0
     """
+    if not off_diagonal:
+        return get_autocorrelation_diagonal(array)
+
     msg = "Get Nd autocorrelation"
     if off_diagonal:
         msg += " including off-diagonal terms"
@@ -180,35 +182,23 @@ def get_autocorrelationNd(
     dims = array.dims
     Nt, *shape = np.shape(array)
 
-    # compute autocorrelation
-    if off_diagonal:
-        # reshape to (X, Nt)
-        data = np.asarray(array).reshape(Nt, -1).swapaxes(0, 1)
+    # compute autocorrelation including cross correlations
+    # reshape to (X, Nt)
+    data = np.asarray(array).reshape(Nt, -1).swapaxes(0, 1)
 
-        # compute correlation function
-        kw = {"verbose": verbose}
-        if distribute:  # use multiprocessing
-            corr = _map_correlate(data, **kw)
-        else:
-            corr = np.zeros([data.shape[0] ** 2, Nt])
-            for ii, X in enumerate(progressbar([*product(data, data)], **kw)):
-                corr[ii] = c1(X)
-
-        # shape back and move time axis to the front
-        corr = np.moveaxis(corr.reshape((*shape, *shape, Nt)), -1, 0)
-        # create the respective dimensions
-        new_dims = (dims[0], *dims[1:], *dims[1:])
-
+    # compute correlation function
+    kw = {"verbose": verbose}
+    if distribute:  # use multiprocessing
+        corr = _map_correlate(data, **kw)
     else:
-        # move time axis to last index
-        data = np.moveaxis(np.asarray(array), 0, -1)
-        corr = np.zeros((*shape, Nt))
-        for Ia in np.ndindex(*shape):
-            tmp = correlate(data[Ia], data[Ia], **kwargs)
-            corr[Ia] = tmp
-        # move time axis back to front
-        corr = np.moveaxis(corr, -1, 0)
-        new_dims = dims
+        corr = np.zeros([data.shape[0] ** 2, Nt])
+        for ii, X in enumerate(progressbar([*product(data, data)], **kw)):
+            corr[ii] = c1(X)
+
+    # shape back and move time axis to the front
+    corr = np.moveaxis(corr.reshape((*shape, *shape, Nt)), -1, 0)
+    # create the respective dimensions
+    new_dims = (dims[0], *dims[1:], *dims[1:])
 
     # make new dimensions unique
     new_dims = get_unique_dimensions(new_dims)
@@ -232,84 +222,37 @@ def _exp(x, tau, y0):
     return y0 * np.exp(-x / tau)
 
 
-def get_correlation_time_estimate(
-    series: pd.Series,
-    tmin: float = 0.1,
-    tmax: float = 5,
-    tau0: float = 1,
-    pre_smoothen_window: int = 100,
-    ps: bool = False,
-    return_series: bool = False,
-    verbose: bool = True,
-) -> (float, float):
-    """estimate correlation time of series by fitting an exponential its head to
-
-        y = y0 * exp(-x / tau)
+def get_autocorrelation_diagonal(
+    array: xr.DataArray, verbose: bool = True, **kwargs
+) -> xr.DataArray:
+    """compute autocorrelation function for each componetn in  multi-dimensional xarray
 
     Args:
-        series (pd.Series): the time series
-        tmin (float, optional): Start fit (ps). Defaults to 0.1.
-        tmax (float, optional): End fit (ps). Defaults to 5.
-        tau0 (float, optional): Guess for correlation time. Defaults to 1.
-        pre_smoothen_window (int): use a window to pre-smoothen the data
-        ps (bool): series.index given in ps (default: fs)
-        return_series (bool): Return the corresponding exp. function as pd.Series
-        verbose (bool): Be verbose.
-
+        array [N_t, *dims]: data with time axis in the front
     Returns:
-        (float, float): tau (IN FS!!!), y0
+        xarray.DataArray [N_t, dims]: autocorrelation along axis=0
+
     """
-    kw = {"verbose": verbose}
-    _talk("Estimate correlation time from fitting exponential to normalized data", **kw)
+    msg = f"Get autocorrelation for array of shape {array.shape}"
+    timer = Timer(msg, verbose=verbose)
 
-    # smoothen the bare series
-    series = series.rolling(pre_smoothen_window, min_periods=1).mean()
-    series = series.copy().dropna()
+    # memorize dimensions and shape of input array
+    Nt, *shape = np.shape(array)
 
-    if not ps:
-        series.index /= 1000
+    # compute autocorrelation for each dimension
+    # move time axis to last index
+    data = np.moveaxis(np.asarray(array), 0, -1)
+    corr = np.zeros((*shape, Nt))
+    for Ia in np.ndindex(*shape):
+        tmp = correlate(data[Ia], data[Ia], **kwargs)
+        corr[Ia] = tmp
+    # move time axis back to front
+    corr = np.moveaxis(corr, -1, 0)
 
-    y = series[tmin:tmax] / series.iloc[0]
+    da_corr = array.copy()
+    da_corr.data = corr
+    da_corr.name = f"{array.name}_{keys.autocorrelation}"
 
-    if len(y) < 10:
-        warn("Not enough data to produce estimate, return default values")
-        return tau0, 1
+    timer()
 
-    # to ps
-    x = y.index
-    bounds = ([0, 0], [20 * tau0, 0.5])
-
-    (tau, y0), _ = so.curve_fit(_exp, x, y, bounds=bounds)
-
-    _talk(f"Correlation time tau:       {tau:7.3f} ps", **kw)
-    _talk(f"Intersection y0:            {y0:7.3f}", **kw)
-    _talk(f"90% integral (2.30 * tau):  {2.3 * tau:7.3f} ps", **kw)
-    _talk(f"95% integral (3.00 * tau):  {3.0 * tau:7.3f} ps", **kw)
-    _talk(f"99% integral (4.61 * tau):  {4.605 * tau:7.3f} ps", **kw)
-
-    if not ps:
-        tau *= 1000
-
-    return tau, y0
-
-
-def get_autocorrelation_exponential(
-    series: pd.Series, ps: bool = False, verbose: bool = True, **kwargs
-) -> pd.Series:
-    """Return exponential fit to time series assuming an exp. decay
-
-    Args:
-        series (pd.Series): the time series (time in fs)
-        ps (bool): series.index given in ps instead of fs
-        verbose (bool, optional): Be verbose. Defaults to True.
-        kwargs (dict): kwargs for get_correlation_time_estimate
-
-    Returns:
-        pd.Series
-    """
-    tau, y0 = get_correlation_time_estimate(series, ps=ps, verbose=verbose)
-
-    if ps:
-        return pd.Series(_exp(series.index, tau, y0), index=series.index)
-    else:
-        return pd.Series(_exp(series.index, tau * 1000, y0), index=series.index)
+    return da_corr
