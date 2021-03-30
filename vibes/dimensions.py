@@ -2,8 +2,10 @@
 
     Atom labels: I, J
     Cartesian coordinates: a, b
+    Mode labels: s, q
 """
 i, j, I, J, a, b = "i", "j", "I", "J", "a", "b"
+s, q = 's', 'q'
 
 # composite
 Ia, Jb = "Ia", "Jb"

@@ -411,5 +411,5 @@ def get_unit_grid_extended(
     # w_sq_extended = np.concatenate((dmx.w_sq, np.asarray(extended_w_sq).T), axis=1)
 
     return collections.namedtuple(
-        "unit_grid_extended", ("grid", "grid_extended", "map2extended"),
+        "unit_grid_extended", ("points", "points_extended", "map2extended"),
     )(q_points_frac_unit, q_points_frac_unit_extended, map_to_extended)
