@@ -404,11 +404,11 @@ def summarize_bandstructure(phonon, fp_file=None):
             json.dump(fp_dict, outfile, indent=4)
 
     mf = max_freq
-    mf_cm = mf * const.THz_to_cm
-    talk(f"The maximum frequency is: {mf:.3f} THz ({mf_cm:.3f} cm^-1)")
+    THz2cm = const.THz_to_cm
+    talk(f"The maximum frequency is: {mf:.3f} THz ({mf*THz2cm:.3f} cm^-1)")
     talk(f"The frequencies at the gamma point are:")
     talk(f"              THz |        cm^-1")
-    p = lambda ii, freq: print(f"{ii+1:3d}: {freq:-12.5f} | {freq*THz_to_cm:-12.5f}")
+    p = lambda ii, freq: print(f"{ii+1:3d}: {freq:-12.5f} | {freq*THz2cm:-12.5f}")
     for ii, freq in enumerate(gamma_freq[:6]):
         p(ii, freq)
     for _ in range(3):
