@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import click
-
 from vibes import defaults
 from vibes.filenames import filenames
 
@@ -20,11 +19,12 @@ def output():
 
 @output.command(aliases=["md"], context_settings=default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
-@click.option("-gk", "--green_kubo", is_flag=True, help="write GK-related data")
+@click.option("-gk", "--green_kubo", is_flag=True, help="write data for GK, e.g. flux")
+@click.option("-ha", "--harmonic", is_flag=True, help="comp. ha. properties incl. flux")
 @click.option("-fc", "--fc_file", type=Path, help="add force constants from file")
 @click.option("-o", "--outfile", default="auto", show_default=True)
 @click.option("--force", is_flag=True, help="enfore parsing of output file")
-def trajectory(file, green_kubo, fc_file, outfile, force):
+def trajectory(file, green_kubo, harmonic, fc_file, outfile, force):
     """write trajectory data in FILE to xarray.Dataset"""
     from vibes import keys
     from vibes.trajectory import reader
@@ -54,8 +54,8 @@ def trajectory(file, green_kubo, fc_file, outfile, force):
 
     if green_kubo:
         traj.compute_heat_flux()
-        if traj.force_constants is not None:
-            traj.compute_heat_flux_harmonic()
+    if harmonic and traj.force_constants is not None:
+        traj.compute_heat_flux_harmonic()
 
     DS = get_trajectory_dataset(traj, metadata=True)
     # attach file size
