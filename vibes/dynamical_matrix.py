@@ -4,7 +4,7 @@ import numpy as np
 from ase import Atoms
 from phonopy import Phonopy
 
-from vibes.brillouin import get_q_grid
+from vibes.brillouin import get_q_grid, get_bands_and_labels
 from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import get_identifier
@@ -110,6 +110,7 @@ class DynamicalMatrix(ForceConstants):
         primitive: Atoms,
         supercell: Atoms,
         symmetry: bool = True,
+        mass_weighted: bool = False,
         tol: float = 1e-12,
     ):
         """like ForceConstants, but with mass weighting and q-space things
@@ -119,21 +120,21 @@ class DynamicalMatrix(ForceConstants):
             primitive: the reference primitive structure
             supercell: the reference supercell
             symmetry: use symmetry to reduce q-points
+            mass_weighted: true if force constants are (already) mass-weighted
 
         """
         # init ForceConstants
         super().__init__(
-            force_constants=force_constants, primitive=primitive, supercell=supercell,
+            force_constants=force_constants,
+            primitive=primitive,
+            supercell=supercell,
+            mass_weighted=mass_weighted,
         )
-        # now scale the forceconstants array
-        pmasses = self.primitive.get_masses()
-        smasses = self.supercell.get_masses()
-        self._mass_weights = (pmasses[:, None] * smasses[None, :]) ** -0.5
 
         # attach phonopy object for computing eigensolutions fast
         smatrix = np.rint(supercell.cell @ primitive.cell.reciprocal().T).T
         phonon = Phonopy(unitcell=primitive, supercell_matrix=smatrix)
-        phonon.force_constants = self._fc_phonopy
+        phonon.force_constants = self.fc_phonopy
         self._phonon = phonon
 
         # attach commensurate q-points (= inverse lattice points)
@@ -189,8 +190,13 @@ class DynamicalMatrix(ForceConstants):
     def __repr__(self):
         dct = get_identifier(self.primitive)
         sg, name = dct["space_group"], dct["material"]
-        rep = f"Dynamical Matrix for {name} (sg {sg}) of shape {self.array.shape}"
+        rep = f"Dynamical Matrix for {name} (sg {sg}) of shape {self.fc_phonopy.shape}"
         return repr(rep)
+
+    @property
+    def array(self) -> np.ndarray:
+        """return as phonopy-shape array including mass-weighting"""
+        return self.fc_phonopy * self.mass_weights[:, :, None, None]
 
     @property
     def solution(self):
@@ -336,19 +342,22 @@ class DynamicalMatrix(ForceConstants):
 
     @property
     def qij(self):
-        """get dynamical matrices at commensurate q-points"""
-        D_ijq = (
-            self.e_isq[:, None, :, :]
-            * self.w2_sq[None, None, :, :]
-            * self.e_isq.conj()[None, :, :, :]
-        ).sum(axis=-2)
+        """create dynamical matrices at commensurate q-points from eigenvectors"""
+        return self.solution.D_qij
 
-        return np.moveaxis(D_ijq, -1, 0)
+    def get_bands_and_labels(self, npoints=50):
+        """return default bandstructure and respective labels"""
+        return get_bands_and_labels(self.primitive, npoints=npoints)
+
+    def with_new_fc(self, force_constants: np.ndarray, mass_weighted: bool = False):
+        """return a copy with new force constants"""
+        return DynamicalMatrix(
+            force_constants=force_constants,
+            primitive=self.primitive,
+            supercell=self.supercell,
+            mass_weighted=mass_weighted,
+        )
 
     def copy(self):
         """return copy"""
-        return DynamicalMatrix(
-            force_constants=self._fc_phonopy,
-            primitive=self.primitive,
-            supercell=self.supercell,
-        )
+        return self.with_new_fc(force_constants=self.fc_phonopy)
