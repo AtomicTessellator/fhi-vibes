@@ -28,7 +28,13 @@ def _talk(msg, verbose=True):
 class ForceConstants:
     """Represents (phonopy) force constants and bundles related functionality"""
 
-    def __init__(self, force_constants: np.ndarray, primitive: Atoms, supercell: Atoms):
+    def __init__(
+        self,
+        force_constants: np.ndarray,
+        primitive: Atoms,
+        supercell: Atoms,
+        mass_weighted: bool = False,
+    ):
         """instantiate ForceConstants with fc. in phonopy shape + ref. structures
 
         Args:
@@ -36,30 +42,15 @@ class ForceConstants:
                              or in remapped shape [3 * Na, 3 * Na]
             primitive: the reference primitive structure
             supercell: the reference supercell
+            mass_weighted: true if force constants are mass weighted
 
         """
         assert isinstance(supercell, Atoms)
         self.supercell = supercell.copy()
-        # if primitive is None:  # create prim. cell if not given
-        #     primitive = standardize_cell(supercell, to_primitive=True)
         assert isinstance(primitive, Atoms)
         self.primitive = primitive.copy()
 
-        # map from supercell to primitive cell
-        self._sc2pc = map2prim(primitive=self.primitive, supercell=self.supercell)
-
-        Np, Na = len(primitive), len(supercell)
-        if force_constants.shape == (3 * Na, 3 * Na):
-            fc_full = force_constants.reshape([Na, 3, Na, 3]).swapaxes(1, 2)
-            force_constants = reduce_force_constants(fc_full, map2prim=self._sc2pc)
-        elif force_constants.shape == (Na, Na, 3, 3):
-            fc_full = force_constants
-            force_constants = reduce_force_constants(fc_full, map2prim=self._sc2pc)
-        else:
-            assert np.shape(force_constants) == (Np, Na, 3, 3)
-
-        self._fc_phonopy = force_constants.copy()
-        self._mass_weights = np.ones([len(primitive), len(supercell)])
+        self._set_fc_phonopy(force_constants, mass_weighted=mass_weighted)
 
         # get lattice points in supercell
         lps, elps = get_lattice_points(primitive.cell, supercell.cell)
@@ -75,11 +66,44 @@ class ForceConstants:
         rep = f"Force Constants for {name} (sg {sg}) of shape {self.array.shape}"
         return repr(rep)
 
-    # data
+    def _set_fc_phonopy(self, array: np.ndarray, mass_weighted: bool = False) -> None:
+        """set new force constants in correct shape"""
+        Np, Na = len(self.primitive), len(self.supercell)
+        # map from supercell to primitive cell
+        sc2pc = map2prim(primitive=self.primitive, supercell=self.supercell)
+        shape = np.shape(array)
+        if shape == (3 * Na, 3 * Na):
+            fc_full = np.asarray(array).reshape([Na, 3, Na, 3]).swapaxes(1, 2)
+            force_constants = reduce_force_constants(fc_full, map2prim=sc2pc)
+        elif shape == (Na, Na, 3, 3):
+            fc_full = array
+            force_constants = reduce_force_constants(fc_full, map2prim=sc2pc)
+        elif shape == (Np, Na, 3, 3):
+            force_constants = array
+        else:
+            raise ValueError(f"array of shape {shape} cannot be resized to fc")
+
+        if mass_weighted:
+            self._fc_phonopy = force_constants / self.mass_weights[:, :, None, None]
+        else:
+            self._fc_phonopy = force_constants.copy()
+
+    @property
+    def fc_phonopy(self) -> np.ndarray:
+        """view on the raw phonopy-like force constants array INCLUDING mass-weighting"""
+        return self._fc_phonopy.copy()
+
     @property
     def array(self) -> np.ndarray:
-        """view on the raw phonopy-like force constants array INCLUDING mass-weighting"""
-        return self._fc_phonopy.copy() * self._mass_weights[:, :, None, None]
+        """return as phonopy-shape array"""
+        return self.fc_phonopy
+
+    @property
+    def mass_weights(self) -> np.ndarray:
+        """return mass weights for force constants"""
+        pmasses = self.primitive.get_masses()
+        smasses = self.supercell.get_masses()
+        return (pmasses[:, None] * smasses[None, :]) ** -0.5
 
     # remapping to supercell
     @lazy_property
@@ -129,7 +153,7 @@ class ForceConstants:
         from .dynamical_matrix import DynamicalMatrix
 
         return DynamicalMatrix(
-            force_constants=self._fc_phonopy,
+            force_constants=self.fc_phonopy,
             primitive=self.primitive,
             supercell=self.supercell,
         )
