@@ -24,7 +24,7 @@ def _talk(msg, verbose=True):
     return talk(msg, prefix=_prefix, verbose=verbose)
 
 
-solution_keys = ("w_sq", "w_inv_sq", "w2_sq", "v_sq_cartesian", "e_isq")
+solution_keys = ("w_sq", "w_inv_sq", "w2_sq", "v_sq_cartesian", "e_isq", "D_qij")
 
 Solution = collections.namedtuple("solution", solution_keys)
 
@@ -39,6 +39,9 @@ def get_full_solution_from_ir(q_grid, ir_solution):
     Returns:
         solution at each q in the grid
 
+    References:
+        [1] A.A. Maradudin, S.H. Vosko, Rev. Mod. Phys. 40, 1 (1968)
+
     """
     Ns, Nq = len(ir_solution.w_sq), len(q_grid.points)
     w_sq = np.zeros([Ns, Nq])
@@ -46,6 +49,7 @@ def get_full_solution_from_ir(q_grid, ir_solution):
     v_sq_cartesian = np.zeros([Ns, Nq, 3])
     w2_sq = np.zeros([Ns, Nq])
     e_isq = np.zeros([Ns, Ns, Nq], dtype=complex)
+    D_qij = np.zeros([Nq, Ns, Ns], dtype=complex)
 
     for iq, q in enumerate(q_grid.points_cartesian):
 
@@ -66,21 +70,26 @@ def get_full_solution_from_ir(q_grid, ir_solution):
 
         # symmetry operator matrix representation
         permutation = np.eye(len(index_map))[index_map]
-        G = np.kron(permutation, rot)
+        G = np.kron(permutation, rot)  # Eq. 2.37 in [1]
 
         # rotate velocities
-
-        # check group velocities
         # vq = rot @ vp = vp @ rot.T
         vp = ir_solution.v_sq_cartesian[:, ip]
         vq = vp @ rot.T
 
-        # rotate eigenvector
+        # rotate eigenvector, Eq. 2.36 in [1]
+        # e_q = G . e_p
         e_isq_rot = G @ ir_solution.e_isq[:, :, ip]
+
+        # rotate dynamical matrices, Eq. 3.5
+        # Dq = G . Dp G.T
+        Dp = ir_solution.D_qij[ip]
+        Dq = G @ Dp @ G.conj().T
 
         # assign rotated quantities
         v_sq_cartesian[:, iq] = vq
         e_isq[:, :, iq] = e_isq_rot
+        D_qij[iq] = Dq
 
         # assign unchanged properties
         w_sq[:, iq] = ir_solution.w_sq[:, ip]
@@ -89,7 +98,7 @@ def get_full_solution_from_ir(q_grid, ir_solution):
     # restore squared frequencies
     w2_sq = np.sign(w_sq) * w_sq ** 2
 
-    return Solution(w_sq, w_inv_sq, w2_sq, v_sq_cartesian, e_isq)
+    return Solution(w_sq, w_inv_sq, w2_sq, v_sq_cartesian, e_isq, D_qij)
 
 
 class DynamicalMatrix(ForceConstants):
@@ -135,7 +144,7 @@ class DynamicalMatrix(ForceConstants):
         self._q_grid = get_q_grid(q_points_commensurate, primitive=primitive)
 
         # solve on the irreducible grid
-        kw = {"eigenvectors": True}
+        kw = {"eigenvectors": True, "dynamical_matrices": True}
         if symmetry:
             self._ir_solution = self.get_solution(q_points=self.q_grid.ir.points, **kw)
             solution = get_full_solution_from_ir(self.q_grid, self.ir_solution)
@@ -159,14 +168,17 @@ class DynamicalMatrix(ForceConstants):
         phases = np.exp(2j * np.pi * (qs[None, :] * Rs[:, None, :]).sum(axis=-1))
 
         self._e_Isq = Nq ** -0.5 * phases.repeat(3, axis=0)[:, None, :] * e_isq
+        # REM: This is Eq. 38.19 in 38.27 from [BornHuang]
 
         # sanity check:
         # reconstruct dynamical matrix for supercell from eigensolution
-        D_IJ = (
-            self.e_Isq[:, None, :, :]
-            * self.w2_sq[None, None, :, :]
-            * self.e_Isq.conj()[None, :, :, :]
-        ).sum(axis=(-1, -2))
+        # D_IJ = \sum_sq w2_sq |Isq><Jsq|
+        # i) compute w2_sq |Isq>
+        D_IJ = self.e_Isq[:, :, :] * self.w2_sq[None, :, :]  # [I, s, q]
+        # sum over S = (s, q)
+        nI = D_IJ.shape[0]
+        e_SI = self.e_sqI.reshape((-1, nI)).conj()
+        D_IJ = D_IJ.reshape((nI, -1)) @ e_SI
 
         if not np.allclose(D_IJ, self.remapped):
             diff = la.norm(D_IJ - self.remapped)
@@ -197,8 +209,8 @@ class DynamicalMatrix(ForceConstants):
     def get_solution(
         self,
         q_points: np.ndarray,
-        # weights: np.ndarray = None,
         eigenvectors: bool = False,
+        dynamical_matrices: bool = False,
     ) -> collections.namedtuple:
         """solve at each q-point, optionally with eigenvectors
 
@@ -206,6 +218,7 @@ class DynamicalMatrix(ForceConstants):
             q_points: the q points to compute solutions for
             weights: their corresponding weights (if working with symmetry-reduced grid)
             eigenvectors: include eigenvectors
+            dynamical_matrices: include dynamical matrices
 
         Return:
             solution
@@ -217,7 +230,11 @@ class DynamicalMatrix(ForceConstants):
                 .e_isq: eigenvectors
 
         """
-        kw = {"with_group_velocities": True, "with_eigenvectors": eigenvectors}
+        kw = {
+            "with_group_velocities": True,
+            "with_eigenvectors": eigenvectors,
+            "with_dynamical_matrices": dynamical_matrices,
+        }
         self.phonon.run_qpoints(q_points, **kw)
         data = self.phonon.get_qpoints_dict()
 
@@ -230,8 +247,13 @@ class DynamicalMatrix(ForceConstants):
         else:
             e_isq = None
 
+        if dynamical_matrices:
+            D_qij = data["dynamical_matrices"]
+        else:
+            D_qij = None
+
         # make 0s 0, take 4th smallest absolute eigenvalue as reference
-        thresh = sorted(abs(w_sq.flatten()))[3] * 0.1
+        thresh = sorted(abs(w_sq.flatten()))[3] * 1e-5
         w_sq[abs(w_sq) < thresh] = 0
         w2_sq = np.sign(w_sq) * w_sq ** 2  # eigenvalues
 
@@ -241,13 +263,15 @@ class DynamicalMatrix(ForceConstants):
         w_inv_sq = 1 / w
         w_inv_sq[abs(w_inv_sq) < 1e-9] = 0
 
-        return Solution(w_sq, w_inv_sq, w2_sq, v_sq_cart, e_isq)
+        return Solution(w_sq, w_inv_sq, w2_sq, v_sq_cart, e_isq, D_qij)
 
-    def get_mesh_and_solution(self, mesh: list) -> tuple:
+    def get_mesh_and_solution(self, mesh: list, **kwargs) -> tuple:
         """create a qpoints mesh and solutions on the mesh
 
         Args:
             mesh: mesh numbers, e.g. [4, 4, 4]
+            kwargs: kwargs that go to self.get_solution(..., **kwargs)
+
         Returns:
             q_grid: the q-points and their weights
             solution: the solution on the mesh
@@ -256,7 +280,7 @@ class DynamicalMatrix(ForceConstants):
         assert len(mesh) == 3, len(mesh)
         kw = {"atoms": self.primitive, "monkhorst": True}
         ir_mesh = get_ir_reciprocal_mesh(mesh=mesh, **kw)
-        ir_solution = self.get_solution(q_points=ir_mesh.points)
+        ir_solution = self.get_solution(q_points=ir_mesh.points, **kwargs)
 
         return ir_mesh, ir_solution
 
