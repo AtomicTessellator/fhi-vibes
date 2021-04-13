@@ -5,7 +5,6 @@ import numpy as np
 import xarray as xr
 from ase import units
 from scipy import signal as sl
-
 from vibes import defaults
 from vibes import dimensions as dims
 from vibes import keys
@@ -26,28 +25,24 @@ def _talk(msg, **kw):
     return talk(msg, prefix=_prefix, **kw)
 
 
-def gk_prefactor(
-    volume: float, temperature: float, fs_factor: float = 1, verbose: bool = False
-) -> float:
+def gk_prefactor(volume: float, temperature: float, verbose: bool = False) -> float:
     """convert eV/AA^2/fs to W/mK
 
     Args:
         volume (float): volume of the supercell in AA^3
         temperature (float): avg. temp. in K (trajectory.temperatures.mean())
-        fs_factor (float): time * fs_factor = time in fs
 
     Returns:
-        V / (k_B * T^2) * 1602
+        V / (k_B * T^2) * 1.602e6
     """
     V = float(volume)
     T = float(temperature)
-    prefactor = 1 / units.kB / T ** 2 * 1.602 * V / fs_factor  # / 1000
+    prefactor = 1 / units.kB / T ** 2 * 1.602e6 * V
     msg = [
         f"Compute Prefactor:",
         f".. Volume:        {V:10.2f}  AA^3",
         f".. Temperature:   {T:10.2f}  K",
-        f".. factor to fs.: {fs_factor:10.5f}",
-        f"-> Prefactor:     {prefactor:10.2f}  W/mK / (eV/AA^/fs)",
+        f"-> Prefactor:     {prefactor:10.3e}  W/mK / (eV/AA^2/fs)",
     ]
     _talk(msg, verbose=verbose)
     return float(prefactor)
