@@ -19,12 +19,11 @@ def output():
 
 @output.command(aliases=["md"], context_settings=default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
-@click.option("-gk", "--green_kubo", is_flag=True, help="write data for GK, e.g. flux")
 @click.option("-ha", "--harmonic", is_flag=True, help="comp. ha. properties incl. flux")
 @click.option("-fc", "--fc_file", type=Path, help="add force constants from file")
 @click.option("-o", "--outfile", default="auto", show_default=True)
 @click.option("--force", is_flag=True, help="enfore parsing of output file")
-def trajectory(file, green_kubo, harmonic, fc_file, outfile, force):
+def trajectory(file, harmonic, fc_file, outfile, force):
     """write trajectory data in FILE to xarray.Dataset"""
     from vibes import keys
     from vibes.trajectory import reader
@@ -52,7 +51,7 @@ def trajectory(file, green_kubo, harmonic, fc_file, outfile, force):
     click.echo(f"Extract Trajectory dataset from {file}")
     traj = reader(file=file, fc_file=fc_file)
 
-    if green_kubo:
+    if traj.stresses_potential is not None:
         traj.compute_heat_flux()
     if harmonic and traj.force_constants is not None:
         traj.compute_heat_flux_harmonic()

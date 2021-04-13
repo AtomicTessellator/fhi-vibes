@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import numpy as np
-
 from vibes import defaults, keys
 from vibes.filenames import filenames
 
@@ -199,7 +198,7 @@ def greenkubo(files, plot, logx, xlim, cmap, outfile):
         k_filtered = ds_gk.heat_flux_autocorrelation_cumtrapz_filtered.mean(axis=0)
 
         k_total = xtrace(k_raw) / 3  # .mean(axis=1)
-        k_total_filteres = xtrace(k_filtered) / 3  # .mean(axis=1)
+        k_total_filtered = xtrace(k_filtered) / 3  # .mean(axis=1)
 
         for ii in range(3):
             c = colors[ii]
@@ -226,7 +225,7 @@ def greenkubo(files, plot, logx, xlim, cmap, outfile):
 
         # mean of k
         k_total.to_series().plot(ax=ax2, c="k", alpha=0.75)
-        k_total_filteres.to_series().plot(ax=ax2, c="k")
+        k_total_filtered.to_series().plot(ax=ax2, c="k")
 
         ax1.axhline(0, c="k")
         ax1.set_ylim([j_filtered.min(), 1.2 * j_filtered.max()])
