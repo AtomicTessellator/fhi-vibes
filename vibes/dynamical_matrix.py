@@ -146,7 +146,7 @@ class DynamicalMatrix(ForceConstants):
         self._q_grid = get_q_grid(q_points_commensurate, primitive=primitive)
 
         # solve on the irreducible grid
-        kw = {"eigenvectors": True, "dynamical_matrices": True}
+        kw = {"full": True}
         if symmetry:
             self._ir_solution = self.get_solution(q_points=self.q_grid.ir.points, **kw)
             solution = get_full_solution_from_ir(self.q_grid, self.ir_solution)
@@ -214,18 +214,14 @@ class DynamicalMatrix(ForceConstants):
         return self._phonon
 
     def get_solution(
-        self,
-        q_points: np.ndarray,
-        eigenvectors: bool = False,
-        dynamical_matrices: bool = False,
+        self, q_points: np.ndarray, full: bool = False,
     ) -> collections.namedtuple:
         """solve at each q-point, optionally with eigenvectors
 
         Args:
             q_points: the q points to compute solutions for
             weights: their corresponding weights (if working with symmetry-reduced grid)
-            eigenvectors: include eigenvectors
-            dynamical_matrices: include dynamical matrices
+            full: include eigenvectors and dynamical matrices at each q
 
         Return:
             solution
@@ -233,14 +229,13 @@ class DynamicalMatrix(ForceConstants):
                 .w_inv_sq: inverse frequencies respecting zeros
                 .w2_sq: squared frequencies (eigenvalues)
                 .v_sq_cartesian: group velocities in Cart. coords in (AA/fs)
-                # .weights: weight of each q-point
                 .e_isq: eigenvectors
-
+                .D_qij: dynamical matrices
         """
         kw = {
             "with_group_velocities": True,
-            "with_eigenvectors": eigenvectors,
-            "with_dynamical_matrices": dynamical_matrices,
+            "with_eigenvectors": full,
+            "with_dynamical_matrices": full,
         }
         self.phonon.run_qpoints(q_points, **kw)
         data = self.phonon.get_qpoints_dict()
@@ -249,12 +244,12 @@ class DynamicalMatrix(ForceConstants):
         w_sq = data["frequencies"].swapaxes(0, 1) / self.phonon._factor
         v_sq_cart = data["group_velocities"].swapaxes(0, 1) / self.phonon._factor
         v_sq_cart *= gv_to_AA_fs
-        if eigenvectors:
+        if full:
             e_isq = np.moveaxis(data["eigenvectors"], 0, -1)
         else:
             e_isq = None
 
-        if dynamical_matrices:
+        if full:
             D_qij = data["dynamical_matrices"]
         else:
             D_qij = None
