@@ -9,13 +9,12 @@ from vibes.filenames import filenames
 from vibes.force_constants import ForceConstants
 from vibes.helpers import lazy_property, warn
 from vibes.helpers.converters import atoms2dict, dict2atoms
-from vibes.helpers.hash import hash_atoms, hashfunc
+from vibes.helpers.hash import hash_atoms
 from vibes.helpers.stress import has_stress
 from vibes.helpers.stresses import get_stresses, has_stresses
 from vibes.helpers.utils import progressbar
 from vibes.helpers.virials import get_virials, has_virials
 
-from . import analysis as al
 from .utils import Timer, talk
 
 
@@ -50,6 +49,7 @@ class Trajectory(list):
         self._displacements = None
         self._force_constants = None
         self._uuid = None
+        self._hash_raw = None
         if keys.fc not in self._metadata:
             self._metadata[keys.fc] = None
 
@@ -664,19 +664,24 @@ class Trajectory(list):
 
         return hashes
 
-    def summarize(self, vebose=False):
-        """give a summary of relevant statistics"""
+    # @lazy_property
+    # def hash(self):
+    #     """hash the atoms and metadata"""
+    #     hashes = self.get_hashes()
 
-        DS = self.dataset
+    #     return hashfunc("".join(hashes))
 
-        al.pressure(DS.pressure)
+    @property
+    def hash_raw(self):
+        """raw hash for input trajectory file (like trajectory.son)"""
+        return self._hash_raw
 
-    @lazy_property
-    def hash(self):
-        """hash the atoms and metadata"""
-        hashes = self.get_hashes()
-
-        return hashfunc("".join(hashes))
+    @hash_raw.setter
+    def hash_raw(self, string: str):
+        """set raw hash for input trajectory file, can be set only once"""
+        assert self._hash_raw is None
+        assert isinstance(string, str)
+        self._hash_raw = string
 
     def compute_heat_flux(self):
         """attach `heat_flux` to each `atoms`"""
