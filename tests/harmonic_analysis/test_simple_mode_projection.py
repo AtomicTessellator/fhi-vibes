@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from ase.io import read
 
-from vibes.harmonic_analysis.mode_projection import SimpleModeProjection
+from vibes.simple_mode_projection import SimpleModeProjection
 from vibes.io import parse_force_constants
 
 parent = Path(__file__).parent

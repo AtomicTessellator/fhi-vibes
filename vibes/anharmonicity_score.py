@@ -2,7 +2,6 @@
     (future reference)"""
 import numpy as np
 import xarray as xr
-
 from vibes import keys
 from vibes.helpers import progressbar, warn
 from vibes.spglib import get_symmetry_dataset
@@ -270,7 +269,7 @@ def _get_forces_per_mode(dataset):
     Returns:
         (x, y, f): forces_mode, harmonic_forces_mode, frequencies
     """
-    from vibes.harmonic_analysis.mode_projection import SimpleModeProjection
+    from vibes.simple_mode_projection import SimpleModeProjection
     from vibes.helpers.converters import json2atoms
 
     ds = dataset
