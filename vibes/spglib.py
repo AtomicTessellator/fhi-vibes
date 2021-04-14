@@ -2,10 +2,10 @@
 import collections
 
 import numpy as np
+from vibes.structure.convert import to_spglib_cell
+
 import spglib
 from ase.atoms import Atoms
-
-from vibes.structure.convert import to_spglib_cell
 
 
 def cell_to_Atoms(
@@ -220,7 +220,7 @@ def get_ir_reciprocal_mesh(
         monkhorst: return monkhorst-pack-style grid (gamma incl. when odd grid number)
 
     Returns:
-        (points, weights): frac. grid points in interval [-0.5, 0.5), their weights
+        (points, mapping): frac. grid points in interval [-0.5, 0.5), mapping to ir.
 
     """
     mesh = np.asarray(mesh)
@@ -235,15 +235,13 @@ def get_ir_reciprocal_mesh(
         mesh, cell=spg_cell, is_shift=is_shift
     )
 
-    map2ir, weights = np.unique(mapping, return_counts=True)
-    ir_points = grid[map2ir].astype(float) / mesh  # to frac. coords
-    ir_points += 0.5 * is_shift / mesh  # restore shift
+    points = grid.astype(float) / mesh  # to frac. coords
+    points += 0.5 * is_shift / mesh  # restore shift
 
     # map to [-0.5, 0.5)
-    ir_points = ((ir_points + 0.5 + eps) % 1 - 0.5 - eps).round(decimals=14)
-    ir_points_cart = atoms.cell.reciprocal().cartesian_positions(ir_points)
+    points = ((points + 0.5 + eps) % 1 - 0.5 - eps).round(decimals=14)
 
-    data = {"points": ir_points, "points_cartesian": ir_points_cart, "weights": weights}
+    data = {"points": points, "mapping": mapping}
 
     IrReciprocalMesh = collections.namedtuple("ir_reciprocal_mesh", data.keys())
 

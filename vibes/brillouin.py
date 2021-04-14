@@ -3,12 +3,12 @@
 import collections
 
 import numpy as np
-from ase import Atoms
-from ase.dft import kpoints
-
 from vibes.helpers import Timer
 from vibes.helpers.latex import latexify_labels
-from vibes.spglib import get_symmetry_dataset
+from vibes.spglib import get_ir_reciprocal_mesh, get_symmetry_dataset
+
+from ase import Atoms
+from ase.dft import kpoints
 
 
 def get_paths(atoms: np.ndarray) -> list:
@@ -124,9 +124,11 @@ def get_q_grid(
         q_grid
           .points: q-points in the given grid (fractional w.r.t to primitive)
           .points_cartesian: q-points in cart. coords
-          .ir_indices: indices of the irreducible prototypes
-          .ir_points: the irreducible q-points
-          .ir_weights: the corresponding weights
+          .ir.points: the irreducible q-points
+          .ir.points_cartesian: the irreducible q-points in cart. coords
+          .ir.indices: indices of the irreducible prototypes
+          .ir.weights: the corresponding weights
+          .ir.map2full: inverse map back to full grid
           .map2ir_points: map from points to correspnding ir. point (ir_points)
           .map2ir_indices: map from points to corresponding ir. index (ir_indices)
           .spg_data: spg_dataset including rotations in frac. and cart. coords
@@ -145,6 +147,7 @@ def get_q_grid(
     map2ir_indices = np.arange(len(q_points), dtype=int)
     symop2ir = np.zeros(len(q_points), dtype=int)
 
+    # fkdev: try out numba
     # for each q-point, check if it can be mapped under rotations to a ir. prototype
     for iq, q in enumerate(q_points):
 
@@ -170,8 +173,6 @@ def get_q_grid(
                 symop2ir[iq] = ig
                 map2ir_indices[iq] = ir
                 prototype_found = True
-                # print(f"{iq:2d} -> {ir:2d} under op. {ig:2d}")
-                # print(q, rotated_qs[ig])
                 break
 
         if not prototype_found:
@@ -216,3 +217,49 @@ def get_q_grid(
     timer(f"q-points reduced from {len(q_points)} to {len(ir_indices)} points.")
 
     return QGrid(**data)
+
+
+def get_bz_mesh(
+    mesh: np.ndarray,
+    atoms: Atoms,
+    monkhorst: bool = True,
+    reduced: bool = False,
+    symprec: float = 1e-5,
+    eps: float = 1e-9,
+) -> collections.namedtuple:
+    """wrapper for spglib.get_ir_reciprocal_mesh
+
+    Args:
+        mesh: array specifying number of points per axis
+        atoms: structure that determines symmetry
+        monkhorst: return monkhorst-pack-style grid (gamma incl. when odd grid number)
+        reduced: only return reduced mesh w/o back trafo to full BZ
+
+    Returns:
+        QGrid: the mesh as QGrid object with grid points in [-0.5, 0.5)
+
+    """
+    points, mapping = get_ir_reciprocal_mesh(
+        mesh=mesh, atoms=atoms, monkhorst=monkhorst, symprec=symprec, eps=eps
+    )
+
+    if not reduced:
+        return get_q_grid(points, atoms)
+
+    # else
+    map2ir, weights = np.unique(mapping, return_counts=True)
+    ir_points = points[map2ir]
+
+    # map to [-0.5, 0.5)
+    ir_points = ((ir_points + 0.5 + eps) % 1 - 0.5 - eps).round(decimals=14)
+    ir_points_cart = atoms.cell.reciprocal().cartesian_positions(ir_points)
+
+    data = {
+        "points": ir_points,
+        "points_cartesian": ir_points_cart,
+        "weights": weights,
+    }
+
+    IrReciprocalMesh = collections.namedtuple("bz_ir_grid", data.keys())
+
+    return IrReciprocalMesh(**data)

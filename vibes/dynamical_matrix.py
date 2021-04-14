@@ -2,7 +2,7 @@
 import collections
 
 import numpy as np
-from vibes.brillouin import get_bands_and_labels, get_q_grid
+from vibes.brillouin import get_bands_and_labels, get_bz_mesh, get_q_grid
 from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import get_identifier
@@ -12,7 +12,6 @@ from ase import Atoms
 from phonopy import Phonopy
 
 from .force_constants import ForceConstants
-from .spglib import get_ir_reciprocal_mesh
 
 
 la = np.linalg
@@ -267,11 +266,14 @@ class DynamicalMatrix(ForceConstants):
 
         return Solution(w_sq, w_inv_sq, w2_sq, v_sq_cart, e_isq, D_qij)
 
-    def get_mesh_and_solution(self, mesh: list, **kwargs) -> tuple:
+    def get_mesh_and_solution(
+        self, mesh: list, reduced: bool = True, **kwargs
+    ) -> tuple:
         """create a qpoints mesh and solutions on the mesh
 
         Args:
             mesh: mesh numbers, e.g. [4, 4, 4]
+            reduced: only return symmetry reduced mesh w/o backtransformation to full BZ
             kwargs: kwargs that go to self.get_solution(..., **kwargs)
 
         Returns:
@@ -280,11 +282,18 @@ class DynamicalMatrix(ForceConstants):
 
         """
         assert len(mesh) == 3, len(mesh)
-        kw = {"atoms": self.primitive, "monkhorst": True}
-        ir_mesh = get_ir_reciprocal_mesh(mesh=mesh, **kw)
-        ir_solution = self.get_solution(q_points=ir_mesh.points, **kwargs)
+        kw = {"atoms": self.primitive, "monkhorst": True, "reduced": reduced}
+        q_grid = get_bz_mesh(mesh=mesh, **kw)
 
-        return ir_mesh, ir_solution
+        if reduced:
+            solution = self.get_solution(q_points=q_grid.points, **kwargs)
+
+        else:
+            kwargs.update({"full": True})
+            ir_solution = self.get_solution(q_points=q_grid.ir.points, **kwargs)
+            solution = get_full_solution_from_ir(q_grid, ir_solution)
+
+        return q_grid, solution
 
     @property
     def q_grid(self):
