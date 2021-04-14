@@ -26,7 +26,7 @@ def _talk(msg, **kw):
 
 
 def gk_prefactor(volume: float, temperature: float, verbose: bool = False) -> float:
-    """convert eV/AA^2/fs to W/mK
+    """compute GK prefactor V / (k_B * T^2) and convert from eV/AA^2/fs to W/mK
 
     Args:
         volume (float): volume of the supercell in AA^3
@@ -243,7 +243,7 @@ def get_gk_dataset(
 
     # 6. compile new dataset
     attrs = dataset.attrs.copy()
-    attrs.update({"gk_window_fs": window_fs})
+    attrs.update({"gk_window_fs": window_fs, keys.gk_prefactor: gk_prefactor})
 
     _filtered = "_filtered"
     data = {
