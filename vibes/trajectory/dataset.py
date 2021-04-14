@@ -1,7 +1,6 @@
 """compute and analyze heat fluxes"""
 import numpy as np
 import xarray as xr
-
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.helpers.converters import atoms2json, dict2json
@@ -56,6 +55,8 @@ def _attrs(trajectory, dct=None, metadata=False):
 
     # is slow:
     # attrs.update({keys.hash: trajectory.hash})  # add hash
+    if trajectory.hash_raw:
+        attrs.update({keys.hash_raw: trajectory.hash_raw})  # add raw hash
 
     return attrs
 
