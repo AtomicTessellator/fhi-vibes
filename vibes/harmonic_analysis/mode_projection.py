@@ -2,13 +2,8 @@
 
 import numpy as np
 import scipy.linalg as la
-from ase import Atoms
-
-from vibes.dynamical_matrix import DynamicalMatrix
-from vibes.helpers import Timer, lazy_property, progressbar, warn
-from vibes.helpers.displacements import get_dUdt, get_U
-
-from .dynamical_matrix import fc2dynmat, get_frequencies
+from vibes.dynamical_matrix import fc2dynmat, get_frequencies
+from vibes.helpers import Timer, lazy_property, warn
 
 
 Timer.prefix = "mode_analysis"
@@ -99,101 +94,3 @@ class SimpleModeProjection:
         timer()
 
         return result
-
-
-class HarmonicAnalysis:
-    """ provide tools to perform harmonic analysis in periodic systems """
-
-    def __init__(
-        self,
-        primitive: Atoms,
-        supercell: Atoms,
-        force_constants: np.ndarray,
-        verbose: bool = False,
-    ):
-        """Initialize unit cell, supercell, force_constants and lattice points.
-
-        Args:
-            primitive: The unit cell structure
-            supercell: The supercell structure
-            force_constants: f.c. in phonopy format [Np, Ns, 3, 3]
-            verbose: control verbosity level
-        """
-
-        self.dynamical_matrix_obj = DynamicalMatrix(
-            force_constants=force_constants, primitive=primitive, supercell=supercell
-        )
-
-    @property
-    def dmx(self):
-        return self.dynamical_matrix_obj
-
-    def get_Utsq(self, trajectory: list):
-        """ Get the mode projected positions, weighted by mass.
-
-        Args:
-            trajectory: The trajectory to work over
-
-        Returns:
-            U_tsq, V_tsq: [Nt, Ns, Nq] arrays of projected displacements and velocities
-
-        """
-        print(f"Project trajectory onto modes:")
-        proj = self.dmx.e_sqI
-        shape = [len(trajectory), proj.shape[0], proj.shape[1]]
-        Utsq = np.zeros(shape, dtype=complex)
-        Vtsq = np.zeros(shape, dtype=complex)
-
-        atoms0 = self.dmx.supercell
-
-        for ii in progressbar(range(len(trajectory))):
-            atoms = trajectory[ii]
-            Utsq[ii] = proj @ get_U(atoms, atoms0=atoms0).flatten()
-            Vtsq[ii] = proj @ get_dUdt(atoms).flatten()
-
-        return Utsq, Vtsq
-
-    def get_Ztsq(self, trajectory: list):
-        """ Return the imaginary mode amplitude for [t, s, q]
-
-        Args:
-            trajectory: The trajectory to work over
-
-        """
-        omegas = self.dmx.w_sq
-        U_tsq, V_tsq = self.get_Utsq(trajectory)
-
-        Z_tsq = V_tsq - 1.0j * omegas[None, :, :] * U_tsq
-
-        return Z_tsq
-
-    def project(self, trajectory, times=None):
-        """ perform mode projection for atoms objects in trajectory
-
-        Args:
-            trajectory: The trajectory to work over
-            times: The times at each point in the trajectory
-
-        Returns:
-            A_tsq2: Amplitdues [Nt, Ns, Nq]
-            phi_tsq: Angles [Nt, Ns, Nq]
-            E_tsq: Energies [Nt, Ns, Nq]
-
-        """
-
-        timer = Timer("Perform mode analysis for trajectory")
-
-        if isinstance(trajectory, Atoms):
-            trajectory = [trajectory]
-
-        w2_sq = self.dmx.w2_sq
-        Z_tsq = self.get_Ztsq(trajectory)
-
-        A_tsq2 = w2_sq[None, :, :] ** -1 * abs(Z_tsq) ** 2
-        # phi_qst = get_phi_qst(U_tsq, V_tsq, self.omegas, in_times=times)
-
-        E_tsq = 0.5 * w2_sq[None, :, :] * A_tsq2
-
-        timer("project trajectory")
-
-        return A_tsq2, E_tsq

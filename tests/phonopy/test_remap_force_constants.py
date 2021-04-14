@@ -3,9 +3,9 @@ from pathlib import Path
 
 import numpy as np
 from ase.io import read
-
-from vibes.harmonic_analysis.dynamical_matrix import get_frequencies
+from vibes.dynamical_matrix import get_frequencies
 from vibes.phonopy.utils import parse_phonopy_force_constants
+
 
 parent = Path(__file__).parent
 assets = parent / "assets_remap"

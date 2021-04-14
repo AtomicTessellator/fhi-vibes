@@ -5,9 +5,8 @@ from pathlib import Path
 import numpy as np
 import scipy.signal as sl
 from ase.io import read
-
+from vibes.dynamical_matrix import get_frequencies
 from vibes.green_kubo.velocities import get_vdos
-from vibes.harmonic_analysis import dynamical_matrix as dm
 from vibes.tdep.wrapper import parse_tdep_forceconstant
 from vibes.trajectory import reader
 
@@ -32,7 +31,7 @@ def test_frequencies_from_force_constants():
     fc = test_parse_force_constants()
     sc = read(parent / "geometry.in.supercell", format="aims")
 
-    freqs = dm.get_frequencies(fc, masses=sc.get_masses())
+    freqs = get_frequencies(fc, masses=sc.get_masses())
 
     return freqs
 
