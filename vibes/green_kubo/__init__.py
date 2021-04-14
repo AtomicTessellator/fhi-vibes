@@ -55,12 +55,15 @@ def get_gk_prefactor_from_dataset(dataset: xr.Dataset, verbose: bool = True) -> 
     return gk_prefactor(volume=volume, temperature=temperature, verbose=verbose)
 
 
-def get_hf_data(flux: xr.DataArray, dropna_dim=keys.time) -> namedtuple:
+def get_hf_data(
+    flux: xr.DataArray, dropna_dim=keys.time, prefactor: float = 1.0
+) -> namedtuple:
     """Compute heat flux autocorrelation and integrated kappa from heat flux
 
     Args:
         flux [N_t, 3]: the heat flux in an xr.DataArray
         dropna_dim: drop nan values along this dimension (default: `time`)
+        prefactor: GK prefactor  V/kB/T**2
 
     Returns:
         namedtuple: (heat flux autocorrelation function, integrated kappa)
@@ -74,6 +77,9 @@ def get_hf_data(flux: xr.DataArray, dropna_dim=keys.time) -> namedtuple:
 
     # compute heat flux autocorrelation function (HFACF) <J(t)J>
     flux_corr = get_autocorrelationNd(flux - flux_avg, off_diagonal=True, verbose=False)
+
+    # use prefactor
+    flux_corr *= prefactor
 
     # get integrated kappa
     kappa = get_cumtrapz(flux_corr)
@@ -178,12 +184,11 @@ def get_gk_dataset(
     if total:  # add non-gauge-invariant contribution
         heat_flux += dataset[keys.heat_flux_aux]
 
-    hfacf, kappa = get_hf_data(heat_flux)
+    # get prefactor V/kB/T**2
+    gk_prefactor = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
 
-    # convert to W/mK
-    pref = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
-    hfacf *= pref
-    kappa *= pref
+    # get heatflux and integrated kappa
+    hfacf, kappa = get_hf_data(heat_flux, prefactor=gk_prefactor)
 
     # 2. get lowest significant frequency (from VDOS) in THz
     kw = {"prominence": filter_prominence}

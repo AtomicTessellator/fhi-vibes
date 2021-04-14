@@ -185,8 +185,6 @@ def greenkubo(files, plot, logx, xlim, cmap, outfile):
         import seaborn as sns
         from matplotlib import pyplot as plt
 
-        from vibes.helpers.xarray import xtrace
-
         fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
 
         colors = sns.color_palette(cmap, n_colors=3)  # plt.get_cmap(cmap)
@@ -197,8 +195,12 @@ def greenkubo(files, plot, logx, xlim, cmap, outfile):
         j_filtered = ds_gk.heat_flux_autocorrelation_filtered.mean(axis=0)
         k_filtered = ds_gk.heat_flux_autocorrelation_cumtrapz_filtered.mean(axis=0)
 
-        k_total = xtrace(k_raw) / 3  # .mean(axis=1)
-        k_total_filtered = xtrace(k_filtered) / 3  # .mean(axis=1)
+        # diagonal values via stack
+        k_raw_diag = k_raw.stack(ab=("a", "b"))[:, ::4]
+        k_filtered_diag = k_filtered.stack(ab=("a", "b"))[:, ::4]
+
+        k_total = k_raw_diag.mean(axis=1)
+        k_total_filtered = k_filtered_diag.mean(axis=1)
 
         for ii in range(3):
             c = colors[ii]
