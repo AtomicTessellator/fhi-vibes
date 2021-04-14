@@ -1,14 +1,15 @@
 """ Tools for dealing with force constants """
 import collections
-import numpy as np
-from ase import Atoms
-from phonopy import Phonopy
 
-from vibes.brillouin import get_q_grid, get_bands_and_labels
+import numpy as np
+from vibes.brillouin import get_bands_and_labels, get_q_grid
 from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import get_identifier
-from vibes.konstanten import gv_to_AA_fs
+from vibes.konstanten import gv_to_AA_fs, omega_to_THz
+
+from ase import Atoms
+from phonopy import Phonopy
 
 from .force_constants import ForceConstants
 from .spglib import get_ir_reciprocal_mesh
@@ -361,3 +362,36 @@ class DynamicalMatrix(ForceConstants):
     def copy(self):
         """return copy"""
         return self.with_new_fc(force_constants=self.fc_phonopy)
+
+
+# legacy
+def fc2dynmat(force_constants, masses):
+    """convert force_constants to dynamical matrix by mass weighting"""
+
+    Na = len(masses)
+    M = (np.asarray(masses)).repeat(3)
+    rminv = M ** -0.5
+
+    assert force_constants.shape == (3 * Na, 3 * Na), force_constants.shape
+
+    dm = force_constants * rminv[:, None] * rminv[None, :]
+
+    return dm
+
+
+def get_frequencies(dyn_matrix, masses=None, factor=omega_to_THz):
+    """ Diagonalize dynamical_matrix and convert to THz
+
+    Args:
+        dyn_matrix: The dynamical matrix
+        masses: used for mass weihting when `dyn_matrix` is the force constants
+        factor: Unit conversion factor (default: to eV/AMU/AA*2 to THz)
+
+    Returns:
+        np.ndarray: The eigenvalues of the dynamical matrix
+    """
+    if masses is not None:
+        dyn_matrix = fc2dynmat(dyn_matrix, masses)
+
+    evals = np.linalg.eigh(dyn_matrix)[0]
+    return np.sign(evals) * np.sqrt(abs(evals)) * factor

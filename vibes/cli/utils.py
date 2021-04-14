@@ -374,7 +374,7 @@ def frequencies(file, supercell, show_n_frequencies, outfile, symmetrize, format
     import numpy as np
     from ase.io import read
 
-    from vibes.harmonic_analysis.dynamical_matrix import get_frequencies
+    from vibes.dynamical_matrix import get_frequencies
 
     atoms = read(supercell, format=format)
     fc = np.loadtxt(file)
