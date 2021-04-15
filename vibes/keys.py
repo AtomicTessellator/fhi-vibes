@@ -75,6 +75,12 @@ stress_harmonic = "stress_harmonic"
 stresses_harmonic = "stresses_harmonic"
 heat_flux_harmonic = "heat_flux_harmonic"
 heat_flux_0_harmonic = "heat_flux_0_harmonic"
+heat_flux_harmonic_q = "heat_flux_harmonic_q"
+mode_occupation = "mode_occupation"
+# shorthands
+hf = heat_flux
+hf_ha = heat_flux_harmonic
+hf_ha_q = heat_flux_harmonic_q
 
 
 sigma = "sigma"
@@ -85,7 +91,7 @@ sigma_per_sample = "sigma_per_sample"
 # time
 time = "time"
 omega = "omega"
-autocorrelation = "autocorrelation"
+autocorrelation = "acf"
 fourier_transform = "fourier_transform"
 avalanche_data = "avalanche_function"
 time_avalanche = "avalanche_time"
@@ -118,7 +124,7 @@ st_size = "st_size"
 heat_flux_autocorrelation = _join(heat_flux, autocorrelation)
 heat_flux_aux_autocorrelation = _join(heat_flux_aux, autocorrelation)
 heat_flux_autocorrelation_scalar = _join(heat_flux_autocorrelation, scalar)
-kappa_cumulative = _join(heat_flux_autocorrelation, cumtrapz)
+kappa_cumulative = _join(heat_flux_autocorrelation, integral)
 kappa_cumulative_scalar = _join(kappa_cumulative, scalar)
 heat_flux_power_spectrum = _join(heat_flux, power_spectrum)
 heat_flux_total_power_spectrum = _join(heat_flux_total, power_spectrum)

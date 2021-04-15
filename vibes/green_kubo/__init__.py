@@ -178,6 +178,8 @@ def get_gk_dataset(
         6. estimate cutoff time from the decay of the filtered HFACF
 
     """
+    from .harmonic import get_gk_ha_q_data
+
     # 1. get HFACF and integrated kappa
     heat_flux = dataset[keys.heat_flux]
 
@@ -247,6 +249,7 @@ def get_gk_dataset(
 
     _filtered = "_filtered"
     data = {
+        keys.heat_flux: heat_flux,
         keys.hf_acf: hfacf,
         keys.hf_acf + _filtered: j_filtered,
         keys.kappa_cumulative: kappa,
@@ -254,5 +257,9 @@ def get_gk_dataset(
         keys.kappa: (dims.tensor, ks),
         keys.time_cutoff: (dims.tensor, ts),
     }
+
+    if keys.fc in dataset or keys.fc_remapped in dataset:
+        data_ha = get_gk_ha_q_data(dataset)
+        data.update(data_ha._asdict())
 
     return xr.Dataset(data, coords=kappa.coords, attrs=attrs)
