@@ -1,7 +1,10 @@
 """ Tools for dealing with force constants """
 import collections
+import json
 
 import numpy as np
+import xarray as xr
+from vibes import keys
 from vibes.brillouin import get_bands_and_labels, get_bz_mesh, get_q_grid
 from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_commensurate_q_points
@@ -192,6 +195,23 @@ class DynamicalMatrix(ForceConstants):
         sg, name = dct["space_group"], dct["material"]
         rep = f"Dynamical Matrix for {name} (sg {sg}) of shape {self.fc_phonopy.shape}"
         return repr(rep)
+
+    @classmethod
+    def from_dataset(cls, dataset: xr.Dataset):
+        """use information in Dataset to create dynamical matrix"""
+        primitive = Atoms(**json.loads(dataset.attrs[keys.reference_primitive]))
+        supercell = Atoms(**json.loads(dataset.attrs[keys.reference_supercell]))
+        force_constants = dataset[keys.fc]
+        try:
+            force_constants = dataset[keys.fc]
+        except AttributeError:
+            force_constants = dataset[keys.fc_remapped]
+        except AttributeError:
+            raise RuntimeError(f"Could not find force constants in dataset")
+
+        return cls(
+            force_constants=force_constants, primitive=primitive, supercell=supercell
+        )
 
     @property
     def array(self) -> np.ndarray:
