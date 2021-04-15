@@ -3,7 +3,7 @@
 import collections
 
 import numpy as np
-from vibes.helpers import Timer
+from vibes.helpers import Timer, progressbar
 from vibes.helpers.latex import latexify_labels
 from vibes.spglib import get_ir_reciprocal_mesh, get_symmetry_dataset
 
@@ -135,10 +135,10 @@ def get_q_grid(
           .symop2ir: index of symmetry operation that transforms point to ir_point
 
     """
-    timer = Timer(message="reduce q-grid", prefix="symmetry")
+    timer = Timer(message=f"reduce q-grid w/ {len(q_points)} points", prefix="symmetry")
     # get all pure rotations:
     spg_dataset = get_symmetry_dataset(primitive, index_maps=True, symprec=symprec)
-    rotations = spg_dataset.rotations  # _cartesian
+    rotations = spg_dataset.rotations.swapaxes(1, 2)  # _cartesian
     # translations = spg_dataset.translations
     dummy_indices = np.arange(len(rotations), dtype=int)
 
@@ -147,26 +147,29 @@ def get_q_grid(
     map2ir_indices = np.arange(len(q_points), dtype=int)
     symop2ir = np.zeros(len(q_points), dtype=int)
 
+    # precompute norm of q-points to speed up things
+    q_points_norm = np.linalg.norm(q_points, axis=-1)
+
     # fkdev: try out numba
     # for each q-point, check if it can be mapped under rotations to a ir. prototype
-    for iq, q in enumerate(q_points):
+    for iq, q in enumerate(progressbar(q_points)):
 
         prototype_found = False
         for ir in ir_indices:
             p = q_points[ir]  # pick a ir. prototype
 
-            # check if norm is preserved. REM: this is only true in Cart. coords
-            # if not abs(q.dot(q) - p.dot(p)) < eps:
-            #     continue
+            # check if norm is preserved
+            if abs(q_points_norm[iq] - q_points_norm[ir]) > eps:
+                continue
 
             # try to match protoype to q-point
             # use vectorization
             # create list of all rotations applied to q
             # multiply from the right, we look for q . S = p
             # REM: This would only be equivalent to q = S . P in Cart. coords
-            rotated_qs = (q[None, :, None] * rotations).sum(axis=-2)
+            rotated_qs = rotations @ q  # rotations has been transposed earlier
             # compute the differences to q point
-            diffs = np.square(rotated_qs - p[None, :]).sum(axis=-1)
+            diffs = np.square(rotated_qs - p).sum(axis=-1)
             matched_rotations = dummy_indices[diffs < eps]
             if len(matched_rotations) > 0:  # match found
                 ig = matched_rotations[0]  # index of symmetry op.
