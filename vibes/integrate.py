@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from scipy import integrate as si
-
 from vibes import keys
 from vibes.helpers import Timer, warn
+
 
 _prefix = "Integration"
 Timer.prefix = _prefix
@@ -64,7 +64,7 @@ def get_cumtrapz(series, **kwargs):
             ctrapz,
             dims=series.dims,
             coords=series.coords,
-            name=keys._join(series.name, keys.cumtrapz),
+            name=keys._join(series.name, keys.integral),
         )
         return da
 

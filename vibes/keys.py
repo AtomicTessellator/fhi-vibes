@@ -19,6 +19,7 @@ remapped = "remapped"
 flattened = "flattened"
 reference = "reference"
 cumtrapz = "cumtrapz"
+integral = "integral"
 
 # force constants
 fc = "force_constants"
