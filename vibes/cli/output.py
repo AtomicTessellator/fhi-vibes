@@ -170,14 +170,13 @@ def greenkubo(file, outfile, window_factor, filter_prominence, total):
 
     import vibes.green_kubo as gk
 
-    ds = xr.open_dataset(file)
-
-    ds_gk = gk.get_gk_dataset(
-        ds,
-        window_factor=window_factor,
-        filter_prominence=filter_prominence,
-        total=total,
-    )
+    with xr.open_dataset(file) as ds:
+        ds_gk = gk.get_gk_dataset(
+            ds,
+            window_factor=window_factor,
+            filter_prominence=filter_prominence,
+            total=total,
+        )
 
     if total:
         outfile = outfile.parent / f"{outfile.stem}.total.nc"
