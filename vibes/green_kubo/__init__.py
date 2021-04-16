@@ -200,9 +200,6 @@ def get_gk_dataset(
     kw = {"prominence": filter_prominence}
     freq = get_lowest_vibrational_frequency(dataset[keys.velocities], **kw)
 
-    if abs(freq) < 0.001:
-        warn(f"Lowest significant vib. freq is {freq} THz, CHECK VDOS!", level=2)
-
     # window in fs from freq.:
     window_fs = window_factor / freq * 1000
 
