@@ -20,6 +20,7 @@ flattened = "flattened"
 reference = "reference"
 cumtrapz = "cumtrapz"
 integral = "integral"
+filtered = "filtered"
 
 # force constants
 fc = "force_constants"
@@ -121,23 +122,26 @@ trajectory = "trajectory"
 st_size = "st_size"
 
 # composite keys
-heat_flux_autocorrelation = _join(heat_flux, autocorrelation)
-heat_flux_aux_autocorrelation = _join(heat_flux_aux, autocorrelation)
-heat_flux_autocorrelation_scalar = _join(heat_flux_autocorrelation, scalar)
-kappa_cumulative = _join(heat_flux_autocorrelation, integral)
+heat_flux_acf = _join(heat_flux, autocorrelation)
+heat_flux_aux_acf = _join(heat_flux_aux, autocorrelation)
+heat_flux_acf_scalar = _join(heat_flux_acf, scalar)
+heat_flux_acf_filtered = _join(heat_flux_acf, filtered)
+kappa_cumulative = _join(heat_flux_acf, integral)
+kappa_cumulative_filtered = _join(kappa_cumulative, filtered)
 kappa_cumulative_scalar = _join(kappa_cumulative, scalar)
 heat_flux_power_spectrum = _join(heat_flux, power_spectrum)
 heat_flux_total_power_spectrum = _join(heat_flux_total, power_spectrum)
 heat_flux_power_spectrum_scalar = _join(heat_flux_power_spectrum, scalar)
-heat_flux_aux_power_spectrum = _join(heat_flux_aux_autocorrelation, fourier_transform)
+heat_flux_aux_power_spectrum = _join(heat_flux_aux_acf, fourier_transform)
 heat_flux_aux_power_spectrum_scalar = _join(heat_flux_aux_power_spectrum, scalar)
 
 # abbreviations
 hf = heat_flux
 hf_aux = heat_flux_aux
-hf_acf = heat_flux_autocorrelation
-hf_aux_acf = heat_flux_aux_autocorrelation
-hf_acf_scalar = heat_flux_autocorrelation_scalar
+hf_acf = heat_flux_acf
+hf_aux_acf = heat_flux_aux_acf
+hf_acf_scalar = heat_flux_acf_scalar
+hf_acf_filtered = heat_flux_acf_filtered
 hf_power = heat_flux_power_spectrum
 hf_aux_power = heat_flux_aux_power_spectrum
 k_cum = kappa_cumulative

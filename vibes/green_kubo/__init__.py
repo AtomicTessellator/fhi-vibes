@@ -85,9 +85,7 @@ def get_hf_data(
     kappa = get_cumtrapz(flux_corr)
 
     # return namedtuple w/ HFACF and integrated kappa
-    cls = namedtuple(
-        "gk_raw_data", (keys.heat_flux_autocorrelation, keys.kappa_cumulative)
-    )
+    cls = namedtuple("gk_raw_data", (keys.heat_flux_acf, keys.kappa_cumulative))
 
     return cls(flux_corr, kappa)
 
@@ -247,13 +245,12 @@ def get_gk_dataset(
     attrs = dataset.attrs.copy()
     attrs.update({"gk_window_fs": window_fs, keys.gk_prefactor: gk_prefactor})
 
-    _filtered = "_filtered"
     data = {
         keys.heat_flux: heat_flux,
         keys.hf_acf: hfacf,
-        keys.hf_acf + _filtered: j_filtered,
+        keys.hf_acf_filtered: j_filtered,
         keys.kappa_cumulative: kappa,
-        keys.kappa_cumulative + _filtered: k_filtered,
+        keys.kappa_cumulative_filtered: k_filtered,
         keys.kappa: (dims.tensor, ks),
         keys.time_cutoff: (dims.tensor, ts),
     }
