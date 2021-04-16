@@ -189,11 +189,11 @@ def greenkubo(files, plot, logx, xlim, cmap, outfile):
 
         colors = sns.color_palette(cmap, n_colors=3)  # plt.get_cmap(cmap)
 
-        cutoff_time = ds_gk.cutoff_time.mean(axis=0)
-        j_raw = ds_gk.heat_flux_autocorrelation.mean(axis=0)
-        k_raw = ds_gk.heat_flux_autocorrelation_cumtrapz.mean(axis=0)
-        j_filtered = ds_gk.heat_flux_autocorrelation_filtered.mean(axis=0)
-        k_filtered = ds_gk.heat_flux_autocorrelation_cumtrapz_filtered.mean(axis=0)
+        cutoff_time = ds_gk[keys.time_cutoff].mean(axis=0)
+        j_raw = ds_gk[keys.hf_acf].mean(axis=0)
+        k_raw = ds_gk[keys.kappa_cumulative].mean(axis=0)
+        j_filtered = ds_gk[keys.hf_acf_filtered].mean(axis=0)
+        k_filtered = ds_gk[keys.kappa_cumulative_filtered].mean(axis=0)
 
         # diagonal values via stack
         k_raw_diag = k_raw.stack(ab=("a", "b"))[:, ::4]
