@@ -13,6 +13,7 @@ from vibes.fourier import get_fourier_transformed
 from vibes.helpers import Timer, talk, warn
 from vibes.helpers.filter import get_filtered
 from vibes.integrate import get_cumtrapz
+from vibes.konstanten import to_W_mK
 
 
 _prefix = "GreenKubo"
@@ -37,7 +38,7 @@ def gk_prefactor(volume: float, temperature: float, verbose: bool = False) -> fl
     """
     V = float(volume)
     T = float(temperature)
-    prefactor = 1 / units.kB / T ** 2 * 1.602e6 * V
+    prefactor = 1 / units.kB / T ** 2 * V * to_W_mK
     msg = [
         f"Compute Prefactor:",
         f".. Volume:        {V:10.2f}  AA^3",
