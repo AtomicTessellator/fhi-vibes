@@ -259,8 +259,12 @@ def get_gk_dataset(
         keys.time_cutoff: (dims.tensor, ts),
     }
 
-    if keys.fc in dataset or keys.fc_remapped in dataset:
+    if keys.fc in dataset:
         data_ha = get_gk_ha_q_data(dataset)
         data.update(data_ha._asdict())
+        data.update({keys.fc: dataset[keys.fc]})
+
+    # add thermodynamic properties
+    data.update({key: dataset[key] for key in (keys.volume, keys.temperature)})
 
     return xr.Dataset(data, coords=kappa.coords, attrs=attrs)

@@ -175,11 +175,11 @@ def greenkubo(files, plot, logx, xlim, cmap, outfile):
     attrs = {ii: d.attrs for (ii, d) in enumerate(datasets)}
     ds_gk.attrs = attrs
 
-    ks = np.array([np.diag(k) for k in ds_gk.kappa]).flatten()
+    ks = np.array([np.diag(k) for k in ds_gk[keys.kappa]]).flatten()
     k_mean = ks.mean()
     k_err = (ks.var() / (len(ks))) ** 0.5
     click.echo(f"Kappa:    {k_mean:.3f} +/- {k_err:.3f}")
-    click.echo(f"Kappa^ab: {ds_gk.kappa.mean(axis=0)}")
+    click.echo(f"Kappa^ab: {ds_gk[keys.kappa].mean(axis=0)}")
 
     if plot:
         import seaborn as sns

@@ -60,7 +60,7 @@ $$
     
 4. compute thermal conductivity
     $$
-    \kappa = c_V \sum_{b, {\bf q}} \omega^4_b ({\bf q}) \lambda_b ({\bf q}) v^2_b ({\bf q})~,
+    \kappa^{\alpha \beta} = c_V \sum_{b, {\bf q}} \omega^4_b ({\bf q}) \lambda_b ({\bf q}) ~ v^\alpha_b ({\bf q}) v^\beta_b ({\bf q})~,
     $$
     where $c_V$ is fixed by requiring that $\kappa = \sum_{b, {\bf q}} c_b ({\bf q}) \, \omega^4_b ({\bf q}) \lambda_b ({\bf q}) v^2_b ({\bf q})$ at the commensurate q-points with $c_s = \langle n^2_s \rangle$. REM: $c_V$ is related to heat capacity, but it's not quite it. Choose different symbol? Mode heat capacity would be $\langle E^2_s \rangle$.
 
