@@ -6,12 +6,15 @@
 """
 i, j, I, J, a, b = "i", "j", "I", "J", "a", "b"
 s, q = "s", "q"
+sq = (s, q)
 
 # composite
 Ia, Jb = "Ia", "Jb"
+ia, jb = "ia", "jb"
 
 vec = (a,)
 tensor = (a, b)
+ab = tensor
 
 time = "time"
 time_atom = (time, I)
