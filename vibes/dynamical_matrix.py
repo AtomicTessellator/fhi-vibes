@@ -4,6 +4,7 @@ import json
 
 import numpy as np
 import xarray as xr
+from vibes import dimensions as dims
 from vibes import keys
 from vibes.brillouin import get_bands_and_labels, get_bz_mesh, get_q_grid
 from vibes.helpers import talk
@@ -27,7 +28,7 @@ def _talk(msg, verbose=True):
     return talk(msg, prefix=_prefix, verbose=verbose)
 
 
-solution_keys = ("w_sq", "w_inv_sq", "w2_sq", "v_sq_cartesian", "e_isq", "D_qij")
+solution_keys = ("w_sq", "w_inv_sq", "w2_sq", "v_sqa_cartesian", "e_isq", "D_qij")
 
 Solution = collections.namedtuple("solution", solution_keys)
 
@@ -49,7 +50,7 @@ def get_full_solution_from_ir(q_grid, ir_solution):
     Ns, Nq = len(ir_solution.w_sq), len(q_grid.points)
     w_sq = np.zeros([Ns, Nq])
     w_inv_sq = np.zeros([Ns, Nq])
-    v_sq_cartesian = np.zeros([Ns, Nq, 3])
+    v_sqa_cartesian = np.zeros([Ns, Nq, 3])
     w2_sq = np.zeros([Ns, Nq])
     e_isq = np.zeros([Ns, Ns, Nq], dtype=complex)
     D_qij = np.zeros([Nq, Ns, Ns], dtype=complex)
@@ -77,7 +78,7 @@ def get_full_solution_from_ir(q_grid, ir_solution):
 
         # rotate velocities
         # vq = rot @ vp = vp @ rot.T
-        vp = ir_solution.v_sq_cartesian[:, ip]
+        vp = ir_solution.v_sqa_cartesian[:, ip]
         vq = vp @ rot.T
 
         # rotate eigenvector, Eq. 2.36 in [1]
@@ -90,7 +91,7 @@ def get_full_solution_from_ir(q_grid, ir_solution):
         Dq = G @ Dp @ G.conj().T
 
         # assign rotated quantities
-        v_sq_cartesian[:, iq] = vq
+        v_sqa_cartesian[:, iq] = vq
         e_isq[:, :, iq] = e_isq_rot
         D_qij[iq] = Dq
 
@@ -101,7 +102,7 @@ def get_full_solution_from_ir(q_grid, ir_solution):
     # restore squared frequencies
     w2_sq = np.sign(w_sq) * w_sq ** 2
 
-    return Solution(w_sq, w_inv_sq, w2_sq, v_sq_cartesian, e_isq, D_qij)
+    return Solution(w_sq, w_inv_sq, w2_sq, v_sqa_cartesian, e_isq, D_qij)
 
 
 class DynamicalMatrix(ForceConstants):
@@ -247,7 +248,7 @@ class DynamicalMatrix(ForceConstants):
                 .w_sq: frequencies
                 .w_inv_sq: inverse frequencies respecting zeros
                 .w2_sq: squared frequencies (eigenvalues)
-                .v_sq_cartesian: group velocities in Cart. coords in (AA/fs)
+                .v_sqa_cartesian: group velocities in Cart. coords in (AA/fs)
                 .e_isq: eigenvectors
                 .D_qij: dynamical matrices
         """
@@ -261,8 +262,8 @@ class DynamicalMatrix(ForceConstants):
 
         # create solution tuple
         w_sq = data["frequencies"].swapaxes(0, 1) / self.phonon._factor
-        v_sq_cart = data["group_velocities"].swapaxes(0, 1) / self.phonon._factor
-        v_sq_cart *= gv_to_AA_fs
+        v_sqa_cart = data["group_velocities"].swapaxes(0, 1) / self.phonon._factor
+        v_sqa_cart *= gv_to_AA_fs
         if full:
             e_isq = np.moveaxis(data["eigenvectors"], 0, -1)
         else:
@@ -284,7 +285,7 @@ class DynamicalMatrix(ForceConstants):
         w_inv_sq = 1 / w
         w_inv_sq[abs(w_inv_sq) < 1e-9] = 0
 
-        return Solution(w_sq, w_inv_sq, w2_sq, v_sq_cart, e_isq, D_qij)
+        return Solution(w_sq, w_inv_sq, w2_sq, v_sqa_cart, e_isq, D_qij)
 
     def get_mesh_and_solution(
         self, mesh: list, reduced: bool = True, **kwargs
@@ -331,9 +332,9 @@ class DynamicalMatrix(ForceConstants):
         return self.q_grid.points_cartesian
 
     @property
-    def v_sq_cartesian(self):
+    def v_sqa_cartesian(self):
         """cartesian group velocities in [3 * Np, Nq, 3]"""
-        return self.solution.v_sq_cartesian
+        return self.solution.v_sqa_cartesian
 
     @property
     def w_sq(self):
@@ -386,6 +387,18 @@ class DynamicalMatrix(ForceConstants):
     def copy(self):
         """return copy"""
         return self.with_new_fc(force_constants=self.fc_phonopy)
+
+    def _get_arrays(self) -> set:
+        """return solution as list of xr.DataArray"""
+        sq = dims.sq
+        sqa = (*sq, dims.a)
+        isq = (dims.ia, *sq)
+        v_sqa = xr.DataArray(self.v_sqa_cartesian, dims=sqa, name="v_sqa_cartesian")
+        w2_sq = xr.DataArray(self.w2_sq, dims=sq, name="w2_sq")
+        e_isq_re = xr.DataArray(self.e_isq.real, dims=isq, name="e_isq_real")
+        e_isq_im = xr.DataArray(self.e_isq.imag, dims=isq, name="e_isq_imag")
+
+        return (v_sqa, w2_sq, e_isq_re, e_isq_im)
 
 
 # legacy
