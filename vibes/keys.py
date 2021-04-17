@@ -22,6 +22,7 @@ cumtrapz = "cumtrapz"
 integral = "integral"
 filtered = "filtered"
 inverse = "inverse"
+symmetrized = "symmetrized"
 
 # force constants
 fc = "force_constants"
@@ -77,18 +78,22 @@ stresses_harmonic = "stresses_harmonic"
 heat_flux_harmonic = "heat_flux_harmonic"
 heat_flux_0_harmonic = "heat_flux_0_harmonic"
 heat_flux_harmonic_q = "heat_flux_harmonic_q"
+heat_capacity = "heat_capacity"
 mode_occupation = "mode_occupation"
 mode_lifetime = "mode_lifetime"
 mode_lifetime_inverse = _join(mode_lifetime, inverse)
+mode_lifetime_symmetrized = _join(mode_lifetime, symmetrized)
 mode_heat_capacity = "mode_heat_capacity"
 thermal_conductivity = "thermal_conductivity"
 thermal_conductivity_harmonic = "thermal_conductivity_harmonic"
+thermal_conductivity_harmonic_symmetrized = "thermal_conductivity_harmonic_symmetrized"
 # shorthands
 hf = heat_flux
 hf_ha = heat_flux_harmonic
 hf_ha_q = heat_flux_harmonic_q
 kappa = thermal_conductivity
 kappa_ha = thermal_conductivity_harmonic
+kappa_ha_symmetrized = thermal_conductivity_harmonic_symmetrized
 
 
 sigma = "sigma"

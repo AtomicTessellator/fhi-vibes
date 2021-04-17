@@ -259,6 +259,7 @@ def get_gk_dataset(
         keys.time_cutoff: (dims.tensor, ts),
     }
 
+    # add properties derived from harmonic model
     if keys.fc in dataset:
         data_ha = get_gk_ha_q_data(dataset)
         data.update(data_ha._asdict())

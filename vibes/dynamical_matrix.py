@@ -390,15 +390,20 @@ class DynamicalMatrix(ForceConstants):
 
     def _get_arrays(self) -> set:
         """return solution as list of xr.DataArray"""
-        sq = dims.sq
-        sqa = (*sq, dims.a)
-        isq = (dims.ia, *sq)
+        sqa = (*dims.s_q, dims.a)
+        isq = (dims.ia, *dims.s_q)
         v_sqa = xr.DataArray(self.v_sqa_cartesian, dims=sqa, name="v_sqa_cartesian")
-        w2_sq = xr.DataArray(self.w2_sq, dims=sq, name="w2_sq")
+        w2_sq = xr.DataArray(self.w2_sq, dims=dims.s_q, name="w2_sq")
+        w_inv_sq = xr.DataArray(self.w_inv_sq, dims=dims.s_q, name="w_inverse_sq")
         e_isq_re = xr.DataArray(self.e_isq.real, dims=isq, name="e_isq_real")
         e_isq_im = xr.DataArray(self.e_isq.imag, dims=isq, name="e_isq_imag")
 
-        return (v_sqa, w2_sq, e_isq_re, e_isq_im)
+        # q-grid info
+        q_grid = self.q_grid
+        q_points = xr.DataArray(q_grid.points, dims=dims.q_a, name="q_points")
+        q_map2ir = xr.DataArray(q_grid.map2ir_indices, dims=dims.q, name="q_map2ir")
+
+        return (v_sqa, w2_sq, w_inv_sq, e_isq_re, e_isq_im, q_points, q_map2ir)
 
 
 # legacy

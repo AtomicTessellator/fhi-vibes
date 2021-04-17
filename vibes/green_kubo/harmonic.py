@@ -216,12 +216,13 @@ def get_kappa(
     _ = None
 
     if weights is None:
-        weights = np.ones(tau_sq.shape[1])
+        weights = 1.0
     if cv_sq is None:
-        cv_sq = np.ones(tau_sq.shape[1])
+        cv_sq = 1.0
 
+    v_sqa = np.asarray(v_sqa)
     v2_sqa = v_sqa[:, :, :, _] * v_sqa[:, :, _, :]
-    kappa_sqab = np.asarray(to_W_mK * weights * cv_sq * tau_sq)[:, :, _, _] * v2_sqa
+    kappa_sqab = to_W_mK * np.asarray(weights * cv_sq * tau_sq)[:, :, _, _] * v2_sqa
 
     kappa_ab = kappa_sqab.sum(axis=(0, 1))
 
@@ -233,6 +234,44 @@ def get_kappa(
     if scalar:
         return np.diagonal(array).mean()
     return array
+
+
+def get_symmetrized_lifetimes(
+    tau_sq: xr.DataArray, map2ir_indices: list, xarray: bool = True,
+) -> xr.DataArray:
+    """Symmetrize lifetimes with q-point symmetry map
+
+    Args:
+        tau_sq: mode lifetime dataarray as [Ns, Nq]
+        map2ir_indices: mapping from full q-points to ir grid indices
+        xarray: return as xarray
+
+    Returns:
+        symmetrized lifetimes as [Ns, Nq] array
+    """
+    map2ir, map2full = np.unique(map2ir_indices, return_inverse=True)
+
+    tau_ir_sq = np.zeros_like(tau_sq[:, map2ir])
+
+    for ii, ir in enumerate(map2ir):
+        mask_q = map2ir_indices == ir
+        tau_ir_sq[:, ii] = tau_sq[:, mask_q].mean(axis=-1)
+
+        # also group by degenerate frequencies
+        # if use_frequency_degeneracy:
+        #     w_unique, w_unique_inverse = np.unique(ir_w2_sq[:, ii], return_inverse=True)
+
+        #     for nn in np.unique(w_unique_inverse):
+        #         mask_s = w_unique_inverse == nn
+        #         tau_ir_sq[mask_s, ii] = tau_ir_sq[mask_s, ii].mean(axis=0)
+
+    dims, name = dimensions.s_q, keys.mode_lifetime_symmetrized
+    tau_symmetrized_sq = tau_ir_sq[:, map2full]
+    tau_symmetrized_sq = xr.DataArray(tau_symmetrized_sq, dims=dims, name=name)
+
+    if xarray:
+        return tau_symmetrized_sq
+    return tau_symmetrized_sq.data
 
 
 def get_gk_ha_q_data(
@@ -265,7 +304,7 @@ def get_gk_ha_q_data(
     jhq = J_ha_q - J_ha_q.mean(axis=0)
     J_ha_q_acf = gk_prefactor * get_autocorrelationNd(jhq, off_diagonal=True, **kw)
 
-    K_ha_q = get_cumtrapz(J_ha_q_acf)
+    K_ha_q_cum = get_cumtrapz(J_ha_q_acf)
 
     # occupation autocorrelation normalized to 1
     dn_tsq = n_tsq - n_tsq.mean(axis=0)
@@ -282,14 +321,34 @@ def get_gk_ha_q_data(
 
     # lifetimes
     tau_sq = get_lifetimes(dn_acf)
+    # symmetrized
+    tau_symmetrized_sq = get_symmetrized_lifetimes(
+        tau_sq, map2ir_indices=dmx.q_grid.map2ir_indices
+    )
 
-    tau_inv_sq = 1 / tau_sq
-    tau_inv_sq.name = keys.mode_lifetime_inverse
+    # tau_inv_sq = 1 / tau_sq
+    # tau_inv_sq.name = keys.mode_lifetime_inverse
 
-    arrays = [J_ha_q, J_ha_q_acf, K_ha_q, n_tsq, dn_acf, cv_sq, tau_sq, tau_inv_sq]
+    # thermal concuctivity
+    K_ha_q = get_kappa(dmx.v_sqa_cartesian, tau_sq, cv_sq=cv_sq)
+    K_ha_q.name = keys.kappa_ha
+
+    # scalar cv
+    k = K_ha_q.data.diagonal().mean()
+    cv = k / get_kappa(dmx.v_sqa_cartesian, tau_sq, scalar=True)
+    cv = xr.DataArray(cv, name=keys.heat_capacity)
+
+    # symmetrized thermal conductivity
+    K_ha_q_symmetrized = get_kappa(
+        dmx.v_sqa_cartesian, tau_sq=tau_symmetrized_sq, cv_sq=cv
+    )
+    K_ha_q_symmetrized.name = keys.kappa_ha_symmetrized
+
+    arrays = [J_ha_q, J_ha_q_acf, K_ha_q_cum, K_ha_q, K_ha_q_symmetrized]
+    arrays += [n_tsq, dn_acf, cv_sq, cv, tau_sq, tau_symmetrized_sq]
 
     # add dynamical matrix arrays
-    arrays.extend(dmx._get_arrays())
+    arrays += dmx._get_arrays()
 
     data = {ar.name: ar for ar in arrays}
 
