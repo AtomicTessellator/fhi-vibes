@@ -6,7 +6,8 @@
 """
 i, j, I, J, a, b = "i", "j", "I", "J", "a", "b"
 s, q = "s", "q"
-sq = (s, q)
+s_q = (s, q)
+q_a = (q, a)
 
 # composite
 Ia, Jb = "Ia", "Jb"
