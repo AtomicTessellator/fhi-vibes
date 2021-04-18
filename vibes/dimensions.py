@@ -5,7 +5,7 @@
     Mode labels: s, q
 """
 i, j, I, J, a, b = "i", "j", "I", "J", "a", "b"
-s, q = "s", "q"
+s, q, q_ir = "s", "q", "q_ir"
 s_q = (s, q)
 q_a = (q, a)
 

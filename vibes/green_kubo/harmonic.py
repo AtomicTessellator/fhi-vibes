@@ -6,6 +6,7 @@ import scipy.optimize as so
 import xarray as xr
 from ase import units
 from vibes import dimensions, keys
+from vibes.brillouin import get_symmetrized_array
 from vibes.correlation import get_autocorrelationNd
 from vibes.dynamical_matrix import DynamicalMatrix
 from vibes.helpers import Timer, talk
@@ -13,6 +14,7 @@ from vibes.integrate import get_cumtrapz
 from vibes.konstanten import to_W_mK
 
 from . import get_gk_prefactor_from_dataset
+from .interpolation import get_interpolation_data
 
 
 _prefix = "gk.harmonic"
@@ -220,6 +222,8 @@ def get_kappa(
     if cv_sq is None:
         cv_sq = 1.0
 
+    # make sure we're dealilng with arrays, cv might be scalar
+    cv_sq = np.asarray(cv_sq)
     v_sqa = np.asarray(v_sqa)
     v2_sqa = v_sqa[:, :, :, _] * v_sqa[:, :, _, :]
     kappa_sqab = to_W_mK * np.asarray(weights * cv_sq * tau_sq)[:, :, _, _] * v2_sqa
@@ -236,52 +240,18 @@ def get_kappa(
     return array
 
 
-def get_symmetrized_lifetimes(
-    tau_sq: xr.DataArray, map2ir_indices: list, xarray: bool = True,
-) -> xr.DataArray:
-    """Symmetrize lifetimes with q-point symmetry map
-
-    Args:
-        tau_sq: mode lifetime dataarray as [Ns, Nq]
-        map2ir_indices: mapping from full q-points to ir grid indices
-        xarray: return as xarray
-
-    Returns:
-        symmetrized lifetimes as [Ns, Nq] array
-    """
-    map2ir, map2full = np.unique(map2ir_indices, return_inverse=True)
-
-    tau_ir_sq = np.zeros_like(tau_sq[:, map2ir])
-
-    for ii, ir in enumerate(map2ir):
-        mask_q = map2ir_indices == ir
-        tau_ir_sq[:, ii] = tau_sq[:, mask_q].mean(axis=-1)
-
-        # also group by degenerate frequencies
-        # if use_frequency_degeneracy:
-        #     w_unique, w_unique_inverse = np.unique(ir_w2_sq[:, ii], return_inverse=True)
-
-        #     for nn in np.unique(w_unique_inverse):
-        #         mask_s = w_unique_inverse == nn
-        #         tau_ir_sq[mask_s, ii] = tau_ir_sq[mask_s, ii].mean(axis=0)
-
-    dims, name = dimensions.s_q, keys.mode_lifetime_symmetrized
-    tau_symmetrized_sq = tau_ir_sq[:, map2full]
-    tau_symmetrized_sq = xr.DataArray(tau_symmetrized_sq, dims=dims, name=name)
-
-    if xarray:
-        return tau_symmetrized_sq
-    return tau_symmetrized_sq.data
-
-
 def get_gk_ha_q_data(
-    dataset: xr.Dataset, dmx: DynamicalMatrix = None, stride: int = 1
+    dataset: xr.Dataset,
+    dmx: DynamicalMatrix = None,
+    interpolate: bool = False,
+    stride: int = 1,
 ) -> collections.namedtuple:
     """return GK dataset entries derived from harmonic model
 
     Args:
         dataset: the trajectory dataset
         dmx: the dynamical matrix (object), otherwise obtain from dataset
+        interpolate: interpolate harmonic flux to dense grid
         stride: time step length
 
     Returns:
@@ -322,15 +292,15 @@ def get_gk_ha_q_data(
     # lifetimes
     tau_sq = get_lifetimes(dn_acf)
     # symmetrized
-    tau_symmetrized_sq = get_symmetrized_lifetimes(
-        tau_sq, map2ir_indices=dmx.q_grid.map2ir_indices
-    )
+    map2ir, map2full = dmx.q_grid.map2ir, dmx.q_grid.ir.map2full
+    tau_symmetrized_sq = get_symmetrized_array(tau_sq, map2ir=map2ir, map2full=map2full)
 
     # tau_inv_sq = 1 / tau_sq
     # tau_inv_sq.name = keys.mode_lifetime_inverse
 
     # thermal concuctivity
-    K_ha_q = get_kappa(dmx.v_sqa_cartesian, tau_sq, cv_sq=cv_sq)
+    v_sqa = dmx.v_sqa_cartesian
+    K_ha_q = get_kappa(v_sqa, tau_sq, cv_sq=cv_sq)
     K_ha_q.name = keys.kappa_ha
 
     # scalar cv
@@ -339,9 +309,7 @@ def get_gk_ha_q_data(
     cv = xr.DataArray(cv, name=keys.heat_capacity)
 
     # symmetrized thermal conductivity
-    K_ha_q_symmetrized = get_kappa(
-        dmx.v_sqa_cartesian, tau_sq=tau_symmetrized_sq, cv_sq=cv
-    )
+    K_ha_q_symmetrized = get_kappa(v_sqa, tau_sq=tau_symmetrized_sq, cv_sq=cv)
     K_ha_q_symmetrized.name = keys.kappa_ha_symmetrized
 
     arrays = [J_ha_q, J_ha_q_acf, K_ha_q_cum, K_ha_q, K_ha_q_symmetrized]
@@ -351,5 +319,10 @@ def get_gk_ha_q_data(
     arrays += dmx._get_arrays()
 
     data = {ar.name: ar for ar in arrays}
+
+    # interpolate
+    if interpolate:
+        results = get_interpolation_data(dmx, tau_symmetrized_sq, cv)
+        data.update(results)
 
     return collections.namedtuple("gk_ha_q_data", data.keys())(**data)

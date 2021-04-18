@@ -150,6 +150,7 @@ def get_lowest_vibrational_frequency(
 
 def get_gk_dataset(
     dataset: xr.Dataset,
+    interpolate: bool = False,
     window_factor: int = defaults.window_factor,
     filter_prominence: float = defaults.filter_prominence,
     discard: int = 0,
@@ -160,6 +161,7 @@ def get_gk_dataset(
 
     Args:
         dataset: a dataset containing `heat_flux` and describing attributes
+        interpolate: interpolate harmonic flux to dense grid
         window_factor: factor for filter width estimated from VDOS (default: 1)
         filter_prominence: prominence for peak detection
         discard: discard this many timesteps from the beginning of the trajectory
@@ -255,7 +257,7 @@ def get_gk_dataset(
 
     # add properties derived from harmonic model
     if keys.fc in dataset:
-        data_ha = get_gk_ha_q_data(dataset)
+        data_ha = get_gk_ha_q_data(dataset, interpolate=interpolate)
         data.update(data_ha._asdict())
         data.update({keys.fc: dataset[keys.fc]})
 

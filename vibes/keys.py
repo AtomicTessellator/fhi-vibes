@@ -23,6 +23,7 @@ integral = "integral"
 filtered = "filtered"
 inverse = "inverse"
 symmetrized = "symmetrized"
+interpolated = "interpolated"
 
 # force constants
 fc = "force_constants"
