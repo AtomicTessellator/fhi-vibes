@@ -3,6 +3,8 @@
 import collections
 
 import numpy as np
+import xarray as xr
+from vibes import dimensions, keys
 from vibes.helpers import Timer, progressbar
 from vibes.helpers.latex import latexify_labels
 from vibes.spglib import get_ir_reciprocal_mesh, get_symmetry_dataset
@@ -269,3 +271,40 @@ def get_bz_mesh(
     IrReciprocalMesh = collections.namedtuple("bz_ir_grid", data.keys())
 
     return IrReciprocalMesh(**data)
+
+
+def get_symmetrized_array(
+    array: xr.DataArray, map2ir: list, map2full: list, xarray: bool = True,
+) -> xr.DataArray:
+    """Symmetrize data in array with symmetry mapping of q-points
+
+    Args:
+        array: dataarray e.g. as [Ns, Nq]
+        map2ir: mapping from full q-points to ir grid points
+        map2full: mapping back from ir to full grid
+        xarray: return as xarray
+
+    Returns:
+        output array where data was averaged over symmetry-related q-points
+    """
+    # bring q dimension to fron
+    dims = array.dims
+    new_dims = list(dims)
+    new_dims.insert(0, new_dims.pop(new_dims.index(dimensions.q)))
+
+    array = array.transpose(*new_dims)
+
+    array_ir = np.zeros_like(array[map2ir])
+
+    for ii, _ in enumerate(map2ir):
+        mask_q = map2full == ii
+        array_ir[ii] = array[mask_q].mean(axis=0)
+
+    name = array.name + f"_{keys.symmetrized}"
+    array_symmetrized = xr.DataArray(array_ir[map2full], dims=new_dims, name=name)
+    # restore original dimension order
+    array_symmetrized = array_symmetrized.transpose(*dims)
+
+    if xarray:
+        return array_symmetrized
+    return array_symmetrized.data
