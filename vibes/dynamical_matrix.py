@@ -401,9 +401,13 @@ class DynamicalMatrix(ForceConstants):
         # q-grid info
         q_grid = self.q_grid
         q_points = xr.DataArray(q_grid.points, dims=dims.q_a, name="q_points")
-        q_map2ir = xr.DataArray(q_grid.map2ir_indices, dims=dims.q, name="q_map2ir")
+        q_map2ir = xr.DataArray(q_grid.map2ir, dims=dims.q_ir, name="q_map2ir")
+        q_map2full = xr.DataArray(q_grid.ir.map2full, dims=dims.q, name="q_map_ir2full")
 
-        return (v_sqa, w2_sq, w_inv_sq, e_isq_re, e_isq_im, q_points, q_map2ir)
+        arrays = [v_sqa, w2_sq, w_inv_sq, e_isq_re, e_isq_im, q_points, q_map2ir]
+        arrays += [q_map2full]
+
+        return arrays
 
 
 # legacy
