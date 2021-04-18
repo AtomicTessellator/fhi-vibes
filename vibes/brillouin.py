@@ -11,6 +11,9 @@ from ase import Atoms
 from ase.dft import kpoints
 
 
+_prefix = "symmetry"
+
+
 def get_paths(atoms: np.ndarray) -> list:
     """nothing but atoms.get_bravais_lattice().special_path.split(',')"""
     return atoms.cell.get_bravais_lattice().special_path.split(",")
@@ -135,7 +138,7 @@ def get_q_grid(
           .symop2ir: index of symmetry operation that transforms point to ir_point
 
     """
-    timer = Timer(message=f"reduce q-grid w/ {len(q_points)} points", prefix="symmetry")
+    timer = Timer(message=f"reduce q-grid w/ {len(q_points)} points", prefix=_prefix)
     # get all pure rotations:
     spg_dataset = get_symmetry_dataset(primitive, index_maps=True, symprec=symprec)
     rotations = spg_dataset.rotations.swapaxes(1, 2)  # _cartesian
@@ -152,7 +155,7 @@ def get_q_grid(
 
     # fkdev: try out numba
     # for each q-point, check if it can be mapped under rotations to a ir. prototype
-    for iq, q in enumerate(progressbar(q_points)):
+    for iq, q in enumerate(progressbar(q_points, prefix=_prefix)):
 
         prototype_found = False
         for ir in ir_indices:
@@ -184,11 +187,11 @@ def get_q_grid(
             ir_indices.append(iq)
 
     # get map to ir_points and weights
-    ir_indices_check, map2ir_points, ir_weigths = np.unique(
+    ir_indices_array, map2ir_points, ir_weigths = np.unique(
         map2ir_indices, return_inverse=True, return_counts=True
     )
     # sanity check
-    assert np.allclose(ir_indices, ir_indices_check)
+    assert np.allclose(ir_indices, ir_indices_array)
 
     # prepare and return results including cartesian rotations
     q_points = q_points.copy()
@@ -199,7 +202,6 @@ def get_q_grid(
         "points": q_points[ir_indices],
         "points_cartesian": q_points_cart[ir_indices],
         "weights": ir_weigths,
-        "indices": ir_indices,
         "map2full": map2ir_points,
     }
 
@@ -208,6 +210,7 @@ def get_q_grid(
     data = {
         "points": q_points,
         "points_cartesian": q_points_cart,
+        "map2ir": ir_indices_array,
         "map2ir_points": map2ir_points,
         "map2ir_indices": map2ir_indices,
         "spg_data": spg_dataset,
