@@ -7,9 +7,10 @@
 # aims output
 *.out
 
-# testcase folder
+# testcase and development folder
 testcases/
 data/*
+dev/*
 
 # vibes config file
 vibes.cfg
