@@ -243,7 +243,12 @@ def get_gk_dataset(
 
     # 6. compile new dataset
     attrs = dataset.attrs.copy()
-    attrs.update({"gk_window_fs": window_fs, keys.gk_prefactor: gk_prefactor})
+    u = {
+        "gk_window_fs": window_fs,
+        keys.gk_prefactor: gk_prefactor,
+        "filter_prominence": filter_prominence,
+    }
+    attrs.update(u)
 
     data = {
         keys.heat_flux: heat_flux,

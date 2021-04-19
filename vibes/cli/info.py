@@ -193,10 +193,10 @@ def greenkubo(files, no_plot):
 @click.argument("file", default=filenames.trajectory_dataset, type=complete_files)
 @click.option("-o", "--output_file", default="vdos.csv")
 @click.option("-p", "--plot", is_flag=True, help="plot the DOS")
-@click.option("--prominence", default=defaults.filter_prominence, help="for find_peaks")
+@click.option("--filter_prominence", default=defaults.filter_prominence)
 @click.option("-mf", "--max_frequency", type=float, help="max. freq. in THz")
 @click.option("--npad", default=10000, help="number of zeros for padding")
-def vdos(file, output_file, plot, prominence, max_frequency, npad):
+def vdos(file, output_file, plot, filter_prominence, max_frequency, npad):
     """compute and write velocity autocorrelation function to output file"""
     import xarray as xr
 
@@ -211,7 +211,7 @@ def vdos(file, output_file, plot, prominence, max_frequency, npad):
     df = vdos.real.sum(axis=(1, 2)).to_series()
 
     if plot:
-        simple_plot(df, prominence=prominence, max_frequency=max_frequency)
+        simple_plot(df, prominence=filter_prominence, max_frequency=max_frequency)
 
     click.echo(f".. write VDOS to {output_file}")
     df.to_csv(output_file, index_label="omega", header=True)
