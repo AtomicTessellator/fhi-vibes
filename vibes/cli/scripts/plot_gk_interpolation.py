@@ -68,8 +68,9 @@ def main(file: str = "greenkubo.nc", outfile: Path = "gk_summary_interpolation.p
 
     fig = ax.get_figure()
 
-    fig.savefig(outfile)
-    click.echo(f".. interpolation summary plotted to {outfile}")
+    if outfile is not None:
+        fig.savefig(outfile)
+        click.echo(f".. interpolation summary plotted to {outfile}")
 
     # lifetimes
     fig, (ax1, ax2) = plt.subplots(ncols=2, sharey=True, figsize=(10, 5))
@@ -116,9 +117,10 @@ def main(file: str = "greenkubo.nc", outfile: Path = "gk_summary_interpolation.p
     ax1.set_title("Simulation")
     ax2.set_title("Analytic")
 
-    outfile = Path(outfile).stem + "_lifetimes" + Path(outfile).suffix
-    fig.savefig(outfile)
-    click.echo(f"..      lifetime summary plotted to {outfile}")
+    if outfile is not None:
+        outfile = Path(outfile).stem + "_lifetimes" + Path(outfile).suffix
+        fig.savefig(outfile)
+        click.echo(f"..      lifetime summary plotted to {outfile}")
 
 
 if __name__ == "__main__":

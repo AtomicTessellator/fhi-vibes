@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats as st
 import xarray as xr
 from scipy.interpolate import LinearNDInterpolator, griddata
+from scipy.spatial.qhull import QhullError
 from vibes import dimensions, keys
 from vibes.dynamical_matrix import DynamicalMatrix
 from vibes.helpers import talk
@@ -100,7 +101,13 @@ def get_interpolation_data(
     l_sq = dmx.w2_sq * lifetimes
 
     # get value at gamma from interpolating
-    l_sq = interpolate_to_gamma(dmx.q_points, l_sq)
+    try:
+        l_sq = interpolate_to_gamma(dmx.q_points, l_sq)
+    except QhullError:
+        _talk("**QhullError  ")
+        _talk("**Most likely the sampling of q-points is insufficient in >=1 direction")
+        _talk("**Interpolation is not available in this case, sorry!")
+        return {}
 
     # create training data on extended unit grid [0, 1]
     train_grid = get_unit_grid_extended(dmx.q_points)

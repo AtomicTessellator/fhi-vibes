@@ -95,8 +95,9 @@ def main(
 
     ax2.set_xlim([0, xlim])
 
-    fig.savefig(outfile)
-    click.echo(f"..    green kubo summary plotted to {outfile}")
+    if outfile is not None:
+        fig.savefig(outfile)
+        click.echo(f"..    green kubo summary plotted to {outfile}")
 
 
 if __name__ == "__main__":
