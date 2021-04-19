@@ -393,7 +393,7 @@ class DynamicalMatrix(ForceConstants):
         sqa = (*dims.s_q, dims.a)
         isq = (dims.ia, *dims.s_q)
         v_sqa = xr.DataArray(self.v_sqa_cartesian, dims=sqa, name="v_sqa_cartesian")
-        w2_sq = xr.DataArray(self.w2_sq, dims=dims.s_q, name="w2_sq")
+        w_sq = xr.DataArray(self.w_sq, dims=dims.s_q, name="w_sq")
         w_inv_sq = xr.DataArray(self.w_inv_sq, dims=dims.s_q, name="w_inverse_sq")
         e_isq_re = xr.DataArray(self.e_isq.real, dims=isq, name="e_isq_real")
         e_isq_im = xr.DataArray(self.e_isq.imag, dims=isq, name="e_isq_imag")
@@ -404,7 +404,7 @@ class DynamicalMatrix(ForceConstants):
         q_map2ir = xr.DataArray(q_grid.map2ir, dims=dims.q_ir, name="q_map2ir")
         q_map2full = xr.DataArray(q_grid.ir.map2full, dims=dims.q, name="q_map_ir2full")
 
-        arrays = [v_sqa, w2_sq, w_inv_sq, e_isq_re, e_isq_im, q_points, q_map2ir]
+        arrays = [v_sqa, w_sq, w_inv_sq, e_isq_re, e_isq_im, q_points, q_map2ir]
         arrays += [q_map2full]
 
         return arrays
