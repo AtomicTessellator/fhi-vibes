@@ -8,7 +8,6 @@ import threading
 import time
 
 import click
-
 from vibes.helpers.warnings import warn
 
 
@@ -51,7 +50,7 @@ def talk(message, prefix=None, verbose=True):
         print()
 
 
-def print_msg(message, prefix=None, indent=0, width=15):
+def print_msg(message, prefix=None, indent=0, width=20):
     """print for talk
 
     Args:
