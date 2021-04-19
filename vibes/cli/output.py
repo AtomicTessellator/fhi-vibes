@@ -41,7 +41,7 @@ def trajectory(file, harmonic, fc_file, outfile, force):
         file_size_is = xr.open_dataset(outfile).attrs.get(keys.st_size)
 
         if file_size == file_size_is:
-            click.echo(f".. file size has not changed, skip.")
+            click.echo(f".. input file (size) has not changed, skip.")
             click.echo(".. (use --force to parse anyway)")
             return
         else:
@@ -164,8 +164,9 @@ def phono3py(obj, file, q_mesh):
 @click.option("--interpolate", is_flag=True, help="interpolate to dense grid")
 @click.option("--total", is_flag=True, help="compute total flux")
 @click.option("-fc", "--fc_file", type=Path, help="use force constants from file")
+@click.option("-u", "--update", is_flag=True, help="only parse if input data changed")
 def greenkubo(
-    file, outfile, window_factor, filter_prominence, interpolate, total, fc_file
+    file, outfile, window_factor, filter_prominence, interpolate, total, fc_file, update
 ):
     """perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
@@ -173,7 +174,23 @@ def greenkubo(
     import vibes.green_kubo as gk
     from vibes.io import parse_force_constants
 
+    if total:
+        outfile = outfile.parent / f"{outfile.stem}.total.nc"
+
     with xr.open_dataset(file) as ds:
+
+        # check if postprocess is necessary
+        if Path(outfile).exists() and update:
+            file_size_old = xr.open_dataset(outfile).attrs.get(keys.st_size)
+            file_size_new = ds.attrs.get(keys.st_size)
+
+            if file_size_new == file_size_old:
+                click.echo(f".. input file (size) has not changed, skip.")
+                click.echo(".. (use --force to parse anyway)")
+                return
+            else:
+                click.echo(f".. file size has changed, parse the file.")
+
         if fc_file is not None and keys.fc in ds:
             click.echo(f".. update force constants from {fc_file}")
             fcs = ds[keys.fc]
@@ -188,9 +205,6 @@ def greenkubo(
             filter_prominence=filter_prominence,
             total=total,
         )
-
-    if total:
-        outfile = outfile.parent / f"{outfile.stem}.total.nc"
 
     click.echo(f".. write to {outfile}")
 
