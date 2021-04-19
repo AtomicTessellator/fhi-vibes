@@ -10,7 +10,7 @@ parent = Path(__file__).parent
 commands = [
     "vibes info vdos test.nc -p",
     "vibes output gk test.nc --filter_prominence 0.1",
-    "vibes info gk -p",
+    "vibes info gk",
 ]
 
 
