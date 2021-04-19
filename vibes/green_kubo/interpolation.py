@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats as st
 import xarray as xr
 from scipy.interpolate import LinearNDInterpolator, griddata
+from vibes import dimensions, keys
 from vibes.dynamical_matrix import DynamicalMatrix
 from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_unit_grid_extended
@@ -138,7 +139,7 @@ def get_interpolation_data(
         kappas[ii] = k
         _talk(f"{nq:3d}, Nq_eff = {Nq_eff:6.2f}, kappa = {np.diagonal(k).mean()}")
 
-    kappas = xr.DataArray(kappas, dims=("nq", "a", "b"), coords={"nq": nqs})
+    kappas = xr.DataArray(kappas, dims=("nq", *dimensions.a_b), coords={"nq": nqs})
 
     # interpolate to infinity assuming convergence with 1/nq (Riemann sum)
     ks = np.diagonal(kappas, axis1=1, axis2=2).mean(axis=1)
@@ -147,7 +148,8 @@ def get_interpolation_data(
     k_ha = np.diagonal(kappa_ha).mean()
     nq = len(dmx.q_points) ** (1 / 3)
 
-    correction_factor = 1 - m / nq / k_ha
+    correction = -m / nq
+    correction_factor = 1 + correction / k_ha
     correction_factor_err = stderr / nq / k_ha
 
     k_ha_int = correction_factor * k_ha
@@ -157,17 +159,23 @@ def get_interpolation_data(
     _talk(f"Fit intercept:                      {y0:.3f} W/mK")
     _talk(f"Fit intercept - initial value:      {y0 - k_ha:.3f} {err_str}  W/mK")
     _talk(f"Interpolated harm. kappa:           {k_ha_int:.3f} {err_str} W/mK")
-    _talk(f"Correction:                         {-m / nq:.3f} {err_str} W/mK")
+    _talk(f"Correction:                         {correction:.3f} {err_str} W/mK")
     err_str = f"+/- {correction_factor_err:.3f}"
     _talk(f"Correction factor:                  {correction_factor:.3f} {err_str}")
 
+    dims_w = (dimensions.s, dimensions.q_int)
+    dims_q = (dimensions.q_int, dimensions.a)
     results = {
-        "interpolation_fit_slope": m,
-        "interpolation_fit_intercept": y0,
-        "interpolation_fit_stderr": stderr,
-        "interpolation_correction_factor": correction_factor,
-        "interpolation_correction_factor_err": correction_factor_err,
-        "interpolation_array": kappas,
+        keys.interpolation_fit_slope: m,
+        keys.interpolation_fit_intercept: y0,
+        keys.interpolation_fit_stderr: stderr,
+        keys.interpolation_correction: correction,
+        keys.interpolation_correction_factor: correction_factor,
+        keys.interpolation_correction_factor_err: correction_factor_err,
+        keys.interpolation_kappa_array: kappas,
+        keys.interpolation_q_points: (dims_q, grid.points),
+        keys.interpolation_w_sq: (dims_w, solution.w_sq),
+        keys.interpolation_tau_sq: (dims_w, tau_int_sq),
     }
 
     return results

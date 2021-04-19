@@ -174,3 +174,15 @@ calculator_parameters = ".".join([calculator, parameters])
 settings = "settings"
 
 aims_uuid = "aims_uuid"
+
+# interpolation
+interpolation_fit_slope = "interpolation_fit_slope"
+interpolation_fit_intercept = "interpolation_fit_intercept"
+interpolation_fit_stderr = "interpolation_fit_stderr"
+interpolation_correction = "interpolation_correction"
+interpolation_correction_factor = "interpolation_correction_factor"
+interpolation_correction_factor_err = "interpolation_correction_factor_err"
+interpolation_kappa_array = "interpolation_kappa_array"
+interpolation_q_points = "interpolation_q_points"
+interpolation_w_sq = "interpolation_w_sq"
+interpolation_tau_sq = "interpolation_tau_sq"
