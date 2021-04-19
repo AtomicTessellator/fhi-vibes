@@ -231,7 +231,7 @@ def get_kappa(
     kappa_ab = kappa_sqab.sum(axis=(0, 1))
 
     if xarray:
-        array = xr.DataArray(kappa_ab, dims=dimensions.ab, name=keys.mode_lifetime)
+        array = xr.DataArray(kappa_ab, dims=dimensions.a_b, name=keys.mode_lifetime)
     else:
         array = kappa_ab
 

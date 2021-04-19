@@ -5,7 +5,7 @@
     Mode labels: s, q
 """
 i, j, I, J, a, b = "i", "j", "I", "J", "a", "b"
-s, q, q_ir = "s", "q", "q_ir"
+s, q, q_ir, q_int = "s", "q", "q_ir", "q_int"
 s_q = (s, q)
 q_a = (q, a)
 
@@ -15,7 +15,7 @@ ia, jb = "ia", "jb"
 
 vec = (a,)
 tensor = (a, b)
-ab = tensor
+a_b = tensor
 
 time = "time"
 time_atom = (time, I)
