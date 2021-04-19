@@ -2,7 +2,7 @@
 from pathlib import Path
 
 import click
-from vibes import defaults
+from vibes import defaults, keys
 from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup as AliasedGroup
@@ -25,7 +25,6 @@ def output():
 @click.option("--force", is_flag=True, help="enfore parsing of output file")
 def trajectory(file, harmonic, fc_file, outfile, force):
     """write trajectory data in FILE to xarray.Dataset"""
-    from vibes import keys
     from vibes.trajectory import reader
     from vibes.trajectory.dataset import get_trajectory_dataset
 
@@ -164,14 +163,24 @@ def phono3py(obj, file, q_mesh):
 @click.option("--filter_prominence", default=defaults.filter_prominence)
 @click.option("--interpolate", is_flag=True, help="interpolate to dense grid")
 @click.option("--total", is_flag=True, help="compute total flux")
-# @click.option("-d", "--discard", default=0)
-def greenkubo(file, outfile, window_factor, filter_prominence, interpolate, total):
+@click.option("-fc", "--fc_file", type=Path, help="use force constants from file")
+def greenkubo(
+    file, outfile, window_factor, filter_prominence, interpolate, total, fc_file
+):
     """perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
 
     import vibes.green_kubo as gk
+    from vibes.io import parse_force_constants
 
     with xr.open_dataset(file) as ds:
+        if fc_file is not None and keys.fc in ds:
+            click.echo(f".. update force constants from {fc_file}")
+            fcs = ds[keys.fc]
+            fcs.data = parse_force_constants(fc_file)
+            fcs.attrs = {"filename": str(Path(fc_file).absolute())}
+            ds[keys.fc] = fcs
+
         ds_gk = gk.get_gk_dataset(
             ds,
             interpolate=interpolate,
