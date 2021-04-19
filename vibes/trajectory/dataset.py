@@ -3,6 +3,7 @@ import numpy as np
 import xarray as xr
 from vibes import dimensions as dims
 from vibes import keys
+from vibes.helpers import warn
 from vibes.helpers.converters import atoms2json, dict2json
 from vibes.structure.misc import get_sysname
 
@@ -61,57 +62,12 @@ def _attrs(trajectory, dct=None, metadata=False):
     return attrs
 
 
-def get_positions_dataarray(trajectory, verbose=True):
-    """extract positions from TRAJECTORY  and return as xarray.DataArray
-
-    Args:
-        trajectory (Trajectory): list of atoms objects
-    Returns:
-        positions (xarray.DataArray [N_t, N_a, 3])
-    """
-    timer = Timer("Get positions from trajectory", verbose=verbose)
-
-    df = xr.DataArray(
-        trajectory.positions,
-        dims=dims.time_atom_vec,
-        coords=_time_coords(trajectory),
-        name="positions",
-        attrs=_attrs(trajectory),
-    )
-
-    timer()
-
-    return df
-
-
-def get_velocities_dataarray(trajectory, verbose=True):
-    """extract velocties from TRAJECTORY  and return as xarray.DataArray
-
-    Args:
-        trajectory (Trajectory): list of atoms objects
-    Returns:
-        velocities (xarray.DataArray [N_t, N_a, 3])
-    """
-    timer = Timer("Get velocities from trajectory", verbose=verbose)
-
-    df = xr.DataArray(
-        trajectory.velocities,
-        dims=dims.time_atom_vec,
-        coords=_time_coords(trajectory),
-        name="velocities",
-        attrs=_attrs(trajectory),
-    )
-
-    timer()
-
-    return df
-
-
-def get_pressure_dataset(trajectory, verbose=True):
+def get_pressure_dataset(trajectory, attrs=None, verbose=True):
     """extract pressure from TRAJECTORY  and return as xarray.DataArray
 
     Args:
         trajectory (Trajectory): list of atoms objects
+        attrs: attach attrs (if already obtained)
     Returns:
         pressure (xarray.DataArray [N_t]) in eV/AA**3
     """
@@ -123,7 +79,10 @@ def get_pressure_dataset(trajectory, verbose=True):
         keys.pressure_potential: (dims.time, trajectory.pressure_potential),
     }
 
-    df = xr.Dataset(data, coords=_time_coords(trajectory), attrs=_attrs(trajectory),)
+    if attrs is None:
+        attrs = _attrs(trajectory)
+
+    df = xr.Dataset(data, coords=_time_coords(trajectory), attrs=attrs,)
 
     timer()
 
@@ -141,10 +100,6 @@ def get_trajectory_dataset(trajectory, metadata=False):
             positions, velocities, forces, stress, pressure, temperature
     """
 
-    # add velocities and pressure
-    positions = get_positions_dataarray(trajectory)
-    velocities = get_velocities_dataarray(trajectory)
-
     # reference positions
     positions_reference = (dims.positions, trajectory.reference_atoms.positions)
     lat = np.asarray(trajectory.reference_atoms.cell)
@@ -153,9 +108,9 @@ def get_trajectory_dataset(trajectory, metadata=False):
     dataset = {
         keys.reference_positions: positions_reference,
         keys.reference_lattice: lattice_reference,
-        keys.positions: positions,
+        keys.positions: (dims.time_atom_vec, trajectory.positions),
         keys.displacements: (dims.time_atom_vec, trajectory.displacements),
-        keys.velocities: velocities,
+        keys.velocities: (dims.time_atom_vec, trajectory.velocities),
         keys.momenta: (dims.time_atom_vec, trajectory.momenta),
         keys.forces: (dims.time_atom_vec, trajectory.forces),
         keys.energy_kinetic: (dims.time, trajectory.kinetic_energy),
@@ -218,11 +173,18 @@ def get_trajectory_dataset(trajectory, metadata=False):
     ds = xr.Dataset(dataset, coords=coords, attrs=attrs)
 
     # add pressure
-    ds.update(get_pressure_dataset(trajectory))
+    ds.update(get_pressure_dataset(trajectory, attrs=attrs))
 
     # aims uuid
     aims_uuids = trajectory.aims_uuid
     if aims_uuids[0] is not None:
         ds.update({keys.aims_uuid: (dims.time, aims_uuids)})
+
+    # check for duplicate times
+    unique_times, index = np.unique(ds[keys.time], return_index=True)
+    dn = len(ds[keys.time]) - len(unique_times)
+    if dn > 0:
+        warn(f"Drop {dn} duplicate timesteps. CHECK TRAJECTORY!", level=1)
+        ds = ds.isel({keys.time: index})
 
     return ds
