@@ -619,35 +619,6 @@ def average_trajectory(file, range, cartesian, outfile):
     click.echo(f".. geometry with averaged positions written to {outfile}")
 
 
-@trajectory.command(context_settings=_default_context_settings)
-@click.argument("file", default=filenames.trajectory, type=complete_files)
-def clean_nsteps(file):
-    """remove duplicate nsteps from trajectory.son"""
-    from vibes import keys
-    from vibes.trajectory import Trajectory, reader
-
-    click.echo(f"Read trajectory from {file}:")
-    traj = reader(file)
-
-    click.echo(f"Clean trajectory")
-    list_atoms = []
-    list_steps = []
-    for atoms in traj:
-        nsteps = atoms.info.get(keys.nsteps)
-        if nsteps not in list_steps:
-            list_steps.append(nsteps)
-            list_atoms.append(atoms)
-        else:
-            click.echo(f".. discard step {nsteps}")
-
-    new_traj = Trajectory(list_atoms, metadata=traj.metadata)
-
-    outfile = str(file) + ".cleaned"
-
-    click.echo(f"Write to {outfile}")
-    new_traj.write(outfile)
-
-
 @utils.command("backup", context_settings=_default_context_settings)
 @click.argument("folder", type=complete_files)
 @click.option("--target", default=keys.default_backup_folder)

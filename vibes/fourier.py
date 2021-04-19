@@ -1,7 +1,6 @@
 """Fourier Transforms"""
 import numpy as np
 import xarray as xr
-
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.helpers import Timer, talk, warn
@@ -18,9 +17,11 @@ def _talk(msg, **kwargs):
 def get_timestep(times, tol=1e-9):
     """get time step from a time series and check for glitches"""
     d_times = np.asarray((times - np.roll(times, 1))[1:])
-    timestep = np.mean(d_times)
+    timestep = d_times[0]
 
-    assert np.all(np.abs(d_times - timestep) < tol)
+    if not np.all(np.abs(np.mean(d_times) - timestep) < tol):
+        warn(f"timestep {timestep:.3f} not constant in trajectory, CHECK!", level=1)
+        warn(f"Mean timestep: {np.mean(d_times):.3f} +/- {np.std(d_times):.3f}")
 
     return timestep
 
