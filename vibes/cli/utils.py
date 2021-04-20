@@ -399,7 +399,6 @@ def frequencies(file, supercell, show_n_frequencies, outfile, symmetrize, format
 @force_constants.command(context_settings=_default_context_settings)
 @click.argument("file", default="trajectory.nc", type=complete_files)
 @click.option("--sum_rules", is_flag=True, help="enforce sum rules")
-@click.option("--enlarge_cutoff", is_flag=True, help="enlarge the fit cutoff")
 @click.option("--plot", is_flag=True, help="inspect bandstructure")
 @click.option("--stride", default=100, help="take every STRIDE steps for fit")
 def fit_hiphive(**kwargs):
