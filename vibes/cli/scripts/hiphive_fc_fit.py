@@ -1,4 +1,3 @@
-import itertools
 import json
 from pathlib import Path
 
@@ -14,8 +13,8 @@ from hiphive import (
 from hiphive.fitting import Optimizer
 from phonopy import Phonopy
 from phonopy.file_IO import write_FORCE_CONSTANTS
-
 from vibes.helpers.geometry import inscribed_sphere_in_box
+from vibes.phonopy.wrapper import plot_bandstructure_and_dos
 
 
 def get_fit_structures(reference_atoms, dataset, stride=100):
@@ -50,7 +49,6 @@ def get_fit_structures(reference_atoms, dataset, stride=100):
 def main(
     file: Path,
     sum_rules: bool = False,
-    enlarge_cutoff: bool = False,
     outfile: Path = "FORCE_CONSTANTS_hiphive",
     plot: bool = False,
     stride: int = 100,
@@ -61,7 +59,6 @@ def main(
     Args:
         file: trajectory dataset file
         sum_rules: enfore rotational sum rules
-        enlarge_cutoff: increase the cutoff by tiling
         outfile: where the fitted FC are stored
         stride: use every STRIDE steps for fit
         verbose: be verbose
@@ -75,17 +72,24 @@ def main(
     supercell.set_tags(np.arange(len(supercell)))
 
     supercell_matrix = (
-        (supercell.cell @ primitive.cell.reciprocal()).round().astype(int)
+        (supercell.cell @ primitive.cell.reciprocal().T).round().astype(int)
     )
 
-    if enlarge_cutoff:
-        supercell_fit = supercell.repeat(2)
-    else:
-        supercell_fit = supercell
+    # build phonopy object and sanity check
+    phonon = Phonopy(primitive, supercell_matrix=supercell_matrix.T)
+    n0, n1 = len(supercell), len(phonon.supercell)
+    c0, c1 = supercell.get_cell(), phonon.supercell.get_cell()
+    assert n0 == n1, (n0, n1)
+    assert np.allclose(c0, c1), (c0, c1)
 
-    max_cutoff = inscribed_sphere_in_box(supercell_fit.cell)
+    supercell_fit = supercell
 
-    cutoffs = [0.99 * max_cutoff]
+    # if enlarge_cutoff:
+    #     supercell_fit = supercell.repeat(2)
+    # else:
+    #     supercell_fit = supercell
+
+    cutoffs = [0.99 * inscribed_sphere_in_box(supercell_fit.cell)]  # max. cutoff
 
     cs = ClusterSpace(primitive, cutoffs=cutoffs)
 
@@ -121,48 +125,25 @@ def main(
     fcs = fcp.get_force_constants(supercell_fit)
     fc = fcs.get_fc_array(2)
 
-    # reduce
-    new_fc = np.zeros((len(supercell), len(supercell), 3, 3))
-    for i, j in itertools.product(range(len(supercell_fit)), repeat=2):
-        ti = supercell_fit[i].tag
-        tj = supercell_fit[j].tag
-        new_fc[ti, tj] += fc[i, j]
+    # # reduce from enlarged supercell -> this doesn't really work
+    # new_fc = np.zeros((len(supercell), len(supercell), 3, 3))
+    # for i, j in itertools.product(range(len(supercell_fit)), repeat=2):
+    #     ti = supercell_fit[i].tag
+    #     tj = supercell_fit[j].tag
+    #     new_fc[ti, tj] += fc[i, j]
 
-    if enlarge_cutoff:
-        new_fc /= 2 ** 3
-
-    phonon = Phonopy(primitive, supercell_matrix=supercell_matrix.T)
-
-    p2s_map = phonon.primitive.get_primitive_to_supercell_map()
+    # if enlarge_cutoff:
+    #     new_fc /= 2 ** 3
 
     # reduced fc
     print(f".. write fc to {outfile}")
-    write_FORCE_CONSTANTS(new_fc[p2s_map, :, :, :], filename=outfile)
+    p2s_map = phonon.primitive.get_primitive_to_supercell_map()
+    write_FORCE_CONSTANTS(fc[p2s_map, :, :, :], filename=outfile)
 
     if plot:
-        phonon.set_force_constants(new_fc)
-
-        primitive.cell.bandpath().path
-
-        bandpath = primitive.cell.bandpath(npoints=100)
-
-        x, xticks, xticklabels = bandpath.get_linear_kpoint_axis()
-
-        # let's plot bandstructure and DOS
-        phonon.run_mesh([45, 45, 45])
-        phonon.run_total_dos(use_tetrahedron_method=True)
-        phonon.run_band_structure([bandpath.kpts])
-
-        # phonon.band_structure.plot([ax])
-        plt = phonon.plot_band_structure_and_dos()
-        fig, ax = plt.gcf(), plt.gca()
-
-        ax.set_xticks(xticks * ax.get_xlim()[1] / xticks.max())
-        ax.set_xticklabels(xticklabels)
-
-        outfile = "bandstructure_" + outfile + ".pdf"
-        print(f".. plot to {outfile}")
-        fig.savefig(outfile)
+        phonon.set_force_constants(fc)
+        file = "bandstructure_" + outfile + ".pdf"
+        plot_bandstructure_and_dos(phonon, q_mesh=3 * (31,), file=file)
 
 
 if __name__ == "__main__":
