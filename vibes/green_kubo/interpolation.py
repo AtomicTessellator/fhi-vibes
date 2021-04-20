@@ -17,32 +17,42 @@ def _talk(*args, **kwargs):
 
 
 def interpolate_to_gamma(
-    q_points: np.ndarray, array_sq: np.ndarray, tol: float = 1e-9
+    q_points: np.ndarray,
+    array_sq: np.ndarray,
+    extend_minus: bool = True,
+    tol: float = 1e-9,
 ) -> np.ndarray:
     """Get values at Gamma from interpolating surrounding values
 
     Args:
         q_points: the training grid, FIRST q-point is Gamma, [Nq, 3]
         array_sq: array in shape [Ns, Nq] used for interpolating to Gamma
+        extend_minus: extend the q-grid to -q using assuming inversion symmetry
         tol: tolerance for wrapping
 
     Returns:
-        array_sq: array with interpolated values at Gamma
+        array_s: array with interpolated values at Gamma
     """
     # check if first q-point is gamma
     assert np.linalg.norm(q_points[0]) < tol
 
     # make sure new points are in [-0.5, 0.5)
-    train_qs = (q_points[1:] + 0.5 + tol) % 1 - tol - 0.5
+    train_qs = q_points[1:]  # (q_points[1:] + 0.5 + tol) % 1 - tol - 0.5
+    train_array = array_sq[:, 1:]
+
+    if extend_minus:
+        train_qs = np.concatenate([train_qs, -train_qs])
+        train_array = np.concatenate([train_array, train_array], axis=1)
 
     q_gamma = np.zeros(3)
 
-    for ns, l in enumerate(array_sq[:, 1:]):
+    array_s = np.zeros_like(array_sq[:, 0])
+    for ns, l in enumerate(train_array):
         interpolator = LinearNDInterpolator(train_qs, l)
         l_s_at_gamma = float(interpolator(q_gamma))
-        array_sq[ns, 0] = l_s_at_gamma
+        array_s[ns] = l_s_at_gamma
 
-    return array_sq
+    return array_s
 
 
 def interpolate_to_grid(
@@ -102,12 +112,15 @@ def get_interpolation_data(
 
     # get value at gamma from interpolating
     try:
-        l_sq = interpolate_to_gamma(dmx.q_points, l_sq)
+        l_sq[:, 0] = interpolate_to_gamma(dmx.q_points, l_sq, extend_minus=True)
     except QhullError:
         _talk("**QhullError  ")
         _talk("**Most likely the sampling of q-points is insufficient in >=1 direction")
         _talk("**Interpolation is not available in this case, sorry!")
         return {}
+
+    _rep = np.array2string(l_sq[:, 0], precision=2)
+    _talk(f"Interpolated l_sq at Gamma: {_rep}")
 
     # create training data on extended unit grid [0, 1]
     train_grid = get_unit_grid_extended(dmx.q_points)
@@ -118,7 +131,8 @@ def get_interpolation_data(
         "train_array_sq": train_l_sq,
         "train_points": train_grid.points_extended,
     }
-    assert np.allclose(l_sq, interpolate_to_grid(dmx.q_points, **kw_train))
+    l_sq_int = interpolate_to_grid(dmx.q_points, **kw_train)
+    assert np.allclose(l_sq, l_sq_int), (l_sq, l_sq_int)
 
     # get kappa w/o interpolation (same as K_ha_q_symmetrized)
     kappa_ha = get_kappa(dmx.v_sqa_cartesian, tau_sq=lifetimes, cv_sq=cv)
