@@ -12,7 +12,7 @@ from vibes.helpers.plotting import rc_params
 plt.style.use(rc_params)
 
 
-def main(file: str = "greenkubo.nc", outfile: Path = "gk_summary_interpolation.png"):
+def main(file: str = "greenkubo.nc", outfile: Path = "gk_summary_interpolation.pdf"):
     """plot summary for interpolation"""
     if isinstance(file, xr.Dataset):
         DS = file
