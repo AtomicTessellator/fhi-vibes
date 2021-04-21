@@ -155,9 +155,9 @@ def csv(file, describe, half, to_json):
 
 @info.command(aliases=["gk"], context_settings=_default_context_settings)
 @click.argument("files", nargs=-1)
-@click.option("--no_plot", is_flag=True, help="don't plot")
-# @click.option("--outfile", default="gk_summary.csv")
-def greenkubo(files, no_plot):
+@click.option("-p", "--plot", is_flag=True, help="plot info")
+# @click.option("--png", is_flag=True, help="plot png instead of pdf")
+def greenkubo(files, plot):
     """visualize heat flux and thermal conductivity"""
     import xarray as xr
 
@@ -178,25 +178,27 @@ def greenkubo(files, no_plot):
     click.echo(f"Kappa:    {k_mean:.3f} +/- {k_err:.3f}")
     click.echo(f"Kappa^ab: {ks.mean(axis=0)}")
 
-    if not no_plot:
+    if plot:
         from .scripts.plot_gk_summary import main as plot_summary
 
-        plot_summary(ds_gk.mean(dim=keys.trajectory))
+        outfile = Path(files[0]).stem + "_summary.pdf"
+        plot_summary(ds_gk.mean(dim=keys.trajectory), outfile=outfile)
 
         if keys.interpolation_correction in ds_gk:
             from .scripts.plot_gk_interpolation import main as plot_interpolation
 
-            plot_interpolation(ds_gk.mean(dim=keys.trajectory))
+            _outfile = Path(outfile).stem + "_interpolation.pdf"
+            plot_interpolation(ds_gk.mean(dim=keys.trajectory), outfile=_outfile)
 
 
 @info.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory_dataset, type=complete_files)
-@click.option("-o", "--output_file", default="vdos.csv")
+@click.option("-o", "--outfile", default="vdos.csv")
 @click.option("-p", "--plot", is_flag=True, help="plot the DOS")
 @click.option("--filter_prominence", default=defaults.filter_prominence)
 @click.option("-mf", "--max_frequency", type=float, help="max. freq. in THz")
 @click.option("--npad", default=10000, help="number of zeros for padding")
-def vdos(file, output_file, plot, filter_prominence, max_frequency, npad):
+def vdos(file, outfile, plot, filter_prominence, max_frequency, npad):
     """compute and write velocity autocorrelation function to output file"""
     import xarray as xr
 
@@ -213,8 +215,8 @@ def vdos(file, output_file, plot, filter_prominence, max_frequency, npad):
     if plot:
         simple_plot(df, prominence=filter_prominence, max_frequency=max_frequency)
 
-    click.echo(f".. write VDOS to {output_file}")
-    df.to_csv(output_file, index_label="omega", header=True)
+    click.echo(f".. write VDOS to {outfile}")
+    df.to_csv(outfile, index_label="omega", header=True)
 
 
 @info.command(context_settings=_default_context_settings)

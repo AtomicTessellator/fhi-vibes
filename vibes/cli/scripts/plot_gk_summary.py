@@ -14,7 +14,7 @@ def main(
     file: str = "greenkubo.nc",
     cmap: str = "colorblind",
     xlim: float = None,
-    outfile: str = "gk_summary.pdf",
+    outfile: str = "greenkubo_summary.pdf",
 ):
     if isinstance(file, xr.Dataset):
         ds_gk = file
