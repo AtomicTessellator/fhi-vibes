@@ -6,25 +6,28 @@ import numpy as np
 import xarray as xr
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
+from vibes import keys
 from vibes.helpers.plotting import rc_params
 
 
 plt.style.use(rc_params)
 
 
-def main(file: str = "greenkubo.nc", outfile: Path = "gk_summary_interpolation.pdf"):
+def main(
+    file: str = "greenkubo.nc", outfile: Path = "greenkubo_summary_interpolation.pdf"
+):
     """plot summary for interpolation"""
     if isinstance(file, xr.Dataset):
         DS = file
     else:
         DS = xr.load_dataset(file)
 
-    tau_sq = DS.mode_lifetime
+    tau_sq = DS[keys.mode_lifetime]
 
-    kappa = DS.thermal_conductivity
-    kappa_ha = DS.thermal_conductivity_harmonic
+    kappa = DS[keys.thermal_conductivity]
+    kappa_ha = DS[keys.thermal_conductivity_harmonic]
 
-    correction = DS.interpolation_correction
+    correction = DS[keys.interpolation_correction]
 
     tau_sq.stack(sq=("s", "q")).to_series().describe()
 
@@ -71,6 +74,29 @@ def main(file: str = "greenkubo.nc", outfile: Path = "gk_summary_interpolation.p
     if outfile is not None:
         fig.savefig(outfile)
         click.echo(f".. interpolation summary plotted to {outfile}")
+
+    # interpolation fit
+    fig, ax = plt.subplots()
+    array = DS[keys.interpolation_kappa_array]
+    s = array.stack(sq=("a", "b"))[:, ::4].mean(axis=1).to_series()
+    s.index = 1 / s.index
+    s.plot(ax=ax, style=".-")
+
+    nq = len(DS.q_points) ** (1 / 3)
+
+    m = float(DS.interpolation_fit_slope)
+    print(1 / nq, k1)
+    ax.scatter(1 / nq, k1, marker="D", color="green")
+    x = np.linspace(0, 1.2 * 1 / nq, 3)
+    ax.plot(x, (x - 1 / nq) * m + k1, zorder=-1)
+    ax.set_ylabel("$\kappa_{n_q}$ (W/mK)")
+    ax.set_xlabel("$1/n_q$")
+    ax.set_xlim([0, 0.33])
+
+    if outfile is not None:
+        _outfile = Path(outfile).stem + "_fit" + Path(outfile).suffix
+        fig.savefig(_outfile)
+        click.echo(f".. interpolation summary plotted to {_outfile}")
 
     # lifetimes
     fig, (ax1, ax2) = plt.subplots(ncols=2, sharey=True, figsize=(10, 5))
