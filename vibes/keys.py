@@ -81,6 +81,7 @@ heat_flux_0_harmonic = "heat_flux_0_harmonic"
 heat_flux_harmonic_q = "heat_flux_harmonic_q"
 heat_capacity = "heat_capacity"
 mode_occupation = "mode_occupation"
+mode_energy = "mode_energy"
 mode_lifetime = "mode_lifetime"
 mode_lifetime_inverse = _join(mode_lifetime, inverse)
 mode_lifetime_symmetrized = _join(mode_lifetime, symmetrized)

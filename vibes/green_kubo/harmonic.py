@@ -29,14 +29,14 @@ def _exp(x, tau, y0=1):
     return y0 * np.exp(-x / tau)
 
 
-def get_lifetimes(mode_occupation_acf: xr.DataArray, xarray: bool = True) -> np.ndarray:
-    """Compute mode lifetimes from occupation autocorrelation functinon by fitting exp.
+def get_lifetimes(mode_energy_acf: xr.DataArray, xarray: bool = True) -> np.ndarray:
+    """Compute mode lifetimes from energy autocorrelation functinon by fitting exp.
 
     Formulation:
-        assume <n_s(t)n_s> ~ g_s(t) = e^{-t / tau_s}
+        assume <E_s(t)E_s> / <E^2_s> ~ g_s(t) = e^{-t / tau_s}
 
     Args:
-        mode_occupation_acf: n_tsq as computed in GK workflow as [Nt, Ns, Nq] array
+        mode_energy_acf: E_tsq as computed in GK workflow as [Nt, Ns, Nq] array
         xarray: return as DataArray, otherwise as plain numpy
 
     Returns:
@@ -44,23 +44,25 @@ def get_lifetimes(mode_occupation_acf: xr.DataArray, xarray: bool = True) -> np.
     """
     timer = Timer("Get lifetimes by fitting to exponential", prefix=_prefix)
 
-    tx = mode_occupation_acf.time
+    tx = mode_energy_acf.time
     dt = tx[1] - tx[0]
 
-    shape = mode_occupation_acf.shape[1:]
+    shape = mode_energy_acf.shape[1:]
     tau_sq = -np.ones(shape)
 
     for ns, nq in np.ndindex(shape):
 
-        corr = mode_occupation_acf[:, ns, nq]
+        corr = mode_energy_acf[:, ns, nq]
 
         # fit exponential where corr > 1/e
         x_full = np.arange(len(corr))
-        first_drop = x_full[corr < 1 / np.e].min()
-        if first_drop < 2:
+        x_fit = x_full[corr < 1 / np.e]
+        if corr[0] < 1e-12 or len(x_fit) < 2:
             _talk(f"** acf drops fast for s, q: {ns}, {nq} set tau_sq = np.nan")
             tau_sq[ns, nq] = np.nan
             continue
+
+        first_drop = x_fit.min()
 
         x = x_full[:first_drop]
         y = corr[:first_drop]
@@ -70,7 +72,7 @@ def get_lifetimes(mode_occupation_acf: xr.DataArray, xarray: bool = True) -> np.
         tau_sq[ns, nq] = tau * dt  # back to time axis
 
     if xarray:
-        dims = mode_occupation_acf.dims[1:]
+        dims = mode_energy_acf.dims[1:]
         array = xr.DataArray(tau_sq, dims=dims, name=keys.mode_lifetime)
     else:
         array = tau_sq
@@ -80,7 +82,7 @@ def get_lifetimes(mode_occupation_acf: xr.DataArray, xarray: bool = True) -> np.
     return array
 
 
-def get_n_tsq(
+def get_a_tsq(
     U_tIa: np.ndarray,
     V_tIa: np.ndarray,
     masses: np.ndarray,
@@ -88,11 +90,10 @@ def get_n_tsq(
     w_inv_sq: np.ndarray,
     stride: int = 1,
 ) -> np.ndarray:
-    """get mode occupation in shape [Nt, Ns, Nq]
+    """get mode amplitude in shape [Nt, Ns, Nq]
 
     Formulation:
-        n_tsq = |a+_tsq| ** 2 + |a-_tsq| ** 2 = 2 * |a_tsq| ** 2,
-            where a_tsq are complex amplitudes as defined, e.g., in Eq. 38.39 or 38.40.
+        a_tsq = 1/2 * (u_tsq + 1/iw_sq p_tsq)
 
     Args:
         U_tIa:    displacements as [time, atom_index, cartesian_index]
@@ -103,7 +104,7 @@ def get_n_tsq(
         stride: use every STRIDE timesteps
 
     Returns:
-        n_tsq: time resolved mode occupations
+        a_tsq: time resolved mode amplitudes
 
     """
     Nt = len(U_tIa[::stride])  # no. of timesteps
@@ -115,19 +116,17 @@ def get_n_tsq(
     u_tsq = np.moveaxis(e_sqI @ u_tI.T, -1, 0)
     p_tsq = np.moveaxis(e_sqI @ p_tI.T, -1, 0)
 
-    # complex amplitudes and return occupations (= amplitude squared)
+    # complex amplitudes
     a_tsq = 0.5 * (u_tsq + 1.0j * w_inv_sq[None, :] * p_tsq)
 
-    return 2 * abs(a_tsq) ** 2
+    return a_tsq
 
 
-def get_J_ha_q(
-    n_tsq: np.ndarray, w2_sq: np.ndarray, v_sq: np.ndarray, volume: float
-) -> np.ndarray:
+def get_J_ha_q(E_tsq: np.ndarray, v_sq: np.ndarray, volume: float) -> np.ndarray:
     """compute harmonic flux in momentum space (diagonal part)
 
     Args:
-        n_tsq: mode occupations [Nt, Ns, Nq]
+        E_tsq: mode-resolved energy [Nt, Ns, Nq]
         w2_sq: squared frequencies (i.e. eigenvalues of dyn. matrix) [Ns, Nq]
         v_sq: group velocities in Cart. coords [Ns, Nq]
         volume: system volume
@@ -140,11 +139,10 @@ def get_J_ha_q(
     V = float(volume)
     # make sure we're dealing with ndarrays
     v_sq = np.asarray(v_sq)
-    w2_sq = np.asarray(w2_sq)
-    n_tsq = np.asarray(n_tsq)
+    E_tsq = np.asarray(E_tsq)
 
     # J = 1/V * w**2 * n(t) * v
-    J_ha_q_sq = 1 / V * (w2_sq[_, :] * n_tsq)[:, :, :, _] * v_sq[_, :]  # [t, s, q, a]
+    J_ha_q_sq = 1 / V * (E_tsq)[:, :, :, _] * v_sq[_, :]  # [t, s, q, a]
 
     return J_ha_q_sq.sum(axis=(1, 2))  # -> [t, a]
 
@@ -152,7 +150,7 @@ def get_J_ha_q(
 def get_flux_ha_q_data(
     dataset: xr.Dataset, dmx: DynamicalMatrix, stride: int = 1
 ) -> collections.namedtuple:
-    """return harmonic flux data with flux and mode occupation as xr.DataArrays
+    """return harmonic flux data with flux and mode energies as xr.DataArrays
 
     Args:
         dataset: the trajectory dataset
@@ -160,10 +158,10 @@ def get_flux_ha_q_data(
         stride: time step length
 
     Returns:
-        (J_ha_q (flux), n_tsq (mode occupation))
+        (J_ha_q (flux), E_tsq (mode energy))
 
     """
-    n_tsq = get_n_tsq(
+    a_tsq = get_a_tsq(
         U_tIa=dataset.displacements,
         V_tIa=dataset.velocities,
         masses=dataset.masses,
@@ -172,21 +170,22 @@ def get_flux_ha_q_data(
         stride=stride,
     )
 
+    # compute mode-resolved energy
+    # E = 2 * w2 * a+.a
+    E_tsq = 2 * abs(a_tsq) ** 2 * dmx.w2_sq
+
     J_ha_q = get_J_ha_q(
-        n_tsq=n_tsq,
-        w2_sq=dmx.w2_sq,
-        v_sq=dmx.v_sqa_cartesian,
-        volume=dataset.volume.data.mean(),
+        E_tsq=E_tsq, v_sq=dmx.v_sqa_cartesian, volume=dataset.volume.data.mean(),
     )
 
     # make dataarrays incl. coords and dims
     ta = (keys.time, dimensions.a)
     tsq = (keys.time, dimensions.s, dimensions.q)
     coords = dataset.coords
-    n_tsq = xr.DataArray(n_tsq, coords=coords, dims=tsq, name=keys.mode_occupation)
+    E_tsq = xr.DataArray(E_tsq, coords=coords, dims=tsq, name=keys.mode_energy)
     J_ha_q = xr.DataArray(J_ha_q, coords=coords, dims=ta, name=keys.hf_ha_q)
 
-    data = {ar.name: ar for ar in (J_ha_q, n_tsq)}
+    data = {ar.name: ar for ar in (J_ha_q, E_tsq)}
 
     return collections.namedtuple("flux_ha_q_data", data.keys())(**data)
 
@@ -225,6 +224,7 @@ def get_kappa(
     # make sure we're dealilng with arrays, cv might be scalar
     cv_sq = np.asarray(cv_sq)
     v_sqa = np.asarray(v_sqa)
+    tau_sq = np.nan_to_num(tau_sq)  # replace nan values by 0
     v2_sqa = v_sqa[:, :, :, _] * v_sqa[:, :, _, :]
     kappa_sqab = to_W_mK * np.asarray(weights * cv_sq * tau_sq)[:, :, _, _] * v2_sqa
 
@@ -258,14 +258,14 @@ def get_gk_ha_q_data(
         heat_flux_harmonic_q: J_ha_q = 1/V sum_sq w_sq**2 n_tsq v_sq
         heat_flux_harmonic_q_acf: <J_ha_q (t) J_ha_q>
         heat_flux_harmonic_q_acf_integral: cumulative integral of ACF
-        mode_occupation: n_tsq = 2 * |a_tsq|**2
-        mode_occupation_acf: respective ACF
+        mode_energy: E_tsq = 2 * w_sq **2 * |a_tsq|**2
+        mode_energy_acf: respective ACF
         mode_heat_capacity: 1/V.kB.T**2 * w_sq**4 * <n_tsq**2> (intensive/per volume)
     """
     if dmx is None:
         dmx = DynamicalMatrix.from_dataset(dataset)
 
-    J_ha_q, n_tsq = get_flux_ha_q_data(dataset=dataset, dmx=dmx)
+    J_ha_q, E_tsq = get_flux_ha_q_data(dataset=dataset, dmx=dmx)
 
     # prefactor
     gk_prefactor = get_gk_prefactor_from_dataset(dataset, verbose=False)
@@ -276,21 +276,26 @@ def get_gk_ha_q_data(
 
     K_ha_q_cum = get_cumtrapz(J_ha_q_acf)
 
-    # occupation autocorrelation normalized to 1
-    dn_tsq = n_tsq - n_tsq.mean(axis=0)
-    dn_tsq.name = n_tsq.name
+    # energy fluctuations
+    dE_tsq = E_tsq - E_tsq.mean(axis=0)
+    dE_tsq.name = E_tsq.name
 
-    # autocorrelation of occupations
-    dn_acf = get_autocorrelationNd(dn_tsq / dn_tsq.std(axis=0), **kw)
+    # normalize dE_tsq by std. dev. and replace nan values by 0
+    dE_norm = dE_tsq / dE_tsq.std(axis=0)
+    dE_norm.data = np.nan_to_num(dE_norm)
+
+    # energy autocorrelation
+    dE_acf = get_autocorrelationNd(dE_norm, **kw)
 
     # heat capacity
     volume = dataset.volume.mean().data
     temperature = dataset.temperature.mean().data
-    cv_sq = dmx.w2_sq ** 2 * n_tsq.var(axis=0) / units.kB / temperature ** 2 / volume
+    cv_sq = E_tsq.var(axis=0) / units.kB / temperature ** 2 / volume
     cv_sq.name = keys.mode_heat_capacity
 
     # lifetimes
-    tau_sq = get_lifetimes(dn_acf)
+    tau_sq = get_lifetimes(dE_acf)
+
     # symmetrized
     map2ir, map2full = dmx.q_grid.map2ir, dmx.q_grid.ir.map2full
     tau_symmetrized_sq = get_symmetrized_array(tau_sq, map2ir=map2ir, map2full=map2full)
@@ -313,7 +318,7 @@ def get_gk_ha_q_data(
     K_ha_q_symmetrized.name = keys.kappa_ha_symmetrized
 
     arrays = [J_ha_q, J_ha_q_acf, K_ha_q_cum, K_ha_q, K_ha_q_symmetrized]
-    arrays += [n_tsq, dn_acf, cv_sq, cv, tau_sq, tau_symmetrized_sq]
+    arrays += [E_tsq, dE_acf, cv_sq, cv, tau_sq, tau_symmetrized_sq]
 
     # add dynamical matrix arrays
     arrays += dmx._get_arrays()

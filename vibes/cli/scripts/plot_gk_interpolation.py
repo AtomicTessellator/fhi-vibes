@@ -29,8 +29,6 @@ def main(
 
     correction = DS[keys.interpolation_correction]
 
-    tau_sq.stack(sq=("s", "q")).to_series().describe()
-
     # plot
     k_ai_r = DS.heat_flux_acf_integral.stack(ab=("a", "b"))[:, ::4]
     k_ha_q = DS.heat_flux_harmonic_q_acf_integral.stack(ab=("a", "b"))[:, ::4]
@@ -85,11 +83,10 @@ def main(
     nq = len(DS.q_points) ** (1 / 3)
 
     m = float(DS.interpolation_fit_slope)
-    print(1 / nq, k1)
     ax.scatter(1 / nq, k1, marker="D", color="green")
     x = np.linspace(0, 1.2 * 1 / nq, 3)
     ax.plot(x, (x - 1 / nq) * m + k1, zorder=-1)
-    ax.set_ylabel("$\kappa_{n_q}$ (W/mK)")
+    ax.set_ylabel(r"$\kappa_{n_q}$ (W/mK)")
     ax.set_xlabel("$1/n_q$")
     ax.set_xlim([0, 0.33])
 
@@ -110,7 +107,7 @@ def main(
         tau = tau_sq[sq]
         if np.isnan(tau):
             continue
-        y1.append(DS.mode_occupation_acf.data[:, sq[0], sq[1]])
+        y1.append(DS.mode_energy_acf.data[:, sq[0], sq[1]])
         y2.append(np.exp(-x * 1000 / float(tau_sq[sq])))
 
     # plot in segments (memory)
@@ -137,9 +134,9 @@ def main(
     ax1.set_yticks(np.arange(0.1, 1, 0.1), minor=True)
     ax1.set_yticklabels(yticks)
     ax1.set_yticklabels([], minor=True)
-    ax1.set_ylabel(r"$g(t)$", rotation=0)
+    ax1.set_ylabel(r"$G_s(t)$", rotation=0)
 
-    fig.suptitle("Mode occupation autocorrelation $g(t)$")
+    fig.suptitle("Mode energy autocorrelation")
     ax1.set_title("Simulation")
     ax2.set_title("Analytic")
 

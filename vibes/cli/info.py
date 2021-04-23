@@ -1,4 +1,5 @@
 """`vibes info` backend"""
+import warnings
 from pathlib import Path
 
 from vibes import defaults, keys
@@ -180,6 +181,9 @@ def greenkubo(files, plot):
 
     if plot:
         from .scripts.plot_gk_summary import main as plot_summary
+
+        # ignore warnings regarding empty slices
+        warnings.simplefilter("ignore", category=RuntimeWarning)
 
         outfile = Path(files[0]).stem + "_summary.pdf"
         plot_summary(ds_gk.mean(dim=keys.trajectory), outfile=outfile)
