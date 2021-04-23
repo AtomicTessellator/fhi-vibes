@@ -70,6 +70,8 @@ heat_fluxes_aux = _join(heat_fluxes, aux)
 heat_flux_total = _join(heat_flux, total)
 
 gk_prefactor = "gk_prefactor"
+gk_window_fs = "gk_window_fs"
+filter_prominence = "filter_prominence"
 
 # harmonic properties
 forces_harmonic = "forces_harmonic"

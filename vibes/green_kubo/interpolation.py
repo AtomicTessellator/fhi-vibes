@@ -141,29 +141,32 @@ def get_interpolation_data(
     nqs = np.arange(4, nq_max + 1, 2)
 
     Nq_init = len(dmx.q_points)  # number of commensurate q-points
-    kappas = np.zeros((len(nqs), 3, 3))
+    Ks = np.zeros((len(nqs), 3, 3))
     for ii, nq in enumerate(nqs):
         mesh = (nq, nq, nq)
 
+        # create grid and harmonic solution on grid
         grid, solution = dmx.get_mesh_and_solution(mesh, reduced=False)
 
+        # interpolate scaled lifetimes on irred. grid
         ir_l_int_sq = interpolate_to_grid(q_points=grid.ir.points, **kw_train)
 
+        # scale back to lifetimes
         tau_int_sq = ir_l_int_sq[:, grid.ir.map2full] * solution.w_inv_sq ** 2
 
-        Nq_new = len(grid.points)
+        # compute K on new grid, account for change in grid point number
+        Nq_eff = len(grid.points) / Nq_init
+        KK = get_kappa(solution.v_sqa_cartesian, tau_int_sq, cv) / Nq_eff
 
-        Nq_eff = Nq_new / Nq_init
+        # assign and report: K = tensor, k = scalar
+        Ks[ii] = KK
+        kk = np.diagonal(KK).mean()
+        _talk(f"{nq:3d}, Nq_eff = {Nq_eff:6.2f}, kappa = {kk:.3f} W/mK")
 
-        k = get_kappa(solution.v_sqa_cartesian, tau_int_sq, cv) / Nq_eff
+    Ks = xr.DataArray(Ks, dims=("nq", *dimensions.a_b), coords={"nq": nqs})
 
-        kappas[ii] = k
-        _talk(f"{nq:3d}, Nq_eff = {Nq_eff:6.2f}, kappa = {np.diagonal(k).mean()}")
-
-    kappas = xr.DataArray(kappas, dims=("nq", *dimensions.a_b), coords={"nq": nqs})
-
-    # interpolate to infinity assuming convergence with 1/nq (Riemann sum)
-    ks = np.diagonal(kappas, axis1=1, axis2=2).mean(axis=1)
+    # interpolate to infinitely dense grid assuming convergence with 1/nq (Riemann sum)
+    ks = np.diagonal(Ks, axis1=1, axis2=2).mean(axis=1)
     m, y0, *_, stderr = st.linregress(nqs ** -1.0, y=ks)
 
     k_ha = np.diagonal(kappa_ha).mean()
@@ -175,15 +178,16 @@ def get_interpolation_data(
 
     k_ha_int = correction_factor * k_ha
 
+    err_str1 = f"+/- {stderr / nq:.3f}"
+    err_str2 = f"+/- {correction_factor_err:.3f}"
     _talk(f"Initial harmonic kappa value:       {k_ha:.3f} W/mK")
-    err_str = f"+/- {stderr / nq:.3f}"
     _talk(f"Fit intercept:                      {y0:.3f} W/mK")
-    _talk(f"Fit intercept - initial value:      {y0 - k_ha:.3f} {err_str}  W/mK")
-    _talk(f"Interpolated harm. kappa:           {k_ha_int:.3f} {err_str} W/mK")
-    _talk(f"Correction:                         {correction:.3f} {err_str} W/mK")
-    err_str = f"+/- {correction_factor_err:.3f}"
-    _talk(f"Correction factor:                  {correction_factor:.3f} {err_str}")
+    _talk(f"Fit intercept - initial value:      {y0 - k_ha:.3f} {err_str1}  W/mK")
+    _talk(f"Interpolated harm. kappa:           {k_ha_int:.3f} {err_str1} W/mK")
+    _talk(f"Correction:                         {correction:.3f} {err_str1} W/mK")
+    _talk(f"Correction factor:                  {correction_factor:.3f} {err_str2}")
 
+    # compile results
     dims_w = (dimensions.s, dimensions.q_int)
     dims_q = (dimensions.q_int, dimensions.a)
     results = {
@@ -193,7 +197,7 @@ def get_interpolation_data(
         keys.interpolation_correction: correction,
         keys.interpolation_correction_factor: correction_factor,
         keys.interpolation_correction_factor_err: correction_factor_err,
-        keys.interpolation_kappa_array: kappas,
+        keys.interpolation_kappa_array: Ks,
         keys.interpolation_q_points: (dims_q, grid.points),
         keys.interpolation_w_sq: (dims_w, solution.w_sq),
         keys.interpolation_tau_sq: (dims_w, tau_int_sq),

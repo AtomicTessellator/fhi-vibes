@@ -122,13 +122,13 @@ def get_a_tsq(
     return a_tsq
 
 
-def get_J_ha_q(E_tsq: np.ndarray, v_sq: np.ndarray, volume: float) -> np.ndarray:
+def get_J_ha_q(E_tsq: np.ndarray, v_sqa: np.ndarray, volume: float) -> np.ndarray:
     """compute harmonic flux in momentum space (diagonal part)
 
     Args:
         E_tsq: mode-resolved energy [Nt, Ns, Nq]
         w2_sq: squared frequencies (i.e. eigenvalues of dyn. matrix) [Ns, Nq]
-        v_sq: group velocities in Cart. coords [Ns, Nq]
+        v_sqa: group velocities in Cart. coords [Ns, Nq, 3]
         volume: system volume
 
     Returns:
@@ -138,11 +138,11 @@ def get_J_ha_q(E_tsq: np.ndarray, v_sq: np.ndarray, volume: float) -> np.ndarray
     _ = None
     V = float(volume)
     # make sure we're dealing with ndarrays
-    v_sq = np.asarray(v_sq)
+    v_sqa = np.asarray(v_sqa)
     E_tsq = np.asarray(E_tsq)
 
     # J = 1/V * w**2 * n(t) * v
-    J_ha_q_sq = 1 / V * (E_tsq)[:, :, :, _] * v_sq[_, :]  # [t, s, q, a]
+    J_ha_q_sq = 1 / V * (E_tsq)[:, :, :, _] * v_sqa[_, :]  # [t, s, q, a]
 
     return J_ha_q_sq.sum(axis=(1, 2))  # -> [t, a]
 
@@ -173,10 +173,10 @@ def get_flux_ha_q_data(
     # compute mode-resolved energy
     # E = 2 * w2 * a+.a
     E_tsq = 2 * abs(a_tsq) ** 2 * dmx.w2_sq
+    v_sqa = dmx.v_sqa_cartesian
+    volume = dataset.volume.data.mean()
 
-    J_ha_q = get_J_ha_q(
-        E_tsq=E_tsq, v_sq=dmx.v_sqa_cartesian, volume=dataset.volume.data.mean(),
-    )
+    J_ha_q = get_J_ha_q(E_tsq=E_tsq, v_sqa=v_sqa, volume=volume)
 
     # make dataarrays incl. coords and dims
     ta = (keys.time, dimensions.a)
@@ -267,7 +267,7 @@ def get_gk_ha_q_data(
 
     J_ha_q, E_tsq = get_flux_ha_q_data(dataset=dataset, dmx=dmx)
 
-    # prefactor
+    # gk prefactor
     gk_prefactor = get_gk_prefactor_from_dataset(dataset, verbose=False)
 
     kw = {"verbose": False}
@@ -293,28 +293,29 @@ def get_gk_ha_q_data(
     cv_sq = E_tsq.var(axis=0) / units.kB / temperature ** 2 / volume
     cv_sq.name = keys.mode_heat_capacity
 
-    # lifetimes
+    # get lifetimes from fitting exp. function to mode energy
     tau_sq = get_lifetimes(dE_acf)
 
-    # symmetrized
+    # symmetrize by averaging over symmetry-related q-points
     map2ir, map2full = dmx.q_grid.map2ir, dmx.q_grid.ir.map2full
     tau_symmetrized_sq = get_symmetrized_array(tau_sq, map2ir=map2ir, map2full=map2full)
 
     # tau_inv_sq = 1 / tau_sq
     # tau_inv_sq.name = keys.mode_lifetime_inverse
 
-    # thermal concuctivity
+    # compute thermal concuctivity
     v_sqa = dmx.v_sqa_cartesian
-    K_ha_q = get_kappa(v_sqa, tau_sq, cv_sq=cv_sq)
+    K_ha_q = get_kappa(v_sqa=v_sqa, tau_sq=tau_sq, cv_sq=cv_sq)
     K_ha_q.name = keys.kappa_ha
 
-    # scalar cv
+    # scalar cv: account for cv/kB not exactly 1 in the numeric simulation
+    # choose such that c * K(c_s=kB) = K(c_s=c_s)
     k = K_ha_q.data.diagonal().mean()
-    cv = k / get_kappa(dmx.v_sqa_cartesian, tau_sq, scalar=True)
+    cv = k / get_kappa(v_sqa=v_sqa, tau_sq=tau_sq, scalar=True)
     cv = xr.DataArray(cv, name=keys.heat_capacity)
 
     # symmetrized thermal conductivity
-    K_ha_q_symmetrized = get_kappa(v_sqa, tau_sq=tau_symmetrized_sq, cv_sq=cv)
+    K_ha_q_symmetrized = get_kappa(v_sqa=v_sqa, tau_sq=tau_symmetrized_sq, cv_sq=cv)
     K_ha_q_symmetrized.name = keys.kappa_ha_symmetrized
 
     arrays = [J_ha_q, J_ha_q_acf, K_ha_q_cum, K_ha_q, K_ha_q_symmetrized]
