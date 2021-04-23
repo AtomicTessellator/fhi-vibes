@@ -108,7 +108,7 @@ def get_interpolation_data(
     from .harmonic import get_kappa
 
     # define scaled lifetimes
-    l_sq = dmx.w2_sq * lifetimes
+    l_sq = dmx.w2_sq * np.nan_to_num(lifetimes)
 
     # get value at gamma from interpolating
     try:
