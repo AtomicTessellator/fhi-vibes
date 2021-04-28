@@ -29,7 +29,11 @@ def _exp(x, tau, y0=1):
     return y0 * np.exp(-x / tau)
 
 
-def get_lifetimes(mode_energy_acf: xr.DataArray, xarray: bool = True) -> np.ndarray:
+def get_lifetimes(
+    mode_energy_acf: xr.DataArray,
+    correct_finite_time: bool = True,
+    xarray: bool = True,
+) -> np.ndarray:
     """Compute mode lifetimes from energy autocorrelation functinon by fitting exp.
 
     Formulation:
@@ -37,6 +41,7 @@ def get_lifetimes(mode_energy_acf: xr.DataArray, xarray: bool = True) -> np.ndar
 
     Args:
         mode_energy_acf: E_tsq as computed in GK workflow as [Nt, Ns, Nq] array
+        correct_finite_time: add finite-time correction
         xarray: return as DataArray, otherwise as plain numpy
 
     Returns:
@@ -56,8 +61,8 @@ def get_lifetimes(mode_energy_acf: xr.DataArray, xarray: bool = True) -> np.ndar
 
         # fit exponential where corr > 1/e
         x_full = np.arange(len(corr))
-        x_fit = x_full[corr < 1 / np.e]
-        if corr[0] < 1e-12 or len(x_fit) < 2:
+        x_fit = x_full[corr < 0.5]
+        if corr[0] < 1e-12 or x_fit.min() < 2:
             _talk(f"** acf drops fast for s, q: {ns}, {nq} set tau_sq = np.nan")
             tau_sq[ns, nq] = np.nan
             continue
@@ -70,6 +75,10 @@ def get_lifetimes(mode_energy_acf: xr.DataArray, xarray: bool = True) -> np.ndar
         (tau, y0), _ = so.curve_fit(_exp, x, y)
 
         tau_sq[ns, nq] = tau * dt  # back to time axis
+
+    if correct_finite_time:
+        Tmax = mode_energy_acf[keys.time].data.max()
+        tau_sq = 1 / (1 / tau_sq - 1 / Tmax)
 
     if xarray:
         dims = mode_energy_acf.dims[1:]

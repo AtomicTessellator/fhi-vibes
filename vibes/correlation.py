@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import scipy.signal as sl
 import xarray as xr
-
 from vibes import dimensions, keys
 from vibes.helpers import Timer, progressbar, talk
 from vibes.helpers.warnings import warn
@@ -109,7 +108,7 @@ def c1(X):
     return correlate(X[0], X[1])
 
 
-def get_autocorrelation(series, verbose=True, **kwargs):
+def get_autocorrelation(series, verbose=False, **kwargs):
     """Compute autocorrelation function of Series/DataArray
 
     Args:
