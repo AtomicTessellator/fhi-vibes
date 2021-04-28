@@ -138,7 +138,7 @@ def csv(file, describe, half, to_json):
     df = pd.read_csv(file)
 
     pd.options.display.max_rows = len(df)
-    pd.options.display.max_columns = len(df.columns)
+    pd.options.display.max_columns = 0  # automatic detection
 
     if half:
         df = df.iloc[len(df) // 2 :]
@@ -157,8 +157,9 @@ def csv(file, describe, half, to_json):
 @info.command(aliases=["gk"], context_settings=_default_context_settings)
 @click.argument("files", nargs=-1)
 @click.option("-p", "--plot", is_flag=True, help="plot info")
+@click.option("--lifetimes", is_flag=True, help="describe lifetimes")
 # @click.option("--png", is_flag=True, help="plot png instead of pdf")
-def greenkubo(files, plot):
+def greenkubo(files, plot, lifetimes):
     """visualize heat flux and thermal conductivity"""
     import xarray as xr
 
@@ -174,25 +175,55 @@ def greenkubo(files, plot):
 
     ks = ds_gk[keys.kappa]
     ks_flat = ks.stack(ab=("a", "b"))[:, ::4].data
-    k_mean = ks_flat.mean()
+    k = ks_flat.mean()
     k_err = (ks_flat.var() / (ks_flat.size)) ** 0.5
-    click.echo(f"Kappa:    {k_mean:.3f} +/- {k_err:.3f}")
+    click.echo(f"Kappa:    {k:.3f} +/- {k_err:.3f}")
     click.echo(f"Kappa^ab: {ks.mean(axis=0)}")
+
+    # harmonic/interpolation
+    if keys.kappa_ha in ds_gk:
+        if lifetimes:
+            click.echo("Lifetimes:")
+            click.echo(ds_gk[keys.mode_lifetime].to_series().describe())
+
+        click.echo("Harmonic values:")
+        ks = ds_gk[keys.kappa_ha]
+        ks_flat = ks.stack(ab=("a", "b"))[:, ::4].data
+        k_ha = ks_flat.mean()
+        k_ha_err = (ks_flat.var() / (ks_flat.size)) ** 0.5
+        click.echo(f"Kappa:    {k_ha:.3f} +/- {k_ha_err:.3f}")
+        click.echo(f"Kappa^ab: {ks.mean(axis=0)}")
+
+        if len(datasets) > 1:
+            click.echo(".. perform ensemble average before proceding")
+
+        # ignore warnings regarding empty slices
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        ds_gk = ds_gk.mean(dim=keys.trajectory)
+
+        # interpolation
+        intercept = float(ds_gk[keys.interpolation_fit_intercept])
+        correction1 = float(ds_gk[keys.interpolation_correction])
+        correction2 = intercept - k_ha
+
+        click.echo("Summarize interpolation:")
+        click.echo(f"Initial harmonic kappa value:    {k_ha:.3f} W/mK")
+        click.echo(f"Fit intercept:                   {intercept:.3f} W/mK")
+        click.echo(f"Interpolated harm. kappa:        {k_ha+correction1:.3f} W/mK")
+        click.echo(f"Correction1 (k_init + m / nq):   {correction1:.3f} W/mK")
+        click.echo(f"Correction2 (k_inf  - k_init):   {correction2:.3f} W/mK")
 
     if plot:
         from .scripts.plot_gk_summary import main as plot_summary
 
-        # ignore warnings regarding empty slices
-        warnings.simplefilter("ignore", category=RuntimeWarning)
-
         outfile = Path(files[0]).stem + "_summary.pdf"
-        plot_summary(ds_gk.mean(dim=keys.trajectory), outfile=outfile)
+        plot_summary(ds_gk, outfile=outfile)
 
         if keys.interpolation_correction in ds_gk:
             from .scripts.plot_gk_interpolation import main as plot_interpolation
 
             _outfile = Path(outfile).stem + "_interpolation.pdf"
-            plot_interpolation(ds_gk.mean(dim=keys.trajectory), outfile=_outfile)
+            plot_interpolation(ds_gk, outfile=_outfile)
 
 
 @info.command(context_settings=_default_context_settings)
