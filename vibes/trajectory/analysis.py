@@ -3,7 +3,6 @@ import numpy as np
 import xarray as xr
 from ase.units import GPa
 from scipy import stats as st
-
 from vibes import keys
 from vibes.helpers import talk, warn
 
@@ -96,6 +95,7 @@ def summary(dataset, plot=False, **kwargs):
     dr = np.linalg.norm(dataset.displacements, axis=2)
     dr_mean = np.mean(dr, axis=1)
     dr_std = np.std(dr, axis=1)
+    dr_max = np.max(dr, axis=1)
 
     print()
     talk("Summarize Displacements", prefix="info")
@@ -161,10 +161,13 @@ def summary(dataset, plot=False, **kwargs):
             keys.pressure_kinetic,
             keys.pressure_potential,
         ]
+        if keys.sigma_per_sample in dataset:
+            _keys.append(keys.sigma_per_sample)
         df = dataset[_keys].to_dataframe()
         df.index /= 1000
 
         df["dr_mean"] = dr_mean
         df["dr_std"] = dr_std
+        df["dr_max"] = dr_max
 
         plot_summary(df, **kwargs)
