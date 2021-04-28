@@ -1,7 +1,7 @@
 """Postprocess steps for k-grid optimizations"""
 from pathlib import Path
 
-from vibes.helpers.fileformats import last_from_yaml
+from vibes.son import last_from
 
 
 def load_last_step(atoms_dict, calculator_dict, workdir, trajectory_file):
@@ -30,7 +30,7 @@ def load_last_step(atoms_dict, calculator_dict, workdir, trajectory_file):
 
     """
     trajectory_file = Path(workdir) / trajectory_file
-    last_step_dict = last_from_yaml(trajectory_file)
+    last_step_dict = last_from(trajectory_file)
 
     for key, val in last_step_dict["atoms"].items():
         atoms_dict[key] = val

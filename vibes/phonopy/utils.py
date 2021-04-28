@@ -34,9 +34,10 @@ def last_calculation_id(trajectory_file):
     disp_id = -1
 
     try:
-        dct = last_from_yaml(trajectory_file)
-        disp_id = dct["info"][displacement_id_str]
-    except (FileNotFoundError, KeyError):
+        dct = last_from_yaml(trajectory_file, allow_empty=True)
+        if dct is not None:
+            disp_id = dct["info"][displacement_id_str]
+    except (FileNotFoundError):
         pass
 
     return disp_id

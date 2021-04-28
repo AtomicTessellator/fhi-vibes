@@ -177,12 +177,7 @@ class MDContext(TaskContext):
 
         trajectory_file = Path(self.trajectory_file)
         if trajectory_file.exists():
-            try:
-                last_atoms = son.last_from(trajectory_file)
-            except IndexError:
-                warn(
-                    f"** trajectory lacking the first step, please CHECK!", level=2,
-                )
+            last_atoms = son.last_from(trajectory_file)
 
             # we can't set self.atoms = dict2atoms because that would
             # break references to it in self.md and self.calculator

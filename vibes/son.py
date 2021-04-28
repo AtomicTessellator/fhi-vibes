@@ -3,6 +3,7 @@
 import son
 
 from vibes.helpers.converters import dict2json
+from vibes.helpers import warn
 
 
 def dump(*args, **kwargs):
@@ -15,8 +16,8 @@ def load(*args, **kwargs):
     return son.load(*args, **kwargs)
 
 
-def last_from(file):
-    """ return last entry from yaml file
+def last_from(file, allow_empty=False):
+    """ return last entry from son file
 
     Parameters
     ----------
@@ -29,6 +30,10 @@ def last_from(file):
         Last entry in the son file
     """
 
-    _, data = son.load(file)
+    _, data = son.load_last(file)
+    if not allow_empty and data is None:
+        warn(
+            f"** trajectory lacking the first step, please CHECK!", level=2,
+        )
 
-    return data[-1]
+    return data

@@ -163,10 +163,8 @@ def prepare_from_trajectory(atoms, trajectory_file):
 
     trajectory_file = Path(trajectory_file)
     if trajectory_file.exists():
-        try:
-            last_atoms = son.last_from(trajectory_file)
-        except IndexError:
-            warn(f"** trajectory lacking the first step, please CHECK!", level=2)
+        last_atoms = son.last_from(trajectory_file)
+
         assert "info" in last_atoms["atoms"]
 
         atoms.set_cell(last_atoms["atoms"]["cell"])

@@ -38,7 +38,7 @@ def test_frequencies_from_force_constants():
 
 
 def test_vdos(
-    traj_file="trajectory.son.bz2", vdos_file="v.nc", ref_file="ref_vdos.csv"
+    traj_file="trajectory.son", vdos_file="v.nc", ref_file="ref_vdos.csv"
 ):
     traj = reader(parent / traj_file)
 
