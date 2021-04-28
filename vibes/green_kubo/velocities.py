@@ -1,7 +1,6 @@
 """compute and analyze heat fluxes"""
 import pandas as pd
 import scipy.signal as sl
-
 from vibes import defaults
 from vibes.correlation import get_autocorrelationNd
 from vibes.fourier import get_fourier_transformed
@@ -66,16 +65,19 @@ def simple_plot(
 
     # find peaks:
     peaks, *_ = sl.find_peaks(series, prominence=prominence)
+    peaks = series.index[peaks]  # convert to freq. axis
 
     _talk(f".. {len(peaks)} peaks found w/ prominence={prominence}")
 
     high_freq = series.index[series > 0.05].max()
+    _talk(f".. lowest  peak found at:                {peaks[0]:.2f} THz")
+    _talk(f".. highest peak found at:                {peaks[-1]:.2f} THz")
     _talk(f".. highest non-vanishin freq. found at   {high_freq:.2f} THz")
 
     ax = series.plot()
 
     # plot peaks
-    ax.scatter(series.index[peaks], series.iloc[peaks], marker=".", c="k", zorder=5)
+    ax.scatter(peaks, series[peaks], marker=".", c="k", zorder=5)
 
     if logy:
         ax.set_yscale("log")
