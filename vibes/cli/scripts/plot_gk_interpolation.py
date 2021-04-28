@@ -88,7 +88,7 @@ def main(
     ax.plot(x, (x - 1 / nq) * m + k1, zorder=-1)
     ax.set_ylabel(r"$\kappa_{n_q}$ (W/mK)")
     ax.set_xlabel("$1/n_q$")
-    ax.set_xlim([0, 0.33])
+    ax.set_xlim([0, 0.5])
 
     if outfile is not None:
         _outfile = Path(outfile).stem + "_fit" + Path(outfile).suffix

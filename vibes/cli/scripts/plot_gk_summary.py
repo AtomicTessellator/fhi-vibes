@@ -21,7 +21,7 @@ def main(
     else:
         ds_gk = xr.load_dataset(file)
 
-    ds_gk[keys.time] = ds_gk[keys.time] / 1000
+    times_ps = ds_gk[keys.time] / 1000
 
     ks = ds_gk[keys.kappa]
 
@@ -50,14 +50,14 @@ def main(
         c = colors[ii]
 
         j = j_filtered[:, ii, ii]
-        j.to_series().plot(ax=ax1, c=c, lw=2)
+        ax1.plot(times_ps, j, c=c, lw=2)
 
         # unfiltered kappa
         k = k_raw[:, ii, ii]
-        k.to_series().plot(ax=ax2, c=c, alpha=0.75)
+        ax2.plot(times_ps, k, c=c, alpha=0.75)
 
         k = k_filtered[:, ii, ii]
-        k.to_series().plot(ax=ax2, c=c)
+        ax2.plot(times_ps, k, c=c)
 
         ta = cutoff_time[ii, ii]
         ax1.axvline(ta, c=c, lw=2)
@@ -66,19 +66,19 @@ def main(
         # unfiltered hfacf (and restore ylim)
         ylim = ax1.get_ylim()
         j = j_raw[:, ii, ii]
-        j.to_series().plot(ax=ax1, c=c, lw=0.1, zorder=-1)
+        ax1.plot(times_ps, j, c=c, lw=0.1, zorder=-1)
         ax1.set_ylim(ylim)
 
     # mean of k
-    k_total.to_series().plot(ax=ax2, c="k", alpha=0.75)
-    k_total_filtered.to_series().plot(ax=ax2, c="k")
+    ax2.plot(times_ps, k_total, c="k", alpha=0.75)
+    ax2.plot(times_ps, k_total_filtered, c="k")
 
     ax1.axhline(0, c="k")
     ax1.set_ylim([j_filtered.min(), 1.2 * j_filtered.max()])
 
     # plot final kappa
     ax2.axhline(k_mean, c="k")
-    ax2.fill_between(j.time, k_mean + k_err, k_mean - k_err, color="k", alpha=0.1)
+    ax2.fill_between(times_ps, k_mean + k_err, k_mean - k_err, color="k", alpha=0.1)
 
     ax1.set_ylabel("$J_{\\rm corr} (t)$")
     ax2.set_ylabel("$\\kappa (t)$")
