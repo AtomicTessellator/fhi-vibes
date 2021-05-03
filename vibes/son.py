@@ -16,8 +16,13 @@ def load(*args, **kwargs):
     return son.load(*args, **kwargs)
 
 
+def open(*args, **kwargs):
+    """wrapper for son.open"""
+    return son.open(*args, **kwargs)
+
+
 def last_from(file, allow_empty=False):
-    """ return last entry from son file
+    """return last entry from son file
 
     Parameters
     ----------
@@ -33,7 +38,8 @@ def last_from(file, allow_empty=False):
     _, data = son.load_last(file)
     if not allow_empty and data is None:
         warn(
-            f"** trajectory lacking the first step, please CHECK!", level=2,
+            f"** trajectory lacking the first step, please CHECK!",
+            level=2,
         )
 
     return data

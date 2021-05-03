@@ -125,7 +125,7 @@ def calculate_socket(
         # log metadata and sanity check
         if check_settings_before_resume:
             try:
-                old_metadata, _ = son.load(trajectory_file)
+                old_metadata, _ = son.open(trajectory_file)
                 check_metadata(metadata, old_metadata)
                 talk(f"resume from {trajectory_file}")
             except FileNotFoundError:

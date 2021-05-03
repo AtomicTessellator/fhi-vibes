@@ -99,7 +99,7 @@ def trajectory(file):
     from vibes import son
     from vibes.settings import Settings
 
-    metadata, _ = son.load(file)
+    metadata, _ = son.open(file)
 
     click.echo(f"Summary of metadata in {file}:\n")
     click.echo("Keys:")

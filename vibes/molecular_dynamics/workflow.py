@@ -100,7 +100,7 @@ def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
     # is the calculation similar enough?
     metadata = ctx.metadata
     if trajectory_file.exists():
-        old_metadata, _ = son.load(trajectory_file)
+        old_metadata, _ = son.open(trajectory_file)
         check_metadata(metadata, old_metadata)
 
     # backup previously computed data
