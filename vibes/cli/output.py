@@ -2,7 +2,11 @@
 from pathlib import Path
 
 import click
-from vibes import defaults, keys
+import numpy as np
+
+from vibes import defaults
+from vibes import dimensions as dims
+from vibes import keys
 from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup as AliasedGroup
@@ -165,8 +169,17 @@ def phono3py(obj, file, q_mesh):
 @click.option("--total", is_flag=True, help="compute total flux")
 @click.option("-fc", "--fc_file", type=Path, help="use force constants from file")
 @click.option("-u", "--update", is_flag=True, help="only parse if input data changed")
+@click.option("--shorten", default=0.0, help="shorten trajectory by percentage.")
 def greenkubo(
-    file, outfile, window_factor, filter_prominence, interpolate, total, fc_file, update
+    file,
+    outfile,
+    window_factor,
+    filter_prominence,
+    interpolate,
+    total,
+    fc_file,
+    update,
+    shorten,
 ):
     """perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
@@ -177,7 +190,23 @@ def greenkubo(
     if total:
         outfile = outfile.parent / f"{outfile.stem}.total.nc"
 
-    with xr.open_dataset(file) as ds:
+    click.echo(f"Run aiGK output workflows for {file}")
+
+    with xr.open_dataset(file) as ds_raw:
+
+        ds = ds_raw
+        if shorten > 0:
+            dim = dims.time
+            click.echo(f".. shorten trajectory by {shorten*100} %:")
+            tmax_ds = float(ds_raw[dim].isel({dim: -1}))
+            click.echo(f"... max. time in trajectory: {tmax_ds} fs")
+            n_max = len(ds_raw[dim])
+            n_start = int(np.floor(n_max * shorten))
+            click.echo(f"... discard {n_start} steps")
+            ds = ds_raw.shift({dim: n_start}).dropna(dim=dim)
+            ds = ds.assign_coords({dim: ds[dim] - ds[dim][0]})
+            tm = float(ds.time.max() / 1000)
+            click.echo(f"... new trajectory length: {tm*1000} fs")
 
         # check if postprocess is necessary
         if Path(outfile).exists() and update:

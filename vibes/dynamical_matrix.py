@@ -4,6 +4,9 @@ import json
 
 import numpy as np
 import xarray as xr
+
+from ase import Atoms
+from phonopy import Phonopy
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.brillouin import get_bands_and_labels, get_bz_mesh, get_q_grid
@@ -11,9 +14,6 @@ from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import get_identifier
 from vibes.konstanten import gv_to_AA_fs, omega_to_THz
-
-from ase import Atoms
-from phonopy import Phonopy
 
 from .force_constants import ForceConstants
 
