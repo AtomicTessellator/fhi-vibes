@@ -361,12 +361,11 @@ def relaxation(obj, file, verbose):
 
 @info.command(context_settings=_default_context_settings)
 @click.argument("files", nargs=-1, type=complete_files)
-@click.option("-o", "--outfile")
 @click.option("--per_sample", is_flag=True, help="analyze per sample")
 @click.option("--per_mode", is_flag=True, help="analyze per mode (no --per_sample)")
 @click.option("--describe", is_flag=True)
 @click.option("--dry", is_flag=True, help="don't write output files")
-def anharmonicity(files, outfile, per_sample, per_mode, describe, dry):
+def anharmonicity(files, per_sample, per_mode, describe, dry):
     """Compute sigmaA for trajectory dataset in FILE"""
     import pandas as pd
     import xarray as xr
@@ -385,14 +384,15 @@ def anharmonicity(files, outfile, per_sample, per_mode, describe, dry):
 
         DS = xr.open_dataset(file)
 
+        outfile = "sigmaA"
+
         name = DS.attrs[keys.system_name]
         if per_mode:
             df = get_sigma_per_mode(DS)
-            outfile = outfile or f"sigmaA_mode_{name}.csv"
+            outfile += "_mode"
             index_label = keys.omega
         else:
             df = get_dataframe(DS, per_sample=per_sample)
-            outfile = outfile or f"sigmaA_{name}.csv"
             index_label = "material"
         dfs.append(df)
 
@@ -405,5 +405,5 @@ def anharmonicity(files, outfile, per_sample, per_mode, describe, dry):
         click.echo(df.describe())
 
     if outfile is not None and not dry:
-        df.to_csv(outfile, index_label=index_label, float_format="%15.12e")
+        df.to_csv(f"{outfile}.csv", index_label=index_label, float_format="%15.12e")
         click.echo(f"\n.. Dataframe for {name} written to {outfile}")
