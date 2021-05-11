@@ -2,6 +2,8 @@
 import warnings
 from pathlib import Path
 
+import numpy as np
+
 from vibes import defaults, keys
 from vibes.filenames import filenames
 
@@ -170,6 +172,7 @@ def greenkubo(files, plot, lifetimes):
 
     # concatentate trajectories
     ds_gk = xr.concat(datasets, dim=keys.trajectory)
+    # ds_gk = ds_gk.sel({keys.time: datasets[0][keys.time]})
     attrs = {ii: d.attrs for (ii, d) in enumerate(datasets)}
     ds_gk.attrs = attrs
 
@@ -248,7 +251,12 @@ def vdos(file, outfile, plot, filter_prominence, max_frequency, npad):
     df = vdos.real.sum(axis=(1, 2)).to_series()
 
     if plot:
-        simple_plot(df, prominence=filter_prominence, max_frequency=max_frequency)
+        peaks = simple_plot(
+            df, prominence=filter_prominence, max_frequency=max_frequency
+        )
+        file = Path(outfile).stem + "_peaks.dat"
+        click.echo(f".. save peak positions to {file}")
+        np.savetxt(file, peaks)
 
     click.echo(f".. write VDOS to {outfile}")
     df.to_csv(outfile, index_label="omega", header=True)
