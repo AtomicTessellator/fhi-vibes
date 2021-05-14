@@ -42,12 +42,12 @@ def postprocess(
 
     calculated_atoms, metadata = reader(trajectory, get_metadata=True)
 
-    # make sure the calculated atoms are in order
-    for nn, atoms in enumerate(calculated_atoms):
-        atoms_id = atoms.info[displacement_id_str]
-        if atoms_id == nn:
-            continue
-        warn(f"Displacement ids are not in order. Inspect {trajectory}!", level=2)
+    atoms_ids = [atoms.info[displacement_id_str] for atoms in calculated_atoms]
+    for nn in range(atoms_ids[-1]):
+        if nn not in atoms_ids:
+            calculated_atoms.insert(nn, None)
+        elif calculated_atoms[nn].info[displacement_id_str] != nn:
+            warn(f"Displacement ids are not in order. Inspect {trajectory}!", level=2)
 
     # if "duplicates" in metadata["Phono3py"]["displacement_dataset"]:
     #     d = metadata["Phono3py"]["displacement_dataset"]["duplicates"]
@@ -77,15 +77,12 @@ def postprocess(
         msg = f"No. of supercells {n_sc} != no. of calculated atoms: {n_calc}"
         raise RuntimeError(msg)
 
-    counter = 0
     force_sets = []
-    for pa in scs:
+    for pa, a in zip(scs, calculated_atoms):
         if pa is None:
             force_sets.append(np.zeros([len(supercell), 3]))
             continue
-        a = calculated_atoms[counter]
         force_sets.append(a.get_forces())
-        counter += 1
 
     phonon.forces = np.array(force_sets)
 
