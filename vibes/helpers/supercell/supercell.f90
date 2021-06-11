@@ -50,6 +50,7 @@ contains
       integer               :: i1, i2, i3, i4, i5, i6, i7, i8, i9, nn
       integer               :: initial_P(3, 3), P(3, 3), dP(3, 3)
       real*8                :: dev, norm, score, best_score, ideal_P(3, 3), ccell(3, 3)
+      real*8                :: volume, volume_target
 
       ! options and defaults
       dev = 0.1d0
@@ -79,8 +80,21 @@ contains
       end if
 
       ! Normalize the input lattice
-      norm = (target_size*determinant_3x3_real(cell)/determinant_3x3_real(target_metric))**(-1./3.)
-      ccell = norm*cell
+      ! this is what we want but it doesn't work with f2py :(
+      ! associate (&
+      !    volume        => abs(determinant_3x3_real(cell)), &
+      !    volume_target => abs(determinant_3x3_real(target_metric)) &
+      !    )
+
+      !    norm = (target_size * volume / volume_target) ** (-1./3.)
+      !    ccell = norm * cell
+      ! end associate
+
+      volume        = abs(determinant_3x3_real(cell))
+      volume_target = abs(determinant_3x3_real(target_metric))
+
+      norm  = (target_size * volume / volume_target) ** (-1./3.)
+      ccell = norm * cell
 
       if (vrbs) write (*, "(A,(F7.3))") 'Normalization factor: ', norm
       if (vrbs) write (*, "(A,/,3(F7.2))") 'Normed cell:  ', ccell
@@ -105,7 +119,7 @@ contains
          dP(2, 1:3) = (/i4, i5, i6/)
          dP(3, 1:3) = (/i7, i8, i9/)
          P = initial_P + dP
-         nn = nint(determinant_3x3_real(real(P, 8)))
+         nn = nint(abs(determinant_3x3_real(real(P, 8))))
          ! Allow some deviation from target size (only increase)
          if ((nn < target_size) .or. (nn > (1.d0 + dev)*target_size)) cycle
          score = get_deviation(matmul(P, ccell), target_metric)
@@ -128,10 +142,11 @@ contains
       if (vrbs) then
          write (*, "(A,/,(F7.3))") 'Best score: ', best_score
          write (*, "(A,/,3(I7))") 'P:          ', smatrix
-         write (*, "(A,/,F7.3,I5)") 'N_target, N:', target_size, nint(determinant_3x3_real(real(smatrix, 8)))
+         write (*, "(A,/,F7.3,I5)") 'N_target, N:', target_size, &
+            nint(abs(determinant_3x3_real(real(smatrix, 8))))
       end if
 
-      if (.not. found) write (*, *) 'No supercell matrix found.'
+      if (.not. found) write (*, *) '*** No supercell matrix found.'
 
    end function
 
