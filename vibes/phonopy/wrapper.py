@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 from phonopy import Phonopy
-
 from vibes import brillouin as bz
 from vibes import konstanten as const
 from vibes.helpers import talk, warn
@@ -54,6 +53,13 @@ def prepare_phonopy(
     """
     ph_atoms = to_phonopy_atoms(atoms, wrap=wrap)
     supercell_matrix = get_3x3_matrix(supercell_matrix)
+
+    # Issue 63:
+    # check if determinant of lattice matrix is zero and stop here if so because phonopy
+    # does not like it.
+    if np.linalg.det(atoms.cell) < 0:
+        msg = "Determinant of lattice matrix is negative, please re-orient the cell."
+        warn(msg, level=2)
 
     phonon = Phonopy(
         ph_atoms,
