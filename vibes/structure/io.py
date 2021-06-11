@@ -189,7 +189,7 @@ def inform(atoms, file=None, verbosity=1, symprec=symprec):
 
     # lengths and angles
     if verbosity > 0:
-        la = atoms.get_cell_lengths_and_angles()
+        la = atoms.cell.cellpar()
         print("\nCell lengths and angles [\u212B, °]:")
         print("  a, b, c: {}".format(" ".join([f"{l:11.4f}" for l in la[:3]])))
         angles = "  \u03B1, \u03B2, \u03B3: "
