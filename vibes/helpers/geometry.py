@@ -1,5 +1,4 @@
 import numpy as np
-
 from vibes.helpers.numerics import clean_matrix
 
 
@@ -81,7 +80,7 @@ def get_cubicness(cell):
     """
 
     # perfect radius: 1/2 * width of the cube
-    radius_perfect = np.linalg.det(cell) ** (1 / 3) * 0.5
+    radius_perfect = abs(np.linalg.det(cell)) ** (1 / 3) * 0.5
     radius_actual = inscribed_sphere_in_box(cell)
 
     # volume = vol_sphere * inscribed_sphere_in_box(cell)**3 / np.linalg.det(cell)
