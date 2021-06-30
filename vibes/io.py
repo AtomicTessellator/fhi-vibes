@@ -1,10 +1,11 @@
 from pathlib import Path
 
+import numpy as np
+
 from ase import Atoms
 from ase.formula import Formula
 from ase.io import read as ase_read
 from ase.spacegroup import get_spacegroup
-
 from vibes.filenames import filenames
 from vibes.spglib import get_symmetry_dataset
 from vibes.structure.io import inform  # noqa: F401
@@ -114,8 +115,15 @@ def write(atoms, file, format="aims", spacegroup=False, **kwargs):
     return True
 
 
-def parse_force_constants(fc_file, **kwargs):
-    """parse either phonopy FORCE_CONSTANTS or tdep infile.forceconstants"""
+def parse_force_constants(fc_file: str, **kwargs) -> np.ndarray:
+    """parse either phonopy FORCE_CONSTANTS or numpy array
+
+    Args:
+        fc_file: the file with forceconstants
+
+    Returns:
+        force_constants as ndarray
+    """
 
     file = Path(fc_file)
     name = file.name
@@ -130,15 +138,5 @@ def parse_force_constants(fc_file, **kwargs):
 
         return parse_phonopy_force_constants(file, **kwargs)
 
-    elif name.endswith(filenames.suffixes.tdep_fc):
-        from vibes.tdep.wrapper import parse_tdep_forceconstant
-
-        return parse_tdep_forceconstant(file, **kwargs)
-
-    elif name.endswith(filenames.suffixes.tdep_fc_remapped):
-        from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
-
-        return parse_tdep_remapped_forceconstant(file, **kwargs)
-
     else:
-        raise RuntimeError(f"{file} is neither phonopy nor tdep force constants")
+        raise RuntimeError(f"{file} type is unkown")
