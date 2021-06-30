@@ -7,6 +7,17 @@ $$
 \kappa^{\alpha \beta} = \frac{V}{k_\text{B} T^2} \lim_{t \to \infty} \int\limits_0^t \left\langle J^\alpha (\tau) J^\beta \right\rangle ~ \text{d} \tau
 $$
 
+## aiGK Workflow for real-space/real-time heat flux
+
+Workflow:
+1. get heat flux autocorrelation function (HFACF) and the integrated kappa
+2. get lowest significant vibrational frequency and get its time period
+3. filter integrated kappa with this period
+4. get HFACF by time derivative of this filtered kappa
+5. filter the HFACF with the same filter
+6. estimate cutoff time from the decay of the filtered HFACF
+7. run harmonic heat flux and interpolation
+
 ## Interpolation
 
 ### Notation
