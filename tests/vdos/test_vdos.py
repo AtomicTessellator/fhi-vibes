@@ -5,9 +5,10 @@ from pathlib import Path
 import numpy as np
 import scipy.signal as sl
 from ase.io import read
+
 from vibes.dynamical_matrix import get_frequencies
 from vibes.green_kubo.velocities import get_vdos
-from vibes.tdep.wrapper import parse_tdep_forceconstant
+from vibes.io import parse_force_constants
 from vibes.trajectory import reader
 
 
@@ -16,12 +17,11 @@ parent = Path(__file__).parent
 
 def test_parse_force_constants():
     # frequencies from force constants
-    fc = parse_tdep_forceconstant(
-        parent / "infile.forceconstant",
-        parent / "geometry.in.primitive",
-        parent / "geometry.in.supercell",
+    fc = parse_force_constants(
+        parent / "FORCE_CONSTANTS_tdep",
+        primitive=parent / "geometry.in.primitive",
+        supercell=parent / "geometry.in.supercell",
         two_dim=True,
-        format="aims",
     )
 
     return fc
@@ -36,9 +36,7 @@ def test_frequencies_from_force_constants():
     return freqs
 
 
-def test_vdos(
-    traj_file="trajectory.son", vdos_file="v.nc", ref_file="ref_vdos.csv"
-):
+def test_vdos(traj_file="trajectory.son", vdos_file="v.nc", ref_file="ref_vdos.csv"):
     traj = reader(parent / traj_file)
 
     df_vdos = get_vdos(traj.dataset.velocities, npad=0).real

@@ -421,6 +421,20 @@ def enforce_sum_rules(**kwargs):
     main(**kwargs)
 
 
+@force_constants.command(context_settings=_default_context_settings)
+@click.argument("file", default="outfile.forceconstant_remapped", type=complete_files)
+@click.option("--outfile", default="FORCE_CONSTANTS_tdep")
+def tdep2phonopy(file, outfile):
+    """write TDEP force constants in phonopy format"""
+    from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
+
+    click.echo(f"Parse TDEP force constants from {file}")
+    fcs = parse_tdep_remapped_forceconstant(file)
+    click.echo(fcs)
+    click.echo(f".. write to {outfile}")
+    fcs.write(outfile)
+
+
 @utils.group(cls=ClickAliasedGroup)
 def trajectory():
     """trajectory utils"""
