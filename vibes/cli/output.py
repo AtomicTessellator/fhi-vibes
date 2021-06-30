@@ -29,9 +29,6 @@ def output():
 @click.option("--force", is_flag=True, help="enfore parsing of output file")
 def trajectory(file, harmonic, fc_file, outfile, force):
     """write trajectory data in FILE to xarray.Dataset"""
-    from vibes.trajectory import reader
-    from vibes.trajectory.dataset import get_trajectory_dataset
-
     if "auto" in outfile.lower():
         outfile = Path(file).stem
         outfile += ".nc"
@@ -52,6 +49,9 @@ def trajectory(file, harmonic, fc_file, outfile, force):
             click.echo(".. file size has changed, parse the file.")
 
     click.echo(f"Extract Trajectory dataset from {file}")
+    from vibes.trajectory import reader
+    from vibes.trajectory.dataset import get_trajectory_dataset
+
     traj = reader(file=file, fc_file=fc_file)
 
     if traj.stresses_potential is not None:

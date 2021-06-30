@@ -1,9 +1,9 @@
 import numpy as np
-import xarray as xr
 from scipy import signal as sl
 
+import xarray as xr
 from vibes import keys
-from vibes.helpers import talk, warn
+from vibes.helpers import Timer, talk, warn
 
 
 _prefix = "filter"
@@ -38,6 +38,7 @@ def get_filtered(
         xr.DataArray [N_t, ...]: array with filter applied to time axis
 
     """
+    timer = Timer("Apply Savitzky-Golay filter", prefix=_prefix, verbose=verbose)
     # get the window from time axis:
     if window_fs is not None:
         time = array[keys.time]
@@ -64,7 +65,7 @@ def get_filtered(
 
     # filter the data
     kw = {"window_length": window, "polyorder": polyorder}
-    _talk(f"Apply Savitzky-Golay filter with {kw}", verbose=verbose)
+    _talk(f".. settings: {kw}", verbose=verbose)
     for ij in np.ndindex(data.shape[:-1]):
         data_filtered[ij] = sl.savgol_filter(data[ij], **kw)
 
@@ -78,5 +79,7 @@ def get_filtered(
         new_array.data = data_filtered[len(array) :]
     else:
         new_array.data = data_filtered
+
+    timer()
 
     return new_array
