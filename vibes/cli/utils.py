@@ -5,6 +5,7 @@ from vibes.filenames import filenames
 from vibes.konstanten import THzToEv
 
 from .misc import AliasedGroup, ClickAliasedGroup, Path, click, complete_files
+from .scripts.nomad_upload import upload as nomad_upload
 
 
 xrange = range
@@ -711,3 +712,12 @@ def harmonic(
         df.to_csv(outfile)
     else:
         click.echo(df)
+
+
+@utils.command(cls=AliasedGroup)
+def nomad():
+    """utils for working with NOMAD"""
+    ...
+
+
+nomad.add_command(nomad_upload)
