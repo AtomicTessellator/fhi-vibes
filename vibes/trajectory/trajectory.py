@@ -3,6 +3,7 @@
 import numpy as np
 from ase import Atoms, units
 from ase.geometry import find_mic
+
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
 from vibes.filenames import filenames
@@ -533,7 +534,7 @@ class Trajectory(list):
         with open(file, "w") as fo:
             simple_write_xyz(fo, self)
 
-    def to_tdep(self, folder=".", skip=1):
+    def to_tdep(self, folder=".", skip=1, stride=1):
         """Convert to TDEP infiles for direct processing
 
         Args:
@@ -542,7 +543,7 @@ class Trajectory(list):
         """
         from .io import to_tdep
 
-        to_tdep(self, folder, skip)
+        to_tdep(self, folder, skip, stride)
 
     def to_db(self, database):
         """Convert to ase database

@@ -461,15 +461,16 @@ def discard(file, n_steps):
 
 
 @trajectory.command("2tdep", context_settings=_default_context_settings)
-@click.argument("file", default=filenames.trajectory, type=complete_files)
-@click.option("-s", "--skip", default=1, help="skip this many steps from trajectory")
+@click.argument("file", default=filenames.trajectory_dataset, type=complete_files)
+@click.option("--skip", default=1, help="skip this many steps from trajectory")
+@click.option("-s", "--stride", default=10, help="pick every STRIDE steps")
 @click.option("--folder", default="tdep", help="folder to store input")
-def t2tdep(file, skip, folder):
+def t2tdep(file, skip, stride, folder):
     """extract tdep input files from trajectory in FILENAME"""
     from vibes.trajectory import reader
 
     traj = reader(file)
-    traj.to_tdep(folder=folder, skip=skip)
+    traj.to_tdep(folder=folder, skip=skip, stride=stride)
 
 
 @trajectory.command("2xyz", context_settings=_default_context_settings)

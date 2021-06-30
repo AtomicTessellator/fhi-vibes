@@ -223,7 +223,7 @@ def reader(
     return trajectory
 
 
-def to_tdep(trajectory, folder=".", skip=1):
+def to_tdep(trajectory, folder=".", skip=1, stride=1):
     """Convert to TDEP infiles for direct processing
 
     Args:
@@ -237,13 +237,14 @@ def to_tdep(trajectory, folder=".", skip=1):
     folder.mkdir(exist_ok=True)
 
     talk(f"Write tdep input files to {folder}:")
+    talk(f".. stride: {stride}")
 
     # meta
     n_atoms = len(trajectory[0])
-    n_steps = len(trajectory) - skip
+    n_steps = len(trajectory[skip::stride])
     try:
-        dt = trajectory.metadata["MD"]["timestep"] / trajectory.metadata["MD"]["fs"]
-        T0 = trajectory.metadata["MD"]["temperature"] / units.kB
+        dt = trajectory.timestep
+        T0 = trajectory.temperatures.mean()
     except KeyError:
         dt = 1.0
         T0 = 0
@@ -275,7 +276,7 @@ def to_tdep(trajectory, folder=".", skip=1):
         ff = stack.enter_context(fdir.open("w"))
         fs = stack.enter_context(sdir.open("w"))
 
-        for ii, atoms in enumerate(trajectory[skip:]):
+        for ii, atoms in enumerate(trajectory[skip::stride]):
             # stress and pressure in GPa
             try:
                 stress = atoms.get_stress(voigt=True) / units.GPa
