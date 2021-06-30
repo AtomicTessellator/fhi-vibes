@@ -91,6 +91,7 @@ mode_heat_capacity = "mode_heat_capacity"
 thermal_conductivity = "thermal_conductivity"
 thermal_conductivity_harmonic = "thermal_conductivity_harmonic"
 thermal_conductivity_harmonic_symmetrized = "thermal_conductivity_harmonic_symmetrized"
+thermal_conductivity_corrected = "thermal_conductivity_corrected"
 # shorthands
 hf = heat_flux
 hf_ha = heat_flux_harmonic
@@ -98,6 +99,7 @@ hf_ha_q = heat_flux_harmonic_q
 kappa = thermal_conductivity
 kappa_ha = thermal_conductivity_harmonic
 kappa_ha_symmetrized = thermal_conductivity_harmonic_symmetrized
+kappa_corrected = thermal_conductivity_corrected
 
 
 sigma = "sigma"

@@ -208,13 +208,15 @@ def greenkubo(files, plot, lifetimes):
         intercept = float(ds_gk[keys.interpolation_fit_intercept])
         correction1 = float(ds_gk[keys.interpolation_correction])
         correction2 = intercept - k_ha
+        kc = k + correction1
 
         click.echo("Summarize interpolation:")
         click.echo(f"Initial harmonic kappa value:    {k_ha:.3f} W/mK")
         click.echo(f"Fit intercept:                   {intercept:.3f} W/mK")
-        click.echo(f"Interpolated harm. kappa:        {k_ha+correction1:.3f} W/mK")
         click.echo(f"Correction1 (k_init + m / nq):   {correction1:.3f} W/mK")
         click.echo(f"Correction2 (k_inf  - k_init):   {correction2:.3f} W/mK")
+        click.echo(f"Interpolated harm. kappa:        {k_ha+correction1:.3f} W/mK")
+        click.echo(f"Interpolated aiGK  kappa:        {kc:.3f} +/- {k_err:.3f} W/mK")
 
     if plot:
         from .scripts.plot_gk_summary import main as plot_summary
