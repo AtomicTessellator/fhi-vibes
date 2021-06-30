@@ -5,6 +5,7 @@ import numpy as np
 import xarray as xr
 from ase import units
 from scipy import signal as sl
+
 from vibes import defaults
 from vibes import dimensions as dims
 from vibes import keys
@@ -233,11 +234,14 @@ def get_gk_dataset(
         ks[ii, jj] = k_filtered[:, ii, jj].sel(time=ta)
         ts[ii, jj] = ta
 
+    k_diag = np.diag(ks)
+    k_mean = np.mean(k_diag)
+    k_err = np.std(k_diag) / 3 ** 0.5
+
     # report
     if verbose:
-        k_diag = np.diag(ks)
         _talk(["Cutoff times (fs):", *np.array2string(ts, precision=3).split("\n")])
-        _talk(f"Kappa is:       {np.mean(k_diag):.3f} +/- {np.std(k_diag) / 3**.5:.3f}")
+        _talk(f"Kappa is:       {k_mean:.3f} +/- {k_err:.3f}")
         _talk(["Kappa^ab is: ", *np.array2string(ks, precision=3).split("\n")])
 
     # 6. compile new dataset
@@ -265,6 +269,11 @@ def get_gk_dataset(
         data_ha = get_gk_ha_q_data(dataset, interpolate=interpolate)
         data.update(data_ha._asdict())
         data.update({keys.fc: dataset[keys.fc]})
+
+        correction = data_ha.interpolation_correction
+        data.update({keys.kappa_corrected: (dims.tensor, ks + correction * np.eye(3))})
+        _talk("END RESULT: Finite-size corrected thermal conductivity")
+        _talk(f"Kappa is: {k_mean+correction:.3f} +/- {k_err:.3f}")
 
     # add thermodynamic properties
     data.update({key: dataset[key] for key in (keys.volume, keys.temperature)})
