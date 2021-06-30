@@ -1,14 +1,12 @@
 """ Tools for dealing with force constants """
 
 import numpy as np
+
 from ase import Atoms
 from ase.geometry import get_distances
-
+from phonopy.file_IO import write_FORCE_CONSTANTS
 from vibes.helpers import Timer, lazy_property, progressbar, talk
-from vibes.helpers.lattice_points import (
-    get_lattice_points,
-    map_I_to_iL,
-)
+from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.supercell import map2prim
 from vibes.helpers.supercell.supercell import supercell as fort
@@ -157,6 +155,9 @@ class ForceConstants:
             primitive=self.primitive,
             supercell=self.supercell,
         )
+
+    def write(self, file: str = "FORCE_CONSTANTS"):
+        write_FORCE_CONSTANTS(self.fc_phonopy, filename=file)
 
 
 def remap_force_constants(
