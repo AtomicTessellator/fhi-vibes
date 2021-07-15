@@ -101,13 +101,18 @@ def phonopy(
     from vibes.phonopy import _defaults
     from vibes.phonopy.postprocess import extract_results, plot_results, postprocess
 
-    if not q_mesh:
-        q_mesh = _defaults.kwargs.q_mesh.copy()
-        click.echo(f"q_mesh not given, use default {q_mesh}")
-
     phonon = postprocess(
-        trajectory_file=file, born_charges_file=born, enforce_sum_rules=sum_rules,
+        trajectory_file=file,
+        born_charges_file=born,
+        enforce_sum_rules=sum_rules,
     )
+    if not q_mesh:
+        if phonon.mesh_numbers is None:
+            q_mesh = _defaults.kwargs.q_mesh.copy()
+            click.echo(f"q_mesh not given, use default {q_mesh}")
+        else:
+            q_mesh = list(phonon.mesh_numbers)
+            click.echo(f"q_mesh not given, use values stored in {file}: {q_mesh}")
 
     folder = "output"
     if sum_rules:

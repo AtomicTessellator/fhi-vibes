@@ -109,6 +109,11 @@ def postprocess(
         nac_params = get_born_parameters(open(born_charges_file), prim, psym)
         phonon.set_nac_params(nac_params)
 
+    # Set qmesh if it is in settings, but default to None
+    q_mesh = metadata.get("settings", {}).get("phonopy", {}).get("q_mesh")
+    if q_mesh is not None:
+        phonon.init_mesh(q_mesh)
+
     if verbose:
         timer("done")
     return phonon
@@ -175,8 +180,12 @@ def extract_results(
         verbose (bool, optional): be verbose
     """
     timer = Timer("\nExtract phonopy results:")
-    if q_mesh is None:
-        q_mesh = defaults.kwargs.q_mesh.copy()
+    if not q_mesh:
+        if phonon.mesh_numbers is None:
+            q_mesh = defaults.kwargs.q_mesh.copy()
+        else:
+            q_mesh = list(phonon.mesh_numbers)
+
     talk(f".. q_mesh:   {q_mesh}")
 
     primitive = to_Atoms(phonon.get_unitcell())

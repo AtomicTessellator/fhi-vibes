@@ -96,6 +96,7 @@ def setup_phonon_outputs(ph_settings, settings, prefix, atoms):
 
     outputs["metadata"]["supercell"] = {"atoms": outputs["metadata"]["atoms"]}
     outputs["metadata"]["primitive"] = input2dict(atoms)
+    outputs["metadata"]["settings"] = ctx.settings.to_dict()
     outputs["prefix"] = prefix
     outputs["settings"] = ph_settings.copy()
     return outputs
@@ -377,13 +378,13 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
             }
         )
     else:
-        use_ase_relax = settings["relaxation"].get("use_ase_relax")
+        use_aims_relax = settings["relaxation"].get("use_aims_relax")
         for key, val in settings["relaxation"].items():
             if issubclass(type(val), dict):
-                if use_ase_relax:
-                    settings["relaxation"][key]["unit_cell"] = False
+                if use_aims_relax:
+                    settings["relaxation"][key]["relax_unit_cell"] = "none"
                 else:
-                    settings["relaxation"][key]["relax_unit_cell"] = False
+                    settings["relaxation"][key]["unit_cell"] = False
 
     primitive = to_Atoms(eq_phonon.get_primitive())
     add_constraints = []
