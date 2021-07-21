@@ -270,10 +270,12 @@ def get_gk_dataset(
         data.update(data_ha._asdict())
         data.update({keys.fc: dataset[keys.fc]})
 
-        correction = data_ha.interpolation_correction
-        data.update({keys.kappa_corrected: (dims.tensor, ks + correction * np.eye(3))})
-        _talk("END RESULT: Finite-size corrected thermal conductivity")
-        _talk(f"Kappa is: {k_mean+correction:.3f} +/- {k_err:.3f}")
+        if interpolate:
+            correction = data_ha.interpolation_correction
+            kappa_corrected = ks + correction * np.eye(3)
+            data.update({keys.kappa_corrected: (dims.tensor, kappa_corrected)})
+            _talk("END RESULT: Finite-size corrected thermal conductivity")
+            _talk(f"Kappa is: {k_mean+correction:.3f} +/- {k_err:.3f}")
 
     # add thermodynamic properties
     data.update({key: dataset[key] for key in (keys.volume, keys.temperature)})
