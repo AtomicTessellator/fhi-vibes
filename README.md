@@ -17,11 +17,11 @@ Most of the functionality is high-throughput ready via [fireworks](https://mater
 
 ## Overview
 
-- [Installation](https://vibes-developers.gitlab.io/vibes/Installation/)
-- [Tutorial](https://vibes-developers.gitlab.io/vibes/Tutorial/0_intro/)
-- [Documentation](https://vibes-developers.gitlab.io/vibes/Documentation/0_intro/)
-- [Credits](https://vibes-developers.gitlab.io/vibes/Credits/)
-- [References](https://vibes-developers.gitlab.io/vibes/References/)
+- [Installation](https://vibes-developers.gitlab.io/vibes/Installation)
+- [Tutorial](https://vibes-developers.gitlab.io/vibes/Tutorial/0_intro)
+- [Documentation](https://vibes-developers.gitlab.io/vibes/Documentation/0_intro)
+- [Credits](https://vibes-developers.gitlab.io/vibes/Credits)
+- [References](https://vibes-developers.gitlab.io/vibes/References)
 
 
 ## News
