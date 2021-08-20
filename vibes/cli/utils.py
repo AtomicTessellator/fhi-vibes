@@ -477,8 +477,8 @@ def discard(file, n_steps):
 
 @trajectory.command("2tdep", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory_dataset, type=complete_files)
-@click.option("--skip", default=1, help="skip this many steps from trajectory")
-@click.option("-s", "--stride", default=10, help="pick every STRIDE steps")
+@click.option("--skip", default=0, help="skip this many steps from trajectory")
+@click.option("-s", "--stride", default=1, help="pick every STRIDE steps")
 @click.option("--folder", default="tdep", help="folder to store input")
 def t2tdep(file, skip, stride, folder):
     """extract tdep input files from trajectory in FILENAME"""
