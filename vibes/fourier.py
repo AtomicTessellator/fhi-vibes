@@ -1,6 +1,7 @@
 """Fourier Transforms"""
 import numpy as np
 import xarray as xr
+
 from vibes import dimensions as dims
 from vibes import keys
 from vibes.helpers import Timer, talk, warn
@@ -16,6 +17,9 @@ def _talk(msg, **kwargs):
 
 def get_timestep(times, tol=1e-9):
     """get time step from a time series and check for glitches"""
+    if len(times) == 1:
+        return times[0]
+
     d_times = np.asarray((times - np.roll(times, 1))[1:])
     timestep = d_times[0]
 
