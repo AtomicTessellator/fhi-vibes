@@ -1,10 +1,20 @@
-image: registry.gitlab.com/vibes-developers/vibes:default
+image: registry.gitlab.com/vibes-developers/vibes:test
 
 before_script:
+  - gfortran --version
   - flake8
   - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
-  - poetry install
-  - pip install https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz
+#   - pip install poetry==1.1.4
+#   - pip install poetry-core==1.0.0
+  - pip list
+  - ls /builds/vibes-developers/vibes/vibes/helpers/supercell
+  - pip install -U pip
+  - pip install -U numpy
+  - pip install .
+  - ls /builds/vibes-developers/vibes/vibes/helpers/supercell
+  - echo $LD_LIBRARY_PATH
+#  - poetry install
+#  - pip install https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz
   - pip list
 
 default:
