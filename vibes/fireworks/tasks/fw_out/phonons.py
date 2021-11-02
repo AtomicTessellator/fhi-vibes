@@ -314,7 +314,6 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     _, metadata = reader(trajectory_file, True)
     calculator_dict = metadata["calculator"]
     calculator_dict["calculator"] = calculator_dict["calculator"].lower()
-    calculator_dict["calculator"] == "aims"
     if calculator_dict["calculator"] == "aims":
         k_pt_density = k2d(
             dict2atoms(metadata["supercell"]["atoms"]),
