@@ -1,7 +1,7 @@
 # image: registry.gitlab.com/vibes-developers/vibes:test
 image: continuumio/miniconda3
 
-before_script:
+before_script: 
   - pip install flake8 flake8-bugbear flake8-comprehensions pytest pytest-cov pytest-xdist 
   - flake8
   - conda install -c conda-forge numpy scipy gfortran phonopy==2.8.1
@@ -18,10 +18,17 @@ default:
 fireworks:
 #  when: manual
 #  before_script:
-    # - poetry install -E fireworks
-    # - service mongodb start --ipv6
   script:
-    # - conda install -c conda-forge fireworks 
+    - apt-get update
+    - apt-get install -y gnupg
+    - apt-get install -y psmisc
+    - wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
+    - echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
+    - apt-get update
+    - apt-get install -y mongodb-org
+    - mkdir -p /data/db
+    - mongod --ipv6 --fork --logpath /var/log/mongod.log
+ 
     - pip install FireWorks
     - cp vibes/templates/config_files/fireworksrc.template ~/.fireworksrc
     - pytest tests/fireworks
