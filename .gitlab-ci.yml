@@ -4,41 +4,19 @@ image: continuumio/miniconda3
 # https://dev.to/waylonwalker/installing-miniconda-on-linux-from-the-command-line-4ad7
 
 before_script:
-  
-#   - gfortran --version
-#   - flake8
-#   - mkdir -p ~/miniconda3
-#   - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
-#   - bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-#   - ~/miniconda3/bin/conda init bash
-#   - ls ~
-#   - source ~/.bashrc
-#   - bash
-#   - ~/miniconda3/bin/conda activate base
-  - python --version
-  - conda env list
-  - conda list
-  - conda install -c conda-forge numpy scipy gfortran
-  - conda install -c conda-forge phonopy==2.8.1
-
-#   - pip install poetry==1.1.4
-#   - pip install poetry-core==1.0.0
+  - pip install flake8 flake8-bugbear flake8-comprehensions pytest pytest-cov pytest-xdist 
+  - flake8
+  - conda install -c conda-forge numpy scipy gfortran phonopy==2.8.1
   - pip list
-  - ls /builds/vibes-developers/vibes/vibes/helpers/supercell
-#  - pip install -U pip
-#  - pip install -U numpy
   - pip install .
   - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
-  - ls /builds/vibes-developers/vibes/vibes/helpers/supercell
-  - echo $LD_LIBRARY_PATH
-#  - poetry install
-#  - pip install https://gitlab.com/ase/ase/-/archive/master/ase-master.tar.gz
   - pip list
 
 default:
   script:
-    - pip install pytest
-    - pytest --cov --cov-config=setup.cfg tests/ --ignore tests/fireworks/ --ignore tests/aims/
+#    - pytest --cov --cov-config=setup.cfg tests/ --ignore tests/fireworks/ --ignore tests/aims/
+    - cd tests
+    - pytest --cov --cov-config=../setup.cfg . --ignore fireworks/ --ignore aims/
   after_script:
     - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
 
