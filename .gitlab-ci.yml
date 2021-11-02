@@ -19,8 +19,8 @@ before_script:
   - python --version
   - conda env list
   - conda list
-  - conda install -c anaconda scipy
-#   - conda install -c conda-forge gfortran 
+  - conda install -c conda-forge scipy
+  - conda install -c conda-forge gfortran 
 #   - conda install numpy
 
 #   - pip install poetry==1.1.4
