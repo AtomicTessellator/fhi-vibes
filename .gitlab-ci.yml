@@ -1,10 +1,10 @@
-image: registry.gitlab.com/vibes-developers/vibes:test
+# image: registry.gitlab.com/vibes-developers/vibes:test
 
 # https://dev.to/waylonwalker/installing-miniconda-on-linux-from-the-command-line-4ad7
 
 before_script:
+  - apt-get install -y gfortran
   - gfortran --version
-  - python --version
   - flake8
   - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
   - mkdir -p ~/miniconda3
