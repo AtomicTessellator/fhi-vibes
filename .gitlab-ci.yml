@@ -21,7 +21,8 @@ fireworks:
     # - poetry install -E fireworks
     # - service mongodb start --ipv6
   script:
-    - conda install -c conda-forge fireworks 
+    # - conda install -c conda-forge fireworks 
+    - pip install FireWorks
     - cp vibes/templates/config_files/fireworksrc.template ~/.fireworksrc
     - pytest tests/fireworks
 
