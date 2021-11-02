@@ -1,32 +1,28 @@
 # image: registry.gitlab.com/vibes-developers/vibes:test
 image: continuumio/miniconda3
 
-# https://dev.to/waylonwalker/installing-miniconda-on-linux-from-the-command-line-4ad7
-
 before_script:
   - pip install flake8 flake8-bugbear flake8-comprehensions pytest pytest-cov pytest-xdist 
   - flake8
   - conda install -c conda-forge numpy scipy gfortran phonopy==2.8.1
-  - pip list
   - pip install .
-  - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
   - pip list
 
 default:
   script:
-#    - pytest --cov --cov-config=setup.cfg tests/ --ignore tests/fireworks/ --ignore tests/aims/
-    - cd tests
-    - pytest --cov --cov-config=../setup.cfg . --ignore fireworks/ --ignore aims/
+    - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
+    - pytest --cov --cov-config=setup.cfg --ignore tests/fireworks/ --ignore tests/aims/ tests/ 
   after_script:
     - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
 
 fireworks:
-  when: manual
-  before_script:
-    - poetry install -E fireworks
-    - service mongodb start --ipv6
-    - cp vibes/templates/config_files/fireworksrc.template ~/.fireworksrc
+#  when: manual
+#  before_script:
+    # - poetry install -E fireworks
+    # - service mongodb start --ipv6
   script:
+    - conda install -c conda-forge fireworks 
+    - cp vibes/templates/config_files/fireworksrc.template ~/.fireworksrc
     - pytest tests/fireworks
 
 pages:
