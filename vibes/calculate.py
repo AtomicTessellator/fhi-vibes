@@ -121,6 +121,7 @@ def calculate_socket(
 
     # perform calculation
     n_cell = -1
+
     with cwd(calc_dir, mkdir=True):
         # log metadata and sanity check
         if check_settings_before_resume:
@@ -140,8 +141,8 @@ def calculate_socket(
             # skip if cell is None or already computed
             if cell is None:
                 talk("`atoms is None`, skip.")
-
                 continue
+
             if check_precomputed_hashes(cell, precomputed_hashes, n_cell):
                 continue
 

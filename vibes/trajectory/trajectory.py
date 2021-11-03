@@ -654,8 +654,13 @@ class Trajectory(list):
         """return all hashes from trajectory"""
 
         hashes = []
-        for atoms in self:
-            hashes.append(hash_atoms(atoms))
+        try:
+            hashes = [None for aa in range(self[-1].info["displacement_id"] + 1)]
+            for atoms in self:
+                hashes[atoms.info["displacement_id"]] = hash_atoms(atoms)
+        except KeyError:
+            for atoms in self:
+                hashes.append(hash_atoms(atoms))
 
         return hashes
 
