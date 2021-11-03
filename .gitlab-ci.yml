@@ -33,15 +33,15 @@ vibes:
     - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
 
 pages:
-  stage: test
+  stage: deploy
   script:
-  - pip install mkdocs-material==7.3 mkdocs-minify-plugin==0.5
-  - mkdocs build
-  - mv site public
+    - pip install mkdocs-material==7.3 mkdocs-minify-plugin==0.5
+    - mkdocs build
+    - mv site public
   artifacts:
     paths:
     - public
-#  only:
-#  - master
-#  - docs
-#  - joss
+  only:
+    - master
+    - docs
+    - joss
