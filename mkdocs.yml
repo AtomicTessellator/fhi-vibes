@@ -9,11 +9,12 @@ theme:
     palette:
         primary: 'Teal'
         accent: 'Blue Grey'
-    logo: 'images/FV.svg'
+    logo: images/FV.svg
     favicon: 'images/FV.svg'
     include_search_page: false
-    feature:
-        tabs: true
+    features:
+        - navigation.tabs
+        - navigation.instant
 
     font:
         text: 'Open Sans'
@@ -94,8 +95,8 @@ extra_javascript:
 
 extra:
   social:
-    - type: gitlab
+    - icon: fontawesome/brands/github-alt
       link: https://gitlab.com/vibes-developers/vibes
-    - type: twitter
+    - icon: fontawesome/brands/twitter
       link: https://twitter.com/flokno_phys
 

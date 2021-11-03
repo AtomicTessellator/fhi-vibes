@@ -35,7 +35,7 @@ vibes:
 pages:
   stage: test
   script:
-  - pip install mkdocs mkdocs-material mkdocs-minify-plugin pymdown-extensions
+  - pip install mkdocs-material==7.3 mkdocs-minify-plugin==0.5
   - mkdocs build
   - mv site public
   artifacts:
