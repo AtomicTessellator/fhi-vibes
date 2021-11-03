@@ -24,15 +24,14 @@ before_script:
 vibes:
   stage: test
   script:
-    - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
-    - pytest --cov --cov-config=setup.cfg --ignore tests/fireworks/ --ignore tests/aims/ tests/ 
-    - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
-# Fireworks
     - mkdir -p /data/db
     - mongod --ipv6 --fork --logpath /var/log/mongod.log
     - pip install FireWorks
     - cp vibes/templates/config_files/fireworksrc.template ~/.fireworksrc
-    - pytest tests/fireworks
+    - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
+    - pytest --cov --cov-config=setup.cfg --ignore tests/aims/ tests/ 
+  after_script:
+    - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
 
 pages:
   stage: deploy
