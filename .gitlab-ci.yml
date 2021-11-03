@@ -1,5 +1,9 @@
-# image: registry.gitlab.com/vibes-developers/vibes:test
 image: continuumio/miniconda3
+# image: registry.gitlab.com/vibes-developers/vibes:default
+
+stages:
+  - test
+  - deploy
 
 before_script: 
   - pip install flake8 flake8-bugbear flake8-comprehensions pytest pytest-cov pytest-xdist 
@@ -8,32 +12,27 @@ before_script:
   - pip install .
   - pip list
 
-default:
+vibes:
+  stage: test
   script:
     - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
     - pytest --cov --cov-config=setup.cfg --ignore tests/fireworks/ --ignore tests/aims/ tests/ 
-  after_script:
     - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
-
-fireworks:
-#  when: manual
-#  before_script:
-  script:
+# Fireworks
     - apt-get update
     - apt-get install -y gnupg
-    - apt-get install -y psmisc
     - wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
     - echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
     - apt-get update
     - apt-get install -y mongodb-org
     - mkdir -p /data/db
     - mongod --ipv6 --fork --logpath /var/log/mongod.log
- 
     - pip install FireWorks
     - cp vibes/templates/config_files/fireworksrc.template ~/.fireworksrc
     - pytest tests/fireworks
 
 pages:
+  stage: deploy
   script:
   - mkdocs build
   - mv site public
