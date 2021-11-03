@@ -6,6 +6,8 @@ stages:
   - deploy
 
 before_script: 
+  - apt-get update
+  - apt-get install -y gnupg curl
   - pip install flake8 flake8-bugbear flake8-comprehensions pytest pytest-cov pytest-xdist 
   - flake8
   - conda install -c conda-forge numpy scipy gfortran phonopy==2.8.1
@@ -19,8 +21,6 @@ vibes:
     - pytest --cov --cov-config=setup.cfg --ignore tests/fireworks/ --ignore tests/aims/ tests/ 
     - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
 # Fireworks
-    - apt-get update
-    - apt-get install -y gnupg
     - wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
     - echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
     - apt-get update
