@@ -7,7 +7,7 @@ stages:
 
 before_script: 
   # check syntax before doing anything
-  - pip install flake8 flake8-bugbear flake8-comprehensions pytest pytest-cov pytest-xdist 
+  - pip install flake8 flake8-bugbear flake8-comprehensions pytest pytest-cov pytest-xdist
   - flake8
   # prepare software environment
   - apt-get update
@@ -34,14 +34,15 @@ vibes:
     - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
 
 pages:
-  stage: deploy
+  stage: test
   script:
+  - pip install mkdocs mkdocs-material mkdocs-minify-plugin pymdown-extensions
   - mkdocs build
   - mv site public
   artifacts:
     paths:
     - public
-  only:
-  - master
-  - docs
-  - joss
+#  only:
+#  - master
+#  - docs
+#  - joss
