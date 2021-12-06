@@ -39,6 +39,7 @@ metadata = "raw_metadata"
 cell = "cell"
 volume = "volume"
 positions = "positions"
+displacements = "displacements"
 velocities = "velocities"
 momenta = "momenta"
 
@@ -72,7 +73,7 @@ energy_potential_harmonic = "energy_potential_harmonic"
 stress_harmonic = "stress_harmonic"
 stresses_harmonic = "stresses_harmonic"
 heat_flux_harmonic = "heat_flux_harmonic"
-heat_flux_harmonic_0 = "heat_flux_harmonic_0"
+heat_flux_0_harmonic = "heat_flux_0_harmonic"
 
 
 sigma = "sigma"
