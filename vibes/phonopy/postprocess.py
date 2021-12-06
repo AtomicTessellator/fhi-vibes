@@ -95,7 +95,8 @@ def postprocess(
         from vibes.hiphive import enforce_rotational_sum_rules
 
         timer = Timer("Enforce rotational sum rules with hiphive")
-        fc = enforce_rotational_sum_rules(phonon.force_constants)
+        kw = {"primitive": primitive, "supercell": supercell}
+        fc = enforce_rotational_sum_rules(phonon.force_constants, **kw)
         phonon.force_constants = fc
         timer()
 
