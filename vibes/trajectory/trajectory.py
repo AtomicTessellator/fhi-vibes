@@ -44,11 +44,13 @@ class Trajectory(list):
         self._reference_atoms = None
         self._average_atoms = None
         self._heat_flux = None
-        self._avg_heat_flux = None
+        self._heat_flux_aux = None
+        self._heat_flux_harmonic = None
+        self._heat_flux_0_harmonic = None
         self._forces_harmonic = None
         self._displacements = None
         self._force_constants = None
-        self._force_constants_remapped = None
+        self._uuid = None
         if keys.fc not in self._metadata:
             self._metadata[keys.fc] = None
 
@@ -229,10 +231,19 @@ class Trajectory(list):
         """return the temperatues as 1d array"""
         return np.array([a.get_temperature() for a in self])
 
-    @lazy_property
+    @property
     def aims_uuid(self):
         """return aims uuids as list"""
-        return [a.info.get(keys.aims_uuid) for a in self]
+        if self._uuid is None:
+            self._uuid = [a.info.get(keys.aims_uuid) for a in self]
+        return self._uuid
+
+    @aims_uuid.setter
+    def aims_uuid(self, uuids: list):
+        """set aims uuids (when reading back trajectory.nc)"""
+        assert len(uuids) == len(self)
+        for uuid, atoms in zip(uuids, self):
+            atoms.info[keys.aims_uuid] = str(uuid)
 
     @property
     def ref_positions(self):
@@ -282,6 +293,7 @@ class Trajectory(list):
             force_constants=fc, primitive=self.primitive, supercell=self.supercell
         )
         self._force_constants = fcs
+        self.set_forces_harmonic()
 
     @property
     def force_constants(self):
@@ -291,23 +303,10 @@ class Trajectory(list):
     @property
     def force_constants_remapped(self):
         """return remapped force constants [3 * Na, 3 * Na]"""
-        if self.force_constants is not None:
-            return self.force_constants.remapped
-        return self._force_constants_remapped
+        return self.force_constants.remapped
 
-    def set_force_constants_remapped(self, fc):
-        """set remapped force constants and compute harmonic forces"""
-        Na = len(self.reference_atoms)
-        assert fc.shape == (3 * Na, 3 * Na), fc.shape
-        self._force_constants_remapped = fc
-        self.set_forces_harmonic()
-
-    def set_forces_harmonic(self, average_reference=False):
+    def set_forces_harmonic(self):
         """compute harmonic force computed from self.force_constants"""
-        if average_reference:
-            talk("Compute harmonic force constants with average positions as reference")
-            self.reference_atoms = self.average_atoms
-
         timer = Timer("Set harmonic forces")
         displacements = self.displacements
         force_constants = self.force_constants_remapped
@@ -339,13 +338,15 @@ class Trajectory(list):
         """return the potential stress as [N_t, 3, 3] array"""
         zeros = np.zeros((3, 3))
         stresses = []
-        for a in self:
+        timer = Timer("Get potential stress")
+        for a in progressbar(self):
             if has_stress(a):
                 stress = a.get_stress(voigt=False, include_ideal_gas=False)
             else:
                 stress = np.full_like(zeros, np.nan)
 
             stresses.append(stress)
+        timer()
 
         return np.array(stresses, dtype=float)
 
@@ -354,21 +355,23 @@ class Trajectory(list):
         """return the kinetic stress as [N_t, 3, 3] array"""
         zeros = np.zeros((3, 3))
         stresses = []
-        for a in self:
+        timer = Timer("Get kinetic stress")
+        for ii, a in enumerate(progressbar(self)):
             if has_stress(a):
-                stress_potential = a.get_stress(voigt=False)
+                stress_potential = self.stress_potential[ii]
                 stress_full = a.get_stress(voigt=False, include_ideal_gas=True)
                 stress_kinetic = stress_full - stress_potential
             else:
                 stress_kinetic = np.full_like(zeros, np.nan)
             stresses.append(stress_kinetic)
+        timer()
 
         return np.array(stresses, dtype=float)
 
     @property
     def stress(self):
         """return the full stress (kinetic + potential) as [N_t, 3, 3] array"""
-        return self.stress_kinetic + self.stress_potential
+        return self.stress_potential + self.stress_kinetic
 
     @lazy_property
     def stresses_potential(self):
@@ -377,14 +380,17 @@ class Trajectory(list):
 
         zeros = np.zeros((len(self.reference_atoms), 3, 3))
 
-        for a in self:
+        timer = Timer("Get potential stresses")
+        for a in progressbar(self):
             if has_stresses(a):
                 atomic_stress = get_stresses(a)
             else:
                 atomic_stress = np.full_like(zeros, np.nan)
             atomic_stresses.append(atomic_stress)
+        timer()
 
-        return np.array(atomic_stresses, dtype=float)
+        if not np.isnan(atomic_stresses).all():
+            return np.array(atomic_stresses, dtype=float)
 
     @lazy_property
     def virials(self):
@@ -393,14 +399,17 @@ class Trajectory(list):
 
         zeros = np.zeros((len(self.reference_atoms), 3, 3))
 
+        timer = Timer("Get virials")
         for a in self:
             if has_virials(a):
                 atom_virials = get_virials(a)
             else:
                 atom_virials = np.full_like(zeros, np.nan)
             virials.append(atom_virials)
+        timer()
 
-        return np.array(virials, dtype=float)
+        if not np.isnan(virials).all():
+            return np.array(virials, dtype=float)
 
     def get_pressure(self, kinetic=False):
         """return the pressure as [N_t] array"""
@@ -642,6 +651,7 @@ class Trajectory(list):
     def get_hashes(self, verbose=False):
         """return all hashes from trajectory"""
 
+        timer = Timer("Get Atoms hashes")
         hashes = []
         try:
             hashes = [None for aa in range(self[-1].info["displacement_id"] + 1)]
@@ -650,6 +660,7 @@ class Trajectory(list):
         except KeyError:
             for atoms in self:
                 hashes.append(hash_atoms(atoms))
+        timer()
 
         return hashes
 
@@ -660,11 +671,18 @@ class Trajectory(list):
 
         al.pressure(DS.pressure)
 
+    @lazy_property
+    def hash(self):
+        """hash the atoms and metadata"""
+        hashes = self.get_hashes()
+
+        return hashfunc("".join(hashes))
+
     def compute_heat_flux(self):
         """attach `heat_flux` to each `atoms`"""
 
-        have_virials = not np.isnan(self.virials).all()
-        have_stresses = not np.isnan(self.stresses_potential).all()
+        have_virials = self.virials is not None
+        have_stresses = self.stresses_potential is not None
 
         if have_virials:
             if have_stresses:
@@ -714,6 +732,9 @@ class Trajectory(list):
 
             a.calc.results.update(d)
 
+        # attach attributes
+        self.set_heat_flux()
+
         timer()
 
     def compute_heat_flux_from_stresses(self):
@@ -723,35 +744,36 @@ class Trajectory(list):
         """
         self.compute_heat_flux()
 
-    def get_heat_flux(self, aux=False):
-        """return the heat flux as [N_t, 3] array"""
+    def set_heat_flux(self) -> None:
         flux = []
-
+        flux_aux = []
         nan = np.full_like(np.zeros(3), np.nan)
-
-        if aux:
-            key = keys.heat_flux_aux
-        else:
-            key = keys.heat_flux
-
+        # attach heat_flux and heat_flux_aux
         for a in self:
             try:
-                f = a.calc.results[key]
+                f = a.calc.results[keys.heat_flux]
             except KeyError:
                 f = nan
             flux.append(f)
+            try:
+                f = a.calc.results[keys.heat_flux_aux]
+            except KeyError:
+                f = nan
+            flux_aux.append(f)
+        # set attributes if not all are None
+        if not np.isnan(flux).all():
+            self._heat_flux = np.array(flux, dtype=float)
+            self._heat_flux_aux = np.array(flux_aux, dtype=float)
 
-        if np.isnan(flux).all():
-            return None
+    def get_heat_flux(self, aux=False):
+        """return the heat flux as [N_t, 3] array"""
+        # return
+        if aux:
+            flux = self._heat_flux_aux
         else:
-            return np.array(flux, dtype=float)
+            flux = self._heat_flux
 
-    @lazy_property
-    def hash(self):
-        """hash the atoms and metadata"""
-        hashes = self.get_hashes()
-
-        return hashfunc("".join(hashes))
+        return flux
 
     def compute_heat_flux_harmonic(self):
         """compute harmonic properties from FCCalculator"""
@@ -767,4 +789,23 @@ class Trajectory(list):
             calc_ha.calculate(atoms)
             for key in calc_ha.results:
                 atoms.calc.results[f"{key}_harmonic"] = calc_ha.results[key]
+
+        # set attribute
+        self.set_heat_flux_harmonic()
+
         timer()
+
+    def set_heat_flux_harmonic(self) -> None:
+        """attach heat_flux_harmonic as attribute"""
+        flux = [a.calc.results[keys.heat_flux_harmonic] for a in self]
+        self._heat_flux_harmonic = np.array(flux)
+        flux = [a.calc.results[keys.heat_flux_0_harmonic] for a in self]
+        self._heat_flux_0_harmonic = np.array(flux)
+
+    def get_heat_flux_harmonic(self) -> np.ndarray:
+        """return the harmonic heat flux as [N_t, 3] array"""
+        return self._heat_flux_harmonic
+
+    def get_heat_flux_0_harmonic(self) -> np.ndarray:
+        """return the harmonic heat flux w.r.t. fixed positions as [N_t, 3] array"""
+        return self._heat_flux_0_harmonic

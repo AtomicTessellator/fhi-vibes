@@ -448,10 +448,13 @@ def parse_dataset(dataset: xr.Dataset) -> list:
     trajectory = Trajectory(trajectory_list, metadata=metadata)
     trajectory.displacements = DS.displacements.data
     trajectory.times = DS.time.data
+    if keys.aims_uuid in DS:
+        trajectory.aims_uuid = np.asarray(DS[keys.aims_uuid])
 
+    # attach force_constants
     if keys.fc in DS:
         trajectory.set_force_constants(np.asarray(DS[keys.fc]))
     elif keys.fc_remapped in DS:
-        trajectory.set_force_constants_remapped(np.asarray(DS[keys.fc_remapped]))
+        trajectory.set_force_constants(np.asarray(DS[keys.fc_remapped]))
 
     return trajectory

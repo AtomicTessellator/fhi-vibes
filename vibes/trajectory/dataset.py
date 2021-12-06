@@ -54,7 +54,8 @@ def _attrs(trajectory, dct=None, metadata=False):
         raw_metadata = dict2json(trajectory.metadata)
         attrs.update({keys.metadata: raw_metadata})
 
-    attrs.update({keys.hash: trajectory.hash})  # add hash
+    # is slow:
+    # attrs.update({keys.hash: trajectory.hash})  # add hash
 
     return attrs
 
@@ -151,8 +152,8 @@ def get_trajectory_dataset(trajectory, metadata=False):
     dataset = {
         keys.reference_positions: positions_reference,
         keys.reference_lattice: lattice_reference,
-        "positions": positions,
-        "displacements": (dims.time_atom_vec, trajectory.displacements),
+        keys.positions: positions,
+        keys.displacements: (dims.time_atom_vec, trajectory.displacements),
         keys.velocities: velocities,
         keys.momenta: (dims.time_atom_vec, trajectory.momenta),
         keys.forces: (dims.time_atom_vec, trajectory.forces),
@@ -162,17 +163,17 @@ def get_trajectory_dataset(trajectory, metadata=False):
         keys.cell: (dims.time_tensor, trajectory.cells),
         keys.volume: (dims.time, trajectory.volumes),
         keys.stress: (dims.time_tensor, trajectory.stress),
-        keys.stress_kinetic: (dims.time_tensor, trajectory.stress_kinetic),
         keys.stress_potential: (dims.time_tensor, trajectory.stress_potential),
+        keys.stress_kinetic: (dims.time_tensor, trajectory.stress_kinetic),
     }
 
     stresses_potential = trajectory.stresses_potential
-    if not np.isnan(stresses_potential).all():
+    if stresses_potential is not None:
         value = (dims.time_atom_tensor, trajectory.stresses_potential)
         dataset.update({keys.stresses_potential: value})
 
     virials = trajectory.virials
-    if not np.isnan(virials).all():
+    if virials is not None:
         value = (dims.time_atom_tensor, trajectory.virials)
         dataset.update({keys.virials: value})
 
@@ -185,6 +186,14 @@ def get_trajectory_dataset(trajectory, metadata=False):
     flux = trajectory.get_heat_flux(aux=True)
     if flux is not None:
         dataset.update({keys.heat_flux_aux: (dims.time_vec, flux)})
+
+    # heat_flux_harmonic
+    flux = trajectory.get_heat_flux_harmonic()
+    if flux is not None:
+        dataset.update({keys.heat_flux_harmonic: (dims.time_vec, flux)})
+    flux = trajectory.get_heat_flux_0_harmonic()
+    if flux is not None:
+        dataset.update({keys.heat_flux_0_harmonic: (dims.time_vec, flux)})
 
     coords = _time_coords(trajectory)
     attrs = _attrs(trajectory, metadata=metadata)
