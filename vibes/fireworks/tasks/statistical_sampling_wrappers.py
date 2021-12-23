@@ -6,6 +6,7 @@ from vibes.cli.scripts.create_samples import generate_samples
 from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms
 from vibes.helpers.dict import AttributeDict
 from vibes.helpers.k_grid import k2d, update_k_grid
+from vibes.helpers.numerics import get_3x3_matrix
 from vibes.helpers.supercell import make_supercell
 from vibes.helpers.warnings import warn
 from vibes.phonopy.postprocess import postprocess as postprocess_ph
@@ -126,9 +127,7 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
     atoms = to_Atoms(phonon.get_unitcell())
 
     if "supercell_matrix" in kwargs:
-        supercell = make_supercell(
-            atoms, np.array(kwargs["supercell_matrix"]).reshape(3, 3)
-        )
+        supercell = make_supercell(atoms, get_3x3_matrix(kwargs["supercell_matrix"]))
     else:
         supercell = to_Atoms(phonon.get_supercell())
 

@@ -2,7 +2,8 @@
 
 from fireworks import FWAction
 from vibes.fireworks.tasks.postprocess.aims import check_aims
-from vibes.fireworks.workflows.firework_generator import generate_firework, time2str
+from vibes.fireworks.tasks.postprocess.phonons import time2str
+from vibes.fireworks.workflows.firework_generator import generate_firework
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.k_grid import k2d
 

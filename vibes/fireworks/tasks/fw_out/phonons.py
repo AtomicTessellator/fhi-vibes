@@ -455,9 +455,6 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         keys.is_diagonal: metadata["Phonopy"].get(
             keys.is_diagonal, ph_kwargs[keys.is_diagonal]
         ),
-        keys.is_trigonal: metadata["Phonopy"].get(
-            keys.is_trigonal, ph_kwargs[keys.is_trigonal]
-        ),
         keys.is_plusminus: metadata["Phonopy"].get(
             keys.is_plusminus, ph_kwargs[keys.is_plusminus]
         ),
