@@ -471,8 +471,9 @@ def get_debye_temperature(phonon=None, freq_pitch=5e-3, tetrahedron_method=True)
     phonon.set_Debye_frequency()
     omgea_d = phonon.get_Debye_frequency() * 1e12 * np.pi * 2.0
 
-    theta_p = eps_p_1 / const.kB
-    theta_d_infty = np.sqrt(5.0 / 3.0 * eps_p_2) / const.kB
-    theta_d = omgea_d * const.HBAR / (const.kB * const.EV)
+    kB = const.BOLTZMANN / const.EV
+    theta_p = eps_p_1 / kB
+    theta_d_infty = np.sqrt(5.0 / 3.0 * eps_p_2) / kB
+    theta_d = omgea_d * const.HBAR / (kB * const.EV)
 
     return theta_p, theta_d_infty, theta_d
