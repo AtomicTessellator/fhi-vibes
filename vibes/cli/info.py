@@ -3,7 +3,6 @@ import warnings
 from pathlib import Path
 
 import numpy as np
-
 from vibes import defaults, keys
 from vibes.filenames import filenames
 
@@ -243,19 +242,22 @@ def vdos(file, outfile, plot, filter_prominence, max_frequency, npad):
     """compute and write velocity autocorrelation function to output file"""
     import xarray as xr
 
-    from vibes.green_kubo.velocities import get_vdos, simple_plot
+    from vibes.green_kubo.velocities import get_vdos_from_dataset, simple_plot
 
     click.echo(f"Read {file} and extract velocities")
-    velocities = xr.open_dataset(file).velocities
 
-    vdos = get_vdos(velocities=velocities, hann=False, npad=npad, verbose=True)
+    with xr.open_dataset(file) as ds:
+        vdos = get_vdos_from_dataset(dataset=ds, hann=False, npad=npad, verbose=True)
 
     # sum atoms and coordinates
     df = vdos.real.sum(axis=(1, 2)).to_series()
 
     if plot:
         peaks = simple_plot(
-            df, prominence=filter_prominence, max_frequency=max_frequency
+            df,
+            file=Path(outfile).stem + ".pdf",
+            prominence=filter_prominence,
+            max_frequency=max_frequency,
         )
         file = Path(outfile).stem + "_peaks.dat"
         click.echo(f".. save peak positions to {file}")
@@ -353,9 +355,8 @@ def relaxation(obj, file, verbose):
         # sg_str = f"{get_spacegroup(atoms):5d}"
         sg_str = get_spacegroup(atoms)
 
-        msg = "{:5d}   {:16.8f}  {:12.6f} {:12.4f} {:14.4f} {}   {}".format(
-            ii + 1, energy, de, res_forces, res_stress, vol_str, sg_str,
-        )
+        args = (ii + 1, energy, de, res_forces, res_stress, vol_str, sg_str)
+        msg = "{:5d}   {:16.8f}  {:12.6f} {:12.4f} {:14.4f} {}   {}".format(*args)
         click.echo(msg)
 
     if max(res_forces, res_stress) < fmax * 1000:
