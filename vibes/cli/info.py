@@ -113,16 +113,18 @@ def trajectory(file):
 @info.command()
 @click.argument("file", type=complete_files)
 @click.option("--key", type=str, default=None, help="print DS[key]")
-def netcdf(file, key):
+@click.option("--max_rows", type=int, default=100, help="max rows to print")
+def netcdf(file, key, max_rows):
     """show contents of netCDF FILE"""
     import xarray as xr
 
-    DS = xr.open_dataset(file)
+    xr.set_options(display_max_rows=max_rows)
 
-    if key is not None:
-        print(DS[key])
-    else:
-        print(DS)
+    with xr.open_dataset(file) as DS:
+        if key is not None:
+            print(DS[key])
+        else:
+            print(DS)
 
 
 @info.command(context_settings=_default_context_settings)
