@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 import scipy.signal as sl
-
 from vibes import defaults
 from vibes.correlation import get_autocorrelationNd
 from vibes.fourier import get_fourier_transformed
@@ -19,13 +18,16 @@ def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True)
     return get_autocorrelationNd(velocities, normalize=True, hann=False)
 
 
-def get_vdos(velocities=None, hann=False, normalize=False, npad=10000, verbose=True):
+def get_vdos(
+    velocities, masses=None, hann=False, normalize=False, npad=10000, verbose=True
+):
     r"""compute vibrational DOS for trajectory
 
     vdos(w) = FT{\sum_i corr(v_i, v_i)(t)}(w)
 
     Args:
         velocities (xarray.DataArray [N_t, N_a, 3]): the velocities
+        masses (xarray.DataArray [N_a]): the masses
         hann: use Hann window when computing the autocorrelation
         normalize: normalize VDOS to 1
         npad: number of zeros for zero padding
@@ -33,6 +35,18 @@ def get_vdos(velocities=None, hann=False, normalize=False, npad=10000, verbose=T
         vdos (xarray.DataArray [N_t, N_a, 3])
     """
     timer = Timer("Get VDOS", verbose=verbose)
+
+    n_atoms = velocities.shape[1]
+
+    if masses is None:
+        _talk("** masses not given, set to 1")
+        masses = np.ones(n_atoms)
+
+    assert len(masses) == n_atoms, (len(masses), n_atoms)
+
+    # mass-scale the velocities
+    velocities *= masses[None, :, None] ** 0.5
+
     v_corr = get_autocorrelationNd(velocities, normalize=True, hann=hann)
     df_vdos = get_fourier_transformed(v_corr, npad=npad)
 
@@ -44,6 +58,12 @@ def get_vdos(velocities=None, hann=False, normalize=False, npad=10000, verbose=T
     timer()
 
     return df_vdos
+
+
+def get_vdos_from_dataset(dataset, **kwargs):
+    """frontend to `get_vdos`"""
+
+    return get_vdos(velocities=dataset.velocities, masses=dataset.masses, **kwargs)
 
 
 def get_peak_positions(
