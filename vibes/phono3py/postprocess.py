@@ -72,9 +72,10 @@ def postprocess(
     n_calc = len(calculated_atoms)
     for disp_id in range(n_calc, n_sc):
         if disp_id not in excluded_displacements:
-            msg = f"No. of supercells {n_sc} != no. of calculated atoms: {len(calculated_atoms)}"
+            msg = f"No. of supercells {n_sc} != no. of calculated atoms: {n_calc}"
             raise RuntimeError(msg)
         else:
+            n_calc += 1
             calculated_atoms.append(None)
 
     force_sets = []
