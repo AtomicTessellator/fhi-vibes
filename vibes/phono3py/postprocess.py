@@ -49,16 +49,13 @@ def postprocess(
         elif calculated_atoms[nn].info[displacement_id_str] != nn:
             warn(f"Displacement ids are not in order. Inspect {trajectory}!", level=2)
 
-    # if "duplicates" in metadata["Phono3py"]["displacement_dataset"]:
-    #     d = metadata["Phono3py"]["displacement_dataset"]["duplicates"]
-    #     metadata["Phono3py"]["displacement_dataset"]["duplicates"] = {
-    #         int(k): int(v) for (k, v) in d.items()
-    #     }
-
+    excluded_displacements = []
     for disp in metadata["Phono3py"]["displacement_dataset"]["first_atoms"]:
         disp["number"] = int(disp["number"])
         for d in disp["second_atoms"]:
             d["number"] = int(d["number"])
+            if not d["included"]:
+                excluded_displacements.append(int(d["id"]) - 1)
 
     primitive = dict2atoms(metadata["Phono3py"]["primitive"])
     supercell = dict2atoms(metadata["atoms"])
@@ -73,9 +70,12 @@ def postprocess(
 
     n_sc = len(scs)
     n_calc = len(calculated_atoms)
-    if n_sc != n_calc:
-        msg = f"No. of supercells {n_sc} != no. of calculated atoms: {n_calc}"
-        raise RuntimeError(msg)
+    for disp_id in range(n_calc, n_sc):
+        if disp_id not in excluded_displacements:
+            msg = f"No. of supercells {n_sc} != no. of calculated atoms: {len(calculated_atoms)}"
+            raise RuntimeError(msg)
+        else:
+            calculated_atoms.append(None)
 
     force_sets = []
     for pa, a in zip(scs, calculated_atoms):
