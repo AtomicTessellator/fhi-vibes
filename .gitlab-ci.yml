@@ -13,13 +13,14 @@ vibes:
     - flake8
     # prepare software environment
     - apt-get update
-    - apt-get install -y gnupg curl
+    - apt-get install -y gnupg curl gfortran
     - wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
     - echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
     - apt-get update
     - apt-get install -y mongodb-org
     # install dependencies that should come from conda and build vibes
-    - conda install -c conda-forge numpy scipy gfortran phonopy==2.8.1
+    - pip install numpy scipy phonopy==2.8.1
+    # - conda install -c conda-forge phonopy==2.8.1
     - pip install .
     - pip list
   script:
