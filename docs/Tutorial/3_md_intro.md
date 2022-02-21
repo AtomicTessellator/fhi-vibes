@@ -119,9 +119,9 @@ $$
 	\dot{\bf P}_I(t)
 		= {\bf F}_I
 		- \gamma {\bf P}_I(t)
-		+ \sqrt{2 M_I \gamma T} \xi(t)
+		+ \sqrt{2 M_I k_{\rm B} \gamma T} \eta(t)
 	\label{eq:Langevin}~,
 \end{align}
 $$
 
-where $\gamma$ is a friction parameter and $\xi (t)$ is a white-noise term obeying $\langle\xi(t) \xi(0)\rangle=2 k_{\rm B} T \gamma \delta(t)$.
+where $\gamma$ is a friction parameter corresponding to an inverse relaxation time $\tau = 1/\gamma$, and $\eta (t)$ is a white-noise term obeying $\langle\eta(t) \eta(0)\rangle= \delta(t)$, cf. Eq. (1) in [[Vanden-Eijnden2006]](references.md#Vanden-Eijnden2006). Please note that the delta function has a unit of inverse time.
