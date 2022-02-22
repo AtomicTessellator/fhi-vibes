@@ -77,8 +77,8 @@ def plot_summary(dataframe, avg=50, natoms=None):
         ax3.set_ylabel("Pressure [GPa]")
 
     else:
-        fig_kw["gridspec_kw"] = {"height_ratios": [1, 1, 1]}
-        fig, (ax, ax2, ax5) = plt.subplots(nrows=3, **fig_kw)
+        fig_kw["gridspec_kw"] = {"height_ratios": [1, 1, 1, 1]}
+        fig, (ax, ax2, ax4, ax5) = plt.subplots(nrows=4, **fig_kw)
 
     temp.plot(color=tc[3], title="Nuclear Temperature", ax=ax, **plot_kw)
 
