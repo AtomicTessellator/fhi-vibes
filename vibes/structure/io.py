@@ -3,7 +3,6 @@
 import datetime
 
 import numpy as np
-
 from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.utils import talk
@@ -200,4 +199,5 @@ def inform(atoms, file=None, verbosity=1, symprec=symprec):
 
         if atoms.get_velocities() is not None:
             v = atoms.get_momenta().sum(axis=0) / v_unit / atoms.get_masses().sum()
-            print(f"\n Net velocity: {v} \u212B/ps")
+            print(f"\n  Temperature:  {atoms.get_temperature():.2f} K")
+            print(f"  Net velocity: {v} \u212B/ps")
