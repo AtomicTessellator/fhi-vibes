@@ -203,13 +203,13 @@ class HarmonicAnalysis:
 
     @property
     def q_points_frac(self):
-        """ return fractional q points w.r.t to primitive cell
-        Fractional q points: frac_q = q . L.T """
+        """return fractional q points w.r.t to primitive cell
+        Fractional q points: frac_q = q . L.T"""
 
         return clean_matrix(self.q_points @ self.primitive.cell.T)
 
     def set_irreducible_q_points(self, is_time_reversal=True, symprec=1e-5):
-        """ determine the irreducible q grid in fractionals + mapping
+        """determine the irreducible q grid in fractionals + mapping
 
         Parameters
         ----------
@@ -233,7 +233,7 @@ class HarmonicAnalysis:
         self._irreducible_q_points = ir_grid
 
     def get_irreducible_q_points_frac(self, is_time_reversal=True, symprec=1e-5):
-        """ return the irreducible q grid in fractionals + mapping
+        """return the irreducible q grid in fractionals + mapping
 
         Parameters
         ----------
@@ -251,7 +251,7 @@ class HarmonicAnalysis:
         return self._irreducible_q_points
 
     def get_irreducible_q_points_mapping(self, is_time_reversal=True, symprec=1e-5):
-        """ return the map from q points to irreducibe qpoints
+        """return the map from q points to irreducibe qpoints
 
         Parameters
         ----------
@@ -277,7 +277,7 @@ class HarmonicAnalysis:
         """ return irreducible qpoints in cartesian """
         ir_grid = self.get_irreducible_q_points_frac()
 
-        return clean_matrix(ir_grid @ self.supercell.get_reciprocal_cell())
+        return clean_matrix(ir_grid @ self.supercell.cell.reciprocal())
 
     @property
     def irreducible_q_points_frac(self):
@@ -305,7 +305,7 @@ class HarmonicAnalysis:
         return fc / np.sqrt(m[:, None] * m[None, :])
 
     def get_Dq(self, q_point=None, fractional=True):
-        """ return dynamical matrix at q.
+        """return dynamical matrix at q.
 
         Parameters
         ----------
@@ -422,8 +422,8 @@ class HarmonicAnalysis:
 
     @property
     def mode_projector(self):
-        """ return unitary transformation for projecting displacements and velocities
-            onto eigenmodes """
+        """return unitary transformation for projecting displacements and velocities
+        onto eigenmodes"""
 
         kwargs = {
             "q_points": self.q_points,
@@ -437,7 +437,7 @@ class HarmonicAnalysis:
         return proj
 
     def get_Uqst(self, trajectory, displacements=True, velocities=True):
-        """ Get the mode projected positions, weighted by mass.
+        """Get the mode projected positions, weighted by mass.
 
         Parameters
         ----------
@@ -475,7 +475,7 @@ class HarmonicAnalysis:
         return Uqst, Vqst
 
     def get_Zqst(self, trajectory):
-        """ Return the imaginary mode amplitude for [t, q, s]
+        """Return the imaginary mode amplitude for [t, q, s]
 
         Parameters
         ----------
@@ -490,7 +490,7 @@ class HarmonicAnalysis:
         return Z_qst
 
     def project(self, trajectory, times=None):
-        """ perform mode projection for atoms objects in trajectory
+        """perform mode projection for atoms objects in trajectory
 
         Parameters
         ----------

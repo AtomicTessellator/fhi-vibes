@@ -11,7 +11,7 @@ from vibes.structure.convert import to_spglib_cell
 def get_ir_reciprocal_mesh(
     q_mesh, primitive, supercell=None, is_time_reversal=True, symprec=1e-5
 ):
-    r""" reduce the given q_mesh by symmetry
+    r"""reduce the given q_mesh by symmetry
 
     Remarks
     Maybe it would be nice to return the respective rotations as well?
@@ -107,7 +107,7 @@ def get_ir_reciprocal_mesh(
         # the ir grid in fractional coords w.r.t. to primitive unitcell
         ir_grid_frac_prim = (
             ir_grid[np.unique(my_mapping)]
-            @ supercell.get_reciprocal_cell()
+            @ supercell.cell.reciprocal()
             @ primitive.cell.T
         )
 
@@ -132,7 +132,7 @@ def get_ir_reciprocal_mesh(
         # back to frac positions w.r.t. supercell
         my_ir_grid = np.array(my_ir_grid)
         my_ir_grid = clean_matrix(
-            my_ir_grid @ primitive.get_reciprocal_cell() @ supercell.cell.T
+            my_ir_grid @ primitive.cell.reciprocal() @ supercell.cell.T
         )
 
     # verify that my_ir_grid indeed containts the reduced q points
