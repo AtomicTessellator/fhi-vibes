@@ -176,15 +176,17 @@ def get_dos(
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
 
+    if freq_max == "auto":
+        freq_max = phonon.get_mesh_dict()["frequencies"].max() * 1.05
+
+    if freq_min == "auto":
+        freq_min = phonon.get_mesh_dict()["frequencies"].min()
+        if freq_min < 0.0:
+            freq_min *= 1.05
+        else:
+            freq_min = 0.0
+
     if total:
-        if freq_max == "auto":
-            freq_max = phonon.get_mesh_dict()["frequencies"].max() * 1.05
-        if freq_min == "auto":
-            freq_min = phonon.get_mesh_dict()["frequencies"].min()
-            if freq_min < 0.0:
-                freq_min *= 1.05
-            else:
-                freq_min = 0.0
         phonon.run_total_dos(
             freq_min=freq_min,
             freq_max=freq_max,
@@ -197,9 +199,6 @@ def get_dos(
             Path("total_dos.dat").rename(file)
 
         return phonon.get_total_dos_dict()
-
-    if freq_max == "auto":
-        freq_max = phonon.get_mesh_dict()["frequencies"].max() * 1.05
 
     phonon.run_projected_dos(
         freq_min=freq_min,

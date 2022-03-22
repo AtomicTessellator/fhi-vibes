@@ -252,7 +252,7 @@ def extract_results(
             talk(f"Extract projected DOS")
             talk(f".. write")
             phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
-            phonon.write_projected_dos()
+            pdos = wrapper.get_dos(phonon, total=False, write=True)
 
         animate_q_points = {}
         if animate:
