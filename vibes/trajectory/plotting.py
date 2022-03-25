@@ -48,7 +48,6 @@ def plot_summary(dataframe, avg=50, natoms=None):
     # pressure dataframe
     df_p = dataframe[[keys.pressure, keys.pressure_kinetic, keys.pressure_potential]]
     df_p /= units.GPa
-    df_p_int = df_p.interpolate("akima")
     df_p = df_p.dropna()
     if len(df_p) > 3:
         fig, (ax, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, **fig_kw)
@@ -59,6 +58,7 @@ def plot_summary(dataframe, avg=50, natoms=None):
         # ax3 = fig.add_subplot(gs[4])
         # ax4 = fig.add_subplot(gs[5])
         # fig, (ax, ax2, ax3) = plt.subplots(nrows=3, **fig_kw)
+        df_p_int = df_p.interpolate("akima")
         kw = {"lw": 0, "marker": ".", "mec": None, "alpha": 0.5, "label": "", "ms": 0.5}
         if len(df_p) < 5000:
             for ii, (_, series) in enumerate(df_p.iteritems()):
@@ -140,10 +140,10 @@ def plot_summary(dataframe, avg=50, natoms=None):
     roll = dr.rolling(**kw_roll).mean()
     roll.plot(color=tc[4], ax=ax5, label="mean(|dR|)", **avg_kw)
     # std
-    dr_std = dataframe.dr_std
-    dr_std.plot(color=tc[5], ax=ax5, **plot_kw)
-    roll = dr_std.rolling(**kw_roll).mean()
-    roll.plot(color=tc[5], ax=ax5, label="std(|dR|)", **avg_kw)
+    dr_msd = dataframe.dr_msd
+    dr_msd.plot(color=tc[5], ax=ax5, **plot_kw)
+    roll = dr_msd.rolling(**kw_roll).mean()
+    roll.plot(color=tc[5], ax=ax5, label="MSD (|dR^2|^1/2)", **avg_kw)
     # ax4.fill_between(dr.index, dr + dr_std, dr - dr_std, color=tc[4], alpha=0.3)
     ax5.set_ylabel("Displacement [Å]")
     ax5.set_title("Displacement")

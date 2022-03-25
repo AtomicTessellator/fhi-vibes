@@ -93,14 +93,12 @@ def summary(dataset, plot=False, **kwargs):
 
     # displacements
     dr = np.linalg.norm(dataset.displacements, axis=2)
-    dr_mean = np.mean(dr, axis=1)
-    dr_std = np.std(dr, axis=1)
-    dr_max = np.max(dr, axis=1)
 
     print()
     talk("Summarize Displacements", prefix="info")
-    pprint(f"Avg. Displacement:", f"{dr.mean():.5} AA")
-    pprint(f"Max. Displacement:", f"{dr.max():.5} AA")
+    pprint(f"Mean square Displacement: ", f"{(dr **2 ).mean() ** 0.5:.5} AA")
+    pprint(f"Avg. Displacement:        ", f"{dr.mean():.5} AA")
+    pprint(f"Max. Displacement:        ", f"{dr.max():.5} AA")
     for sym in usymbols:
         mask = np.array(symbols) == sym
         # forces = dataset.forces[:, mask, :].data
@@ -166,8 +164,8 @@ def summary(dataset, plot=False, **kwargs):
         df = dataset[_keys].to_dataframe()
         df.index /= 1000
 
-        df["dr_mean"] = dr_mean
-        df["dr_std"] = dr_std
-        df["dr_max"] = dr_max
+        df["dr_max"] = np.max(abs(dr), axis=1)
+        df["dr_mean"] = np.mean(dr, axis=1)
+        df["dr_msd"] = np.mean(dr ** 2, axis=1) ** 0.5
 
         plot_summary(df, **kwargs)
