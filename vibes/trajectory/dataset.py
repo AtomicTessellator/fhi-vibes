@@ -82,7 +82,11 @@ def get_pressure_dataset(trajectory, attrs=None, verbose=True):
     if attrs is None:
         attrs = _attrs(trajectory)
 
-    df = xr.Dataset(data, coords=_time_coords(trajectory), attrs=attrs,)
+    df = xr.Dataset(
+        data,
+        coords=_time_coords(trajectory),
+        attrs=attrs,
+    )
 
     timer()
 
@@ -159,6 +163,8 @@ def get_trajectory_dataset(trajectory, metadata=False):
         dataset.update({keys.fc: (dims.fc, fc)})
         rfc = trajectory.force_constants_remapped
         dataset.update({keys.fc_remapped: (dims.fc_remapped, rfc)})
+        map_s2p = trajectory.force_constants.I2iL_map[:, 0]
+        attrs.update({keys.map_supercell_to_primitive: map_s2p})
 
     if trajectory.forces_harmonic is not None:
         epot_ha = trajectory.potential_energy_harmonic

@@ -41,6 +41,10 @@ reference_positions = "positions_reference"
 reference_lattice = "lattice_reference"
 metadata = "raw_metadata"
 
+# map between primitive and supercell
+map_primitive_to_supercell = "map_primitive_to_supercell"
+map_supercell_to_primitive = "map_supercell_to_primitive"
+
 cell = "cell"
 volume = "volume"
 positions = "positions"
