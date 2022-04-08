@@ -267,6 +267,14 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
     return (phonon.get_band_structure_dict(), labels)
 
 
+def get_thermal_properties(phonon, temperatures=None, t_step=20, t_max=1000, t_min=0):
+    if temperatures is not None:
+        phonon.run_thermal_properties(temperatures)
+    else:
+        phonon.run_thermal_properties(t_step=t_step, t_max=t_max, t_min=t_min)
+    return phonon.get_thermal_properties_dict()
+
+
 def plot_thermal_properties(
     phonon, file="thermal_properties.pdf", t_step=20, t_max=1000, t_min=0
 ):
@@ -459,10 +467,10 @@ def get_debye_temperature(phonon=None, freq_pitch=5e-3, tetrahedron_method=True)
     eps_p_2 = np.trapz(gp * ener ** 2.0, ener) / np.trapz(gp, ener)
 
     phonon.set_Debye_frequency()
-    # omgea_d = phonon.get_Debye_frequency() * 1e12 * np.pi * 2.0
+    omgea_d = phonon.get_Debye_frequency() * 1e12 * np.pi * 2.0
 
     theta_p = eps_p_1 / const.kB
     theta_d_infty = np.sqrt(5.0 / 3.0 * eps_p_2) / const.kB
-    # theta_d = omgea_d * const.HBAR / (const.kB * const.EV)
+    theta_d = omgea_d * const.HBAR / (const.kB * const.EV)
 
-    return theta_p, theta_d_infty  # , theta_d
+    return theta_p, theta_d_infty, theta_d
