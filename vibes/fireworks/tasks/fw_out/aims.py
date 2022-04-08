@@ -3,6 +3,7 @@
 from fireworks import FWAction
 from vibes.fireworks.tasks.postprocess.aims import check_aims
 from vibes.fireworks.tasks.postprocess.phonons import time2str
+from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
 from vibes.fireworks.workflows.firework_generator import generate_firework
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.k_grid import k2d
@@ -61,6 +62,12 @@ def check_aims_complete(
 
     update_spec = {}
     if completed:
+        if "stop_if" in func_fw_kwargs:
+            new_atoms = dict2atoms(new_atoms_dict)
+            action = run_all_checks(new_atoms, func_fw_kwargs["stop_if"])
+            if action is not None:
+                return action
+
         update_spec = {}
         if "out_spec_atoms" in fw_settings:
             update_spec[fw_settings["out_spec_atoms"]] = new_atoms_dict

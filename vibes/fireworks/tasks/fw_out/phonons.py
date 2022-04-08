@@ -5,6 +5,7 @@ from vibes.fireworks.tasks.postprocess.phonons import (
     get_converge_phonon_update,
     time2str,
 )
+from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
 from vibes.fireworks.utils.converters import phonon3_to_dict, phonon_to_dict
 from vibes.fireworks.workflows.firework_generator import generate_firework
 from vibes.fireworks.workflows.workflow_generator import process_phonons
@@ -321,6 +322,13 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
         )
     else:
         k_pt_density = None
+
+    phonon = kwargs["outputs"]
+    if "stop_if" in kwargs:
+        action = run_all_checks(phonon, kwargs["stop_if"])
+        if action is not None:
+            return action
+
     qadapter = {}
     if fw_settings and "spec" in fw_settings:
         qadapter = fw_settings["spec"].get("_queueadapter", None)
@@ -397,6 +405,11 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         )
 
     if conv:
+        if "stop_if" in kwargs:
+            action = run_all_checks(phonon, kwargs["stop_if"])
+            if action is not None:
+                return action
+
         qadapter = None
         qadapter = fw_settings["spec"].get("_queueadapter", None)
         update_spec = dict(_queueadapter=qadapter, **update_job)
