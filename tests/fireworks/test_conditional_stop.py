@@ -38,9 +38,9 @@ def test_user_defined_conditions():
     atoms = read_aims(f"{parent}/geometry.in")
     sys.path.append(f"{parent}/conditional_functions/")
 
-    assert check_stop_conditional("test_va.test_atomic_volume", atoms)
+    assert check_stop_conditional("cond_test_va.cond_test_atomic_volume", atoms)
     atoms.set_cell(100 * np.eye(3))
-    assert not check_stop_conditional("test_va.test_atomic_volume", atoms)
+    assert not check_stop_conditional("cond_test_va.cond_test_atomic_volume", atoms)
 
 
 def test_aims_stop():
@@ -127,7 +127,7 @@ def test_all_checks():
             ["lattice_parameters", "max", "lt", 6.79],
             ["lattice_angles", "max", "le", 100],
         ],
-        "external_functions": ["test_va.test_atomic_volume"],
+        "external_functions": ["cond_test_va.cond_test_atomic_volume"],
     }
     assert isinstance(run_all_checks(atoms, stop_if), FWAction)
 
@@ -147,7 +147,7 @@ def test_all_checks():
     del stop_if["condition_list"]
     assert run_all_checks(atoms, stop_if) is None
 
-    stop_if["external_functions"] = ["test_va.test_atomic_volume"]
+    stop_if["external_functions"] = ["cond_test_va.cond_test_atomic_volume"]
     assert isinstance(run_all_checks(atoms, stop_if), FWAction)
 
 
