@@ -12,7 +12,7 @@ from phonopy import Phonopy
 import numpy as np
 
 from vibes.phonopy.wrapper import get_debye_temperature, get_thermal_properties
-
+from vibes.trajectory import Trajectory
 
 allowed_comparisions = ["ge", "gt", "le", "lt", "eq", "ne"]
 
@@ -37,6 +37,11 @@ supported_phonon_attributes = {
     "theta_D": lambda ph: get_debye_temperature(ph)[2],
     "theta_D_infty": lambda ph: get_debye_temperature(ph)[1],
     "theta_P": lambda ph: get_debye_temperature(ph)[0],
+    "n_atoms": lambda ph: len(ph.get_supercell()),
+}
+
+supported_traj_attributes = {
+    "sigma": (lambda traj: traj.sigma),
 }
 
 
@@ -110,21 +115,25 @@ def check_ojbect(obj, condition_list, **kwargs):
         supported_attributes = supported_atoms_attributes
     elif isinstance(obj, Phonopy):
         supported_attributes = supported_phonon_attributes
+    elif isinstance(obj, Trajectory):
+        supported_attributes = supported_traj_attributes
     else:
-        raise ValueError("atoms is not an Atoms object")
+        raise ValueError("obj is of an unsupported type.")
 
-    condition_list = {cond[0]: cond[1:] for cond in condition_list}
-    for key in condition_list.keys():
-        if key not in supported_attributes:
+    # condition_list = {cond[0]: cond[1:] for cond in condition_list}
+    for cond in condition_list:
+        if cond[0] not in supported_attributes:
             raise ValueError(
-                f"The requested attribute {key} is not supported by this function."
+                f"The requested attribute {cond[0]} is not supported by this function."
             )
-    for key, val in condition_list.items():
-        if len(val) > 3:
-            check_value = supported_attributes[key](obj, *val[3:])
+
+    for cond in condition_list:
+        if len(cond) > 4:
+            check_value = supported_attributes[cond[0]](obj, *cond[4:])
         else:
-            check_value = supported_attributes[key](obj)
-        if check_condition(check_value, val):
+            check_value = supported_attributes[cond[0]](obj)
+
+        if check_condition(check_value, cond[1:]):
             return True
 
     return False

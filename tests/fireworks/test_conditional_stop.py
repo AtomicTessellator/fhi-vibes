@@ -13,6 +13,7 @@ from vibes.fireworks.tasks.fw_out.check_conditionals import (
     run_all_checks,
 )
 from vibes.phonopy.postprocess import postprocess
+from vibes.trajectory.io import reader
 
 parent = Path(__file__).parent
 
@@ -76,7 +77,7 @@ def test_aims_stop():
 
 
 def test_phonopy_stop():
-    phonon = postprocess(f"{parent}/conditional_check_phonopy_traj/trajectory.son")
+    phonon = postprocess(f"{parent}/conditional_check_trajs/phonon.son")
     condition_list = [
         ["cv", "", "gt", 40.0, 300],
         ["free_energy", "", "lt", 0.0, 300],
@@ -114,6 +115,15 @@ def test_phonopy_stop():
     condition_list[5][2] = "gt"
     condition_list[6][2] = "lt"
     assert check_ojbect(phonon, condition_list)
+
+
+def test_stat_samp_stop():
+    trajectory = reader(f"{parent}/conditional_check_trajs/stat_sampling.son")
+    condition_list = [["sigma", "", "gt", 0.13]]
+    assert not check_ojbect(trajectory, condition_list)
+
+    condition_list[0][2] = "lt"
+    assert check_ojbect(trajectory, condition_list)
 
 
 def test_all_checks():
@@ -156,4 +166,5 @@ if __name__ == "__main__":
     test_user_defined_conditions()
     test_aims_stop()
     test_phonopy_stop()
+    test_stat_samp_stop()
     test_all_checks()

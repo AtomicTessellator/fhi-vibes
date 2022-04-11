@@ -415,6 +415,16 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         update_spec = dict(_queueadapter=qadapter, **update_job)
         update_spec["kgrid"] = args[-1]
         return FWAction(update_spec=update_spec)
+    elif "n_atoms" in [
+        cond[0] for cond in kwargs.get("stop_if", {}).get("condition_list", [])
+    ]:
+        condition = [
+            cond for cond in kwargs["stop_if"]["condition_list"] if cond[0] == "n_atoms"
+        ][0]
+        if getattr(len(update_job["ph_supercell"]), f"__{condition[1]}__")(
+            condition[2]
+        ):
+            return FWAction(defuse_workflow=True)
 
     fw_settings["in_spec_calc"] = "ph_calculator"
     update_spec = {
