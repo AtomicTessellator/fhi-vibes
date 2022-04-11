@@ -1,4 +1,8 @@
-"""Defines a set of functions used for checking if the properties of an output means that the calculation should stop"""
+"""Define a set of functions for conditional stopping
+
+Defines a set of functions used for checking if the
+properties of an output means that the calculation should stop
+"""
 
 from ase.atoms import Atoms
 from fireworks import FWAction
