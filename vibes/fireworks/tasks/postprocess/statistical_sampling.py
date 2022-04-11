@@ -3,7 +3,6 @@ from pathlib import Path
 
 import numpy as np
 from vibes import anharmonicity_score
-from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
 from vibes.trajectory import reader
 
 
