@@ -14,8 +14,8 @@ allowed_comparisions = ["ge", "gt", "le", "lt", "eq", "ne"]
 
 supported_atoms_attributes = {
     "volume": lambda atoms: atoms.get_volume(),
-    "energy": lambda atoms: atoms.get_energy(),
-    "free_energy": lambda atoms: atoms.get_free_energy(),
+    "energy": lambda atoms: atoms.get_properties(["energy"])["energy"],
+    "free_energy": lambda atoms: atoms.get_properties(["free_energy"])["free_energy"],
     "lattice_parameters": lambda atoms: atoms.cell.cellpar()[:3],
     "lattice_angles": lambda atoms: atoms.cell.cellpar()[3:],
 }
@@ -82,7 +82,6 @@ def check_condition(value_obj, condition):
         value = float(getattr(np, condition[0])(value_obj))
     else:
         value = float(value_obj)
-
     return getattr(value, f"__{condition[1]}__")(condition[2])
 
 
