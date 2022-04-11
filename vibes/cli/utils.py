@@ -548,7 +548,9 @@ def update(file, uc, sc, fc, rfc, outfile, format):
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", type=Path)
 @click.option("-n", "--number", default=0)
-@click.option("-r", "--range", type=int, nargs=3, help="start, stop, step")
+@click.option(
+    "-r", "--range", type=int, nargs=3, help="start, stop, step", default=None
+)
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
 def pick_samples(file, outfile, number, range, cartesian):
     """pick samples from trajectory"""
@@ -557,7 +559,7 @@ def pick_samples(file, outfile, number, range, cartesian):
     click.echo(f"Read trajectory from {file}:")
     traj = reader(file)
 
-    if (range is not None) and (len(range) == 3):
+    if range is not None:
         rge = xrange(*range)
     else:
         rge = [number]
