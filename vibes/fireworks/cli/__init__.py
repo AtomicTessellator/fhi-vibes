@@ -88,7 +88,7 @@ def add_wf(workflow, launchpad):
 @click.option(
     "-rh",
     "--remote_host",
-    default=FW_DEFAULTS["remote_host"],
+    default=[FW_DEFAULTS["remote_host"]],
     multiple=True,
     help="Remote host to exec qlaunch.",
 )
@@ -332,7 +332,7 @@ def claunch(
 @click.option(
     "-rh",
     "--remote_host",
-    default=FW_DEFAULTS["remote_host"],
+    default=[FW_DEFAULTS["remote_host"]],
     multiple=True,
     help="Remote host to exec qlaunch.",
 )

@@ -139,7 +139,7 @@ def check_ojbect(obj, condition_list, **kwargs):
     return False
 
 
-def run_all_checks(obj, stop_if):
+def run_all_checks(obj, stop_if, update_spec=None):
     """Check all predefined and user-defined conditions
 
     Parameters
@@ -148,7 +148,8 @@ def run_all_checks(obj, stop_if):
         The object to be checked
     stop_if : dict
         Dictionary defining all stopping conditions
-
+    update_spec : dict
+        Dictionary of the updated spec
     Returns
     -------
     FWAction
@@ -156,10 +157,13 @@ def run_all_checks(obj, stop_if):
     """
 
     if check_ojbect(obj, stop_if.get("condition_list", [])):
-        return FWAction(defuse_workflow=True)
+        return FWAction(defuse_workflow=True, update_spec=update_spec)
 
     for func_path in stop_if.get("external_functions", []):
         if check_stop_conditional(func_path, obj):
-            return FWAction(defuse_workflow=True)
+            return FWAction(defuse_workflow=True, update_spec=update_spec)
+
+    if update_spec is not None:
+        return FWAction(update_spec=update_spec)
 
     return None

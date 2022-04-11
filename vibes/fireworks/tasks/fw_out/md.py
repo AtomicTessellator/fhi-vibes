@@ -2,10 +2,12 @@
 
 from fireworks import FWAction
 
+from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
 from vibes.fireworks.tasks.postprocess.md import check_completion
 from vibes.fireworks.workflows.firework_generator import generate_md_fw
 from vibes.helpers.converters import dict2atoms
 from vibes.settings import Settings
+from vibes.trajectory.io import reader
 
 
 def check_md_finish(atoms_dict, calculator_dict, *args, **kwargs):
@@ -42,6 +44,9 @@ def check_md_finish(atoms_dict, calculator_dict, *args, **kwargs):
     settings.md["workdir"] = workdir
 
     if check_completion(workdir, settings["md"]["maxsteps"]):
+        if "stop_if" in kwargs:
+            traj = reader(kwargs["trajectory"])
+            return run_all_checks(traj, kwargs["stop_if"])
         return
 
     detours = generate_md_fw(

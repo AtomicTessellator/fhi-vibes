@@ -66,7 +66,10 @@ def get_phonon_file_location(settings, atoms, remote=False):
     else:
         sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
         sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
-        rel_dir = f"/sc_natoms_{sc_natoms}/phonopy_analysis/trajectory.son"
+
+        phonopy_dir = "phonopy" if remote else "phonopy_analysis"
+        rel_dir = f"/sc_natoms_{sc_natoms}/{phonopy_dir}/trajectory.son"
+
         phonon_file = base_direc + rel_dir
 
     return phonon_file
