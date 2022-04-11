@@ -269,7 +269,7 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
 
 def get_thermal_properties(phonon, temperatures=None, t_step=20, t_max=1000, t_min=0):
     if temperatures is not None:
-        phonon.run_thermal_properties(temperatures)
+        phonon.run_thermal_properties(temperatures=temperatures)
     else:
         phonon.run_thermal_properties(t_step=t_step, t_max=t_max, t_min=t_min)
     return phonon.get_thermal_properties_dict()
