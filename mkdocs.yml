@@ -71,6 +71,7 @@ nav:
                 - Phonon Calculations: High_Throughput/Documentation/5_phonons.md
                 - Harmonic Sampling: High_Throughput/Documentation/6_statistical_sampling.md
                 - Molecular Dynamics: High_Throughput/Documentation/7_md.md
+                - Conditional Workflows: High_Throughput/Documentation/8_stop_if.md
 
 plugins:
   - search

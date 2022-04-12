@@ -283,10 +283,10 @@ cat analysis/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/statistical_sampling_an
 ```
 
 ## Writing Conditional Workflows
-For multi-step, high-throughput workflows the ability to screen out materials in earlier, typically less-expensive, stages is important to use computational resources the most efficiently.
+For multi-step, high-throughput workflows the ability to screen out materials in earlier, typically less-expensive, stages is important to efficiently use computational resources.
 `FHI-vibes` supports this with the `stop_if` section for each section/task of the workflow.
 This section contains a set of possible pre-implemented and user-defined functions, that if any of them returns `True` will defuse the rest of the workflow.
-As an example we will create a workflow to calculate $\sigma^\text{A}$ for diamond-C, Si, and Ge with various stopping conditions to exemplify how to write one's own workflows.
+As an example we will create a workflow to calculate $\sigma^\text{A}$ for diamond-C, Si, and Ge with arbitrary stopping conditions to exemplify how to write one's own workflows.
 For complete documentation see the [complete documentation](../Documentation/8_stop_if.md)
 
 ### New Geometry Files
@@ -313,7 +313,7 @@ For complete documentation see the [complete documentation](../Documentation/8_s
     ```
 
 ### The Full Workflow
-Below is a workflow to calculate $\sigma^\text{A}$ of C, Si, and Ge with an atomic volume greater than 7.5 $\AA^3$ and maximum vibrational frequencies at the $\Gamma$- and $L$-points greater than 10 THz.
+Below is a workflow to calculate $\sigma^\text{A}$ of C, Si, and Ge with an atomic volume greater than 7.5 Å$^3$ and maximum vibrational frequencies at the $\Gamma$- and $L$-points greater than 10 THz.
 These two conditions are arbitrarily chosen to remove C after the relaxation and Ge after the phonopy calculation.
 Only if the one-shot approximation to $\sigma^\text{A}$ is greater than 0.2, will it be explicitly calculated with molecular-dynamics (which for the previous section's results we know is not the case for Si).
 
