@@ -26,14 +26,16 @@ supported_atoms_attributes = {
 
 
 supported_phonon_attributes = {
-    "cv": lambda ph, T: get_thermal_properties(ph, temperatures=[T])["heat_capacity"][
-        0
-    ],
-    "free_energy": lambda ph, T: get_thermal_properties(ph, temperatures=[T])[
+    "cv": lambda ph, T=300: get_thermal_properties(ph, temperatures=[T])[
+        "heat_capacity"
+    ][0],
+    "free_energy": lambda ph, T=300: get_thermal_properties(ph, temperatures=[T])[
         "free_energy"
     ][0],
-    "entropy": lambda ph, T: get_thermal_properties(ph, temperatures=[T])["entropy"][0],
-    "frequencies": lambda ph, q: ph.get_frequencies(q),
+    "entropy": lambda ph, T=300: get_thermal_properties(ph, temperatures=[T])[
+        "entropy"
+    ][0],
+    "frequencies": lambda ph, q=[0, 0, 0]: ph.get_frequencies(q),
     "theta_D": lambda ph: get_debye_temperature(ph)[2],
     "theta_D_infty": lambda ph: get_debye_temperature(ph)[1],
     "theta_P": lambda ph: get_debye_temperature(ph)[0],
