@@ -107,7 +107,7 @@ def parse_conditional(condition):
                 not all([oc[1] == 1 for oc in op_check])
             ):
                 raise ValueError(
-                    f'A possible vector operator is not properly defined in "{condition}".'
+                    f'Vector operation is not properly formatted in "{condition}".'
                 )
             elif len(op_check) == 0:
                 condition_list[:2] = [condition_split[0].strip(), ""]
