@@ -22,6 +22,7 @@ supported_atoms_attributes = {
     "free_energy": lambda atoms: atoms.get_properties(["free_energy"])["free_energy"],
     "lattice_parameters": lambda atoms: atoms.cell.cellpar()[:3],
     "lattice_angles": lambda atoms: atoms.cell.cellpar()[3:],
+    "bandgap": lambda atoms: atoms.info.get("bandgap", np.nan),
 }
 
 
@@ -93,7 +94,11 @@ def check_condition(value_obj, condition):
         value = float(getattr(np, condition[0])(value_obj))
     else:
         value = float(value_obj)
-    return getattr(value, f"__{condition[1]}__")(condition[2])
+    return (
+        getattr(value, f"__{condition[1]}__")(condition[2])
+        if value is not np.nan
+        else False
+    )
 
 
 def check_ojbect(obj, condition_list, **kwargs):

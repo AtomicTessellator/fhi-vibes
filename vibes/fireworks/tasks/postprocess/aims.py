@@ -75,6 +75,11 @@ def check_aims(
                 )
         new_atoms = outputs
 
+    for line in aims_out[::-1]:
+        if "ESTIMATED overall HOMO-LUMO gap:" in line:
+            new_atoms.info["bandgap"] = float(line.split(":")[1].split("eV")[0])
+            break
+
     new_atoms_dict = atoms2dict(new_atoms)
     if key_constraints in atoms_dict:
         new_atoms_dict[key_constraints] = atoms_dict[key_constraints]

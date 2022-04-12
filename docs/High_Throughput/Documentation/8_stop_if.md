@@ -37,6 +37,8 @@ For single-point calculations and relaxations the allowed properties are defined
 - `lattice_parameters`
 - `lattice_angles`
 
+Additionally, for calculations using the `Aims` calculator the estimated `bandgap` (in eV) can be used.
+
 For `phonopy` calculations the allowed properties all use its units and are listed with the following format `{property} ({optional_kwarg}={default_value})`:
 
 - `heat_capacity (T=300)`
