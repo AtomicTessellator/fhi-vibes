@@ -79,7 +79,7 @@ def test_aims_stop():
 def test_phonopy_stop():
     phonon = postprocess(f"{parent}/conditional_check_trajs/phonon.son")
     condition_list = [
-        ["cv", "", "gt", 40.0, 300],
+        ["heat_capacity", "", "gt", 40.0, 300],
         ["free_energy", "", "lt", 0.0, 300],
         ["entropy", "", "gt", 45.0, 300],
         ["frequencies", "min", "gt", 0.001, [0, 0, 0]],
