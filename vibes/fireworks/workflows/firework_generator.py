@@ -430,7 +430,7 @@ def generate_kgrid_fw(settings, atoms, fw_settings):
     fw_settings["fw_name"] = "kgrid_opt"
     fw_settings["out_spec_k_den"] = "kgrid"
 
-    qadapter = settings.optimize_kgrid.get("qadapter")
+    qadapter = settings.optimize_kgrid.get("qadapter", {})
 
     func_kwargs = {
         "workdir": f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/",
@@ -469,7 +469,7 @@ def generate_aims_relax_fw(settings, atoms, fw_settings, step):
     relax_settings.pop("use_aims_relaxation", None)
 
     relax_settings.update(settings.relaxation[step])
-    qadapter = relax_settings.get("qadapter")
+    qadapter = relax_settings.get("qadapter", {})
 
     if "condition_list" in relax_settings.get("stop_if", {}):
         relax_settings["stop_if"]["condition_list"] = [
@@ -522,7 +522,7 @@ def generate_relax_fw(settings, atoms, fw_settings, step):
     relax_settings.pop("use_aims_relaxation", None)
 
     relax_settings.update(settings.relaxation[step])
-    qadapter = relax_settings.get("qadapter")
+    qadapter = relax_settings.get("qadapter", {})
 
     if "condition_list" in relax_settings.get("stop_if", {}):
         relax_settings["stop_if"]["condition_list"] = [
@@ -565,7 +565,7 @@ def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
         Firework for the relaxation step
 
     """
-    qadapter = settings[name].get("qadapter")
+    qadapter = settings[name].get("qadapter", {})
 
     update_settings = {}
     if "basisset_type" in settings[name]:
@@ -704,9 +704,9 @@ def generate_stat_samp_fw(settings, atoms, fw_settings):
 
     """
     fw_settings["fw_name"] = "stat_samp"
-    qadapter = settings.statistical_sampling.get("qadapter")
+    qadapter = settings.statistical_sampling.get("qadapter", {})
     if not qadapter and "phonopy" in settings:
-        qadapter = settings.phonopy.get("qadapter")
+        qadapter = settings.phonopy.get("qadapter", {})
 
     if qadapter and "walltime" in qadapter:
         settings.statistical_sampling["walltime"] = str2time(qadapter["walltime"])
@@ -804,7 +804,7 @@ def generate_aims_fw(settings, atoms, fw_settings):
         Firework for the relaxation step
 
     """
-    qadapter = settings.get("qadapter")
+    qadapter = settings.get("qadapter", {})
 
     fw_settings["fw_name"] = f"single_point"
     func_kwargs = {

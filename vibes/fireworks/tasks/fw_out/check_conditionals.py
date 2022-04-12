@@ -26,7 +26,7 @@ supported_atoms_attributes = {
 
 
 supported_phonon_attributes = {
-    "cv": lambda ph, T=300: get_thermal_properties(ph, temperatures=[T])[
+    "heat_capacity": lambda ph, T=300: get_thermal_properties(ph, temperatures=[T])[
         "heat_capacity"
     ][0],
     "free_energy": lambda ph, T=300: get_thermal_properties(ph, temperatures=[T])[
