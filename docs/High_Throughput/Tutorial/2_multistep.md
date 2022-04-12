@@ -8,6 +8,7 @@ In this section we will learn how to set up and run multiple multi-step workflow
 
 We will start by learning how to converge the `k_grid` setting for FHI-aims and optimize the structure of Si before performing phonopy calculations.
 We then go on to define how we can perform harmonic and molecular dynamics based sampling, and use the harmonic sampling quantify a material's anharmonicity.
+Finally we discuss how to define new function to stop the workflows if some
 
 ## Optimizing the k-point Density and Geometry
 
@@ -221,7 +222,6 @@ See [the tutorial](../../Tutorial/3_md_postprocess.md) for postprocessing option
     [calculator.basissets]
     default:                       light
 
-
     [statistical_sampling]
     phonon_file:                   analysis/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/sc_natoms_64/phonopy_analysis/trajectory.son
     serial:                        True
@@ -280,4 +280,186 @@ Looking at the file with, e.g., `cat`, we see that for Si $\sigma^\text{A}$ is q
 cat analysis/Si/0df71cea3a5446b7104554b9bada4da6eb4a802a/statistical_sampling_analysis/sigma.dat
 300.0, 0.1312671429298908
 600.0, 0.18100681527473686
+```
+
+## Writing Conditional Workflows
+For multi-step, high-throughput workflows the ability to screen out materials in earlier, typically less-expensive, stages is important to use computational resources the most efficiently.
+`FHI-vibes` supports this with the `stop_if` section for each section/task of the workflow.
+This section contains a set of possible pre-implemented and user-defined functions, that if any of them returns `True` will defuse the rest of the workflow.
+As an example we will create a workflow to calculate $\sigma^\text{A}$ for diamond-C, Si, and Ge with various stopping conditions to exemplify how to write one's own workflows.
+For complete documentation see the [complete documentation](../Documentation/8_stop_if.md)
+
+### New Geometry Files
+
+??? info "`C/geometry.in`"
+    ```
+    lattice_vector      0.000      1.787      1.787
+    lattice_vector      1.787      0.000      1.787
+    lattice_vector      1.787      1.787      0.000
+    atom_frac      0.00     0.00     0.00 C
+    atom_frac      0.25     0.25     0.25 C
+
+    ```
+
+
+??? info "`Ge/geometry.in`"
+    ```
+    lattice_vector      0.000      2.880      2.880
+    lattice_vector      2.880      0.000      2.880
+    lattice_vector      2.880      2.880      0.000
+    atom_frac      0.00     0.00     0.00 Ge
+    atom_frac      0.25     0.25     0.25 Ge
+
+    ```
+
+### The Full Workflow
+Below is a workflow to calculate $\sigma^\text{A}$ of C, Si, and Ge with an atomic volume greater than 7.5 $\AA^3$ and maximum vibrational frequencies at the $\Gamma$- and $L$-points greater than 10 THz.
+These two conditions are arbitrarily chosen to remove C after the relaxation and Ge after the phonopy calculation.
+Only if the one-shot approximation to $\sigma^\text{A}$ is greater than 0.2, will it be explicitly calculated with molecular-dynamics (which for the previous section's results we know is not the case for Si).
+
+To calculate the atomic volume we use the `test_va` function defined in `stop_conditions.py` with the current working directory included inside the `PYTHONPATH` environment variable.
+??? info "`stop_conditions.py`"
+    ```
+    from ase.atoms import Atoms
+    def test_va(atoms):
+        assert isinstance(atoms, Atoms)
+        return atoms.get_volume() / len(atoms) < 10
+    ```
+
+??? info "`workflow_conditional.in`"
+    ```
+    [files]
+    geometries:                    */geometry.in
+
+    [fireworks]
+    name:                          example_conditional_workflow
+
+    [fireworks.workdir]
+    local:                         analysis/
+    remote:                        run/
+
+    [calculator]
+    name:                          aims
+
+    [calculator.parameters]
+    xc:                            pw-lda
+
+    [calculator.kpoints]
+    density:                       1
+
+    [calculator.basissets]
+    default:                       light
+
+    [calculator.socketio]
+    port:                          12345
+
+    [optimize_kgrid]
+    dfunc_min:                     1e-3
+
+    [optimize_kgrid.qadapter]
+    nodes:                         1
+    walltime:                      01:00:00
+
+    [relaxation.1]
+    basis:                         light
+    driver:                        BFGS
+    fmax:                          0.001
+    unit_cell:                     True
+    decimals:                      12
+    maxstep:                       0.2
+    fix_symmetry:                  True
+
+    [relaxation.1.stop_if]
+    external_functions:            ["stop_conditions.test_va"]
+
+    [phonopy]
+    supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+    displacement:                  0.01
+    is_diagonal:                   False
+    is_trigonal:                   False
+    is_plusminus:                  auto
+    symprec:                       1e-05
+    q_mesh:                        [45, 45, 45]
+    serial:                        True
+
+    [phonopy.stop_if]
+    condition_list:                ["max(frequencies) < 10.0", ["frequencies", "max", "lt", 10.0, [0.5, 0.5, 0.5]]]
+
+    [statistical_sampling]
+    serial:                        True
+    temperatures:                  [300]
+    supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+    n_samples:                     1
+    plus_minus:                    True
+
+    [statistical_sampling.stop_if]
+    condition_list: ["sigma < 0.2"]
+
+    [md]
+    supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+    driver:                        Langevin
+    timestep:                      1
+    temperatures:                  [300]
+    friction:                      0.02
+    maxsteps:                      5
+    logfile:                       md.log
+    compute_stresses:              5
+    ```
+
+### Running the Workflow
+We can now run the calculations as we did previously, but with passing the workflow file name in explicitly.
+```
+vibes fireworks add_wf -w workflow_conditional.in
+vibes fireworks rlaunch rapidfire
+```
+Once this is completed, we can examine the state of each of these workflows with
+```
+lpad get_wflows
+[
+    {
+        "state": "DEFUSED",
+        "name": "example_conditional_workflow_C_36a7cdf4d1b6ceac54bca641b82e3d80570aff06--1",
+        "created_on": "2022-04-12T11:15:05.004000",
+        "states_list": "D-D-D-D-D-C-C"
+    },
+    {
+        "state": "DEFUSED",
+        "name": "example_conditional_workflow_Ge_60278be208d553c835e490840697a793ac2a0e31--8",
+        "created_on": "2022-04-12T11:15:05.040000",
+        "states_list": "D-D-D-C-C-C-C-C"
+    },
+    {
+        "state": "DEFUSED",
+        "name": "example_conditional_workflow_Si_0df71cea3a5446b7104554b9bada4da6eb4a802a--15",
+        "created_on": "2022-04-12T11:15:05.072000",
+        "states_list": "D-C-C-C-C-C-C-C-C"
+    }
+]
+```
+As expected all of the workflows are `DEFUSED`, with only $\sigma^\text{A}$ of Si being calculated using statistical sampling.
+
+If we wanted to at a later point to continue these workflows despite them not passing the conditions, we can reset them using
+```
+lpad reignite_wflows -s DEFUSED
+lpad get_wflows
+[
+    {
+        "state": "RUNNING",
+        "name": "example_conditional_workflow_C_36a7cdf4d1b6ceac54bca641b82e3d80570aff06--1",
+        "created_on": "2022-04-12T11:15:05.004000",
+        "states_list": "W-W-W-W-REA-C-C"
+    },
+    {
+        "state": "RUNNING",
+        "name": "example_conditional_workflow_Ge_60278be208d553c835e490840697a793ac2a0e31--8",
+        "created_on": "2022-04-12T11:15:05.040000",
+        "states_list": "W-W-REA-C-C-C-C-C"
+    },
+    {
+        "state": "RUNNING",
+        "name": "example_conditional_workflow_Si_0df71cea3a5446b7104554b9bada4da6eb4a802a--15",
+        "created_on": "2022-04-12T11:15:05.072000",
+        "states_list": "REA-C-C-C-C-C-C-C-C"
+    }
+]
 ```
