@@ -26,10 +26,6 @@ port:                          12345
 [optimize_kgrid]
 dfunc_min:                     1e-3
 
-[optimize_kgrid.qadapter]
-nodes:                         1
-walltime:                      01:00:00
-
 [relaxation.1]
 basis:                         light
 driver:                        BFGS

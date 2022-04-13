@@ -313,9 +313,9 @@ For complete documentation see the [complete documentation](../Documentation/8_s
     ```
 
 ### The Full Workflow
-Below is a workflow to calculate $\sigma^\text{A}$ of C, Si, and Ge with an atomic volume greater than 7.5 Å$^3$ and maximum vibrational frequencies at the $\Gamma$- and $L$-points greater than 10 THz.
+Below is a workflow to calculate $\sigma^\text{A}$ of C, Si, and Ge with an atomic volume greater than 10.0 Å$^3$ and maximum vibrational frequencies at the $\Gamma$- and $L$-points less than 10 THz.
 These two conditions are arbitrarily chosen to remove C after the relaxation and Ge after the phonopy calculation.
-Only if the one-shot approximation to $\sigma^\text{A}$ is greater than 0.2, will it be explicitly calculated with molecular-dynamics (which for the previous section's results we know is not the case for Si).
+Only if the one-shot approximation to $\sigma^\text{A}$ is greater than 0.2, will it be explicitly calculated with molecular dynamics (which from the previous section's results we know is not the case for Si).
 
 To calculate the atomic volume we use the `test_va` function defined in `stop_conditions.py` with the current working directory included inside the `PYTHONPATH` environment variable.
 ??? info "`stop_conditions.py`"
@@ -323,7 +323,7 @@ To calculate the atomic volume we use the `test_va` function defined in `stop_co
     from ase.atoms import Atoms
     def test_va(atoms):
         assert isinstance(atoms, Atoms)
-        return atoms.get_volume() / len(atoms) < 10
+        return atoms.get_volume() / len(atoms) < 10.0
     ```
 
 ??? info "`workflow_conditional.in`"
@@ -393,7 +393,7 @@ To calculate the atomic volume we use the `test_va` function defined in `stop_co
     plus_minus:                    True
 
     [statistical_sampling.stop_if]
-    condition_list: ["sigma < 0.2"]
+    condition_list:                ["sigma < 0.2"]
 
     [md]
     supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]

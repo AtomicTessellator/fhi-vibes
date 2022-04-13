@@ -8,7 +8,7 @@ external_functions: ["stop_conditions_module.function_name"]
 
 ### `condition_list`:
 
-`list(str or list)`: A list of all conditions to use to defuse the workflow. For string entries the format must be: `"{vector_op}({property}) {comparison_op} {value}"` or `"{property} {comparision_op} {value}"`. For lists the format must be: `["{property}", "{vector_op}", "{comparison_op_name}, {value}, {optional_kwarg}]`.
+`list(str or list)`: A list of all conditions to use to defuse the workflow. For string entries the format must be: `"{vector_op}({property}) {comparison_op} {value}"` or `"{property} {comparision_op} {value}"`. For lists the format must be: `["{property}", "{vector_op}", "{comparison_op_name}, {value}, {optional_kwarg_1}, ..., {optional_kwarg_n}]`. For properties with no `optional_kwargs` those elements should not be used.
 
 The available `vector_ops` are an empty string or:
 
