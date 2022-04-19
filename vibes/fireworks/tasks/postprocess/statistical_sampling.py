@@ -26,7 +26,7 @@ def get_sigma(trajectory_file, return_trajectory=False):
         The metadata of the trajectory
     """
     trajectory = reader(file=trajectory_file, verbose=False)
-    meta = trajectory.metadata
+    trajectory.set_force_constants()
 
     forces_dft = {}
     forces_harmonic = {}
@@ -54,6 +54,6 @@ def get_sigma(trajectory_file, return_trajectory=False):
             f.write(f"{t}, {r}\n")
 
     if return_trajectory:
-        return sigma, trajectory, meta
+        return sigma, trajectory
 
     return sigma

@@ -33,7 +33,8 @@ def add_stat_samp_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     """
     trajectory_file = f"{kwargs['workdir']}/{kwargs['trajectory_file']}"
 
-    sigma, traj, metadata = get_sigma(trajectory_file, True)
+    sigma, traj = get_sigma(trajectory_file, True)
+    metadata = traj.metadata
 
     calculator_dict = metadata["calculator"]
     calculator_dict["calculator"] = calculator_dict["calculator"].lower()

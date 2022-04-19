@@ -3,7 +3,6 @@
 import numpy as np
 from ase import Atoms, units
 from ase.geometry import find_mic
-
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
 from vibes.filenames import filenames
@@ -58,7 +57,7 @@ class Trajectory(list):
 
     @classmethod
     def read(cls, file=filenames.trajectory, **kwargs):
-        """ Read trajectory from file """
+        """Read trajectory from file"""
         from .io import reader
 
         return reader(file, **kwargs)
@@ -81,7 +80,7 @@ class Trajectory(list):
 
     @property
     def metadata(self):
-        """ Return metadata """
+        """Return metadata"""
         return self._metadata
 
     @metadata.setter
@@ -115,7 +114,7 @@ class Trajectory(list):
 
     @property
     def primitive(self):
-        """ Return the primitive atoms if it is there """
+        """Return the primitive atoms if it is there"""
         if "primitive" in self.metadata:
             dct = self.metadata["primitive"]
             if "atoms" in dct:
@@ -126,7 +125,7 @@ class Trajectory(list):
 
     @primitive.setter
     def primitive(self, atoms):
-        """ Set the supercell atoms object """
+        """Set the supercell atoms object"""
         assert isinstance(atoms, Atoms)
         dct = atoms2dict(atoms)
         self.metadata["primitive"] = dct
@@ -134,7 +133,7 @@ class Trajectory(list):
 
     @property
     def supercell(self):
-        """ Return the supercell if it is there """
+        """Return the supercell if it is there"""
         if not self._supercell:
             if "supercell" in self.metadata:
                 dct = self.metadata["supercell"]
@@ -148,7 +147,7 @@ class Trajectory(list):
 
     @supercell.setter
     def supercell(self, atoms):
-        """ Set the supercell atoms object """
+        """Set the supercell atoms object"""
         assert isinstance(atoms, Atoms)
         dct = atoms2dict(atoms)
         self.metadata["supercell"] = dct
@@ -193,7 +192,7 @@ class Trajectory(list):
 
     @property
     def times(self):
-        """ return the times as numpy array in fs"""
+        """return the times as numpy array in fs"""
         if self._times is None:
             try:
                 fs = self.metadata["MD"]["fs"]
@@ -221,7 +220,7 @@ class Trajectory(list):
 
     @property
     def timestep(self):
-        """ return the timestep in fs"""
+        """return the timestep in fs"""
         from vibes.fourier import get_timestep
 
         return get_timestep(self.times)
@@ -287,8 +286,10 @@ class Trajectory(list):
 
             return fc
 
-    def set_force_constants(self, fc):
+    def set_force_constants(self, fc=None):
         """attach force constants as ForceConstants object"""
+        if fc is None:
+            fc = self.force_constants_raw
         fcs = ForceConstants(
             force_constants=fc, primitive=self.primitive, supercell=self.supercell
         )
@@ -496,7 +497,7 @@ class Trajectory(list):
         return Trajectory(part, metadata=self.metadata)
 
     def clean_drift(self):
-        """ Clean constant drift CAUTION: respect ASE time unit correctly! """
+        """Clean constant drift CAUTION: respect ASE time unit correctly!"""
 
         timer = Timer("Clean trajectory from constant drift")
 
