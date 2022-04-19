@@ -1,9 +1,9 @@
 """Generate FWActions after post-processing statistical sampling calculations"""
 from fireworks import FWAction
+from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
 from vibes.fireworks.tasks.postprocess.statistical_sampling import get_sigma
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.k_grid import k2d
-from vibes.trajectory.io import reader
 
 
 def add_stat_samp_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
@@ -32,9 +32,8 @@ def add_stat_samp_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
     """
     trajectory_file = f"{kwargs['workdir']}/{kwargs['trajectory_file']}"
 
-    sigma = get_sigma(trajectory_file)
+    sigma, traj, metadata = get_sigma(trajectory_file, True)
 
-    _, metadata = reader(trajectory_file, True)
     calculator_dict = metadata["calculator"]
     calculator_dict["calculator"] = calculator_dict["calculator"].lower()
     if calculator_dict["calculator"] == "aims":
@@ -54,4 +53,8 @@ def add_stat_samp_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
         "sigma": sigma,
     }
     update_spec["kgrid"] = k_pt_density
+
+    if "stop_if" in kwargs:
+        return run_all_checks(traj, kwargs["stop_if"], update_spec)
+
     return FWAction(update_spec=update_spec)

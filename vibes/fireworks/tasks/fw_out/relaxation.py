@@ -5,6 +5,7 @@ from fireworks import FWAction
 from jconfigparser.dict import DotDict
 
 from vibes.fireworks.tasks.postprocess.relaxation import check_completion
+from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
 from vibes.fireworks.workflows.firework_generator import generate_relax_fw
 from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.settings import Settings
@@ -15,14 +16,12 @@ def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
 
     Parameters
     ----------
-    func: str
-        Path to the phonon analysis function
-    func_fw_out: str
-        Path to this function
+    atoms_dict: dict
+        Dictionary describing the Atoms object
+    calc_dict: dict
+        Dictionary describing the Calculator object
     args: list
         list arguments passed to the phonon analysis
-    fw_settings: dict
-        Dictionary for the FireWorks specific systems
     kwargs: dict
         Dictionary of keyword arguments with the following keys
 
@@ -44,17 +43,35 @@ def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
 
     if workdir is None:
         workdir = "."
+
     settings = Settings(f"{workdir}/relaxation.in", config_files=None)
+
     settings["relaxation"] = DotDict(
         {relax_settings["step"]: settings.pop("relaxation")}
     )
+
     settings.relaxation[relax_settings["step"]]["qadapter"] = fw_settings["spec"].get(
         "_qadapter"
     )
+
     settings["fireworks"] = DotDict()
     settings.fireworks["workdir"] = DotDict({"remote": workdir})
-    new_atoms_dict = atoms2dict(read_aims(f"{workdir}/geometry.in.next_step"))
+
+    new_atoms = read_aims(f"{workdir}/geometry.in.next_step")
+    if calc_dict.get("calculator") == "Aims":
+        for line in open(f"{workdir}/calculation/aims.out").readlines()[::-1]:
+            if "ESTIMATED overall HOMO-LUMO gap:" in line:
+                new_atoms.info["bandgap"] = float(line.split(":")[1].split("eV")[0])
+                break
+
+    new_atoms_dict = atoms2dict(new_atoms)
+
     if check_completion(workdir, relax_settings["fmax"]):
+        if "stop_if" in relax_settings:
+            action = run_all_checks(new_atoms, relax_settings["stop_if"])
+            if action is not None:
+                return action
+
         update_spec = {}
         if "out_spec_atoms" in fw_settings:
             update_spec[fw_settings["out_spec_atoms"]] = new_atoms_dict

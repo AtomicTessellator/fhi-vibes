@@ -1,0 +1,72 @@
+[files]
+geometries:                    */geometry.in
+
+[fireworks]
+name:                          example_conditional_workflow
+
+[fireworks.workdir]
+local:                         analysis/
+remote:                        run/
+
+[calculator]
+name:                          aims
+
+[calculator.parameters]
+xc:                            pw-lda
+
+[calculator.kpoints]
+density:                       1
+
+[calculator.basissets]
+default:                       light
+
+[calculator.socketio]
+port:                          12345
+
+[optimize_kgrid]
+dfunc_min:                     1e-3
+
+[relaxation.1]
+basis:                         light
+driver:                        BFGS
+fmax:                          0.001
+unit_cell:                     True
+decimals:                      12
+maxstep:                       0.2
+fix_symmetry:                  True
+
+[relaxation.1.stop_if]
+external_functions:            ["stop_conditions.test_va"]
+
+[phonopy]
+supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+displacement:                  0.01
+is_diagonal:                   False
+is_trigonal:                   False
+is_plusminus:                  auto
+symprec:                       1e-05
+q_mesh:                        [45, 45, 45]
+serial:                        True
+
+[phonopy.stop_if]
+condition_list:                ["max(frequencies) < 10.0", ["frequencies", "max", "lt", 10.0, [0.5, 0.5, 0.5]]]
+
+[statistical_sampling]
+serial:                        True
+temperatures:                  [300]
+supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+n_samples:                     1
+plus_minus:                    True
+
+[statistical_sampling.stop_if]
+condition_list: ["sigma < 0.2"]
+
+[md]
+supercell_matrix:              [-1, 1, 1, 1, -1, 1, 1, 1, -1]
+driver:                        Langevin
+timestep:                      1
+temperatures:                  [300]
+friction:                      0.02
+maxsteps:                      5
+logfile:                       md.log
+compute_stresses:              5

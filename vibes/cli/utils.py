@@ -256,7 +256,14 @@ def wrap(file, outfile, format):
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
 def make_supercell(
-    file, dimension, diagonal_dimension, outfile, n_target, deviation, dry, format,
+    file,
+    dimension,
+    diagonal_dimension,
+    outfile,
+    n_target,
+    deviation,
+    dry,
+    format,
 ):
     """create a supercell of desired shape or size"""
     from .scripts.make_supercell import make_supercell
@@ -265,7 +272,13 @@ def make_supercell(
         dimension = diagonal_dimension
 
     make_supercell(
-        file, dimension, n_target, deviation, dry, format, outfile=outfile,
+        file,
+        dimension,
+        n_target,
+        deviation,
+        dry,
+        format,
+        outfile=outfile,
     )
 
 
@@ -305,7 +318,13 @@ def force_constants():
 @click.option("--symmetrize", is_flag=True)
 @click.option("--format", default="aims")
 def remap(
-    file, primitive, supercell, new_supercell, outfile, symmetrize, format="aims",
+    file,
+    primitive,
+    supercell,
+    new_supercell,
+    outfile,
+    symmetrize,
+    format="aims",
 ):
     """remap phonopy force constants in FILENAME to [3N, 3N] shape"""
     # copy: from vibes.scripts.remap_phonopy_forceconstants import remap_force_constants
@@ -529,7 +548,9 @@ def update(file, uc, sc, fc, rfc, outfile, format):
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", type=Path)
 @click.option("-n", "--number", default=0)
-@click.option("-r", "--range", type=int, nargs=3, help="start, stop, step")
+@click.option(
+    "-r", "--range", type=int, nargs=3, help="start, stop, step", default=None
+)
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
 def pick_samples(file, outfile, number, range, cartesian):
     """pick samples from trajectory"""
@@ -538,7 +559,7 @@ def pick_samples(file, outfile, number, range, cartesian):
     click.echo(f"Read trajectory from {file}:")
     traj = reader(file)
 
-    if len(range) == 3:
+    if range is not None:
         rge = xrange(*range)
     else:
         rge = [number]

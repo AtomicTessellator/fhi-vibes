@@ -311,7 +311,9 @@ def generate_workflow(workflow, atoms, launchpad_yaml=None, make_absolute=True):
     # Molecular dynamics
     if "md" in workflow.settings:
         md_fws = generate_md_fw(workflow.settings, atoms, fw_settings)
-        if "phonopy" in workflow.settings:
+        if "stop_if" in workflow.settings.get("statistical_sampling", {}):
+            fw_dep[stat_samp_fws[1]] = md_fws
+        elif "phonopy" in workflow.settings:
             fw_dep[phonon_fws[1]] += md_fws
         elif final_initialize_fw:
             fw_dep[final_initialize_fw] += md_fws

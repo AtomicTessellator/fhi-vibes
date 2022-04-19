@@ -253,6 +253,9 @@ def prepare_gruneisen(settings, primitive, vol_factor):
         A Fireworks workflow for the gruneisen calculation
 
     """
+    if "stop_if" in settings.get("phonopy", {}):
+        settings["phonopy"].pop("stop_if")
+
     dist_primitive = primitive.copy()
     scaled_pos = dist_primitive.get_scaled_positions()
     dist_primitive.cell *= vol_factor ** (1.0 / 3.0)

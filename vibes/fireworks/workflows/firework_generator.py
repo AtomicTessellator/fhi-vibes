@@ -5,6 +5,11 @@ from jconfigparser.dict import DotDict
 from pathlib import Path
 
 from vibes.filenames import filenames
+from vibes.fireworks.tasks.fw_out.check_conditionals import (
+    supported_atoms_attributes,
+    supported_phonon_attributes,
+    supported_traj_attributes,
+)
 from vibes.fireworks.tasks.task_spec import TaskSpec
 from vibes.fireworks.tasks.utility_tasks import update_calc
 from vibes.fireworks.workflows.task_generator import (
@@ -28,6 +33,93 @@ from vibes.helpers.hash import hash_atoms_and_calc
 from vibes.helpers.k_grid import k2d, update_k_grid, update_k_grid_calc_dict
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.helpers.watchdogs import str2time
+
+
+def ceheck_condition_list(condition_list):
+    """Checks the condition list to ensure that the conditions are valid
+
+    Parameters
+    ----------
+    condition_list : list
+        The condition to check
+
+    Raises
+    ------
+    ValueError
+        If one of the terms in the condition list is wrong
+    """
+    if len(condition_list) not in [4, 5]:
+        raise ValueError("Invalid size for the condition: {condition_list}.")
+    elif (len(condition_list) == 5) and (
+        condition_list[0] not in ["cv", "free_energy", "entropy", "frequencies"]
+    ):
+        raise ValueError(
+            "An invalid extra parameter passed to the condition: {condition_list}."
+        )
+
+    if condition_list[2] not in ["eq", "ne", "le", "ge", "lt", "gt"]:
+        raise ValueError(
+            f"Invalid comparison operation for the condition: {condition_list}."
+        )
+
+    if condition_list[1] not in ["", "min", "max", "mean", "median", "std"]:
+        raise ValueError(
+            f"Invalid vector operation for the condition: {condition_list}."
+        )
+
+    if condition_list[0] not in (
+        list(supported_atoms_attributes.keys())
+        + list(supported_phonon_attributes.keys())
+        + list(supported_traj_attributes.keys())
+    ):
+        raise ValueError(f"Invalid property for the condition: {condition_list}.")
+
+
+def parse_conditional(condition):
+    """Parse the stopping condition and replace it with the condition list.
+
+    Parameters
+    ----------
+    condition : str
+        The condition to be parsed
+
+    Returns
+    -------
+    list
+        ["key", "vector_op", "comparision_op", value]
+    """
+    comp_ops = {"==": "eq", "!=": "ne", "<=": "le", ">=": "ge", "<": "lt", ">": "gt"}
+    if isinstance(condition, list):
+        ceheck_condition_list(condition)
+        return condition
+
+    for key, val in comp_ops.items():
+        if key in condition:
+            condition_split = condition.split(key)
+            condition_list = ["", "", val, float(condition_split[-1])]
+            chars, counts = np.unique(list(condition_split[0]), return_counts=True)
+            op_check = [
+                (char, count)
+                for char, count in zip(chars, counts)
+                if char in ["(", ")"]
+            ]
+            if (len(op_check) not in [0, 2]) or (
+                not all([oc[1] == 1 for oc in op_check])
+            ):
+                raise ValueError(
+                    f'Vector operation is not properly formatted in "{condition}".'
+                )
+            elif len(op_check) == 0:
+                condition_list[:2] = [condition_split[0].strip(), ""]
+            else:
+                vec_split = condition_split[0].split("(")
+
+                condition_list[:2] = [vec_split[1].split(")")[0].strip(), vec_split[0]]
+
+            ceheck_condition_list(condition_list)
+            return condition_list
+
+    raise ValueError(f'No comparison operator found in the condition "{condition}"')
 
 
 def get_phonon_file_location(settings, atoms, remote=False):
@@ -66,7 +158,10 @@ def get_phonon_file_location(settings, atoms, remote=False):
     else:
         sc_mat = get_3x3_matrix(settings.phonopy.supercell_matrix)
         sc_natoms = int(round(np.linalg.det(sc_mat) * len(atoms)))
-        rel_dir = f"/sc_natoms_{sc_natoms}/phonopy_analysis/trajectory.son"
+
+        phonopy_dir = "phonopy" if remote else "phonopy_analysis"
+        rel_dir = f"/sc_natoms_{sc_natoms}/{phonopy_dir}/trajectory.son"
+
         phonon_file = base_direc + rel_dir
 
     return phonon_file
@@ -335,7 +430,7 @@ def generate_kgrid_fw(settings, atoms, fw_settings):
     fw_settings["fw_name"] = "kgrid_opt"
     fw_settings["out_spec_k_den"] = "kgrid"
 
-    qadapter = settings.optimize_kgrid.get("qadapter")
+    qadapter = settings.optimize_kgrid.get("qadapter", {})
 
     func_kwargs = {
         "workdir": f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/",
@@ -374,7 +469,13 @@ def generate_aims_relax_fw(settings, atoms, fw_settings, step):
     relax_settings.pop("use_aims_relaxation", None)
 
     relax_settings.update(settings.relaxation[step])
-    qadapter = relax_settings.get("qadapter")
+    qadapter = relax_settings.get("qadapter", {})
+
+    if "condition_list" in relax_settings.get("stop_if", {}):
+        relax_settings["stop_if"]["condition_list"] = [
+            parse_conditional(condition)
+            for condition in relax_settings["stop_if"]["condition_list"]
+        ]
 
     abreviated_step = [bt[0] for bt in step.split("_")]
     fw_settings["fw_name"] = f"{'_'.join(abreviated_step)}_relax"
@@ -421,7 +522,13 @@ def generate_relax_fw(settings, atoms, fw_settings, step):
     relax_settings.pop("use_aims_relaxation", None)
 
     relax_settings.update(settings.relaxation[step])
-    qadapter = relax_settings.get("qadapter")
+    qadapter = relax_settings.get("qadapter", {})
+
+    if "condition_list" in relax_settings.get("stop_if", {}):
+        relax_settings["stop_if"]["condition_list"] = [
+            parse_conditional(condition)
+            for condition in relax_settings["stop_if"]["condition_list"]
+        ]
 
     fw_settings["fw_name"] = f"{step}_relax"
 
@@ -458,7 +565,7 @@ def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
         Firework for the relaxation step
 
     """
-    qadapter = settings[name].get("qadapter")
+    qadapter = settings[name].get("qadapter", {})
 
     update_settings = {}
     if "basisset_type" in settings[name]:
@@ -543,6 +650,13 @@ def generate_phonon_postprocess_fw(
     fw_settings["mod_spec_add"] += "_forces"
 
     func_kwargs = settings[name].copy()
+
+    if "condition_list" in func_kwargs.get("stop_if", {}):
+        func_kwargs["stop_if"]["condition_list"] = [
+            parse_conditional(condition)
+            for condition in func_kwargs["stop_if"]["condition_list"]
+        ]
+
     if "workdir" in func_kwargs:
         func_kwargs.pop("workdir")
 
@@ -590,9 +704,9 @@ def generate_stat_samp_fw(settings, atoms, fw_settings):
 
     """
     fw_settings["fw_name"] = "stat_samp"
-    qadapter = settings.statistical_sampling.get("qadapter")
+    qadapter = settings.statistical_sampling.get("qadapter", {})
     if not qadapter and "phonopy" in settings:
-        qadapter = settings.phonopy.get("qadapter")
+        qadapter = settings.phonopy.get("qadapter", {})
 
     if qadapter and "walltime" in qadapter:
         settings.statistical_sampling["walltime"] = str2time(qadapter["walltime"])
@@ -650,6 +764,12 @@ def generate_stat_samp_postprocess_fw(settings, atoms, fw_settings):
     if "workdir" in func_kwargs:
         func_kwargs.pop("workdir")
 
+    if "condition_list" in func_kwargs.get("stop_if", {}):
+        func_kwargs["stop_if"]["condition_list"] = [
+            parse_conditional(condition)
+            for condition in func_kwargs["stop_if"]["condition_list"]
+        ]
+
     func_kwargs[
         "analysis_workdir"
     ] = f"{settings.fireworks.workdir.local}/{fw_settings['fw_name']}/"
@@ -684,7 +804,7 @@ def generate_aims_fw(settings, atoms, fw_settings):
         Firework for the relaxation step
 
     """
-    qadapter = settings.get("qadapter")
+    qadapter = settings.get("qadapter", {})
 
     fw_settings["fw_name"] = f"single_point"
     func_kwargs = {
