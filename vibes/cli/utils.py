@@ -248,6 +248,35 @@ def wrap(file, outfile, format):
     click.echo(f"Wrapped geometry written to {outfile}")
 
 
+@geometry.command(context_settings=_default_context_settings)
+@click.argument("file", default=filenames.atoms, type=complete_files)
+@click.option("--inplace", is_flag=True, help="replace the file inplace")
+@click.option("--format", default="aims")
+def make_stationary(file, inplace, format):
+    """remove center of mass drift (velocity/momentum) from structure"""
+    from ase.io import read
+    from ase.md.velocitydistribution import Stationary
+
+    click.echo(f"Read {file}")
+    atoms = read(file, format=format)
+
+    p_com = atoms.get_momenta().sum(axis=0)
+    click.echo(f".. com momentum before cleaning: {p_com}")
+
+    Stationary(atoms)
+    p_com = atoms.get_momenta().sum(axis=0)
+    click.echo(f".. com momentum  after cleaning: {p_com}")
+
+    if inplace:
+        outfile = file
+        click.echo(f"** `inplace` was requested, will overwrite {outfile}")
+    else:
+        outfile = Path(file + ".stationary")
+
+    atoms.write(outfile, velocities=True, format=format)
+    click.echo(f".. structure written to {outfile}")
+
+
 @utils.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.atoms, type=complete_files)
 @click.option("-d", "--dimension", type=int, nargs=9, help="9 values for SC matrix")
@@ -258,14 +287,7 @@ def wrap(file, outfile, format):
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
 def make_supercell(
-    file,
-    dimension,
-    diagonal_dimension,
-    outfile,
-    n_target,
-    deviation,
-    dry,
-    format,
+    file, dimension, diagonal_dimension, outfile, n_target, deviation, dry, format
 ):
     """create a supercell of desired shape or size"""
     from .scripts.make_supercell import make_supercell
@@ -273,15 +295,7 @@ def make_supercell(
     if diagonal_dimension:
         dimension = diagonal_dimension
 
-    make_supercell(
-        file,
-        dimension,
-        n_target,
-        deviation,
-        dry,
-        format,
-        outfile=outfile,
-    )
+    make_supercell(file, dimension, n_target, deviation, dry, format, outfile=outfile)
 
 
 @utils.command(context_settings=_default_context_settings)
@@ -525,7 +539,7 @@ def t2traj(file, outfile):
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", default="trajectory.csv")
 def t2csv(file, outfile):
-    """extract and store 1D data from trajectory in FILENAME """
+    """extract and store 1D data from trajectory in FILENAME"""
     from vibes.trajectory import reader
 
     traj = reader(file)
