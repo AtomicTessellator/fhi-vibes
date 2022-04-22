@@ -255,3 +255,8 @@ command = sbatch submit.sh
 ```
 
 to your `aims.in`, where `sbatch submit.sh` is the command you use to submit the calculation to the queue. `vibes` will run this command shortly before the walltime is over to restart the job.
+
+## Energy Unit Warning When Using `socketio`
+
+If you are using a `socketio` calculator for single point calculations then the conversion from Hartree to eV will be done using ASE.
+This can lead to slight deviations between the parameters listed in the `trajectory.son` and the output file from the calculation if the base calculator does not use the same conversion factor between Hartree and eV.
