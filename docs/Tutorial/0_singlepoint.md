@@ -266,4 +266,4 @@ For FHI-aims and ASE these values are:
 aims: 27.211384500 eV (CODATA 2002)
  ASE: 27.211386024367243 eV (CODATA 2014)
 ```
-The ASE values are slightly different from the values published by [NIST](https://physics.nist.gov/cuu/pdf/CODATA_JPCRD2016.pdf), but these differences are likely due to propagation of rounding errors
+The ASE values are slightly different from the values published by [NIST](https://physics.nist.gov/cuu/pdf/CODATA_JPCRD2016.pdf), but these differences are likely due to propagation of rounding errors.
