@@ -124,6 +124,7 @@ The basis set can be given per chemical species by including the species and its
 Set up socket communication via [`SocketIOCalculator`](https://wiki.fysik.dtu.dk/ase/ase/calculators/socketio/socketio.html?highlight=socketio#ase.calculators.socketio.SocketIOCalculator). This has the potential to speed up calculations since a complete restart of FHI-aims after each completed SCF cycle is avoided. This feature is optional but recommended to use when performing calculations for related structures, e.g., during molecular dynamics simulations or phonon calculations.
 
 Using this can lead to slight deviations in the energies, forces, and stresses listed in the trajectory file vs. the electronic structure output file due to different conversion factors between Hartree and eV.
+The `SocketIOCalculator` will use the CODATA 2014 standard as of  `ASE` version `3.23`.
 
 #### `host`
 
