@@ -259,11 +259,4 @@ to your `aims.in`, where `sbatch submit.sh` is the command you use to submit the
 ## Energy Unit Warning When Using `socketio`
 
 If you are using a `socketio` calculator for single point calculations then the conversion from Hartree to eV will be done using ASE.
-This can lead to slight deviations between the parameters listed in the `trajectory.son` and the output file from the calculation if the base calculator does not use the same conversion factor between Hartree and eV.
-The `SocketIOCalculator` will use the CODATA 2014 standard as of  `ASE` version `3.23`.
-For FHI-aims and ASE these values are:
-```
-aims: 27.211384500 eV (CODATA 2002)
- ASE: 27.211386024367243 eV (CODATA 2014)
-```
-The ASE values are slightly different from the values published by [NIST](https://physics.nist.gov/cuu/pdf/CODATA_JPCRD2016.pdf), but these differences are likely due to propagation of rounding errors.
+This can lead to slight deviations between the parameters listed in the `trajectory.son` and the output file from the calculation such as `aims.out`, as [documented here.](../Documentation/calculator_setup.md#calculatorsocketio-optional)

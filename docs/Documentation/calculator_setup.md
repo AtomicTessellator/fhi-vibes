@@ -127,11 +127,9 @@ Using this can lead to slight deviations in the energies, forces, and stresses l
 The `SocketIOCalculator` will use the CODATA 2014 standard as of  `ASE` version `3.23`.
 For FHI-aims and ASE these values are:
 ```
-aims: 27.211384500 eV (CODATA 2002)
+aims: 27.211384500 eV       (CODATA 2002)
  ASE: 27.211386024367243 eV (CODATA 2014)
 ```
-The ASE values are slightly different from the values published by [NIST](https://physics.nist.gov/cuu/pdf/CODATA_JPCRD2016.pdf), but these differences are likely due to propagation of rounding errors.
-
 #### `host`
 
 The IP address to access the socket. Default is `localhost` and will only have to be modified for certain architectures (this will likely be made clear in the system documentation).
