@@ -39,7 +39,7 @@ for performing a phonopy calculation for the structure in `geometry.in` with a L
 
 #### `displacement`
 
-`float`: the distance in $\require{mediawiki-texvc} \AA$ used for the finite displacement.
+`float`: the distance in Å used for the finite displacement.
 
 #### `is_diagonal`
 
@@ -59,4 +59,4 @@ for performing a phonopy calculation for the structure in `geometry.in` with a L
 
 #### `workdir`
 
-The working directory for running the calculations and storing output files.
+`str`: The working directory for running the calculations and storing output files. Default is `phonopy`. When `auto` is chosen, a name is chosen bases on the chemical formula of the compound, the supercell matrix, and the supercell volume, e.g., `phonopy_Si_100_020_001_40.247` for silicon with a 1x2x1 supercell of volume 40.247Å³.

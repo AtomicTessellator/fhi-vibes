@@ -3,7 +3,6 @@
 import sys
 
 from ase import Atoms
-
 from vibes.context import TaskContext
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.structure.misc import get_sysname
@@ -17,9 +16,7 @@ from ._defaults import keys, name, settings_dict
 class PhonopyContext(TaskContext):
     """context for phonopy calculation"""
 
-    def __init__(
-        self, settings=None, workdir=None, name=name, template_dict=None,
-    ):
+    def __init__(self, settings=None, workdir=None, name=name, template_dict=None):
         """Intializer
 
         Args:
@@ -31,10 +28,10 @@ class PhonopyContext(TaskContext):
         template_dict = template_dict or settings_dict
         super().__init__(settings, name, workdir=workdir, template_dict=template_dict)
 
-        if "auto" in str(self.workdir).lower():
+        if str(self.workdir.stem).lower() == "auto":
             smatrix = self.supercell_matrix.flatten()
-            vol = self.ref_atoms.get_volume()
-            sysname = get_sysname(self.ref_atoms)
+            vol = self.atoms.get_volume()
+            sysname = get_sysname(self.atoms)
             rep = "_{}_{}{}{}_{}{}{}_{}{}{}_{:.3f}".format(sysname, *smatrix, vol)
             dirname = self.name + rep
             self.workdir = dirname
@@ -95,7 +92,7 @@ class PhonopyContext(TaskContext):
         }
 
     def run(self, dry=False):
-        """run phonopy workflow """
+        """run phonopy workflow"""
         from vibes.calculate import calculate_socket
         from vibes.helpers import talk
         from vibes.helpers.restarts import restart
