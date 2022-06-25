@@ -3,7 +3,6 @@ from pathlib import Path
 
 from phonopy.file_IO import write_FORCE_CONSTANTS, write_FORCE_SETS
 from phonopy.interface.phonopy_yaml import PhonopyYaml
-
 from vibes.filenames import filenames
 from vibes.helpers import Timer as _Timer
 from vibes.helpers import talk as _talk
@@ -95,7 +94,7 @@ def postprocess(
         from vibes.hiphive import enforce_rotational_sum_rules
 
         timer = Timer("Enforce rotational sum rules with hiphive")
-        kw = {"primitive": primitive, "supercell": supercell}
+        kw = {"primitive": primitive, "supercell": supercell, "symprec": symprec}
         fc = enforce_rotational_sum_rules(phonon.force_constants, **kw)
         phonon.force_constants = fc
         timer()
