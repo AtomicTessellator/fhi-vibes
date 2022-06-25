@@ -1,13 +1,13 @@
 """hiphive utilities"""
 
 import numpy as np
-from ase import Atoms
-
 from vibes.force_constants import ForceConstants as MyForceConstants
 from vibes.helpers import Timer as _Timer
 from vibes.helpers import talk as _talk
 from vibes.helpers import warn
 from vibes.helpers.geometry import inscribed_sphere_in_box
+
+from ase import Atoms
 
 
 try:
@@ -30,7 +30,11 @@ def Timer(msg=None):
 
 
 def enforce_rotational_sum_rules(
-    force_constants: np.ndarray, primitive: Atoms, supercell: Atoms, decimals: int = 9,
+    force_constants: np.ndarray,
+    primitive: Atoms,
+    supercell: Atoms,
+    symprec: float = 1e-5,
+    decimals: int = 9,
 ):
     """enforce the rotational sum rules on phonopy object
 
@@ -38,6 +42,7 @@ def enforce_rotational_sum_rules(
         force_constants: force constants in [Np, Ns, 3, 3] shape
         primitive: reference primitive structure
         supercell: reference supercell structure
+        symprec: symmetry precision
         decimals: use to clean up positions to remove spurious 1s (hiphive bug)
 
     References:
@@ -60,7 +65,7 @@ def enforce_rotational_sum_rules(
     fcs = ForceConstants.from_arrays(supercell, fc2_array=fc_obj.remapped_to_supercell)
 
     # create ClusterSpace
-    cs = ClusterSpace(primitive, [cutoff])
+    cs = ClusterSpace(primitive, [cutoff], symprec=symprec)
 
     # extract parameters
     # kw = {"fit_method": "lasso", "alpha": .005}
