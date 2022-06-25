@@ -88,6 +88,7 @@ eval (env _VIBES_COMPLETE=source-fish vibes)
     - Solution: `export PATH=$PATH:~/.local/bin`
 - `ImportError: numpy.core.multiarray failed to import`
     - Solution: `pip install numpy -U` (or `conda update numpy` if you use conda)
+    - Alternative: use `pip install --no-build-isolation` when installing vibes to use consistent numpy versions during build and run time. In that case, `poetry` might need to be installed manually via `pip install poetry`.
 - Various version conflicts
     - Consider using a [virtual environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html), e.g., via `conda create -n py38 -c anaconda python=3.8 numpy scipy`
 
