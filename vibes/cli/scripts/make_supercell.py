@@ -5,7 +5,6 @@ Similar to generate_structure from TDEP.
 from argparse import ArgumentParser as argpars
 
 import numpy as np
-
 from vibes.helpers import Timer
 from vibes.helpers import supercell as sc
 from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
@@ -80,9 +79,7 @@ def make_supercell(
 
     # find number of phonopy displacements
     _, _, scs_ref = preprocess(cell, supercell_matrix=1)
-
-    if dimension is not None:
-        _, _, scs = preprocess(cell, supercell_matrix=smatrix)
+    _, _, scs = preprocess(cell, supercell_matrix=smatrix)
 
     print(f"\nSupercell matrix:")
     print(" python:  {}".format(np.array2string(smatrix.flatten(), separator=", ")))
