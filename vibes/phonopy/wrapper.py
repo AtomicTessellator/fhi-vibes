@@ -129,7 +129,7 @@ def get_dos(
     total=True,
     freq_min="auto",
     freq_max="auto",
-    freq_pitch=None,
+    freq_pitch=0.05,
     tetrahedron_method=True,
     write=False,
     file="total_dos.dat",
