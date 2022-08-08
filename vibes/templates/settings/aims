@@ -3,6 +3,7 @@ geometry:                      geometry.in
 
 [calculator]
 name:                          aims
+socketio:                      True
 
 [calculator.parameters]
 xc:                            pw-lda
@@ -12,6 +13,3 @@ density:                       3.5
 
 [calculator.basissets]
 default:                       light
-
-[calculator.socketio]
-port:                          12345
