@@ -19,7 +19,7 @@ vibes:
     - apt-get update
     - apt-get install -y mongodb-org
     # install dependencies that should come from conda and build vibes
-    - pip install numpy scipy phonopy==2.8.1
+    # - pip install numpy scipy phonopy==2.8.1
     # - conda install -c conda-forge phonopy==2.8.1
     - pip install .
     - pip list

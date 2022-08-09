@@ -90,7 +90,8 @@ def preprocess(
     log_level=defaults.kwargs.log_level,
     **kwargs,
 ):
-    """Set up a Phono3py object and generate all the supercells necessary for the 3rd order
+    """
+    Set up a Phono3py object and generate all the supercells necessary for the 3rd order
 
     Args:
         atoms: ase.atoms.Atoms
