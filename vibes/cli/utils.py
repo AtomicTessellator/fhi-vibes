@@ -505,13 +505,18 @@ def t2tdep(file, skip, stride, folder):
 @trajectory.command("2xyz", context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", default="trajectory.xyz")
-@click.option("--stride", default=1, help='Skip this many steps')
-def t2xyz(file, outfile, stride):
+@click.option("--stride", default=1, help="Skip this many steps")
+@click.option("--extxyz", is_flag=True, help="Write in extxyz format")
+def t2xyz(file, outfile, stride, extxyz):
     """extract trajectory in FILENAME and store as xyz file"""
     from vibes.trajectory import reader
+    from vibes.helpers.utils import talk
+
+    talk(f"Write trajectory data to {outfile}")
+    talk(f".. use extxyz format: {extxyz}")
 
     traj = reader(file)
-    traj[::stride].to_xyz(file=outfile)
+    traj[::stride].to_xyz(file=outfile, extxyz=extxyz)
 
 
 @trajectory.command("2db", context_settings=_default_context_settings)
