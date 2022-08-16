@@ -77,6 +77,6 @@ addopts = "--import-mode=importlib"
 filterwarnings = ["ignore"]
 
 [build-system]
-requires = ["setuptools", "wheel", "poetry>=0.12", "numpy"]
+requires = ["setuptools<=59.2.0", "wheel", "poetry>=0.12", "numpy"]
 build-backend = "poetry.masonry.api"
 
