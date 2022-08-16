@@ -524,16 +524,23 @@ class Trajectory(list):
 
         write(self, file=file)
 
-    def to_xyz(self, file="positions.xyz"):
+    def to_xyz(self, file="positions.xyz", extxyz=False):
         """Write positions to simple xyz file for e.g. viewing with VMD
 
         Args:
             file: path to trajecotry xyz file
         """
-        from ase.io.xyz import simple_write_xyz
+        if extxyz:
+            from ase.io.extxyz import write_extxyz as write
+
+            kw = {"write_results": False}
+        else:
+            from ase.io.xyz import simple_write_xyz as write
+
+            kw = {}
 
         with open(file, "w") as fo:
-            simple_write_xyz(fo, self)
+            write(fo, self, **kw)
 
     def to_tdep(self, folder=".", skip=1, stride=1):
         """Convert to TDEP infiles for direct processing
