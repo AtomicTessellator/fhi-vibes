@@ -32,6 +32,11 @@ Most of the functionality is high-throughput ready via [fireworks](https://mater
 
 ## Changelog
 
+#### v1.0.4
+
+- looser dependencies
+- [various bug fixes](https://gitlab.com/vibes-developers/vibes/-/merge_requests?scope=all&state=merged)
+
 #### v1.0.3
 
 - update dependencies to allow `phonopy` versions up to 2.8
