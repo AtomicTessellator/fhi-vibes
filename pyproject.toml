@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fhi-vibes"
-version = "1.0.4"
+version = "1.1.0-alpha.1"
 description = "Fritz Haber Institute Vibrational Simulations"
 authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
 license = "MIT"
@@ -19,7 +19,7 @@ python = "^3.6.1, <4.0"
 numpy = "^1.17.5"
 scipy = "^1.1.1"
 matplotlib = "^3.1"
-son = "^0.4.1"
+son = ">=0.4.1"
 spglib = "^1.12"
 phonopy = "^2.6"
 ase = "^3.20.0,<3.23"
