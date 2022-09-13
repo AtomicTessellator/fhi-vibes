@@ -96,7 +96,7 @@ def calc2dict(calculator: SinglePointCalculator) -> dict:
     if isinstance(calculator, dict):
         return calculator
 
-    params = calculator.todict()
+    params = calculator.parameters
     for key, val in params.items():
         if isinstance(val, tuple):
             params[key] = list(val)
