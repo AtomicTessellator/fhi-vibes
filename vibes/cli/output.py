@@ -27,7 +27,7 @@ def output():
 @click.option("-fc", "--fc_file", type=Path, help="add force constants from file")
 @click.option("-o", "--outfile", default="auto", show_default=True)
 @click.option("--force", is_flag=True, help="enfore parsing of output file")
-@click.option("--shorten", default=0.0, help="shorten trajectory by percentage. Discard the first steps with positive value, the last with negative.")
+@click.option("--shorten", default=0.0, help="shorten trajectory by percentage")
 def trajectory(file, harmonic, fc_file, outfile, force, shorten):
     """write trajectory data in FILE to xarray.Dataset"""
     if "auto" in outfile.lower():
@@ -62,7 +62,7 @@ def trajectory(file, harmonic, fc_file, outfile, force, shorten):
         n_max = len(traj)
         n_shorten = int(np.floor(n_max * shorten))
         click.echo(f"... discard first {n_shorten} steps")
-        traj = traj.discard(first=n_shorten,last=0)
+        traj = traj.discard(first=n_shorten, last=0)
         traj.times = traj.times - traj.times[0]
         click.echo(f"... new trajectory length: {traj.times[-1]:.2f} fs")
         fc = io.parse_force_constants(fc_file, two_dim=False)
@@ -75,7 +75,7 @@ def trajectory(file, harmonic, fc_file, outfile, force, shorten):
         n_max = len(traj)
         n_shorten = int(np.floor(n_max * shorten))
         click.echo(f"... discard last {n_shorten} steps")
-        traj = traj.discard(first=0,last=n_shorten)
+        traj = traj.discard(first=0, last=n_shorten)
         click.echo(f"... new trajectory length: {traj.times[-1]:.2f} fs")
         fc = io.parse_force_constants(fc_file, two_dim=False)
         traj.set_force_constants(fc)
@@ -195,7 +195,7 @@ def phono3py(obj, file, q_mesh):
 @click.option("--total", is_flag=True, help="compute total flux")
 @click.option("-fc", "--fc_file", type=Path, help="use force constants from file")
 @click.option("-u", "--update", is_flag=True, help="only parse if input data changed")
-@click.option("--shorten", default=0.0, help="shorten trajectory by percentage. Discard the first steps with positive value, the last with negative.")
+@click.option("--shorten", default=0.0, help="shorten trajectory by percentage")
 def greenkubo(
     file,
     outfile,
@@ -229,8 +229,8 @@ def greenkubo(
             n_max = len(ds_raw[dim])
             n_shorten = int(np.floor(n_max * shorten))
             click.echo(f"... discard first {n_shorten} steps")
-            # ds = ds_raw.shift({dim: n_shorten}).dropna(dim=dim)  #ZS: will kill every step with NA
-            ds = ds_raw.isel(time=slice(None,n_max-n_shorten))  #ZS: another shorten method
+            # ds = ds_raw.shift({dim: n_shorten}).dropna(dim=dim)
+            ds = ds_raw.isel(time=slice(None, n_max - n_shorten))
             ds = ds.assign_coords({dim: ds[dim] - ds[dim][0]})
             tm = float(ds.time.max() / 1000)
             click.echo(f"... new trajectory length: {tm*1000} fs")
@@ -243,7 +243,7 @@ def greenkubo(
             n_max = len(ds_raw[dim])
             n_shorten = int(np.floor(n_max * shorten))
             click.echo(f"... discard last {n_shorten} steps")
-            ds = ds_raw.isel(time=slice(n_shorten,None))
+            ds = ds_raw.isel(time=slice(n_shorten, None))
             ds = ds.assign_coords({dim: ds[dim] - ds[dim][0]})
             tm = float(ds.time.max() / 1000)
             click.echo(f"... new trajectory length: {tm*1000} fs")
