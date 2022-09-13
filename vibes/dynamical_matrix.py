@@ -207,8 +207,6 @@ class DynamicalMatrix(ForceConstants):
             force_constants = dataset[keys.fc]
         except AttributeError:
             force_constants = dataset[keys.fc_remapped]
-        except AttributeError:
-            raise RuntimeError(f"Could not find force constants in dataset")
 
         return cls(
             force_constants=force_constants, primitive=primitive, supercell=supercell
