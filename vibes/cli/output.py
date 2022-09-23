@@ -54,32 +54,23 @@ def trajectory(file, harmonic, fc_file, outfile, force, shorten):
     from vibes.trajectory.dataset import get_trajectory_dataset
     from vibes import io
 
-    traj = reader(file=file, fc_file=fc_file)
-    if shorten > 0:
-        click.echo(f".. shorten trajectory by {shorten*100} % from the first steps:")
-        tmax_ds = float(traj.times[-1])
-        click.echo(f"... max. time in trajectory: {tmax_ds} fs")
-        n_max = len(traj)
-        n_shorten = int(np.floor(n_max * shorten))
-        click.echo(f"... discard first {n_shorten} steps")
-        traj = traj.discard(first=n_shorten, last=0)
-        traj.times = traj.times - traj.times[0]
-        click.echo(f"... new trajectory length: {traj.times[-1]:.2f} fs")
-        fc = io.parse_force_constants(fc_file, two_dim=False)
-        traj.set_force_constants(fc)
-    elif shorten < 0:
-        shorten = -shorten
-        click.echo(f".. shorten trajectory by {shorten*100} % from the last steps:")
-        tmax_ds = float(traj.times[-1])
-        click.echo(f"... max. time in trajectory: {tmax_ds} fs")
-        n_max = len(traj)
-        n_shorten = int(np.floor(n_max * shorten))
-        click.echo(f"... discard last {n_shorten} steps")
-        traj = traj.discard(first=0, last=n_shorten)
-        click.echo(f"... new trajectory length: {traj.times[-1]:.2f} fs")
-        fc = io.parse_force_constants(fc_file, two_dim=False)
-        traj.set_force_constants(fc)
+    traj = reader(file=file)
 
+    if shorten != 0:
+        click.echo(f".. shorten trajectory by {shorten*100} %")
+        tmax_ds = float(traj.times[-1])
+        n_max = len(traj)
+        n_shorten = int(np.floor(n_max * abs(shorten)))
+        if shorten > 0:
+            traj = traj.discard(first=n_shorten, last=0)
+            traj.times = traj.times - traj.times[0]
+        elif shorten < 0:
+            traj = traj.discard(first=0, last=n_shorten)
+        click.echo(f"... max. time in trajectory: {tmax_ds} fs")
+        click.echo(f"... new trajectory length: {traj.times[-1]:.2f} fs")
+    if fc_file:
+        fc = io.parse_force_constants(fc_file, two_dim=False)
+        traj.set_force_constants(fc)
     if traj.stresses_potential is not None:
         traj.compute_heat_flux()
     if harmonic and traj.force_constants is not None:
@@ -218,32 +209,21 @@ def greenkubo(
 
     click.echo(f"Run aiGK output workflows for {file}")
 
-    with xr.open_dataset(file) as ds_raw:
+    with xr.open_dataset(file) as ds:
 
-        ds = ds_raw
-        if shorten > 0:
+        if shorten != 0:
             dim = dims.time
-            click.echo(f".. shorten trajectory by {shorten*100} % from the first steps:")
-            tmax_ds = float(ds_raw[dim].isel({dim: -1}))
+            click.echo(f".. shorten trajectory by {shorten*100} %")
+            tmax_ds = float(ds[dim].isel({dim: -1}))
             click.echo(f"... max. time in trajectory: {tmax_ds} fs")
-            n_max = len(ds_raw[dim])
-            n_shorten = int(np.floor(n_max * shorten))
-            click.echo(f"... discard first {n_shorten} steps")
-            # ds = ds_raw.shift({dim: n_shorten}).dropna(dim=dim)
-            ds = ds_raw.isel(time=slice(None, n_max - n_shorten))
-            ds = ds.assign_coords({dim: ds[dim] - ds[dim][0]})
-            tm = float(ds.time.max() / 1000)
-            click.echo(f"... new trajectory length: {tm*1000} fs")
-        elif shorten < 0:
-            shorten = -shorten
-            dim = dims.time
-            click.echo(f".. shorten trajectory by {shorten*100} % from the last steps:")
-            tmax_ds = float(ds_raw[dim].isel({dim: -1}))
-            click.echo(f"... max. time in trajectory: {tmax_ds} fs")
-            n_max = len(ds_raw[dim])
-            n_shorten = int(np.floor(n_max * shorten))
-            click.echo(f"... discard last {n_shorten} steps")
-            ds = ds_raw.isel(time=slice(n_shorten, None))
+            n_max = len(ds[dim])
+            n_shorten = int(np.floor(n_max * abs(shorten)))
+            if shorten > 0:
+                click.echo(f"... discard first {n_shorten} steps")
+                ds = ds.isel(time=slice(n_shorten, None))
+            elif shorten < 0:
+                click.echo(f"... discard last {n_shorten} steps")
+                ds = ds.isel(time=slice(None, n_max - n_shorten))
             ds = ds.assign_coords({dim: ds[dim] - ds[dim][0]})
             tm = float(ds.time.max() / 1000)
             click.echo(f"... new trajectory length: {tm*1000} fs")
