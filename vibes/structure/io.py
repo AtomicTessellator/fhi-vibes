@@ -9,7 +9,6 @@ from vibes.helpers.geometry import (
     inscribed_sphere_in_box,
     bounding_sphere_of_box,
 )
-from vibes.brillouin import get_special_points
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.utils import talk
 from vibes.konstanten import n_geom_digits, symprec, v_unit
@@ -186,7 +185,8 @@ def inform(atoms, file=None, verbosity=1, symprec=symprec):
 
         if verbosity > 1:
             print(f"  Special k points:")
-            for key, val in get_special_points(atoms).items():
+            special_points = atoms.cell.get_bravais_lattice().get_special_points()
+            for key, val in special_points.items():
                 print(f"    {key}: {val}")
 
     # Info

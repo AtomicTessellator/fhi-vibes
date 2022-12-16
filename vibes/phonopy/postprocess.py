@@ -4,7 +4,6 @@ from pathlib import Path
 from phonopy.file_IO import write_FORCE_CONSTANTS, write_FORCE_SETS
 from phonopy.interface.phonopy_yaml import PhonopyYaml
 
-from vibes.brillouin import get_special_points
 from vibes.filenames import filenames
 from vibes.helpers import Timer as _Timer
 from vibes.helpers import talk as _talk
@@ -258,7 +257,7 @@ def extract_results(
 
         animate_q_points = {}
         if animate:
-            animate_q_points = get_special_points(primitive)
+            animate_q_points = primitive.cell.get_bravais_lattice().get_special_points()
 
         elif animate_q:
             for q_point in animate_q:
