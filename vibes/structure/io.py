@@ -5,7 +5,11 @@ import datetime
 import numpy as np
 
 from vibes.helpers.brillouinzone import get_special_points
-from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
+from vibes.helpers.geometry import (
+    get_cubicness,
+    inscribed_sphere_in_box,
+    bounding_sphere_of_box,
+)
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.utils import talk
 from vibes.konstanten import n_geom_digits, symprec, v_unit
@@ -157,9 +161,11 @@ def inform(atoms, file=None, verbosity=1, symprec=symprec):
         for vec in atoms.cell:
             print(f"    {vec}")
         cub = get_cubicness(atoms.cell)
-        print(f"  Cubicness:         {cub:.3f} ({cub**3:.3f})")
-        sh = inscribed_sphere_in_box(atoms.cell)
-        print(f"  Largest Cutoff:    {sh:.3f} AA")
+        print(f"  Cubicness:           {cub:.3f} ({cub**3:.3f})")
+        r = inscribed_sphere_in_box(atoms.cell)
+        print(f"  Largest Cutoff:      {r:.3f} AA")
+        r = bounding_sphere_of_box(atoms.cell)
+        print(f"  Bounding box rad.:   {r/2:.3f} AA")
 
     print("")
 
