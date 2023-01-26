@@ -24,7 +24,7 @@ key_constraints = "constraint"
 
 
 class NumpyEncoder(json.JSONEncoder):
-    """ Decode numerical objects that json cannot parse by default"""
+    """Decode numerical objects that json cannot parse by default"""
 
     def default(self, obj) -> str:
         """Default JSON encoding"""
@@ -42,7 +42,9 @@ class NumpyEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def atoms2dict(atoms: Atoms, reduce: bool = True, add_constraints: bool = False) -> dict:
+def atoms2dict(
+    atoms: Atoms, reduce: bool = True, add_constraints: bool = False
+) -> dict:
     """Converts an Atoms object into a dict
 
     Args:
@@ -197,7 +199,7 @@ def results2dict(atoms: Atoms, calculator: SinglePointCalculator = None) -> dict
     for key, val in calculator.results.items():
         if isinstance(val, np.ndarray):
             calculator_dict[key] = val.tolist()
-        elif isinstance(val, np.float):
+        elif isinstance(val, (float, np.double)):
             calculator_dict[key] = float(val)
         else:
             calculator_dict[key] = val
@@ -326,7 +328,7 @@ def dict2json(dct: dict, indent: int = 0, outer: bool = True) -> str:
 
         if isinstance(val, str):
             rep = f'"{val}"'
-        elif isinstance(val, (float, np.float)):
+        elif isinstance(val, (float, np.double)):
             rep = "{1: .{0}e}".format(n_yaml_digits, val)
         elif isinstance(val, dict):
             # recursive formatting
