@@ -276,9 +276,9 @@ def get_converge_phonon_update(
         prev_dos_fp = get_phonon_dos_fp(phonon_small, nbins=n_bins)
 
     if prev_dos_fp:
-        de = prev_dos_fp[0][0][1] - prev_dos_fp[0][0][0]
-        min_f = prev_dos_fp[0][0][0] - 0.5 * de
-        max_f = prev_dos_fp[0][0][-1] + 0.5 * de
+        de = prev_dos_fp[0][1] - prev_dos_fp[0][0]
+        min_f = prev_dos_fp[0][0] - 0.5 * de
+        max_f = prev_dos_fp[0][-1] + 0.5 * de
         phonon.run_total_dos(freq_min=min_f, freq_max=max_f, freq_pitch=0.01)
     else:
         # If Not Converged update phonons

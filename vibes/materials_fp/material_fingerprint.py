@@ -130,7 +130,7 @@ def get_phonon_dos_fp(phonon, binning=True, min_e=None, max_e=None, nbins=256):
         dos_rebin[ii] = np.sum(
             dos[np.where((dos[:, 0] >= e1) & (dos[:, 0] < e2))[0], 1]
         )
-    return fp_tup(np.array([ener]), dos_rebin, ["DOS"], nbins)
+    return fp_tup(np.array(ener), dos_rebin, ["DOS"], nbins)
 
 
 def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
