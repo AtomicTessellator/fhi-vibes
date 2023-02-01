@@ -197,7 +197,7 @@ def results2dict(atoms: Atoms, calculator: SinglePointCalculator = None) -> dict
     for key, val in calculator.results.items():
         if isinstance(val, np.ndarray):
             calculator_dict[key] = val.tolist()
-        elif isinstance(val, np.float):
+        elif isinstance(val, np.double):
             calculator_dict[key] = float(val)
         else:
             calculator_dict[key] = val
@@ -326,7 +326,7 @@ def dict2json(dct: dict, indent: int = 0, outer: bool = True) -> str:
 
         if isinstance(val, str):
             rep = f'"{val}"'
-        elif isinstance(val, (float, np.float)):
+        elif isinstance(val, (float, np.double)):
             rep = "{1: .{0}e}".format(n_yaml_digits, val)
         elif isinstance(val, dict):
             # recursive formatting

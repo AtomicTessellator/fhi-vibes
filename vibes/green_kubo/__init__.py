@@ -223,15 +223,22 @@ def get_gk_dataset(
     ts = np.zeros([3, 3])
     ks = np.zeros([3, 3])
 
+    # symmetrize J and kappa, together with the cutoff time
+    j_filtered_sym = 0.5 * (j_filtered + np.swapaxes(j_filtered, 1,2))
+    k_filtered_sym = 0.5 * (k_filtered + np.swapaxes(k_filtered, 1,2))
+
     for (ii, jj) in np.ndindex(3, 3):
-        j = j_filtered[:, ii, jj]
-        times = j.time[j < 0]
+        j = j_filtered_sym[:, ii, jj]
+        if ii == jj:
+            times = j.time[j < 0]  # diagonal cutoff time
+        else:
+            times = j.time[j/j[0] < 0]  # off-diagonal cutoff time
         if len(times) > 1:
             ta = times.min()
         else:
             warn(f"no cutoff time found", level=1)
             ta = 0
-        ks[ii, jj] = k_filtered[:, ii, jj].sel(time=ta)
+        ks[ii, jj] = k_filtered_sym[:, ii, jj].sel(time=ta)
         ts[ii, jj] = ta
 
     k_diag = np.diag(ks)
