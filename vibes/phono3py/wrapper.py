@@ -54,7 +54,6 @@ def prepare_phono3py(
     phonon3 = Phono3py(
         ph_atoms,
         supercell_matrix=np.transpose(supercell_matrix),
-        mesh=q_mesh,
         symprec=symprec,
         is_symmetry=True,
         symmetrize_fc3q=symmetrize_fc3q,
