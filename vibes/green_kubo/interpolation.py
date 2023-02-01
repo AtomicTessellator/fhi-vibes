@@ -106,6 +106,7 @@ def get_interpolation_data(
         }
     """
     from .harmonic import get_kappa
+    from scipy.optimize import curve_fit
 
     # define scaled lifetimes
     l_sq = dmx.w2_sq * np.nan_to_num(lifetimes)
@@ -167,12 +168,19 @@ def get_interpolation_data(
 
     # interpolate to infinitely dense grid assuming convergence with 1/nq (Riemann sum)
     ks = np.diagonal(Ks, axis1=1, axis2=2).mean(axis=1)
-    m, y0, *_, stderr = st.linregress(nqs ** -1.0, y=ks)
+    # m, y0, *_, stderr = st.linregress(nqs ** -1.0, y=ks)
+    # init linear fit parameters
+    p0 = -1, 10
+    popt, pcov = curve_fit(lambda x, m, y0: m*x+y0, nqs ** -1.0,
+            ks, p0, sigma=nqs**-1.0)
+    perr = np.sqrt(np.diag(pcov))
+    m, y0 = popt
+    stderr = perr[0]
 
     k_ha = np.diagonal(kappa_ha).mean()
     nq = len(dmx.q_points) ** (1 / 3)
 
-    correction = -m / nq
+    correction = y0 - k_ha # -m / nq
     correction_factor = 1 + correction / k_ha
     correction_factor_err = stderr / nq / k_ha
 
