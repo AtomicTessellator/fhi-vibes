@@ -320,7 +320,10 @@ def get_gk_ha_q_data(
     # scalar cv: account for cv/kB not exactly 1 in the numeric simulation
     # choose such that c * K(c_s=kB) = K(c_s=c_s)
     k = K_ha_q.data.diagonal().mean()
-    cv = k / get_kappa(v_sqa=v_sqa, tau_sq=tau_sq, scalar=True)
+    if k < 1.0e-4: # comment: this criteria needs a careful tuning
+        cv = cv_sq.mean()
+    else:
+        cv = k / get_kappa(v_sqa=v_sqa, tau_sq=tau_sq, scalar=True)
     cv = xr.DataArray(cv, name=keys.heat_capacity)
 
     # symmetrized thermal conductivity
