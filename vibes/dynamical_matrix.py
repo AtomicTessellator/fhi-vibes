@@ -14,6 +14,7 @@ from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import get_identifier
 from vibes.konstanten import gv_to_AA_fs, omega_to_THz
+from vibes.structure.convert import to_phonopy_atoms
 
 from .force_constants import ForceConstants
 
@@ -137,7 +138,8 @@ class DynamicalMatrix(ForceConstants):
 
         # attach phonopy object for computing eigensolutions fast
         smatrix = np.rint(supercell.cell @ primitive.cell.reciprocal().T).T
-        phonon = Phonopy(unitcell=primitive, supercell_matrix=smatrix)
+        unitcell = to_phonopy_atoms(primitive)
+        phonon = Phonopy(unitcell=unitcell, supercell_matrix=smatrix)
         phonon.force_constants = self.fc_phonopy
         self._phonon = phonon
 
