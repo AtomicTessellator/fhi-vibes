@@ -299,7 +299,7 @@ def get_gk_ha_q_data(
     # heat capacity
     volume = dataset.volume.mean().data
     temperature = dataset.temperature.mean().data
-    cv_sq = E_tsq.var(axis=0) / units.kB / temperature ** 2 / volume
+    cv_sq = E_tsq.var(axis=0) / units.kB / temperature**2 / volume
     cv_sq.name = keys.mode_heat_capacity
 
     # get lifetimes from fitting exp. function to mode energy
@@ -320,7 +320,7 @@ def get_gk_ha_q_data(
     # scalar cv: account for cv/kB not exactly 1 in the numeric simulation
     # choose such that c * K(c_s=kB) = K(c_s=c_s)
     k = K_ha_q.data.diagonal().mean()
-    if k < 1.0e-4: # comment: this criteria needs a careful tuning
+    if k < 1.0e-4:  # comment: this criteria needs a careful tuning
         cv = cv_sq.mean()
     else:
         cv = k / get_kappa(v_sqa=v_sqa, tau_sq=tau_sq, scalar=True)

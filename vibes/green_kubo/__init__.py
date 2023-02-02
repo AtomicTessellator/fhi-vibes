@@ -39,7 +39,7 @@ def gk_prefactor(volume: float, temperature: float, verbose: bool = False) -> fl
     """
     V = float(volume)
     T = float(temperature)
-    prefactor = 1 / units.kB / T ** 2 * V * to_W_mK
+    prefactor = 1 / units.kB / T**2 * V * to_W_mK
     msg = [
         f"Compute Prefactor:",
         f".. Volume:        {V:10.2f}  AA^3",
@@ -224,15 +224,15 @@ def get_gk_dataset(
     ks = np.zeros([3, 3])
 
     # symmetrize J and kappa, together with the cutoff time
-    j_filtered_sym = 0.5 * (j_filtered + np.swapaxes(j_filtered, 1,2))
-    k_filtered_sym = 0.5 * (k_filtered + np.swapaxes(k_filtered, 1,2))
+    j_filtered_sym = 0.5 * (j_filtered + np.swapaxes(j_filtered, 1, 2))
+    k_filtered_sym = 0.5 * (k_filtered + np.swapaxes(k_filtered, 1, 2))
 
     for (ii, jj) in np.ndindex(3, 3):
         j = j_filtered_sym[:, ii, jj]
         if ii == jj:
             times = j.time[j < 0]  # diagonal cutoff time
         else:
-            times = j.time[j/j[0] < 0]  # off-diagonal cutoff time
+            times = j.time[j / j[0] < 0]  # off-diagonal cutoff time
         if len(times) > 1:
             ta = times.min()
         else:
@@ -243,7 +243,7 @@ def get_gk_dataset(
 
     k_diag = np.diag(ks)
     k_mean = np.mean(k_diag)
-    k_err = np.std(k_diag) / 3 ** 0.5
+    k_err = np.std(k_diag) / 3**0.5
 
     # report
     if verbose:

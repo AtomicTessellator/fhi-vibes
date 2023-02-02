@@ -153,7 +153,7 @@ def get_interpolation_data(
         ir_l_int_sq = interpolate_to_grid(q_points=grid.ir.points, **kw_train)
 
         # scale back to lifetimes
-        tau_int_sq = ir_l_int_sq[:, grid.ir.map2full] * solution.w_inv_sq ** 2
+        tau_int_sq = ir_l_int_sq[:, grid.ir.map2full] * solution.w_inv_sq**2
 
         # compute K on new grid, account for change in grid point number
         Nq_eff = len(grid.points) / Nq_init
@@ -171,8 +171,9 @@ def get_interpolation_data(
     # m, y0, *_, stderr = st.linregress(nqs ** -1.0, y=ks)
     # init linear fit parameters
     p0 = -1, 10
-    popt, pcov = curve_fit(lambda x, m, y0: m*x+y0, nqs ** -1.0,
-            ks, p0, sigma=nqs**-1.0)
+    popt, pcov = curve_fit(
+        lambda x, m, y0: m * x + y0, nqs**-1.0, ks, p0, sigma=nqs**-1.0
+    )
     perr = np.sqrt(np.diag(pcov))
     m, y0 = popt
     stderr = perr[0]
@@ -180,7 +181,7 @@ def get_interpolation_data(
     k_ha = np.diagonal(kappa_ha).mean()
     nq = len(dmx.q_points) ** (1 / 3)
 
-    correction = y0 - k_ha # -m / nq
+    correction = y0 - k_ha  # -m / nq
     correction_factor = 1 + correction / k_ha
     correction_factor_err = stderr / nq / k_ha
 
