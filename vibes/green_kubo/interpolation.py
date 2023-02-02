@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.stats as st
 import xarray as xr
 from scipy.interpolate import LinearNDInterpolator, griddata
 from scipy.spatial.qhull import QhullError
