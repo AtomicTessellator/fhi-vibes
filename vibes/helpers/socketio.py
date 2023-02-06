@@ -105,19 +105,19 @@ def get_socket_info(calculator, prefix=_prefix):
     unixsocket = None
     if not hasattr(calculator, "parameters"):
         warn(f"{prefix} No parameters found in calculator {calculator.name}.", level=1)
-        return port
 
-    if "use_pimd_wrapper" in calculator.parameters:
-        port = calculator.parameters["use_pimd_wrapper"][1]
-        host = calculator.parameters["use_pimd_wrapper"][0]
-
-        if "UNIX:" in host:
-            unixsocket = calculator.parameters["use_pimd_wrapper"][0]
-            talk(f"Use SocketIO with unixsocket file {unixsocket}", prefix=prefix)
-        else:
-            talk(f"Use SocketIO with host {host} and port {port}", prefix=prefix)
     else:
-        talk(f"Socketio not used with calculator {calculator.name}", prefix=prefix)
+        if "use_pimd_wrapper" in calculator.parameters:
+            port = calculator.parameters["use_pimd_wrapper"][1]
+            host = calculator.parameters["use_pimd_wrapper"][0]
+
+            if "UNIX:" in host:
+                unixsocket = calculator.parameters["use_pimd_wrapper"][0]
+                talk(f"Use SocketIO with unixsocket file {unixsocket}", prefix=prefix)
+            else:
+                talk(f"Use SocketIO with host {host} and port {port}", prefix=prefix)
+        else:
+            talk(f"Socketio not used with calculator {calculator.name}", prefix=prefix)
 
     return port, unixsocket
 
