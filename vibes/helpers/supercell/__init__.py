@@ -14,8 +14,6 @@ from vibes.helpers.utils import Timer
 from vibes.helpers.warnings import warn
 from vibes.structure.misc import get_sysname
 
-from . import supercell as sc
-
 
 def get_lattice_points(
     cell, supercell, tolerance=1e-5, sort=True, fortran=True, verbose=False
@@ -88,6 +86,8 @@ def get_lattice_points(
     dmax = 2.5 * np.linalg.norm(superlattice.sum(axis=1))
 
     if fortran:
+        from . import supercell as sc
+
         all_lattice_points = sc.supercell.find_lattice_points(
             lattice.T, inv_superlattice.T, n_lattice_points, max_iterations, tolerance
         ).T
@@ -180,7 +180,7 @@ def sort_lattice_points(lattice_points, tol=1e-5):
 
 
 def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
-    """ For a commensurate q_points we have
+    """For a commensurate q_points we have
 
         exp( 2*pi q . L_k ) = 1 for any k and L_k being the supercell lattice vectors
 
@@ -247,6 +247,7 @@ def find_cubic_cell(
     verbose: bool
         If True print more information to the console
     """
+    from . import supercell as sc
 
     smatrix = sc.supercell.find_optimal_cell(
         cell,
@@ -316,7 +317,7 @@ def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose
 
 
 def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
-    """ Create the lattice points within supercell and attach atoms to each of them
+    """Create the lattice points within supercell and attach atoms to each of them
 
     Parameters
     ----------
@@ -344,7 +345,7 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
 
 
 def map_indices(atoms1, atoms2, tol=1e-5):
-    """ return indices of atoms in atoms1 in atoms2.
+    """return indices of atoms in atoms1 in atoms2.
 
     Background Information at
     https://gitlab.com/flokno/vibes/blob/devel/examples/devel/sort_atoms/sort.ipynb
