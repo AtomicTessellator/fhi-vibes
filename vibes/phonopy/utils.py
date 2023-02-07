@@ -11,7 +11,6 @@ from phonopy.structure.atoms import PhonopyAtoms
 from vibes.helpers import Timer, progressbar, talk, warn
 from vibes.helpers.converters import input2dict
 from vibes.helpers.fileformats import last_from_yaml
-from vibes.helpers.supercell.supercell import supercell as fort
 from vibes.phonopy._defaults import displacement_id_str
 from vibes.structure.convert import to_Atoms
 
@@ -87,7 +86,7 @@ def enumerate_displacements(cells, info_str=displacement_id_str):
 
 
 def get_supercells_with_displacements(phonon):
-    """ Create a phonopy object and supercells etc.
+    """Create a phonopy object and supercells etc.
 
     Parameters
     ----------
@@ -322,6 +321,8 @@ def remap_force_constants(
     map2prim = _map2prim(primitive, new_supercell)
 
     if fortran:
+        from vibes.helpers.supercell.supercell import supercell as fort
+
         talk(".. use fortran", prefix=_prefix)
         fc_out = fort.remap_force_constants(
             positions=new_supercell.positions,
