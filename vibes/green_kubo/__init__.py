@@ -41,7 +41,7 @@ def gk_prefactor(
     """
     V = float(volume)
     T = float(temperature)
-    prefactor = 1 / units.kB / T ** 2 * 1.602 * V / fs_factor  # / 1000
+    prefactor = 1 / units.kB / T**2 * 1.602 * V / fs_factor  # / 1000
     msg = [
         f"Compute Prefactor:",
         f".. Volume:        {V:10.2f}  AA^3",
@@ -60,12 +60,15 @@ def get_gk_prefactor_from_dataset(dataset: xr.Dataset, verbose: bool = True) -> 
     return gk_prefactor(volume=volume, temperature=temperature, verbose=verbose)
 
 
-def get_hf_data(flux: xr.DataArray, dropna_dim=keys.time) -> namedtuple:
+def get_hf_data(
+    flux: xr.DataArray, dropna_dim=keys.time, distribute=True
+) -> namedtuple:
     """Compute heat flux autocorrelation and integrated kappa from heat flux
 
     Args:
         flux [N_t, 3]: the heat flux in an xr.DataArray
         dropna_dim: drop nan values along this dimension (default: `time`)
+        bool: use multiprocessing to parallelize autocorrelation
 
     Returns:
         namedtuple: (heat flux autocorrelation function, integrated kappa)
@@ -78,7 +81,9 @@ def get_hf_data(flux: xr.DataArray, dropna_dim=keys.time) -> namedtuple:
     flux_avg = flux.mean(axis=0)
 
     # compute heat flux autocorrelation function (HFACF) <J(t)J>
-    flux_corr = get_autocorrelationNd(flux - flux_avg, off_diagonal=True, verbose=False)
+    flux_corr = get_autocorrelationNd(
+        flux - flux_avg, off_diagonal=True, verbose=False, distribute=distribute
+    )
 
     # get integrated kappa
     kappa = get_cumtrapz(flux_corr)
