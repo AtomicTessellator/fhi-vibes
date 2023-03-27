@@ -21,7 +21,7 @@ vibes:
     # install dependencies that should come from conda and build vibes
     # - pip install numpy scipy phonopy==2.8.1
     # - conda install -c conda-forge phonopy==2.8.1
-    - pip install .
+    - pip install . --verbose
     - pip list
   script:
     - mkdir -p /data/db
