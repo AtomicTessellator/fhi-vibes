@@ -40,7 +40,8 @@ def postprocess(
 
     trajectory = Path(workdir) / trajectory
 
-    calculated_atoms, metadata = reader(trajectory, get_metadata=True)
+    calculated_atoms = reader(trajectory)
+    metadata = calculated_atoms.metadata
 
     atoms_ids = [atoms.info[displacement_id_str] for atoms in calculated_atoms]
     for nn in range(atoms_ids[-1]):

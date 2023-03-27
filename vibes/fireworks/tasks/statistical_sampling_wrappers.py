@@ -46,7 +46,7 @@ def bootstrap(name="statistical_sampling", settings=None, **kwargs):
     else:
         stat_sample_settings.update(settings[name])
 
-    _, ph_metadata = reader(stat_sample_settings["phonon_file"], get_metadata=True)
+    ph_metadata = reader(stat_sample_settings["phonon_file"]).metadata
     ph_atoms = dict2atoms(ph_metadata["atoms"], ph_metadata["calculator"], False)
 
     # Get sampling metadata
