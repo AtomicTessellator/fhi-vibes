@@ -33,7 +33,7 @@ def _test_pair(pair):
     sc = read(supercell, format=format)
     nsc = read(new_supercell, format=format)
 
-    kwargs = {"primitive": uc, "supercell": sc, "fortran": True}
+    kwargs = {"primitive": uc, "supercell": sc, "fortran": True, "symmetrize": False}
 
     fc = parse_force_constants(fc_file, two_dim=False, **kwargs)
 

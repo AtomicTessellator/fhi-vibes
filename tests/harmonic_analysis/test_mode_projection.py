@@ -12,8 +12,11 @@ from vibes.harmonic_analysis.dynamical_matrix import get_dynamical_matrices
 from vibes.harmonic_analysis.normal_modes import get_A_qst2, projector, u_s_to_u_I
 from vibes.helpers import Timer, progressbar
 from vibes.helpers.displacements import get_dUdt, get_U
-from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
-from vibes.helpers.supercell import get_commensurate_q_points
+from vibes.helpers.lattice_points import (
+    get_commensurate_q_points,
+    get_lattice_points,
+    map_I_to_iL,
+)
 from vibes.io import read
 from vibes.konstanten import kB
 from vibes.molecular_dynamics.utils import MDLogger
@@ -22,6 +25,7 @@ from vibes.tdep.wrapper import (
     parse_tdep_remapped_forceconstant,
 )
 from vibes.trajectory import reader
+
 
 parent = Path(__file__).parent
 
