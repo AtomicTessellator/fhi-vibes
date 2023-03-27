@@ -129,42 +129,30 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
     return supercell
 
 
-def map_indices(atoms1, atoms2, tol=1e-5):
-    """return indices of atoms in atoms1 in atoms2.
+def map_indices(atoms1: Atoms, atoms2: Atoms, tol: float = 1e-5) -> np.ndarray:
+    """ return indices of atoms in atoms1 in atoms2.
 
     Background Information at
     https://gitlab.com/flokno/vibes/blob/devel/examples/devel/sort_atoms/sort.ipynb
 
-    Example
-    -------
+    Example:
         atoms1 = [H, O1, O2]
         atoms2 = [O1, H, O2]
 
         -> map_indices(atoms1, atoms2) = [1, 0, 2]
 
-    Parameters
-    ----------
-    atoms1: ase.atoms.Atoms
-        Structure to get map from
-    atoms2: ase.atoms.Atoms
-        Structure to get map to
-    tol: float
-        Tolerance to tell if atoms are equivalent
+    Args:
+        atoms1: Structure to get map from
+        atoms2: Structure to get map to
+        tol: Tolerance to tell if atoms are equivalent
 
-    Returns
-    -------
-    index_map: np.ndarray
-        Map from atoms1 to atoms2
+    Returns:
+        index_map: Map from atoms1 to atoms2
 
-    Raises
-    ------
-    AssertionError
-        If len of unique values in index_map does not equal the number of atoms in atoms1
     """
-
     from vibes.helpers.lattice_points import map_I_to_iL
 
-    _, index_map = map_I_to_iL(atoms2, atoms1)
+    _, index_map = map_I_to_iL(atoms2, atoms1, verbose=False)
 
     assert len(np.unique(index_map)) == len(atoms1)
 
