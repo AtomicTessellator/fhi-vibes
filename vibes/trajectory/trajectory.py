@@ -3,7 +3,6 @@
 import numpy as np
 from ase import Atoms, units
 from ase.geometry import find_mic
-
 from vibes import keys
 from vibes.anharmonicity_score import get_sigma
 from vibes.filenames import filenames
@@ -717,8 +716,8 @@ class Trajectory(list):
             virials = all_virials[i]
             ds = virials - avg_virials
 
-            # velocity in \AA / ps
-            vs = a.get_velocities() * units.fs * 1000
+            # velocity in \AA / fs
+            vs = a.get_velocities() * units.fs  # * 1000
 
             fluxes = np.squeeze(ds @ vs[:, :, None])
             fluxes_aux = np.squeeze(avg_virials @ vs[:, :, None])
