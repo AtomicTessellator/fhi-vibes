@@ -70,9 +70,8 @@ def get_hf_data(
             distribute: use multiprocessing to parallelize autocorrelation
             prefactor: GK prefactor  V/kB/T**2
 
-        Returns:
-            namedtuple: (heat flux autocorrelation function, integrated kappa)
-
+    Returns:
+        namedtuple: (heat_flux_acf, heat_flux_acf_integral)
     """
     # dropna
     flux = flux.dropna(dropna_dim)
@@ -85,7 +84,7 @@ def get_hf_data(
         flux - flux_avg, off_diagonal=True, verbose=False, distribute=distribute
     )
 
-    # use prefactor
+    # use gk prefactor
     flux_corr *= prefactor
 
     # get integrated kappa
@@ -183,7 +182,7 @@ def get_gk_dataset(
         4. get HFACF by time derivative of this filtered kappa
         5. filter the HFACF with the same filter
         6. estimate cutoff time from the decay of the filtered HFACF
-
+        7. run harmonic heat flux and interpolation
     """
     from .harmonic import get_gk_ha_q_data
 
@@ -248,11 +247,12 @@ def get_gk_dataset(
         _talk(["Kappa^ab is: ", *np.array2string(ks, precision=3).split("\n")])
 
     # 6. compile new dataset
+    # add filter parameters to attrs
     attrs = dataset.attrs.copy()
     u = {
-        "gk_window_fs": window_fs,
+        keys.gk_window_fs: window_fs,
         keys.gk_prefactor: gk_prefactor,
-        "filter_prominence": filter_prominence,
+        keys.filter_prominence: filter_prominence,
     }
     attrs.update(u)
 
@@ -266,7 +266,7 @@ def get_gk_dataset(
         keys.time_cutoff: (dims.tensor, ts),
     }
 
-    # add properties derived from harmonic model
+    # 7. add properties derived from harmonic model
     if keys.fc in dataset:
         data_ha = get_gk_ha_q_data(dataset, interpolate=interpolate)
         data.update(data_ha._asdict())
