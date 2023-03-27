@@ -1,39 +1,192 @@
 """ Tools for dealing with force constants """
 
 import numpy as np
+from ase import Atoms
+from ase.geometry import get_distances
 
+from vibes.helpers import Timer, progressbar, talk, warn
 from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
 from vibes.helpers.numerics import clean_matrix
-from vibes.phonopy.utils import remap_force_constants
+from vibes.helpers.supercell import map2prim
+from vibes.helpers.supercell.supercell import supercell as fort
+
+
+_prefix = "force_constants"
+
+
+def remap_force_constants(
+    force_constants: np.ndarray,
+    primitive: Atoms,
+    supercell: Atoms,
+    new_supercell: Atoms = None,
+    reduce_fc: bool = False,
+    two_dim: bool = False,
+    symmetrize: bool = True,
+    tol: float = 1e-5,
+    eps: float = 1e-13,
+    fortran: bool = True,
+) -> np.ndarray:
+    """remap force constants [N_prim, N_sc, 3, 3] to [N_sc, N_sc, 3, 3]
+
+    Args:
+        force_constants: force constants in [N_prim, N_sc, 3, 3] shape
+        primitive: primitive cell for reference
+        supercell: supercell for reference
+        new_supercell: supercell to map to
+        reduce_fc: return in [N_prim, N_sc, 3, 3]  shape
+        two_dim: return in [3*N_sc, 3*N_sc] shape
+        symmetrize: make force constants symmetric
+        tol: tolerance to discern pairs
+        eps: finite zero
+
+    Returns:
+        The remapped force constants
+
+    """
+    timer = Timer("remap force constants", prefix=_prefix)
+
+    if new_supercell is None:
+        new_supercell = supercell.copy()
+
+    # find positions of primitive cell within the (reference) supercell
+    primitive_cell = primitive.cell.copy()
+    primitive.cell = supercell.cell
+
+    primitive.wrap(eps=tol)
+    supercell.wrap(eps=tol)
+
+    n_sc_new = len(new_supercell)
+
+    # make a list of all pairs for each atom in primitive cell
+    sc_r = np.zeros((force_constants.shape[0], force_constants.shape[1], 3))
+    for aa, a1 in enumerate(primitive):
+        diff = supercell.positions - a1.position
+        p2s = np.where(np.linalg.norm(diff, axis=1) < tol)[0][0]
+        # sc_r[aa] = supercell.get_distances(p2s, range(n_sc), mic=True, vector=True)
+        # replace with post 3.18 ase routine:
+        spos = supercell.positions
+        sc_r[aa], _ = get_distances([spos[p2s]], spos, cell=supercell.cell, pbc=True)
+
+    # find mapping from supercell to origin atom in primitive cell
+    primitive.cell = primitive_cell
+    sc2pc = map2prim(primitive, new_supercell)
+
+    if fortran:
+        talk(".. use fortran", prefix=_prefix)
+        fc_out = fort.remap_force_constants(
+            positions=new_supercell.positions,
+            pairs=sc_r,
+            fc_in=force_constants,
+            map2prim=sc2pc,
+            inv_lattice=new_supercell.cell.reciprocal(),
+            tol=tol,
+            eps=eps,
+        )
+    else:
+
+        ref_struct_pos = new_supercell.get_scaled_positions(wrap=True)
+        sc_temp = new_supercell.get_cell(complete=True)
+
+        fc_out = np.zeros((n_sc_new, n_sc_new, 3, 3))
+        for a1, r0 in enumerate(progressbar(new_supercell.positions)):
+            uc_index = sc2pc[a1]
+            for sc_a2, sc_r2 in enumerate(sc_r[uc_index]):
+                r_pair = r0 + sc_r2
+                r_pair = np.linalg.solve(sc_temp.T, r_pair.T).T % 1.0
+                for a2 in range(n_sc_new):
+                    r_diff = np.abs(r_pair - ref_struct_pos[a2])
+                    # Integer value is the equivalent of 0.0
+                    r_diff -= np.floor(r_diff + eps)
+                    if np.linalg.norm(r_diff) < tol:
+                        fc_out[a1, a2, :, :] += force_constants[uc_index, sc_a2, :, :]
+
+    timer()
+
+    if two_dim:
+        fc_out = fc_out.swapaxes(1, 2).reshape(2 * (3 * fc_out.shape[1],))
+
+        # symmetrize
+        violation = np.linalg.norm(fc_out - fc_out.T)
+        if violation > 1e-5:
+            msg = f"Force constants are not symmetric by {violation:.2e}."
+            warn(msg, level=1)
+            if symmetrize:
+                talk("Symmetrize force constants.")
+                fc_out = 0.5 * (fc_out + fc_out.T)
+
+        # sum rule 1
+        violation = abs(fc_out.sum(axis=0)).mean()
+        if violation > 1e-9:
+            msg = f"Sum rule violated by {violation:.2e} (axis 1)."
+            warn(msg, level=1)
+
+        # sum rule 2
+        violation = abs(fc_out.sum(axis=1)).mean()
+        if violation > 1e-9:
+            msg = f"Sum rule violated by {violation:.2e} (axis 2)."
+            warn(msg, level=1)
+
+        return fc_out
+
+    if reduce_fc:
+        p2s_map = np.zeros(len(primitive), dtype=int)
+
+        primitive.cell = new_supercell.cell
+
+        new_supercell.wrap(eps=tol)
+        primitive.wrap(eps=tol)
+
+        for aa, a1 in enumerate(primitive):
+            diff = new_supercell.positions - a1.position
+            p2s_map[aa] = np.where(np.linalg.norm(diff, axis=1) < tol)[0][0]
+
+        primitive.cell = primitive_cell
+        primitive.wrap(eps=tol)
+
+        return reduce_force_constants(fc_out, p2s_map)
+
+    return fc_out
+
+
+def reduce_force_constants(fc_full: np.ndarray, map2prim: np.ndarray):
+    """reduce force constants from [N_sc, N_sc, 3, 3] to [N_prim, N_sc, 3, 3]
+
+    Args:
+        fc_full: The non-reduced force constant matrix
+        map2prim: map from supercell to unitcell index
+
+    Returns:
+        The reduced force constants
+
+    """
+    uc_index = np.unique(map2prim)
+    fc_out = np.zeros((len(uc_index), fc_full.shape[1], 3, 3))
+    for ii, uc_ind in enumerate(uc_index):
+        fc_out[ii, :, :, :] = fc_full[uc_ind, :, :, :]
+
+    return fc_out
 
 
 def reshape_force_constants(
-    primitive,
-    supercell,
-    force_constants,
-    scale_mass=False,
-    lattice_points=None,
-    symmetrize=True,
-):
+    primitive: Atoms,
+    supercell: Atoms,
+    force_constants: np.ndarray,
+    scale_mass: bool = False,
+    lattice_points: np.ndarray = None,
+    symmetrize: bool = True,
+) -> np.ndarray:
     """ reshape from (N_prim x N_super x 3 x 3) into 3x3 blocks labelled by (i,L)
 
-    Parameters
-    ----------
-    primitive: ase.atoms.Atoms
-        The primitive cell structure
-    supercell: ase.atoms.Atoms
-        The super cell structure
-    force_constants: np.ndarray(shape=(N_prim x N_super x 3 x 3))
-        The input force constant matrix
-    scale_mass: bool
-        If True scale phi by the product of the masses
-    lattice_points: np.ndarray
-        the lattice points to include
+    Args:
+        primitive: The primitive cell structure
+        supercell: The super cell structure
+        force_constants: The input force constant matrix
+        scale_mass: If True scale phi by the product of the masses
+        lattice_points: the lattice points to include
 
-    Returns
-    -------
-    new_force_constants: np.ndarray(shape=(i,L))
+    Returns:
         The remapped force constants
+
     """
     if len(force_constants.shape) > 2:
         if force_constants.shape[0] != force_constants.shape[1]:

@@ -387,3 +387,29 @@ def map_indices(atoms1, atoms2, tol=1e-5):
     assert len(np.unique(index_map)) == len(atoms1)
 
     return index_map
+
+
+def map2prim(primitive: Atoms, supercell: Atoms, tol: float = 1e-5) -> list:
+    """Map atoms from supercell to primitive cell and return index map"""
+    map2prim = []
+    primitive = primitive.copy()
+    supercell = supercell.copy()
+
+    # represent new supercell in fractional coords of primitive cell
+    supercell_with_prim_cell = supercell.copy()
+
+    supercell_with_prim_cell.cell = primitive.cell.copy()
+
+    primitive.wrap(eps=tol)
+    supercell_with_prim_cell.wrap(eps=tol)
+
+    # create list that maps atoms in supercell to atoms in primitive cell
+    for a1 in supercell_with_prim_cell:
+        diff = primitive.positions - a1.position
+        map2prim.append(np.where(np.linalg.norm(diff, axis=1) < tol)[0][0])
+
+    # make sure every atom in primitive was matched equally often
+    _, counts = np.unique(map2prim, return_counts=True)
+    assert counts.std() == 0, counts
+
+    return map2prim

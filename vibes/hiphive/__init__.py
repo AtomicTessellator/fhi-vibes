@@ -5,13 +5,13 @@ import numpy as np
 from vibes.helpers import Timer as _Timer
 from vibes.helpers import talk as _talk
 from vibes.helpers import warn
+from vibes.helpers.force_constants import remap_force_constants
 from vibes.helpers.geometry import inscribed_sphere_in_box
-from vibes.phonopy.utils import remap_force_constants
 from vibes.structure.convert import to_Atoms
 
 
 try:
-    from hiphive import ForceConstants, ForceConstantPotential, ClusterSpace
+    from hiphive import ClusterSpace, ForceConstantPotential, ForceConstants
     from hiphive import enforce_rotational_sum_rules as _enfore_sum_rules
     from hiphive.utilities import extract_parameters
 except ModuleNotFoundError:

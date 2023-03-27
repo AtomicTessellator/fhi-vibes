@@ -3,8 +3,9 @@ from pathlib import Path
 import numpy as np
 from ase.io import read as _read
 
+from vibes.helpers.force_constants import remap_force_constants
 from vibes.io import parse_force_constants
-from vibes.phonopy.utils import remap_force_constants
+
 
 parent = Path(__file__).parent
 

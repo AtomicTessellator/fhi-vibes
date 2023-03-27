@@ -4,7 +4,9 @@ import numpy as np
 from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS
 
-from vibes.phonopy.utils import parse_phonopy_force_constants, remap_force_constants
+from vibes.helpers.force_constants import remap_force_constants
+from vibes.phonopy.utils import parse_phonopy_force_constants
+
 
 parent = Path(__file__).parent
 
