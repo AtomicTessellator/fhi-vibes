@@ -225,7 +225,7 @@ def reader(
     trajectory = Trajectory(list, metadata=metadata)
     timer2()
 
-    timer3 = Timer(".. set raw hash")
+    timer3 = Timer(".. set raw hash", verbose=verbose)
     trajectory.hash_raw = hash_file(file)
     timer3()
 
