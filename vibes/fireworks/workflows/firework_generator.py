@@ -104,7 +104,7 @@ def parse_conditional(condition):
                 if char in ["(", ")"]
             ]
             if (len(op_check) not in [0, 2]) or (
-                not all([oc[1] == 1 for oc in op_check])
+                not all(oc[1] == 1 for oc in op_check)
             ):
                 raise ValueError(
                     f'Vector operation is not properly formatted in "{condition}".'
