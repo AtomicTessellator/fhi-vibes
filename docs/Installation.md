@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- A working`python3.6+` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html).
+- A working`python3.7+` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html).
 
 - A working `fortran` compiler, e.g., obtained by:
     - `apt-get install gfortran` in Debian-derived systems, or
@@ -13,14 +13,41 @@
 
 ## Install `vibes`
 
-`FHI-vibes` can be installed simply via pip:
+### From the repository
 
-```bash
-pip install --user fhi-vibes
-```
+This way to install `fhi-vibes` should always work, it's currently the preferred option:
 
-The `--user` option makes sure that the installation occurs in your homefolder under `~/.local/bin`, as typically
-necessary on computing clusters. Please make sure that the `~/.local/bin` folder is listed in your `PATH`.
+- Clone the repository:
+
+	```
+	git clone git@gitlab.com:vibes-developers/vibes.git
+	```
+
+	or
+
+	```
+	git clone git@gitlab.com:vibes-developers/vibes.git
+	```
+
+- Change to the folder:
+
+	```
+	cd vibes
+	```
+
+- **Optional:** Create a virtual environment via [`venv`](https://docs.python.org/3/library/venv.html) or [`conda`](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html). Don't forget to activate the environment first.
+
+- Install build requirements `numpy` and `poetry` manually (if you use a `conda` environment, you should install `numpy` via `conda` instead):
+
+	```
+	pip install numpy poetry==1.1.12
+	```
+	
+- Install `fhi-vibes ` [_without_ build isolation](https://pip.pypa.io/en/stable/cli/pip_install/)
+
+	```
+	pip install --no-build-isolation .
+	```
 
 **If you run into problems, please have a look at our [troubleshooting section.](#Troubleshooting)**
 
