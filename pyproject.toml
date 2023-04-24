@@ -40,7 +40,7 @@ tables = "^3.5"
 click_aliases = ">=1.0"
 click_completion = ">=0.5.2"
 jconfigparser = "^0.1.2"
-pandas = ">=1.0"
+pandas = ">=1.0,<2.0"
 importlib_resources = { version = "*", python = "3.6.*" }
 dataclasses = { version = "*", python = "3.6.*" }
 seaborn = ">=0.11.0"
