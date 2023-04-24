@@ -521,6 +521,7 @@ def update(file, uc, sc, fc, rfc, outfile, format):
     if sc:
         atoms = read(sc, format=format)
         traj.supercell = atoms
+        traj.set_displacements()
 
     if rfc:
         fc = parse_force_constants(rfc)

@@ -104,7 +104,6 @@ class Trajectory(list):
     def reference_atoms(self, atoms):
         assert isinstance(atoms, Atoms)
         self._reference_atoms = atoms
-        self.set_displacements()
 
     # ref_atoms legacy
     @property
@@ -157,7 +156,6 @@ class Trajectory(list):
         talk(".. supercell added to metadata.")
         # also add as attribute
         self._supercell = atoms
-        self.set_displacements()
 
     @property
     def symbols(self):
