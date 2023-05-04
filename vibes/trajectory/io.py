@@ -10,7 +10,6 @@ import numpy as np
 import xarray as xr
 from ase import Atoms, units
 from ase.calculators.calculator import PropertyNotImplementedError
-
 from vibes import __version__ as version
 from vibes import io, keys, son
 from vibes.filenames import filenames
@@ -153,7 +152,10 @@ def _map_create_atoms(pre_trajectory, **kwargs):
 
 
 def reader(
-    file=filenames.trajectory, fc_file=None, single_point_calculator=True, verbose=True,
+    file=filenames.trajectory,
+    fc_file=None,
+    single_point_calculator=True,
+    verbose=True,
 ):
     """Convert information in file to Trajectory
 
@@ -219,6 +221,8 @@ def reader(
     if fc_file:
         fc = io.parse_force_constants(fc_file, two_dim=False)
         trajectory.set_force_constants(fc)
+    elif trajectory.force_constants_raw is not None:
+        trajectory.set_force_constants()
 
     return trajectory
 
