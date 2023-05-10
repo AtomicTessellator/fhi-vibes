@@ -15,6 +15,8 @@ In the documentation and tutorials, knowledge of first-principles electronic-str
 
 Most of the functionality is high-throughput ready via [fireworks](https://materialsproject.github.io/fireworks/#).
 
+A reference implementation of the [ab initio Green Kubo method](https://arxiv.org/abs/2209.01139) is [available](https://gitlab.com/vibes-developers/vibes/-/merge_requests/57). However, we ask you to contact the developers before using this functionality as it requires extra instructions.
+
 ## Overview
 
 - [Installation](https://vibes-developers.gitlab.io/vibes/Installation)
