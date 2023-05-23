@@ -17,16 +17,10 @@
 
 This way to install `fhi-vibes` should always work, it's currently the preferred option:
 
-- Clone the repository:
+- Clone the repository, e.g., via
 
 	```
-	git clone git@gitlab.com:vibes-developers/vibes.git
-	```
-
-	or
-
-	```
-	git clone git@gitlab.com:vibes-developers/vibes.git
+	git clone https://gitlab.com/vibes-developers/vibes.git
 	```
 
 - Change to the folder:
@@ -34,8 +28,6 @@ This way to install `fhi-vibes` should always work, it's currently the preferred
 	```
 	cd vibes
 	```
-
-- **Optional:** Create a virtual environment via [`venv`](https://docs.python.org/3/library/venv.html) or [`conda`](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html). Don't forget to activate the environment first.
 
 - Install build requirements `numpy` and `poetry` manually (if you use a `conda` environment, you should install `numpy` via `conda` instead):
 
