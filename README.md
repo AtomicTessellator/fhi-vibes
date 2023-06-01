@@ -27,6 +27,10 @@ A reference implementation of the [ab initio Green Kubo method](https://arxiv.or
 
 ## Changelog
 
+#### v1.0.5
+
+- bugfix
+
 #### v1.0.4
 
 - looser dependencies
