@@ -91,3 +91,6 @@ vibes.md
 .coverage
 coverage.xml
 codecov.ini
+
+# macOS
+.DS_Store
