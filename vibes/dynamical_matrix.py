@@ -57,7 +57,6 @@ def get_full_solution_from_ir(q_grid, ir_solution):
     D_qij = np.zeros([Nq, Ns, Ns], dtype=complex)
 
     for iq, q in enumerate(q_grid.points_cartesian):
-
         # index of prototype in the full grid
         ip = q_grid.map2ir_points[iq]
 
@@ -101,7 +100,7 @@ def get_full_solution_from_ir(q_grid, ir_solution):
         w_inv_sq[:, iq] = ir_solution.w_inv_sq[:, ip]
 
     # restore squared frequencies
-    w2_sq = np.sign(w_sq) * w_sq ** 2
+    w2_sq = np.sign(w_sq) * w_sq**2
 
     return Solution(w_sq, w_inv_sq, w2_sq, v_sqa_cartesian, e_isq, D_qij)
 
@@ -114,6 +113,7 @@ class DynamicalMatrix(ForceConstants):
         force_constants: np.ndarray,
         primitive: Atoms,
         supercell: Atoms,
+        born_charges_file=None,
         symmetry: bool = True,
         mass_weighted: bool = False,
         tol: float = 1e-12,
@@ -141,6 +141,19 @@ class DynamicalMatrix(ForceConstants):
         unitcell = to_phonopy_atoms(primitive)
         phonon = Phonopy(unitcell=unitcell, supercell_matrix=smatrix)
         phonon.force_constants = self.fc_phonopy
+
+        # Born effective charge
+        # _talk(f".. want to set born effective charges in Dynamical Matrix")
+        if born_charges_file:
+            from phonopy.file_IO import get_born_parameters
+
+            prim = phonon.get_primitive()
+            psym = phonon.get_primitive_symmetry()
+            _talk(f".. set born effective charges in Dynamical Matrix")
+            _talk(f".. read born effective charges from {born_charges_file}")
+            nac_params = get_born_parameters(open(born_charges_file), prim, psym)
+            phonon.set_nac_params(nac_params)
+
         self._phonon = phonon
 
         # attach commensurate q-points (= inverse lattice points)
@@ -174,7 +187,7 @@ class DynamicalMatrix(ForceConstants):
 
         phases = np.exp(2j * np.pi * (qs[None, :] * Rs[:, None, :]).sum(axis=-1))
 
-        self._e_Isq = Nq ** -0.5 * phases.repeat(3, axis=0)[:, None, :] * e_isq
+        self._e_Isq = Nq**-0.5 * phases.repeat(3, axis=0)[:, None, :] * e_isq
         # REM: This is Eq. 38.19 in 38.27 from [BornHuang]
 
         # sanity check:
@@ -210,9 +223,19 @@ class DynamicalMatrix(ForceConstants):
         except AttributeError:
             force_constants = dataset[keys.fc_remapped]
 
-        return cls(
-            force_constants=force_constants, primitive=primitive, supercell=supercell
-        )
+        if "born_charges_file" in dataset.attrs:
+            return cls(
+                force_constants=force_constants,
+                primitive=primitive,
+                supercell=supercell,
+                born_charges_file=dataset.attrs["born_charges_file"],
+            )
+        else:
+            return cls(
+                force_constants=force_constants,
+                primitive=primitive,
+                supercell=supercell,
+            )
 
     @property
     def array(self) -> np.ndarray:
@@ -234,7 +257,9 @@ class DynamicalMatrix(ForceConstants):
         return self._phonon
 
     def get_solution(
-        self, q_points: np.ndarray, full: bool = False,
+        self,
+        q_points: np.ndarray,
+        full: bool = False,
     ) -> collections.namedtuple:
         """solve at each q-point, optionally with eigenvectors
 
@@ -277,7 +302,7 @@ class DynamicalMatrix(ForceConstants):
         # make 0s 0, take 4th smallest absolute eigenvalue as reference
         thresh = sorted(abs(w_sq.flatten()))[3] * 1e-5
         w_sq[abs(w_sq) < thresh] = 0
-        w2_sq = np.sign(w_sq) * w_sq ** 2  # eigenvalues
+        w2_sq = np.sign(w_sq) * w_sq**2  # eigenvalues
 
         w = w_sq.copy()
         thresh = sorted(abs(w.flatten()))[3] * 0.9
@@ -416,7 +441,7 @@ def fc2dynmat(force_constants, masses):
 
     Na = len(masses)
     M = (np.asarray(masses)).repeat(3)
-    rminv = M ** -0.5
+    rminv = M**-0.5
 
     assert force_constants.shape == (3 * Na, 3 * Na), force_constants.shape
 
@@ -426,7 +451,7 @@ def fc2dynmat(force_constants, masses):
 
 
 def get_frequencies(dyn_matrix, masses=None, factor=omega_to_THz):
-    """ Diagonalize dynamical_matrix and convert to THz
+    """Diagonalize dynamical_matrix and convert to THz
 
     Args:
         dyn_matrix: The dynamical matrix

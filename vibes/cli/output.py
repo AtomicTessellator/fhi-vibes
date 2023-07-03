@@ -16,6 +16,20 @@ from .misc import complete_files, default_context_settings
 _default_context_settings = {"show_default": True}
 
 
+def dict2atoms(atoms_dict):
+    from ase.atoms import Atoms
+    from ase.symbols import symbols2numbers
+    import json
+
+    atoms_dict = json.loads(atoms_dict)
+    atoms_dict["numbers"] = symbols2numbers(atoms_dict["symbols"])
+    new_atoms_dict = {}
+    for index in ["numbers", "positions", "cell"]:
+        new_atoms_dict[index] = np.array(atoms_dict[index])
+    new_atoms_dict["pbc"] = atoms_dict["pbc"]
+    return Atoms.fromdict(new_atoms_dict)
+
+
 @click.command(cls=AliasedGroup)
 def output():
     """produce output of vibes workfow"""
@@ -185,6 +199,7 @@ def phono3py(obj, file, q_mesh):
 @click.option("--interpolate", is_flag=True, help="interpolate to dense grid")
 @click.option("--total", is_flag=True, help="compute total flux")
 @click.option("-fc", "--fc_file", type=Path, help="use force constants from file")
+@click.option("--born", type=complete_files, help="include file with BORN charges")
 @click.option("-u", "--update", is_flag=True, help="only parse if input data changed")
 @click.option("--shorten", default=0.0, help="shorten trajectory by percentage")
 def greenkubo(
@@ -195,6 +210,7 @@ def greenkubo(
     interpolate,
     total,
     fc_file,
+    born,
     update,
     shorten,
 ):
@@ -203,6 +219,7 @@ def greenkubo(
 
     import vibes.green_kubo as gk
     from vibes.io import parse_force_constants
+    from ase.io import read
 
     if total:
         outfile = outfile.parent / f"{outfile.stem}.total.nc"
@@ -210,7 +227,6 @@ def greenkubo(
     click.echo(f"Run aiGK output workflows for {file}")
 
     with xr.open_dataset(file) as ds:
-
         if shorten != 0:
             dim = dims.time
             click.echo(f".. shorten trajectory by {shorten*100} %")
@@ -246,6 +262,11 @@ def greenkubo(
             fcs.data = parse_force_constants(fc_file)
             fcs.attrs = {"filename": str(Path(fc_file).absolute())}
             ds[keys.fc] = fcs
+
+        if born is not None:
+            click.echo(f".. update BEC from {born}")
+            ds.attrs["born_charges_file"] = born
+            click.echo(f".. update BEC from {ds.attrs['born_charges_file']}")
 
         ds_gk = gk.get_gk_dataset(
             ds,
