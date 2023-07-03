@@ -88,7 +88,7 @@ def create_species_dir(
     symbols = ref_atoms.get_chemical_symbols()
     numbers = ref_atoms.symbols.numbers
 
-    dct = {sym: num for (sym, num) in zip(symbols, numbers)}
+    dct = dict(zip(symbols, numbers))
 
     key_vals = (
         (key.capitalize(), val)

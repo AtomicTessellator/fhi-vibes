@@ -60,8 +60,9 @@ def get_symmetry_dataset(
 
     # add cartesian rotations and translations
     cell = atoms.cell
+    cell_reciprocal = np.linalg.pinv(cell).T
     rotations = data["rotations"]
-    rotations_cart = [cell.T @ (rot @ cell.reciprocal()) for rot in rotations]
+    rotations_cart = [cell.T @ (rot @ cell_reciprocal) for rot in rotations]
     rotations_cart = np.array(rotations_cart).round(decimals=15)  # remove 0s
     data["rotations_cartesian"] = rotations_cart
 
