@@ -219,7 +219,6 @@ def greenkubo(
 
     import vibes.green_kubo as gk
     from vibes.io import parse_force_constants
-    from ase.io import read
 
     if total:
         outfile = outfile.parent / f"{outfile.stem}.total.nc"
