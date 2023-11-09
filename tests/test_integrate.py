@@ -15,7 +15,7 @@ arrays = (ndarray, series, xarray)
 @pytest.mark.parametrize("array", arrays)
 def test_type(array):
     corr = get_cumtrapz(array)
-    assert type(corr) == type(array)
+    assert type(corr) is type(array)
     assert len(corr) == len(array)
 
 
