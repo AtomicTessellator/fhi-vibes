@@ -155,6 +155,7 @@ def get_gk_dataset(
     filter_prominence: float = defaults.filter_prominence,
     discard: int = 0,
     total: bool = False,
+    cross_offdiag: bool = False,
     verbose: bool = True,
 ) -> xr.Dataset:
     """get Green-Kubo data from trajectory dataset
@@ -227,12 +228,18 @@ def get_gk_dataset(
     j_filtered_sym = 0.5 * (j_filtered + np.swapaxes(j_filtered, 1, 2))
     k_filtered_sym = 0.5 * (k_filtered + np.swapaxes(k_filtered, 1, 2))
 
-    for (ii, jj) in np.ndindex(3, 3):
+    # iterate diagonal first
+    for ii, jj in np.array(list(np.ndindex(3, 3)))[[0, 4, 8, 1, 2, 3, 5, 6, 7], :]:
         j = j_filtered_sym[:, ii, jj]
         if ii == jj:
             times = j.time[j < 0]  # diagonal cutoff time
         else:
-            times = j.time[j / j[0] < 0]  # off-diagonal cutoff time
+            if cross_offdiag:
+                cross_time = (ts[ii, ii] + ts[jj, jj]) / 2
+                times = j.time[j.time > cross_time]  # off-diagonal cutoff time
+            else:
+                times = j.time[j / j[0] < 0]  # off-diagonal cutoff time
+
         if len(times) > 1:
             ta = times.min()
         else:

@@ -198,6 +198,7 @@ def phono3py(obj, file, q_mesh):
 @click.option("--filter_prominence", default=defaults.filter_prominence)
 @click.option("--interpolate", is_flag=True, help="interpolate to dense grid")
 @click.option("--total", is_flag=True, help="compute total flux")
+@click.option("-c", "--cross_offdiag", is_flag=True, help="cross offdiag cutoff time")
 @click.option("-fc", "--fc_file", type=Path, help="use force constants from file")
 @click.option("--born", type=complete_files, help="include file with BORN charges")
 @click.option("-u", "--update", is_flag=True, help="only parse if input data changed")
@@ -209,6 +210,7 @@ def greenkubo(
     filter_prominence,
     interpolate,
     total,
+    cross_offdiag,
     fc_file,
     born,
     update,
@@ -272,6 +274,7 @@ def greenkubo(
             interpolate=interpolate,
             window_factor=window_factor,
             filter_prominence=filter_prominence,
+            cross_offdiag=cross_offdiag,
             total=total,
         )
 
