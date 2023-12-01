@@ -368,10 +368,11 @@ def relaxation(obj, file, verbose):
 @info.command(context_settings=_default_context_settings)
 @click.argument("files", nargs=-1, type=complete_files)
 @click.option("--per_sample", is_flag=True, help="analyze per sample")
+@click.option("--per_direction", is_flag=True, help="analyze per directon")
 @click.option("--per_mode", is_flag=True, help="analyze per mode (no --per_sample)")
 @click.option("--describe", is_flag=True)
 @click.option("--dry", is_flag=True, help="don't write output files")
-def anharmonicity(files, per_sample, per_mode, describe, dry):
+def anharmonicity(files, per_sample, per_direction, per_mode, describe, dry):
     """Compute sigmaA for trajectory dataset in FILE"""
     import pandas as pd
     import xarray as xr
@@ -398,7 +399,7 @@ def anharmonicity(files, per_sample, per_mode, describe, dry):
             outfile += "_mode"
             index_label = keys.omega
         else:
-            df = get_dataframe(DS, per_sample=per_sample)
+            df = get_dataframe(DS, per_sample=per_sample, per_direction=per_direction)
             index_label = "material"
         dfs.append(df)
 
