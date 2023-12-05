@@ -107,7 +107,7 @@ def get_deformation(files, supercell_file, outfile, dry, format):
 @geometry.command(context_settings=_default_context_settings)  # aliases=['ad'])
 @click.argument("file", type=complete_files)
 @click.option("--scalar", type=float, default=None)
-@click.option("--deformation", type=complete_files, default=filenames.deformation)
+@click.option("--deformation", default=filenames.deformation)
 @click.option("--outfile", type=Path)
 @click.option("--dry", is_flag=True)
 @click.option("--cartesian", is_flag=True)
