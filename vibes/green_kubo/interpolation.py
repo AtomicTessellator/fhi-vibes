@@ -1,5 +1,6 @@
 import numpy as np
 import xarray as xr
+from itertools import product
 from scipy.interpolate import LinearNDInterpolator, griddata
 from scipy.spatial.qhull import QhullError
 from vibes import dimensions, keys
@@ -166,23 +167,30 @@ def get_interpolation_data(
     Ks = xr.DataArray(Ks, dims=("nq", *dimensions.a_b), coords={"nq": nqs})
 
     # interpolate to infinitely dense grid assuming convergence with 1/nq (Riemann sum)
-    ks = np.diagonal(Ks, axis1=1, axis2=2).mean(axis=1)
-    # m, y0, *_, stderr = st.linregress(nqs ** -1.0, y=ks)
-    # init linear fit parameters
-    p0 = -1, 10
-    popt, pcov = curve_fit(
-        lambda x, m, y0: m * x + y0, nqs**-1.0, ks, p0, sigma=nqs**-1.0
-    )
-    perr = np.sqrt(np.diag(pcov))
-    m, y0 = popt
-    stderr = perr[0]
+    # anisotropic extrapolate for each components k_ab
+    correction_ab = np.zeros((3, 3))
+    correction_ab_stderr = np.zeros((3, 3))
+    for _a, _b in product(range(3), range(3)):
+        ks = Ks[:, _a, _b]
+        # init linear fit parameters
+        p0 = -1, 10
+        popt, pcov = curve_fit(
+            lambda x, m, y0: m * x + y0, nqs**-1.0, ks, p0, sigma=nqs**-1.0
+        )
+        perr = np.sqrt(np.diag(pcov))
+        m, y0 = popt
+        stderr = perr[0]
+
+        k_ha_ab = kappa_ha[_a, _b]  # np.diagonal(kappa_ha).mean()
+        nq = len(dmx.q_points) ** (1 / 3)
+
+        correction_ab[_a, _b] = y0 - k_ha_ab
+        correction_ab_stderr[_a, _b] = stderr
 
     k_ha = np.diagonal(kappa_ha).mean()
-    nq = len(dmx.q_points) ** (1 / 3)
-
-    correction = y0 - k_ha  # -m / nq
+    correction = np.diagonal(correction_ab).mean()  # -m / nq
     correction_factor = 1 + correction / k_ha
-    correction_factor_err = stderr / nq / k_ha
+    correction_factor_err = np.diagonal(correction_ab_stderr).mean() / nq / k_ha
 
     k_ha_int = correction_factor * k_ha
 
@@ -192,17 +200,20 @@ def get_interpolation_data(
     _talk(f"Fit intercept:                      {y0:.3f} W/mK")
     _talk(f"Fit intercept - initial value:      {y0 - k_ha:.3f} {err_str1}  W/mK")
     _talk(f"Interpolated harm. kappa:           {k_ha_int:.3f} {err_str1} W/mK")
+    _talk(["Correction^ab: ", *np.array2string(correction_ab, precision=3).split("\n")])
     _talk(f"Correction:                         {correction:.3f} {err_str1} W/mK")
     _talk(f"Correction factor:                  {correction_factor:.3f} {err_str2}")
-
     # compile results
     dims_w = (dimensions.s, dimensions.q_int)
     dims_q = (dimensions.q_int, dimensions.a)
+    dims_a_b = dimensions.a_b
     results = {
         keys.interpolation_fit_slope: m,
         keys.interpolation_fit_intercept: y0,
         keys.interpolation_fit_stderr: stderr,
         keys.interpolation_correction: correction,
+        keys.interpolation_correction_ab: (dims_a_b, correction_ab),
+        keys.interpolation_correction_ab_stderr: (dims_a_b, correction_ab_stderr),
         keys.interpolation_correction_factor: correction_factor,
         keys.interpolation_correction_factor_err: correction_factor_err,
         keys.interpolation_kappa_array: Ks,
