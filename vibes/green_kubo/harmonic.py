@@ -340,6 +340,13 @@ def get_gk_ha_q_data(
 
     # interpolate
     if interpolate:
+        if keys.interpolation_fc in dataset:
+            # use a different FC for interpolation
+            from vibes.dynamical_matrix import InterpolationDynamicalMatrix
+            _talk("Use another FC for better interpolation!")
+            dmx = InterpolationDynamicalMatrix.from_dataset(dataset)
+            data.update({keys.interpolation_fc: dataset[keys.interpolation_fc]})
+        
         results = get_interpolation_data(dmx, tau_symmetrized_sq, cv)
         data.update(results)
 

@@ -200,6 +200,7 @@ def phono3py(obj, file, q_mesh):
 @click.option("--total", is_flag=True, help="compute total flux")
 @click.option("-c", "--cross_offdiag", is_flag=True, help="cross offdiag cutoff time")
 @click.option("-fc", "--fc_file", type=Path, help="use force constants from file")
+@click.option("--fc_supercell", type=Path, help="interpolate with new FC & supercell")
 @click.option("--born", type=complete_files, help="include file with BORN charges")
 @click.option("-u", "--update", is_flag=True, help="only parse if input data changed")
 @click.option("--shorten", default=0.0, help="shorten trajectory by percentage")
@@ -212,6 +213,7 @@ def greenkubo(
     total,
     cross_offdiag,
     fc_file,
+    fc_supercell,
     born,
     update,
     shorten,
@@ -258,11 +260,29 @@ def greenkubo(
                 click.echo(f".. file size has changed, parse the file.")
 
         if fc_file is not None and keys.fc in ds:
-            click.echo(f".. update force constants from {fc_file}")
-            fcs = ds[keys.fc]
-            fcs.data = parse_force_constants(fc_file)
-            fcs.attrs = {"filename": str(Path(fc_file).absolute())}
-            ds[keys.fc] = fcs
+            if fc_supercell is not None:
+                from ase.io import read
+                from vibes.helpers.converters import atoms2json
+                import vibes.dimensions as dims
+
+                click.echo(f".. use another force constant for interpolation")
+                interpolation_supercell = atoms2json(
+                    read(fc_supercell, format="aims"), reduce=False
+                )
+                interpolation_fc = parse_force_constants(fc_file)
+                fc_dims = (dims.i, "J1", dims.a, dims.b)
+                fcs = xr.DataArray(interpolation_fc, dims=fc_dims)
+                fcs.attrs = {"filename": str(Path(fc_file).absolute())}
+                ds[keys.interpolation_fc] = fcs
+                ds.attrs[keys.interpolation_supercell] = interpolation_supercell
+                click.echo(f".. interpolation force constants from {fc_file}")
+                click.echo(f".. interpolation supercell from {fc_supercell}")
+            else:
+                click.echo(f".. update force constants from {fc_file}")
+                fcs = ds[keys.fc]
+                fcs.data = parse_force_constants(fc_file)
+                fcs.attrs = {"filename": str(Path(fc_file).absolute())}
+                ds[keys.fc] = fcs
 
         if born is not None:
             click.echo(f".. update BEC from {born}")

@@ -435,6 +435,113 @@ class DynamicalMatrix(ForceConstants):
         return arrays
 
 
+class InterpolationDynamicalMatrix(DynamicalMatrix):
+    """A special dynamical matrix class for interpolation
+    when the FC at MD supercell missing long range IJ FC pairs
+    it is important to use FC calculated with larger supercell for interpolation.
+    This special dynamical matrix will be initially solved at commensurate q points 
+    of the MD supercell, then used for interpolation.
+    """
+
+    def __init__(
+        self,
+        force_constants: np.ndarray,
+        primitive: Atoms,
+        supercell: Atoms,
+        q_points: np.ndarray,
+        born_charges_file=None,
+        symmetry: bool = True,
+        mass_weighted: bool = False,
+        tol: float = 1e-12,
+    ):
+        """like DynamicalMatrix
+
+        Args:
+            force_constants: the force constant matrix in phonopy shape ([Np, Ns, 3, 3])
+            primitive: the reference primitive structure
+            supercell: the reference supercell for this interpolation FC
+            q_points: commensurate q points for MD supercell
+            symmetry: use symmetry to reduce q-points
+            mass_weighted: true if force constants are (already) mass-weighted
+
+        """
+        # init ForceConstants
+        super().__init__(
+            force_constants=force_constants,
+            primitive=primitive,
+            supercell=supercell,
+            mass_weighted=mass_weighted,
+        )
+
+        # attach phonopy object for computing eigensolutions fast
+        smatrix = np.rint(supercell.cell @ primitive.cell.reciprocal().T).T
+        unitcell = to_phonopy_atoms(primitive)
+        phonon = Phonopy(unitcell=unitcell, supercell_matrix=smatrix)
+        phonon.force_constants = self.fc_phonopy
+
+        # Born effective charge
+        # _talk(f".. want to set born effective charges in Dynamical Matrix")
+        if born_charges_file:
+            from phonopy.file_IO import get_born_parameters
+
+            prim = phonon.get_primitive()
+            psym = phonon.get_primitive_symmetry()
+            _talk(f".. set born effective charges in Dynamical Matrix")
+            _talk(f".. read born effective charges from {born_charges_file}")
+            nac_params = get_born_parameters(open(born_charges_file), prim, psym)
+            phonon.set_nac_params(nac_params)
+
+        self._phonon = phonon
+
+        # create a grid including symmetry information
+        self._q_grid = get_q_grid(q_points, primitive=primitive)
+
+        # solve on the irreducible grid
+        kw = {"full": True}
+        if symmetry:
+            self._ir_solution = self.get_solution(q_points=self.q_grid.ir.points, **kw)
+            solution = get_full_solution_from_ir(self.q_grid, self.ir_solution)
+        else:
+            self._ir_solution = None
+            solution = self.get_solution(q_points=self.q_grid.points, **kw)
+        self._solution = solution
+
+    @classmethod
+    def from_dataset(cls, dataset: xr.Dataset):
+        """use information in Dataset to create dynamical matrix"""
+        primitive = Atoms(**json.loads(dataset.attrs[keys.reference_primitive]))
+        supercell = Atoms(**json.loads(dataset.attrs[keys.reference_supercell]))
+        try:
+            interpolation_supercell = Atoms(
+                **json.loads(dataset.attrs[keys.interpolation_supercell])
+            )
+            interpolation_fc = dataset[keys.interpolation_fc]
+        except AttributeError:
+            _talk("No interpolation_fc or interpolation_supercell")
+            _talk("Fall back to original force constants")
+            return DynamicalMatrix.from_dataset(dataset)
+
+        # attach commensurate q-points for MD supercell
+        pcell, scell = primitive.cell, supercell.cell
+        q_points = get_commensurate_q_points(pcell, scell, fractional=True)
+
+        if "born_charges_file" in dataset.attrs:
+            return cls(
+                force_constants=interpolation_fc,
+                primitive=primitive,
+                supercell=interpolation_supercell,
+                q_points=q_points,
+                born_charges_file=dataset.attrs["born_charges_file"],
+            )
+        else:
+            return cls(
+                force_constants=interpolation_fc,
+                primitive=primitive,
+                supercell=interpolation_supercell,
+                q_points=q_points,
+            )
+
+
 # legacy
 def fc2dynmat(force_constants, masses):
     """convert force_constants to dynamical matrix by mass weighting"""
