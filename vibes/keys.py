@@ -185,6 +185,8 @@ settings = "settings"
 aims_uuid = "aims_uuid"
 
 # interpolation
+interpolation_fc = "interpolation_force_constants"
+interpolation_supercell = "interpolation_supercell"
 interpolation_fit_slope = "interpolation_fit_slope"
 interpolation_fit_intercept = "interpolation_fit_intercept"
 interpolation_fit_stderr = "interpolation_fit_stderr"
