@@ -313,7 +313,7 @@ class DynamicalMatrix(ForceConstants):
         return Solution(w_sq, w_inv_sq, w2_sq, v_sqa_cart, e_isq, D_qij)
 
     def get_mesh_and_solution(
-        self, mesh: list, reduced: bool = True, **kwargs
+        self, mesh: list, reduced: bool = True, monkhorst: bool = True, **kwargs
     ) -> tuple:
         """create a qpoints mesh and solutions on the mesh
 
@@ -328,7 +328,7 @@ class DynamicalMatrix(ForceConstants):
 
         """
         assert len(mesh) == 3, len(mesh)
-        kw = {"atoms": self.primitive, "monkhorst": True, "reduced": reduced}
+        kw = {"atoms": self.primitive, "monkhorst": monkhorst, "reduced": reduced}
         q_grid = get_bz_mesh(mesh=mesh, **kw)
 
         if reduced:
@@ -439,7 +439,7 @@ class InterpolationDynamicalMatrix(DynamicalMatrix):
     """A special dynamical matrix class for interpolation
     when the FC at MD supercell missing long range IJ FC pairs
     it is important to use FC calculated with larger supercell for interpolation.
-    This special dynamical matrix will be initially solved at commensurate q points 
+    This special dynamical matrix will be initially solved at commensurate q points
     of the MD supercell, then used for interpolation.
     """
 
