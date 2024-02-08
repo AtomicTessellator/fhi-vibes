@@ -275,7 +275,6 @@ def greenkubo(
             if fc_supercell is not None:
                 from ase.io import read
                 from vibes.helpers.converters import atoms2json
-                import vibes.dimensions as dims
 
                 click.echo(f".. use another force constant for interpolation")
                 interpolation_supercell = atoms2json(
