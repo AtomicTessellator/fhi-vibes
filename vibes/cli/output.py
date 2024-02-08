@@ -1,4 +1,5 @@
 """`vibes output` part of the CLI"""
+
 from pathlib import Path
 
 import click
@@ -100,6 +101,13 @@ def trajectory(file, harmonic, fc_file, outfile, force, shorten):
 
 @output.command(context_settings=default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
+@click.option(
+    "-rd",
+    "--random_displacements",
+    is_flag=True,
+    help="use phonopy random displacement (ALM-solver) to get FC from MD trajectory",
+)
+@click.option("-rd-stride", default=1, help="stride to drop MD steps")
 @click.option("-bs", "--bandstructure", is_flag=True, help="plot bandstructure")
 @click.option("--dos", is_flag=True, help="plot DOS")
 @click.option("--full", is_flag=True, help="include thermal properties and animation")
@@ -113,6 +121,8 @@ def trajectory(file, harmonic, fc_file, outfile, force, shorten):
 def phonopy(
     obj,
     file,
+    random_displacements,
+    rd_stride,
     bandstructure,
     dos,
     full,
@@ -129,6 +139,8 @@ def phonopy(
 
     phonon = postprocess(
         trajectory_file=file,
+        random_displacements=random_displacements,
+        rd_stride=rd_stride,
         born_charges_file=born,
         enforce_sum_rules=sum_rules,
     )

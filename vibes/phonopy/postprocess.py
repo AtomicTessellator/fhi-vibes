@@ -1,4 +1,5 @@
 """ Provide a full highlevel phonopy workflow """
+
 from pathlib import Path
 
 from phonopy.file_IO import write_FORCE_CONSTANTS, write_FORCE_SETS
@@ -32,6 +33,8 @@ def Timer(msg=None):
 
 def postprocess(
     trajectory_file=filenames.trajectory,
+    random_displacements=False,
+    rd_stride=1,
     workdir=".",
     calculate_full_force_constants=False,
     born_charges_file=None,
@@ -64,31 +67,61 @@ def postprocess(
 
     trajectory_file = Path(workdir) / trajectory_file
 
-    calculated_atoms = reader(trajectory_file)
-    metadata = calculated_atoms.metadata
+    if random_displacements:
+        import numpy as np
+        from vibes.phonopy.wrapper import defaults
 
-    # make sure the calculated atoms are in order
-    for nn, atoms in enumerate(calculated_atoms):
-        atoms_id = atoms.info[displacement_id_str]
-        if atoms_id == nn:
-            continue
-        warn(f"Displacement ids are not in order. Inspect {trajectory_file}!", level=2)
+        # need ALM https://alm.readthedocs.io/en/develop/compile-with-conda-packages.html
+        # installation hint, compile need libsymspg.a, available in spglib:2.0.0
+        talk(
+            "Using Phonopy random displacement (ALM solver) to get FC from MD trajectory"
+        )
+        calculated_atoms = reader(trajectory_file)[::rd_stride]
+        talk(f"    Stride: {rd_stride}, using {len(calculated_atoms)} MD steps")
+        primitive = dict2atoms(calculated_atoms.metadata["primitive"])
+        supercell = dict2atoms(calculated_atoms.metadata["supercell"])
+        smatrix = np.rint(supercell.cell @ primitive.cell.reciprocal().T).T
+        phonon = wrapper.prepare_phonopy(
+            primitive, smatrix, symprec=defaults.kwargs.symprec
+        )
 
-    for disp in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
-        disp["number"] = int(disp["number"])
-    primitive = dict2atoms(metadata["Phonopy"]["primitive"])
-    supercell = dict2atoms(metadata["atoms"])
-    supercell_matrix = metadata["Phonopy"]["supercell_matrix"]
-    supercell.info = {"supercell_matrix": str(supercell_matrix)}
-    symprec = metadata["Phonopy"]["symprec"]
+        phonon._displacement_dataset = {"displacements": calculated_atoms.displacements}
+        force_sets = [atoms.get_forces() for atoms in calculated_atoms]
+        phonon.produce_force_constants(
+            force_sets,
+            calculate_full_force_constants=calculate_full_force_constants,
+            fc_calculator="alm",
+        )
+    else:
+        calculated_atoms, metadata = reader(trajectory_file, get_metadata=True)
 
-    phonon = wrapper.prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
-    phonon._displacement_dataset = metadata["Phonopy"]["displacement_dataset"].copy()
+        # make sure the calculated atoms are in order
+        for nn, atoms in enumerate(calculated_atoms):
+            atoms_id = atoms.info[displacement_id_str]
+            if atoms_id == nn:
+                continue
+            warn(
+                f"Displacement ids are not in order. Inspect {trajectory_file}!",
+                level=2,
+            )
 
-    force_sets = [atoms.get_forces() for atoms in calculated_atoms]
-    phonon.produce_force_constants(
-        force_sets, calculate_full_force_constants=calculate_full_force_constants
-    )
+        for disp in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
+            disp["number"] = int(disp["number"])
+        primitive = dict2atoms(metadata["Phonopy"]["primitive"])
+        supercell = dict2atoms(metadata["atoms"])
+        supercell_matrix = metadata["Phonopy"]["supercell_matrix"]
+        supercell.info = {"supercell_matrix": str(supercell_matrix)}
+        symprec = metadata["Phonopy"]["symprec"]
+
+        phonon = wrapper.prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
+        phonon._displacement_dataset = metadata["Phonopy"][
+            "displacement_dataset"
+        ].copy()
+
+        force_sets = [atoms.get_forces() for atoms in calculated_atoms]
+        phonon.produce_force_constants(
+            force_sets, calculate_full_force_constants=calculate_full_force_constants
+        )
 
     if enforce_sum_rules:
         from vibes.hiphive import enforce_rotational_sum_rules
@@ -111,7 +144,7 @@ def postprocess(
         phonon.set_nac_params(nac_params)
 
     # Set qmesh if it is in settings, but default to None
-    q_mesh = metadata.get("settings", {}).get("phonopy", {}).get("q_mesh")
+    q_mesh = None  # metadata.get("settings", {}).get("phonopy", {}).get("q_mesh")
     if q_mesh is not None:
         phonon.init_mesh(q_mesh)
 
