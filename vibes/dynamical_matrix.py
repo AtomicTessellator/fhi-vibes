@@ -113,7 +113,7 @@ class DynamicalMatrix(ForceConstants):
         force_constants: np.ndarray,
         primitive: Atoms,
         supercell: Atoms,
-        born_charges_file=None,
+        born_charges=None,
         symmetry: bool = True,
         mass_weighted: bool = False,
         tol: float = 1e-12,
@@ -143,15 +143,11 @@ class DynamicalMatrix(ForceConstants):
         phonon.force_constants = self.fc_phonopy
 
         # Born effective charge
-        # _talk(f".. want to set born effective charges in Dynamical Matrix")
-        if born_charges_file:
-            from phonopy.file_IO import get_born_parameters
+        if born_charges:
+            from phonopy.file_IO import parse_BORN_from_strings
 
-            prim = phonon.get_primitive()
-            psym = phonon.get_primitive_symmetry()
             _talk(f".. set born effective charges in Dynamical Matrix")
-            _talk(f".. read born effective charges from {born_charges_file}")
-            nac_params = get_born_parameters(open(born_charges_file), prim, psym)
+            nac_params = parse_BORN_from_strings(born_charges, phonon.get_primitive())
             phonon.set_nac_params(nac_params)
 
         self._phonon = phonon
@@ -223,12 +219,12 @@ class DynamicalMatrix(ForceConstants):
         except AttributeError:
             force_constants = dataset[keys.fc_remapped]
 
-        if "born_charges_file" in dataset.attrs:
+        if "born_charges" in dataset.attrs:
             return cls(
                 force_constants=force_constants,
                 primitive=primitive,
                 supercell=supercell,
-                born_charges_file=dataset.attrs["born_charges_file"],
+                born_charges=dataset.attrs["born_charges"],
             )
         else:
             return cls(
@@ -449,7 +445,7 @@ class InterpolationDynamicalMatrix(DynamicalMatrix):
         primitive: Atoms,
         supercell: Atoms,
         q_points: np.ndarray,
-        born_charges_file=None,
+        born_charges=None,
         symmetry: bool = True,
         mass_weighted: bool = False,
         tol: float = 1e-12,
@@ -480,15 +476,11 @@ class InterpolationDynamicalMatrix(DynamicalMatrix):
         phonon.force_constants = self.fc_phonopy
 
         # Born effective charge
-        # _talk(f".. want to set born effective charges in Dynamical Matrix")
-        if born_charges_file:
-            from phonopy.file_IO import get_born_parameters
+        if born_charges:
+            from phonopy.file_IO import parse_BORN_from_strings
 
-            prim = phonon.get_primitive()
-            psym = phonon.get_primitive_symmetry()
             _talk(f".. set born effective charges in Dynamical Matrix")
-            _talk(f".. read born effective charges from {born_charges_file}")
-            nac_params = get_born_parameters(open(born_charges_file), prim, psym)
+            nac_params = parse_BORN_from_strings(born_charges, phonon.get_primitive())
             phonon.set_nac_params(nac_params)
 
         self._phonon = phonon
@@ -525,13 +517,13 @@ class InterpolationDynamicalMatrix(DynamicalMatrix):
         pcell, scell = primitive.cell, supercell.cell
         q_points = get_commensurate_q_points(pcell, scell, fractional=True)
 
-        if "born_charges_file" in dataset.attrs:
+        if "born_charges" in dataset.attrs:
             return cls(
                 force_constants=interpolation_fc,
                 primitive=primitive,
                 supercell=interpolation_supercell,
                 q_points=q_points,
-                born_charges_file=dataset.attrs["born_charges_file"],
+                born_charges=dataset.attrs["born_charges"],
             )
         else:
             return cls(

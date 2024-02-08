@@ -297,8 +297,7 @@ def greenkubo(
 
         if born is not None:
             click.echo(f".. update BEC from {born}")
-            ds.attrs["born_charges_file"] = born
-            click.echo(f".. update BEC from {ds.attrs['born_charges_file']}")
+            ds.attrs["born_charges"] = open(born).read()
 
         ds_gk = gk.get_gk_dataset(
             ds,
