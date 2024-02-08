@@ -93,17 +93,15 @@ def postprocess(
             fc_calculator="alm",
         )
     else:
-        calculated_atoms, metadata = reader(trajectory_file, get_metadata=True)
+        calculated_atoms = reader(trajectory_file)
+        metadata = calculated_atoms.metadata
 
         # make sure the calculated atoms are in order
         for nn, atoms in enumerate(calculated_atoms):
             atoms_id = atoms.info[displacement_id_str]
             if atoms_id == nn:
                 continue
-            warn(
-                f"Displacement ids are not in order. Inspect {trajectory_file}!",
-                level=2,
-            )
+            warn(f"Displacement ids are not in order. Inspect {trajectory_file}!", level=2)
 
         for disp in metadata["Phonopy"]["displacement_dataset"]["first_atoms"]:
             disp["number"] = int(disp["number"])
@@ -114,14 +112,13 @@ def postprocess(
         symprec = metadata["Phonopy"]["symprec"]
 
         phonon = wrapper.prepare_phonopy(primitive, supercell_matrix, symprec=symprec)
-        phonon._displacement_dataset = metadata["Phonopy"][
-            "displacement_dataset"
-        ].copy()
+        phonon._displacement_dataset = metadata["Phonopy"]["displacement_dataset"].copy()
 
         force_sets = [atoms.get_forces() for atoms in calculated_atoms]
         phonon.produce_force_constants(
             force_sets, calculate_full_force_constants=calculate_full_force_constants
         )
+
 
     if enforce_sum_rules:
         from vibes.hiphive import enforce_rotational_sum_rules
