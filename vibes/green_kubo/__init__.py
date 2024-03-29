@@ -255,9 +255,9 @@ def get_gk_dataset(
     # report
     if verbose:
         k_diag = np.diag(ks)
-        _talk(["Cutoff times (fs):", *np.array2ndring(ts, precision=3).split("\n")])
+        _talk(["Cutoff times (fs):", *np.array2string(ts, precision=3).split("\n")])
         _talk(f"Kappa is:       {np.mean(k_diag):.3f} +/- {np.std(k_diag) / 3**.5:.3f}")
-        _talk(["Kappa^ab is: ", *np.array2ndring(ks, precision=3).split("\n")])
+        _talk(["Kappa^ab is: ", *np.array2string(ks, precision=3).split("\n")])
 
     # 6. compile new dataset
     attrs = dataset.attrs.copy()

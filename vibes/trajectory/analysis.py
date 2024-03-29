@@ -133,7 +133,7 @@ def summary(dataset, plot=False, **kwargs):
     momenta = dataset.momenta.data
     momenta_time = np.sum(momenta, axis=1)
     momenta_mean = np.mean(abs(momenta_time), axis=0)
-    rep = np.array2ndring(momenta_mean, precision=4)
+    rep = np.array2string(momenta_mean, precision=4)
     print()
     talk("Drift", prefix="info")
     pprint("Mean abs. Momentum:", f"{rep} AA/fs")

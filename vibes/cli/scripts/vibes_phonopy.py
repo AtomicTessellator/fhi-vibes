@@ -53,7 +53,7 @@ def preprocess(
         settings.print(only_settings=True)
 
     smatrix = phonon.get_supercell_matrix().T
-    sc_str = np.array2ndring(smatrix.flatten(), separator=", ")
+    sc_str = np.array2string(smatrix.flatten(), separator=", ")
     bash_str = " ".join(str(l) for l in smatrix.flatten())
     print("Phonopy Information")
     print(f"  Supercell matrix:        {sc_str}")
