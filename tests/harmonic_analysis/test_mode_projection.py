@@ -1,4 +1,5 @@
-""" test the harmonic analysis, i.e., mode projection etc. """
+"""test the harmonic analysis, i.e., mode projection etc."""
+
 from pathlib import Path
 
 import numpy as np
@@ -42,7 +43,7 @@ def test_all():
     masses = supercell.get_masses()
 
     lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)
-    indeces, _ = map_I_to_iL(primitive, supercell)
+    indices, _ = map_I_to_iL(primitive, supercell)
 
     # check if the commensurate q point is correct
     q_points = get_commensurate_q_points(primitive.cell, supercell.cell)
@@ -67,7 +68,7 @@ def test_all():
         "q_points": q_points,
         "lattice_points": lattice_points,
         "eigenvectors": evs,
-        "indeces": indeces,
+        "indices": indices,
     }
 
     P = projector(**aux_args)
@@ -81,7 +82,7 @@ def test_all():
     # check if transformation is unitary by probing each mode
     u_qs = np.zeros((4, 6))
 
-    for (i, j) in np.ndindex(u_qs.shape):
+    for i, j in np.ndindex(u_qs.shape):
         u_qs *= 0
         u_qs[i, j] = -4
         u_I = u_s_to_u_I(u_qs, **aux_args)
@@ -91,7 +92,7 @@ def test_all():
 
     # set velocities such that temperature is 100K
     temp = 100
-    omegas = omegas2 ** 0.5
+    omegas = omegas2**0.5
     pref = (2 * kB * temp) ** 0.5
     amplitudes = pref / omegas * (omegas.size / (omegas.size - 3)) ** 0.5
 
@@ -99,7 +100,7 @@ def test_all():
     amplitudes[0, :3] = 0
 
     const = 1 / (2 * kB) / 4 / 2 / 3
-    assert la.norm(const * (amplitudes ** 2 * omegas ** 2).sum() - temp) < 1e-13
+    assert la.norm(const * (amplitudes**2 * omegas**2).sum() - temp) < 1e-13
 
     # \dot u = \omega * A
     V = u_s_to_u_I(omegas * amplitudes, **aux_args)
@@ -144,7 +145,7 @@ def test_all():
 
     for ii in range(100):
         amp = V_t[ii]
-        t = const * (amp ** 2).sum()
+        t = const * (amp**2).sum()
         assert abs(t - traj[ii].get_temperature()) < 1e-4, t
 
     # Check that energy in each mode was approx. constant
@@ -185,8 +186,7 @@ def _run_md(
     fc_file=parent / "infile.forceconstant",
     trajectory_file=parent / "trajectory.son",
 ):
-    """ run Verlet MD, harmonic or force field """
-    trajectory_file = trajectory_file
+    """Run Verlet MD, harmonic or force field"""
     atoms = read(sample)
 
     force_constants = parse_tdep_forceconstant(

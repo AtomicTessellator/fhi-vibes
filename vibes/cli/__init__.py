@@ -12,7 +12,6 @@ from . import info, output, run, submit, template, utils
 from .cli_tracker import CliTracker
 from .misc import AliasedGroup, check_path
 
-
 click_completion.init()
 
 
@@ -34,7 +33,7 @@ def cli(ctx, verbose, silent):
     ctx.help_option_names = ["-h", "--help"]
 
     if verbosity > 1:
-        click.echo(f"Welcome to vibes!\n")
+        click.echo("Welcome to vibes!\n")
 
 
 cli.add_command(info.info)
@@ -65,7 +64,7 @@ except ImportError:
 @click.option("--verbose", is_flag=True)
 @click.pass_obj
 def vibes_status(obj, verbose):
-    """check if everything is set up"""
+    """Check if everything is set up"""
     from vibes.settings import Configuration
 
     configfile = DEFAULT_CONFIG_FILE

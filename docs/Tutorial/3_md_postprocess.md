@@ -87,19 +87,21 @@ We first load the trajectory dataset and visualize the temperature:
 import xarray as xr
 
 # load the trajectory dataset "trajectory.nc" from disk into the xarray.Dataset
-dataset  = xr.load_dataset("trajectory.nc")
+dataset = xr.load_dataset("trajectory.nc")
 
 # extract temperature and potential pressure from all the data and convert to pandas.DataFrame
 df_temperature_pressure = all_data[["temperature", "pressure_potential"]].to_dataframe()
 
 # attach a moving average (width=200 timesteps) of the temperature
-df_temperature_pressure["temperature_mean"] = df_temperature_pressure.temperature.rolling(window=200).mean()
+df_temperature_pressure["temperature_mean"] = (
+    df_temperature_pressure.temperature.rolling(window=200).mean()
+)
 
 # plot temperature and temperature_mean as function of time
 ax = df_temperature_pressure[["temperature", "temperature_mean"]].plot()
 
 ax.set_xlabel("Time (fs)")
-ax.set_ylabel("Temperature (K)")
+ax.set_ylabel("Temperaturee (K)")
 ```
 
 ??? info "`df_temperature_pressure.plot`"
@@ -118,7 +120,7 @@ shift = 500
 
 df_temperature_pressure = df_temperature_pressure.shift(-shift).dropna()
 
-df_temperature_pressure[['temperature', 'temperature_mean']].plot()
+df_temperature_pressure[["temperature", "temperature_mean"]].plot()
 ```
 
 ??? info "`df_temperature_pressure.plot` after removing 2500 simulation steps ($5\,{\rm ps}$)"
@@ -194,7 +196,7 @@ The most straightforward way to compute $\tau$ is to evaluate the [autocorrelati
 import pandas as pd
 from scipy import signal as si
 
-# substract the mean pressure
+# subtract the mean pressure
 pp = p - p.mean()
 
 # get the autocorrelation function from

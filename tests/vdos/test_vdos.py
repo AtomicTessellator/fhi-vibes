@@ -11,13 +11,12 @@ from vibes.harmonic_analysis import dynamical_matrix as dm
 from vibes.tdep.wrapper import parse_tdep_forceconstant
 from vibes.trajectory import reader
 
-
 parent = Path(__file__).parent
 
 
 def test_parse_force_constants():
     # frequencies from force constants
-    fc = parse_tdep_forceconstant(
+    return parse_tdep_forceconstant(
         parent / "infile.forceconstant",
         parent / "geometry.in.primitive",
         parent / "geometry.in.supercell",
@@ -25,21 +24,15 @@ def test_parse_force_constants():
         format="aims",
     )
 
-    return fc
-
 
 def test_frequencies_from_force_constants():
     fc = test_parse_force_constants()
     sc = read(parent / "geometry.in.supercell", format="aims")
 
-    freqs = dm.get_frequencies(fc, masses=sc.get_masses())
-
-    return freqs
+    return dm.get_frequencies(fc, masses=sc.get_masses())
 
 
-def test_vdos(
-    traj_file="trajectory.son", vdos_file="v.nc", ref_file="ref_vdos.csv"
-):
+def test_vdos(traj_file="trajectory.son", vdos_file="v.nc", ref_file="ref_vdos.csv"):
     traj = reader(parent / traj_file)
 
     df_vdos = get_vdos(traj.dataset.velocities, npad=0).real

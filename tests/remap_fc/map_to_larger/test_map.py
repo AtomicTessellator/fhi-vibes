@@ -47,7 +47,6 @@ def _test_pair(pair):
 
 
 def test(pairs=pairs):
-
     for pair in pairs:
         _test_pair(pair)
 

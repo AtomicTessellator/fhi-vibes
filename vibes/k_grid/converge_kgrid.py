@@ -1,4 +1,5 @@
 """Function that performs a k-grid optimization for a structure"""
+
 from pathlib import Path
 
 from ase.calculators.socketio import SocketIOCalculator
@@ -27,13 +28,14 @@ def converge_kgrid(
     workdir=".",
     **kwargs,
 ):
-    """Converges the k-grid relative to some loss function
+    """
+    Converges the k-grid relative to some loss function
 
     Parameters
     ----------
     atoms: ase.atoms.Atoms
         geometry of the system you are converging the k-grid on
-    calculator: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calculator.Calculator
         calculator for the k-grid convergence
     func: function
         Function used to get the property used test if k-grid is converged
@@ -62,6 +64,7 @@ def converge_kgrid(
     -------
     bool
         True if the convergence criteria is met
+
     """
     watchdog = Watchdog(walltime=walltime)
 
@@ -82,16 +85,14 @@ def converge_kgrid(
     socketio_port, socketio_unixsocket = get_socket_info(calculator)
     socketio = socketio_port is not None
 
-    if socketio is None:
-        socket_calc = None
-    else:
-        socket_calc = calculator
+    socket_calc = None if socketio is None else calculator
 
     atoms.calc = calculator
     opt_atoms = atoms
 
-    with SocketIOCalculator(socket_calc, port=socketio_port) as iocalc, cwd(
-        workdir / "calculation", mkdir=True
+    with (
+        SocketIOCalculator(socket_calc, port=socketio_port) as iocalc,
+        cwd(workdir / "calculation", mkdir=True),
     ):
         if socketio:
             atoms.calc = iocalc

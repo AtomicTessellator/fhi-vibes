@@ -34,7 +34,7 @@ This way to install `fhi-vibes` should always work, it's currently the preferred
 	```
 	pip install numpy poetry==1.1.12
 	```
-	
+
 - Install `fhi-vibes ` [_without_ build isolation](https://pip.pypa.io/en/stable/cli/pip_install/)
 
 	```
@@ -101,7 +101,7 @@ eval (env _VIBES_COMPLETE=source-fish vibes)
 
 - `ModuleNotFoundError: No module named 'importlib_resources'`
     - Solution: `pip install importlib_resources dataclasses`
-- `RuntimeError: Click will abort further execution because Python 3 was configured to use ASCII as encoding for the environment. Consult https://click.palletsprojects.com/python3/ for mitigation steps`
+- `RuntimeError: Click will abort further execution because python 3 was configured to use ASCII as encoding for the environment. Consult https://click.palletsprojects.com/python3/ for mitigation steps`
     - Solution:  `export LC_ALL=C.UTF-8 ; export LANG=C.UTF-8`
 - `-bash: vibes: command not found`
     - Solution: `export PATH=$PATH:~/.local/bin`

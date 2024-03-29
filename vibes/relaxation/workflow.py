@@ -20,8 +20,7 @@ _temp_geometry_file = filenames.atoms_next
 
 
 def run_relaxation(ctx):
-    """ high level function to run relaxation"""
-
+    """High level function to run relaxation"""
     converged = run(ctx)
 
     if not converged:
@@ -32,8 +31,7 @@ def run_relaxation(ctx):
 
 
 def run(ctx, backup_folder="backups"):
-    """ run a relaxation with ASE"""
-
+    """Run a relaxation with ASE"""
     watchdog = Watchdog()
 
     # extract things from context
@@ -59,9 +57,12 @@ def run(ctx, backup_folder="backups"):
     # is a filter used?
     filter = len(atoms) < len(opt_atoms)
 
-    with SocketIOCalculator(
-        socket_calc, port=socketio_port, unixsocket=socketio_unixsocket
-    ) as iocalc, cwd(calc_dir, mkdir=True):
+    with (
+        SocketIOCalculator(
+            socket_calc, port=socketio_port, unixsocket=socketio_unixsocket
+        ) as iocalc,
+        cwd(calc_dir, mkdir=True),
+    ):
         if socketio_port is not None:
             atoms.calc = iocalc
 
@@ -102,7 +103,7 @@ def run(ctx, backup_folder="backups"):
                 log_atoms = clean_atoms(atoms, decimals=ctx.decimals)
                 log_atoms.info.update({"nsteps": opt.nsteps})
 
-                talk(f".. log", prefix=_prefix)
+                talk(".. log", prefix=_prefix)
                 step2file(log_atoms, atoms.calc, trajectory_file)
 
                 info_str = [

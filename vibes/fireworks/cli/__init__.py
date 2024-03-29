@@ -1,4 +1,5 @@
 """`vibes fireworks part of the CLI"""
+
 import click
 from fireworks.fw_config import CONFIG_FILE_DIR, LAUNCHPAD_LOC
 
@@ -11,7 +12,8 @@ class ListOption(click.Option):
     """A list option for click"""
 
     def type_cast_value(self, ctx, value):
-        """Casts a comma separated list string as a python list
+        """
+        Casts a comma separated list string as a python list
 
         Parameters
         ----------
@@ -23,8 +25,9 @@ class ListOption(click.Option):
         Returns
         -------
         value: list
-            The comma seperated list as either a list of strs or a list of ints
+            The comma separated list as either a list of strs or a list of ints
             depending on the type of the option
+
         """
         if not value:
             return None
@@ -45,8 +48,8 @@ def fireworks():
 @click.option("-l", "--launchpad", help="path to launchpad file", default=LAUNCHPAD_LOC)
 def add_wf(workflow, launchpad):
     """Adds a workflow to the launchpad"""
-    from pathlib import Path
     from glob import glob
+    from pathlib import Path
 
     from vibes.context import TaskContext
     from vibes.fireworks.workflows.workflow_generator import generate_workflow
@@ -57,7 +60,7 @@ def add_wf(workflow, launchpad):
     structure_files = []
     if "files" in settings:
         if "geometries" in settings.files:
-            if "/" == settings.files.geometries[0]:
+            if settings.files.geometries[0] == "/":
                 files = glob(settings.files.pop("geometries"))
             else:
                 files = Path.cwd().glob(settings.files.pop("geometries"))
@@ -66,7 +69,7 @@ def add_wf(workflow, launchpad):
         if "geometry" in settings.files:
             structure_files.append(settings.files.pop("geometry"))
     else:
-        raise IOError("No geometry file was specified")
+        raise OSError("No geometry file was specified")
 
     for file in structure_files:
         settings = Settings(settings_file=workflow)
@@ -133,7 +136,8 @@ def add_wf(workflow, launchpad):
 @click.option(
     "-d",
     "--daemon",
-    help="Daemon mode. Command is repeated every x seconds. Defaults to non-daemon mode.",
+    help="Daemon mode. Command is repeated every x seconds. "
+    "Defaults to non-daemon mode.",
     type=int,
     default=0,
 )
@@ -377,7 +381,7 @@ def claunch(
 @click.option(
     "-d",
     "--daemon",
-    help="Daemon mode. Command is repeated every x seconds. Defaults to non-daemon mode.",
+    help="Daemon mode. Command is repeated every x seconds. default: non-daemon mode.",
     type=int,
     default=0,
 )
@@ -495,7 +499,7 @@ def qlaunch(
             ) as conn:
                 for r in remote_config_dir:
                     r = os.path.expanduser(r)
-                    conn.run("mkdir -p {}".format(r))
+                    conn.run(f"mkdir -p {r}")
                     for f in os.listdir(ctx.obj.config_dir):
                         if os.path.isfile(f):
                             conn.put(f, os.path.join(r, f))
@@ -569,7 +573,7 @@ def qlaunch_rapidfire(
     sleep,
     tasks_to_queue,
 ):
-    """Preform a qlaunch rpaidfire"""
+    """Perform a qlaunch rpaidfire"""
     from vibes.fireworks.cli.launch_utils import do_qluanch
 
     ctx.obj.firework_ids = firework_ids
@@ -586,17 +590,17 @@ def qlaunch_rapidfire(
     for k in ["maxjobs_queue", "maxjobs_block", "nlaunches", "sleep"]:
         v = getattr(ctx.obj, k, None)
         if v is not None:
-            non_default.append("--{} {}".format(k, v))
+            non_default.append(f"--{k} {v}")
     val = getattr(ctx.obj, "firework_ids", None)
     if val is not None:
         non_default.append("--{} {}".format("firework_ids", val[0]))
         for v in val[1:]:
-            non_default[-1] += ",{}".format(v)
+            non_default[-1] += f",{v}"
     val = getattr(ctx.obj, "wflow", None)
     if val is not None:
         non_default.append("--{} {}".format("wflow", val[0]))
         for v in val[1:]:
-            non_default[-1] += ",{}".format(v)
+            non_default[-1] += f",{v}"
     do_qluanch(ctx, non_default)
 
 
@@ -610,7 +614,7 @@ def qlaunch_rapidfire(
     type=int,
 )
 def qlaunch_singleshot(ctx, firework_id):
-    """preform a qlaunch singleshot"""
+    """Perform a qlaunch singleshot"""
     from vibes.fireworks.cli.launch_utils import do_qluanch
 
     ctx.obj.firework_id = firework_id
@@ -638,7 +642,7 @@ def qlaunch_singleshot(ctx, firework_id):
 )
 def rlaunch(ctx, loglvl, silencer, launchpad_file, fworker_file, config_dir):
     """Launch a rocket locally"""
-    from fireworks.utilities.fw_utilities import get_my_host, get_my_ip, get_fw_logger
+    from fireworks.utilities.fw_utilities import get_fw_logger, get_my_host, get_my_ip
 
     from vibes.fireworks.cli.launch_utils import get_fw_files
 
@@ -713,7 +717,7 @@ def rlaunch_rapidfire(
     from vibes.fireworks.cli.launch_utils import get_lpad_fworker_qadapter
     from vibes.fireworks.rocket_launcher import rapidfire
 
-    """preform a rlaunch rpaidfire"""
+    """perform a rlaunch rpaidfire"""
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx)
     rapidfire(
         launchpad,
@@ -742,8 +746,9 @@ def rlaunch_rapidfire(
 @click.option("--offline", help="run in offline mode (FW.json required)", is_flag=True)
 @click.option("--pdb", help="shortcut to invoke debugger on error", is_flag=True)
 def rlaunch_singleshot(ctx, fw_id, offline, pdb):
-    """preform a rlaunch singleshot"""
+    """Perform a rlaunch singleshot"""
     from fireworks.core.rocket_launcher import launch_rocket
+
     from vibes.fireworks.cli.launch_utils import get_lpad_fworker_qadapter
 
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx, offline)
@@ -804,9 +809,11 @@ def rlaunch_multi(
     exclude_current_node,
     local_redirect,
 ):
-    """preform a rlaunch multi"""
+    """Perform a rlaunch multi"""
     import os
+
     from fireworks.features.multi_launcher import launch_multiprocess
+
     from vibes.fireworks.cli.launch_utils import get_lpad_fworker_qadapter
 
     launchpad, fworker, _ = get_lpad_fworker_qadapter(ctx)
@@ -815,7 +822,7 @@ def rlaunch_multi(
     if nodefile:
         if nodefile in os.environ:
             nodefile = os.environ[nodefile]
-        with open(nodefile, "r") as f:
+        with open(nodefile) as f:
             total_node_list = [line.strip() for line in f.readlines()]
     launch_multiprocess(
         launchpad,

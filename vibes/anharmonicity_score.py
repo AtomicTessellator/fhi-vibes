@@ -1,5 +1,5 @@
-"""Functions to calculate anharmonicity scores as described in
-    (future reference)"""
+"""Functions to calculate anharmonicity scores as described in (future reference)"""
+
 import numpy as np
 import xarray as xr
 
@@ -9,8 +9,7 @@ from vibes.spglib.wrapper import get_symmetry_dataset
 
 
 def _check_shape(f1, f2):
-    """check if sizes of input data are compatible"""
-
+    """Check if sizes of input data are compatible"""
     assert np.shape(f1) == np.shape(f2), (
         "Check shape of input arrays!: ",
         f1.shape,
@@ -19,14 +18,17 @@ def _check_shape(f1, f2):
 
 
 def get_sigma(f_data, f_model, rtol=1e-5, axis=None, silent=False):
-    """Calculate RMSE / STD
+    """
+    Calculate RMSE / STD
 
     Args:
+    ----
         f_data (np.ndarray): input data
         f_model (np.ndarray): input model data
         rtol (float): assert f.mean() / f.std() < rtol
         axis (tuple): axis along which mean and std are taken
         silent (bool): silence warnings
+
     """
     f1 = np.asarray(f_data)
     f2 = np.asarray(f_model)
@@ -43,21 +45,24 @@ def get_sigma(f_data, f_model, rtol=1e-5, axis=None, silent=False):
 
 
 def get_r2(in_f_data, in_f_model, mean=True, silent=False):
-    r"""Calculate coefficient of determination between f_data and f_model
+    r"""
+    Calculate coefficient of determination between f_data and f_model
 
-    Refrence Website
+    Reference Website
     https://en.wikipedia.org/wiki/Coefficient_of_determination#Definitions
 
     Args:
+    ----
         in_f_data: input data
         in_f_model: input model data
         mean (bool): take out mean of f_data
         silent (bool): make silent
 
     Returns:
+    -------
         float: Coefficient of Determination
-    """
 
+    """
     f_data = np.ravel(in_f_data)
     f_model = np.ravel(in_f_model)
 
@@ -70,11 +75,9 @@ def get_r2(in_f_data, in_f_model, mean=True, silent=False):
         warn(f"|f_data.mean()| is {f_data_mean}", level=1)
 
     Sres = (f_data - f_model) @ (f_data - f_model)
-
-    if mean:
-        Stot = (f_data - f_data_mean) @ (f_data - f_data_mean)
-    else:
-        Stot = (f_data) @ (f_data)
+    Stot = (
+        (f_data - f_data_mean) @ (f_data - f_data_mean) if mean else (f_data) @ (f_data)
+    )
 
     return 1 - Sres / Stot
 
@@ -82,19 +85,22 @@ def get_r2(in_f_data, in_f_model, mean=True, silent=False):
 def get_sigma_per_atom(
     forces_dft, forces_harmonic, ref_structure, reduce_by_symmetry=False
 ):
-    """Compute sigma score per atom in primitive cell. Optionally use symmetry.
+    """
+    Compute sigma score per atom in primitive cell. Optionally use symmetry.
 
     Args:
+    ----
         forces_dft: forces from dft calculations in shape [Nt, Na, 3]
         forces_harmonic: forces from harmonic approximation in shape [Nt, Na, 3]
         ref_structure: reference structure for symmetry analysis
         reduce_by_symmetry: project on symmetry equivalent instead of primitive
 
     Returns:
+    -------
         unique_atoms: the atoms from ref_structure for which r^2 was computed
         sigma_per_atom: sigma score for atoms in unique_atoms
-    """
 
+    """
     sds = get_symmetry_dataset(ref_structure)
 
     # check shape:
@@ -138,24 +144,21 @@ def get_sigma_per_atom(
         "mean": mean,
     }
 
-    ret = xr.DataArray(np.array(sigma_atom), attrs=attrs)
-
-    return ret
+    return xr.DataArray(np.array(sigma_atom), attrs=attrs)
 
 
 def get_sigma_per_direction(f_data, f_model):
-    """compute sigma for each Cartesian direction"""
+    """Compute sigma for each Cartesian direction"""
     assert f_data.shape[-1] == 3
     directions = ("x", "y", "z")
     y = np.asarray(f_data).swapaxes(-1, 0)
     f = np.asarray(f_model).swapaxes(-1, 0)
 
-    sigma_direction = [get_sigma(y[xx], f[xx]) for xx in range(len(directions))]
-    return sigma_direction
+    return [get_sigma(y[xx], f[xx]) for xx in range(len(directions))]
 
 
 def get_sigma_dict(f, fh, ref_atoms, by_symmetry=False, per_direction=False):
-    """get sigma dictionary for set of forces `f` and harmonic forces `fh`"""
+    """Get sigma dictionary for set of forces `f` and harmonic forces `fh`"""
     dct = {}
     dct.update({"sigma": get_sigma(f, fh)})
 
@@ -181,8 +184,9 @@ def get_sigma_dict(f, fh, ref_atoms, by_symmetry=False, per_direction=False):
 
 
 def get_dataframe(dataset, per_sample=False, per_direction=False, by_symmetry=False):
-    """return anharmonicity dataframe for xarray.Dataset DS"""
+    """Return anharmonicity dataframe for xarray.Dataset DS"""
     import pandas as pd
+
     from vibes.helpers.converters import json2atoms
 
     DS = dataset
@@ -213,13 +217,17 @@ def get_dataframe(dataset, per_sample=False, per_direction=False, by_symmetry=Fa
 
 
 def get_sigma_mode(dataset):
-    """return sigma computed for mode resolved forces
+    """
+    Return sigma computed for mode resolved forces
 
     Args:
+    ----
         dataset (xarray.Dataset): the trajectory dataset including force_constants
 
     Returns:
+    -------
         float: sigma
+
     """
     x, y, f = _get_forces_per_mode(dataset)
 
@@ -227,16 +235,20 @@ def get_sigma_mode(dataset):
 
 
 def get_sigma_per_mode(dataset, absolute=False):
-    """return frequencies and sigma per mode from trajectory.dataset
+    """
+    Return frequencies and sigma per mode from trajectory.dataset
 
     sigma_s = sigma(F^a_s) / sigma(F_s)
 
     Args:
+    ----
         dataset (xarray.Dataset): the trajectory dataset including force_constants
         absolute (bool, optional): Don't weight with the force. Defaults to False.
 
     Returns:
+    -------
         pandas.Series: omega_s with frequencies as index
+
     """
     import pandas as pd
 
@@ -261,16 +273,20 @@ def get_sigma_per_mode(dataset, absolute=False):
 
 
 def _get_forces_per_mode(dataset):
-    """return forces and frequencies per mode from trajectory.dataset
+    """
+    Return forces and frequencies per mode from trajectory.dataset
 
     Args:
+    ----
         dataset (xarray.Dataset): the trajectory dataset including force_constants
 
     Returns:
+    -------
         (x, y, f): forces_mode, harmonic_forces_mode, frequencies
+
     """
-    from vibes.helpers.converters import json2atoms
     from vibes.harmonic_analysis.mode_projection import SimpleModeProjection
+    from vibes.helpers.converters import json2atoms
 
     ds = dataset
 

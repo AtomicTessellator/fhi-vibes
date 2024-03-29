@@ -13,5 +13,3 @@ linalg.o: linalg.f90
 
 clean:
 	rm -f *.o *.so *.mod
-
-

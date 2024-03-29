@@ -1,6 +1,4 @@
-"""
-Utility functions for working with Brillouin zones
-"""
+"""Utility functions for working with Brillouin zones"""
 
 from ase.dft import kpoints
 from ase.lattice import FCC
@@ -9,7 +7,8 @@ from vibes.helpers.latex import latexify_labels
 
 
 def get_paths(atoms):
-    """Get recommended path connencting high symmetry points in the BZ.
+    """
+    Get recommended path connencting high symmetry points in the BZ.
 
     Parameters
     ----------
@@ -31,7 +30,8 @@ def get_paths(atoms):
 
 
 def get_special_points(atoms):
-    """return the high symmetry points of the BZ for atoms
+    """
+    Return the high symmetry points of the BZ for atoms
 
     Parameters
     ----------
@@ -42,12 +42,14 @@ def get_special_points(atoms):
     -------
     kpoints: list of np.ndarrays
         The high-symmetry points
+
     """
     return atoms.cell.get_bravais_lattice().get_special_points()
 
 
 def get_bands(atoms, paths=None, npoints=50):
-    """Get the recommended BZ path(s) for atoms
+    """
+    Get the recommended BZ path(s) for atoms
 
     Parameters
     ----------
@@ -62,6 +64,7 @@ def get_bands(atoms, paths=None, npoints=50):
     -------
     bands: list of np.ndarrays
         The recommended BZ path(s) for atoms
+
     """
     if paths is None:
         paths = get_paths(atoms)
@@ -77,7 +80,8 @@ def get_bands(atoms, paths=None, npoints=50):
 
 
 def get_labels(paths, latex=False):
-    """Get the labels for a given path for printing them with latex
+    """
+    Get the labels for a given path for printing them with latex
 
     Parameters
     ----------
@@ -90,6 +94,7 @@ def get_labels(paths, latex=False):
     -------
     labels: list of str
         The labels for the high-symmetry path
+
     """
     if len(paths) == 1:
         labels = kpoints.parse_path_string(paths[0])[0]
@@ -118,7 +123,8 @@ def get_labels(paths, latex=False):
 
 
 def get_bands_and_labels(atoms, paths=None, npoints=50, latex=False):
-    """Combine get_bands() and get_labels()
+    """
+    Combine get_bands() and get_labels()
 
     Parameters
     ----------
@@ -137,6 +143,7 @@ def get_bands_and_labels(atoms, paths=None, npoints=50, latex=False):
         The recommended BZ path(s) for atoms
     labels: list of str
         The labels for the high-symmetry path
+
     """
     if paths is None:
         paths = get_paths(atoms)

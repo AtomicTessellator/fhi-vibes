@@ -1,4 +1,4 @@
-""" A watchdog keeping an eye on the time """
+"""A watchdog keeping an eye on the time"""
 
 import os
 import subprocess as sp
@@ -7,21 +7,22 @@ from time import strftime, time
 
 from vibes.helpers import talk, warn
 
-
 _prefix = "watchdog"
 
 
 def str2time(string: str) -> int:
-    """Convert string of the shape D-HH:MM:SS to seconds
+    """
+    Convert string of the shape D-HH:MM:SS to seconds
 
     Args:
+    ----
       string(str): string representing time
 
     Returns:
+    -------
       int: time in second
 
     """
-
     d, h, m, s = 0, 0, 0, 0
     # split days
     l1 = string.split("-")
@@ -48,12 +49,15 @@ def str2time(string: str) -> int:
 
 
 def get_time(jobid: int) -> int:
-    """get current job time
+    """
+    Get current job time
 
     Args:
+    ----
       jobid(int): Job ID for the job watchdog is acting on
 
     Returns:
+    -------
       int: time in seconds
 
     """
@@ -68,12 +72,15 @@ def get_time(jobid: int) -> int:
 
 
 def get_timelimit(jobid: int) -> int:
-    """get job time limit
+    """
+    Get job time limit
 
     Args:
+    ----
       jobid: Job ID for the job watchdog is acting on
 
     Returns:
+    -------
       int: time in seconds
 
     """
@@ -96,9 +103,11 @@ class WallTimeWatchdog:
         verbose: bool = True,
         **kwargs,
     ):
-        """Watchdog that controls the walltime everytime it is called
+        """
+        Watchdog that controls the walltime every time it is called
 
         Args:
+        ----
             walltime: Walltime in seconds
             start_time: Start time of job to be watched, in seconds since the epoch,
                 if None, time() from initialisation of this class will be used
@@ -132,7 +141,6 @@ class WallTimeWatchdog:
 
     def __call__(self) -> bool:
         """Call the watchdog and return `True` if time is up"""
-
         if self.walltime is None:
             return False
 
@@ -168,7 +176,7 @@ class WallTimeWatchdog:
 
     @property
     def increment_per_step(self) -> float:
-        """compute increment per step in seconds based on history"""
+        """Compute increment per step in seconds based on history"""
         hist = self.history
 
         if len(hist) < 2:
@@ -178,29 +186,28 @@ class WallTimeWatchdog:
 
     @property
     def time_left(self) -> float:
-        """how much time is left?"""
+        """How much time is left?"""
         return self.walltime - time()
 
     @property
     def buffer_time(self) -> float:
-        """approximate additional time the number of buffer steps would need"""
+        """Approximate additional time the number of buffer steps would need"""
         return self.increment_per_step * self.buffer
 
     @property
     def elapsed(self) -> float:
-        """return how much time is elapsed since start in seconds"""
+        """Return how much time is elapsed since start in seconds"""
         return time() - self.start_time
 
     def log(self, mode="a"):
         """Log some timings"""
-
         if self.logfile is None:
             return
 
         info_str = ""
         if self.n_calls == 0:
             mode = "w"
-            info_str = f"# Walltime Watchdog \n"
+            info_str = "# Walltime Watchdog \n"
             info_str += f"#   walltime:     {self.time_left:.0f}s\n"
             info_str += f"#   buffer steps: {self.buffer}\n"
             info_str += f"# {'Time':17s} " + " ".join(
@@ -237,10 +244,12 @@ class SlurmWatchdog(WallTimeWatchdog):
         log: str = "watchdog.log",
         verbose: bool = True,
     ):
-        """Watchdog that controls the walltime everytime it is called
+        """
+        Watchdog that controls the walltime every time it is called
 
-        Args
-            buffer: Defaults to 2. How many steps of buffer before watchdog should alert.
+        Args:
+        ----
+            buffer: Defaults to 2 How many steps of buffer before watchdog should alert.
             history: Defaults to 5. How many steps should be used to project the runtime
             extra_time: minimum size of buffer in seconds reserved for cleanup
             log: Path to log file
@@ -251,7 +260,7 @@ class SlurmWatchdog(WallTimeWatchdog):
         try:
             jobid = os.environ["SLURM_JOB_ID"]
             self.jobid = jobid
-            # substract extra time but make sure number stays positive
+            # subtract extra time but make sure number stays positive
             walltime = max(0, get_timelimit(jobid) - extra_time)
             if walltime == 0:
                 talk("cleanup time exceeds walltime, please increase", prefix=_prefix)
@@ -277,5 +286,5 @@ class SlurmWatchdog(WallTimeWatchdog):
 
     @property
     def job_elapsed(self) -> float:
-        """how much time has elapsed since the job started in seconds"""
+        """How much time has elapsed since the job started in seconds"""
         return get_time(self.jobid)

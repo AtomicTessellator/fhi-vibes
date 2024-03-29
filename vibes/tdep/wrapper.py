@@ -1,4 +1,5 @@
 """a wrapper for TDEP"""
+
 from pathlib import Path
 from subprocess import run
 
@@ -16,7 +17,8 @@ from vibes.trajectory import reader
 def convert_phonopy_to_tdep(
     phonon, workdir="output_tdep", logfile="convert_phonopy_to_tdep.log"
 ):
-    """Convert phonopy FORCE_CONSTANTS to tdep outfile.forceconstant
+    """
+    Convert phonopy FORCE_CONSTANTS to tdep outfile.forceconstant
 
     Parameters
     ----------
@@ -26,6 +28,7 @@ def convert_phonopy_to_tdep(
             working directory for the tdep binary
         logfile: str or Path
             log file
+
     """
     command = ["convert_phonopy_to_forceconstant", "--truncate"]
 
@@ -40,8 +43,8 @@ def convert_phonopy_to_tdep(
             plot_bandstructure=False,
         )
 
-        run(command, stdout=file)
-        print(f".. outfile.converted_forceconstant created.")
+        run(command, stdout=file, check=False)
+        print(".. outfile.converted_forceconstant created.")
 
         fc_file = Path("infile.forceconstant")
         if not fc_file.exists():
@@ -57,7 +60,8 @@ def canonical_configuration(
     quantum=False,
     logfile="canon_conf.log",
 ):
-    """wrapper for tdep canconical_configuration
+    """
+    Wrapper for tdep canconical_configuration
 
     Parameters
     ----------
@@ -78,17 +82,18 @@ def canonical_configuration(
     -------
     list of ase.atoms.Atoms
         thermally displaced structures
+
     """
     if phonon:
         convert_phonopy_to_tdep(phonon, workdir)
     command = ["canonical_configuration"]
     if quantum:
-        command.append(f"--quantum")
+        command.append("--quantum")
     command.extend("-of 4".split())
     command.extend(f"-n {n_sample}".split())
     command.extend(f"-t {temperature}".split())
     with cwd(workdir, mkdir=True), open(logfile, "w") as file:
-        run(command, stdout=file)
+        run(command, stdout=file, check=False)
     outfiles = Path(workdir).glob("aims_conf*")
     return [read(of, format="aims") for of in outfiles]
 
@@ -96,7 +101,8 @@ def canonical_configuration(
 def extract_forceconstants_from_trajectory(
     trajectory_file, workdir="tdep", rc2=10, logfile="fc.log", skip=0, **kwargs
 ):
-    """wrapper for tdep `extract_forceconstants`
+    """
+    Wrapper for tdep `extract_forceconstants`
 
     Parameters
     ----------
@@ -112,8 +118,8 @@ def extract_forceconstants_from_trajectory(
         number of steps to skip (from beginning of trajectory)
     kwargs: dict
         extra keywords
-    """
 
+    """
     trajectory = reader(trajectory_file)
 
     trajectory.to_tdep(folder=workdir, skip=skip)
@@ -121,7 +127,8 @@ def extract_forceconstants_from_trajectory(
 
 
 def parse_tdep_remapped_forceconstant(file="infile.forceconstant", force_remap=False):
-    """parse the remapped forceconstants from TDEP
+    """
+    Parse the remapped forceconstants from TDEP
 
     Parameters
     ----------
@@ -135,7 +142,9 @@ def parse_tdep_remapped_forceconstant(file="infile.forceconstant", force_remap=F
     force_constants: np.ndarray
         The force constant matrix
     lattice_points: np.ndarray
-        List of lattice points inside the supercell the force constants were calculated in
+        List of lattice points inside the supercell the force constants
+        were calculated in
+
     """
     timer = Timer()
 
@@ -144,7 +153,7 @@ def parse_tdep_remapped_forceconstant(file="infile.forceconstant", force_remap=F
         remapped = True
 
     print(f"Parse force constants from\n  {file}")
-    print(f".. remap representation for supercell: ", remapped)
+    print(".. remap representation for supercell: ", remapped)
 
     with open(file) as fo:
         n_atoms = int(next(fo).split()[0])
@@ -201,9 +210,11 @@ def parse_tdep_forceconstant(
     tol=1e-5,
     format="vasp",
 ):
-    """Parse the the TDEP force constants into the phonopy format
+    """
+    Parse the the TDEP force constants into the phonopy format
 
     Args:
+    ----
         fc_file (Pathlike): phonopy forceconstant file to parse
         primitive (Atoms or Pathlike): either unitcell as Atoms or where to find it
         supercell (Atoms or Pathlike): either supercell as Atoms or where to find it
@@ -214,7 +225,9 @@ def parse_tdep_forceconstant(
         format: File format for the input geometries
 
     Returns:
+    -------
         Force constants in (3*N_sc, 3*N_sc) shape
+
     """
     if isinstance(primitive, Atoms):
         uc = primitive
@@ -278,7 +291,8 @@ def parse_tdep_forceconstant(
 def extract_forceconstants(
     workdir="tdep", rc2=10, logfile="fc.log", create_symlink=False, **kwargs
 ):
-    """run tdep's extract_forceconstants in the working directory
+    """
+    Run tdep's extract_forceconstants in the working directory
 
     Parameters
     ----------
@@ -290,8 +304,8 @@ def extract_forceconstants(
         log file to put tdep std out
     create_symlink: bool
         make a symbolic link between outfile.forceconstant and infile.forceconstant
-    """
 
+    """
     timer = Timer()
 
     print(f"Extract force constants with TDEP from input files in\n  {workdir}")
@@ -301,12 +315,12 @@ def extract_forceconstants(
     command.extend(f"-rc2 {rc2}".split())
 
     with cwd(workdir), open(logfile, "w") as file:
-        run(command, stdout=file)
+        run(command, stdout=file, check=False)
         timer()
 
         # create the symlink of force constants
         if create_symlink:
-            print(f".. Create symlink to forceconstant file")
+            print(".. Create symlink to forceconstant file")
             outfile = Path("outfile.forceconstant")
             infile = Path("infile" + outfile.suffix)
 
@@ -323,7 +337,8 @@ def extract_forceconstants(
 
 
 def phonon_dispersion_relations(workdir="tdep", gnuplot=True, logfile="dispersion.log"):
-    """run tdep's phonon_dispersion_relations in working directory
+    """
+    Run tdep's phonon_dispersion_relations in working directory
 
     Parameters
     ----------
@@ -338,8 +353,8 @@ def phonon_dispersion_relations(workdir="tdep", gnuplot=True, logfile="dispersio
     ------
     FileNotFoundError
         If infile is missing
-    """
 
+    """
     timer = Timer(f"Run TDEP phonon_dispersion_relations in {workdir}")
 
     with cwd(workdir):
@@ -353,10 +368,10 @@ def phonon_dispersion_relations(workdir="tdep", gnuplot=True, logfile="dispersio
         command = "phonon_dispersion_relations -p".split()
 
         with open(logfile, "w") as file:
-            run(command, stdout=file)
+            run(command, stdout=file, check=False)
 
             if gnuplot:
-                print(f".. use gnuplot to plot dispersion to pdf")
+                print(".. use gnuplot to plot dispersion to pdf")
                 command = "gnuplot -p outfile.dispersion_relations.gnuplot_pdf".split()
-                run(command, stdout=file)
+                run(command, stdout=file, check=False)
     timer()

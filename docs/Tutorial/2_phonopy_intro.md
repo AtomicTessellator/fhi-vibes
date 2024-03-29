@@ -199,4 +199,3 @@ the derivation of the harmonic free energy in this case, we get the correct quan
 
 [^footnote2]: A derivation of Eq.$\,\eqref{HFVT}$ will be presented in Tutorial 7 on
 Molecular Dynamics Simulations.
-

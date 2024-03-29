@@ -1,4 +1,5 @@
-""" ASE Optimizer to converge the k-grid """
+"""ASE Optimizer to converge the k-grid"""
+
 from ase.optimize.optimize import Dynamics
 
 from vibes.helpers.k_grid import d2k
@@ -18,7 +19,8 @@ class KPointOptimizer(Dynamics):
         logfile="-",
         kpts_density_init=1.0,
     ):
-        """Initializes the KPointOptimizer
+        """
+        Initializes the KPointOptimizer
 
         Parameters
         ----------
@@ -38,6 +40,7 @@ class KPointOptimizer(Dynamics):
             file name for the log file
         kpts_density_init: float
             initial k-point density
+
         """
         Dynamics.__init__(
             self,
@@ -63,12 +66,12 @@ class KPointOptimizer(Dynamics):
 
     @property
     def kpts(self):
-        """ Accessor function to k_grid"""
+        """Accessor function to k_grid"""
         return self.atoms.calc.parameters["k_grid"]
 
     @kpts.setter
     def kpts(self, kp):
-        """ Setter function for the k_grid"""
+        """Setter function for the k_grid"""
         self.atoms.calc.parameters["k_grid"] = kp
 
     def increase_kpts(self):
@@ -90,14 +93,15 @@ class KPointOptimizer(Dynamics):
         """Log the k-point optimization"""
         if self.logfile:
             if self.step == 0:
-                self.logfile.write(f"Step, k_points, Energy\n")
+                self.logfile.write("Step, k_points, Energy\n")
             self.logfile.write(
                 f"{self.step}, {self.kpts}, {self.atoms.get_potential_energy()}\n"
             )
             self.logfile.flush()
 
     def irun(self, steps=100):
-        """Iterative run functions, advances the calculation by one step
+        """
+        Iterative run functions, advances the calculation by one step
 
         Parameters
         ----------
@@ -108,6 +112,7 @@ class KPointOptimizer(Dynamics):
         ------
         bool
             True system is converged, False otherwise (If False go to the next step)
+
         """
         self.ref = self.func(self.atoms)
 
@@ -124,12 +129,14 @@ class KPointOptimizer(Dynamics):
                 self.last = val
 
     def run(self, steps=100):
-        """Runs the optimizer
+        """
+        Runs the optimizer
 
         Parameters
         ----------
         steps: int
             Maximum number of steps
+
         """
         for _ in self.irun(steps=steps):
             pass

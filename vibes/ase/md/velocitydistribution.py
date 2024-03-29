@@ -1,5 +1,6 @@
 """Modify routines from `ase.md.velocitydistribution`"""
-from typing import Sequence
+
+from collections.abc import Sequence
 
 import numpy as np
 from ase import Atoms, units
@@ -21,32 +22,36 @@ def phonon_harmonics(
     failfast: bool = True,
     ignore_negative: bool = True,
 ) -> Sequence[np.ndarray]:
-    r"""Return displacements and velocities that produce a given temperature.
+    r"""
+    Return displacements and velocities that produce a given temperature.
 
     References:
+    ----------
         [West, Estreicher; PRL 96, 22 (2006)]
         [Zacharias, Giustino; PRB 94, 075125 (2016)]
 
     Args:
+    ----
         force_constants: force constants (Hessian) of the system in eV/Å²
         masses: masses of the structure in amu
-        temp: Temperature converted to eV (T * units.kB)
+        temp: Temperaturee converted to eV (T * units.kB)
         rng: RandomState (or similar) with `rng.rand` function
         quantum: True for Bose-Einstein, False for Maxwell-Boltzmann
         deterministic: Displace atoms deterministically by fixing the phases
-        plus_minus: Displace atoms with +/- the amplitude accoding to PRB 94, 075125
+        plus_minus: Displace atoms with +/- the amplitude according to PRB 94, 075125
         gauge_eigenvectors: gauge eigenvectors such that largest entry is positive
-        return_eigensolution: return eigenvalues and eigenvectors of the dynamical matrix
+        return_eigensolution: return eigenvalues and vectors of the dynamical matrix
         failfast: If True, raise Error when phonon spectrum is not positive
         ignore_negative: If True freeze out the imaginary modes
 
     Returns:
+    -------
         displacements, velocities generated from the eigenmodes,
         (optional: eigenvalues, eigenvectors of dynamical matrix)
 
     """
     # Build dynamical matrix
-    rminv = (masses ** -0.5).repeat(3)
+    rminv = (masses**-0.5).repeat(3)
     dynamical_matrix = force_constants * rminv[:, None] * rminv[None, :]
 
     # Solve eigenvalue problem to compute phonon spectrum and eigenvectors
@@ -64,13 +69,12 @@ def phonon_harmonics(
         msg = f"Spectrum not positive, e.g. {w2min}. Use `ignore_negative`."
         if failfast:
             raise ValueError(msg)
-        else:
-            warn(msg, level=1)
+        warn(msg, level=1)
 
     zeros = w2_s[last_ignore_mode - 3 : last_ignore_mode]
     worst_zero = np.abs(zeros).max()
     if worst_zero > 1e-3:
-        msg = "Translational deviate from 0 significantly: {}".format(w2_s[:3])
+        msg = f"Translational deviate from 0 significantly: {w2_s[:3]}"
         warn(msg, level=1)
 
     nw = len(w2_s) - last_ignore_mode
@@ -102,10 +106,7 @@ def phonon_harmonics(
         # create samples by multiplying the amplitude with +/-
         # according to Eq. 5 in PRB 94, 075125
 
-        if plus_minus:
-            spread = (-1) ** np.arange(nw)
-        else:
-            spread = np.ones(nw)
+        spread = (-1) ** np.arange(nw) if plus_minus else np.ones(nw)
 
         # Create velocities und displacements from the amplitudes and
         # eigenvectors
@@ -126,7 +127,7 @@ def phonon_harmonics(
         # We need 0 < P <= 1.0 and not 0 0 <= P < 1.0 for the logarithm
         # to avoid (highly improbable) NaN.
 
-        # Box Muller [en.wikipedia.org/wiki/Box–Muller_transform]:
+        # Box Muller [en.wikipedia.org/wiki/Box-Muller_transform]:
         spread = np.sqrt(-2.0 * np.log(1.0 - rng.rand(nw)))
 
         # assign amplitudes and phases
@@ -149,20 +150,21 @@ def phonon_harmonics(
 def PhononHarmonics(
     atoms: Atoms, force_constants: np.ndarray, temp: float, **kwargs
 ) -> None:
-    r"""Excite phonon modes to specified temperature.
+    r"""
+    Excite phonon modes to specified temperature.
 
     This will displace atomic positions and set the velocities so as
     to produce a random, phononically correct state with the requested
     temperature.
 
     Args:
+    ----
         atoms: the structure
         force_constants: Force constants in eV/Å²
-        temp: Temperature in eV (T * units.kB)
+        temp: Temperaturee in eV (T * units.kB)
         kwargs: kwargs for `phonon_harmonics`
 
     """
-
     # Receive displacements and velocities from phonon_harmonics()
     d_ac, v_ac = phonon_harmonics(
         force_constants=force_constants,

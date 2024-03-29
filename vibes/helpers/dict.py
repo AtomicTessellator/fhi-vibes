@@ -1,10 +1,10 @@
-""" provides AttributeDict """
+"""provides AttributeDict"""
 
 from collections import OrderedDict
 
 
 class AttributeDict(OrderedDict):
-    """ Ordered dictionary with attribute access """
+    """Ordered dictionary with attribute access"""
 
     def __getattr__(self, attr):
         if attr in self:
@@ -18,7 +18,7 @@ class AttributeDict(OrderedDict):
         return str(self.to_dict())
 
     def to_dict(self):
-        """ (recursively) return plain python dictionary """
+        """(recursively) return plain python dictionary"""
         rep = {}
         for key, val in self.items():
             if isinstance(val, AttributeDict):
@@ -28,14 +28,16 @@ class AttributeDict(OrderedDict):
         return rep
 
     def as_dict(self):
-        """ return plain python dictionary (Fireworks compatibility) """
+        """Return plain python dictionary (Fireworks compatibility)"""
         return dict(self)
 
 
 def merge(source: dict, destination: dict, dict_type=dict) -> dict:
-    """recursively merge two dictionaries
+    """
+    Recursively merge two dictionaries
 
     Example:
+    -------
         a = {"first": {"all_rows": {"pass": "dog", "number": "1"}}}
         b = {"first": {"all_rows": {"fail": "cat", "number": "5"}}}
         merge(b, a) == {

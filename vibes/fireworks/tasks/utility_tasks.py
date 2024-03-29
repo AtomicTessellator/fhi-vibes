@@ -1,4 +1,5 @@
 """Utility functions used in for HiLDe"""
+
 import numpy as np
 from fireworks import FWAction
 
@@ -6,7 +7,8 @@ from vibes.helpers.k_grid import update_k_grid_calc_dict
 
 
 def mod_calc(param_key, calc_spec, calculator_dict, val, atoms=None, spec_key=None):
-    """Function to modify a calculator within the MongoDB
+    """
+    Function to modify a calculator within the MongoDB
 
     Parameters
     ----------
@@ -50,7 +52,8 @@ def mod_calc(param_key, calc_spec, calculator_dict, val, atoms=None, spec_key=No
 
 
 def update_calc(calculator_dict, key, val):
-    """Update the calculator dictionary
+    """
+    Update the calculator dictionary
 
     Parameters
     ----------
@@ -84,7 +87,8 @@ def update_calc(calculator_dict, key, val):
 
 
 def update_calc_in_db(calc_spec, update_calc_params, calculator_dict):
-    """Updates a calculator in the MongoDB with a new set of parameters
+    """
+    Updates a calculator in the MongoDB with a new set of parameters
 
     Parameters
     ----------

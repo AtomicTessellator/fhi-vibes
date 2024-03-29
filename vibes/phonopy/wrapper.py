@@ -1,6 +1,4 @@
-"""
-A leightweight wrapper for Phonopy()
-"""
+"""A lightweight wrapper for Phonopy()"""
 
 import json
 from pathlib import Path
@@ -30,7 +28,8 @@ def prepare_phonopy(
     is_plusminus=defaults.kwargs.is_plusminus,
     wrap=False,
 ):
-    """Create a Phonopy object
+    """
+    Create a Phonopy object
 
     Parameters
     ----------
@@ -53,6 +52,7 @@ def prepare_phonopy(
     -------
     phonon: phonopy.Phonopy
         The phonopy object corresponding to the parameters
+
     """
     ph_atoms = to_phonopy_atoms(atoms, wrap=wrap)
     supercell_matrix = get_3x3_matrix(supercell_matrix)
@@ -87,7 +87,8 @@ def preprocess(
     is_plusminus=defaults.kwargs.is_plusminus,
     **kwargs,
 ):
-    """Generate phonopy objects and return displacements as Atoms objects
+    """
+    Generate phonopy objects and return displacements as Atoms objects
 
     Parameters
     ----------
@@ -110,6 +111,7 @@ def preprocess(
         The undisplaced supercell
     supercells_with_disps: list of ase.atoms.Atoms
         All of the supercells with displacements
+
     """
     supercell_matrix = get_3x3_matrix(supercell_matrix)
 
@@ -137,7 +139,8 @@ def get_dos(
     direction=None,
     xyz_projection=False,
 ):
-    """Get DOS from Phonopy, run_mesh has to be performed.
+    """
+    Get DOS from Phonopy, run_mesh has to be performed.
 
     Parameters
     ----------
@@ -168,11 +171,11 @@ def get_dos(
         If True project along Cartesian directions
 
     Returns
-    ------
+    -------
     np.ndarray
         The total or projected phonon density of states
-    """
 
+    """
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
 
@@ -215,7 +218,8 @@ def get_dos(
 
 
 def set_bandstructure(phonon, paths=None, add_labels=True):
-    """Compute bandstructure for given path and attach to phonopy object
+    """
+    Compute bandstructure for given path and attach to phonopy object
 
     Parameters
     ----------
@@ -225,6 +229,7 @@ def set_bandstructure(phonon, paths=None, add_labels=True):
         List of high-symmetry point paths e.g. ['GXSYGZURTZ', 'YT', 'UX', 'SR']
     add_labels: bool
         If True run bandstructure with labels
+
     """
     if isinstance(paths, str):
         paths = [paths]
@@ -240,7 +245,8 @@ def set_bandstructure(phonon, paths=None, add_labels=True):
 
 
 def get_bandstructure(phonon, paths=None, force_sets=None):
-    """Compute bandstructure for given path
+    """
+    Compute bandstructure for given path
 
     Parameters
     ----------
@@ -257,6 +263,7 @@ def get_bandstructure(phonon, paths=None, force_sets=None):
         dictionary of the band structure
     labels: list of str
         labels for the start and end of those force constants
+
     """
     if force_sets is not None:
         phonon.produce_force_constants(force_sets)
@@ -278,8 +285,7 @@ def get_thermal_properties(phonon, temperatures=None, t_step=20, t_max=1000, t_m
 def plot_thermal_properties(
     phonon, file="thermal_properties.pdf", t_step=20, t_max=1000, t_min=0
 ):
-    """plot thermal properties to pdf file"""
-
+    """Plot thermal properties to pdf file"""
     phonon.set_thermal_properties(t_step=t_step, t_max=t_max, t_min=t_min)
     plt = phonon.plot_thermal_properties()
 
@@ -290,7 +296,8 @@ def plot_thermal_properties(
 
 
 def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=None):
-    """Plot bandstructure for given path and save to file
+    """
+    Plot bandstructure for given path and save to file
 
     Parameters
     ----------
@@ -304,8 +311,8 @@ def plot_bandstructure(phonon, file="bandstructure.pdf", paths=None, force_sets=
         Force sets to calculate the force constants with
     latex: bool
         If True use latex symbols
-    """
 
+    """
     set_bandstructure(phonon, paths, False)
 
     plt = phonon.plot_band_structure()
@@ -329,7 +336,8 @@ def plot_bandstructure_and_dos(
     file="bandstructure_dos.pdf",
     run_mesh=True,
 ):
-    """Plot bandstructure and PDOS
+    """
+    Plot bandstructure and PDOS
 
     Parameters
     ----------
@@ -343,8 +351,8 @@ def plot_bandstructure_and_dos(
         Path to save the the plot to
     latex: bool
         If True use latex symbols
-    """
 
+    """
     set_bandstructure(phonon, add_labels=False)
 
     if partial:
@@ -371,7 +379,8 @@ def plot_bandstructure_and_dos(
 
 
 def summarize_bandstructure(phonon, fp_file=None):
-    """Print a concise symmary of the bandstructure fingerprint
+    """
+    Print a concise symmary of the bandstructure fingerprint
 
     Parameters
     ----------
@@ -381,11 +390,12 @@ def summarize_bandstructure(phonon, fp_file=None):
         Path to save the fingerprint to
 
     Returns
-    ------
+    -------
     gamma_freq: np.ndarray
         The frequencies at the gamma point
     max_freq: float
         The maximum frequency at the gamma point
+
     """
     from vibes.konstanten.einheiten import THz_to_cm
 
@@ -410,8 +420,8 @@ def summarize_bandstructure(phonon, fp_file=None):
     mf = max_freq
     mf_cm = mf * THz_to_cm
     talk(f"The maximum frequency is: {mf:.3f} THz ({mf_cm:.3f} cm^-1)")
-    talk(f"The frequencies at the gamma point are:")
-    talk(f"              THz |        cm^-1")
+    talk("The frequencies at the gamma point are:")
+    talk("              THz |        cm^-1")
     p = lambda ii, freq: print(f"{ii+1:3d}: {freq:-12.5f} | {freq*THz_to_cm:-12.5f}")
     for ii, freq in enumerate(gamma_freq[:6]):
         p(ii, freq)
@@ -423,7 +433,8 @@ def summarize_bandstructure(phonon, fp_file=None):
 
 
 def get_animation(phonon, q_point, file):
-    """Gets the animation file at a q_point
+    """
+    Gets the animation file at a q_point
 
     Parameters
     ----------
@@ -433,27 +444,32 @@ def get_animation(phonon, q_point, file):
         q-point to write the animation file on
     file: str
         Path to animation file output
+
     """
     return phonon.write_animation(q_point=q_point, filename=file)
 
 
 def get_debye_temperature(phonon=None, freq_pitch=5e-3, tetrahedron_method=True):
-    """Calculate the Debye Temperature from the Phonon Density of States
+    r"""
+    Calculate the Debye Temperaturee from the Phonon Density of States
 
     Formulas taken from: J. Appl. Phys. 101, 093513 (2007)
 
     Args:
+    ----
         phonon (phonopy.Phonopy): The phonon calculation
         freq_pitch (double): Energy spacing for calculating the total DOS
         q_mesh (np.ndarray): size of the interpolated q-point mesh
-        tetrahedron_method (bool): If True use the tetrahedron method to calculate the DOS
+        tetrahedron_method (bool): If True use the tetrahedron method to
+                                   calculate the DOS
     Returns:
         $\\Theta_P$ (float):
             Average phonon temperature
         $\\Theta_{D\\infty} (float):
-            T -> $\\infty$ limiting magnitude of the Debye Temperature
+            T -> $\\infty$ limiting magnitude of the Debye Temperaturee
         $\\Theta_D$ (float):
             The phonopy debye temperature as fitting the phonon DOS to Debye Model
+
     """
     dos = get_dos(
         phonon,
@@ -464,7 +480,7 @@ def get_debye_temperature(phonon=None, freq_pitch=5e-3, tetrahedron_method=True)
     ener = dos["frequency_points"] * const.THzToEv
     gp = dos["total_dos"]
     eps_p_1 = np.trapz(gp * ener, ener) / np.trapz(gp, ener)
-    eps_p_2 = np.trapz(gp * ener ** 2.0, ener) / np.trapz(gp, ener)
+    eps_p_2 = np.trapz(gp * ener**2.0, ener) / np.trapz(gp, ener)
 
     phonon.set_Debye_frequency()
     omgea_d = phonon.get_Debye_frequency() * 1e12 * np.pi * 2.0

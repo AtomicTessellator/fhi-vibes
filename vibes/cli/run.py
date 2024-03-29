@@ -13,7 +13,7 @@ _prefix = "vibes.run"
 
 @click.command(cls=AliasedGroup)
 def run():
-    """run a vibes workflow"""
+    """Run a vibes workflow"""
 
 
 @run.command()
@@ -21,9 +21,9 @@ def run():
 @click.option("--workdir", help="working directory")
 @click.pass_obj
 def singlepoint(obj, file, workdir):
-    """run singlepoint calculations from FILE (default: aims.in)"""
-    from vibes.settings import Settings
+    """Run singlepoint calculations from FILE (default: aims.in)"""
     from vibes.calculator import CalculatorContext, run_aims
+    from vibes.settings import Settings
 
     ctx = CalculatorContext(Settings(settings_file=file), workdir=workdir)
 
@@ -40,9 +40,9 @@ def singlepoint(obj, file, workdir):
 @click.option("--dry", is_flag=True, help="just prepare inputs in the workdir")
 @click.pass_obj
 def phonopy(obj, file, workdir, dry):
-    """run a phonopy calculation from FILE (default: phonopy.in)"""
-    from vibes.settings import Settings
+    """Run a phonopy calculation from FILE (default: phonopy.in)"""
     from vibes.phonopy.context import PhonopyContext
+    from vibes.settings import Settings
 
     ctx = PhonopyContext(Settings(settings_file=file), workdir=workdir)
 
@@ -58,9 +58,9 @@ def phonopy(obj, file, workdir, dry):
 @click.option("--dry", is_flag=True, help="just prepare inputs in the workdir")
 @click.pass_obj
 def phono3py(obj, file, workdir, dry):
-    """run a phono3py calculation from FILE (default: phono3py.in)"""
-    from vibes.settings import Settings
+    """Run a phono3py calculation from FILE (default: phono3py.in)"""
     from vibes.phono3py.context import Phono3pyContext
+    from vibes.settings import Settings
 
     ctx = Phono3pyContext(Settings(settings_file=file), workdir=workdir)
 
@@ -76,9 +76,9 @@ def phono3py(obj, file, workdir, dry):
 @click.option("--timeout", default=None, type=int, hidden=True)
 @click.pass_obj
 def md(obj, file, workdir, timeout):
-    """run an MD simulation from FILE (default: md.in)"""
-    from vibes.settings import Settings
+    """Run an MD simulation from FILE (default: md.in)"""
     from vibes.molecular_dynamics.context import MDContext
+    from vibes.settings import Settings
 
     ctx = MDContext(Settings(settings_file=file), workdir=workdir)
 
@@ -94,9 +94,9 @@ def md(obj, file, workdir, timeout):
 @click.option("--timeout", default=None, type=int, hidden=True)
 @click.pass_obj
 def relaxation(obj, file, workdir, timeout):
-    """run an relaxation from FILE (default: relaxation.in)"""
-    from vibes.settings import Settings
+    """Run an relaxation from FILE (default: relaxation.in)"""
     from vibes.relaxation.context import RelaxationContext
+    from vibes.settings import Settings
 
     ctx = RelaxationContext(Settings(settings_file=file), workdir=workdir)
 

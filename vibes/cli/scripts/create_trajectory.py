@@ -1,4 +1,4 @@
-""" Update trajectory files of old format """
+"""Update trajectory files of old format"""
 
 from argparse import ArgumentParser
 
@@ -10,7 +10,7 @@ from vibes.trajectory import Trajectory
 
 
 def main():
-    """ main routine """
+    """Main routine"""
     parser = ArgumentParser(description="Create trajectory file from aims calculations")
     parser.add_argument("output_files", nargs="+", help="aims output files")
     parser.add_argument("-uc", help="Add a (primitive) unit cell")

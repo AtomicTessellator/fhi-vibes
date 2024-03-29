@@ -30,7 +30,7 @@ a:                             1.23
 ...
 ```
 
-`vibes` will then attempt to import `MyCalculator` from `mymodule` and instantiate it with `a=1.23`. 
+`vibes` will then attempt to import `MyCalculator` from `mymodule` and instantiate it with `a=1.23`.
 
 ## Sections
 
@@ -46,7 +46,7 @@ Note that for non-`ase` calculators, `name` must be spelled identically to the c
 
 #### `module` (optional)
 
-If specified, `vibes` will run `from module import name` to obtain the calculator class, instead of importing it from `ase`. 
+If specified, `vibes` will run `from module import name` to obtain the calculator class, instead of importing it from `ase`.
 
 ### `[calculator.parameters]`
 

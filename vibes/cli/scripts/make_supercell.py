@@ -2,9 +2,11 @@
 Script to compute supercells from inputself.
 Similar to generate_structure from TDEP.
 """
+
 from argparse import ArgumentParser as argpars
 
 import numpy as np
+
 from vibes.helpers import Timer
 from vibes.helpers import supercell as sc
 from vibes.helpers.geometry import get_cubicness, inscribed_sphere_in_box
@@ -36,7 +38,8 @@ def make_supercell(
     wrap=False,
     outfile=None,
 ):
-    """create or find a supercell
+    """
+    Create or find a supercell
 
     Parameters
     ----------
@@ -56,11 +59,12 @@ def make_supercell(
         If True use fractional coordinates
     wrap: bool
         wrap atoms back to cell
+
     """
     from vibes.phonopy.wrapper import preprocess
 
     timer = Timer()
-    print(f"Find supercell for")
+    print("Find supercell for")
     cell = read(file, format=format)
     inform(cell, verbosity=0)
     print()
@@ -81,13 +85,13 @@ def make_supercell(
     _, _, scs_ref = preprocess(cell, supercell_matrix=1)
     _, _, scs = preprocess(cell, supercell_matrix=smatrix)
 
-    print(f"\nSupercell matrix:")
-    print(" python:  {}".format(np.array2string(smatrix.flatten(), separator=", ")))
+    print("\nSupercell matrix:")
+    print(" python:  {}".format(np.array2ndring(smatrix.flatten(), separator=", ")))
     print(" cmdline: {}".format(" ".join([f"{el}" for el in smatrix.flatten()])))
     print(" 2d:")
     print_matrix(smatrix, indent=0)
 
-    print(f"\nSuperlattice:")
+    print("\nSuperlattice:")
     print(supercell.cell.array)
     print(f"\nNumber of atoms:  {len(supercell)}")
     cub = get_cubicness(supercell.cell)

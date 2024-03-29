@@ -1,4 +1,4 @@
-""" Pickle a python object and save it as a compressed file """
+"""Pickle a python object and save it as a compressed file"""
 
 import gzip
 import pickle
@@ -6,9 +6,11 @@ from pathlib import Path
 
 
 def psave(obj, file="test.pick", compressed=True, verbose=False):
-    """save as (compressed) pickled file
+    """
+    Save as (compressed) pickled file
 
     Args:
+    ----
       obj: python object
       file:  (Default value = "test.pick")
       compressed:  (Default value = True)
@@ -28,12 +30,15 @@ def psave(obj, file="test.pick", compressed=True, verbose=False):
 
 
 def pread(file):
-    """read (compressed) pickled file
+    """
+    Read (compressed) pickled file
 
     Args:
+    ----
       file(Path or str): path to pickle file
 
     Returns:
+    -------
         python object
 
     """

@@ -1,4 +1,4 @@
-""" Tools for hashing atoms objects """
+"""Tools for hashing atoms objects"""
 
 from configparser import ConfigParser
 from hashlib import sha1 as hash_sha
@@ -7,14 +7,15 @@ from pathlib import Path
 
 
 def hashfunc(string, empty_str="", digest=True):
-    """Wrap the sha hash function and check for empty objects
+    """
+    Wrap the sha hash function and check for empty objects
 
     Parameters
     ----------
     string: str
         string to hash
     emptystr: str
-        What an empy string should map to
+        What an empty string should map to
     digest: bool
         If True digest the hash
 
@@ -22,13 +23,12 @@ def hashfunc(string, empty_str="", digest=True):
     -------
     str
         Hash of string
+
     """
     if string in ("", "[]", "{}", "None"):
         string = empty_str
 
-    if isinstance(string, bytes):
-        string = string
-    else:
+    if not isinstance(string, bytes):
         string = string.encode("utf8")
 
     if digest:
@@ -38,41 +38,47 @@ def hashfunc(string, empty_str="", digest=True):
 
 
 def hash_file(file, **kwargs):
-    """wrapper for hashfunc when file should be hashed"""
+    """Wrapper for hashfunc when file should be hashed"""
     return hashfunc(open(file, mode="rb").read(), **kwargs)
 
 
 def hash_atoms(atoms, velocities=False):
-    """hash the atoms object as it would be written to trajectory
+    """
+    Hash the atoms object as it would be written to trajectory
 
     Args:
+    ----
         atoms: Atoms to hash
         velocities: hash velocities as well
 
     Returns:
+    -------
         atoms_hash: The hash of the atoms Object
+
     """
     from .converters import atoms2dict
 
     a = atoms.copy()
     a.info = {}
 
-    atoms_hash = hash_dict(atoms2dict(a), velocities=velocities)
-
-    return atoms_hash
+    return hash_dict(atoms2dict(a), velocities=velocities)
 
 
 def hash_dict(dct, velocities=False, ignore_keys=None):
-    """hash a dictionary as it would be written to trajectory
+    """
+    Hash a dictionary as it would be written to trajectory
 
     Replace full `species_dir` by only the last bit
 
     Args:
+    ----
         dct: dictionary to hash
         velocities: hash velocities
 
     Returns:
+    -------
         hash: The hash of the dictionary
+
     """
     from .converters import dict2json
 
@@ -87,9 +93,8 @@ def hash_dict(dct, velocities=False, ignore_keys=None):
     # legacy: check for species_dir
     k1 = "calculator_parameters"
     k2 = "species_dir"
-    if k1 in dct:
-        if k2 in dct[k1]:
-            dct[k1][k2] = Path(dct[k1][k2]).parts[-1]
+    if k1 in dct and k2 in dct[k1]:
+        dct[k1][k2] = Path(dct[k1][k2]).parts[-1]
 
     if not velocities:
         dct.pop("velocities", None)
@@ -105,7 +110,8 @@ def hash_atoms_and_calc(
     ignore_calc_params=[],
     ignore_file=None,
 ):
-    """Hash atoms and calculator object, with possible ignores
+    """
+    Hash atoms and calculator object, with possible ignores
 
     Parameters
     ----------
@@ -126,6 +132,7 @@ def hash_atoms_and_calc(
         hash of the atoms
     calchash: str
         hash of atoms.calc
+
     """
     from .converters import atoms_calc2json
 
@@ -151,7 +158,8 @@ def hash_atoms_and_calc(
 
 
 def hash_trajectory(calculated_atoms, metadata, hash_meta=False):
-    """hash of a trajectory file
+    """
+    Hash of a trajectory file
 
     Parameters
     ----------
@@ -168,6 +176,7 @@ def hash_trajectory(calculated_atoms, metadata, hash_meta=False):
         hash of all of the elements calculated_atoms
     metahash: str
         hash of the metadata
+
     """
     from .converters import atoms_calc2json
 

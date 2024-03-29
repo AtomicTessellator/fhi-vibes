@@ -1,15 +1,15 @@
-import numpy as np
 import sys
+from pathlib import Path
 
+import numpy as np
 from ase.calculators.emt import EMT
 from ase.io.aims import read_aims
 from fireworks import FWAction
-from pathlib import Path
 
 from vibes.fireworks.tasks.fw_out.check_conditionals import (
-    check_stop_conditional,
     check_condition,
-    check_ojbect,
+    check_Object,
+    check_stop_conditional,
     run_all_checks,
 )
 from vibes.phonopy.postprocess import postprocess
@@ -54,26 +54,26 @@ def test_aims_stop():
         ["lattice_parameters", "max", "lt", 6.79],
         ["lattice_angles", "max", "le", 100],
     ]
-    assert not check_ojbect(atoms, condition_list)
+    assert not check_Object(atoms, condition_list)
 
     condition_list[0][2] = "gt"
-    assert check_ojbect(atoms, condition_list)
+    assert check_Object(atoms, condition_list)
 
     condition_list[0][2] = "lt"
     condition_list[1][2] = "gt"
-    assert check_ojbect(atoms, condition_list)
+    assert check_Object(atoms, condition_list)
 
     condition_list[1][2] = "lt"
     condition_list[2][2] = "gt"
-    assert check_ojbect(atoms, condition_list)
+    assert check_Object(atoms, condition_list)
 
     condition_list[2][2] = "lt"
     condition_list[3][2] = "gt"
-    assert check_ojbect(atoms, condition_list)
+    assert check_Object(atoms, condition_list)
 
     condition_list[3][2] = "lt"
     condition_list[4][2] = "gt"
-    assert check_ojbect(atoms, condition_list)
+    assert check_Object(atoms, condition_list)
 
 
 def test_phonopy_stop():
@@ -87,43 +87,43 @@ def test_phonopy_stop():
         ["theta_D_infty", "", "gt", 700],
         ["theta_P", "", "gt", 500],
     ]
-    assert not check_ojbect(phonon, condition_list)
+    assert not check_Object(phonon, condition_list)
 
     condition_list[0][4] = 600
-    assert check_ojbect(phonon, condition_list)
+    assert check_Object(phonon, condition_list)
 
     condition_list[0][4] = 300
     condition_list[1][4] = 600
-    assert check_ojbect(phonon, condition_list)
+    assert check_Object(phonon, condition_list)
 
     condition_list[1][4] = 300
     condition_list[2][4] = 600
-    assert check_ojbect(phonon, condition_list)
+    assert check_Object(phonon, condition_list)
 
     condition_list[2][4] = 300
     condition_list[3][4] = [0.5, 0.0, 0.0]
-    assert check_ojbect(phonon, condition_list)
+    assert check_Object(phonon, condition_list)
 
     condition_list[3][4] = [0.0, 0.0, 0.0]
     condition_list[4][2] = "lt"
-    assert check_ojbect(phonon, condition_list)
+    assert check_Object(phonon, condition_list)
 
     condition_list[4][2] = "gt"
     condition_list[5][2] = "lt"
-    assert check_ojbect(phonon, condition_list)
+    assert check_Object(phonon, condition_list)
 
     condition_list[5][2] = "gt"
     condition_list[6][2] = "lt"
-    assert check_ojbect(phonon, condition_list)
+    assert check_Object(phonon, condition_list)
 
 
 def test_stat_samp_stop():
     trajectory = reader(f"{parent}/conditional_check_trajs/stat_sampling.son")
     condition_list = [["sigma", "", "gt", 0.13]]
-    assert not check_ojbect(trajectory, condition_list)
+    assert not check_Object(trajectory, condition_list)
 
     condition_list[0][2] = "lt"
-    assert check_ojbect(trajectory, condition_list)
+    assert check_Object(trajectory, condition_list)
 
 
 def test_all_checks():

@@ -1,6 +1,7 @@
-"""
- Functions to run several related calculations with using trajectories as cache
-"""
+"""Functions to run several related calculations with using trajectories as cache"""
+
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 
@@ -20,19 +21,21 @@ from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
 from vibes.son import son
 from vibes.trajectory import get_hashes_from_trajectory_file, metadata2file, step2file
 
-
 calc_dirname = "calculations"
 
 
 def calculate(atoms: Atoms, calculator: Calculator, workdir: str = ".") -> Atoms:
-    """Perform a dft calculation with ASE
+    """
+    Perform a dft calculation with ASE
 
     Args:
+    ----
         atoms: The structure to calculate
         calculator: The calculator to used to get the properties
         workdir: Path to the working directory
 
     Returns:
+    -------
         atoms with all properties calculated
 
     """
@@ -63,9 +66,11 @@ def calculate_socket(
     dry: bool = False,
     **kwargs,
 ) -> bool:
-    """perform calculations for a set of atoms objects, while able to use the socket
+    """
+    Perform calculations for a set of atoms objects, while able to use the socket
 
     Args:
+    ----
         atoms_to_calculate: list with atoms to calculate
         calculator: calculator to use
         metadata: metadata information to store to trajectory
@@ -77,7 +82,8 @@ def calculate_socket(
         dry: only create working directory and write metadata to trajectory
 
     Returns:
-        Wether all structures were computed or not
+    -------
+        Whether all structures were computed or not
 
     """
     # create watchdog
@@ -193,15 +199,19 @@ def calculate_socket(
     return True
 
 
-def check_metadata(new_metadata: dict, old_metadata: dict, keys: list = ["calculator"]):
-    """check if metadata sets coincide and sanity check geometry
+def check_metadata(new_metadata: dict, old_metadata: dict, keys: list | None = None):
+    """
+    Check if metadata sets coincide and sanity check geometry
 
     Args:
+    ----
         new_metadata: The metadata of the current calculation
         old_metadata: The metadata from the trajectory.son file
         keys: Keys to check if the metadata agree with
 
     """
+    if keys is None:
+        keys = ["calculator"]
     nm = new_metadata
     om = old_metadata
 
@@ -225,7 +235,7 @@ def check_metadata(new_metadata: dict, old_metadata: dict, keys: list = ["calcul
 
 
 def fix_emt(atoms: Atoms):
-    """fix when using EMT calculator with socket"""
+    """Fix when using EMT calculator with socket"""
     try:
         atoms.calc.initialize(atoms)
         talk("calculator initialized.")
@@ -236,7 +246,7 @@ def fix_emt(atoms: Atoms):
 def check_precomputed_hashes(
     atoms: Atoms, precomputed_hashes: list, index: int
 ) -> bool:
-    """check if atoms was computed before"""
+    """Check if atoms was computed before"""
     hash = hash_atoms(atoms)
     try:
         pre_hash = precomputed_hashes[index]
@@ -246,3 +256,5 @@ def check_precomputed_hashes(
     if hash == pre_hash:
         talk(f"Structure {index + 1} already computed, skip.")
         return True
+
+    return False

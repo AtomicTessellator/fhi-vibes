@@ -1,4 +1,5 @@
 """Postprocessing for phonon clalculations"""
+
 from pathlib import Path
 from shutil import copyfile, rmtree
 
@@ -9,6 +10,7 @@ from vibes.fireworks.utils.converters import phonon_to_dict
 from vibes.helpers.converters import atoms2dict
 from vibes.helpers.k_grid import update_k_grid
 from vibes.helpers.paths import cwd
+from vibes.helpers.supercell import get_commensurate_q_points
 from vibes.materials_fp.material_fingerprint import (
     fp_tup,
     get_phonon_dos_fp,
@@ -17,13 +19,13 @@ from vibes.materials_fp.material_fingerprint import (
 from vibes.phonopy.utils import remap_force_constants
 from vibes.phonopy.wrapper import preprocess as ph_preprocess
 from vibes.settings import Settings
-from vibes.helpers.supercell import get_commensurate_q_points
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
 
-def time2str(n_sec):
-    """Converts a number of seconds into a time string
+def time2ndr(n_sec):
+    """
+    Converts a number of seconds into a time string
 
     Parameters
     ----------
@@ -44,7 +46,8 @@ def time2str(n_sec):
 
 
 def get_base_work_dir(wd):
-    """Converts wd to be it's base (no task specific directories)
+    """
+    Converts wd to be it's base (no task specific directories)
 
     Parameters
     ----------
@@ -77,7 +80,7 @@ def get_base_work_dir(wd):
 
     # If starting from root add / to beginning of the path
     if wd[0] == "/":
-        wd_list = [""] + wd_list
+        wd_list = ["", *wd_list]
 
     # Remove "sc_natoms_???" to get back to the base directory
     if len(wd_list[-1]) > 10 and wd_list[-1][:10] == "sc_natoms_":
@@ -86,7 +89,8 @@ def get_base_work_dir(wd):
 
 
 def get_memory_expectation(new_supercell, calculator, k_pt_density, workdir):
-    """Runs a dry_run of the new calculation and gets the estimated memory usage
+    """
+    Runs a dry_run of the new calculation and gets the estimated memory usage
 
     Parameters
     ----------
@@ -151,7 +155,8 @@ def get_memory_expectation(new_supercell, calculator, k_pt_density, workdir):
 
 
 def check_phonon_conv(dos_fp, prev_dos_fp, conv_crit):
-    """Checks if the density of state finger prints are converged
+    """
+    Checks if the density of state finger prints are converged
 
     Parameters
     ----------
@@ -190,14 +195,15 @@ def get_converge_phonon_update(
     init_workdir="./",
     **kwargs,
 ):
-    """Check phonon convergence and set up future calculations after a phonon calculation
+    """
+    Check phonon convergence and set up future calculations
 
     Parameters
     ----------
     workdir : str
         path to the working directory
     trajectory : str
-        name of hte trajectory.son file
+        name of the trajectory.son file
     calc_times : list of floats
         Total calculation times for all structures
     ph : phonopy.Phonopy
@@ -327,7 +333,7 @@ def get_converge_phonon_update(
     )
 
     if phonon.get_supercell().get_number_of_atoms() > 500:
-        time_scaling = 3.0 * ratio ** 3.0
+        time_scaling = 3.0 * ratio**3.0
     else:
         time_scaling = 3.0 * ratio
 

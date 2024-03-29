@@ -1,15 +1,16 @@
-""" An example of how to use FireWorks in conjunction with HilDe"""
+"""An example of how to use FireWorks in conjunction with HilDe"""
+
 import shutil
 from pathlib import Path
 
 from ase.build import bulk
+
 from vibes.context import TaskContext
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.fireworks.rocket_launcher import rapidfire
 from vibes.fireworks.workflows.workflow_generator import generate_workflow
 from vibes.helpers.paths import cwd
 from vibes.settings import Settings
-
 
 parent = Path(__file__).parent
 

@@ -12,16 +12,17 @@ from vibes.spglib.wrapper import refine_cell, standardize_cell
 def refine_geometry(
     file, primitive, conventional, center, origin, cartesian, format, symprec
 ):
-    """refine geometry with spglib and write to file
+    """
+    Refine geometry with spglib and write to file
 
     Parameters
     ----------
     file: str
-        Input geometry file (default: gemoetry.in)
+        Input geometry file (default: geometry.in)
     primitive: bool
         If True output the primitive cell structure to file.primitive
     conventional: bool
-        If True ouput the conventional structure to file.conventional
+        If True output the conventional structure to file.conventional
     center: bool
         If True center the cell to the center of mass and output to
         file.(primitive, conventional, or refined).center
@@ -34,10 +35,11 @@ def refine_geometry(
         Format of the input geometry file (default: aims)
     symprec: float
         Precision for space group/symmetry operation determination
+
     """
     atoms = read(file, format=format)
 
-    talk(f"Perfom geometry refinement for")
+    talk("Perform geometry refinement for")
 
     inform(atoms, symprec=symprec)
 
@@ -72,7 +74,7 @@ def refine_geometry(
 
 
 def center_com(atoms):
-    """ centre the center of mass """
+    """Centre the center of mass"""
     midpoint = atoms.cell.sum(axis=0) / 2
     atoms.positions -= atoms.get_center_of_mass()
     atoms.positions += midpoint
@@ -81,7 +83,7 @@ def center_com(atoms):
 
 
 def center_pos(atoms):
-    """ centre the average position"""
+    """Centre the average position"""
     midpoint = atoms.cell.sum(axis=0) / 2
     atoms.positions -= atoms.positions.mean(axis=0)
     atoms.positions += midpoint
@@ -90,8 +92,7 @@ def center_pos(atoms):
 
 
 def center_atoms(atoms, origin=False):
-    """ Center atoms: Move center of mass, then average position to cell midpoint """
-
+    """Center atoms: Move center of mass, then average position to cell midpoint"""
     warn("This is an experimental feature!")
 
     # 0) move 1. atom to origin
@@ -106,9 +107,8 @@ def center_atoms(atoms, origin=False):
         if np.linalg.norm(temp_pos - atoms.positions) > 1e-12:
             atoms = center_com(atoms)
             continue
-        else:
-            break
-        # if we end up here, this was not succesful
+        break
+        # if we end up here, this was not successful
         warn("FIXME", level=2)
 
     # ii) move average position to midpoint
@@ -119,9 +119,8 @@ def center_atoms(atoms, origin=False):
         if np.linalg.norm(temp_pos - atoms.positions) > 1e-12:
             atoms = center_pos(atoms)
             continue
-        else:
-            break
-        # if we end up here, this was not succesful
+        break
+        # if we end up here, this was not successful
         warn("FIXME", level=2)
 
     if origin:
@@ -132,7 +131,7 @@ def center_atoms(atoms, origin=False):
 
 
 def main():
-    """main routine, deprecated since CLI"""
+    """Main routine, deprecated since CLI"""
     parser = argpars(description="Read geometry and use spglib to refine")
     parser.add_argument("geometry")
     parser.add_argument("--prim", action="store_true", help="store primitive cell")

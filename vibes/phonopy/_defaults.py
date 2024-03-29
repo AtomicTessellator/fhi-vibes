@@ -1,4 +1,5 @@
-""" vibes defaults for phonopy """
+"""vibes defaults for phonopy"""
+
 import collections
 
 from vibes.helpers.dict import AttributeDict as adict

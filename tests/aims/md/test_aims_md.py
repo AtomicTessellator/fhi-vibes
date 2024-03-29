@@ -1,13 +1,13 @@
 """test the MD workflow"""
+
 import subprocess as sp
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from vibes.trajectory import reader
 from vibes.helpers.stresses import has_stresses
-
+from vibes.trajectory import reader
 
 parent = Path(__file__).parent
 
@@ -26,11 +26,11 @@ def test_aims_md(tmp_path, md_input_file):
     md_in = tmp_path / "md.in"
 
     md_in.symlink_to(md_input_file)
-    sp.run(run_command.split(), cwd=tmp_path)
+    sp.run(run_command.split(), cwd=tmp_path, check=False)
     md_in.unlink()
     # test restart
     md_in.symlink_to(md_input_file.with_suffix(md_input_file.suffix + ".2"))
-    sp.run(run_command.split(), cwd=tmp_path)
+    sp.run(run_command.split(), cwd=tmp_path, check=False)
 
     old_traj = reader(trajectory_ref_file)
     new_traj = reader(tmp_path / "md" / "trajectory.son")

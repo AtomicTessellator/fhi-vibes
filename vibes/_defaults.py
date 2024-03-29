@@ -1,4 +1,4 @@
-""" some default naming """
+"""some default naming"""
 
 from pathlib import Path
 

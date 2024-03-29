@@ -1,1 +1,1 @@
-""" frontend scripts for some functionality """
+"""frontend scripts for some functionality"""

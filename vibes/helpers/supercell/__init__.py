@@ -1,4 +1,4 @@
-""" helpers for working with supercell """
+"""helpers for working with supercell"""
 
 from itertools import product
 
@@ -19,7 +19,7 @@ def get_lattice_points(
     cell, supercell, tolerance=1e-5, sort=True, fortran=True, verbose=False
 ):
     """
-        S = M . L
+    S = M . L
 
         M = supercell_matrix
 
@@ -30,7 +30,7 @@ def get_lattice_points(
     supercell: np.ndarray
         lattice matrix of supercell
     tolerance: float
-        tolearnce used to detect multiplicities
+        tolerance used to detect multiplicities
     sort: bool
         If True sort results
     fortran: bool
@@ -44,8 +44,8 @@ def get_lattice_points(
         The list of lattice points in the supercell
     lattice_points_ext_w_multiplicites
         The list of lattice points in the supercell including multiplicities
-    """
 
+    """
     timer = Timer()
     tol = tolerance
 
@@ -103,10 +103,7 @@ def get_lattice_points(
         lattice_points = []
         lattice_points_extended = []
 
-        for (n1, n2, n3) in product(
-            range(-max_iterations, max_iterations + 1), repeat=3
-        ):
-
+        for n1, n2, n3 in product(range(-max_iterations, max_iterations + 1), repeat=3):
             lp = [n1, n2, n3] @ lattice
 
             if la.norm(lp) > dmax:
@@ -144,7 +141,6 @@ def get_lattice_points(
     # find multiplicities of the extended lattice points
     lattice_points_ext_w_multiplicites = []
     for lp in lattice_points:
-
         frac_lp = fractional(lp, superlattice)
 
         elp_mult = []
@@ -161,7 +157,8 @@ def get_lattice_points(
 
 
 def sort_lattice_points(lattice_points, tol=1e-5):
-    """sort according to x, y, z coordinates and finally length
+    """
+    Sort according to x, y, z coordinates and finally length
 
     Parameters
     ----------
@@ -174,13 +171,14 @@ def sort_lattice_points(lattice_points, tol=1e-5):
     -------
     np.ndarray
         sorted lattice point list
-    """
 
+    """
     return sorted(lattice_points, key=lambda x: la.norm(x + [0, 2 * tol, 4 * tol]))
 
 
 def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
-    """For a commensurate q_points we have
+    """
+    For a commensurate q_points we have
 
         exp( 2*pi q . L_k ) = 1 for any k and L_k being the supercell lattice vectors
 
@@ -197,14 +195,14 @@ def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
     supercell: np.ndarray
         cell matrix of supercell
     tolerance: float
-        tolearnce used to detect multiplicities
+        tolerance used to detect multiplicities
 
     Returns
     -------
     np.ndarray
         List of commensurate q_points
-    """
 
+    """
     # check if cell is array
     if isinstance(cell, Atoms):
         warn("DEPRECATED: Please provide 3x3 matrix instead of Atoms object")
@@ -230,7 +228,8 @@ def get_commensurate_q_points(cell, supercell, tolerance=1e-5, **kwargs):
 def find_cubic_cell(
     cell, target_size=1, deviation=0.2, lower_limit=-2, upper_limit=2, verbose=False
 ):
-    """Find supercell matrix that produces a cubic-as-possible supercell of given size
+    """
+    Find supercell matrix that produces a cubic-as-possible supercell of given size
 
     Parameters
     ----------
@@ -246,6 +245,7 @@ def find_cubic_cell(
         upper limit for the elements in the supercell matrix
     verbose: bool
         If True print more information to the console
+
     """
     from . import supercell as sc
 
@@ -262,7 +262,8 @@ def find_cubic_cell(
 
 
 def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose=False):
-    """Create a supercell of target size that is as cubic as possible.
+    """
+    Create a supercell of target size that is as cubic as possible.
 
     Parameters
     ----------
@@ -285,7 +286,6 @@ def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose
         The supercell_matrix
 
     """
-
     prim_cell = atoms.copy()
 
     smatrix = find_cubic_cell(
@@ -317,7 +317,8 @@ def make_cubic_supercell(atoms, target_size=100, deviation=0.2, limit=2, verbose
 
 
 def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
-    """Create the lattice points within supercell and attach atoms to each of them
+    """
+    Create the lattice points within supercell and attach atoms to each of them
 
     Parameters
     ----------
@@ -334,6 +335,7 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
     -------
     supercell: ase.atoms.Atoms
         The supercell from atoms and supercell_matrix
+
     """
     from vibes.phonopy.wrapper import preprocess
 
@@ -345,7 +347,8 @@ def make_supercell(atoms, supercell_matrix, info={}, tol=1e-5, wrap=True):
 
 
 def map_indices(atoms1, atoms2, tol=1e-5):
-    """return indices of atoms in atoms1 in atoms2.
+    """
+    Return indices of atoms in atoms1 in atoms2.
 
     Background Information at
     https://gitlab.com/flokno/vibes/blob/devel/examples/devel/sort_atoms/sort.ipynb
@@ -374,9 +377,10 @@ def map_indices(atoms1, atoms2, tol=1e-5):
     Raises
     ------
     AssertionError
-        If len of unique values in index_map does not equal the number of atoms in atoms1
-    """
+        If len of unique values in index_map does not equal the number of atoms
+        in atoms1
 
+    """
     from vibes.helpers.lattice_points import map_I_to_iL
 
     _, index_map = map_I_to_iL(atoms2, atoms1)

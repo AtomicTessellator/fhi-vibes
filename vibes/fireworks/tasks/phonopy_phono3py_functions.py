@@ -1,4 +1,5 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
+
 from pathlib import Path
 
 import numpy as np
@@ -22,7 +23,8 @@ from vibes.trajectory import metadata2file, reader, step2file
 
 
 def setup_calc(settings):
-    """Sets up a calculation
+    """
+    Sets up a calculation
 
     Parameters
     ----------
@@ -63,7 +65,8 @@ def setup_calc(settings):
 
 
 def setup_phonon_outputs(ph_settings, settings, prefix, atoms):
-    """Sets up the phonon outputs
+    """
+    Sets up the phonon outputs
 
     Parameters
     ----------
@@ -110,13 +113,14 @@ def bootstrap_phonon(
     ph3_settings=None,
     fw_settings=None,
 ):
-    """Creates a Settings object and passes it to the bootstrap function
+    """
+    Creates a Settings object and passes it to the bootstrap function
 
     Parameters
     ----------
     atoms : ase.atoms.Atoms
         Atoms object of the primitive cell
-    calculator: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calculator.Calculator
         Calculator for the force calculations
     kpt_density : float
         k-point density for the MP-Grid (Default value = None)
@@ -157,7 +161,8 @@ def bootstrap_phonon(
 
 
 def collect_to_trajectory(workdir, trajectory_file, calculated_atoms, metadata):
-    """Collects forces to a single trajectory file
+    """
+    Collects forces to a single trajectory file
 
     Parameters
     ----------
@@ -212,7 +217,8 @@ def collect_to_trajectory(workdir, trajectory_file, calculated_atoms, metadata):
 
 
 def phonon_postprocess(func_path, phonon_times, kpt_density, **kwargs):
-    """Performs phonon postprocessing steps
+    """
+    Performs phonon postprocessing steps
 
     Parameters
     ----------
@@ -236,7 +242,8 @@ def phonon_postprocess(func_path, phonon_times, kpt_density, **kwargs):
 
 
 def prepare_gruneisen(settings, primitive, vol_factor):
-    """Prepare a Gruneisen calculation
+    """
+    Prepare a Gruneisen calculation
 
     Parameters
     ----------
@@ -301,7 +308,8 @@ def prepare_gruneisen(settings, primitive, vol_factor):
 
 
 def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_density):
-    """Set up the finite difference gruniesen parameter calculations
+    """
+    Set up the finite difference gruniesen parameter calculations
 
     Parameters
     ----------
@@ -393,9 +401,8 @@ def setup_gruneisen(settings, trajectory_file, constraints, _queueadapter, kpt_d
     add_constraints = []
     for constr in constraints:
         constraint = dict2constraint(constr)
-        if isinstance(constraint, FixScaledParametricRelations):
-            if constraint.params:
-                add_constraints.append(constraint)
+        if isinstance(constraint, FixScaledParametricRelations) and constraint.params:
+            add_constraints.append(constraint)
 
     if len(constraints) > 0 and len(add_constraints) == 0:
         settings.pop("relaxation", None)

@@ -6,9 +6,9 @@ import numpy as np
 
 from vibes.helpers.brillouinzone import get_special_points
 from vibes.helpers.geometry import (
+    bounding_sphere_of_box,
     get_cubicness,
     inscribed_sphere_in_box,
-    bounding_sphere_of_box,
 )
 from vibes.helpers.numerics import clean_matrix
 from vibes.helpers.utils import talk
@@ -18,21 +18,24 @@ from vibes.structure.misc import get_sysname
 
 
 def _get_decoration_string(atoms, symprec=symprec, verbose=True):
-    """Decoration for geometry.in files
+    """
+    Decoration for geometry.in files
 
     Args:
+    ----
       atoms: the structure
       symprec: symmetry precision
       verbose: be verbose
 
     Returns:
+    -------
         str: decoration
 
     """
     if verbose:
         sds = get_symmetry_dataset(atoms, symprec=symprec)
         string = "#=====================================================\n"
-        string += f"# libflo:  geometry.in \n"
+        string += "# libflo:  geometry.in \n"
         # string += '#   Material: {:s}\n'.format(cell.get_chemical_formula())
         date = datetime.datetime.now().isoformat(" ", timespec="seconds")
         string += f"#   Date:    {date}\n"
@@ -56,9 +59,11 @@ def _get_decoration_string(atoms, symprec=symprec, verbose=True):
 
 
 def get_aims_string(atoms, decorated=True, scaled=None, velocities=False, wrap=False):
-    """print the string that is geometry.in
+    """
+    Print the string that is geometry.in
 
     Args:
+    ----
       atoms(ase.atoms.Atoms): the structure
       decorated(bool, optional): add decoration (Default value = True)
       scaled(bool, optional): use scaled positions (Default value = None)
@@ -66,6 +71,7 @@ def get_aims_string(atoms, decorated=True, scaled=None, velocities=False, wrap=F
       wrap(bool, optional): write wrapped positions (Default value = False)
 
     Returns:
+    -------
       str: geometry.in
 
     """
@@ -80,11 +86,10 @@ def get_aims_string(atoms, decorated=True, scaled=None, velocities=False, wrap=F
     if any(atoms.pbc):
         latvecs = clean_matrix(atoms.get_cell())
         for latvec, constraint in zip(latvecs, atoms.constraints_lv):
-
             if decorated:
-                string += f"  lattice_vector "
+                string += "  lattice_vector "
             else:
-                string += f"lattice_vector "
+                string += "lattice_vector "
             #
             string += f"{latvec[0]: .{n_geom_digits}e} "
             string += f"{latvec[1]: .{n_geom_digits}e} "
@@ -135,9 +140,11 @@ def get_aims_string(atoms, decorated=True, scaled=None, velocities=False, wrap=F
 
 
 def inform(atoms, file=None, verbosity=1, symprec=symprec):
-    """print geometry information to screen
+    """
+    Print geometry information to screen
 
     Args:
+    ----
       atoms: the structure
       file:  (Default value = None)
       verbosity:  (Default value = 1)
@@ -146,7 +153,7 @@ def inform(atoms, file=None, verbosity=1, symprec=symprec):
     """
     unique_symbols, multiplicity = np.unique(atoms.symbols, return_counts=True)
     # Structure info:
-    talk(f"Geometry info")
+    talk("Geometry info")
     print(f"  input geometry:    {get_sysname(atoms)}")
     if file:
         print(f"  from:              {file}")
@@ -157,7 +164,7 @@ def inform(atoms, file=None, verbosity=1, symprec=symprec):
     print(f"  Species:           {msg}")
     print(f"  Periodicity:       {atoms.pbc}")
     if verbosity > 0 and any(atoms.pbc):
-        print(f"  Lattice:  ")
+        print("  Lattice:  ")
         for vec in atoms.cell:
             print(f"    {vec}")
         cub = get_cubicness(atoms.cell)
@@ -180,30 +187,30 @@ def inform(atoms, file=None, verbosity=1, symprec=symprec):
             print(msg + ", ".join(f"{c}*{a}" for (a, c) in sds.equivalent_atoms_unique))
 
         if verbosity > 1:
-            print(f"  Standard lattice:  ")
+            print("  Standard lattice:  ")
             for vec in sds.std_lattice:
                 print(f"    {vec}")
 
         if verbosity > 1:
-            print(f"  Special k points:")
+            print("  Special k points:")
             for key, val in get_special_points(atoms).items():
                 print(f"    {key}: {val}")
 
     # Info
-    for (key, val) in atoms.info.items():
+    for key, val in atoms.info.items():
         print(f"  {key:10s}: {val}")
 
     # lengths and angles
     if verbosity > 0:
         la = atoms.get_cell_lengths_and_angles()
-        print("\nCell lengths and angles [\u212B, °]:")
+        print("\nCell lengths and angles [\u212b, °]:")
         print("  a, b, c: {}".format(" ".join([f"{l:11.4f}" for l in la[:3]])))
-        angles = "  \u03B1, \u03B2, \u03B3: "
+        angles = "  \u03b1, \u03b2, \u03b3: "
         values = "{}".format(" ".join([f"{l:11.4f}" for l in la[3:]]))
         print(angles + values)
-        print(f"  Volume:           {atoms.get_volume():11.4f} \u212B**3")
-        print(f"  Volume per atom:  {atoms.get_volume() / len(atoms):11.4f} \u212B**3")
+        print(f"  Volume:           {atoms.get_volume():11.4f} \u212b**3")
+        print(f"  Volume per atom:  {atoms.get_volume() / len(atoms):11.4f} \u212b**3")
 
         if atoms.get_velocities() is not None:
             v = atoms.get_momenta().sum(axis=0) / v_unit / atoms.get_masses().sum()
-            print(f"\n Net velocity: {v} \u212B/ps")
+            print(f"\n Net velocity: {v} \u212b/ps")

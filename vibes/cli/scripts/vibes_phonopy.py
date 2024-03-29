@@ -1,4 +1,4 @@
-""" Summarize output from ASE.md class (in md.log) """
+"""Summarize output from ASE.md class (in md.log)"""
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -21,9 +21,11 @@ def preprocess(
     format: str = defaults.format.geometry,
     write_supercell: bool = False,
 ):
-    """inform about a phonopy calculation a priori
+    """
+    Inform about a phonopy calculation a priori
 
     Args:
+    ----
         file: geometry input file
         settings_file: settings file (phonopy.in)
         dimensions: supercell dimension
@@ -32,16 +34,14 @@ def preprocess(
 
     """
     from ase.io import read
-    from vibes.settings import Settings
+
     from vibes.phonopy.wrapper import preprocess
+    from vibes.settings import Settings
 
     ctx = PhonopyContext(Settings(settings_file))
     settings = ctx.settings
 
-    if file:
-        atoms = read(file, format=format)
-    else:
-        atoms = settings.read_atoms(format=format)
+    atoms = read(file, format=format) if file else settings.read_atoms(format=format)
 
     _, _, scs_ref = preprocess(atoms, **{**settings.phonopy, "supercell_matrix": 1})
 
@@ -53,12 +53,12 @@ def preprocess(
         settings.print(only_settings=True)
 
     smatrix = phonon.get_supercell_matrix().T
-    sc_str = np.array2string(smatrix.flatten(), separator=", ")
+    sc_str = np.array2ndring(smatrix.flatten(), separator=", ")
     bash_str = " ".join(str(l) for l in smatrix.flatten())
     print("Phonopy Information")
     print(f"  Supercell matrix:        {sc_str}")
     print(f"  .. for make_supercell:   -d {bash_str}")
-    print(f"  Superlattice:")
+    print("  Superlattice:")
     for latvec in sc.cell:
         lv_str = "{:-6.2f} {:-6.2f} {:-6.2f}".format(*latvec)
         print(f"                         {lv_str}")
@@ -76,7 +76,7 @@ def preprocess(
 
 
 def main():
-    """ main routine """
+    """Main routine"""
     parser = ArgumentParser(description="information about phonopy task")
     parser.add_argument("infile", help="primitive structure or pickled phonopy")
     parser.add_argument("--dim", type=int, nargs="*", default=None)

@@ -8,7 +8,8 @@ from vibes.io import inform, read
 
 
 def suggest_k_grid(file, density, uneven, format):
-    """suggest a k_grid for geometry in FILENAME based on density
+    """
+    Suggest a k_grid for geometry in FILENAME based on density
 
     Parameters
     ----------
@@ -20,8 +21,8 @@ def suggest_k_grid(file, density, uneven, format):
         If True allow uneven values of k
     format: str
         The ASE file format for geometry files
-    """
 
+    """
     cell = read(file, format=format)
     inform(cell, file=file, verbosity=0)
 
@@ -38,7 +39,7 @@ def suggest_k_grid(file, density, uneven, format):
 
 
 def main():
-    """ suggest k_grid """
+    """Suggest k_grid"""
     parser = argpars(description="Read geometry and suggest k_grid based on density")
     parser.add_argument("geom", type=str, help="geometry input file")
     parser.add_argument("-d", "--density", type=float, default=3.5)

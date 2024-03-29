@@ -1,4 +1,5 @@
 """compute and analyze heat fluxes"""
+
 import pandas as pd
 import scipy.signal as sl
 
@@ -16,17 +17,20 @@ def get_velocity_autocorrelation(velocities=None, trajectory=None, verbose=True)
 
 
 def get_vdos(velocities=None, hann=False, normalize=False, npad=10000, verbose=True):
-    r"""compute vibrational DOS for trajectory
+    r"""
+    Compute vibrational DOS for trajectory
 
     vdos(w) = FT{\sum_i corr(v_i, v_i)(t)}(w)
 
     Args:
+    ----
         velocities (xarray.DataArray [N_t, N_a, 3]): the velocities
         hann: use Hann window when computing the autocorrelation
         normalize: normalize VDOS to 1
         npad: number of zeros for zero padding
     Returns:
         vdos (xarray.DataArray [N_t, N_a, 3])
+
     """
     timer = Timer("Get VDOS", verbose=verbose)
     v_corr = get_autocorrelationNd(velocities, normalize=True, hann=hann)
@@ -50,15 +54,18 @@ def simple_plot(
     max_frequency: float = None,
     logy: bool = False,
 ):
-    """simple plot of VDOS for overview purpose
+    """
+    Simple plot of VDOS for overview purpose
 
     Args:
+    ----
         series: Intensity vs. omega
         file: file to store the plot to
         prominence: for peak detection with `scipy.signal.find_peaks`
         threshold:_freq: neglect data up to this freq in THz (default: 0.1 THz)
         max_frequency (float): max. frequency in THz
         logy (bool): use semilogy
+
     """
     # normalize peaks
     series -= series.min()

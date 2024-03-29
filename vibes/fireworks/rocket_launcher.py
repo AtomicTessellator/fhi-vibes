@@ -1,4 +1,5 @@
-"""This module contains a modified rapid-fire mode.
+"""
+This module contains a modified rapid-fire mode.
 
 FireWorks Copyright (c) 2013, The Regents of the University of
 California, through Lawrence Berkeley National Laboratory (subject
@@ -6,7 +7,6 @@ to receipt of any required approvals from the U.S. Dept. of Energy).
 All rights reserved.
 """
 # coding: utf-8
-from __future__ import unicode_literals
 
 import os
 import time
@@ -20,10 +20,10 @@ from fireworks.utilities.fw_utilities import (
     log_multi,
     redirect_local,
 )
+
 from vibes.helpers import talk
 
 from .combined_launcher import get_ready_firework_ids
-
 
 __author__ = "Anubhav Jain, Modified by Thomas Purcell Nov 2, 2018"
 __copyright__ = "Copyright 2013, The Materials Project"
@@ -47,7 +47,8 @@ def rapidfire(
     firework_ids=None,
     wflow_id=None,
 ):
-    """Keeps running Rockets in m_dir until we reach an error.
+    """
+    Keeps running Rockets in m_dir until we reach an error.
 
     Automatically creates subdirectories for each Rocket. Usually stops when we
     run out of FireWorks from the LaunchPad.
@@ -61,7 +62,8 @@ def rapidfire(
     m_dir : str
         the directory in which to loop Rocket running (Default value = None)
     nlaunches : int
-        0 means 'until completion', -1 or "infinite" means to loop until max_loops (Default value = 0)
+        0 means 'until completion', -1 or "infinite" means to loop until max_loops
+        (Default value = 0)
     max_loops : int
         maximum number of loops (default -1 is infinite)
     sleep_time : int
@@ -73,7 +75,8 @@ def rapidfire(
     local_redirect : bool
         redirect standard input and output to local file (Default value = False)
     pdb_on_exception : bool
-        if set to True, python will start the debugger on a firework exception (Default value = False)
+        if set to True, python will start the debugger on a firework exception
+        (Default value = False)
     firework_ids : list of ints
         list of FireWorks to run (Default value = None)
     wflow_id : list of ints
@@ -172,7 +175,7 @@ def rapidfire(
                 break
         elif num_launched == nlaunches:
             break
-        log_multi(l_logger, "Sleeping for {} secs".format(sleep_time))
+        log_multi(l_logger, f"Sleeping for {sleep_time} secs")
         time.sleep(sleep_time)
         num_loops += 1
         log_multi(l_logger, "Checking for FWs to run...")

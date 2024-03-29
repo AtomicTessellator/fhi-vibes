@@ -1,11 +1,13 @@
 """Postprocess steps for k-grid optimizations"""
+
 from pathlib import Path
 
 from vibes.son import last_from
 
 
 def load_last_step(atoms_dict, calculator_dict, workdir, trajectory_file):
-    """Loads the last step from a trajectory and update returns calculator objects
+    """
+    Loads the last step from a trajectory and update returns calculator objects
 
     Parameters
     ----------
@@ -41,15 +43,13 @@ def load_last_step(atoms_dict, calculator_dict, workdir, trajectory_file):
 
 
 def move_trajectory_file(trajectory_file):
-    """Move a trajectory to a new file name
+    """
+    Move a trajectory to a new file name
 
     Parameters
     ----------
     trajectory : str
         The path to the trajectory to move
-
-    Returns
-    -------
 
     """
     split_trajectory_file = trajectory_file.split(".")

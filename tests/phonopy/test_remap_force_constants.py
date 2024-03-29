@@ -1,4 +1,5 @@
 """test for vibes.phonopy.utils.parse_phonopy_force_constants"""
+
 from pathlib import Path
 
 import numpy as np
@@ -17,8 +18,7 @@ frequencies = np.loadtxt(assets / "frequencies.dat")
 
 
 def test_remap():
-    """test parsing and remapping force constants"""
-
+    """Test parsing and remapping force constants"""
     atoms = read(sc_file, format="aims")
 
     fc = parse_phonopy_force_constants(

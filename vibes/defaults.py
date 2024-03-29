@@ -1,6 +1,5 @@
 import collections
 
-
 # Avalanche
 F_max = 10
 F_window = 50

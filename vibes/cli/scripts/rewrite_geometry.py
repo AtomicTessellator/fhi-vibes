@@ -9,7 +9,7 @@ from vibes.structure.io import inform
 
 
 def rewrite_geometry(file, align, frac, format):
-    """clean and rewrite geometry in FILENAME"""
+    """Clean and rewrite geometry in FILENAME"""
     atoms = read(file, format=format)
     inform(atoms, verbosity=0)
 
@@ -22,7 +22,7 @@ def rewrite_geometry(file, align, frac, format):
 
 
 def main():
-    """ print geometry information """
+    """Print geometry information"""
     parser = argpars(description="Read geometry and print some symmetry info")
     parser.add_argument("geom", type=str, help="geometry input file")
     parser.add_argument("--align", action="store_true", help="align the lattice")

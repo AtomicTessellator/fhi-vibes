@@ -2,7 +2,7 @@
 
 
 def _join(*keys):
-    """join two or more keys"""
+    """Join two or more keys"""
     keys = (k for k in keys if k)
     return "_".join(keys)
 
@@ -139,7 +139,7 @@ expcellfilter = "ExpCellFilter"
 atoms = "atoms"
 calculator = "calculator"
 parameters = "parameters"
-calculator_parameters = ".".join([calculator, parameters])
+calculator_parameters = f"{calculator}.{parameters}"
 settings = "settings"
 
 aims_uuid = "aims_uuid"

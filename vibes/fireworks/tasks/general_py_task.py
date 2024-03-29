@@ -1,4 +1,5 @@
 """Standardize python function for FW PyTasks"""
+
 import os
 
 from vibes import DEFAULT_CONFIG_FILE
@@ -8,7 +9,8 @@ from vibes.settings import Settings
 
 
 def get_func(func_path):
-    """A function that takes in a path to a python function and returns that function
+    """
+    A function that takes in a path to a python function and returns that function
 
     Parameters
     ----------
@@ -41,7 +43,8 @@ def atoms_calculate_task(
     fw_settings=None,
     walltime=None,
 ):
-    """A wrapper function for
+    """
+    A wrapper function for
 
     Converts a general function that performs some operation on ASE Atoms/Calculators
     into a FireWorks style operation
@@ -120,10 +123,10 @@ def atoms_calculate_task(
         os.chdir(start_dir)
         raise RuntimeError(
             f"Function calculation failed, moving to {start_dir} to finish Firework."
-        )
+        ) from None
 
     os.chdir(start_dir)
-    fw_acts = func_fw_out(
+    return func_fw_out(
         atoms_dict,
         calculator_dict,
         outputs,
@@ -133,13 +136,13 @@ def atoms_calculate_task(
         func_fw_out_kwargs,
         fw_settings,
     )
-    return fw_acts
 
 
 def general_function_task(
     func_path, func_fw_out_path, *args, fw_settings=None, **kwargs
 ):
-    """A wrapper function that converts a python function into a FireWork
+    """
+    A wrapper function that converts a python function into a FireWork
 
     Parameters
     ----------

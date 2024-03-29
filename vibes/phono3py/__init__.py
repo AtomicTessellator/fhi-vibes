@@ -1,4 +1,4 @@
-""" Phono3py wrapper + workflow """
+"""Phono3py wrapper + workflow"""
 # flake8: noqa
 
 from .postprocess import postprocess

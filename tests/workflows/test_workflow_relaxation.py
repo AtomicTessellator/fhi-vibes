@@ -20,7 +20,6 @@ ref_structure = read(parent / ".Al.in.ref", format="aims")
 
 def test_relaxation(workdir=workdir):
     with cwd(parent):
-
         settings = Settings(settings_file=settings_file)
 
         if workdir.exists():

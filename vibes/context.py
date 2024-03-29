@@ -16,14 +16,17 @@ class TaskContext:
     def __init__(
         self, settings, name, template_dict=None, workdir=None, trajectory_file=None
     ):
-        """Initialization
+        """
+        Initialization
 
         Args:
+        ----
             settings: settings for the task
             name: name of the task
             template_dict: template settings for task
             workdir: Working directory for running the task
             trajectory_file: Path to output trajectory
+
         """
         self.settings = Settings(
             dct=settings, template_dict=template_dict, config_files=None
@@ -49,7 +52,7 @@ class TaskContext:
 
     @property
     def workdir(self):
-        """return the working directory"""
+        """Return the working directory"""
         if self.kw.get(keys.workdir):
             workdir = self.kw[keys.workdir]
         else:
@@ -60,11 +63,11 @@ class TaskContext:
 
     @workdir.setter
     def workdir(self, folder):
-        """set and create the working directory. Use a standard name if dir='auto'"""
+        """Set and create the working directory. Use a standard name if dir='auto'"""
         self.kw[keys.workdir] = folder
 
     def mkdir(self):
-        """create working directory"""
+        """Create working directory"""
         self.workdir.mkdir(exist_ok=True, parents=True)
 
     @property
@@ -76,13 +79,13 @@ class TaskContext:
 
     @atoms.setter
     def atoms(self, atoms):
-        """set the atoms"""
+        """Set the atoms"""
         assert isinstance(atoms, Atoms), atoms
         self._atoms = atoms
 
     @property
     def calculator(self):
-        """the calculator for running the computation"""
+        """The calculator for running the computation"""
         if not self._calculator:
             # create aims from context and make sure forces are computed
             calc_ctx = CalculatorContext(
@@ -95,6 +98,6 @@ class TaskContext:
 
     @calculator.setter
     def calculator(self, calculator):
-        """set the calculator"""
+        """Set the calculator"""
         assert issubclass(calculator.__class__, Calculator)
         self._calculator = calculator

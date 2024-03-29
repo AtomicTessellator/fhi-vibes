@@ -46,26 +46,26 @@ Once the geometry files are added, create a phonopy workflow in `workflow.in` wi
 
     [fireworks]
     name:                          example_phonon_calculations
-    
+
     [fireworks.workdir]
     local:                         analysis/
     remote:                        run/
-    
+
     [calculator]
     name:                          aims
-    
+
     [calculator.parameters]
     xc:                            pw-lda
-    
+
     [calculator.kpoints]
     density:                       1
-    
+
     [calculator.basissets]
     default:                       light
-    
+
     [calculator.socketio]
     port:                          12345
-    
+
     [phonopy]
     supercell_matrix:              [-2, 2, 2, 2, -2, 2, 2, 2, -2]
     displacement:                  0.01
@@ -75,11 +75,11 @@ Once the geometry files are added, create a phonopy workflow in `workflow.in` wi
     symprec:                       1e-05
     q_mesh:                        [45, 45, 45]
     serial:                        True
-    
+
     [phonopy.convergence]
     minimum_similarity_score:      0.05
     sc_matrix_base:                [-1, 1, 1, 1, -1, 1, 1, 1, -1]
-    
+
     [phonopy.qadapter]
     nodes:                         1
     walltime:                      00-04:00:00
@@ -152,7 +152,7 @@ and you should get the following output
 
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-    
+
     [calculator]   Update aims k_grid with kpt density of 1 to [4, 4, 4]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
@@ -171,10 +171,10 @@ and you should get the following output
     [fireworks]    Generating workflow for MgO
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-    
+
     * Message from file vibes/context.py, line 57, function workdir:
     --> workdir not set, return `workdir``
-    
+
     [calculator]   Update aims k_grid with kpt density of 1 to [4, 4, 4]
     [calculator]   .. add `sc_accuracy_rho: 1e-06` to parameters (default)
     [calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)

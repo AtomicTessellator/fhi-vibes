@@ -154,7 +154,7 @@ name: my first fireworker
 category: ''
 query: '{}'
 ```
-Once all files are in your \$FW_CONFIG folder edit PYTHON_SITE_PACKAGES_DIRECTORY/fireworks/fw_config.py to reflect where to find the correct FireWorks configuration files. The relevant portion changes to the file  should look like this with $FW_CONFIG replaced with the correct path
+Once all files are in your \$FW_CONFIG folder edit pythonN_SITE_PACKAGES_DIRECTORY/fireworks/fw_config.py to reflect where to find the correct FireWorks configuration files. The relevant portion changes to the file  should look like this with $FW_CONFIG replaced with the correct path
 ```
 LAUNCHPAD_LOC = $FW_CONFIG/my_launchpad.yaml  # where to find the my_launchpad.yaml file
 FWORKER_LOC = $FW_CONFIG/my_fworker.yaml  # where to find the my_fworker.yaml file
