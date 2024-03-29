@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- A working`python3.7+` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html).
+- A working`python3.9+` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html).
 
 - A working `fortran` compiler, e.g., obtained by:
     - `apt-get install gfortran` in Debian-derived systems, or
@@ -29,16 +29,10 @@ This way to install `fhi-vibes` should always work, it's currently the preferred
 	cd vibes
 	```
 
-- Install build requirements `numpy` and `poetry` manually (if you use a `conda` environment, you should install `numpy` via `conda` instead):
+- Install build requirements `numpy` and `setuptools` manually (if you use a `conda` environment, you should install `numpy` via `conda` instead):
 
 	```
-	pip install numpy poetry==1.1.12
-	```
-	
-- Install `fhi-vibes ` [_without_ build isolation](https://pip.pypa.io/en/stable/cli/pip_install/)
-
-	```
-	pip install --no-build-isolation .
+	pip install numpy
 	```
 
 **If you run into problems, please have a look at our [troubleshooting section.](#Troubleshooting)**
