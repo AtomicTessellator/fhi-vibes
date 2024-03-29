@@ -285,7 +285,7 @@ def dict2atoms(
         calculator = None
 
     atoms.calc = calculator
-    atoms.info = atoms_dict.get("info", dict())
+    atoms.info = atoms_dict.get("info", {})
     atoms.info["unique_id"] = uuid
     return atoms
 

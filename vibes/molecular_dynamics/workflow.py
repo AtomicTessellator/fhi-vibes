@@ -188,9 +188,7 @@ def run(ctx, backup_folder=default_backup_folder):
         talk("Stop.\n")
 
     # restart
-    if md.nsteps < maxsteps:
-        return False
-    return True
+    return md.nsteps >= maxsteps
 
 
 def log_step(atoms, md, trajectory_file):
