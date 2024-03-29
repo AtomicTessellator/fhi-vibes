@@ -1,0 +1,82 @@
+[tool.poetry]
+name = "fhi-vibes"
+version = "1.0.5"
+description = "Fritz Haber Institute Vibrational Simulations"
+authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
+license = "MIT"
+readme = "README.md"
+repository = "https://gitlab.com/vibes-developers/vibes"
+packages = [
+    { include = "vibes" },
+]
+
+keywords = ['physics']
+
+build = "build.py"
+
+[tool.poetry.dependencies]
+python = "^3.6.1, <4.0"
+numpy = "^1.17.5"
+scipy = "^1.1.1"
+matplotlib = "^3.1"
+son = "^0.4.1"
+spglib = ">=1.12"
+phonopy = "^2.6"
+ase = "^3.20.0"
+click = ">=8.0"
+attrs = ">=19.1"
+fireworks = {version = "^1.9",optional = true}
+phono3py = {version = "^1.21",optional = true}
+python-gssapi = {version = "^0.6.4",optional = true}
+pymongo = {version = "^3.8",optional = true}
+fabric = {version = "^2.4",optional = true}
+paramiko = {version = "^2.4",optional = true}
+psycopg2 = {version="^2.8.0", optional=true}
+xarray = ">=0.13"
+netCDF4 = ">=1.5"
+jinja2 = ">=2.10"
+hiphive = {version = "^0.5.0", optional = true}
+tables = "^3.5"
+click_aliases = ">=1.0"
+click_completion = ">=0.5.2"
+jconfigparser = "^0.1.2"
+pandas = ">=1.0,<2.0"
+importlib_resources = { version = "*", python = "3.6.*" }
+dataclasses = { version = "*", python = "3.6.*" }
+seaborn = ">=0.11.0"
+requests = {version = "^2.25", optional=true}
+
+[tool.poetry.extras]
+fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko", "requests"]
+phono3py = ["phono3py"]
+hiphive = ["hiphive"]
+postgresql = ["psycopg2"]
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+pytest = ">=6.0"
+flake8 = "^3.7"
+rope = "^0.14.0"
+flake8-bugbear = "^19.8"
+flake8-comprehensions = "^3.1"
+pytest-xdist = "^1.31"
+pytest-cov = "^2.8"
+isort = "^4.3"
+mkdocs = "^1.2"
+mkdocs-material = "^7.3"
+mkdocs-minify-plugin = "^0.5.0"
+
+[tool.poetry.scripts]
+vibes = 'vibes.cli:cli'
+
+[tool.black]
+target-version = ['py37']
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+filterwarnings = ["ignore"]
+
+[build-system]
+requires = ["setuptools<=59.2.0", "wheel", "poetry<=1.1.12", "numpy"]
+build-backend = "poetry.masonry.api"
+
