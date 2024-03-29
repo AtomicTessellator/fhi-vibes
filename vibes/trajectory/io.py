@@ -221,7 +221,7 @@ def reader(
         "metadata": map_metadata,
         "single_point_calculator": single_point_calculator,
     }
-    list = _map_create_atoms(pre_trajectory, **kw)
+    list = [_create_atoms(a, **kw) for a in pre_trajectory]
     trajectory = Trajectory(list, metadata=metadata)
     timer2()
 
