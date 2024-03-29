@@ -83,6 +83,7 @@ documentation="https://vibes-developers.gitlab.io/vibes/Documentation/0_intro"
 [tool.setuptools.package-data]
 vibes = ["py.typed"]
 "vibes.templates.config_files" = ["*template", "*.in"]
+"vibes.templates.settings" = ["aims*", "lj"]
 
 [tool.setuptools.packages.find]
 where = ["."]  # list of folders that contain the packages (["."] by default)
