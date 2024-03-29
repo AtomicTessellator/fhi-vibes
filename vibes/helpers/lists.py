@@ -22,7 +22,7 @@ def expand_list(obj):
 
 def list_dim(a: list) -> int:
     """dimension of a (nested) pure Python list, similar to np.shape"""
-    if not type(a) == list:
+    if not isinstance(a, list):
         return []
     if a == []:
         return 0

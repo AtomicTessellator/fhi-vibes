@@ -10,7 +10,7 @@ setup(
                 "vibes/helpers/supercell/supercell.f90",
             ],
             extra_compile_args=["-O3"],
-        )        
+        )
     ]
 )
 # ext = Extension(
