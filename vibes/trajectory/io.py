@@ -139,19 +139,6 @@ def _create_atoms(
 
     return atoms
 
-
-def _map_create_atoms(pre_trajectory, **kwargs):
-    workers = []
-    pool = multiprocessing.Pool()
-    for obj in pre_trajectory:
-        workers.append(pool.apply_async(_create_atoms, args=(obj,), kwds=kwargs))
-    pool.close()
-    pool.join()
-
-    result = [worker.get() for worker in workers]
-    return result
-
-
 def reader(
     file=filenames.trajectory,
     get_metadata=False,
