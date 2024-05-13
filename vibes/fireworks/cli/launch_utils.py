@@ -156,11 +156,8 @@ def do_qluanch(ctx, non_default):
                         r = os.path.expanduser(r)
                         with conn.cd(r):
                             conn.run(
-                                "qlaunch_vibes {} {} {}".format(
-                                    ctx.obj.pre_non_default,
-                                    ctx.obj.command,
-                                    non_default,
-                                )
+                                f"qlaunch_vibes {ctx.obj.pre_non_default} "
+                                f"{ctx.obj.command} {non_default}"
                             )
         else:
             do_launch(ctx)

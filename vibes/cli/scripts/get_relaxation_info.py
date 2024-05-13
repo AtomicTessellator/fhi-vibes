@@ -225,16 +225,8 @@ def print_status(
     sg_str = f"{spacegroup:5d}" if spacegroup else ""
 
     print(
-        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {} {} {}".format(
-            n_rel,
-            energy,
-            free_energy,
-            df,
-            max_force * 1000,
-            vol_str,
-            status_string,
-            sg_str,
-        )
+        f"{n_rel:5d}   {energy:16.8f}   {free_energy:16.8f} {df:14.6f} "
+        f"{max_force * 1000:20.6f} {vol_str} {status_string} {sg_str}"
     )
 
 

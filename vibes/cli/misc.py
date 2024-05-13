@@ -30,7 +30,7 @@ class AliasedGroup(click.Group):
         if len(matches) == 1:
             return click.Group.get_command(self, ctx, matches[0])
 
-        ctx.fail("Too many matches: %s" % ", ".join(sorted(matches)))
+        ctx.fail(f"Too many matches: {', '.join(sorted(matches))}")
 
 
 class ClickAliasedGroup(click_aliases.ClickAliasedGroup):
@@ -51,7 +51,7 @@ class ClickAliasedGroup(click_aliases.ClickAliasedGroup):
         if len(matches) == 1:
             return click.Group.get_command(self, ctx, matches[0])
 
-        ctx.fail("Too many matches: %s" % ", ".join(sorted(matches)))
+        ctx.fail(f"Too many matches: {', '.join(sorted(matches))}")
 
 
 def check_path(file):

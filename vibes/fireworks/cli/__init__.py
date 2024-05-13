@@ -475,7 +475,7 @@ def qlaunch(
     for k in ["silencer", "reserve"]:
         v = getattr(ctx.obj, k, None)
         if v:
-            pre_non_default.append("--%s" % k)
+            pre_non_default.append(f"--{k}")
     pre_non_default = " ".join(pre_non_default)
     ctx.obj.pre_non_default = pre_non_default
 

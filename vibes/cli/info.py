@@ -372,14 +372,9 @@ def relaxation(obj, file, verbose):
         # sg_str = f"{get_spacegroup(atoms):5d}"
         sg_str = get_spacegroup(atoms)
 
-        msg = "{:5d}   {:16.8f}  {:12.6f} {:12.4f} {:14.4f} {}   {}".format(
-            ii + 1,
-            energy,
-            de,
-            res_forces,
-            res_stress,
-            vol_str,
-            sg_str,
+        msg = (
+            f"{ii + 1:5d}   {energy:16.8f}  {de:12.6f} {res_forces:12.4f} "
+            + f"{res_stress:14.4f} {vol_str}   {sg_str}"
         )
         click.echo(msg)
 

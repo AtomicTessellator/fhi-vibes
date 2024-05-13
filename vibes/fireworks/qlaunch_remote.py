@@ -195,9 +195,8 @@ def qlaunch_remote(
                     remote = os.path.expanduser(remote)
                     with conn.cd(remote):
                         conn.run(
-                            "vibes fireworks qlaunch {} {} {}".format(
-                                pre_non_default, command, non_default
-                            )
+                            f"vibes fireworks qlaunch {pre_non_default} "
+                            f"{command} {non_default}"
                         )
         if interval > 0:
             talk(
