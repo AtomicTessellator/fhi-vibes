@@ -1,4 +1,5 @@
-""" Provide a full highlevel phonopy workflow """
+"""Provide a full highlevel phonopy workflow"""
+
 from pathlib import Path
 
 from phonopy.file_IO import write_FORCE_CONSTANTS, write_FORCE_SETS
@@ -18,7 +19,6 @@ from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
 from . import displacement_id_str
-
 
 _prefix = "phonopy.postprocess"
 _tdep_fnames = {"primitive": "infile.ucposcar", "supercell": "infile.ssposcar"}
@@ -41,7 +41,8 @@ def postprocess(
     verbose=True,
     **kwargs,
 ):
-    """Phonopy postprocess
+    """
+    Phonopy postprocess
 
     Parameters
     ----------
@@ -60,8 +61,8 @@ def postprocess(
     -------
     phonon: phonopy.Phonopy
         The Phonopy object with the force constants calculated
-    """
 
+    """
     timer = Timer("Start phonopy postprocess:")
 
     trajectory_file = Path(workdir) / trajectory_file
@@ -120,7 +121,7 @@ def postprocess(
 
 
 def check_negative_frequencies(phonon, tol=1e-8):
-    """check if there are negative frequencies in the spectrum"""
+    """Check if there are negative frequencies in the spectrum"""
     primitive = to_Atoms(phonon.get_unitcell())
     special_points = primitive.cell.get_bravais_lattice().get_special_points()
     for k in special_points:
@@ -134,7 +135,7 @@ def check_negative_frequencies(phonon, tol=1e-8):
 
 
 def print_frequencies_at_gamma(phonon):
-    """print gamma point frequencies"""
+    """Print gamma point frequencies"""
     talk("\nFrequencies at Gamma point:")
     phonon.run_mesh([1, 1, 1])
     qpoints, weights, frequencies, _ = phonon.get_mesh()
@@ -161,16 +162,18 @@ def extract_results(
     output_dir="phonopy_output",
     verbose=False,
 ):
-    """Extract results from phonopy object and present them.
+    """
+    Extract results from phonopy object and present them.
 
     Args:
+    ----
         phonon (phonopy.Phonopy): The Phonopy Object with calculated force constants
         minimal_output (bool, optional): write geometries and force_constants
         thermal_properties (bool, optional): write and plot thermal properties
         bandstructure (bool, optional): write and plot bandstructure
         dos (bool, optional): write and plot DOS
         pdos (bool, optional): write and plot projected DOS
-        debye (bool, optional): write Debye Temperature
+        debye (bool, optional): write Debye Temperaturee
         bz_path (list, optional): Brillouin zone path for bandstructure
         animate (bool, optional): write animation.ascii files
         animate_q (list, optional): write animation.ascii file for given q
@@ -178,6 +181,7 @@ def extract_results(
         remap_fc (bool, optional): write remapped force_constants
         output_dir (str, optional): ]. Defaults to "phonopy_output".
         verbose (bool, optional): be verbose
+
     """
     timer = Timer("\nExtract phonopy results:")
     if not q_mesh:
@@ -192,11 +196,11 @@ def extract_results(
     supercell = to_Atoms(phonon.get_supercell())
 
     if remap_fc:
-        talk(f".. write force constants (remapped)")
+        talk(".. write force constants (remapped)")
         fc_file = "FORCE_CONSTANTS_remapped_phonopy"
         p2s_map = None
     else:
-        talk(f".. write force constants")
+        talk(".. write force constants")
         fc_file = "FORCE_CONSTANTS"
         p2s_map = phonon.get_primitive().get_primitive_to_supercell_map()
 
@@ -204,10 +208,10 @@ def extract_results(
 
     with cwd(output_dir, mkdir=True):
         if minimal_output:
-            talk(f"Extract basic results:")
-            talk(f".. write primitive cell")
+            talk("Extract basic results:")
+            talk(".. write primitive cell")
             write(primitive, filenames.primitive)
-            talk(f".. write supercell")
+            talk(".. write supercell")
             write(supercell, filenames.supercell)
 
             talk(f".. write force constants to {fc_file}")
@@ -221,36 +225,36 @@ def extract_results(
                 f.write(str(phpy_yaml))
 
         if bandstructure:
-            talk(f"Extract bandstructure")
-            talk(f".. write yaml")
+            talk("Extract bandstructure")
+            talk(".. write yaml")
             wrapper.set_bandstructure(phonon, paths=bz_path)
             phonon.write_yaml_band_structure()
 
         if dos or thermal_properties or debye:
-            talk(f"Run mesh")
+            talk("Run mesh")
             phonon.run_mesh(q_mesh)
 
         if thermal_properties:
-            talk(f"Extract thermal properties")
-            talk(f".. write yaml")
+            talk("Extract thermal properties")
+            talk(".. write yaml")
             phonon.run_thermal_properties()
             phonon.write_yaml_thermal_properties()
 
         if debye:
-            talk("Extract Debye Temperatur")
+            talk("Extract Debye Temperature")
             debye_temp = wrapper.get_debye_temperature(phonon)
             with open("debye.dat", "w") as f:
                 f.write(str(debye_temp[0]))
             talk(f".. Debye temperature: {debye_temp[0]:.2f}K written to file.")
 
         if dos:
-            talk(f"Extract DOS:")
-            talk(f".. write")
+            talk("Extract DOS:")
+            talk(".. write")
             dos = wrapper.get_dos(phonon, write=True)
 
         if pdos:
-            talk(f"Extract projected DOS")
-            talk(f".. write")
+            talk("Extract projected DOS")
+            talk(".. write")
             phonon.run_mesh(q_mesh, with_eigenvectors=True, is_mesh_symmetry=False)
             pdos = wrapper.get_dos(phonon, total=False, write=True)
 
@@ -289,9 +293,11 @@ def plot_results(
     output_dir="phonopy_output",
     run_mesh=False,
 ):
-    """Plot results from phonopy object and present them.
+    """
+    Plot results from phonopy object and present them.
 
     Args:
+    ----
         phonon (phonopy.Phonopy): The Phonopy Object with calculated force constants
         thermal_properties (bool, optional): write and plot thermal properties
         bandstructure (bool, optional): write and plot bandstructure
@@ -300,25 +306,25 @@ def plot_results(
         bz_path (list, optional): Brillouin zone path for bandstructure
         output_dir (str, optional): ]. Defaults to "phonopy_output".
         run_mesh (bool): re-run the mesh
+
     """
     timer = Timer("\nPlot phonopy results:")
 
     with cwd(output_dir, mkdir=True):
-
         if thermal_properties:
-            talk(f"Plot thermal properties")
+            talk("Plot thermal properties")
             wrapper.plot_thermal_properties(phonon)
 
         if bandstructure:
-            talk(f"Plot bandstructure")
+            talk("Plot bandstructure")
             wrapper.plot_bandstructure(phonon, paths=bz_path)
 
         if dos:
-            talk(f"Plot DOS:")
+            talk("Plot DOS:")
             wrapper.plot_bandstructure_and_dos(phonon, run_mesh=run_mesh)
 
         if pdos:
-            talk(f"Plot projected DOS")
+            talk("Plot projected DOS")
             wrapper.plot_bandstructure_and_dos(phonon, partial=True, run_mesh=run_mesh)
 
     timer(f"all files written to {output_dir}")

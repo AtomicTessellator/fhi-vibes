@@ -1,9 +1,10 @@
 import pytest
 from ase.build import bulk
+
 from vibes.io import get_identifier
 
 
-@pytest.fixture
+@pytest.fixture()
 def atoms_bulk(type="Al"):
     return bulk(type)
 

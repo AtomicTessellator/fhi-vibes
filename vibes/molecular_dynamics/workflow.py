@@ -1,4 +1,5 @@
-""" run molecular dynamics simulations using the ASE classes """
+"""run molecular dynamics simulations using the ASE classes"""
+
 import numpy as np
 from ase.calculators.socketio import SocketIOCalculator
 
@@ -11,20 +12,18 @@ from vibes.helpers.paths import cwd
 from vibes.helpers.restarts import restart
 from vibes.helpers.socketio import get_socket_info, get_stresses
 from vibes.helpers.utils import Timeout
+from vibes.helpers.virials import supports_virials, virials_off, virials_on
 from vibes.helpers.watchdogs import SlurmWatchdog as Watchdog
-from vibes.helpers.virials import virials_off, virials_on, supports_virials
 from vibes.trajectory import metadata2file, step2file
 
 from ._defaults import calculation_timeout, talk
-
 
 _calc_dirname = "calculations"
 # _socket_timeout = 60
 
 
 def run_md(ctx, timeout=None):
-    """ high level function to run MD """
-
+    """High level function to run MD"""
     converged = run(ctx)
 
     if not converged:
@@ -34,8 +33,9 @@ def run_md(ctx, timeout=None):
         talk("done.")
 
 
-def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
-    """run MD for a specific time
+def run(ctx, backup_folder=default_backup_folder):
+    """
+    Run MD for a specific time
 
     Green-Kubo runs, we treat calculators as follows:
 
@@ -54,12 +54,13 @@ def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
     supported through custom means.
 
     Args:
+    ----
         ctx (MDContext): context of the MD
         backup_folder (str or Path): Path to the back up folders
     Returns:
         bool: True if hit max steps or completed
-    """
 
+    """
     # extract things from context
     atoms = ctx.atoms
     calculator = ctx.calculator
@@ -88,7 +89,9 @@ def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
         iocalc = SocketIOCalculator(calculator, **kw)
         atoms.calc = iocalc
 
-    is_socketio = socketio_port is not None  # do we have to do aims+socketio workarounds?
+    is_socketio = (
+        socketio_port is not None
+    )  # do we have to do aims+socketio workarounds?
     use_virials = supports_virials(atoms.calc)  # do we need to use stresses?
 
     # does it make sense to start everything?
@@ -118,7 +121,7 @@ def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
         if is_socketio:
             # workaround to deal with the fact that the socket server only exists
             # *after* calculate is called for the first time, i.e. we can't turn
-            # virials on before calculating someting.
+            # virials on before calculating something.
             # we have to *only* do it for socketio because other calculators would
             # not re-run their computations when virials are enabled, and so they
             # would be missing later
@@ -128,7 +131,6 @@ def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
 
         # log initial step and metadata
         if md.nsteps == 0:
-
             # log metadata
             metadata2file(metadata, file=trajectory_file)
 
@@ -139,7 +141,7 @@ def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
                     # trigger calculation, which should compute virials
                     get_forces(atoms)
                 else:
-                    # if we're using socketio this will compute stresses and retrieve them
+                    # if we're using socketio this will compute stresses and get them
                     # if not, it'll just retrieve stresses from calc.results
                     stresses_to_results(atoms)
             else:
@@ -151,7 +153,6 @@ def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
             log_step(atoms, md, trajectory_file)
 
         while not watchdog() and md.nsteps < maxsteps:
-
             if compute_virials_next(compute_virials, md.nsteps):
                 talk("switch virials computation on")
                 virials_on(atoms.calc)
@@ -187,9 +188,7 @@ def run(ctx, backup_folder=default_backup_folder):  # noqa: C901
         talk("Stop.\n")
 
     # restart
-    if md.nsteps < maxsteps:
-        return False
-    return True
+    return md.nsteps >= maxsteps
 
 
 def log_step(atoms, md, trajectory_file):
@@ -209,7 +208,8 @@ def compute_virials_next(compute_virials, nsteps):
 
 
 def stresses_to_results(atoms):
-    """Write stresses to results
+    """
+    Write stresses to results
 
     This has two functions:
 
@@ -232,7 +232,7 @@ def check_metadata(new_metadata, old_metadata):
     # check if keys coincide:
     # sanity check values:
     check_keys = ("md-type", "timestep", "temperature", "friction", "fs")
-    keys = [k for k in check_keys if k in om.keys()]
+    keys = [k for k in check_keys if k in om]
     for key in keys:
         ov, nv = om[key], nm[key]
         if isinstance(ov, float):
@@ -260,7 +260,7 @@ def get_forces(atoms):
         _ = atoms.get_forces()
         return True
     except OSError as error:
-        warn(f"Error during force computation:")
+        warn("Error during force computation:")
         print(error, flush=True)
         return False
 
@@ -270,6 +270,6 @@ def md_step(md):
         md.run(1)
         return True
     except OSError as error:
-        warn(f"Error during MD step:")
+        warn("Error during MD step:")
         print(error, flush=True)
         return False

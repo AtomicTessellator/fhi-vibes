@@ -109,7 +109,7 @@ $ vibes output --help
 
 Usage: vibes output [OPTIONS] COMMAND [ARGS]...
 
-  produce output of vibes workfow
+  produce output of vibes workflow
 
 Options:
   -h, --help  Show this message and exit.
@@ -140,4 +140,3 @@ Commands:
   make-supercell        create a supercell of desired shape or size
   trajectory            trajectory utils
 ```
-

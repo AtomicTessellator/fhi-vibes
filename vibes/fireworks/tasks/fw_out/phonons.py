@@ -1,21 +1,21 @@
 """Generate FWActions after setting Phonon Calculations"""
 
 from fireworks import FWAction, Workflow
+
+from vibes.context import TaskContext
+from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
 from vibes.fireworks.tasks.postprocess.phonons import (
     get_converge_phonon_update,
-    time2str,
+    time2ndr,
 )
-from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
 from vibes.fireworks.utils.converters import phonon3_to_dict, phonon_to_dict
 from vibes.fireworks.workflows.firework_generator import generate_firework
 from vibes.fireworks.workflows.workflow_generator import process_phonons
-
-from vibes.context import TaskContext
-
 from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms
 from vibes.helpers.k_grid import k2d
 from vibes.helpers.watchdogs import str2time
-from vibes.phonopy._defaults import keys, kwargs as ph_kwargs
+from vibes.phonopy._defaults import keys
+from vibes.phonopy._defaults import kwargs as ph_kwargs
 from vibes.settings import Settings
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
@@ -31,7 +31,8 @@ def post_init_mult_calcs(
     func_fw_kwargs,
     fw_settings,
 ):
-    """postprocessing for initializing parallel force calculaitons
+    """
+    Postprocessing for initializing parallel force calculaitons
 
     Parameters
     ----------
@@ -40,7 +41,7 @@ def post_init_mult_calcs(
     calculator_dict : dict
         The dictionary representation of the original calculator
     outputs : dict
-        The outputs after setting up claculations
+        The outputs after setting up calculations
     func : str
         Function path to the main function
     func_fw_out : str
@@ -96,7 +97,7 @@ def post_init_mult_calcs(
             and "serial" in func_set
             and func_set["serial"]
         ):
-            fw_set["walltime"] = time2str(
+            fw_set["walltime"] = time2ndr(
                 str2time(fw_set["walltime"]) * len(out["atoms_to_calculate"])
             )
 
@@ -123,14 +124,15 @@ def get_detours(
     atoms=None,
     detours=None,
 ):
-    """Add a set of detours for force calculations
+    """
+    Add a set of detours for force calculations
 
     Parameters
     ----------
     atoms_to_calculate : list of ase.atoms.Atoms
         List of structures to calculate forces for
     calculator_dict : dict
-        Dictionary representation of the ase.calculators.calulator.Calculator
+        Dictionary representation of the ase.calculators.calculator.Calculator
     prefix : str
         prefix to add to force calculations
     calc_kwargs : dict
@@ -138,7 +140,7 @@ def get_detours(
     fw_settings : dict
         A dictionary describing all FireWorks settings
     update_spec : dict
-        Parmeters to be added to the FireWorks spec
+        Parameters to be added to the FireWorks spec
     atoms : ase.atoms.Atoms
         Initial ASE Atoms object representation of the structure (Default value = None)
     detours : list of fireworks.Firework
@@ -161,13 +163,13 @@ def get_detours(
                 )
             else:
                 fw_settings["spec"]["_queueadapter"]["walltime"] = (
-                    time2str(calc_kwargs["walltime"]) + 120
+                    time2ndr(calc_kwargs["walltime"]) + 120
                 )
         else:
             if "spec" not in fw_settings:
                 fw_settings["spec"] = {}
             fw_settings["spec"]["_queueadapter"] = {
-                "walltime": time2str(calc_kwargs["walltime"] + 120)
+                "walltime": time2ndr(calc_kwargs["walltime"] + 120)
             }
 
     if calc_kwargs["serial"]:
@@ -187,7 +189,8 @@ def get_detours(
 
 
 def add_socket_calc_to_detours(detours, atoms_dict, func_kwargs, fw_settings, prefix):
-    """Generates a Firework to run a socket calculator and adds it to the detours
+    """
+    Generates a Firework to run a socket calculator and adds it to the detours
 
     Parameters
     ----------
@@ -235,7 +238,8 @@ def add_socket_calc_to_detours(detours, atoms_dict, func_kwargs, fw_settings, pr
 def add_single_calc_to_detours(
     detours, func_fw_kwargs, atoms_list, calculator_dict, fw_settings, prefix
 ):
-    """Adds a group of Fireworks to run as single calculations
+    """
+    Adds a group of Fireworks to run as single calculations
 
     Parameters
     ----------
@@ -287,7 +291,8 @@ def add_single_calc_to_detours(
 
 
 def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
-    """Add the phonon_dict to the spec
+    """
+    Add the phonon_dict to the spec
 
     Parameters
     ----------
@@ -299,7 +304,7 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
         Dictionary for the FireWorks specific systems (Default value = None)
     kwargs : dict
         Dictionary of keyword arguments that must have the following objects
-        ouputs(phonopy.Phonopy): The Phonopy object from post-processing
+        outputs(phonopy.Phonopy): The Phonopy object from post-processing
     *args :
 
     **kwargs :
@@ -350,7 +355,8 @@ def add_phonon_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
 
 
 def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
-    """Check phonon convergence and set up future calculations after a phonon calculation
+    """
+    Check phonon convergence and set up future calculations
 
     Parameters
     ----------
@@ -415,7 +421,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
         update_spec = dict(_queueadapter=qadapter, **update_job)
         update_spec["kgrid"] = args[-1]
         return FWAction(update_spec=update_spec)
-    elif "n_atoms" in [
+    if "n_atoms" in [
         cond[0] for cond in kwargs.get("stop_if", {}).get("condition_list", [])
     ]:
         condition = [
@@ -450,7 +456,7 @@ def converge_phonons(func, func_fw_out, *args, fw_settings=None, **kwargs):
     if "_queueadapter" in fw_settings["spec"]:
         func_kwargs.pop("walltime", None)
         fw_settings["spec"]["_queueadapter"].pop("queue", None)
-        fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(
+        fw_settings["spec"]["_queueadapter"]["walltime"] = time2ndr(
             update_job["expected_walltime"] + 120
         )
         fw_settings["spec"]["_queueadapter"]["ntasks"] = update_job["ntasks"]

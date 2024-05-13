@@ -1,1 +1,1 @@
-""" prepare molecular dynamics simulations using the ASE classes """
+"""prepare molecular dynamics simulations using the ASE classes"""

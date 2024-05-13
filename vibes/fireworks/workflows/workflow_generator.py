@@ -1,4 +1,5 @@
 """Functions used to generate a FireWorks Workflow"""
+
 from pathlib import Path
 
 from fireworks import Workflow
@@ -23,7 +24,8 @@ from vibes.phonopy._defaults import kwargs as ph_defaults
 
 
 def process_relaxation(workflow, atoms, fw_settings, basis):
-    """Processes the workflow settings to get all relaxation steps
+    """
+    Processes the workflow settings to get all relaxation steps
 
     Parameters
     ----------
@@ -50,7 +52,7 @@ def process_relaxation(workflow, atoms, fw_settings, basis):
             try:
                 relaxation_steps.append(int(key))
             except ValueError:
-                raise ValueError("relaxation step keys must be whole numbers")
+                raise ValueError("relaxation step keys must be whole numbers") from None
 
     for step in sorted(relaxation_steps):
         if not settings.get("use_aims_relax", False):
@@ -68,7 +70,8 @@ def process_relaxation(workflow, atoms, fw_settings, basis):
 def process_phonons(
     workflow, atoms, fw_settings, basis, update_in_spec=True, prev_dos_fp=None
 ):
-    """Processes the workflow settings to get all phonopy steps
+    """
+    Processes the workflow settings to get all phonopy steps
 
     Parameters
     ----------
@@ -93,7 +96,8 @@ def process_phonons(
     Raises
     ------
     ValueError
-        If supercell_matrix is not provided for phonopy, phono3py, or statistical_sampling
+        If supercell_matrix is not provided for phonopy, phono3py, or
+        statistical_sampling
 
     """
     phonon_fws = []
@@ -131,7 +135,8 @@ def process_phonons(
 
 
 def process_stat_samp(workflow, atoms, fw_settings):
-    """Processes the workflow settings to get all Statistical Sampling steps
+    """
+    Processes the workflow settings to get all Statistical Sampling steps
 
     Parameters
     ----------
@@ -158,7 +163,8 @@ def process_stat_samp(workflow, atoms, fw_settings):
 
 
 def process_grun(workflow, atoms, fw_settings):
-    """Processes the workflow settings to get all Gruneisen steps
+    """
+    Processes the workflow settings to get all Gruneisen steps
 
     Parameters
     ----------
@@ -191,7 +197,8 @@ def process_grun(workflow, atoms, fw_settings):
 
 
 def process_workdir(workdir, atoms, make_absolute):
-    """process the working directory
+    """
+    Process the working directory
 
     Parameters
     ----------
@@ -221,14 +228,15 @@ def process_workdir(workdir, atoms, make_absolute):
 
 
 def generate_workflow(workflow, atoms, launchpad_yaml=None, make_absolute=True):
-    """Generates a workflow from given set of steps
+    """
+    Generates a workflow from given set of steps
 
     Parameters
     ----------
     workflow : Settings
         The settings object for the desired workflow
     atoms : ase.atoms.Atoms
-        ASE Atoms object to preform the calculation on, with an attached calculator
+        ASE Atoms object to perform the calculation on, with an attached calculator
     launchpad_yaml : str
         filename for the launchpad definition file (Default value = None)
     make_absolute: bool

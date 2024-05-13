@@ -11,9 +11,9 @@ parent = Path(__file__).parent
 run_command = "vibes run md"
 
 
-@pytest.fixture
+@pytest.fixture()
 def atoms():
-    """cubic Argon"""
+    """Cubic Argon"""
     return bulk("Ar", cubic=True) * (2, 2, 2)
 
 
@@ -22,7 +22,7 @@ def test_npt(atoms, tmp_path, file):
     atoms.write(tmp_path / "geometry.in")
     (tmp_path / "md.in").symlink_to(file)
 
-    sp.run(run_command.split(), cwd=tmp_path)
+    sp.run(run_command.split(), cwd=tmp_path, check=False)
 
 
 if __name__ == "__main__":

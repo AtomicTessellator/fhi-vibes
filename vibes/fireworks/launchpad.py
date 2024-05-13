@@ -1,22 +1,25 @@
-""" Modified Launchpad class from FireWorks
+"""
+Modified Launchpad class from FireWorks
 
 FireWorks Copyright (c) 2013, The Regents of the University of
 California, through Lawrence Berkeley National Laboratory (subject
 to receipt of any required approvals from the U.S. Dept. of Energy).
 All rights reserved.
 """
+
 from fireworks.core import launchpad
 from fireworks.fw_config import LAUNCHPAD_LOC
 
 
 class LaunchPad(launchpad.LaunchPad):
-    """The modified Launchpad that manges the FireWorks database"""
+    """The modified Launchpad that manages the FireWorks database"""
 
     def __init__(self, *args, **kwargs):
-        super(LaunchPad, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def run_exists(self, fworker=None, ids=None):
-        """Checks to see if the database has any FireWorks ready to run in a given set
+        """
+        Checks to see if the database has any FireWorks ready to run in a given set
 
         Parameters
         ----------
@@ -37,7 +40,8 @@ class LaunchPad(launchpad.LaunchPad):
         return bool(self._get_a_fw_to_run(query=query, checkout=False))
 
     def future_run_exists(self, fworker=None, ids=None):
-        """heck if database has any current OR future Fireworks available
+        """
+        Heck if database has any current OR future Fireworks available
 
         Parameters
         ----------
@@ -70,7 +74,8 @@ class LaunchPad(launchpad.LaunchPad):
 
     @classmethod
     def from_dict(cls, d):
-        """Constructs a LaunchPad from a dict
+        """
+        Constructs a LaunchPad from a dict
 
         Parameters
         ----------
@@ -113,7 +118,8 @@ class LaunchPad(launchpad.LaunchPad):
 
     @classmethod
     def auto_load(cls):
-        """auto_load from default file
+        """
+        auto_load from default file
 
         Parameters
         ----------

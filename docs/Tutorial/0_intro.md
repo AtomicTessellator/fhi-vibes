@@ -23,7 +23,7 @@ The following tutorials are available:
 - [High-Throughput workflows](../High_Throughput/Tutorial/0_configuring_fw_for_vibes.md)
 
 All tutorials discuss fcc-Silicon, which is treated at the _ab initio_ level using FHI-aims and the LDA exchange-correlation functional.
-Although only very moderate computational ressources are needed (mostly few minutes of runtime on a modern multi-core node), the tutorials
+Although only very moderate computational resources are needed (mostly few minutes of runtime on a modern multi-core node), the tutorials
 are intended to be run on a computing cluster, since they aim at showcasing typical
 FHI-vibes usage.
 

@@ -1,9 +1,8 @@
-""" tools for converting atoms objects to json representations """
-
+"""tools for converting atoms objects to json representations"""
 
 import json
+from collections.abc import Sequence
 from pathlib import Path, PosixPath
-from typing import Sequence
 
 import numpy as np
 from ase.atoms import Atoms
@@ -16,7 +15,6 @@ from ase.io.jsonio import MyEncoder
 from vibes import keys
 from vibes.helpers.lists import expand_list, list_dim, reduce_list
 from vibes.konstanten import n_yaml_digits
-
 
 key_symbols = "symbols"
 key_masses = "masses"
@@ -45,16 +43,19 @@ class NumpyEncoder(json.JSONEncoder):
 def atoms2dict(
     atoms: Atoms, reduce: bool = True, add_constraints: bool = False
 ) -> dict:
-    """Converts an Atoms object into a dict
+    """
+    Converts an Atoms object into a dict
 
     Args:
+    ----
         atoms: The structure to be converted to a dict
         reduce: use reduced representation of `symbols` and `masses`
 
     Returns:
+    -------
         atoms_dict: The dict representation of atoms
-    """
 
+    """
     atoms_dict = {}
 
     # if periodic system, append lattice (before positions)
@@ -84,15 +85,18 @@ def atoms2dict(
 
 
 def calc2dict(calculator: SinglePointCalculator) -> dict:
-    """Converts an ase calculator calc into a dict
+    """
+    Converts an ase calculator calc into a dict
 
     Args:
+    ----
         calculator: The calculator to be converted to a dict
 
     Returns:
+    -------
         calculator_dict: The dict representation of calculator
-    """
 
+    """
     if calculator is None:
         return {}
     if isinstance(calculator, dict):
@@ -120,9 +124,11 @@ def input2dict(
     supercell: Atoms = None,
     settings: dict = None,
 ) -> dict:
-    """Convert metadata information to plain dict
+    """
+    Convert metadata information to plain dict
 
     Args:
+    ----
         atoms: The structure to be converted to a dict
         calculator: The calculator to be converted to a dict
         primitive: The primitive cell structure
@@ -130,6 +136,7 @@ def input2dict(
         settings: The settings used to generate the inputs
 
     Returns:
+    -------
     input_dict: The dictionary representation of the inputs with the following items
 
         calculator: The calc_dict of the inputs
@@ -137,6 +144,7 @@ def input2dict(
         primitive: The dict representation of the primitive cell structure
         supercell: The dict representation of the supercell cell structure
         settings: The dict representation of the settings used to generate the inputs
+
     """
     # structure
     atoms_dict = atoms2dict(atoms)
@@ -165,16 +173,20 @@ def input2dict(
 
 
 def results2dict(atoms: Atoms, calculator: SinglePointCalculator = None) -> dict:
-    """extract information from atoms and calculator and convert to plain dict
+    """
+    Extract information from atoms and calculator and convert to plain dict
 
     Args:
+    ----
         atoms: The structure to be converted to a dict
         calculator: The calculator to be converted to a dict
 
     Returns:
+    -------
         dict: dictionary with items
             calculator: calculator_dict of the inputs
             atoms: atoms_dict of the inputs
+
     """
     atoms_dict = atoms2dict(atoms)
 
@@ -213,15 +225,19 @@ def results2dict(atoms: Atoms, calculator: SinglePointCalculator = None) -> dict
 def dict2atoms(
     atoms_dict: dict, calculator_dict: dict = None, single_point_calculator: bool = True
 ) -> Atoms:
-    """Convert dictionaries into atoms and calculator objects
+    """
+    Convert dictionaries into atoms and calculator objects
 
     Args:
+    ----
         atoms_dict: The dict representation of atoms
         calculator_dict: The dict representation of calc
         single_point_calculator: return calculator as SinglePointCalculator
 
     Returns:
+    -------
         atoms: atoms represented by atoms_dict with calculator represented by calc_dict
+
     """
     if "pbc" not in atoms_dict:
         atoms_dict.update({"pbc": "cell" in atoms_dict})
@@ -269,17 +285,13 @@ def dict2atoms(
         calculator = None
 
     atoms.calc = calculator
-    if "info" in atoms_dict:
-        atoms.info = atoms_dict["info"]
-    else:
-        atoms.info = {}
+    atoms.info = atoms_dict.get("info", {})
     atoms.info["unique_id"] = uuid
     return atoms
 
 
 def results2singlepoint(results=None, atoms=None, calculator_dict=None):
     """Make SinglePointCalculator with non-ase properties"""
-
     if results is None:
         results = {}
     if calculator_dict is None:
@@ -287,9 +299,7 @@ def results2singlepoint(results=None, atoms=None, calculator_dict=None):
 
     # remove properties not allowed by ase so the SinglePointCalculator
     # doesn't complain
-    additional_properties = [
-        prop for prop in results.keys() if prop not in all_properties
-    ]
+    additional_properties = [prop for prop in results if prop not in all_properties]
     additional_results = {p: results.pop(p) for p in additional_properties}
 
     calculator = SinglePointCalculator(atoms, **results)
@@ -307,17 +317,20 @@ def results2singlepoint(results=None, atoms=None, calculator_dict=None):
 
 
 def dict2json(dct: dict, indent: int = 0, outer: bool = True) -> str:
-    """convert python dictionary with scientific data to JSON
+    """
+    Convert python dictionary with scientific data to JSON
 
     Args:
+    ----
         dct: Dictionary to convert to JSONAble format
         indent: indentation for the json string
         outer: if True add outer { } to the string
 
     Returns:
+    -------
         json string of the dict
-    """
 
+    """
     parts = []
     ind = indent * " "
 
@@ -389,27 +402,29 @@ def dict2json(dct: dict, indent: int = 0, outer: bool = True) -> str:
 
 
 def get_json(obj) -> str:
-    """Return json representation of obj
+    """
+    Return json representation of obj
 
     Args:
+    ----
         obj: Object to convert to json
 
     Returns:
+    -------
         json string of obj
+
     """
     return json.dumps(obj, cls=MyEncoder, sort_keys=True)
 
 
 def atoms2json(atoms, reduce=True):
-    """return json representation of Atoms"""
-    rep = dict2json(atoms2dict(atoms, reduce=reduce))
-    return rep
+    """Return json representation of Atoms"""
+    return dict2json(atoms2dict(atoms, reduce=reduce))
 
 
 def json2atoms(rep):
-    """return Atoms from json string"""
-    atoms = dict2atoms(json.loads(rep))
-    return atoms
+    """Return Atoms from json string"""
+    return dict2atoms(json.loads(rep))
 
 
 def atoms_calc2json(
@@ -418,22 +433,25 @@ def atoms_calc2json(
     ignore_keys: Sequence[str] = ["unique_id"],
     ignore_calc_params: Sequence[str] = [],
 ) -> Sequence[str]:
-    """Return json representation of atoms and calculator objects.
+    """
+    Return json representation of atoms and calculator objects.
 
     Includes possibility to remove certain keys from the atoms dictionary,
     e.g. for hashing
 
     Args:
+    ----
         atoms: The structure to be converted to a json with attached calculator
         ignore_results: If True ignore the results in atoms.calc
         ignore_keys: Ignore keys in this list
         ignore_calc_params: Ignore calculator keys in this list
 
     Returns:
+    -------
         atoms_json: Json representation of the atoms dictionary
         calc_json: Json representation of the calculator dictionary
-    """
 
+    """
     # dictionary contains all the information in atoms object
     atomsdict = ase_atoms2dict(atoms)
 

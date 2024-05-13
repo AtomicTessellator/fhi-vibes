@@ -8,7 +8,8 @@
 
 # Find the optimizer type
 def get_optimizer(f):
-    """Find the optimzer type
+    """
+    Find the optimizer type
 
     Parameters
     ----------
@@ -19,6 +20,7 @@ def get_optimizer(f):
     -------
     int
         Optimizer type, 1 for Textbook BFGS, 2 for TRM, -1 for undefined
+
     """
     try:
         line = next(l for l in f if "Geometry relaxation:" in l)
@@ -34,7 +36,8 @@ def get_optimizer(f):
 
 # find energy
 def get_energy(f):
-    """Find the total energy for the calculation
+    """
+    Find the total energy for the calculation
 
     Parameters
     ----------
@@ -47,6 +50,7 @@ def get_energy(f):
         the total energy corrected of the structure
     free_energy: float
         the electronic free energy of the structure
+
     """
     spacegroup = None
     total_energy = None
@@ -67,7 +71,8 @@ def get_energy(f):
 
 # get max_force
 def get_forces(f):
-    """Find the maximum force component
+    """
+    Find the maximum force component
 
     Parameters
     ----------
@@ -78,6 +83,7 @@ def get_forces(f):
     -------
     float
         The maximum force component of the structure
+
     """
     line = next(l for l in f if "Maximum force component" in l)
     return float(line.split()[4])
@@ -85,7 +91,8 @@ def get_forces(f):
 
 # get current volume
 def get_volume(f):
-    """Find the volume of the structure
+    """
+    Find the volume of the structure
 
     Parameters
     ----------
@@ -96,6 +103,7 @@ def get_volume(f):
     -------
     float
         The structures volume
+
     """
     for line in f:
         if "| Unit cell volume " in line:
@@ -109,7 +117,8 @@ def get_volume(f):
 
 # parse info of one step
 def parser(f, n_init=0, optimizer=2):
-    """Parse info of one step
+    """
+    Parse info of one step
 
     Parameters
     ----------
@@ -138,6 +147,7 @@ def parser(f, n_init=0, optimizer=2):
         If True the relaxation is converged
     abort: int
         If 1 the relaxation is aborting
+
     """
     n_rel = n_init
     converged = 0
@@ -166,10 +176,10 @@ def parser(f, n_init=0, optimizer=2):
                 status = 2
             #            elif '**' in line:
             #                status = 3
-            elif "Finished advancing geometry" in line:
-                volume = get_volume(f)
-                break
-            elif "Updated atomic structure" in line:
+            elif (
+                "Finished advancing geometry" in line
+                or "Updated atomic structure" in line
+            ):
                 volume = get_volume(f)
                 break
         yield (
@@ -188,7 +198,8 @@ def parser(f, n_init=0, optimizer=2):
 def print_status(
     n_rel, energy, de, free_energy, df, max_force, volume, spacegroup, status_string
 ):
-    """Print the status line, skip volume if not found
+    """
+    Print the status line, skip volume if not found
 
     Parameters
     ----------
@@ -208,39 +219,26 @@ def print_status(
         The volume of the step
     status_string: str
         The status of the relaxation
+
     """
-
-    if volume and volume > 0:
-        vol_str = f"{volume:15.4f}"
-    else:
-        vol_str = ""
-
-    if spacegroup:
-        sg_str = f"{spacegroup:5d}"
-    else:
-        sg_str = ""
+    vol_str = f"{volume:15.4f}" if (volume and volume > 0) else ""
+    sg_str = f"{spacegroup:5d}" if spacegroup else ""
 
     print(
-        "{:5d}   {:16.8f}   {:16.8f} {:14.6f} {:20.6f} {} {} {}".format(
-            n_rel,
-            energy,
-            free_energy,
-            df,
-            max_force * 1000,
-            vol_str,
-            status_string,
-            sg_str,
-        )
+        f"{n_rel:5d}   {energy:16.8f}   {free_energy:16.8f} {df:14.6f} "
+        f"{max_force * 1000:20.6f} {vol_str} {status_string} {sg_str}"
     )
 
 
 def get_relaxation_info(files):
-    """print information about relaxation performed with FHIaims
+    """
+    Print information about relaxation performed with FHIaims
 
     Parameters
     ----------
     files: list of str
         The file paths of the aims.out files to analyze
+
     """
     init, n_rel, converged, abort = 4 * (None,)
     status_string = [
@@ -262,7 +260,7 @@ def get_relaxation_info(files):
             # Check optimizer
             optimizer = get_optimizer(f)
             ps = parser(f, n_init=n_rel or 0, optimizer=optimizer)
-            for (n_rel, ener, free_ener, fmax, vol, sg, status, _conv, _abort) in ps:
+            for n_rel, ener, free_ener, fmax, vol, sg, status, _conv, _abort in ps:
                 if not init:
                     first_energy, first_free_energy = ener, free_ener
                     init = 1
@@ -286,7 +284,7 @@ def get_relaxation_info(files):
 
 
 def main():
-    """wrap get_relaxation_info"""
+    """Wrap get_relaxation_info"""
     from argparse import ArgumentParser as argpars
 
     parser = argpars(description="Summarize the relaxation path")

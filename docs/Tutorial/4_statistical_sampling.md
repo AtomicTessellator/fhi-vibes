@@ -30,7 +30,7 @@ Following [[West2006]](references.md#West2006), we now present a way to create t
 
 $$
 \begin{align}
-	\mathcal V^{(2)} ({\bf R}) 
+	\mathcal V^{(2)} ({\bf R})
 	= \frac{1}{2} \sum_{I, J}
 		\Delta {\bf R}_I \cdot \Phi_{IJ} \Delta {\bf R}_J~,
 	\label{eq:V2}
@@ -65,7 +65,7 @@ and can be solved analytically, yielding
 
 $$
 \begin{align}
-\Delta {\bf R}_I (t) 
+\Delta {\bf R}_I (t)
 	= \frac{1}{\sqrt{M_I}} \sum_s {\bf e}_{sI} A_s \sin (\omega_s t + \phi_s)~,
 \label{eq:R2(t)}
 \end{align}
@@ -78,7 +78,7 @@ $$
 \left\langle A_{s}\right\rangle
 	=
 	\sqrt{
-	\frac{\hbar}{\omega_{s}}\left(n_{\mathrm{B}}(\omega_s, T)+\frac{1}{2}\right) 
+	\frac{\hbar}{\omega_{s}}\left(n_{\mathrm{B}}(\omega_s, T)+\frac{1}{2}\right)
 	}
 	~\stackrel{k_{\rm B} T \,\gg\, \hbar \omega_s}{\longrightarrow}~
 	\frac{\sqrt{2 k_{\rm B} T}}{\omega_s}~.
@@ -102,7 +102,7 @@ where $\langle A_s \rangle$ is given by Eq. $\eqref{eq:As}$ and each $\zeta_s (n
 
 ### Obtain force constants
 
-We will re-use the calculation from [the previous tutorial on phonon calculations](2_phonopy.md) in the conventional cell with 8 atoms. If you didn't run these calculations, you find the respective calculations in [our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/2_phonopy/sc_8).
+We will reuse the calculation from [the previous tutorial on phonon calculations](2_phonopy.md) in the conventional cell with 8 atoms. If you didn't run these calculations, you find the respective calculations in [our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/2_phonopy/sc_8).
 
 As start, [perform the postprocess](2_phonopy.md#basic-postprocessing) in the `phonopy` folder:
 
@@ -153,7 +153,7 @@ Create a new working directory where you
 - copy the  files `geometry.in.primitive` and `geometry.in.supercell`,
 - copy your samples-folder `samples_300K`.
 
-Move to that directory. _Remark: copying the `geometry.in.primitive` is optional. However, you should always know from where you started, it might save some hours of unnecesary work at some point :-)._
+Move to that directory. _Remark: copying the `geometry.in.primitive` is optional. However, you should always know from where you started, it might save some hours of unnecessary work at some point :-)._
 
 ### Compute the samples
 
@@ -217,12 +217,12 @@ ax = p.plot(marker="x", lw=0)
 
 p.expanding().mean().plot(ax=ax, color="k")
 
-ax.set_xlabel('Sample number')
+ax.set_xlabel("Sample number")
 ```
 
 ??? info "Pressure plot"
 	![image](assets/mc_pressure.png)
-	
+
 The [mean pressure and standard error](3_md_postprocess.md#expectation-value-and-convergence-estimation)[^footnote1] are
 
 $$

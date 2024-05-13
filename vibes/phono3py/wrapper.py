@@ -1,4 +1,4 @@
-""" A leightweight wrapper for Phono3py """
+"""A lightweight wrapper for Phono3py"""
 
 import numpy as np
 from phono3py import Phono3py, load
@@ -27,9 +27,11 @@ def prepare_phono3py(
     log_level=defaults.kwargs.log_level,
     **kwargs,
 ):
-    """Prepare a Phono3py object
+    """
+    Prepare a Phono3py object
 
     Args:
+    ----
         atoms: ase.atoms.Atoms
         supercell_matrix: np.ndarray
         fc2: np.ndarray
@@ -44,9 +46,10 @@ def prepare_phono3py(
         log_level: int
 
     Returns:
+    -------
         phono3py.Phono3py
-    """
 
+    """
     ph_atoms = to_phonopy_atoms(atoms, wrap=True)
 
     supercell_matrix = get_3x3_matrix(supercell_matrix)
@@ -94,6 +97,7 @@ def preprocess(
     Set up a Phono3py object and generate all the supercells necessary for the 3rd order
 
     Args:
+    ----
         atoms: ase.atoms.Atoms
         supercell_matrix: np.ndarray
         cutoff_pair_distance: float
@@ -104,11 +108,12 @@ def preprocess(
         log_level: int
 
     Returns:
+    -------
         phonon3: phono3py.Phono3py
         supercell: ase.atoms.Atoms
         supercells_with_disps: list of ase.atoms.Atoms
-    """
 
+    """
     phonon3 = prepare_phono3py(
         atoms,
         supercell_matrix=supercell_matrix,
@@ -124,7 +129,7 @@ def preprocess(
 
 
 def phono3py_save(phonon: Phono3py, file=defaults.phono3py_params_yaml_file):
-    """adapted form Phono3py.save"""
+    """Adapted form Phono3py.save"""
     ph3py_yaml = Phono3pyYaml()
     ph3py_yaml.set_phonon_info(phonon)
     with open(file, "w") as w:
@@ -137,17 +142,18 @@ def phono3py_load(
     log_level=defaults.kwargs.log_level,
     **kwargs,
 ):
-    """load phono3py object from file
+    """
+    Load phono3py object from file
 
     Args:
+    ----
       mesh: the q mesh
       log_level: log level
       kwargs: kwargs for `Phono3py.load`
 
     Returns:
+    -------
       Phono3py
 
     """
-    phonon = load(file, **kwargs)
-
-    return phonon
+    return load(file, **kwargs)

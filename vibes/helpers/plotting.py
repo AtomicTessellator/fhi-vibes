@@ -1,4 +1,4 @@
-""" helpers for plotting """
+"""helpers for plotting"""
 
 # Tableau colors:
 tableau_colors_int = [

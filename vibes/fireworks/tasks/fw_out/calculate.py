@@ -1,4 +1,5 @@
 """Functions that generate FWActions after performing Aims Calculations"""
+
 from pathlib import Path
 
 from fireworks import FWAction
@@ -20,7 +21,8 @@ def mod_spec_add(
     func_fw_kwargs,
     fw_settings,
 ):
-    """A function that appends the current results to a specified spec in the MongoDB
+    """
+    A function that appends the current results to a specified spec in the MongoDB
 
     Parameters
     ----------
@@ -64,7 +66,8 @@ def mod_spec_add(
 
 
 def socket_calc_check(func, func_fw_out, *args, fw_settings=None, **kwargs):
-    """A function that checks if a socket calculation is done, and if not restarts
+    """
+    A function that checks if a socket calculation is done, and if not restarts
 
     Parameters
     ----------

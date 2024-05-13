@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-
 # from vibes.cli.scripts.nomad_upload import upload_folder_dry as nomad_upload_folder
 
 parent = Path(__file__).parent
@@ -58,26 +57,26 @@ def _exists(file, cwd=True):
 
 @pytest.mark.parametrize("cmd", commands)
 def test_cmd(cmd):
-    """check command"""
+    """Check command"""
     _run(cmd)
 
 
 @pytest.mark.parametrize("cmd,file", commands_files)
 def test_cmd_and_files(cmd, file):
-    """check command and see if output file exists"""
+    """Check command and see if output file exists"""
     _run(cmd)
     _exists(file)
 
 
 @pytest.mark.parametrize("group", commands_files_depend)
 def test_cmd_and_files_depend(group):
-    """check command and see if output file exists with dependencies"""
-    for (c, f) in group:
+    """Check command and see if output file exists with dependencies"""
+    for c, f in group:
         test_cmd_and_files(c, f)
 
 
 if __name__ == "__main__":
     for cmd in commands:
         test_cmd(cmd)
-    for (cmd, file) in commands_files:
+    for cmd, file in commands_files:
         test_cmd_and_files(cmd, file)

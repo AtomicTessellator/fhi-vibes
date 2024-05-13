@@ -1,4 +1,5 @@
 """Defines a TaskSpec object"""
+
 from pathlib import Path
 
 
@@ -17,7 +18,8 @@ class TaskSpec:
         make_abs_path=False,
         fw_settings=None,
     ):
-        """TaskSpec Constructor
+        """
+        TaskSpec Constructor
 
         Parameters
         ----------
@@ -89,32 +91,30 @@ class TaskSpec:
 
     @property
     def pt_args(self):
-        """get the PyTask args for the task"""
+        """Get the PyTask args for the task"""
         return self._pt_args
 
     @property
     def fw_settings(self):
-        """get the fw_settings for the PyTask"""
+        """Get the fw_settings for the PyTask"""
         return self._fw_settings
 
     @fw_settings.setter
     def fw_settings(self, fw_set):
-        """set the task_specs fw_settings
+        """
+        Set the task_specs fw_settings
 
         Parameters
         ----------
         fw_set : dict
             FireWork settings to be added to the task spec
 
-        Returns
-        -------
-
         """
         self._fw_settings = fw_set
 
     @property
     def pt_kwargs(self):
-        """get the PyTask kwargs for the task"""
+        """Get the PyTask kwargs for the task"""
         if not self.fw_settings:
             self.fw_settings = {}
 
@@ -128,5 +128,5 @@ class TaskSpec:
 
     @property
     def pt_inputs(self):
-        """get the PyTask inputs for the task"""
+        """Get the PyTask inputs for the task"""
         return self._inputs

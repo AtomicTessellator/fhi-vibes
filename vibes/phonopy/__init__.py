@@ -1,4 +1,4 @@
-""" Module containing wrapper functions to work with Phonopy """
+"""Module containing wrapper functions to work with Phonopy"""
 # flake8: noqa
 
 from vibes.phonopy._defaults import displacement_id_str

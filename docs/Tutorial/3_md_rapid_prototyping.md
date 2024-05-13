@@ -35,10 +35,10 @@ this will try to find a cubic-as-possible supercell with roughly 100 atoms and w
       Spacegroup:          Fm-3m (225)
       Wyckoff positions:   1*a
       Equivalent atoms:    1*0
-    
+
     Settings:
       Target number of atoms: 100
-    
+
     Supercell matrix:
      python:  [-3,  3,  3,  3, -3,  3,  3,  3, -3]
      cmdline: -3 3 3 3 -3 3 3 3 -3
@@ -46,16 +46,16 @@ this will try to find a cubic-as-possible supercell with roughly 100 atoms and w
     [[-3, 3, 3],
      [3, -3, 3],
      [3, 3, -3]]
-    
+
     Superlattice:
     [[15.78  0.    0.  ]
      [ 0.   15.78  0.  ]
      [ 0.    0.   15.78]]
-    
+
     Number of atoms:  108
       Cubicness:         1.000 (1.000)
       Largest Cutoff:    7.890 AA
-    
+
     Supercell written to geometry.in.primitive.supercell_108
     ```
 
@@ -83,7 +83,7 @@ vibes info geometry geometry.in.primitive.supercell_108
       Spacegroup:          Fm-3m (225)
       Wyckoff positions:   108*a
       Equivalent atoms:    108*0
-    
+
     Cell lengths and angles [Å, °]:
       a, b, c:     15.7800     15.7800     15.7800
       α, β, γ:     90.0000     90.0000     90.0000
@@ -130,7 +130,7 @@ vibes utils create-samples geometry.in.supercell -T 20
       Number of atoms:   108
       Species:           Ar (108)
       Periodicity:       [ True  True  True]
-    
+
       Spacegroup:          Fm-3m (225)
       Wyckoff positions:   108*a
       Equivalent atoms:    108*0
@@ -162,7 +162,7 @@ vibes template md --nvt >> md.in
     ```
     [calculator]
     name:                          lj
-    
+
     [calculator.parameters]
     # parameters for LJ Argon
     sigma:    3.405
@@ -176,7 +176,7 @@ vibes template md --nvt >> md.in
     maxsteps:                      1000
     compute_stresses:              False
     workdir:                       md
-    
+
     [md.kwargs]
     temperature:                   300
     friction:                      0.02
@@ -199,8 +199,8 @@ primitive:                     geometry.in.primitive
 supercell:                     geometry.in.supercell
 ```
 
-The `timestep` can be increased to $4\,{\rm fs}$ for Argon at $20\,{\rm K}$. With `maxsteps: 7500` we will run a total of 7500 MD steps, i.e., $30\,{\rm ps}$ simulation time. **The total simulation time depends on the system and the quantitiy of interest!**`temperature` should be set to $20\,{\rm K}$, our target temperature.
-Adding `primitive: geometry.in.primitive` and `supercell: geometry.in.supercell` in the `[files]` section is not necessary to run the calculation. However, `vibes` will automatically attach this information to the trajectory so that it cannot get lost. This also makes life easer when post processing. For example, the displacements $\Delta {\bf R}_I(t)$ can only be properly calculated, when the reference supercell is known.
+The `timestep` can be increased to $4\,{\rm fs}$ for Argon at $20\,{\rm K}$. With `maxsteps: 7500` we will run a total of 7500 MD steps, i.e., $30\,{\rm ps}$ simulation time. **The total simulation time depends on the system and the quantity of interest!**`temperature` should be set to $20\,{\rm K}$, our target temperature.
+Adding `primitive: geometry.in.primitive` and `supercell: geometry.in.supercell` in the `[files]` section is not necessary to run the calculation. However, `vibes` will automatically attach this information to the trajectory so that it cannot get lost. This also makes life easier when post processing. For example, the displacements $\Delta {\bf R}_I(t)$ can only be properly calculated, when the reference supercell is known.
 
 The final `md.in` should look like this:
 
@@ -313,13 +313,13 @@ This command should tell you, among other things, that the temperature is indeed
 
 ```
 ...
-[info]         Summarize Temperature
+[info]         Summarize Temperaturee
 Simulation time:            30.000 ps (7501 steps)
-Temperature:                    19.826 +/-       1.7902 K
-Temperature (1st 1/3):          19.402 +/-       2.2027 K
-Temperature (2st 1/3):          20.426 +/-       1.4744 K
-Temperature (3st 1/3):          19.651 +/-       1.4218 K
-Temperature (last 1/2):         19.863 +/-       1.4301 K
+Temperaturee:                    19.826 +/-       1.7902 K
+Temperaturee (1st 1/3):          19.402 +/-       2.2027 K
+Temperaturee (2nd 1/3):          20.426 +/-       1.4744 K
+Temperaturee (3rd 1/3):          19.651 +/-       1.4218 K
+Temperaturee (last 1/2):         19.863 +/-       1.4301 K
 ...
 ```
 
@@ -338,4 +338,3 @@ vmd trajectory.xyz
 
 ??? info "`vmd trajectory.xyz`"
 	![image](assets/LJ-Argon.gif)
-

@@ -1,14 +1,16 @@
-""" Copied from hiphive:
-    File: https://gitlab.com/materials-modeling/hiphive/blob/
-    1382b48a6aae530c4cc4e3dd29a0342f3071659a/hiphive/md_tools/spectral_energy_density.py
-    License: https://gitlab.com/materials-modeling/hiphive/blob/master/LICENSE
+"""
+Copied from hiphive:
+File: https://gitlab.com/materials-modeling/hiphive/blob/
+1382b48a6aae530c4cc4e3dd29a0342f3071659a/hiphive/md_tools/spectral_energy_density.py
+License: https://gitlab.com/materials-modeling/hiphive/blob/master/LICENSE
 """
 
 import numpy as np
 
 
 def compute_sed(traj, ideal, prim, k_points):
-    """ Computes spectral energy density for a trajectory.
+    """
+    Computes spectral energy density for a trajectory.
 
     Parameters
     ----------
@@ -25,8 +27,8 @@ def compute_sed(traj, ideal, prim, k_points):
     -------
     density: np.ndarray(dtype=float, shape=(len(k_points), velocities.shape[2]))
         The spectral density of the trajectory
-    """
 
+    """
     velocities = []
     for atom in traj:
         velocities.append(atom.get_velocities())
@@ -44,7 +46,7 @@ def compute_sed(traj, ideal, prim, k_points):
     density = np.zeros((len(k_points), velocities.shape[2]))
     for alpha in range(3):
         for b in range(len(masses)):
-            tmp = np.zeros(density.shape, dtype=np.complex)
+            tmp = np.zeros(density.shape, dtype=complex)
             for i in range(len(indices)):
                 index = indices[i]
                 if index != b:
@@ -58,7 +60,8 @@ def compute_sed(traj, ideal, prim, k_points):
 
 
 def _index_offset(atoms, prim, atol=1e-3, rtol=0.0):
-    """Computes the index_offset
+    """
+    Computes the index_offset
 
     Parameters
     ----------
@@ -84,6 +87,7 @@ def _index_offset(atoms, prim, atol=1e-3, rtol=0.0):
         If prim is not compatible with atoms
     AssertionError
         the type of offset is not int
+
     """
     index, offset = [], []
     for pos in atoms.positions:

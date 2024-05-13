@@ -1,4 +1,5 @@
 """Functions that generate FWActions after performing Aims Calculations"""
+
 from pathlib import Path
 
 import numpy as np
@@ -8,7 +9,8 @@ from vibes.fireworks.tasks.calculate_wrapper import T_S_LINE
 
 
 def get_calc_times(workdir=".", calc_dirs=None):
-    """Get the calculation for a set of Aims Calculations
+    """
+    Get the calculation for a set of Aims Calculations
 
     Parameters
     ----------
@@ -23,7 +25,6 @@ def get_calc_times(workdir=".", calc_dirs=None):
         the wall clock time of all calculations
 
     """
-
     if calc_dirs is None:
         workdir = Path(workdir)
         calc_dirs = list(workdir.glob("*/")) + list(workdir.glob("*/*/"))

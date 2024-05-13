@@ -1,4 +1,5 @@
 """test atoms2json and json2atoms"""
+
 import json
 from pathlib import Path
 
@@ -14,13 +15,13 @@ file = parent / "atoms.json"
 
 
 def test_write(atoms=atoms, file=file):
-    """write atoms as json"""
+    """Write atoms as json"""
     rep = atoms2json(atoms, reduce=False)
     file.write_text(rep)
 
 
 def test_read(atoms=atoms, file=file):
-    """read atoms as json and compare"""
+    """Read atoms as json and compare"""
     rep = file.read_text()
     read_atoms = Atoms(**json.loads(rep))
 
@@ -28,13 +29,13 @@ def test_read(atoms=atoms, file=file):
 
 
 def test_write_reduced(atoms=atoms, file=file):
-    """write atoms as json with reduced symbols and masses"""
+    """Write atoms as json with reduced symbols and masses"""
     rep = atoms2json(atoms)
     file.write_text(rep)
 
 
 def test_read_reduced(atoms=atoms, file=file):
-    """read atoms as json and compare"""
+    """Read atoms as json and compare"""
     rep = file.read_text()
     read_atoms = json2atoms(rep)
 

@@ -1,7 +1,9 @@
-""" Provide a full highlevel phonopy workflow
+"""
+Provide a full highlevel phonopy workflow
 
-    Input: geometry.in and settings.in
-    Output: geometry.in.supercell and trajectory.son """
+Input: geometry.in and settings.in
+Output: geometry.in.supercell and trajectory.son
+"""
 
 from vibes.calculate import calculate_socket
 from vibes.calculator.context import CalculatorContext
@@ -14,8 +16,7 @@ from .postprocess import postprocess
 
 
 def run_phonopy(**kwargs):
-    """ high level function to run phonopy workflow """
-
+    """High level function to run phonopy workflow"""
     args = bootstrap(**kwargs)
     workdir = args["workdir"]
 
@@ -38,19 +39,23 @@ def run_phonopy(**kwargs):
 
 
 def bootstrap(ctx, dry=False):
-    """load settings, prepare atoms, calculator, and phonopy
+    """
+    Load settings, prepare atoms, calculator, and phonopy
 
     Args:
+    ----
         ctx (PhonopyContext): The context for the calculation
         dry (bool): prepare dry run
 
     Returns:
+    -------
         dict: The necessary information to run the workflow with the following items
             atoms_to_calculate (list): list of the displaced supercells
-            calculator (ase.calculators.calulator.Calculator):use to calculate forces
+            calculator (ase.calculators.calculator.Calculator):use to calculate forces
             metadata (dict): metadata for the phonon calculation
             workdir (str or Path): working directory for the calculation
             settings (Settings): settings for the workflow
+
     """
     if ctx.name.lower() == "phonopy":
         from vibes.phonopy.wrapper import preprocess

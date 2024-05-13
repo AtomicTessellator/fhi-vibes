@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 from pathlib import Path
 
 import numpy as np
@@ -21,7 +18,7 @@ def test_compare_son_nc(traj0=traj0, traj1=traj1):
         assert np.allclose(a0.get_total_energy(), a1.get_total_energy())
         assert np.allclose(a0.get_kinetic_energy(), a1.get_kinetic_energy())
 
-    for (k, v) in traj0.metadata.items():
+    for k, v in traj0.metadata.items():
         v2 = traj1.metadata[k]
         assert v == v2, (k, v, v2)
 

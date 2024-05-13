@@ -1,4 +1,4 @@
-""" tools for backup """
+"""tools for backup"""
 
 import shutil
 import tarfile
@@ -14,8 +14,7 @@ _default_files = (filenames.output.aims, "control.in", filenames.atoms)
 
 
 def backup_file(workdir=".", prefix=_prefix):
-    """generate a backup file name for the current backup directory"""
-
+    """Generate a backup file name for the current backup directory"""
     file = lambda counter: Path(workdir) / f"{prefix}.{counter:05d}"
 
     # get starting counter:
@@ -31,19 +30,22 @@ def backup_file(workdir=".", prefix=_prefix):
 def backup_folder(
     source_dir, target_folder=".", additional_files=None, zip=True, verbose=True
 ):
-    """backup a folder as .tgz
+    """
+    Backup a folder as .tgz
 
     Args:
-        source_dir: path to the source direcotry
+    ----
+        source_dir: path to the source directory
         target_folder: Path to where the backups should be stored
         additional_files: Additional files to backup
         zip: True if backup folder should be compressed
         verbose: If True perform more verbose logging
 
     Returns:
+    -------
         True if source_dir exists and is not empty
-    """
 
+    """
     output_file = backup_file(target_folder)
 
     if not Path(source_dir).exists():
@@ -92,16 +94,18 @@ def backup_folder(
 def make_tarfile(
     output_file, source_dir, additional_files=None, arcname=None, only_defaults=True
 ):
-    """create a tgz directory
+    """
+    Create a tgz directory
 
     Args:
+    ----
         output_file: Path to the output file
         source_dir: Path to the source directory
         additional_files: Additional files to include in the tar file
         arcname: Path to the archive file
         only_defaults: only use the default file names for backup
-    """
 
+    """
     outfile = Path(output_file)
 
     files = Path(source_dir).glob("*")

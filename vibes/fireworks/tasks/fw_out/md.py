@@ -11,7 +11,8 @@ from vibes.trajectory.io import reader
 
 
 def check_md_finish(atoms_dict, calculator_dict, *args, **kwargs):
-    """Check phonon convergence and set up future calculations after a phonon calculation
+    """
+    Check phonon convergence and set up future calculations
 
     Parameters
     ----------
@@ -37,6 +38,7 @@ def check_md_finish(atoms_dict, calculator_dict, *args, **kwargs):
     -------
     FWAction
         Increases the supercell size or adds the phonon_dict to the spec
+
     """
     fw_settings = args[-1]
     workdir = args[3]["md_settings"].pop("workdir")
@@ -47,7 +49,7 @@ def check_md_finish(atoms_dict, calculator_dict, *args, **kwargs):
         if "stop_if" in kwargs:
             traj = reader(kwargs["trajectory"])
             return run_all_checks(traj, kwargs["stop_if"])
-        return
+        return None
 
     detours = generate_md_fw(
         settings,

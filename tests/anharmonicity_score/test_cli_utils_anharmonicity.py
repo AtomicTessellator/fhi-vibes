@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-
 parent = Path(__file__).parent
 
 

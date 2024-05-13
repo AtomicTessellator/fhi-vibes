@@ -1,8 +1,10 @@
-"""Naming the dimensions
-
-    Atom labels: I, J
-    Cartesian coordinates: a, b
 """
+Naming the dimensions
+
+Atom labels: I, J
+Cartesian coordinates: a, b
+"""
+
 I, J, a, b = "I", "J", "a", "b"
 
 # composite

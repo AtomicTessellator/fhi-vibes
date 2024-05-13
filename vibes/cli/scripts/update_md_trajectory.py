@@ -1,4 +1,4 @@
-""" Update trajectory files of old format """
+"""Update trajectory files of old format"""
 
 import shutil
 from argparse import ArgumentParser
@@ -9,7 +9,7 @@ from vibes.trajectory import reader
 
 
 def update_trajectory(trajectory_file, uc=None, sc=None, format="aims"):
-    """update TRAJECTORY by adding unit cell and supercell"""
+    """Update TRAJECTORY by adding unit cell and supercell"""
     trajectory = reader(trajectory_file)
     new_trajectory = "temp.son"
 
@@ -31,7 +31,7 @@ def update_trajectory(trajectory_file, uc=None, sc=None, format="aims"):
 
 
 def main():
-    """ main routine """
+    """Main routine"""
     parser = ArgumentParser(description="Update trajectory file")
     parser.add_argument("trajectory")
     parser.add_argument("-uc", help="Add a (primitive) unit cell")

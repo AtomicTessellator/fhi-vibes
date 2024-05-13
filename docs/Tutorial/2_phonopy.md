@@ -43,7 +43,7 @@ vibes template phonopy >> phonopy.in
     workdir:                       phonopy
     ```
 
-Obviously the most important section in the `phonopy.in` input file is `[phonopy]` which containts information about how the supercells with displacements should be set up to compute the force constants from the [finite-differences method](0_intro.md#Phonons). An explanation for the full list of keywords is found in the [documentation](../Documentation/phonopy.md). The most important two are explaned in the following:
+Obviously the most important section in the `phonopy.in` input file is `[phonopy]` which contains information about how the supercells with displacements should be set up to compute the force constants from the [finite-differences method](0_intro.md#Phonons). An explanation for the full list of keywords is found in the [documentation](../Documentation/phonopy.md). The most important two are explained in the following:
 
 ### Supercell Matrix (`supercell_matrix`)
 
@@ -137,7 +137,7 @@ This will:
   The q-grid can be adjusted by specifying it with an additional flag `--q_mesh`.
 - Compute the harmonic free energy $F^{\rm ha}$ and the harmonic heat capacity at constant volume, $C_V$, i.e., the thermal properties accessible in the harmonic approximation using the DOS and it q-point settings.
   An overview plot is saved to `output/thermal_properties.pdf` and the detailed output is written to [`output/thermal_properties.yaml`](https://phonopy.github.io/phonopy/output-files.html#thermal-properties-yaml).
-- Create animation files for visualization with [`v_sim`](http://www.mem-lab.fr/en/Pages/L_SIM/Softwares/V_Sim.aspx).
+- Create animation files for visualization with [`v_sim`](http://www.mem-lab.fr/en/Pages/L_SIM/Software/V_Sim.aspx).
 - Write a `phonopy.yaml` for [loading a `Phonopy` object directly within `python`](https://phonopy.github.io/phonopy/phonopy-module.html#shortcut-to-load-input-files-phonopy-load).
 
 ??? info "Bandstructure"
@@ -211,7 +211,7 @@ supercell_matrix: [-1,  1,  1,  1, -1,  1,  1,  1, -1]
 Remember to use a new working directory to not mess up your previous results!
 
 !!! info
-	The force constants obtained for the `[-1,  1,  1,  1, -1,  1,  1,  1, -1]` supercell with 8 atoms are re-used in later tutorials, please don't delete them.
+	The force constants obtained for the `[-1,  1,  1,  1, -1,  1,  1,  1, -1]` supercell with 8 atoms are reused in later tutorials, please don't delete them.
 
 ### Practical guideline
 

@@ -1,4 +1,4 @@
-""" Summarize output from ASE.md class (in md.log) """
+"""Summarize output from ASE.md class (in md.log)"""
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -11,7 +11,7 @@ from vibes.trajectory import reader
 
 
 def parse_log(file):
-    """ parse the ASE logfile, typically md.log """
+    """Parse the ASE logfile, typically md.log"""
     e_kin = []
     e_pot = []
     temp = []
@@ -33,7 +33,7 @@ def parse_log(file):
 
 
 def md_sum(file, plot, avg, verbose):
-    """summarize the MD trajectory in FILE"""
+    """Summarize the MD trajectory in FILE"""
     infile = Path(file)
     msg = "\nConsider to use `vibes output md` to create `trajectory.nc` "
     msg += "and plot via `vibes info md trajectory.nc`"
@@ -53,7 +53,7 @@ def md_sum(file, plot, avg, verbose):
 
     if verbose:
         n_range = min(20, len(trajectory) - 2)
-        print(f"step   time   temperature")
+        print("step   time   temperature")
         for ii in range(n_range):
             print(
                 f'{trajectory[-n_range+ii].info["nsteps"]:5d} '
@@ -68,10 +68,10 @@ def md_sum(file, plot, avg, verbose):
     temp_3 = temp[2 * len_3 :]
 
     print(f"Simulation time:         {time[-1] - time[0]:.4f} ps ({len(time)} steps)")
-    print(f"Temperature:             {np.mean(temp):.2f} +/- {np.std(temp):.2f}K")
-    print(f"Temperature (1st 1/3):   {np.mean(temp_1):.2f} +/- {np.std(temp_1):.2f}K")
-    print(f"Temperature (2nd 1/3):   {np.mean(temp_2):.2f} +/- {np.std(temp_2):.2f}K")
-    print(f"Temperature (3rd 1/3):   {np.mean(temp_3):.2f} +/- {np.std(temp_3):.2f}K")
+    print(f"Temperaturee:             {np.mean(temp):.2f} +/- {np.std(temp):.2f}K")
+    print(f"Temperaturee (1st 1/3):   {np.mean(temp_1):.2f} +/- {np.std(temp_1):.2f}K")
+    print(f"Temperaturee (2nd 1/3):   {np.mean(temp_2):.2f} +/- {np.std(temp_2):.2f}K")
+    print(f"Temperaturee (3rd 1/3):   {np.mean(temp_3):.2f} +/- {np.std(temp_3):.2f}K")
     print(f"Kinetic energy:          {np.mean(e_kin):.2f} +/- {np.std(e_kin):.2f}eV")
     print(f"Potential energy:        {np.mean(e_pot):.2f} +/- {np.std(e_pot):.2f}eV")
 
@@ -85,7 +85,7 @@ def md_sum(file, plot, avg, verbose):
 
 
 def main():
-    """ main routine """
+    """Main routine"""
     parser = ArgumentParser(description="Read md.log and make simple statistics")
     parser.add_argument("file", help="md.log or trajectory.son input file")
     parser.add_argument("-p", "--plot", action="store_true", help="plot to pdf")
@@ -101,16 +101,19 @@ if __name__ == "__main__":
 
 
 def plot_summary(dataframe, avg, natoms=None):
-    """plot a summary of the data in DATAFRAGE
+    """
+    Plot a summary of the data in DATAFRAGE
 
     Args:
+    ----
         dataframe (pandas.Dataframe): MD data
         avg (int): window size for averaging
         natoms (int): number of atoms
-    """
-    import matplotlib
 
-    matplotlib.use("pdf")
+    """
+    import matplotlib as mpl
+
+    mpl.use("pdf")
 
     from matplotlib import pyplot as plt
 
@@ -128,23 +131,23 @@ def plot_summary(dataframe, avg, natoms=None):
     plot_settings = {"alpha": 0.4, "linewidth": 1.0, "label": ""}
     avg_settings = {"linewidth": 1.5}
 
-    temp.plot(color=tc[0], title="Nuclear Temperature", ax=ax, **plot_settings)
+    temp.plot(color=tc[0], title="Nuclear Temperaturee", ax=ax, **plot_settings)
 
     if natoms:
         e_temp = (e_kin + e_pot) / natoms / 3 / units.kB
         e_temp.plot(color=tc[1], ax=ax, **plot_settings)
         e_temp.rolling(window=avg, min_periods=0).mean().plot(
-            color=tc[1], label=f"E_tot", ax=ax, **avg_settings
+            color=tc[1], label="E_tot", ax=ax, **avg_settings
         )
 
     roll = temp.rolling(window=avg, min_periods=0).mean()
-    roll.plot(color=tc[0], label=f"T_nucl", ax=ax, **avg_settings)
+    roll.plot(color=tc[0], label="T_nucl", ax=ax, **avg_settings)
 
     # exp = data.iloc[min(len(data) // 2, args.avg) :].expanding().mean()
     # exp.plot( color=tc[5], label=f"Expanding mean ({args.avg}", ax=ax)
 
     ax.set_xlabel("Time [ps]")
-    ax.set_ylabel("Nucl. Temperature [K]")
+    ax.set_ylabel("Nucl. Temperaturee [K]")
     ax.legend()
 
     # fig.savefig("temp.pdf")

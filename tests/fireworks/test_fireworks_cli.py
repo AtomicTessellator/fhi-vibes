@@ -1,8 +1,8 @@
 import shutil
 import subprocess as sp
-import yaml
-
 from pathlib import Path
+
+import yaml
 
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.helpers.paths import cwd
@@ -22,9 +22,9 @@ def test_fireworks_cli():
         with open("my_launchpad.yaml", "w") as lp_file:
             yaml.dump(lp.as_dict(), lp_file)
 
-        sp.run(commands[0].split())
+        sp.run(commands[0].split(), check=False)
         with cwd("fireworks_launchers", mkdir=True):
-            sp.run(commands[1].split())
+            sp.run(commands[1].split(), check=False)
 
         assert lp.get_wf_by_fw_id(2).state == "COMPLETED"
 

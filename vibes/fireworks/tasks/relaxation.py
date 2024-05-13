@@ -1,4 +1,5 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
+
 from pathlib import Path
 
 from jconfigparser.dict import DotDict
@@ -9,13 +10,14 @@ from vibes.settings import Settings
 
 
 def run(atoms, calculator, kpt_density=None, relax_settings=None, fw_settings=None):
-    """Creates a Settings object and passes it to the bootstrap function
+    """
+    Creates a Settings object and passes it to the bootstrap function
 
     Parameters
     ----------
     atoms: ase.atoms.Atoms
         Atoms object of the primitive cell
-    calculator: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calculator.Calculator
         Calculator for the force calculations
     kpt_density: float
         k-point density for the MP-Grid
@@ -28,6 +30,7 @@ def run(atoms, calculator, kpt_density=None, relax_settings=None, fw_settings=No
     -------
     completed: bool
         True if the workflow completed
+
     """
     workdir = relax_settings.get("workdir", None)
     if workdir:

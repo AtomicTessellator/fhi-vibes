@@ -3,12 +3,12 @@
 import sys
 
 from ase import Atoms
+
 from vibes.context import TaskContext
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.structure.misc import get_sysname
 
-from . import metadata2dict
-from . import postprocess as postprocess
+from . import metadata2dict, postprocess
 from . import wrapper as backend
 from ._defaults import keys, name, settings_dict
 
@@ -17,13 +17,16 @@ class PhonopyContext(TaskContext):
     """context for phonopy calculation"""
 
     def __init__(self, settings=None, workdir=None, name=name, template_dict=None):
-        """Intializer
+        """
+        Initializer
 
         Args:
+        ----
             settings: Settings for the Workflow
             workdir: The working directory for the workflow
             name: `phonopy` or `phono3py`
             template_dict: for `phono3py`
+
         """
         template_dict = template_dict or settings_dict
         super().__init__(settings, name, workdir=workdir, template_dict=template_dict)
@@ -43,12 +46,12 @@ class PhonopyContext(TaskContext):
 
     @property
     def supercell_matrix(self):
-        """return settings.phonopy.supercell_matrix"""
+        """Return settings.phonopy.supercell_matrix"""
         return get_3x3_matrix(self.kw["supercell_matrix"])
 
     @property
     def q_mesh(self):
-        """return the q_mesh from settings"""
+        """Return the q_mesh from settings"""
         return self.kw[keys.q_mesh]
 
     @property
@@ -60,7 +63,7 @@ class PhonopyContext(TaskContext):
 
     @primitive.setter
     def primitive(self, atoms: Atoms):
-        """set the primitive unit cell"""
+        """Set the primitive unit cell"""
         assert isinstance(atoms, Atoms)
         self._primitive = atoms
 
@@ -68,8 +71,7 @@ class PhonopyContext(TaskContext):
         return self.backend.preprocess(atoms=self.primitive, **self.kw)
 
     def bootstrap(self, dry=False):
-        """load settings, prepare atoms, calculator, and phonopy object"""
-
+        """Load settings, prepare atoms, calculator, and phonopy object"""
         # Phonopy preprocess
         phonon, supercell, scs = self.preprocess()
 
@@ -92,7 +94,7 @@ class PhonopyContext(TaskContext):
         }
 
     def run(self, dry=False):
-        """run phonopy workflow"""
+        """Run phonopy workflow"""
         from vibes.calculate import calculate_socket
         from vibes.helpers import talk
         from vibes.helpers.restarts import restart

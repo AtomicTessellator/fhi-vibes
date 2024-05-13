@@ -17,13 +17,12 @@ def _symmetric(mat):
 
 
 def _parse(folder, fortran=True):
-    fc = parse_phonopy_force_constants(
+    return parse_phonopy_force_constants(
         parent / folder / "FORCE_CONSTANTS",
         primitive=parent / folder / "geometry.in.primitive",
         supercell=parent / folder / "geometry.in.supercell",
         fortran=fortran,
     )
-    return fc
 
 
 def _parse_phonopy(file):

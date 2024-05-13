@@ -1,1 +1,1 @@
-""" a light wrapper for spglib """
+"""a light wrapper for spglib"""

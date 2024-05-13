@@ -1,10 +1,10 @@
 """test fourier transform"""
+
 import numpy as np
 import pandas as pd
 from scipy import signal as sl
 
 from vibes.fourier import get_fourier_transformed
-
 
 # create signal with 100 THz
 omega = 100
@@ -18,7 +18,7 @@ series = pd.Series(data=y, index=t)
 
 
 def test_fourier(f=series, t=t, omega=omega):
-    """check if the fourier transform has a peak where expected"""
+    """Check if the fourier transform has a peak where expected"""
     # get_fourier only accepts xarray.DataArrays
     ft = get_fourier_transformed(f.to_xarray()).real.to_series()
 

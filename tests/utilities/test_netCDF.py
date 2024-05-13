@@ -1,4 +1,4 @@
-"""test netCDF capabilites"""
+"""test netCDF capabilities"""
 
 from pathlib import Path
 
@@ -22,12 +22,12 @@ df = xr.DataArray(
 
 
 def test_write():
-    """test writing an xarray.DataArray file"""
+    """Test writing an xarray.DataArray file"""
     df.to_netcdf(file)
 
 
 def test_read():
-    """test reading an xarray.DataArray file"""
+    """Test reading an xarray.DataArray file"""
     new_df = xr.open_dataarray(file)
 
     for key, val in df.attrs.items():

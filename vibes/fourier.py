@@ -1,4 +1,5 @@
 """Fourier Transforms"""
+
 import numpy as np
 import xarray as xr
 
@@ -6,7 +7,6 @@ from vibes import dimensions as dims
 from vibes import keys
 from vibes.helpers import Timer, talk, warn
 from vibes.konstanten.einheiten import THz_to_cm
-
 
 _prefix = "Fourier"
 
@@ -16,7 +16,7 @@ def _talk(msg, **kwargs):
 
 
 def get_timestep(times, tol=1e-9):
-    """get time step from a time series and check for glitches"""
+    """Get time step from a time series and check for glitches"""
     d_times = np.asarray((times - np.roll(times, 1))[1:])
     timestep = np.mean(d_times)
 
@@ -28,9 +28,11 @@ def get_timestep(times, tol=1e-9):
 def get_frequencies(
     N=None, dt=None, times=None, fs_factor=1, to_cm=False, verbose=False
 ):
-    """compute the frequency domain in THz for signal with fs resolution
+    """
+    Compute the frequency domain in THz for signal with fs resolution
 
     Args:
+    ----
         N (int): Number of time steps
         dt (float): time step in fs
         times (ndarray): time series in fs (or converted to fs via `fs_factor`)
@@ -39,7 +41,9 @@ def get_frequencies(
         verbose (bool): be informative
 
     Returns:
+    -------
         frequencies in THz (ndarray)
+
     """
     if N and dt:
         dt = dt / fs_factor
@@ -55,7 +59,7 @@ def get_frequencies(
     dw = w[1] - w[0]
 
     if verbose:
-        msg = [f".. get frequencies for time series"]
+        msg = [".. get frequencies for time series"]
         msg += [f".. timestep:               {np.asarray(dt)} fs"]
         msg += [f"-> maximum frequency:      {np.max(w):.5} THz"]
         msg += [f".. Number of steps:        {N}"]
@@ -69,17 +73,20 @@ def get_frequencies(
 
 
 def get_fft(series):
-    """run `np.fft.fft` on time series
+    """
+    Run `np.fft.fft` on time series
 
     https://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.hfft.html
 
     Args:
+    ----
         series (np.ndarray [N_t, ...]): time series, first dimension is the time axis
 
     Returns:
+    -------
         np.ndarray ([N_t, ...]): Fourier transform of series ([: N_t // 2])
-    """
 
+    """
     velocities = np.asarray(series).copy()
 
     N = series.shape[0]
@@ -93,9 +100,11 @@ def get_fft(series):
 def zero_pad_array(
     array: xr.DataArray, times: np.ndarray, npad: int = 10000, verbose: bool = True
 ):
-    """zero pad time axis of array
+    """
+    Zero pad time axis of array
 
     Args:
+    ----
         array ([N_t, ...]): the array which is supposed to be zero padded
         times: the time axis
         npad: pad with this many zeros
@@ -127,14 +136,17 @@ def zero_pad_array(
 
 
 def get_fourier_transformed(array: xr.DataArray, npad: int = 0, verbose: bool = True):
-    """Perform Fourier Transformation of Series/DataArray
+    """
+    Perform Fourier Transformation of Series/DataArray
 
     Args:
+    ----
         array ([N_t, ...]): xarray.DataArray with `time` axis in fs
         npad: Use zero padding with this many zeros
         verbose: be verbose
     Return:
         DataArray ([N_t, ...]): FT(series) with `omega` axis in THz
+
     """
     timer = Timer("Compute FFT", verbose=verbose, prefix=_prefix)
 
@@ -146,7 +158,7 @@ def get_fourier_transformed(array: xr.DataArray, npad: int = 0, verbose: bool = 
     elif hasattr(array, "index"):  # compatibility with pd.Series
         times = np.asarray(array.index)
     else:  # maybe this used to be a numpy array
-        warn(f"time coordinate not found, use `coords=arange`", level=0)
+        warn("time coordinate not found, use `coords=arange`", level=0)
         times = np.arange(len(array))
 
     array = zero_pad_array(array, times=times, npad=npad, verbose=verbose)
@@ -173,15 +185,19 @@ def get_fourier_transformed(array: xr.DataArray, npad: int = 0, verbose: bool = 
 def get_power_spectrum(
     flux: xr.DataArray = None, prefactor: float = 1.0, verbose: bool = True
 ) -> xr.DataArray:
-    """compute power spectrum for given flux
+    """
+    Compute power spectrum for given flux
 
     Args:
+    ----
         flux (xr.DataArray, optional): flux [Nt, 3]. Defaults to xr.DataArray.
         prefactor (float, optional): prefactor
         verbose (bool, optional): be verbose
 
     Returns:
+    -------
         xr.DataArray: heat_flux_power_spectrum
+
     """
     kw = {"verbose": verbose}
     timer = Timer("Get power spectrum from flux", **kw)

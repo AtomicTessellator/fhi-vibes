@@ -17,7 +17,7 @@ vibes.cfg
 # fireworks config file
 fireworks.cfg
 
-# Python
+# python
 *.ipynb_checkpoints
 *.pyc
 .pytest_cache

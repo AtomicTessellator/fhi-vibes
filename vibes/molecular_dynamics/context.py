@@ -24,13 +24,16 @@ class MDContext(TaskContext):
     def __init__(
         self, settings=None, workdir=None, trajectory_file=None, ensemble=keys.nve
     ):
-        """Context for MD
+        """
+        Context for MD
 
         Args:
+        ----
             settings: settings for the MD Workflow
             workdir: Working directory for the MD workflow
             trajectory_file: Path to output trajectory
             ensemble: the thermodynamics ensemble (NVE, NVT, NPT)
+
         """
         if ensemble.lower() == keys.nve.lower():
             settings_dict = nve_dict
@@ -58,17 +61,17 @@ class MDContext(TaskContext):
 
     @property
     def maxsteps(self):
-        """return the maxsteps from settings"""
+        """Return the maxsteps from settings"""
         return self.kw["maxsteps"]
 
     @maxsteps.setter
     def maxsteps(self, steps):
-        """set maxsteps"""
+        """Set maxsteps"""
         self.kw["maxsteps"] = steps
 
     @property
     def md(self):
-        """set up the MD algorithm and make sure the units are consistent etc"""
+        """Set up the MD algorithm and make sure the units are consistent etc"""
         if not self._md:
             self.mkdir()
             obj = self.kw
@@ -114,7 +117,7 @@ class MDContext(TaskContext):
 
     @md.setter
     def md(self, md):
-        """set the md class"""
+        """Set the md class"""
         assert issubclass(md.__class__, MolecularDynamics)
         self._md = md
 
@@ -138,8 +141,7 @@ class MDContext(TaskContext):
 
     @property
     def compute_stresses(self):
-        """controls `compute_stresses` in `md` section of settings"""
-
+        """Controls `compute_stresses` in `md` section of settings"""
         compute_stresses = 0
         if "compute_stresses" in self.kw:
             # make sure compute_stresses describes a step length
@@ -155,8 +157,7 @@ class MDContext(TaskContext):
 
     @property
     def metadata(self):
-        """return MD metadata as dict"""
-
+        """Return MD metadata as dict"""
         md_dict = self.md.todict()
 
         # save time and mass unit
@@ -174,7 +175,6 @@ class MDContext(TaskContext):
 
     def prepare_from_trajectory(self):
         """Initialize MD from last step of trajectory"""
-
         trajectory_file = Path(self.trajectory_file)
         if trajectory_file.exists():
             last_atoms = son.last_from(trajectory_file)
@@ -192,11 +192,11 @@ class MDContext(TaskContext):
         return False
 
     def resume(self):
-        """resume from trajectory"""
+        """Resume from trajectory"""
         self.prepare_from_trajectory()
 
     def run(self, timeout=None):
-        """run the context workflow"""
+        """Run the context workflow"""
         self.resume()
         run_md(self, timeout=timeout)
 

@@ -1,13 +1,16 @@
 """Processing statistical sampling calculations"""
+
 from pathlib import Path
 
 import numpy as np
+
 from vibes import anharmonicity_score
 from vibes.trajectory import reader
 
 
 def get_sigma(trajectory_file, return_trajectory=False):
-    """Get the sigma value for all temperatures in a sampling trajectory.son file
+    """
+    Get the sigma value for all temperatures in a sampling trajectory.son file
 
     Parameters
     ----------
@@ -24,6 +27,7 @@ def get_sigma(trajectory_file, return_trajectory=False):
         The trajectory for the statistical sampling
     dict
         The metadata of the trajectory
+
     """
     trajectory, meta = reader(file=trajectory_file, get_metadata=True, verbose=False)
 
@@ -41,7 +45,7 @@ def get_sigma(trajectory_file, return_trajectory=False):
     sigma = []
     temp = []
 
-    for key in forces_dft.keys():
+    for key in forces_dft:
         temp.append(key)
 
         dft = np.array(forces_dft[key])

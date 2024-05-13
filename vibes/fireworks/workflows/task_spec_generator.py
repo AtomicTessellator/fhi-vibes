@@ -1,4 +1,5 @@
 """Generates TaskSpec Objects"""
+
 import numpy as np
 
 from vibes.filenames import filenames
@@ -7,7 +8,8 @@ from vibes.helpers.numerics import get_3x3_matrix
 
 
 def gen_phonon_task_spec(func_kwargs, fw_settings=None):
-    """Generate a parallel Phononpy or Phono3py calculation task
+    """
+    Generate a parallel Phononpy or Phono3py calculation task
 
     Parameters
     ----------
@@ -37,10 +39,7 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
     for set_key in ["ph_settings", "ph3_settings"]:
         if set_key in func_kwargs:
             kwargs_init[set_key] = {}
-            if "workdir" in func_kwargs[set_key]:
-                wd = func_kwargs[set_key]["workdir"]
-            else:
-                wd = "."
+            wd = func_kwargs[set_key].get("workdir", ".")
             kwargs_init_fw_out[set_key] = {"workdir": wd}
             for key, val in func_kwargs[set_key].items():
                 if key in preprocess_keys[set_key]:
@@ -64,7 +63,8 @@ def gen_phonon_task_spec(func_kwargs, fw_settings=None):
 
 
 def gen_stat_samp_task_spec(func_kwargs, fw_settings=None, add_qadapter=False):
-    """Generate a Harmonic Analysis task
+    """
+    Generate a Harmonic Analysis task
 
     Parameters
     ----------
@@ -102,10 +102,7 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None, add_qadapter=False):
     kwargs_init["stat_samp_settings"] = {}
     kwargs_init_fw_out["stat_samp_settings"] = {}
 
-    if "workdir" in func_kwargs:
-        wd = func_kwargs["workdir"]
-    else:
-        wd = "."
+    wd = func_kwargs.get("workdir", ".")
 
     kwargs_init_fw_out["stat_samp_settings"] = {"workdir": wd}
     kwargs_init["stat_samp_settings"] = {"workdir": wd}
@@ -145,7 +142,8 @@ def gen_stat_samp_task_spec(func_kwargs, fw_settings=None, add_qadapter=False):
 def gen_phonon_analysis_task_spec(
     func, func_kwargs, metakey, forcekey, timekey, make_abs_path=False
 ):
-    """Generate a serial Phononpy or Phono3py calculation task
+    """
+    Generate a serial Phononpy or Phono3py calculation task
 
     Parameters
     ----------
@@ -197,19 +195,22 @@ def gen_phonon_analysis_task_spec(
             except AssertionError:
                 raise ValueError(
                     "supercell_matrix is not a scalar multiple of sc_matrix_base"
-                )
+                ) from None
 
             try:
                 assert np.all(quot > 0.99)
             except AssertionError:
-                raise ValueError("sc_matrix_base is smaller than supercell_matrix")
+                raise ValueError(
+                    "sc_matrix_base is smaller than supercell_matrix"
+                ) from None
 
             try:
                 assert np.all(np.abs(quot - np.round(quot)) < 1e-10)
             except AssertionError:
                 raise ValueError(
-                    "supercell_matrix is not an integer scalar multiple of sc_matrix_base"
-                )
+                    "supercell_matrix is not an integer "
+                    "scalar multiple of sc_matrix_base"
+                ) from None
 
             func_kwargs["sc_matrix_base"] = [
                 int(round(sc_el)) for sc_el in sc_matrix_base.flatten()
@@ -252,7 +253,8 @@ def gen_phonon_analysis_task_spec(
 def gen_stat_samp_analysis_task_spec(
     func_kwargs, metakey, forcekey, make_abs_path=False
 ):
-    """Generate a serial Phononpy or Phono3py calculation task
+    """
+    Generate a serial Phononpy or Phono3py calculation task
 
     Parameters
     ----------
@@ -309,7 +311,8 @@ def gen_stat_samp_analysis_task_spec(
 def gen_aims_task_spec(
     func_kwargs, func_fw_out_kwargs, make_abs_path=False, relax=True
 ):
-    """Gets the task spec for an FHI-aims calculations
+    """
+    Gets the task spec for an FHI-aims calculations
 
     Parameters
     ----------
@@ -344,7 +347,8 @@ def gen_aims_task_spec(
 
 
 def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
-    """Gets the task spec for a k-grid optimization
+    """
+    Gets the task spec for a k-grid optimization
 
     Parameters
     ----------
@@ -369,7 +373,8 @@ def gen_kgrid_task_spec(func_kwargs, make_abs_path=False):
 
 
 def gen_gruniesen_task_spec(settings, trajectory_file, constraints):
-    """Generate a TaskSpec for setting up a Gruniesen parameter calculation
+    """
+    Generate a TaskSpec for setting up a Gruniesen parameter calculation
 
     Parameters
     ----------
@@ -386,7 +391,7 @@ def gen_gruniesen_task_spec(settings, trajectory_file, constraints):
         The specification object of the Gruniesen setup task
 
     """
-    task_spec_list = [
+    return [
         TaskSpec(
             "vibes.fireworks.tasks.phonopy_phono3py_functions.setup_gruneisen",
             "vibes.fireworks.tasks.fw_out.general.add_additions_to_spec",
@@ -396,18 +401,18 @@ def gen_gruniesen_task_spec(settings, trajectory_file, constraints):
             make_abs_path=False,
         )
     ]
-    return task_spec_list
 
 
 def gen_md_task_spec(md_settings, fw_settings=None):
-    """Generate a TaskSpec for setting up a Gruniesen parameter calculation
+    """
+    Generate a TaskSpec for setting up a Gruniesen parameter calculation
 
     Returns
     -------
     TaskSpec
         The specification object of the MD task
-    """
 
+    """
     if fw_settings and "kpoint_density_spec" in fw_settings:
         inputs = [fw_settings["kpoint_density_spec"]]
         args = []
@@ -420,7 +425,7 @@ def gen_md_task_spec(md_settings, fw_settings=None):
         inputs = []
         args = [None]
 
-    task_spec_list = [
+    return [
         TaskSpec(
             "vibes.fireworks.tasks.md.run",
             "vibes.fireworks.tasks.fw_out.md.check_md_finish",
@@ -431,22 +436,22 @@ def gen_md_task_spec(md_settings, fw_settings=None):
             make_abs_path=False,
         )
     ]
-    return task_spec_list
 
 
 def gen_relax_task_spec(relax_settings, fw_settings=None):
-    """Generate a TaskSpec for setting up a Gruniesen parameter calculation
+    """
+    Generate a TaskSpec for setting up a Gruniesen parameter calculation
 
     Returns
     -------
     TaskSpec
         The specification object of the MD task
-    """
 
+    """
     inputs = []
     args = [None]
 
-    task_spec_list = [
+    return [
         TaskSpec(
             "vibes.fireworks.tasks.relaxation.run",
             "vibes.fireworks.tasks.fw_out.relaxation.check_relax_finish",
@@ -457,4 +462,3 @@ def gen_relax_task_spec(relax_settings, fw_settings=None):
             make_abs_path=False,
         )
     ]
-    return task_spec_list

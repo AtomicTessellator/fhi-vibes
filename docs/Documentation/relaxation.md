@@ -46,7 +46,7 @@ for performing a BFGS optimization of the structure found in `geometry.in` until
 Instructions to set up a geometry optimization workflow using an [ASE optimizer class](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-ase.optimize).
 
 #### `driver`
-Currently only [BFGS](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs) is supported, which is Quasi-Newton method using the [Broyden–Fletcher–Goldfarb–Shanno algoritm](https://en.wikipedia.org/wiki/Broyden%E2%80%93Fletcher%E2%80%93Goldfarb%E2%80%93Shanno_algorithm) to obtain an estimation of the Hessian.
+Currently only [BFGS](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#bfgs) is supported, which is Quasi-Newton method using the [Broyden–Fletcher–Goldfarb–Shanno algorithm](https://en.wikipedia.org/wiki/Broyden%E2%80%93Fletcher%E2%80%93Goldfarb%E2%80%93Shanno_algorithm) to obtain an estimation of the Hessian.
 
 #### `fmax`
 
@@ -92,10 +92,10 @@ The working directory for running the calculations and storing output files.
 
 These keywords are used 1:1 by the ASE optimizer class, e.g.
 
-```pytho
+```python
 cls = ase.optimize.BFGS
 
-optimzer = cls(**settings.relaxation.get("kwargs"))
+optimizer = cls(**settings.relaxation.get("kwargs"))
 ```
 
 #### `maxstep`

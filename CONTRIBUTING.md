@@ -17,6 +17,6 @@ Please use the [issue tracker](https://gitlab.com/vibes-developers/vibes/-/issue
 In order to contribute code to `FHI-vibes`, please follow the usual steps for [preparing and creating a merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html). A few remarks regarding our guidelines for code and code style:
 
 - We use [black](https://black.readthedocs.io/en/stable/) with default settings and [isort](https://pycqa.github.io/isort/) for formatting the code. The settings for `isort` are included in `setup.cfg`.
-- Please _document_ and _test_ your changes. Tests are found in `vibes/tests` and written with [pytest](https://docs.pytest.org/en/stable/). 
+- Please _document_ and _test_ your changes. Tests are found in `vibes/tests` and written with [pytest](https://docs.pytest.org/en/stable/).
 - Please use [google-type docstrings](https://google.github.io/styleguide/pyguide.html) for your functions. Optionally you can use type hints, but we currently don't enforce this.
 - We loosely keep track of code coverage, please try not to decrease coverage when contributing new code.

@@ -2,6 +2,7 @@
 Script to initialize positions and velocities with force constants.
 Similar to canonical_sampling from TDEP.
 """
+
 import numpy as np
 from ase import units as u
 from ase.io import read
@@ -27,9 +28,11 @@ def generate_samples(
     propagate=None,
     failfast=True,
 ):
-    """create samples for Monte Carlo sampling
+    """
+    Create samples for Monte Carlo sampling
 
     Args:
+    ----
         atoms: the structure
         temperature: temperature in Kelvin
         n_samples: number of samples to create (default: 1)
@@ -42,20 +45,19 @@ def generate_samples(
         ignore_negative: don't check for negative modes
         random_seed: seed for random number generator
         propagate: propagate atoms according to velocities for this many fs
-    """
 
+    """
     inform(atoms, verbosity=0)
 
     seed = random_seed
     temp = temperature
     info_str = []
 
-    if not rattle:
-        if temp is None:
-            exit("** temperature needs to be given")
+    if not rattle and temp is None:
+        exit("** temperature needs to be given")
 
     if not seed:
-        seed = np.random.randint(2 ** 31)
+        seed = np.random.randint(2**31)
 
     rng = np.random.RandomState(seed)
 
@@ -84,8 +86,8 @@ def generate_samples(
         talk(f"Random seed: {seed}")
     else:
         mb_args = {"temp": temp * u.kB, "rng": rng}
-        info_str += ["created from MB distrubtion", f"T = {temperature} K"]
-        talk(f"Use Maxwell Boltzamnn to set up samples")
+        info_str += ["created from MB distribution", f"T = {temperature} K"]
+        talk("Use Maxwell Boltzamnn to set up samples")
 
     info_str += [
         f"quantum:             {quantum}",
@@ -99,7 +101,7 @@ def generate_samples(
 
     for ii in range(n_samples):
         talk(f"Sample {ii:3d}:")
-        sample_info_str = info_str + [f"Sample number:       {ii + 1}"]
+        sample_info_str = [*info_str, f"Sample number:       {ii + 1}"]
         sample = atoms.copy()
 
         if force_constants is not None:
@@ -107,7 +109,7 @@ def generate_samples(
 
         elif rattle is not None:
             sample.rattle(rattle)
-            sample_info_str = info_str + [f"Rattle with stdev:   {rattle}"]
+            sample_info_str = [*info_str, f"Rattle with stdev:   {rattle}"]
 
         else:
             vd.MaxwellBoltzmannDistribution(sample, **mb_args)
@@ -123,7 +125,7 @@ def generate_samples(
             talk(f".. harmonic potential energy:   {ha_epot_str})")
 
         talk(f".. temperature before cleaning: {sample.get_temperature():9.3f}K")
-        talk(f".. remove net momentum from sample and force temperature")
+        talk(".. remove net momentum from sample and force temperature")
         vd.force_temperature(sample, temp)
         vd.Stationary(sample)
         # vd.ZeroRotation(sample)
@@ -142,16 +144,18 @@ def generate_samples(
 
 
 def create_samples(atoms_file, temperature=None, fc_file=None, format="aims", **kwargs):
-    """FileIO frontend to `generate_samples`
+    """
+    FileIO frontend to `generate_samples`
 
     Args:
+    ----
         atoms_file: input geometry file
         temperature: temperature in Kelvin
         fc_file: file holding force constants
         format: The ASE file format for geometry files
         kwargs: kwargs for `generate_samples`
-    """
 
+    """
     atoms = read(atoms_file, format=format)
     inform(atoms, verbosity=0)
 
@@ -181,7 +185,7 @@ def create_samples(atoms_file, temperature=None, fc_file=None, format="aims", **
 
 
 def check_frequencies(atoms, force_constants):
-    """print lowest and highest frequencies obtained from force constants"""
+    """Print lowest and highest frequencies obtained from force constants"""
     w2 = get_frequencies(force_constants, masses=atoms.get_masses())
 
     print("The first 6 frequencies:")

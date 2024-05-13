@@ -1,4 +1,5 @@
-""" test green kubo cumulative kappa"""
+"""test green kubo cumulative kappa"""
+
 from pathlib import Path
 
 import numpy as np
@@ -15,7 +16,6 @@ from vibes.correlation import get_autocorrelation
 from vibes.integrate import get_cumtrapz
 from vibes.settings import Config
 
-
 parent = Path(__file__).parent
 folder = parent / "lammps"
 
@@ -28,7 +28,7 @@ kappa_df = pd.read_csv(folder / "kappa.csv.bz2", index_col=info.index_col)
 
 
 def _ref_corr(series, step=10, nmax=100000, window=True):
-    """return correlation function as pd.Series"""
+    """Return correlation function as pd.Series"""
     J = series.iloc[:nmax:step]
     time = J.index
 

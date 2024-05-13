@@ -1,4 +1,5 @@
 """utilities for working with trajectories"""
+
 import numpy as np
 
 from vibes.helpers import Timer
@@ -10,12 +11,12 @@ Timer.prefix = _prefix
 
 
 def talk(msg, **kwargs):
-    """wrapper for `utils.talk` with prefix"""
+    """Wrapper for `utils.talk` with prefix"""
     return _talk(msg, prefix=_prefix, **kwargs)
 
 
 def get_hashes_from_trajectory_file(trajectory_file, verbose=False):
-    """return all hashes from trajectory"""
+    """Return all hashes from trajectory"""
     from .io import reader
 
     try:
@@ -27,7 +28,8 @@ def get_hashes_from_trajectory_file(trajectory_file, verbose=False):
 
 
 def clean_pressure(series):
-    """remove 0 pressure entries from a SERIES of pressures
+    """
+    Remove 0 pressure entries from a SERIES of pressures
 
     Reference:
         https://pandas.pydata.org/pandas-docs/stable/user_guide/missing_data.html

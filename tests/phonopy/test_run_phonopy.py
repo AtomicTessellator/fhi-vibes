@@ -1,4 +1,4 @@
-""" use the vibes phonopy workflow """
+"""use the vibes phonopy workflow"""
 
 from pathlib import Path
 

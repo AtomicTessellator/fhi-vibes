@@ -13,14 +13,13 @@ from vibes.helpers.converters import input2dict
 from ._defaults import name, settings_dict
 from .workflow import _prefix, run_relaxation
 
-
 # duck type ExpCellFilter, see https://gitlab.com/ase/ase/-/issues/603
 # is resolved:
 
 
 class MyExpCellFilter(ExpCellFilter):
     def get_forces(self, apply_constraint=True):
-        """overwrite `apply_constraint` from Expcellfilter"""
+        """Overwrite `apply_constraint` from Expcellfilter"""
         return super().get_forces(apply_constraint=apply_constraint)
 
 
@@ -28,12 +27,15 @@ class RelaxationContext(TaskContext):
     """context for relaxation"""
 
     def __init__(self, settings=None, workdir=None, trajectory_file=None):
-        """Initialization
+        """
+        Initialization
 
         Args:
+        ----
             settings: settings for the relaxation Workflow
             workdir: Working directory for the relaxation workflow
             trajectory_file: Path to output trajectory
+
         """
         super().__init__(settings, name, workdir=workdir, template_dict=settings_dict)
 
@@ -45,7 +47,7 @@ class RelaxationContext(TaskContext):
 
     @property
     def exp_cell_filter_kw(self):
-        """kwargs from self.settings.relaxation for ExpCellFilter"""
+        """Kwargs from self.settings.relaxation for ExpCellFilter"""
         kw = {
             "hydrostatic_strain": self.kw.get("hydrostatic_strain"),
             "constant_volume": self.kw.get("constant_volume"),
@@ -84,7 +86,7 @@ class RelaxationContext(TaskContext):
 
     @property
     def opt(self):
-        """the relaxation algorithm"""
+        """The relaxation algorithm"""
         if not self._opt:
             self.mkdir()
             obj = self.settings[name].kwargs
@@ -106,7 +108,7 @@ class RelaxationContext(TaskContext):
 
     @property
     def opt_atoms(self):
-        """return ExpCellFilter(self.atoms, **kwargs) if `unit_cell == True`"""
+        """Return ExpCellFilter(self.atoms, **kwargs) if `unit_cell == True`"""
         kw = self.exp_cell_filter_kw
 
         msg = ["filter settings:", *[f"  {k}: {v}" for k, v in kw.items()]]
@@ -117,23 +119,21 @@ class RelaxationContext(TaskContext):
                 from ase.spacegroup.symmetrize import FixSymmetry
             except ModuleNotFoundError:
                 msg = (
-                    "`ase.spacegroup.symmetrize.FixSymmetry` is available from ASE 3.20,"
-                    " please update."
+                    "`ase.spacegroup.symmetrize.FixSymmetry` is available from "
+                    "ASE 3.20, please update."
                 )
-                raise RuntimeError(msg)
+                raise RuntimeError(msg) from None
 
             constr = FixSymmetry(self.atoms, symprec=self.symprec)
             self.atoms.set_constraint(constr)
 
         if self.unit_cell:
             return MyExpCellFilter(self.atoms, **kw)
-        else:
-            return self.atoms
+        return self.atoms
 
     @property
     def metadata(self):
-        """return relaxation metadata as dict"""
-
+        """Return relaxation metadata as dict"""
         opt_dict = self.opt.todict()
 
         # save time and mass unit
@@ -149,18 +149,17 @@ class RelaxationContext(TaskContext):
         return {"relaxation": opt_dict, **dct}
 
     def resume(self):
-        """resume from trajectory"""
+        """Resume from trajectory"""
         prepare_from_trajectory(self.atoms, self.trajectory_file)
 
     def run(self, timeout=None):
-        """run the context workflow"""
+        """Run the context workflow"""
         self.resume()
         run_relaxation(self)
 
 
 def prepare_from_trajectory(atoms, trajectory_file):
     """Take the last step from trajectory and initialize atoms + md accordingly"""
-
     trajectory_file = Path(trajectory_file)
     if trajectory_file.exists():
         last_atoms = son.last_from(trajectory_file)

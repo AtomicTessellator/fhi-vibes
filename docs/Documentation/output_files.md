@@ -19,11 +19,11 @@ This file contains metadata and calculation results for a set of related calcula
         "k_grid": [2, 2, 2],
         ...}},
     "atoms": {
-      "cell": 
+      "cell":
         [[ 8.33141234000000e+00, -8.33141234000000e+00,  0.00000000000000e+00],
          [ 8.33141234000000e+00,  8.33141234000000e+00,  0.00000000000000e+00],
          [ 0.00000000000000e+00,  0.00000000000000e+00,  1.24971185100000e+01]],
-      "positions": 
+      "positions":
         [[ 0.00000000000000e+00,  0.00000000000000e+00,  0.00000000000000e+00],
          [ 4.16570617000000e+00,  0.00000000000000e+00,  0.00000000000000e+00],
        …}
@@ -35,7 +35,7 @@ This file contains metadata and calculation results for a set of related calcula
         "nsteps": 0,
         "dt":  4.91134739423203e-01,
         "aims_uuid": "D985353A-F8FD-4635-A939-E129A7E6E146"},
-      "positions": 
+      "positions":
         [[ 0.00000000000000e+00,  0.00000000000000e+00,  0.00000000000000e+00],
          [ 4.16570617000000e+00,  0.00000000000000e+00,  0.00000000000000e+00], …}
     ---
@@ -49,9 +49,9 @@ A [`NetCDF`](https://www.unidata.ucar.edu/software/netcdf/) file containing and 
 ??? example "Load `trajectory.nc`"
     ```python
     >>> import xarray as xr
-    >>> 
+    >>>
     >>> ds = xr.open_dataset('trajectory.nc')
-    >>> 
+    >>>
     >>> print(ds)
     <xarray.Dataset>
     Dimensions:              (I: 180, a: 3, b: 3, time: 10001)
@@ -120,14 +120,14 @@ Files with `.dat` suffix are 1D or 2D arrays that can be read with [`numpy.loadt
 ??? example "Load `frequencies.dat`"
     ```python
     >>> import numpy as np
-    >>> 
+    >>>
     >>> data = np.loadtxt('frequencies.dat')
-    >>> 
+    >>>
     >>> print(data)
     [0.         0.         0.         0.93285376 1.31925444 1.61575011
      1.86570752 2.08592443 2.28501572 2.46809906 2.63850888 2.79856129]
     ```
-    
+
 ### `.csv` files
 Files `.csv` suffix are standard [`comma-separated values`](https://en.wikipedia.org/wiki/Comma-separated_values) that can be parsed, e.g., with `pandas`.
 
@@ -143,15 +143,15 @@ Files `.csv` suffix are standard [`comma-separated values`](https://en.wikipedia
 ??? example  "Load `trajectory.csv`"
     ```python
     >>> import pandas as pd
-    >>> 
+    >>>
     >>> df = pd.read_csv('trajectory.csv')
-    >>> 
+    >>>
     >>> print(df)
               time  temperature  energy_kinetic  energy_potential  pressure_kinetic  pressure_potential  pressure
     0          0.0   286.200121        6.658959     -1.309242e+07          0.001455           -0.000142  0.001313
     1          2.0   289.569446        6.737352     -1.309242e+07          0.001472           -0.000121  0.001351
     2          4.0   292.463104        6.804678     -1.309242e+07          0.001487                 NaN       NaN
-    
+
     [3 rows x 7 columns]
     ```
 
@@ -233,13 +233,13 @@ These are plain [`JSON`](https://www.json.org/) files that  can be parsed with t
      }
     }
     ```
-    
+
 ??? example "Load `md_describe.json`"
     ```python
     >>> import json
-    >>> 
+    >>>
     >>> data = json.load(open('md_describe.json'))
-    >>> 
+    >>>
     >>> pprint(data)
     {'energy_kinetic': {'25%': 6.962120325100335,
                         '50%': 7.1955764975375205,
@@ -310,4 +310,3 @@ These are force constants in the [`phonopy` format](https://phonopy.github.io/ph
 ### `FORCE_CONSTANTS_remapped`
 
 These are force constants mapped to `(3 * n_supercell, 3 * n_supercell)` shape. They can be parsed with `numpy.loadtxt` similar to [`.dat.` files](#dat-files).
-

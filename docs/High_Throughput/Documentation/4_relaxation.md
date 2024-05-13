@@ -58,4 +58,3 @@ The second step of the relaxation (parameters same as the first step)
 ### `[relaxation.n]`
 
 The n<sup>th</sup> step of the relaxation
-

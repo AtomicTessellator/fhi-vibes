@@ -1,4 +1,5 @@
 """compute and analyze heat fluxes"""
+
 import numpy as np
 import xarray as xr
 
@@ -11,14 +12,12 @@ from .utils import Timer
 
 
 def _time_coords(trajectory):
-    """return time as coords dict"""
-    coords = {dims.time: trajectory.times}
-    return coords
+    """Return time as coords dict"""
+    return {dims.time: trajectory.times}
 
 
 def _attrs(trajectory, dct=None, metadata=False):
-    """return metadata dictionary with defaults + custom dct"""
-
+    """Return metadata dictionary with defaults + custom dct"""
     attrs = {
         keys.name: keys.trajectory,
         keys.system_name: get_sysname(trajectory.ref_atoms),
@@ -62,12 +61,15 @@ def _attrs(trajectory, dct=None, metadata=False):
 
 
 def get_positions_dataarray(trajectory, verbose=True):
-    """extract positions from TRAJECTORY  and return as xarray.DataArray
+    """
+    Extract positions from TRAJECTORY  and return as xarray.DataArray
 
     Args:
+    ----
         trajectory (Trajectory): list of atoms objects
     Returns:
         positions (xarray.DataArray [N_t, N_a, 3])
+
     """
     timer = Timer("Get positions from trajectory", verbose=verbose)
 
@@ -85,12 +87,15 @@ def get_positions_dataarray(trajectory, verbose=True):
 
 
 def get_velocities_dataarray(trajectory, verbose=True):
-    """extract velocties from TRAJECTORY  and return as xarray.DataArray
+    """
+    Extract velocties from TRAJECTORY  and return as xarray.DataArray
 
     Args:
+    ----
         trajectory (Trajectory): list of atoms objects
     Returns:
         velocities (xarray.DataArray [N_t, N_a, 3])
+
     """
     timer = Timer("Get velocities from trajectory", verbose=verbose)
 
@@ -108,12 +113,15 @@ def get_velocities_dataarray(trajectory, verbose=True):
 
 
 def get_pressure_dataset(trajectory, verbose=True):
-    """extract pressure from TRAJECTORY  and return as xarray.DataArray
+    """
+    Extract pressure from TRAJECTORY  and return as xarray.DataArray
 
     Args:
+    ----
         trajectory (Trajectory): list of atoms objects
     Returns:
         pressure (xarray.DataArray [N_t]) in eV/AA**3
+
     """
     timer = Timer("Get pressure from trajectory", verbose=verbose)
 
@@ -123,7 +131,7 @@ def get_pressure_dataset(trajectory, verbose=True):
         keys.pressure_potential: (dims.time, trajectory.pressure_potential),
     }
 
-    df = xr.Dataset(data, coords=_time_coords(trajectory), attrs=_attrs(trajectory),)
+    df = xr.Dataset(data, coords=_time_coords(trajectory), attrs=_attrs(trajectory))
 
     timer()
 
@@ -131,16 +139,18 @@ def get_pressure_dataset(trajectory, verbose=True):
 
 
 def get_trajectory_dataset(trajectory, metadata=False):
-    """Return trajectory data as xarray.Dataset
+    """
+    Return trajectory data as xarray.Dataset
 
     Args:
+    ----
         trajectory: list of atoms objects WITH ATOMIC STRESS computed
         metadata (bool): include `raw_metadata` in `attrs`
     Returns:
         xarray.Dataset:
             positions, velocities, forces, stress, pressure, temperature
-    """
 
+    """
     # add velocities and pressure
     positions = get_positions_dataarray(trajectory)
     velocities = get_velocities_dataarray(trajectory)

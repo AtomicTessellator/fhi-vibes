@@ -15,7 +15,7 @@ except ModuleNotFoundError:
 
 @click.command(cls=AliasedGroup)
 def template():
-    """provide template input files for tasks and workflows"""
+    """Provide template input files for tasks and workflows"""
 
 
 @template.command(cls=ClickAliasedGroup)
@@ -25,21 +25,19 @@ def calculator():
 
 @calculator.command()
 def aims():
-    """provide template input for aims calculator"""
-
+    """Provide template input for aims calculator"""
     print_input("aims")
 
 
 @calculator.command()
 def lj():
-    """provide template input for Lennard-Jones calculator for solid Argon"""
-
+    """Provide template input for Lennard-Jones calculator for solid Argon"""
     print_input("lj")
 
 
 @template.command()
 def phonopy():
-    """provide template input for phonopy workflow."""
+    """Provide template input for phonopy workflow."""
     from vibes.phonopy.context import PhonopyContext
 
     ctx = PhonopyContext()
@@ -50,7 +48,7 @@ def phonopy():
 @click.option("--nvt", is_flag=True, help="Use Langevin thermostat for NVT simulation")
 @click.option("--npt", is_flag=True, help="Use Berendsen algorithm for NPT simulation")
 def md(nvt, npt):
-    """provide template input for MD simulation (default: NVE)"""
+    """Provide template input for MD simulation (default: NVE)"""
     from vibes.molecular_dynamics.context import MDContext
 
     if nvt:
@@ -66,7 +64,7 @@ def md(nvt, npt):
 
 @template.command()
 def relaxation():
-    """provide template input for relaxation workflow."""
+    """Provide template input for relaxation workflow."""
     from vibes.relaxation.context import RelaxationContext
 
     ctx = RelaxationContext()
@@ -80,28 +78,24 @@ def configuration():
 
 @configuration.command()
 def vibes():
-    """provide template input for .vibesrc"""
-
+    """Provide template input for .vibesrc"""
     print_input("vibesrc.template", from_folder=config_files)
 
 
 @configuration.command()
 def fireworks():
-    """provide template inpurt for .fireworksrc"""
-
+    """Provide template inpurt for .fireworksrc"""
     print_input("fireworksrc.template", from_folder=config_files)
 
 
 @template.command()
 def slurm():
-    """provide template slurm settings"""
-
+    """Provide template slurm settings"""
     print_input("slurm.in", from_folder=config_files)
 
 
 def print_input(name, from_folder=settings):
-    """write the input function"""
-
+    """Write the input function"""
     input_file = pkg_resources.read_text(from_folder, name)
 
     click.echo(input_file)

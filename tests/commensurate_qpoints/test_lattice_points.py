@@ -4,7 +4,6 @@ from vibes.helpers.lattice_points import get_lattice_points
 from vibes.helpers.supercell import get_commensurate_q_points
 from vibes.io import read
 
-
 tolerance = 1e-5
 parent = Path(__file__).parent
 materials = ["si", "gan", "gao"]
@@ -12,12 +11,11 @@ materials = ["si", "gan", "gao"]
 
 def check_q_points(q_points, superlattice, tol=tolerance):
     return all(
-        (abs((ilp @ L + tol) % 1 - tol) < tol for ilp in q_points for L in superlattice)
+        abs((ilp @ L + tol) % 1 - tol) < tol for ilp in q_points for L in superlattice
     )
 
 
 for material in materials:
-
     print(f"Test {material}")
 
     primitive = read(parent / material / "geometry.in")
@@ -59,7 +57,7 @@ for material in materials:
     assert fortran_check_real, (f"*** fortran check real for {material}", dev_real)
     assert fortran_check_recip, (f"*** fortran check for {material}", dev_recip)
 
-    for (ilp, L) in ((ilp, L) for ilp in inv_lattice_points for L in supercell.cell):
+    for ilp, L in ((ilp, L) for ilp in inv_lattice_points for L in supercell.cell):
         if not abs((ilp @ L + 0.001) % 1 - 0.001) < 1e-9:
             print(f"ERROR: q: {ilp} L: {L} q.L: {ilp @ L}")
 

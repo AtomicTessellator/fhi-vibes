@@ -1,4 +1,4 @@
-""" a light wrapper for spglib """
+"""a light wrapper for spglib"""
 
 import numpy as np
 import spglib as spg
@@ -10,7 +10,8 @@ from vibes.structure.convert import to_spglib_cell
 
 
 def cell_to_Atoms(lattice, scaled_positions, numbers, info=None):
-    """convert from spglib cell to Atoms
+    """
+    Convert from spglib cell to Atoms
 
     Parameters
     ----------
@@ -27,6 +28,7 @@ def cell_to_Atoms(lattice, scaled_positions, numbers, info=None):
     -------
     ase.atoms.Atoms:
         The ASE Atoms object representation of the material
+
     """
     atoms_dict = {
         "cell": lattice,
@@ -40,7 +42,8 @@ def cell_to_Atoms(lattice, scaled_positions, numbers, info=None):
 
 
 def get_symmetry_dataset(atoms, symprec=default_symprec):
-    """return the spglib symmetry dataset
+    """
+    Return the spglib symmetry dataset
 
     Parameters
     ----------
@@ -53,8 +56,8 @@ def get_symmetry_dataset(atoms, symprec=default_symprec):
     -------
     AttributeDict
         The symmetry_dataset for the structure
-    """
 
+    """
     dataset = spg.get_symmetry_dataset(to_spglib_cell(atoms), symprec=symprec)
 
     uwcks, count = np.unique(dataset["wyckoffs"], return_counts=True)
@@ -67,7 +70,8 @@ def get_symmetry_dataset(atoms, symprec=default_symprec):
 
 
 def map_unique_to_atoms(atoms, symprec=default_symprec):
-    """map each symmetry unique atom to other atoms as used by phonopy PDOS
+    """
+    Map each symmetry unique atom to other atoms as used by phonopy PDOS
 
     Parameters
     ----------
@@ -80,8 +84,8 @@ def map_unique_to_atoms(atoms, symprec=default_symprec):
     -------
     mapping: np.ndarray
         The mapping of symmetry unique atoms to other atoms
-    """
 
+    """
     ds = get_symmetry_dataset(atoms, symprec=symprec)
 
     uniques = np.unique(ds.equivalent_atoms)
@@ -97,7 +101,8 @@ def map_unique_to_atoms(atoms, symprec=default_symprec):
 
 
 def get_spacegroup(atoms, symprec=default_symprec):
-    """return spglib spacegroup
+    """
+    Return spglib spacegroup
 
     Parameters
     ----------
@@ -110,13 +115,14 @@ def get_spacegroup(atoms, symprec=default_symprec):
     -------
     str:
         The spglib space group
-    """
 
+    """
     return spg.get_spacegroup(to_spglib_cell(atoms), symprec=symprec)
 
 
 def refine_cell(atoms, symprec=default_symprec):
-    """refine the structure
+    """
+    Refine the structure
 
     Parameters
     ----------
@@ -129,6 +135,7 @@ def refine_cell(atoms, symprec=default_symprec):
     -------
     ase.atoms.Atoms:
         The refined structure of atoms
+
     """
     lattice, scaled_positions, numbers = spg.refine_cell(to_spglib_cell(atoms), symprec)
 
@@ -138,7 +145,8 @@ def refine_cell(atoms, symprec=default_symprec):
 def standardize_cell(
     atoms, to_primitive=False, no_idealize=False, symprec=default_symprec
 ):
-    """wrap spglib.standardize_cell
+    """
+    Wrap spglib.standardize_cell
 
     Parameters
     ----------
@@ -155,8 +163,8 @@ def standardize_cell(
     -------
     ase.atoms.Atoms
         The standardized structure of atoms
-    """
 
+    """
     cell = to_spglib_cell(atoms)
     args = spg.standardize_cell(cell, to_primitive, no_idealize, symprec)
 
