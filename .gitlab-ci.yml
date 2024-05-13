@@ -1,4 +1,4 @@
-image: continuumio/miniconda3
+image: continuumio/miniconda3:23.10.0-1
 # image: registry.gitlab.com/vibes-developers/vibes:default
 
 stages:
@@ -7,10 +7,10 @@ stages:
 
 vibes:
   stage: test
-  before_script: 
+  before_script:
     # check syntax before doing anything
-    - pip install flake8 flake8-bugbear flake8-comprehensions pytest pytest-cov pytest-xdist
-    - flake8 --ignore=E226
+    - pip install ruff
+    - ruff check
     - apt-get update
     - apt-get install -y gnupg curl gfortran
     - wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
@@ -25,7 +25,7 @@ vibes:
     - pip install FireWorks
     - cp vibes/templates/config_files/fireworksrc.template ~/.fireworksrc
     - cp vibes/templates/config_files/vibesrc.template ~/.vibesrc
-    - pytest --cov --cov-config=setup.cfg --ignore tests/aims/ tests/ 
+    - pytest --cov --cov-config=setup.cfg --ignore tests/aims/ tests/
   after_script:
     - bash <(curl -s https://codecov.io/bash) -t 698c45df-99fa-49a3-a353-451e54c537f7
 

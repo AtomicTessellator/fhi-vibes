@@ -1,4 +1,5 @@
-""" vibes defaults for md"""
+"""vibes defaults for md"""
+
 import collections
 
 from vibes.helpers.dict import AttributeDict as adict

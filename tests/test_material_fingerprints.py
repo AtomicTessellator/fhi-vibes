@@ -1,4 +1,4 @@
-""" Compute the phonon fingerprints for supercells of different size """
+"""Compute the phonon fingerprints for supercells of different size"""
 
 import numpy as np
 from ase.build import bulk
@@ -12,7 +12,6 @@ from vibes.materials_fp.material_fingerprint import (
     scalar_product,
 )
 from vibes.phonopy import wrapper as ph
-
 
 atoms = bulk("Al")
 
@@ -70,7 +69,7 @@ def test_all():
     ]
     print(
         "n_atoms   "
-        + " ".join([f"{k:9s}" for k in special_points.keys()])
+        + " ".join([f"{k:9s}" for k in special_points])
         + "similarity_score"
     )
     for nn, fp, sp in zip(n_atoms, fp_diffs, sps):

@@ -1,11 +1,13 @@
 """Functions to convert ASE Objects to dicts and getting them from dicts"""
+
 import numpy as np
 from ase.db.row import AtomsRow
 from ase.db.row import atoms2dict as ase_atoms2dict
 
 
 def atoms2dict(atoms):
-    """Converts a Atoms object into a dict
+    """
+    Converts a Atoms object into a dict
 
     Parameters
     ----------
@@ -16,6 +18,7 @@ def atoms2dict(atoms):
     -------
     atoms_dict: dict
         The dictionary of atoms
+
     """
     if atoms is None:
         return None
@@ -38,7 +41,8 @@ def atoms2dict(atoms):
 
 
 def dict2atoms(atoms_dict):
-    """Converts a dict into an Atoms object
+    """
+    Converts a dict into an Atoms object
 
     Parameters
     ----------
@@ -49,6 +53,7 @@ def dict2atoms(atoms_dict):
     -------
     atoms: ase.atoms.Atoms
         The corresponding Atoms object
+
     """
     try:
         atoms = AtomsRow(atoms_dict).toatoms(attach_calculator=True)
@@ -76,17 +81,19 @@ def dict2atoms(atoms_dict):
 
 
 def calc2dict(calculator):
-    """Converts an ASE Calculator into a dict
+    """
+    Converts an ASE Calculator into a dict
 
     Parameters
     ----------
-    calculator: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calculator.Calculator
         The calculator to convert to a dictionary
 
     Returns
     -------
     calc_dict: dict
         The corresponding dictionary
+
     """
     if calculator is None:
         return {}

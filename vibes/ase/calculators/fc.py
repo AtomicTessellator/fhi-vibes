@@ -5,9 +5,7 @@ from ase.geometry import find_mic
 
 
 class FCCalculator(Calculator):
-    """Harmonic Force Constants Calculator
-
-    """
+    """Harmonic Force Constants Calculator"""
 
     implemented_properties = ["energy", "energies", "forces", "free_energy"]
     implemented_properties += ["stress", "stresses"]  # bulk properties
@@ -19,7 +17,7 @@ class FCCalculator(Calculator):
         atoms_reference: Atoms
           reference structure
         force_constants: np.ndarray [3*Na, 3*Na]
-          the force contants w.r.t. the reference structure
+          the force constants w.r.t. the reference structure
         fast: bool
           directly compute f_i and sigma_i without detour via f_ij
 
@@ -44,7 +42,10 @@ class FCCalculator(Calculator):
         self.force_constants = force_constants
 
     def calculate(
-        self, atoms=None, properties=None, system_changes=all_changes,
+        self,
+        atoms=None,
+        properties=None,
+        system_changes=all_changes,
     ):
         if properties is None:
             properties = self.implemented_properties
@@ -71,7 +72,7 @@ class FCCalculator(Calculator):
         else:
             forces = np.zeros((n_atoms, n_atoms, 3))
             stresses = np.zeros((n_atoms, n_atoms, 3, 3))
-            for (ii, jj) in np.ndindex(n_atoms, n_atoms):
+            for ii, jj in np.ndindex(n_atoms, n_atoms):
                 d_ij = displacements[ii] - displacements[jj]
                 p_ij = fc[3 * ii : 3 * (ii + 1), 3 * jj : 3 * (jj + 1)]
                 f_ij = p_ij @ d_ij

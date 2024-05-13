@@ -1,5 +1,7 @@
-""" helps to find lattice points in supercell, match positions to images in the
-unit cell etc. """
+"""
+helps to find lattice points in supercell, match positions to images in the
+unit cell etc.
+"""
 
 import numpy as np
 import scipy.linalg as la
@@ -9,29 +11,30 @@ from vibes.helpers.supercell import get_lattice_points
 from vibes.helpers.utils import Timer
 
 
-def map_L_to_i(indeces):
-    """ Map to atoms belonging to specific lattice point
+def map_L_to_i(indices):
+    """
+    Map to atoms belonging to specific lattice point
 
     Parameters
     ----------
-    indeces: list
+    indices: list
         map from u_I in supercell to u_iL w.r.t to primitive cell and lattice point
 
     Returns
     -------
     np.ndarray
         list of masks that single out the atoms that belong to specific lattice point
-    """
 
-    n_lattice_points = max(i[1] for i in indeces) + 1
+    """
+    n_lattice_points = max(i[1] for i in indices) + 1
     mappings = []
     for LL in range(n_lattice_points):
-        mappings.append([idx[1] == LL for idx in indeces])
+        mappings.append([idx[1] == LL for idx in indices])
     return mappings
 
 
 def _get_lattice_points(atoms, supercell, lattice_points, extended=False):
-    """local wrapper for `get_lattice_points`"""
+    """Local wrapper for `get_lattice_points`"""
     if lattice_points is None:
         if extended:
             _, lattice_points = get_lattice_points(atoms.cell, supercell.cell)
@@ -44,9 +47,11 @@ def _get_lattice_points(atoms, supercell, lattice_points, extended=False):
 def map_I_to_iL(
     in_atoms, in_supercell, lattice_points=None, extended=False, tolerance=1e-5
 ):
-    """Map from supercell index I to (i, L), i is the unit cell index and L lattice p.
+    """
+    Map from supercell index I to (i, L), i is the unit cell index and L lattice p.
 
     Args:
+    ----
         in_atoms (ase.atoms.Atoms): primitive cell
         in_supercell (ase.atoms.Atoms): supercell
         lattice_points (list, optional): list of pre-computed lattice points L
@@ -54,7 +59,9 @@ def map_I_to_iL(
         tolerance (float, optional): tolerance for wrapping
 
     Returns:
+    -------
         list, list: I_to_iL map, inverse map
+
     """
     timer = Timer()
 
@@ -128,7 +135,8 @@ def map_I_to_iL(
 
 
 def _map_iL_to_I(I_to_iL_map):
-    """ map (i, L) back to supercell index I
+    """
+    Map (i, L) back to supercell index I
 
     Parameters
     ----------
@@ -144,8 +152,8 @@ def _map_iL_to_I(I_to_iL_map):
     ------
     AssertionError
         If iL2I[I2iL[II][0], I2iL[II][1]] does not equal II
-    """
 
+    """
     I2iL = np.array(I_to_iL_map)
 
     n_atoms = int(I2iL[:, 0].max() + 1)

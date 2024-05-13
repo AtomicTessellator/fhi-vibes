@@ -1,4 +1,4 @@
-""" Provide a full highlevel phonopy workflow """
+"""Provide a full highlevel phonopy workflow"""
 
 from pathlib import Path
 
@@ -24,18 +24,21 @@ def postprocess(
     verbose=True,
     **kwargs,
 ):
-    """Phonopy postprocess
+    """
+    Phonopy postprocess
 
     Args:
+    ----
         trajectory: The trajectory file to process
         workdir: The working directory where trajectory is stored
         output_dir: write postprocessing results to this folder
         verbose: be verbose
 
     Returns:
+    -------
         phono3py.Phono3py: The Phono3py object with the force constants calculated
-    """
 
+    """
     timer = Timer("Start phonopy postprocess:")
 
     trajectory = Path(workdir) / trajectory
@@ -74,9 +77,8 @@ def postprocess(
         if disp_id not in excluded_displacements:
             msg = f"No. of supercells {n_sc} != no. of calculated atoms: {n_calc}"
             raise RuntimeError(msg)
-        else:
-            n_calc += 1
-            calculated_atoms.append(None)
+        n_calc += 1
+        calculated_atoms.append(None)
 
     force_sets = []
     for pa, a in zip(scs, calculated_atoms):
@@ -118,7 +120,6 @@ def extract_results(phonon, output_dir="output"):
     fc3 = phonon.fc3
 
     with cwd(output_dir, mkdir=True):
-
         p = to_Atoms(primitive)
         write(p, filenames.primitive)
         s = to_Atoms(supercell)

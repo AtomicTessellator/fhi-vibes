@@ -5,35 +5,39 @@ from vibes.konstanten import n_db_digits
 
 
 def to_phonopy_atoms(atoms, wrap=False):
-    """Convert ase.atoms.Atoms to PhonopyAtoms
+    """
+    Convert ase.atoms.Atoms to PhonopyAtoms
 
     Args:
+    ----
       atoms(ase.atoms.Atoms): Atoms to convert
       wrap(bool, optional): If True wrap the scaled positions (Default value = False)
 
     Returns:
+    -------
         phonopy.PhonopyAtoms
 
     """
     from phonopy.structure.atoms import PhonopyAtoms
 
-    phonopy_atoms = PhonopyAtoms(
+    return PhonopyAtoms(
         symbols=atoms.get_chemical_symbols(),
         cell=atoms.get_cell(),
         masses=atoms.get_masses(),
         positions=atoms.get_positions(wrap=wrap),
     )
 
-    return phonopy_atoms
-
 
 def to_spglib_cell(atoms):
-    """Convert ase.atoms.Atoms to spglib cell
+    """
+    Convert ase.atoms.Atoms to spglib cell
 
     Args:
+    ----
       atoms(ase.atoms.Atoms): Atoms to convert
 
     Returns:
+    -------
         tuple
 
     """
@@ -44,19 +48,21 @@ def to_spglib_cell(atoms):
 
 
 def to_Atoms(atoms, info=None, pbc=True, db=False):
-    """Convert structure to ase.atoms.Atoms
+    """
+    Convert structure to ase.atoms.Atoms
 
     Args:
+    ----
       structure(PhonopyAtoms): The structure to convert
       info(dict): Additional information to include in atoms.info (Default value = None)
       pbc(bool): True if the structure is periodic (Default value = True)
       db(bool): remove masses and round positions to 14 digits
 
     Returns:
+    -------
         Atoms: structure as atoms object
 
     """
-
     if info is None:
         info = {}
 
@@ -80,6 +86,4 @@ def to_Atoms(atoms, info=None, pbc=True, db=False):
         }
         atoms_dict.update(db_dict)
 
-    atoms = Atoms(**atoms_dict)
-
-    return atoms
+    return Atoms(**atoms_dict)

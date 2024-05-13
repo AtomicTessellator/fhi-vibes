@@ -6,10 +6,9 @@ from ase.calculators.lj import LennardJones
 from vibes.helpers.stresses import get_stresses
 
 
-@pytest.fixture
+@pytest.fixture()
 def atoms_bulk(stretch=1.5):
-    """return a stretched Ar fcc cell"""
-
+    """Return a stretched Ar fcc cell"""
     atoms = bulk("Ar", cubic=True)
     atoms.set_cell(atoms.cell * stretch, scale_atoms=True)
 

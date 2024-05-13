@@ -1,11 +1,7 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 from pathlib import Path
 
 from vibes import keys
 from vibes.trajectory import Trajectory
-
 
 parent = Path(__file__).parent
 

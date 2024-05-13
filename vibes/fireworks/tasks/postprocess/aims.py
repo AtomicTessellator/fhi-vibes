@@ -4,6 +4,7 @@ from shutil import copyfile
 
 import numpy as np
 from ase.io.aims import read_aims
+
 from vibes.fireworks.tasks.calculate_wrapper import check_if_failure_ok
 from vibes.helpers.converters import atoms2dict, calc2dict, dict2atoms, key_constraints
 
@@ -12,9 +13,9 @@ def check_aims(
     atoms_dict, calc_dict, outputs, calc_number=0, workdir="./", walltime=0, **kwargs
 ):
     """
-    A function that checks if a relaxation is converged (if outputs is True) and either
-    stores the relaxed structure in the MongoDB or appends another Firework as its child
-    to restart the relaxation
+    A function that checks if a relaxation is converged (if outputs is True)
+    and either stores the relaxed structure in the MongoDB or appends another
+    Firework as its child to restart the relaxation
 
     Parameters
     ----------
@@ -46,6 +47,7 @@ def check_aims(
     ------
     ValueError
         If calculation failed
+
     """
     aims_out = np.array(open(workdir + "/aims.out").readlines())
     completed = "Have a nice day" in aims_out[-2] or "Have a nice day" in aims_out[-3]
@@ -68,11 +70,11 @@ def check_aims(
             elif calc_number > 10:
                 raise ValueError(
                     "Number of failed calculations exceeds 10, stopping here"
-                )
+                ) from None
             elif failure_ok != "E_F_INCONSISTENCY":
                 raise ValueError(
                     "There was a problem with the FHI Aims calculation stopping here"
-                )
+                ) from None
         new_atoms = outputs
 
     for line in aims_out[::-1]:

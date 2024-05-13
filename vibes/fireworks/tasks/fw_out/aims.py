@@ -1,9 +1,10 @@
 """FWAction generators for relaxations"""
 
 from fireworks import FWAction
-from vibes.fireworks.tasks.postprocess.aims import check_aims
-from vibes.fireworks.tasks.postprocess.phonons import time2str
+
 from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
+from vibes.fireworks.tasks.postprocess.aims import check_aims
+from vibes.fireworks.tasks.postprocess.phonons import time2ndr
 from vibes.fireworks.workflows.firework_generator import generate_firework
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.k_grid import k2d
@@ -19,7 +20,8 @@ def check_aims_complete(
     func_fw_kwargs,
     fw_settings,
 ):
-    """A function that checks if a relaxation is converged (if outputs is True)
+    """
+    A function that checks if a relaxation is converged (if outputs is True)
 
     either stores the relaxed structure in the MongoDB or
     appends another Firework as its child to restart the relaxation
@@ -91,7 +93,7 @@ def check_aims_complete(
         func_kwargs["walltime"] = walltime
 
     if fw_settings and "spec" in fw_settings and "_queueadapter" in fw_settings["spec"]:
-        fw_settings["spec"]["_queueadapter"]["walltime"] = time2str(walltime)
+        fw_settings["spec"]["_queueadapter"]["walltime"] = time2ndr(walltime)
 
     func_fw_kwargs["calc_number"] = calc_number
 
@@ -102,7 +104,7 @@ def check_aims_complete(
     fw_settings["spec"].update(update_spec)
     fw_settings["from_db"] = False
 
-    if "to_launchpad" in fw_settings and fw_settings["to_launchpad"]:
+    if fw_settings.get("to_launchpad"):
         fw_settings["to_launchpad"] = False
 
     fw = generate_firework(

@@ -4,7 +4,8 @@ from vibes.helpers.numerics import clean_matrix
 
 
 def get_deformation(cell1: np.array, cell2: np.array) -> np.array:
-    """Compute the matrix that deforms cell1 into cell2
+    """
+    Compute the matrix that deforms cell1 into cell2
 
     Rationale:
               A2 = D A1
@@ -19,16 +20,18 @@ def get_deformation(cell1: np.array, cell2: np.array) -> np.array:
 
 
 def inscribed_sphere_in_box(cell):
-    """Find the radius of an inscribed sphere in a unit cell
+    """
+    Find the radius of an inscribed sphere in a unit cell
 
     Args:
+    ----
       cell(np.ndarray): Cell where the sphere should be inscribed
 
     Returns:
+    -------
       float: The radius of the inscribed sphere
 
     """
-
     # the normals of the faces of the box
     na = np.cross(cell[1, :], cell[2, :])
     nb = np.cross(cell[2, :], cell[0, :])
@@ -46,12 +49,15 @@ def inscribed_sphere_in_box(cell):
 
 
 def bounding_sphere_of_box(cell):
-    """Find the radius of the sphere bounding a box
+    """
+    Find the radius of the sphere bounding a box
 
     Args:
+    ----
       cell(np.ndarray): Cell where the sphere should be wrapped around
 
     Returns:
+    -------
       float: The radius of the inscribed sphere
 
     """
@@ -66,20 +72,22 @@ def bounding_sphere_of_box(cell):
 
 
 def get_cubicness(cell):
-    """Quantify the cubicness of a cell
+    """
+    Quantify the cubicness of a cell
 
     Quantify 'how cubic' a given lattice or cell is by comparing the largest
     sphere that fits into the cell to a sphere that fits into a cubic cell
     of similar size
 
     Args:
+    ----
       cell(np.ndarray): Lattice of the cell
 
     Returns:
+    -------
         float: cubicness
 
     """
-
     # perfect radius: 1/2 * width of the cube
     radius_perfect = np.linalg.det(cell) ** (1 / 3) * 0.5
     radius_actual = inscribed_sphere_in_box(cell)
@@ -92,14 +100,17 @@ def get_cubicness(cell):
 
 
 def get_rotation_matrix(phi, axis, radians=False):
-    """Get the rotation matrix for a given rotation
+    """
+    Get the rotation matrix for a given rotation
 
     Args:
+    ----
       phi(float): The angle to rotate by
       axis(int): 0-2 axis to rotate ove
       radians(bool, optional): If True phi is in radians (Default value = False)
 
     Returns:
+    -------
         np.ndarray: rotation matrix
 
     """
@@ -115,24 +126,22 @@ def get_rotation_matrix(phi, axis, radians=False):
     Rm = np.array(
         [
             [
-                r1 ** 2 * (1 - cp) + cp,
+                r1**2 * (1 - cp) + cp,
                 r1 * r2 * (1 - cp) - r3 * sp,
                 r1 * r3 * (1 - cp) + r2 * sp,
             ],
             [
                 r1 * r2 * (1 - cp) + r3 * sp,
-                r2 ** 2 * (1 - cp) + cp,
+                r2**2 * (1 - cp) + cp,
                 r2 * r3 * (1 - cp) - r1 * sp,
             ],
             [
                 r3 * r1 * (1 - cp) - r2 * sp,
                 r2 * r3 * (1 - cp) + r1 * sp,
-                r3 ** 2 * (1 - cp) + cp,
+                r3**2 * (1 - cp) + cp,
             ],
         ]
     )
 
     # clean small values
-    Rm = clean_matrix(Rm)
-
-    return Rm
+    return clean_matrix(Rm)

@@ -1,6 +1,7 @@
 """FWAction generators for optimizations"""
 
 from fireworks import FWAction
+
 from vibes.fireworks.tasks.postprocess.optimizations import (
     load_last_step,
     move_trajectory_file,
@@ -19,7 +20,8 @@ def check_kgrid_opt_completion(
     func_fw_kwargs,
     fw_settings,
 ):
-    """A function that checks if an MD like calculation is converged (if outputs is True)
+    """
+    A function that checks if an MD like calculation is converged
 
     either stores the relaxed structure in the MongoDB or appends another Firework as
     its child to restart the MD

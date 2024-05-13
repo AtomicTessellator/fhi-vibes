@@ -1,4 +1,5 @@
 """`vibes output` part of the CLI"""
+
 from pathlib import Path
 
 import click
@@ -9,13 +10,12 @@ from vibes.filenames import filenames
 from .misc import ClickAliasedGroup as AliasedGroup
 from .misc import complete_files, default_context_settings
 
-
 _default_context_settings = {"show_default": True}
 
 
 @click.command(cls=AliasedGroup)
 def output():
-    """produce output of vibes workfow"""
+    """Produce output of vibes workflow"""
 
 
 @output.command(aliases=["md"], context_settings=default_context_settings)
@@ -25,9 +25,9 @@ def output():
 @click.option("--minimal", is_flag=True, help="omit redundant information")
 @click.option("-fc", "--fc_file", type=Path, help="add force constants from file")
 @click.option("-o", "--outfile", default="auto", show_default=True)
-@click.option("--force", is_flag=True, help="enfore parsing of output file")
+@click.option("--force", is_flag=True, help="enforce parsing of output file")
 def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
-    """write trajectory data in FILE to xarray.Dataset"""
+    """Write trajectory data in FILE to xarray.Dataset"""
     from vibes import keys
     from vibes.trajectory import reader
     from vibes.trajectory.dataset import get_trajectory_dataset
@@ -45,11 +45,10 @@ def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
         file_size_is = xr.open_dataset(outfile).attrs.get(keys.st_size)
 
         if file_size == file_size_is:
-            click.echo(f".. file size has not changed, skip.")
+            click.echo(".. file size has not changed, skip.")
             click.echo(".. (use --force to parse anyway)")
             return
-        else:
-            click.echo(".. file size has changed, parse the file.")
+        click.echo(".. file size has changed, parse the file.")
 
     click.echo(f"Extract Trajectory dataset from {file}")
     traj = reader(file=file, fc_file=fc_file)
@@ -81,7 +80,7 @@ def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
 @click.option("--debye", is_flag=True, help="compute Debye temperature")
 @click.option("-pdos", "--projected_dos", is_flag=True, help="plot projected DOS")
 @click.option("--born", type=complete_files, help="include file with BORN charges")
-@click.option("--sum_rules", is_flag=True, help="enfore sum rules with hiphive")
+@click.option("--sum_rules", is_flag=True, help="enforce sum rules with hiphive")
 @click.option("-v", "--verbose", is_flag=True, help="print frequencies at gamma point")
 @click.pass_obj
 def phonopy(
@@ -97,7 +96,7 @@ def phonopy(
     sum_rules,
     verbose,
 ):
-    """perform phonopy postprocess for trajectory in FILE"""
+    """Perform phonopy postprocess for trajectory in FILE"""
     from vibes.phonopy import _defaults
     from vibes.phonopy.postprocess import extract_results, plot_results, postprocess
 
@@ -150,7 +149,7 @@ def phonopy(
 @click.option("--q_mesh", nargs=3, default=None)
 @click.pass_obj
 def phono3py(obj, file, q_mesh):
-    """perform phono3py postprocess for trajectory in FILE"""
+    """Perform phono3py postprocess for trajectory in FILE"""
     from vibes.phono3py._defaults import kwargs
     from vibes.phono3py.postprocess import extract_results, postprocess
 
@@ -173,7 +172,7 @@ def phono3py(obj, file, q_mesh):
 @click.option("--total", is_flag=True, help="compute total flux")
 # @click.option("-d", "--discard", default=0)
 def greenkubo(file, outfile, window_factor, filter_prominence, total):
-    """perform greenkubo analysis for dataset in FILE"""
+    """Perform greenkubo analysis for dataset in FILE"""
     import xarray as xr
 
     import vibes.green_kubo as gk

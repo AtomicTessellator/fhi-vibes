@@ -40,7 +40,7 @@ maxsteps:                      1000
     maxsteps:                      1000
     compute_stresses:              False
     workdir:                       md
-    
+
     [md.kwargs]
     temperature:                   300
     friction:                      0.02
@@ -54,7 +54,7 @@ maxsteps:                      1000
     maxsteps:                      1000
     compute_stresses:              False
     workdir:                       md
-    
+
     [md.kwargs]
     temperature:                   300
     taut:                          500.0

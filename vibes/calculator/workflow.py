@@ -1,7 +1,9 @@
-""" Provide a full highlevel phonopy workflow
+"""
+Provide a full highlevel phonopy workflow
 
-    Input: geometry.in and settings.in
-    Output: geometry.in.supercell and trajectory.son """
+Input: geometry.in and settings.in
+Output: geometry.in.supercell and trajectory.son
+"""
 
 from vibes.calculate import calculate_socket
 from vibes.helpers import talk
@@ -12,13 +14,14 @@ from .context import CalculatorContext
 
 
 def run_aims(ctx: CalculatorContext):
-    """ high level function to run aims calculation
+    """
+    High level function to run aims calculation
 
     Args:
+    ----
         ctx: The context for the calculation
 
     """
-
     args = bootstrap(ctx)
 
     completed = calculate_socket(**args)
@@ -30,29 +33,31 @@ def run_aims(ctx: CalculatorContext):
 
 
 def bootstrap(ctx: CalculatorContext) -> dict:
-    """ load settings, prepare atoms and aims calculator
+    """
+    Load settings, prepare atoms and aims calculator
 
     Args:
-        ctx: The context for the calculation
+    ----
+    ctx: The context for the calculation
 
     Returns:
-        All of the necessary objects to run the Aims calculation with the following items
+    -------
+    All of the necessary objects to run the Aims calculation with the following items
 
-        atoms_to_calculate: list of ase.atoms.Atoms
-            The structures to be calculated
-        calculator: ase.calculators.calulator.Calculator
-            Calculator for all calculations
-        metadata: dict
-            The Metadata for the calculation
-        workdir: str
-            Path to the working direcotry
-        settings: AimsSettings
-            The settings used to generate this task
-        backup_after_calculation: bool
-            If True back up the calculation folder once completed
+    atoms_to_calculate: list of ase.atoms.Atoms
+        The structures to be calculated
+    calculator: ase.calculators.calculator.Calculator
+        Calculator for all calculations
+    metadata: dict
+        The Metadata for the calculation
+    workdir: str
+        Path to the working directory
+    settings: AimsSettings
+        The settings used to generate this task
+    backup_after_calculation: bool
+        If True back up the calculation folder once completed
 
     """
-
     # find geometries
     atoms_to_calculate = ctx.atoms_to_calculate
 

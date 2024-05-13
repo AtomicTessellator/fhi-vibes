@@ -11,12 +11,16 @@ from vibes.structure.io import inform  # noqa: F401
 
 
 def get_identifier(atoms: Atoms, fix_names: dict = None) -> dict:
-    """Get geometry identifier as dictionary.
+    """
+    Get geometry identifier as dictionary.
 
     Args:
+    ----
         atoms: the structure
         fix_names: dict for correcting material names (e.g. OMg -> MgO)
+
     Returns:
+    -------
         dict: w/ space_group, n_formula, material (name)
 
     """
@@ -38,7 +42,8 @@ def get_identifier(atoms: Atoms, fix_names: dict = None) -> dict:
 
 
 def get_info_str(atoms, spacegroup=False):
-    """encode atoms.info as string
+    """
+    Encode atoms.info as string
 
     Parameters
     ----------
@@ -50,9 +55,9 @@ def get_info_str(atoms, spacegroup=False):
     Returns
     -------
     info_strings: str
-        Teh info string
-    """
+        The info string
 
+    """
     info_strings = [f"Number of atoms:     {len(atoms)}"]
 
     if spacegroup:
@@ -66,7 +71,8 @@ def get_info_str(atoms, spacegroup=False):
 
 
 def read(file, format="aims"):
-    """wrap ase.io.read
+    """
+    Wrap ase.io.read
 
     Parameters
     ----------
@@ -79,15 +85,14 @@ def read(file, format="aims"):
     -------
     atoms: ase.atoms.Atoms
         The ASE representation of the structure in file
+
     """
-
-    atoms = ase_read(file, format=format)
-
-    return atoms
+    return ase_read(file, format=format)
 
 
 def write(atoms, file, format="aims", spacegroup=False, **kwargs):
-    """wrap ase.io.write
+    """
+    Wrap ase.io.write
 
     Parameters
     ----------
@@ -104,8 +109,8 @@ def write(atoms, file, format="aims", spacegroup=False, **kwargs):
     -------
     bool
         True if completed
-    """
 
+    """
     if format == "aims":
         atoms.write(
             file, info_str=get_info_str(atoms, spacegroup), format=format, **kwargs
@@ -115,8 +120,7 @@ def write(atoms, file, format="aims", spacegroup=False, **kwargs):
 
 
 def parse_force_constants(fc_file, **kwargs):
-    """parse either phonopy FORCE_CONSTANTS or tdep infile.forceconstants"""
-
+    """Parse either phonopy FORCE_CONSTANTS or tdep infile.forceconstants"""
     file = Path(fc_file)
     name = file.name
 
@@ -125,20 +129,19 @@ def parse_force_constants(fc_file, **kwargs):
 
         return parse_phonopy_force_constants(file, **kwargs)
 
-    elif name.endswith(filenames.suffixes.tdep_fc):
+    if name.endswith(filenames.suffixes.tdep_fc):
         from vibes.tdep.wrapper import parse_tdep_forceconstant
 
         return parse_tdep_forceconstant(file, **kwargs)
 
-    elif name.endswith(filenames.suffixes.tdep_fc_remapped):
+    if name.endswith(filenames.suffixes.tdep_fc_remapped):
         from vibes.tdep.wrapper import parse_tdep_remapped_forceconstant
 
         return parse_tdep_remapped_forceconstant(file, **kwargs)
 
-    elif ".dat" in name or name == filenames.fc.phonopy_remapped:
+    if ".dat" in name or name == filenames.fc.phonopy_remapped:
         import numpy as np
 
         return np.loadtxt(fc_file)
 
-    else:
-        raise RuntimeError(f"{file} is neither phonopy nor tdep force constants")
+    raise RuntimeError(f"{file} is neither phonopy nor tdep force constants")

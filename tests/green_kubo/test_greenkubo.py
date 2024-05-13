@@ -1,11 +1,11 @@
-""" test green kubo cumulative kappa"""
+"""test green kubo cumulative kappa"""
+
 from pathlib import Path
 
 import xarray as xr
 
 from vibes import green_kubo as gk
 from vibes import keys
-
 
 parent = Path(__file__).parent
 

@@ -1,9 +1,9 @@
-""" vibes defaults for md"""
+"""vibes defaults for md"""
+
 import collections
 
 from vibes.helpers import talk as _talk
 from vibes.helpers.dict import AttributeDict as adict
-
 
 name = "md"
 

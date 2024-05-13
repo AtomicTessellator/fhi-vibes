@@ -65,7 +65,7 @@ settings = {
 
 ### `[files]` Section
 
-This section contains filenames. 
+This section contains filenames.
 
 #### `geometry`
 
@@ -81,7 +81,7 @@ If there is just one geometry necessary for the given task and it is stored in `
 
 #### `geometries`
 
-Via `geometries`, a wildcard expression for finding geometry files for computation can be given, e.g. `geometries: samples/geometry.in.*` would specifiy to run a calculation for all geometry input files found in the folder `samples`.
+Via `geometries`, a wildcard expression for finding geometry files for computation can be given, e.g. `geometries: samples/geometry.in.*` would specify to run a calculation for all geometry input files found in the folder `samples`.
 
 ```python
 files = sorted(glob(settings.files.get("geometries")))

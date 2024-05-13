@@ -29,18 +29,18 @@ cmd = Template(template).render(args)
 
 
 def test_base():
-    """test the simplest version of the command"""
+    """Test the simplest version of the command"""
     cmd = f"{base_cmd} -T 300 -seed 4"
     sp.run(cmd.split(), cwd=parent, check=True)
 
 
 def test_run_cmd():
-    """create samples with the cli tool"""
+    """Create samples with the cli tool"""
     sp.run(cmd.split(), cwd=parent, check=True)
 
 
 def test_output():
-    """check created samples vs reference"""
+    """Check created samples vs reference"""
     files = parent.glob("geometry.in.supercell.*")
     for file in files:
         reference = parent / "ref" / file.name

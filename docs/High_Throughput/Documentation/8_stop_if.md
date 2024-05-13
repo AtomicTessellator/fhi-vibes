@@ -56,5 +56,4 @@ For `md` and `statistical_sampling` calculations the only allowed property is `s
 
 ### external_functions
 
-`list(str)`: A list of all function paths to user-defined stopping functions. To be used by the workflows the submodule of all functions must be inside the `PYTHONPATH` environment variable
-
+`list(str)`: A list of all function paths to user-defined stopping functions. To be used by the workflows the submodule of all functions must be inside the `pythonNPATH` environment variable

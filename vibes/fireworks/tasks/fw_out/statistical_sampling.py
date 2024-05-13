@@ -1,5 +1,7 @@
 """Generate FWActions after post-processing statistical sampling calculations"""
+
 from fireworks import FWAction
+
 from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
 from vibes.fireworks.tasks.postprocess.statistical_sampling import get_sigma
 from vibes.helpers.converters import dict2atoms
@@ -7,7 +9,8 @@ from vibes.helpers.k_grid import k2d
 
 
 def add_stat_samp_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
-    """Add the phonon_dict to the spec
+    """
+    Add the phonon_dict to the spec
 
     Parameters
     ----------

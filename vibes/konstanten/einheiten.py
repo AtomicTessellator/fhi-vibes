@@ -1,9 +1,9 @@
-""" Physical constants and atomic units """
+"""Physical constants and atomic units"""
+
 from ase import units as ase_units
 from numpy import pi
 
 from vibes.helpers import AttributeDict
-
 
 # physical constants
 AMU = ase_units._amu  # = 1.66053904e-27  # [kg]
@@ -46,11 +46,11 @@ atomic_units = AttributeDict(
 )
 
 # force constants
-omega_to_THz = (EV / AA ** 2 / AMU) ** 0.5 / THZ / 2 / PI  # 15.633302 THz
+omega_to_THz = (EV / AA**2 / AMU) ** 0.5 / THZ / 2 / PI  # 15.633302 THz
 THz_to_cm = THZ / LIGHT / 100  # 33.3564 [1/cm]
 omega_to_cm = omega_to_THz * THz_to_cm
 
-amu_AA_THz_to_eV = AMU * AA ** 2 * THZ ** 2 / EV
+amu_AA_THz_to_eV = AMU * AA**2 * THZ**2 / EV
 
 # old stuff
 # Bohr_to_AA = atomic_units.AA

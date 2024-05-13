@@ -5,7 +5,6 @@ from vibes.filenames import filenames
 
 from .misc import AliasedGroup, ClickAliasedGroup, Path, click, complete_files
 
-
 xrange = range
 
 # from click 7.1 on
@@ -14,7 +13,7 @@ _default_context_settings = {"show_default": True}
 
 @click.group(cls=ClickAliasedGroup)
 def utils():
-    """tools and utilities"""
+    """Tools and utilities"""
 
 
 @utils.command(context_settings=_default_context_settings)
@@ -22,7 +21,7 @@ def utils():
 @click.option("--dry", is_flag=True, help="Only print hash to stdout")
 @click.option("-o", "--outfile", default="hash.toml")
 def hash(file, dry, outfile):
-    """create SHA1 hash for FILE"""
+    """Create SHA1 hash for FILE"""
     import time
 
     from vibes.helpers.hash import hash_file
@@ -42,8 +41,7 @@ def hash(file, dry, outfile):
 
 @utils.command(cls=AliasedGroup)
 def geometry():
-    """utils for manipulating structures (wrap, refine, etc.)"""
-    ...
+    """Utils for manipulating structures (wrap, refine, etc.)"""
 
 
 @geometry.command(context_settings=_default_context_settings)
@@ -52,7 +50,7 @@ def geometry():
 @click.option("--uneven", is_flag=True)
 @click.option("--format", default="aims")
 def suggest_k_grid(file, density, uneven, format):
-    """suggest a k_grid for geometry in FILENAME based on density"""
+    """Suggest a k_grid for geometry in FILENAME based on density"""
     from .scripts.suggest_k_grid import suggest_k_grid
 
     click.echo("vibes CLI: suggest_k_grid")
@@ -66,7 +64,8 @@ def suggest_k_grid(file, density, uneven, format):
 @click.option("--dry", is_flag=True)
 @click.option("--format", default="aims")
 def get_deformation(files, supercell_file, outfile, dry, format):
-    """get matrix D that deformes lattice of geometry1 to lattice of geometry2, where
+    """
+    Get matrix D that deformes lattice of geometry1 to lattice of geometry2, where
         A_2 = D A_1
 
     For Supercells:
@@ -111,7 +110,7 @@ def get_deformation(files, supercell_file, outfile, dry, format):
 @click.option("--cartesian", is_flag=True)
 @click.option("--format", default="aims")
 def apply_deformation(file, scalar, deformation, outfile, dry, cartesian, format):
-    """apply deformation tensor D to geometry in FILE"""
+    """Apply deformation tensor D to geometry in FILE"""
     import numpy as np
     from ase.io import read
 
@@ -153,7 +152,7 @@ def apply_deformation(file, scalar, deformation, outfile, dry, cartesian, format
 @click.option("--cartesian", is_flag=True)
 @click.option("--format", default="aims")
 def set_cell(files, cartesian, format):
-    """set cell of geometry in file1 to geometry in file2"""
+    """Set cell of geometry in file1 to geometry in file2"""
     from ase.io import read
 
     atoms1 = read(files[0], format=format)
@@ -180,7 +179,7 @@ def set_cell(files, cartesian, format):
 @click.option("-o", "--outfile")
 @click.option("--format", default="aims")
 def to_fractional(file, outfile, format):
-    """rewrite geometry in fractional coordinates"""
+    """Rewrite geometry in fractional coordinates"""
     from ase.io import read
 
     if not outfile:
@@ -197,7 +196,7 @@ def to_fractional(file, outfile, format):
 @click.option("-o", "--outfile")
 @click.option("--format", default="aims")
 def to_cartesian(file, outfile, format):
-    """rewrite geometry in cartesian coordinates"""
+    """Rewrite geometry in cartesian coordinates"""
     from ase.io import read
 
     if not outfile:
@@ -230,7 +229,7 @@ def geometry_refine(*args, **kwargs):
 @click.option("-o", "--outfile")
 @click.option("--format", default="aims")
 def wrap(file, outfile, format):
-    """wrap atoms in FILE to the cell"""
+    """Wrap atoms in FILE to the cell"""
     from ase.io import read
 
     if not outfile:
@@ -265,7 +264,7 @@ def make_supercell(
     dry,
     format,
 ):
-    """create a supercell of desired shape or size"""
+    """Create a supercell of desired shape or size"""
     from .scripts.make_supercell import make_supercell
 
     if diagonal_dimension:
@@ -284,7 +283,7 @@ def make_supercell(
 
 @utils.command(context_settings=_default_context_settings)
 @click.argument("filename", type=complete_files)
-@click.option("-T", "--temperature", type=float, help="Temperature in Kelvin")
+@click.option("-T", "--temperature", type=float, help="Temperaturee in Kelvin")
 @click.option("-n", "--n_samples", type=int, default=1, help="number of samples")
 @click.option("-fc", "--fc_file", type=complete_files, help="remapped force constants")
 @click.option("--rattle", type=float, help="atoms.rattle(stdev=X) (ASE default: 0.001)")
@@ -296,7 +295,7 @@ def make_supercell(
 @click.option("--propagate", type=float, help="propagate this many fs")
 @click.option("--format", default="aims")
 def create_samples(filename, **kwargs):
-    """create samples from geometry in FILENAME"""
+    """Create samples from geometry in FILENAME"""
     from .scripts.create_samples import create_samples
 
     click.echo("vibes CLI: create_samples")
@@ -305,8 +304,7 @@ def create_samples(filename, **kwargs):
 
 @utils.group(aliases=["fc"])
 def force_constants():
-    """utils for working with force constants"""
-    ...
+    """Utils for working with force constants"""
 
 
 @force_constants.command(context_settings=_default_context_settings)
@@ -326,7 +324,7 @@ def remap(
     symmetrize,
     format="aims",
 ):
-    """remap phonopy force constants in FILENAME to [3N, 3N] shape"""
+    """Remap phonopy force constants in FILENAME to [3N, 3N] shape"""
     # copy: from vibes.scripts.remap_phonopy_forceconstants import remap_force_constants
     import numpy as np
     from ase.io import read
@@ -369,7 +367,7 @@ def remap(
 @click.option("--symmetrize", is_flag=True)
 @click.option("--format", default="aims")
 def frequencies(file, supercell, show_n_frequencies, outfile, symmetrize, format):
-    """compute the frequencies for remapped force constants"""
+    """Compute the frequencies for remapped force constants"""
     import numpy as np
     from ase.io import read
 
@@ -397,7 +395,7 @@ def frequencies(file, supercell, show_n_frequencies, outfile, symmetrize, format
 
 @utils.group(cls=ClickAliasedGroup)
 def trajectory():
-    """trajectory utils"""
+    """Trajectory utils"""
 
 
 @trajectory.command("join", context_settings=_default_context_settings)
@@ -405,7 +403,7 @@ def trajectory():
 @click.option("--dim", default=keys.trajectory)
 @click.option("-o", "--outfile", default="joined.nc")
 def join_xr(files, dim, outfile):
-    """join Datasets in FILES on dim=dim"""
+    """Join Datasets in FILES on dim=dim"""
     import xarray as xr
 
     dss = [xr.load_dataset(f) for f in files]
@@ -421,7 +419,7 @@ def join_xr(files, dim, outfile):
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-n", "--n_steps", type=int, help="discard this many steps")
 def discard(file, n_steps):
-    """discard this many steps from trajectory"""
+    """Discard this many steps from trajectory"""
     from vibes.trajectory import reader
 
     traj = reader(file)
@@ -440,7 +438,7 @@ def discard(file, n_steps):
 @click.option("-s", "--skip", default=1, help="skip this many steps from trajectory")
 @click.option("--folder", default="tdep", help="folder to store input")
 def t2tdep(file, skip, folder):
-    """extract tdep input files from trajectory in FILENAME"""
+    """Extract tdep input files from trajectory in FILENAME"""
     from vibes.trajectory import reader
 
     traj = reader(file)
@@ -451,7 +449,7 @@ def t2tdep(file, skip, folder):
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", default="trajectory.xyz")
 def t2xyz(file, outfile):
-    """extract trajectory in FILENAME and store as xyz file"""
+    """Extract trajectory in FILENAME and store as xyz file"""
     from vibes.trajectory import reader
 
     traj = reader(file)
@@ -462,7 +460,7 @@ def t2xyz(file, outfile):
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", default="trajectory.db")
 def t2db(file, outfile):
-    """extract trajectory in FILENAME and store as ase db"""
+    """Extract trajectory in FILENAME and store as ase db"""
     from vibes.trajectory import reader
 
     traj = reader(file)
@@ -473,7 +471,7 @@ def t2db(file, outfile):
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", default="trajectory.traj")
 def t2traj(file, outfile):
-    """extract trajectory in FILENAME and store as ase trajectory"""
+    """Extract trajectory in FILENAME and store as ase trajectory"""
     from vibes.trajectory import reader
 
     traj = reader(file)
@@ -484,7 +482,7 @@ def t2traj(file, outfile):
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 @click.option("-o", "--outfile", default="trajectory.csv")
 def t2csv(file, outfile):
-    """extract and store 1D data from trajectory in FILENAME """
+    """Extract and store 1D data from trajectory in FILENAME"""
     from vibes.trajectory import reader
 
     traj = reader(file)
@@ -503,7 +501,7 @@ def t2csv(file, outfile):
 @click.option("-o", "--outfile")
 @click.option("--format", default="aims")
 def update(file, uc, sc, fc, rfc, outfile, format):
-    """update reference data in trajectory file"""
+    """Update reference data in trajectory file"""
     # copy: from vibes.scripts.update_md_trajectory import update_trajectory
     import shutil
 
@@ -554,16 +552,13 @@ def update(file, uc, sc, fc, rfc, outfile, format):
 )
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
 def pick_samples(file, outfile, number, range, cartesian):
-    """pick samples from trajectory"""
+    """Pick samples from trajectory"""
     from vibes.trajectory import reader
 
     click.echo(f"Read trajectory from {file}:")
     traj = reader(file)
 
-    if range is not None:
-        rge = xrange(*range)
-    else:
-        rge = [number]
+    rge = xrange(*range) if range is not None else [number]
 
     for number in rge:
         number_positive = number
@@ -584,7 +579,7 @@ def pick_samples(file, outfile, number, range, cartesian):
 @click.option("-cart", "--cartesian", is_flag=True, help="write cart. coords")
 @click.option("-o", "--outfile", default="geometry.in.average")
 def average_trajectory(file, range, cartesian, outfile):
-    """average positions"""
+    """Average positions"""
     from vibes.trajectory import reader
 
     click.echo(f"Read trajectory from {file}:")
@@ -603,14 +598,14 @@ def average_trajectory(file, range, cartesian, outfile):
 @trajectory.command(context_settings=_default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 def clean_nsteps(file):
-    """remove duplicate nsteps from trajectory.son"""
+    """Remove duplicate nsteps from trajectory.son"""
     from vibes import keys
     from vibes.trajectory import Trajectory, reader
 
     click.echo(f"Read trajectory from {file}:")
     traj = reader(file)
 
-    click.echo(f"Clean trajectory")
+    click.echo("Clean trajectory")
     list_atoms = []
     list_steps = []
     for atoms in traj:
@@ -634,7 +629,7 @@ def clean_nsteps(file):
 @click.option("--target", default=keys.default_backup_folder)
 @click.option("--nozip", is_flag=True)
 def perform_backup(folder, target, nozip):
-    """backup FOLDER to TARGET"""
+    """Backup FOLDER to TARGET"""
     from vibes.helpers.backup import backup_folder
 
     backup_folder(folder, target_folder=target, zip=not nozip)
@@ -642,14 +637,12 @@ def perform_backup(folder, target, nozip):
 
 @utils.group(aliases=["dev"])
 def developer():
-    """developer utils for FHI-vibes. Use at own risk"""
-    ...
+    """Developer utils for FHI-vibes. Use at own risk"""
 
 
 @developer.group()
 def phono3py():
-    """utils for working with phono3py"""
-    ...
+    """Utils for working with phono3py"""
 
 
 @phono3py.command(context_settings=_default_context_settings)
@@ -658,7 +651,7 @@ def phono3py():
 @click.option("--outfile", default="kappa_QMESH.log")
 @click.pass_obj
 def run_thermal_conductivity(obj, folder, q_mesh, outfile):
-    """run a phono3py thermal conductivity calculation in FOLDER"""
+    """Run a phono3py thermal conductivity calculation in FOLDER"""
     import sys
 
     from vibes.cli.scripts import run_thermal_conductivity as rtc
@@ -668,7 +661,7 @@ def run_thermal_conductivity(obj, folder, q_mesh, outfile):
     if q_mesh is None:
         q_mesh = kwargs.q_mesh
 
-    outfile = outfile.replace("QMESH", ".".join((str(q) for q in q_mesh)))
+    outfile = outfile.replace("QMESH", ".".join(str(q) for q in q_mesh))
 
     talk("Run thermal conductivity")
     talk(f"Log will be written to {outfile}")

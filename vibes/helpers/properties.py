@@ -2,16 +2,20 @@
 
 
 def lazy_property(fn):
-    """Decorator that makes a property lazy-evaluated.
+    """
+    Decorator that makes a property lazy-evaluated.
 
     Args:
+    ----
         fn (function): function that should be lazily evaluated
 
     Returns:
+    -------
         result, either calculated or from cache
 
     Inspired by:
         https://stevenloria.com/lazy-properties/
+
     """
     attr_name = "_lazy_" + fn.__name__
 

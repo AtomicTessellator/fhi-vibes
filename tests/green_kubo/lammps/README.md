@@ -13,11 +13,11 @@ $\kappa=\frac{V}{k_{B} T^{2}} \int_{0}^{\infty}\left\langle J_{x}(0) J_{x}(t)\ri
 
 `compute ID group-ID heat/flux ke-ID pe-ID stress-ID`
 
-This compute calculates 
+This compute calculates
 
-- 6 quantities and stores them in a 6-component vector. The 
+- 6 quantities and stores them in a 6-component vector. The
 
-- first 3 components are the x, y, z components of the full heat flux vector, i.e. (Jx, Jy, Jz). 
+- first 3 components are the x, y, z components of the full heat flux vector, i.e. (Jx, Jy, Jz).
 
 - The next 3 components are the x, y, z components of just the convective portion of the flux, i.e. the first term in the equation for J above.
 
@@ -27,23 +27,23 @@ The _fix ave/correlate command_ can calculate the auto-correlation. The *trap() 
 
 ## Output info
 
-This compute calculates a 
+This compute calculates a
 
-- global vector of length 6 
-  
-  - (total heat flux vector, followed by convective heat flux vector), which 
+- global vector of length 6
+
+  - (total heat flux vector, followed by convective heat flux vector), which
 
 - can be accessed by indices 1-6. These values
 
 - can be used by any command that uses global vector values from a compute as input. See the Howto output doc page for an overview of LAMMPS output options.
 
-The vector values calculated by this compute are 
+The vector values calculated by this compute are
 
-- “extensive”, meaning they scale with the number of atoms in the simulation. They 
+- “extensive”, meaning they scale with the number of atoms in the simulation. They
 
-- can be divided by the appropriate volume to get a flux, which would then be an “intensive” value, meaning independent of the number of atoms in the simulation. Note that 
+- can be divided by the appropriate volume to get a flux, which would then be an “intensive” value, meaning independent of the number of atoms in the simulation. Note that
 
-- if the compute is “all”, then the *appropriate volume to divide by is the simulation box volume*. However, 
+- if the compute is “all”, then the *appropriate volume to divide by is the simulation box volume*. However,
 
 - if a sub-group is used, it should be the volume containing those atoms.
 
@@ -79,19 +79,19 @@ The Nevery, Nrepeat, and Nfreq arguments specify on what timesteps the input val
 
 #### Example
 
-For example, if **Nevery=10**, **Nrepeat=200**, and **Nfreq=2000**, then 
+For example, if **Nevery=10**, **Nrepeat=200**, and **Nfreq=2000**, then
 
-- values on timesteps 0,10,20,…,2000 will be used to compute the final averages on timestep 2000 
-- 200 averages will be computed: Cij(0), Cij(10), Cij(20), ..., and Cij(2000). 
-- Cij(30) on timestep 2000 will be the average of 199 samples, namely 
+- values on timesteps 0,10,20,…,2000 will be used to compute the final averages on timestep 2000
+- 200 averages will be computed: Cij(0), Cij(10), Cij(20), ..., and Cij(2000).
+- Cij(30) on timestep 2000 will be the average of 199 samples, namely
   - Vi(0)*Vj(30), Vi(10)*Vj(40), …, Vi(1980)*Vj(1990), Vi(1990)*Vj(2000)
-- Cij(30) on timestep 6000 will be the average of 599 samples, namely 
+- Cij(30) on timestep 6000 will be the average of 599 samples, namely
   - Vi(0)*Vj(30), Vi(10)*Vj(40), …, Vi(5980)*Vj(5990), Vi(5990)*Vj(6000)
 - and so on and so on
 
 **ave**
 
-If the *ave* setting is running, then the accumulation is never zeroed. Thus the output of correlation data at any timestep is the 
+If the *ave* setting is running, then the accumulation is never zeroed. Thus the output of correlation data at any timestep is the
 
 - average over samples accumulated every *Nevery* steps since the fix was defined.
 

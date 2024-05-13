@@ -1,24 +1,28 @@
 """plot trajectory data"""
+
 from ase import units
 
 from vibes import keys
 
 
 def plot_summary(dataframe, avg=50, natoms=None):
-
-    """plot a summary of the data in DATAFRAME
+    """
+    Plot a summary of the data in DATAFRAME
 
     Args:
+    ----
         dataframe (pandas.Dataframe): MD data
         avg (int): window size for averaging
         natoms (int): number of atoms
 
     Returns:
+    -------
         an A4 plot in `md_summary.pdf`
-    """
-    import matplotlib
 
-    matplotlib.use("pdf")
+    """
+    import matplotlib as mpl
+
+    mpl.use("pdf")
 
     from matplotlib import pyplot as plt
 
@@ -81,24 +85,24 @@ def plot_summary(dataframe, avg=50, natoms=None):
         fig_kw["gridspec_kw"] = {"height_ratios": [1, 1, 1]}
         fig, (ax, ax2, ax4) = plt.subplots(nrows=3, **fig_kw)
 
-    temp.plot(color=tc[3], title="Nuclear Temperature", ax=ax, **plot_kw)
+    temp.plot(color=tc[3], title="Nuclear Temperaturee", ax=ax, **plot_kw)
 
     if natoms:
         e_temp = (e_kin + e_pot) / natoms / 3 / units.kB
         e_temp.plot(color=tc[1], ax=ax, **plot_kw)
         e_temp.rolling(**kw_roll).mean().plot(
-            color=tc[1], label=f"E_tot", ax=ax, **avg_kw
+            color=tc[1], label="E_tot", ax=ax, **avg_kw
         )
 
     roll = temp.rolling(**kw_roll).mean()
-    roll.plot(color=tc[3], label=f"T_nucl", ax=ax, **avg_kw)
+    roll.plot(color=tc[3], label="T_nucl", ax=ax, **avg_kw)
     ax.axhline(temp.mean(), linewidth=0.75)
 
     # exp = data.iloc[min(len(data) // 2, args.avg) :].expanding().mean()
     # exp.plot( color=tc[5], label=f"Expanding mean ({args.avg}", ax=ax)
 
     ax.set_xlabel("Time [ps]")
-    ax.set_ylabel("Nucl. Temperature [K]")
+    ax.set_ylabel("Nucl. Temperaturee [K]")
     ax.legend(loc=4)
 
     e_tot.plot(color=tc[0], title="Energy", ax=ax2, **plot_kw)

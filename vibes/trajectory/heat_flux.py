@@ -1,4 +1,5 @@
 """compute and analyze heat fluxes"""
+
 import numpy as np
 from ase import units
 
@@ -9,20 +10,24 @@ from . import Timer
 
 
 def average_atomic_stresses(trajectory, verbose=True):
-    """compute average atomic stress from trajectory"""
+    """Compute average atomic stress from trajectory"""
     atomic_stresses = trajectory.stresses
     return np.mean(atomic_stresses, axis=0)
 
 
 def get_heat_flux(trajectory):
-    """compute heat fluxes from TRAJECTORY and return as xarray
+    """
+    Compute heat fluxes from TRAJECTORY and return as xarray
 
     Args:
+    ----
         trajectory: list of atoms objects WITH ATOMIC STRESS COMPUTED
 
     Returns:
+    -------
         flux ([N_t, N_a, 3]): the time resolved heat flux in eV/AA**3/ps
         avg_flux ([N_t, N_a, 3]): high frequency part of heat flux
+
     """
     msg = "Trajectory needs to have atomic stress computed, check!"
     assert len(trajectory) == len(trajectory.with_stresses), msg
@@ -44,8 +49,8 @@ def get_heat_flux(trajectory):
         # velocity in \AA / ps
         vs = a.get_velocities() * units.fs * 1000
 
-        fluxes.append((ds @ vs[:, :, None]))
-        avg_fluxes.append((avg_stresses @ vs[:, :, None]))
+        fluxes.append(ds @ vs[:, :, None])
+        avg_fluxes.append(avg_stresses @ vs[:, :, None])
 
     avg_flux = np.array(avg_fluxes).squeeze()
     flux = np.array(fluxes).squeeze()

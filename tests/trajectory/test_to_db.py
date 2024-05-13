@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 from pathlib import Path
 
 from ase.db import connect
@@ -15,7 +12,6 @@ db_file = Path(parent / "db.json")
 
 
 def test_to_db():
-
     traj.to_db(db_file)
 
     db = connect(db_file)

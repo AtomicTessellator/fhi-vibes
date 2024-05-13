@@ -1,4 +1,5 @@
 """`vibes info` backend"""
+
 from pathlib import Path
 
 import numpy as np
@@ -8,21 +9,20 @@ from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup, click, complete_files
 
-
 # from click 7.1 on
 _default_context_settings = {"show_default": True}
 
 
 @click.command(cls=ClickAliasedGroup)
 def info():
-    """inform about content of a file"""
+    """Inform about content of a file"""
 
 
 @info.command()
 @click.argument("file", type=complete_files)
 @click.pass_obj
 def settings(obj, file):
-    """write the settings in FILE *including* the configuration"""
+    """Write the settings in FILE *including* the configuration"""
     from vibes.settings import Settings
 
     click.echo(f"List content of {file} including system-wide configuration")
@@ -38,7 +38,7 @@ def settings(obj, file):
 @click.option("-v", "--verbose", is_flag=True, help="increase verbosity")
 @click.pass_obj
 def geometry(obj, file, format, symprec, verbose):
-    """inform about a structure in a geometry input file"""
+    """Inform about a structure in a geometry input file"""
     from ase.io import read
 
     from vibes.structure.io import inform
@@ -58,7 +58,7 @@ def geometry(obj, file, format, symprec, verbose):
 @click.option("--avg", default=100, help="window size for running avg")
 @click.option("-v", "--verbose", is_flag=True, help="be verbose")
 def md(file, plot, avg, verbose):
-    """inform about MD simulation in FILE"""
+    """Inform about MD simulation in FILE"""
     import xarray as xr
 
     from vibes.trajectory import analysis as al
@@ -86,7 +86,7 @@ def md(file, plot, avg, verbose):
 @click.argument("file", default="phonopy.in", type=complete_files)
 @click.option("--write_supercell", is_flag=True, help="write the supercell to file")
 def phonopy(file, write_supercell):
-    """inform about a phonopy calculation based on the input FILE"""
+    """Inform about a phonopy calculation based on the input FILE"""
     from .scripts.vibes_phonopy import preprocess
 
     preprocess(settings_file=file, write_supercell=write_supercell)
@@ -95,7 +95,7 @@ def phonopy(file, write_supercell):
 @info.command()
 @click.argument("file", default=filenames.trajectory, type=complete_files)
 def trajectory(file):
-    """print metadata from trajectory in FILE"""
+    """Print metadata from trajectory in FILE"""
     from vibes import son
     from vibes.settings import Settings
 
@@ -114,7 +114,7 @@ def trajectory(file):
 @click.argument("file", type=complete_files)
 @click.option("--key", type=str, default=None, help="print DS[key]")
 def netcdf(file, key):
-    """show contents of netCDF FILE"""
+    """Show contents of netCDF FILE"""
     import xarray as xr
 
     DS = xr.open_dataset(file)
@@ -131,7 +131,7 @@ def netcdf(file, key):
 @click.option("--half", is_flag=True, help="print only the second half of data")
 @click.option("--to_json", type=Path, help="Write to json file")
 def csv(file, describe, half, to_json):
-    """show contents of csv FILE"""
+    """Show contents of csv FILE"""
     import json
 
     import pandas as pd
@@ -163,7 +163,7 @@ def csv(file, describe, half, to_json):
 @click.option("--cmap", default="colorblind", help="the matplotlib colormap")
 @click.option("--outfile", default="greenkubo_summary.pdf")
 def greenkubo(files, plot, logx, xlim, cmap, outfile):
-    """visualize heat flux and thermal conductivity"""
+    """Visualize heat flux and thermal conductivity"""
     import xarray as xr
 
     if len(files) < 1:
@@ -171,7 +171,7 @@ def greenkubo(files, plot, logx, xlim, cmap, outfile):
 
     datasets = [xr.load_dataset(f) for f in files]
 
-    # concatentate trajectories
+    # concatenate trajectories
     ds_gk = xr.concat(datasets, dim=keys.trajectory)
     attrs = {ii: d.attrs for (ii, d) in enumerate(datasets)}
     ds_gk.attrs = attrs
@@ -265,7 +265,7 @@ def greenkubo(files, plot, logx, xlim, cmap, outfile):
 @click.option("-mf", "--max_frequency", type=float, help="max. freq. in THz")
 @click.option("--npad", default=10000, help="number of zeros for padding")
 def vdos(file, output_file, plot, prominence, max_frequency, npad):
-    """compute and write velocity autocorrelation function to output file"""
+    """Compute and write velocity autocorrelation function to output file"""
     import xarray as xr
 
     from vibes.green_kubo.velocities import get_vdos, simple_plot
@@ -290,7 +290,7 @@ def vdos(file, output_file, plot, prominence, max_frequency, npad):
 @click.option("-v", "--verbose", is_flag=True, help="show more information")
 @click.pass_obj
 def relaxation(obj, file, verbose):
-    """summarize geometry optimization in FILE"""
+    """Summarize geometry optimization in FILE"""
     from ase.constraints import full_3x3_to_voigt_6_stress
 
     from vibes.relaxation._defaults import keys, kwargs, name, relaxation_options
@@ -350,7 +350,6 @@ def relaxation(obj, file, verbose):
     )
 
     for ii, atoms in enumerate(traj[1:]):
-
         energy = atoms.get_potential_energy()
         de = 1000 * (energy - energy_ref)
 
@@ -366,15 +365,16 @@ def relaxation(obj, file, verbose):
             constr.adjust_forces(atoms, forces)
             constr.adjust_stress(atoms, stress)
 
-        res_forces = (forces ** 2).sum(axis=1).max() ** 0.5 * 1000
+        res_forces = (forces**2).sum(axis=1).max() ** 0.5 * 1000
         res_stress = abs(stress).max() * 1000
 
         vol_str = f"{atoms.get_volume():10.3f}"
         # sg_str = f"{get_spacegroup(atoms):5d}"
         sg_str = get_spacegroup(atoms)
 
-        msg = "{:5d}   {:16.8f}  {:12.6f} {:12.4f} {:14.4f} {}   {}".format(
-            ii + 1, energy, de, res_forces, res_stress, vol_str, sg_str,
+        msg = (
+            f"{ii + 1:5d}   {energy:16.8f}  {de:12.6f} {res_forces:12.4f} "
+            + f"{res_stress:14.4f} {vol_str}   {sg_str}"
         )
         click.echo(msg)
 

@@ -1,6 +1,5 @@
 from vibes.helpers import talk
 
-
 prefix = "slurm"
 
 

@@ -15,7 +15,7 @@ def submit(
     log_folder="log",
     dry=False,
 ):
-    """submit the job described in dct"""
+    """Submit the job described in dct"""
     Path(log_folder).mkdir(exist_ok=True)
 
     if command:
@@ -53,4 +53,4 @@ def submit(
             else:
                 f.write(f"{timestr}: {out}\n")
     except (IndexError, ValueError):
-        _talk("Error during slurm submission: {:s}".format(out))
+        _talk(f"Error during slurm submission: {out:s}")

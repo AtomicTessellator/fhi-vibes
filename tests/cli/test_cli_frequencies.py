@@ -11,8 +11,8 @@ cmd = r"""vibes utils fc frequencies"""
 
 
 def test_output():
-    """check created frequencies vs reference"""
-    sp.run(cmd.split(), cwd=parent)
+    """Check created frequencies vs reference"""
+    sp.run(cmd.split(), cwd=parent, check=False)
     file = parent / _file
     frequencies = np.loadtxt(file)
     reference = np.loadtxt(parent / "ref" / _file)

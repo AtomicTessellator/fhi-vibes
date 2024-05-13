@@ -1,4 +1,4 @@
-""" vibes Phono3py defaults """
+"""vibes Phono3py defaults"""
 
 from vibes.phonopy._defaults import kwargs as defaults_fc2
 

@@ -1,4 +1,5 @@
 """Functions used to wrap around HiLDe Phonopy/Phono3py functions"""
+
 from pathlib import Path
 
 import numpy as np
@@ -18,13 +19,14 @@ from vibes.trajectory import reader
 
 
 def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None):
-    """Creates a Settings object and passes it to the bootstrap function
+    """
+    Creates a Settings object and passes it to the bootstrap function
 
     Parameters
     ----------
     atoms: ase.atoms.Atoms
         Atoms object of the primitive cell
-    calculator: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calculator.Calculator
         Calculator for the force calculations
     kpt_density: float
         k-point density for the MP-Grid
@@ -37,6 +39,7 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
     -------
     completed: bool
         True if the workflow completed
+
     """
     workdir = md_settings.get("workdir", None)
     if workdir:
@@ -96,7 +99,7 @@ def run(atoms, calculator, kpt_density=None, md_settings=None, fw_settings=None)
                 zacharias=False,
                 gauge_eigenvectors=False,
                 ignore_negative=True,
-                random_seed=np.random.randint(2 ** 32),
+                random_seed=np.random.randint(2**32),
                 propagate=0,
             )[0]
 

@@ -1,5 +1,6 @@
 """provide numpy extension to compile fortran routines"""
-from numpy.distutils.core import setup, Extension  # noqa: F401
+
+from numpy.distutils.core import Extension, setup
 
 setup(
     ext_modules=[

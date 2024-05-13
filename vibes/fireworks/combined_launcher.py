@@ -1,17 +1,18 @@
-"""Used to combine a queue/rocket launcher based on which FireTasks are in a WorkFlow
+"""
+Used to combine a queue/rocket launcher based on which FireTasks are in a WorkFlow
 
 FireWorks Copyright (c) 2013, The Regents of the University of
 California, through Lawrence Berkeley National Laboratory (subject
 to receipt of any required approvals from the U.S. Dept. of Energy).
 All rights reserved.
 """
+
 import glob
 import os
 import time
 from datetime import datetime
 from pathlib import Path
 
-import numpy as np
 from fireworks.core.rocket_launcher import launch_rocket
 from fireworks.fw_config import (
     ALWAYS_CREATE_NEW_BLOCK,
@@ -28,10 +29,10 @@ from fireworks.utilities.fw_utilities import (
     get_fw_logger,
     log_exception,
 )
+
 from vibes.fireworks._defaults import FW_DEFAULTS
 from vibes.fireworks.qlaunch_remote import qlaunch_remote
 from vibes.helpers import talk
-
 
 # See if Fabric2 is installed
 try:
@@ -51,7 +52,8 @@ else:
 
 
 def get_ready_firework_ids(wflow):
-    """Gets an ordered (with respect to when jobs need to run) list of fws in a WorkFlow wflow
+    """
+    Gets an ordered list of fws in a WorkFlow wflow
 
     Parameters
     ----------
@@ -73,7 +75,8 @@ def get_ready_firework_ids(wflow):
 
 
 def use_queue_launch(fire_work, tasks2queue):
-    """Determines if a particular FireWork should be ran on a remote
+    """
+    Determines if a particular FireWork should be ran on a remote
 
     Parameters
     ----------
@@ -88,10 +91,7 @@ def use_queue_launch(fire_work, tasks2queue):
         True if the task should be run on a remote
 
     """
-    for task in fire_work.spec["_tasks"]:
-        if task["args"][0] in tasks2queue:
-            return True
-    return False
+    return any(task["args"][0] in tasks2queue for task in fire_work.spec["_tasks"])
 
 
 def rapidfire(
@@ -120,7 +120,8 @@ def rapidfire(
     remote_recover_offline=False,
     daemon=0,
 ):
-    """Submit many jobs to the queue.
+    """
+    Submit many jobs to the queue.
 
     Parameters
     ----------
@@ -133,13 +134,17 @@ def rapidfire(
     launch_dir : str
         directory where we want to write the blocks (Default value = ".")
     nlaunches : int
-        total number of launches desired; "infinite" for loop, 0 for one round (Default value = FW_DEFAULTS.nlaunches)
+        total number of launches desired; "infinite" for loop, 0 for one round
+        (Default value = FW_DEFAULTS.nlaunches)
     njobs_queue : int
-        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit (Default value = FW_DEFAULTS.njobs_queue)
+        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit
+        (Default value = FW_DEFAULTS.njobs_queue)
     njobs_block : int
-        automatically write a new block when njobs_block jobs are in a single block (Default value = FW_DEFAULTS.njobs_block)
+        automatically write a new block when njobs_block jobs are in a single block
+        (Default value = FW_DEFAULTS.njobs_block)
     sleep_time : int
-        secs to sleep between rapidfire loop iterations (Default value = FW_DEFAULTS.sleep_time)
+        secs to sleep between rapidfire loop iterations
+        (Default value = FW_DEFAULTS.sleep_time)
     reserve : bool
         Whether to queue in reservation mode (Default value = False)
     strm_lvl : str
@@ -147,25 +152,31 @@ def rapidfire(
     timeout : int
         # of seconds after which to stop the rapidfire process (Default value = None)
     fill_mode : bool
-        True if submit jobs with nothing to run (only in non-reservation mode) (Default value = False)
+        True if submit jobs with nothing to run (only in non-reservation mode)
+        (Default value = False)
     firework_ids : list of ints
-        a list firework_ids to launch (len(firework_ids) == nlaunches) (Default value = None)
+        a list firework_ids to launch (len(firework_ids) == nlaunches)
+        (Default value = None)
     wflow : WorkFlow
         the workflow this qlauncher is supposed to run (Default value = None)
     tasks2queue : List of str
-        List of functions to run on a remote queue (Default value = FW_DEFAULTS.tasks2queue)
+        List of functions to run on a remote queue
+        (Default value = FW_DEFAULTS.tasks2queue)
     gss_auth : bool
-        True if GSS_API should be used to connect to the remote machine (Default value = False)
+        True if GSS_API should be used to connect to the remote machine
+        (Default value = False)
     controlpath : str
         path the the socket file for MUX connections (Default value = None)
     remote_host : list of str
         list of hosts to attempt to connect to (Default value = FW_DEFAULTS.remote_host)
     remote_config_dir : list of str
-        list of directories on the remote machines to findFireWorks configuration files (Default value = FW_DEFAULTS.remote_config_dir)
+        list of directories on the remote machines to findFireWorks configuration files
+        (Default value = FW_DEFAULTS.remote_config_dir)
     remote_user : str
         username for the remote account (Default value = FW_DEFAULTS.remote_user)
     remote_password : str or None
-        Password for access to the remote account (Default value = FW_DEFAULTS.remote_password)
+        Password for access to the remote account
+        (Default value = FW_DEFAULTS.remote_password)
     remote_shell : str
         Type of shell on the remote machine (Default value = "/bin/bash -l -c")
     daemon : int
@@ -206,7 +217,7 @@ def rapidfire(
         if not fworker or not qadapter:
             raise AttributeError(
                 "For a direct launch_rocket_to_queue fworker and qadapter "
-                + "need to be specified"
+                "need to be specified"
             )
         q_args = [launchpad, fworker, qadapter]
         q_kwargs = {
@@ -255,9 +266,7 @@ def rapidfire(
 
     # make sure launch_dir exists:
     if not os.path.exists(launch_dir):
-        raise ValueError(
-            "Desired launch directory {} does not exist!".format(launch_dir)
-        )
+        raise ValueError(f"Desired launch directory {launch_dir} does not exist!")
 
     num_launched = 0
     start_time = datetime.now()
@@ -271,7 +280,7 @@ def rapidfire(
             )
             if prev_blocks and not ALWAYS_CREATE_NEW_BLOCK:
                 block_dir = os.path.abspath(os.path.join(launch_dir, prev_blocks[0]))
-                l_logger.info("Found previous block, using {}".format(block_dir))
+                l_logger.info(f"Found previous block, using {block_dir}")
             else:
                 block_dir = create_datestamp_dir(launch_dir, l_logger)
             q_kwargs["launcher_dir"] = block_dir
@@ -320,17 +329,15 @@ def rapidfire(
                 if remote_host == "localhost":
                     if njobs_queue and jobs_in_queue >= njobs_queue:
                         l_logger.info(
-                            "Jobs in queue ({}) meets/exceeds "
-                            "maximum allowed ({})".format(jobs_in_queue, njobs_queue)
+                            f"Jobs in queue ({jobs_in_queue}) meets/exceeds "
+                            f"maximum allowed ({njobs_queue})"
                         )
                         break
                     l_logger.info("Launching a rocket!")
 
                     # switch to new block dir if it got too big
                     if _njobs_in_dir(block_dir) >= njobs_block:
-                        l_logger.info(
-                            "Block got bigger than {} jobs.".format(njobs_block)
-                        )
+                        l_logger.info(f"Block got bigger than {njobs_block} jobs.")
                         block_dir = create_datestamp_dir(launch_dir, l_logger)
                 return_code = None
                 # launch a single job
@@ -370,14 +377,12 @@ def rapidfire(
                 else:
                     num_launched += 1
                 if nlaunches > 0 and num_launched == nlaunches:
-                    l_logger.info(
-                        "Launched allowed number of " "jobs: {}".format(num_launched)
-                    )
+                    l_logger.info("Launched allowed number of " f"jobs: {num_launched}")
                     break
                 # wait for the queue system to update
                 if remote_host == "localhost":
                     l_logger.info(
-                        "Sleeping for {} seconds...zzz...".format(QUEUE_UPDATE_INTERVAL)
+                        f"Sleeping for {QUEUE_UPDATE_INTERVAL} seconds...zzz..."
                     )
                     time.sleep(QUEUE_UPDATE_INTERVAL)
                 skip_check = not use_queue and launchpad.run_exists(
@@ -393,7 +398,7 @@ def rapidfire(
                 break
 
             l_logger.info(
-                "Finished a round of launches, sleeping for {} secs".format(sleep_time)
+                f"Finished a round of launches, sleeping for {sleep_time} secs"
             )
             time.sleep(sleep_time)
             l_logger.info("Checking for Rockets to run...")

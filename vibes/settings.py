@@ -1,6 +1,7 @@
-""" Settings class for holding settings, based on configparser.ConfigParser """
+"""Settings class for holding settings, based on configparser.ConfigParser"""
+
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from jconfigparser import Config
 from jconfigparser.dict import DotDict
@@ -25,14 +26,17 @@ def verify_key(
     section: bool = False,
     allowed_to_fail: bool = False,
 ):
-    """verify that key is in object, otherwise raise SettingsError
+    """
+    Verify that key is in object, otherwise raise SettingsError
 
     Args:
+    ----
         key: Key to check if it is in obj
         obj: Dict to see if key is in it
         hint: string representation of obj
         section: If True key is a section in obj
         allowed_to_fail: If True use wannings not errors
+
     """
     from vibes.helpers.warnings import warn
 
@@ -55,10 +59,13 @@ class Configuration(Config):
     """class to hold the configuration from .vibesrc"""
 
     def __init__(self, config_file: str = DEFAULT_CONFIG_FILE):
-        """Initializer
+        """
+        Initializer
 
         Args:
+        ----
             config_file: Path to the configure file
+
         """
         from vibes import __version__ as version
 
@@ -80,9 +87,11 @@ class Settings(Config):
         dct: dict = None,
         debug: bool = False,
     ):
-        """Initialize Settings
+        """
+        Initialize Settings
 
         Args:
+        ----
             settings_file: Path to the settings file
             template_dict: Template dictionary with default settings
             config_files: Path to the configuration files
@@ -136,18 +145,18 @@ class Settings(Config):
 
     @classmethod
     def from_dict(cls, dct):
-        """initialize from dictionary"""
+        """Initialize from dictionary"""
         return cls(dct=dct)
 
     @property
     def file(self):
-        """return path to the settings file"""
+        """Return path to the settings file"""
         if self._settings_file is not None:
             return self._settings_file
         return DEFAULT_SETTINGS_FILE
 
     def write(self, file=None):
-        """write settings to file"""
+        """Write settings to file"""
         from vibes.helpers.warnings import warn
 
         if not file:
@@ -165,9 +174,9 @@ class Settings(Config):
         super().print(ignore_sections=ignore_sections)
 
     def read_atoms(self, format="aims"):
-        """parse the geometry described in settings.in and return as atoms
-        """
+        """Parse the geometry described in settings.in and return as atoms"""
         from ase.io import read
+
         from vibes.helpers.warnings import warn
 
         if "files" in self and "geometry" in self["files"]:
@@ -185,8 +194,7 @@ class Settings(Config):
 
 
 def legacy_update_aims(settings: dict) -> dict:
-    """replace legacy keynames in settings related to aims"""
-
+    """Replace legacy keynames in settings related to aims"""
     # aims
     if "control" in settings:
         if "calculator" not in settings:
@@ -210,8 +218,7 @@ def legacy_update_aims(settings: dict) -> dict:
 
 
 def legacy_update(settings: dict) -> dict:
-    """replace legacy keynames in settings"""
-
+    """Replace legacy keynames in settings"""
     # aims -> calculator.aims
     legacy_update_aims(settings)
 

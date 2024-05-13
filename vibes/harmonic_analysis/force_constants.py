@@ -1,4 +1,4 @@
-""" Tools for dealing with force constants """
+"""Tools for dealing with force constants"""
 
 import numpy as np
 
@@ -10,7 +10,8 @@ from vibes.phonopy.utils import remap_force_constants
 def reshape_force_constants(
     primitive, supercell, force_constants, scale_mass=False, lattice_points=None
 ):
-    """ reshape from (N_prim x N_super x 3 x 3) into 3x3 blocks labelled by (i,L)
+    """
+    Reshape from (N_prim x N_super x 3 x 3) into 3x3 blocks labelled by (i,L)
 
     Parameters
     ----------
@@ -29,6 +30,7 @@ def reshape_force_constants(
     -------
     new_force_constants: np.ndarray(shape=(i,L))
         The remapped force constants
+
     """
     if len(force_constants.shape) > 2:
         if force_constants.shape[0] != force_constants.shape[1]:
@@ -48,7 +50,7 @@ def reshape_force_constants(
     if lattice_points is None:
         lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)
 
-    indeces, _ = map_I_to_iL(primitive, supercell, lattice_points=lattice_points)
+    indices, _ = map_I_to_iL(primitive, supercell, lattice_points=lattice_points)
 
     n_i = len(primitive)
     n_L = len(lattice_points)
@@ -61,7 +63,7 @@ def reshape_force_constants(
         for n2 in range(len(supercell)):
             phi = force_constants[3 * n1 : 3 * n1 + 3, 3 * n2 : 3 * n2 + 3]
 
-            i1, L1, i2, L2 = (*indeces[n1], *indeces[n2])
+            i1, L1, i2, L2 = (*indices[n1], *indices[n2])
 
             if scale_mass:
                 phi /= np.sqrt(masses[i1] * masses[i2])

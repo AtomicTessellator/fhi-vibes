@@ -1,9 +1,11 @@
 """Creates FireWorks Tasks"""
+
 from fireworks import PyTask
 
 
 def setup_atoms_task(task_spec, atoms, calculator, fw_settings):
-    """Setups an ASE Atoms task
+    """
+    Setups an ASE Atoms task
 
     Parameters
     ----------
@@ -37,9 +39,9 @@ def setup_atoms_task(task_spec, atoms, calculator, fw_settings):
     task_spec.fw_settings = fw_settings
     pt_kwargs = task_spec.pt_kwargs
     if isinstance(atoms, str):
-        pt_inputs = [atoms, calculator] + pt_inputs
+        pt_inputs = [atoms, calculator, *pt_inputs]
     elif isinstance(calculator, str):
-        pt_inputs = [calculator] + pt_inputs
+        pt_inputs = [calculator, *pt_inputs]
         pt_args += [atoms]
     else:
         pt_args += [atoms, calculator, *args]
@@ -47,7 +49,8 @@ def setup_atoms_task(task_spec, atoms, calculator, fw_settings):
 
 
 def setup_general_task(task_spec, fw_settings):
-    """Setups a general task
+    """
+    Setups a general task
 
     Parameters
     ----------
@@ -77,7 +80,8 @@ def setup_general_task(task_spec, fw_settings):
 
 
 def generate_task(task_spec, fw_settings, atoms, calculator):
-    """Generates a PyTask for a Firework
+    """
+    Generates a PyTask for a Firework
 
     Parameters
     ----------
@@ -114,7 +118,8 @@ def generate_task(task_spec, fw_settings, atoms, calculator):
 
 
 def generate_update_calc_task(calc_spec, updated_settings):
-    """Generate a calculator update task
+    """
+    Generate a calculator update task
 
     Parameters
     ----------
@@ -139,7 +144,8 @@ def generate_update_calc_task(calc_spec, updated_settings):
 
 
 def generate_mod_calc_task(atoms, calculator, calc_spec, kpt_spec):
-    """Generate a calculator modifier task
+    """
+    Generate a calculator modifier task
 
     Parameters
     ----------
