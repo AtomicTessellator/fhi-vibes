@@ -22,6 +22,7 @@ def to_phonopy_atoms(atoms, wrap=False):
         cell=atoms.get_cell(),
         masses=atoms.get_masses(),
         positions=atoms.get_positions(wrap=wrap),
+        magnetic_moments=atoms.get_initial_magnetic_moments(),
     )
 
     return phonopy_atoms
@@ -70,6 +71,7 @@ def to_Atoms(atoms, info=None, pbc=True, db=False):
         "positions": atoms.get_positions(),
         "pbc": pbc,
         "info": info,
+        "magmoms": atoms.get_magnetic_moments(),
     }
 
     if db:
