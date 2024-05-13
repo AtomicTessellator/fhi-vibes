@@ -1,7 +1,6 @@
 """Trajectory File I/O"""
 
 import json
-import multiprocessing
 import os
 import shutil
 from pathlib import Path
@@ -145,6 +144,7 @@ def _create_atoms(
         atoms.info.update({"metadata": obj["metadata"]})
 
     return atoms
+
 
 def reader(
     file=filenames.trajectory,
