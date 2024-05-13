@@ -10,7 +10,7 @@ vibes:
   before_script:
     # check syntax before doing anything
     - pip install flake8 flake8-bugbear flake8-comprehensions pytest pytest-cov pytest-xdist
-    - flake8
+    - flake8 --ignore=E226,E202
     - apt-get update
     - apt-get install -y gnupg curl gfortran
     - wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
