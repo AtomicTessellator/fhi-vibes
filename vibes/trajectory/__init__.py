@@ -1,4 +1,4 @@
-""" tools for storing MD trajectories
+"""tools for storing MD trajectories
 
 Logic:
 * save md metadata to new trajectory

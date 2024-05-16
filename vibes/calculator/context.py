@@ -16,11 +16,13 @@ class CalculatorContext:
     """context for ase calculator"""
 
     def __init__(self, settings: dict, atoms: Atoms = None, workdir: str = None):
-        """Constructor
+        """
+        Constructor
 
         Args:
+        ----
             settings: Settings Object for the Workflow
-            atoms: refernce structure
+            atoms: reference structure
             workdir: Directory to run the calculation in
 
         """
@@ -42,12 +44,11 @@ class CalculatorContext:
         # find geometries
         files = []
         s = self.settings
-        if "files" in s:
-            if "geometry" in s.files:
-                path = next(Path().glob(s.files.geometry))
-                assert path.exists()
-                files.append(path)
-                self.settings.files["geometry"] = str(path)
+        if "files" in s and "geometry" in s.files:
+            path = next(Path().glob(s.files.geometry))
+            assert path.exists()
+            files.append(path)
+            self.settings.files["geometry"] = str(path)
 
         if "geometries" in s.files:
             paths = sorted(Path().glob(s.files.geometries))
@@ -97,9 +98,11 @@ class CalculatorContext:
 
     @ref_atoms.setter
     def ref_atoms(self, atoms: Atoms):
-        """ref_atoms setter
+        """
+        ref_atoms setter
 
         Args:
+        ----
             atoms: atoms to set ref_atoms
 
         """
@@ -112,12 +115,11 @@ class CalculatorContext:
             from .aims import setup_aims
 
             return setup_aims(self)
-        else:
-            return setup.from_settings(self.settings)
+        return setup.from_settings(self.settings)
 
     @property
     def calculator(self):
-        """return ASE calculator based on this context"""
+        """Return ASE calculator based on this context"""
         return self.get_calculator()
 
     @property

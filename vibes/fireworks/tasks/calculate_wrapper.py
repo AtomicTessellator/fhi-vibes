@@ -1,4 +1,5 @@
 """Wrappers to the vibes calculate functions"""
+
 from pathlib import Path
 
 import numpy as np
@@ -9,7 +10,6 @@ from vibes.helpers.converters import dict2atoms
 from vibes.helpers.hash import hash_dict
 from vibes.settings import Settings
 
-
 T_S_LINE = (
     "          Detailed time accounting                     : "
     " max(cpu_time)    wall_clock(cpu1)\n"
@@ -18,7 +18,8 @@ E_F_INCONSISTENCY = "  ** Inconsistency of forces<->energy above specified toler
 
 
 def check_if_failure_ok(lines, walltime):
-    """Checks if the FHI-aims calculation finished
+    """
+    Checks if the FHI-aims calculation finished
 
     Parameters
     ----------
@@ -33,7 +34,6 @@ def check_if_failure_ok(lines, walltime):
         a string key describing the reason of the failure
 
     """
-
     if E_F_INCONSISTENCY in lines:
         return "E_F_INCONSISTENCY"
 
@@ -44,7 +44,7 @@ def check_if_failure_ok(lines, walltime):
     if walltime and sum_present and time_used / walltime > 0.95:
         return "WALLTIME"
 
-    return "UNKOWN"
+    return "UNKNOWN"
 
 
 def wrap_calc_socket(
@@ -60,7 +60,8 @@ def wrap_calc_socket(
     fw_settings=None,
     **kwargs,
 ):
-    """Wrapper for the clalculate_socket function
+    """
+    Wrapper for the clalculate_socket function
 
     Parameters
     ----------
@@ -118,13 +119,13 @@ def wrap_calc_socket(
         atoms_to_calculate.append(dict2atoms(at_dict, calculator_dict, False))
 
     calculator = dict2atoms(atoms_dict_to_calculate[0], calculator_dict, False).calc
-    if "use_pimd_wrapper" in calculator.parameters:
-        if calculator.parameters["use_pimd_wrapper"][0][:5] == "UNIX:":
-            atoms_hash = hash_dict({"to_calc": atoms_dict_to_calculate})
-            name = atoms_to_calculate[0].get_chemical_formula()
-            calculator.parameters["use_pimd_wrapper"][
-                0
-            ] += f"cm_{name}_{atoms_hash[:15]}"
+    if (
+        "use_pimd_wrapper" in calculator.parameters
+        and calculator.parameters["use_pimd_wrapper"][0][:5] == "UNIX:"
+    ):
+        atoms_hash = hash_dict({"to_calc": atoms_dict_to_calculate})
+        name = atoms_to_calculate[0].get_chemical_formula()
+        calculator.parameters["use_pimd_wrapper"][0] += f"cm_{name}_{atoms_hash[:15]}"
 
     try:
         return calculate_socket(
@@ -144,14 +145,15 @@ def wrap_calc_socket(
             if not failure_okay:
                 raise RuntimeError(
                     "FHI-aims failed to converge, and it is not a walltime issue"
-                )
+                ) from None
             return True
 
-        raise RuntimeError("The calculation failed")
+        raise RuntimeError("The calculation failed") from None
 
 
 def wrap_calculate(atoms, calculator, workdir=".", walltime=1800, fw_settings=None):
-    """Wrapper for the clalculate_socket function
+    """
+    Wrapper for the clalculate_socket function
 
     Parameters
     ----------
@@ -191,5 +193,5 @@ def wrap_calculate(atoms, calculator, workdir=".", walltime=1800, fw_settings=No
 
             raise RuntimeError(
                 "FHI-aims failed to converge, and it is not a walltime issue"
-            )
-        raise RuntimeError("The calculation failed")
+            ) from None
+        raise RuntimeError("The calculation failed") from None

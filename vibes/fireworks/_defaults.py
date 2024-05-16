@@ -1,8 +1,8 @@
 """Default definitions for FireWorks"""
+
 from vibes._defaults import DEFAULT_FIREWORKS_FILE
 from vibes.helpers.dict import AttributeDict as adict
 from vibes.settings import Settings
-
 
 SETTINGS = Settings(config_files=[DEFAULT_FIREWORKS_FILE])
 FIREWORKS = SETTINGS.pop("fireworks")

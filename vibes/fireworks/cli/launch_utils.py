@@ -1,4 +1,5 @@
 """Utitility functions for FireWork Launches"""
+
 import os
 import time
 
@@ -11,7 +12,6 @@ from fireworks.utilities.fw_serializers import load_object_from_file
 from vibes.fireworks.launchpad import LaunchPad
 from vibes.fireworks.queue_launcher import launch_rocket_to_queue
 from vibes.fireworks.queue_launcher import rapidfire as q_rapidfire
-
 
 # Check if fabric 2.0 is installed
 try:
@@ -36,7 +36,8 @@ def get_fw_files(
     queueadapter_file=None,
     remote_host=None,
 ):
-    """Finds and returns the correct FireWorks config files
+    """
+    Finds and returns the correct FireWorks config files
 
     Parameters
     ----------
@@ -58,7 +59,8 @@ def get_fw_files(
     fworker_file: str
         The updated FWorker file. If None was passed try the default one in config_dir
     queueadapter_file: str
-        The updated QueueAdapterfile. If None was passed try the default one in config_dir
+        The updated QueueAdapterfile. If None was passed try the default one
+
     """
     if not launchpad_file and os.path.exists(
         os.path.join(config_dir, "my_launchpad.yaml")
@@ -85,7 +87,8 @@ def get_fw_files(
 
 
 def get_lpad_fworker_qadapter(ctx=None, offline=False):
-    """Gets the LaunchPad, FWorker, and QueueAdapter from the passed files in ctx
+    """
+    Gets the LaunchPad, FWorker, and QueueAdapter from the passed files in ctx
 
     Parameters
     ----------
@@ -102,6 +105,7 @@ def get_lpad_fworker_qadapter(ctx=None, offline=False):
         The FWorker object defined by the respective file in ctx
     queueadapter: QueueAdapter
         The QueueAdapter object defined by the respective file in ctx
+
     """
     if ctx.obj.fworker_file:
         fworker = FWorker.from_file(ctx.obj.fworker_file)
@@ -124,7 +128,8 @@ def get_lpad_fworker_qadapter(ctx=None, offline=False):
 
 
 def do_qluanch(ctx, non_default):
-    """Takes in a Context ctx and performs the qlaunch for that command
+    """
+    Takes in a Context ctx and performs the qlaunch for that command
 
     Parameters
     ----------
@@ -132,6 +137,7 @@ def do_qluanch(ctx, non_default):
         Context for the command
     non_default: dict
         A dict of non-default parameters
+
     """
     interval = ctx.obj.daemon
     while True:
@@ -150,18 +156,15 @@ def do_qluanch(ctx, non_default):
                         r = os.path.expanduser(r)
                         with conn.cd(r):
                             conn.run(
-                                "qlaunch_vibes {} {} {}".format(
-                                    ctx.obj.pre_non_default,
-                                    ctx.obj.command,
-                                    non_default,
-                                )
+                                f"qlaunch_vibes {ctx.obj.pre_non_default} "
+                                f"{ctx.obj.command} {non_default}"
                             )
         else:
             do_launch(ctx)
         if interval > 0:
             print(
-                "Next run in {} seconds... Press Ctrl-C to exit at any "
-                "time.".format(interval)
+                f"Next run in {interval} seconds... Press Ctrl-C to exit at any "
+                "time."
             )
             time.sleep(ctx.obj.daemon)
         else:
@@ -169,12 +172,14 @@ def do_qluanch(ctx, non_default):
 
 
 def do_launch(ctx):
-    """Launches the calculations with parameters defined in ctx
+    """
+    Launches the calculations with parameters defined in ctx
 
     Parameters
     ----------
     ctx: Context
         The Context for the command
+
     """
     launchpad, fworker, queueadapter = get_lpad_fworker_qadapter(ctx)
     ctx.obj.loglvl = "CRITICAL" if ctx.obj.silencer else ctx.obj.loglvl

@@ -1,6 +1,5 @@
-"""
-A to convert phonopy/phono3py objects to dictionaries
-"""
+"""A to convert phonopy/phono3py objects to dictionaries"""
+
 import copy
 
 import numpy as np
@@ -15,12 +14,13 @@ from vibes.structure.convert import to_Atoms
 
 
 def standardize_sc_matrix(sc_matrix):
-    """convert sc_matrix into a list of ints"""
+    """Convert sc_matrix into a list of ints"""
     return list(np.array(sc_matrix, dtype=int).T.flatten())
 
 
 def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
-    """Converts a phonopy object to a dictionary
+    """
+    Converts a phonopy object to a dictionary
 
     Parameters
     ----------
@@ -33,6 +33,7 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
     -------
     dct: dict
         the dictionary representation of phonon
+
     """
     dct = atoms2dict(to_Atoms(phonon.get_primitive()))
     dct["key_value_pairs"] = {"symprec": phonon._symprec}
@@ -92,7 +93,8 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
 
 
 def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
-    """Converts a phonopy object to a dictionary
+    """
+    Converts a phonopy object to a dictionary
 
     Parameters
     ----------
@@ -107,6 +109,7 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
     -------
     dct: dict
         the dictionary representation of phonon3
+
     """
     dct = atoms2dict(to_Atoms(phonon3.get_primitive()))
     dct["symprec"] = phonon3._symprec

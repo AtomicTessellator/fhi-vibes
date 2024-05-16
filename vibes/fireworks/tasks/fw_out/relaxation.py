@@ -4,15 +4,16 @@ from ase.io.aims import read_aims
 from fireworks import FWAction
 from jconfigparser.dict import DotDict
 
-from vibes.fireworks.tasks.postprocess.relaxation import check_completion
 from vibes.fireworks.tasks.fw_out.check_conditionals import run_all_checks
+from vibes.fireworks.tasks.postprocess.relaxation import check_completion
 from vibes.fireworks.workflows.firework_generator import generate_relax_fw
 from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.settings import Settings
 
 
 def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
-    """Check phonon convergence and set up future calculations after a phonon calculation
+    """
+    Check phonon convergence and set up future calculations
 
     Parameters
     ----------
@@ -36,6 +37,7 @@ def check_relax_finish(atoms_dict, calc_dict, *args, **kwargs):
     -------
     FWAction
         Increases the supercell size or adds the phonon_dict to the spec
+
     """
     fw_settings = args[-1]
     relax_settings = args[3]["relax_settings"]

@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 from pathlib import Path
 
 from ase.io import Trajectory
@@ -15,7 +12,6 @@ traj_file = Path(parent / "test.traj")
 
 
 def test_to_traj():
-
     traj.to_traj(traj_file)
 
     ase_traj = Trajectory(traj_file)

@@ -1,4 +1,4 @@
-""" useful things to import """
+"""useful things to import"""
 # flake8: noqa
 
 import pkg_resources

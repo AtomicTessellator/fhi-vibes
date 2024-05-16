@@ -1,4 +1,5 @@
 """A simple timer"""
+
 import inspect
 import itertools
 import os
@@ -14,19 +15,22 @@ from vibes.helpers.warnings import warn
 
 # print in bold
 def bold(text):
-    """ print text in bold face """
+    """Print text in bold face"""
     return "\033[1m" + text + "\033[0m"
 
 
 def talk(message, prefix=None, verbose=True):
-    """vibes message output. Use instead of print. Sensitive to CLI context
+    """
+    Vibes message output. Use instead of print. Sensitive to CLI context
 
     https://stackoverflow.com/a/2654130/5172579
 
     Args:
+    ----
         message (str): message to print
         prefix (str): prefix for the message
         verbosity (int): verbosity level (0, 1, 2)
+
     """
     # see if we are in a CLI context
     if verbose is not False:
@@ -52,13 +56,16 @@ def talk(message, prefix=None, verbose=True):
 
 
 def print_msg(message, prefix=None, indent=0, width=15):
-    """print for talk
+    """
+    Print for talk
 
     Args:
+    ----
         message (str): message to print
         prefix (str): prefix for message
         indent (int): number of spaces to indent by
         width (int): width of prefix
+
     """
     indent = indent * " "
     if not prefix:
@@ -78,9 +85,11 @@ class Timer:
     prefix = None
 
     def __init__(self, message=None, timeout=None, prefix=None, verbose=True):
-        """Initialize
+        """
+        Initialize
 
         Args:
+        ----
             message: Message to print at initialization
             timeout: attach a `Timeout` with `timeout` seconds
             prefix: prefix for `talk'
@@ -107,7 +116,7 @@ class Timer:
         return result
 
     def __call__(self, info_str="", reset=False):
-        """print how much time elapsed, optionally print `info_str`"""
+        """Print how much time elapsed, optionally print `info_str`"""
         time_str = f"{time.time() - self.time:.3f}s"
 
         if info_str.strip() and self.verbose:
@@ -128,9 +137,11 @@ class Timeout:
     """simple Timeout function"""
 
     def __init__(self, timeout: int, kill: bool = True, pid: int = None):
-        """Initialize a Timeout
+        """
+        Initialize a Timeout
 
         Args:
+        ----
             timeout: timeout in seconds after which `os.kill()` is called
             kill: kill process instead of raising `TimeoutError`
             pid: terminate this PID
@@ -153,15 +164,15 @@ class Timeout:
             signal.signal(signal.SIGALRM, signal.SIG_IGN)
 
     def __call__(self):
-        """update timer, i.e., reset timeout"""
+        """Update timer, i.e., reset timeout"""
         self.stop()
 
         signal.signal(signal.SIGALRM, self.raise_timeout)
         signal.alarm(self.timeout)
 
     def raise_timeout(self, signum, frame):
-        """kill the program"""
-        msg = f"Timeout of {self.timeout}s is approaching, stop programm"
+        """Kill the program"""
+        msg = f"Timeout of {self.timeout}s is approaching, stop program"
         if self.kill:
             warn(msg, level=1)
             pid = self.pid or os.getpid()
@@ -171,7 +182,8 @@ class Timeout:
 
 
 class Spinner:
-    """Spinner for command line feedback
+    """
+    Spinner for command line feedback
 
     Inspired by:
         https://stackoverflow.com/a/39504463/5172579
@@ -201,7 +213,7 @@ class Spinner:
             if self.isatty:
                 msg += f"{next(self.spinner_generator)}"
             else:
-                msg += f"working"
+                msg += "working"
         else:
             msg += "finished." + "\n"
         return msg
@@ -253,9 +265,11 @@ def progressbar(
     n_bars=200,
     verbose=True,
 ):
-    """a simple progress bar to decorate an iterator
+    """
+    A simple progress bar to decorate an iterator
 
     Args:
+    ----
         it (iterator): show progressbar for this iterator
         prefix (str): prefix for the progressbar
         size (int): size of the progress bar
@@ -263,12 +277,13 @@ def progressbar(
         start_count (int): length of iterable
         n_bars (int): show this many bars
         verbose (bool): show the bar
+
     """
     count = len_it or max(1, len(it))
     n = len(str(count)) + 1
 
     def show(jj):
-        """show the progressbar"""
+        """Show the progressbar"""
         x = int(size * jj / count)
         counter = "{:{}d}/{}".format(jj, n, count)
         bar = "{:17s} |{}{}| {}\r".format(
@@ -285,12 +300,10 @@ def progressbar(
     ii = 0
     for ii, item in enumerate(it):
         yield item
-        if not ii % divider:
-            if hasattr(file, "isatty") and file.isatty():
-                show(ii)
+        if not ii % divider and hasattr(file, "isatty") and file.isatty():
+            show(ii)
 
     show(ii + 1)
-    if hasattr(file, "isatty") and file.isatty():
-        if verbose:
-            file.write("\n")
-            file.flush()
+    if hasattr(file, "isatty") and file.isatty() and verbose:
+        file.write("\n")
+        file.flush()

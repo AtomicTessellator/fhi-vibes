@@ -1,7 +1,6 @@
 """Trajectory File I/O"""
 
 import json
-import multiprocessing
 import os
 import shutil
 from pathlib import Path
@@ -28,15 +27,17 @@ from .utils import Timer, talk
 
 
 def step2file(atoms, calculator=None, file=filenames.trajectory, metadata={}):
-    """Save the current step
+    """
+    Save the current step
 
     Args:
+    ----
         atoms: The structure at the current step
         calculator: The ASE Calculator for the current run
         file: Path to file to append the current step to
         metadata: the metadata for the calculation, store to atoms.info if possible
-    """
 
+    """
     dct = {}
     if metadata:
         for key, val in metadata.items():
@@ -54,13 +55,15 @@ def step2file(atoms, calculator=None, file=filenames.trajectory, metadata={}):
 
 
 def metadata2file(metadata, file="metadata.son"):
-    """save metadata to file
+    """
+    Save metadata to file
 
     Args:
+    ----
         metadata: the metadata to save
         file: filepath to the output file
-    """
 
+    """
     if metadata is None:
         metadata = {}
 
@@ -68,10 +71,13 @@ def metadata2file(metadata, file="metadata.son"):
 
 
 def write(trajectory, file=filenames.trajectory):
-    """Write to son file
+    """
+    Write to son file
 
     Args:
+    ----
         file: path to trajecotry son or netcdf file
+
     """
     from .dataset import get_trajectory_dataset
 
@@ -109,7 +115,7 @@ def _create_atoms(
     metadata: dict,
     single_point_calculator: bool,
 ):
-    """create Atoms object from dictionaries"""
+    """Create Atoms object from dictionaries"""
     atoms_dict = {**pre_atoms_dict, **obj["atoms"]}
 
     # remember that the results need to go to a dedicated results dict in calc
@@ -140,18 +146,6 @@ def _create_atoms(
     return atoms
 
 
-def _map_create_atoms(pre_trajectory, **kwargs):
-    workers = []
-    pool = multiprocessing.Pool()
-    for obj in pre_trajectory:
-        workers.append(pool.apply_async(_create_atoms, args=(obj,), kwds=kwargs))
-    pool.close()
-    pool.join()
-
-    result = [worker.get() for worker in workers]
-    return result
-
-
 def reader(
     file=filenames.trajectory,
     get_metadata=False,
@@ -159,9 +153,11 @@ def reader(
     single_point_calculator=True,
     verbose=True,
 ):
-    """Convert information in file to Trajectory
+    """
+    Convert information in file to Trajectory
 
     Args:
+    ----
         file: Trajectory file to read the structures from
         get_metadata: If True return the metadata
         fc_file: force constants file
@@ -169,8 +165,10 @@ def reader(
         verbose: If True print more information to the screen
 
     Returns:
+    -------
         trajectory: The trajectory from the file
         metadata: The metadata for the trajectory
+
     """
     from vibes.trajectory.trajectory import Trajectory
 
@@ -192,7 +190,7 @@ def reader(
     # legacy of trajectory.yaml
     if metadata is None:
         msg = f"metadata in {file} appears to be empty, assume old convention w/o === "
-        msg += f"was used. Let's see"
+        msg += "was used. Let's see"
         warn(msg, level=1)
         metadata = pre_trajectory.pop(0)
 
@@ -221,7 +219,7 @@ def reader(
         "metadata": map_metadata,
         "single_point_calculator": single_point_calculator,
     }
-    list = _map_create_atoms(pre_trajectory, **kw)
+    list = [_create_atoms(a, **kw) for a in pre_trajectory]
     trajectory = Trajectory(list, metadata=metadata)
     timer2()
 
@@ -242,11 +240,14 @@ def reader(
 
 
 def to_tdep(trajectory, folder=".", skip=1):
-    """Convert to TDEP infiles for direct processing
+    """
+    Convert to TDEP infiles for direct processing
 
     Args:
+    ----
         folder: Directory to store tdep files
         skip: Number of structures to skip
+
     """
     from contextlib import ExitStack
     from pathlib import Path
@@ -326,7 +327,8 @@ def to_tdep(trajectory, folder=".", skip=1):
 
 
 def to_db(trajectory, database):
-    """Write vibes trajectory as ase database
+    """
+    Write vibes trajectory as ase database
 
     Always creates a new database. Database type
     is always inferred from the file. Metadata
@@ -336,6 +338,7 @@ def to_db(trajectory, database):
     1, not from 0 as usual.
 
     Args:
+    ----
         trajectory: Trajectory instance
         database: Filename or address of database
 
@@ -357,11 +360,13 @@ def to_db(trajectory, database):
 
 
 def to_ase_trajectory(trajectory, outfile):
-    """Write vibes trajectory as ase trajectory
+    """
+    Write vibes trajectory as ase trajectory
 
     Will overwrite outfile if it exists.
 
     Args:
+    ----
         trajectory: Trajectory instance
         outfile: Filename of trajectory
 
@@ -382,14 +387,14 @@ def to_ase_trajectory(trajectory, outfile):
 
 
 def read_netcdf(file=filenames.trajectory_dataset):
-    """read `trajectory.nc` and return Trajectory"""
+    """Read `trajectory.nc` and return Trajectory"""
     DS = xr.open_dataset(file)
 
     return parse_dataset(DS)
 
 
 def parse_dataset(dataset: xr.Dataset) -> list:
-    """turn xarray.Datset into Trajectory"""
+    """Turn xarray.Dataset into Trajectory"""
     from vibes.trajectory.trajectory import Trajectory
 
     DS = dataset

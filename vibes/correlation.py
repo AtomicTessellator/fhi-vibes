@@ -11,7 +11,6 @@ from vibes import dimensions, keys
 from vibes.helpers import Timer, progressbar, talk
 from vibes.helpers.warnings import warn
 
-
 _prefix = "Correlation"
 Timer.prefix = _prefix
 
@@ -21,10 +20,13 @@ def _talk(msg, verbose=True):
 
 
 def _hann(nsamples: int):
-    """Return one-side Hann function
+    """
+    Return one-side Hann function
 
     Args:
+    ----
         nsamples (int): number of samples
+
     """
     return sl.windows.hann(2 * nsamples)[nsamples:]
 
@@ -33,9 +35,11 @@ hann = _hann
 
 
 def get_unique_dimensions(dims: tuple) -> list:
-    """make dimension labels unique by adding a counter to duplicate dims
+    """
+    Make dimension labels unique by adding a counter to duplicate dims
 
     Example:
+    -------
         ('time', 'a', 'a') -> ('time', 'a1', 'a2')
 
     """
@@ -66,19 +70,22 @@ def get_unique_dimensions(dims: tuple) -> list:
 
 
 def _correlate(f1, f2, normalize=1, hann=True):
-    """Compute correlation function for signal f1 and signal f2
+    """
+    Compute correlation function for signal f1 and signal f2
 
     Reference:
         https://gitlab.com/flokno/python_recipes/-/blob/master/mathematics/
         correlation_function/autocorrelation.ipynb
 
     Args:
+    ----
         f1: signal 1
         f2: signal 2
         normalize: no (0), by length (1), by lag (2)
         hann: apply Hann window
     Returns:
         the correlation function
+
     """
     a1, a2 = (np.asarray(f) for f in (f1, f2))
     Nt = min(len(a1), len(a2))
@@ -106,19 +113,22 @@ correlate = _correlate
 
 
 def c1(X):
-    """run `_correlate` with default parameters"""
+    """Run `_correlate` with default parameters"""
     return correlate(X[0], X[1])
 
 
 def get_autocorrelation(series, verbose=True, **kwargs):
-    """Compute autocorrelation function of Series/DataArray
+    """
+    Compute autocorrelation function of Series/DataArray
 
     Args:
+    ----
         series ([N_t]): pandas.Series/xarray.DataArray with `time` axis in fs
         verbose (bool): be verbose
         kwargs: further arguments for `get_correlation`
     Return:
         DataArray ([N_t]): Autocorrelation function
+
     """
     timer = Timer("Compute autocorrelation function", verbose=verbose)
 
@@ -141,10 +151,10 @@ def get_autocorrelation(series, verbose=True, **kwargs):
 
 
 def _map_correlate(data, verbose=False):
-    """compute autocorrelation with multiprocessing"""
+    """Compute autocorrelation with multiprocessing"""
     Nd = len(data)
 
-    kw = {"len_it": Nd ** 2, "verbose": verbose}
+    kw = {"len_it": Nd**2, "verbose": verbose}
     with multiprocessing.Pool() as p:
         res = [*progressbar(p.imap(c1, product(data, data), chunksize=Nd), **kw)]
 
@@ -158,11 +168,13 @@ def get_autocorrelationNd(
     verbose: bool = True,
     **kwargs,
 ) -> xr.DataArray:
-    """compute velocity autocorrelation function for multi-dimensional xarray
+    """
+    Compute velocity autocorrelation function for multi-dimensional xarray
 
     Default: Compute diagonal terms only (I, a, I, a)
 
     Args:
+    ----
         array (xarray.DataArray [N_t, N_a, 3]): data
         off_diagonal_coords (bool): return off-diagonal coordinates (I, a, b)
         off_diagonal_atoms (bool): return off-diagonal atoms (I, J, a, b)
@@ -170,6 +182,7 @@ def get_autocorrelationNd(
     Returns:
         xarray.DataArray [N_t, N_a, 3]: autocorrelation along axis=0, or
         xarray.DataArray [N_t, N_a, 3, N_a, 3]: autocorrelation along axis=0
+
     """
     msg = "Get Nd autocorrelation"
     if off_diagonal:
@@ -226,8 +239,9 @@ def get_autocorrelationNd(
 
 
 def _exp(x, tau, y0):
-    """compute exponential decay
-        y = y0 * exp(-x / tau)
+    """
+    Compute exponential decay
+    y = y0 * exp(-x / tau)
     """
     return y0 * np.exp(-x / tau)
 
@@ -242,11 +256,13 @@ def get_correlation_time_estimate(
     return_series: bool = False,
     verbose: bool = True,
 ) -> (float, float):
-    """estimate correlation time of series by fitting an exponential its head to
+    """
+    Estimate correlation time of series by fitting an exponential its head to
 
         y = y0 * exp(-x / tau)
 
     Args:
+    ----
         series (pd.Series): the time series
         tmin (float, optional): Start fit (ps). Defaults to 0.1.
         tmax (float, optional): End fit (ps). Defaults to 5.
@@ -257,7 +273,9 @@ def get_correlation_time_estimate(
         verbose (bool): Be verbose.
 
     Returns:
+    -------
         (float, float): tau (IN FS!!!), y0
+
     """
     kw = {"verbose": verbose}
     _talk("Estimate correlation time from fitting exponential to normalized data", **kw)
@@ -296,20 +314,23 @@ def get_correlation_time_estimate(
 def get_autocorrelation_exponential(
     series: pd.Series, ps: bool = False, verbose: bool = True, **kwargs
 ) -> pd.Series:
-    """Return exponential fit to time series assuming an exp. decay
+    """
+    Return exponential fit to time series assuming an exp. decay
 
     Args:
+    ----
         series (pd.Series): the time series (time in fs)
         ps (bool): series.index given in ps instead of fs
         verbose (bool, optional): Be verbose. Defaults to True.
         kwargs (dict): kwargs for get_correlation_time_estimate
 
     Returns:
+    -------
         pd.Series
+
     """
     tau, y0 = get_correlation_time_estimate(series, ps=ps, verbose=verbose)
 
     if ps:
         return pd.Series(_exp(series.index, tau, y0), index=series.index)
-    else:
-        return pd.Series(_exp(series.index, tau * 1000, y0), index=series.index)
+    return pd.Series(_exp(series.index, tau * 1000, y0), index=series.index)

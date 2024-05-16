@@ -1,4 +1,5 @@
 """Wrappers to prepare statistical sampling"""
+
 import ase
 import numpy as np
 
@@ -18,7 +19,8 @@ from vibes.trajectory import reader
 
 
 def bootstrap(name="statistical_sampling", settings=None, **kwargs):
-    """load settings, prepare atoms, calculator, and phonopy
+    """
+    Load settings, prepare atoms, calculator, and phonopy
 
     Parameters
     ----------
@@ -35,7 +37,6 @@ def bootstrap(name="statistical_sampling", settings=None, **kwargs):
         distorted supercells to calculate and metadata for the calculation
 
     """
-
     if settings is None:
         settings = Settings()
 
@@ -82,7 +83,8 @@ def bootstrap(name="statistical_sampling", settings=None, **kwargs):
 
 
 def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs):
-    """Sets ups the statistical sampling
+    """
+    Sets ups the statistical sampling
 
     Parameters
     ----------
@@ -141,14 +143,14 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
     # If using Debye temperature calculate it
     if debye_temp_fact is not None:
         if phonon is None:
-            raise IOError(
+            raise OSError(
                 "Debye Temp must be calculated with phonopy, please add phonon_file"
             )
         phonon.run_mesh([45, 45, 45])
         debye_temp = get_debye_temperature(phonon, 5e-3)[-1]
         temperatures += [tt * debye_temp for tt in debye_temp_fact]
     elif temperatures is None:
-        raise IOError("temperatures must be given to do harmonic analysis")
+        raise OSError("temperatures must be given to do harmonic analysis")
 
     # Generate metadata
     metadata = {
@@ -165,7 +167,7 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
 
     if not kwargs.get("deterministic", True):
         if kwargs.get("rng_seed", None) is None:
-            rng_seed = np.random.randint(2 ** 32 - 1)
+            rng_seed = np.random.randint(2**32 - 1)
         else:
             rng_seed = int(kwargs.get("rng_seed"))
     else:
@@ -195,7 +197,8 @@ def bootstrap_stat_sample(
     stat_samp_settings=None,
     fw_settings=None,
 ):
-    """Initializes the statistical sampling task
+    """
+    Initializes the statistical sampling task
 
     Parameters
     ----------
@@ -233,12 +236,12 @@ def bootstrap_stat_sample(
     stat_samp_out["prefix"] = "stat_samp"
     stat_samp_out["settings"] = stat_samp_settings.copy()
 
-    outputs = [stat_samp_out]
-    return outputs
+    return [stat_samp_out]
 
 
 def postprocess_statistical_sampling(**kwargs):
-    """Dummy function for post processing of statistical sampling
+    """
+    Dummy function for post processing of statistical sampling
 
     Parameters
     ----------
@@ -246,4 +249,4 @@ def postprocess_statistical_sampling(**kwargs):
         keyword arguments for the task
 
     """
-    return None
+    return

@@ -1,4 +1,5 @@
-""" vibes quality of life """
+"""vibes quality of life"""
+
 from pathlib import Path
 
 import numpy as np
@@ -18,7 +19,8 @@ _prefix = "phonopy.utils"
 
 
 def last_calculation_id(trajectory_file):
-    """Return the id of the last computed supercell
+    """
+    Return the id of the last computed supercell
 
     Parameters
     ----------
@@ -29,6 +31,7 @@ def last_calculation_id(trajectory_file):
     -------
     disp_id: int
         The id of the last computed supercell
+
     """
     disp_id = -1
 
@@ -36,14 +39,15 @@ def last_calculation_id(trajectory_file):
         dct = last_from_yaml(trajectory_file, allow_empty=True)
         if dct is not None:
             disp_id = dct["info"][displacement_id_str]
-    except (FileNotFoundError):
+    except FileNotFoundError:
         pass
 
     return disp_id
 
 
 def to_phonopy_atoms(atoms):
-    """Convert ase.atoms.Atoms to PhonopyAtoms
+    """
+    Convert ase.atoms.Atoms to PhonopyAtoms
 
     Parameters
     ----------
@@ -54,18 +58,19 @@ def to_phonopy_atoms(atoms):
     -------
     phonopy_atoms: PhonopyAtoms
         The PhonopyAtoms for the same structure as atoms
+
     """
-    phonopy_atoms = PhonopyAtoms(
+    return PhonopyAtoms(
         symbols=atoms.get_chemical_symbols(),
         cell=atoms.get_cell(),
         masses=atoms.get_masses(),
         positions=atoms.get_positions(wrap=True),
     )
-    return phonopy_atoms
 
 
 def enumerate_displacements(cells, info_str=displacement_id_str):
-    """Assign a displacemt id to every atoms obect in cells.
+    """
+    Assign a displacemt id to every atoms object in cells.
 
     Parameters
     ----------
@@ -78,6 +83,7 @@ def enumerate_displacements(cells, info_str=displacement_id_str):
     -------
     list
         cells with id attached to atoms.info (inplace)
+
     """
     for nn, scell in enumerate(cells):
         if scell is None:
@@ -86,7 +92,8 @@ def enumerate_displacements(cells, info_str=displacement_id_str):
 
 
 def get_supercells_with_displacements(phonon):
-    """Create a phonopy object and supercells etc.
+    """
+    Create a phonopy object and supercells etc.
 
     Parameters
     ----------
@@ -101,8 +108,8 @@ def get_supercells_with_displacements(phonon):
         The undisplaced supercell
     supercells_with_disps: list of ase.atoms.Atoms
         All of the supercells with displacements
-    """
 
+    """
     supercell = to_Atoms(
         phonon.get_supercell(),
         info={
@@ -121,13 +128,14 @@ def get_supercells_with_displacements(phonon):
 
 
 def metadata2dict(phonon, calculator):
-    """Convert metadata information to plain dict
+    """
+    Convert metadata information to plain dict
 
     Parameters
     ----------
     phonon: phonopy.Phonopy
         Phonopy Object to get metadata for
-    calculator: ase.calculators.calulator.Calculator
+    calculator: ase.calculators.calculator.Calculator
         The calculator for the force calculation
 
     Returns
@@ -152,8 +160,8 @@ def metadata2dict(phonon, calculator):
                 Tolerance for determining the symmetry/space group of the primitive cell
             displacement_dataset: dict
                 The displacement dataset for the phonon calculation
-    """
 
+    """
     atoms = to_Atoms(phonon.get_unitcell())
 
     prim_data = input2dict(atoms)
@@ -181,7 +189,8 @@ def metadata2dict(phonon, calculator):
 def get_force_constants_from_trajectory(
     trajectory_file, supercell=None, reduce_fc=False, two_dim=False
 ):
-    """Remaps the phonopy force constants into an fc matrix for a new structure
+    """
+    Remaps the phonopy force constants into an fc matrix for a new structure
 
     Parameters
     ----------
@@ -203,11 +212,12 @@ def get_force_constants_from_trajectory(
     ------
     IOError
         If both reduce_fc and two_dim are True
+
     """
     from vibes.phonopy.postprocess import postprocess
 
     if reduce_fc and two_dim:
-        raise IOError("Only one of reduce_fc and two_dim can be True")
+        raise OSError("Only one of reduce_fc and two_dim can be True")
 
     phonon = postprocess(trajectory_file)
 
@@ -263,7 +273,8 @@ def remap_force_constants(
     eps=1e-13,
     fortran=True,
 ):
-    """remap force constants [N_prim, N_sc, 3, 3] to [N_sc, N_sc, 3, 3]
+    """
+    Remap force constants [N_prim, N_sc, 3, 3] to [N_sc, N_sc, 3, 3]
 
     Parameters
     ----------
@@ -334,7 +345,6 @@ def remap_force_constants(
             eps=eps,
         )
     else:
-
         ref_struct_pos = new_supercell.get_scaled_positions(wrap=True)
         sc_temp = new_supercell.get_cell(complete=True)
 
@@ -400,7 +410,8 @@ def remap_force_constants(
 
 
 def reduce_force_constants(fc_full, map2prim):
-    """reduce force constants from [N_sc, N_sc, 3, 3] to [N_prim, N_sc, 3, 3]
+    """
+    Reduce force constants from [N_sc, N_sc, 3, 3] to [N_prim, N_sc, 3, 3]
 
     Parameters
     ----------
@@ -413,6 +424,7 @@ def reduce_force_constants(fc_full, map2prim):
     -------
     fc_out: np.ndarray
         The reduced force constants
+
     """
     uc_index = np.unique(map2prim)
     fc_out = np.zeros((len(uc_index), fc_full.shape[1], 3, 3))
@@ -433,9 +445,11 @@ def parse_phonopy_force_constants(
     tol=1e-5,
     format="aims",
 ):
-    """parse phonopy FORCE_CONSTANTS file and return as 2D array
+    """
+    Parse phonopy FORCE_CONSTANTS file and return as 2D array
 
     Args:
+    ----
         fc_file (Pathlike): phonopy forceconstant file to parse
         primitive (Atoms or Pathlike): either unitcell as Atoms or where to find it
         supercell (Atoms or Pathlike): either supercell as Atoms or where to find it
@@ -446,7 +460,9 @@ def parse_phonopy_force_constants(
         format: File format for the input geometries
 
     Returns:
+    -------
         Force constants in (3*N_sc, 3*N_sc) shape
+
     """
     if "hdf5" in str(fc_file):
         fc = read_force_constants_hdf5(fc_file)

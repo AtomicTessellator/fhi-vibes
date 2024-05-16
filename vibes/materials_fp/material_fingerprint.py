@@ -2,13 +2,15 @@ import re
 from collections import namedtuple
 
 import numpy as np
+
 from vibes.structure.convert import to_Atoms
 
 fp_tup = namedtuple("fp_tup", "frequencies occupancies special_pts nbins")
 
 
 def get_ener(binning, frequencies, min_e, max_e, nbins):
-    """Get the energy bins used for making a fingerprint
+    """
+    Get the energy bins used for making a fingerprint
 
     Parameters
     ----------
@@ -29,21 +31,23 @@ def get_ener(binning, frequencies, min_e, max_e, nbins):
         energy bin labels (energy of the band or bin center point)
     np.ndarray of floats
         energy bin boundaries
+
     """
     if binning:
         enerBounds = np.linspace(min_e, max_e, nbins + 1)
         return enerBounds[:-1] + (enerBounds[1] - enerBounds[0]) / 2.0, enerBounds
-    else:
-        return (
-            np.array(frequencies),
-            np.append(frequencies, [frequencies[-1] + np.abs(frequencies[-1]) / 10]),
-        )
+
+    return (
+        np.array(frequencies),
+        np.append(frequencies, [frequencies[-1] + np.abs(frequencies[-1]) / 10]),
+    )
 
 
 def get_phonon_bs_fp(
     phonon, q_points=None, binning=True, min_e=None, max_e=None, nbins=32
 ):
-    """Generates the phonon band structure fingerprint for a band structure
+    """
+    Generates the phonon band structure fingerprint for a band structure
 
     Parameters
     ----------
@@ -62,6 +66,7 @@ def get_phonon_bs_fp(
     -------
     namedtuple(fp_tup)
         The phonon band structure fingerprint
+
     """
     if q_points is None:
         q_points = (
@@ -94,7 +99,8 @@ def get_phonon_bs_fp(
 
 
 def get_phonon_dos_fp(phonon, binning=True, min_e=None, max_e=None, nbins=256):
-    """Generates the DOS fingerprint for a bands structure stored in a phonopy object
+    """
+    Generates the DOS fingerprint for a bands structure stored in a phonopy object
 
     Parameters
     ----------
@@ -111,6 +117,7 @@ def get_phonon_dos_fp(phonon, binning=True, min_e=None, max_e=None, nbins=256):
     -------
     namedtuple(fp_tup)
         The phonon density of states fingerprint
+
     """
     dos = np.array(phonon.get_total_DOS()).transpose()
 
@@ -134,7 +141,8 @@ def get_phonon_dos_fp(phonon, binning=True, min_e=None, max_e=None, nbins=256):
 
 
 def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
-    """Calculates the dot product between two finger prints
+    """
+    Calculates the dot product between two finger prints
 
     Parameters
     ----------
@@ -145,7 +153,7 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
     col: int
         The item in the fingerprints to take the dot product of (either 0 or 1)
     pt: int or 'All'
-        The index of the point that the dot product is to be taken, 'All' flatten arraies
+        The index of the point that the dot product is to be taken, 'All' flatten arrays
     normalize: bool
         If True normalize the scalar product to 1
 
@@ -153,6 +161,7 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
     -------
     float
         The dot product
+
     """
     if not isinstance(fp1, dict):
         fp1_dict = to_dict(fp1)
@@ -184,7 +193,8 @@ def scalar_product(fp1, fp2, col=0, pt="All", normalize=False, tanimoto=False):
 
 
 def to_dict(fp, to_mongo=False):
-    """Converts a fingerprint into a dictionary
+    """
+    Converts a fingerprint into a dictionary
 
     Parameters
     ----------
@@ -196,7 +206,9 @@ def to_dict(fp, to_mongo=False):
     Returns
     -------
     dict
-        A dict of the fingerprint Keys=labels, Values=np.ndarray(frequencies, #of states)
+        A dict of the fingerprint Keys=labels,
+        Values=np.ndarray(frequencies, #of states)
+
     """
     fp_dict = {}
     if not to_mongo:

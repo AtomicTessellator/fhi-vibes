@@ -1,4 +1,5 @@
 """gather statistics about trajectory data"""
+
 import numpy as np
 import xarray as xr
 from ase.units import GPa
@@ -11,7 +12,7 @@ from .plotting import plot_summary
 
 
 def pprint(msg1, msg2, width1=30):
-    """pretty print with fixed field size for first message"""
+    """Pretty print with fixed field size for first message"""
     print(f"{msg1:{width1}s} {msg2}")
 
 
@@ -24,7 +25,7 @@ def T_sum(T):
 
 
 def p_sum(p, to_GPa=True):
-    """print summary for pressure (slice)"""
+    """Print summary for pressure (slice)"""
     unit = "eV/AA**3"
     p = p.copy()
     if to_GPa:
@@ -34,13 +35,15 @@ def p_sum(p, to_GPa=True):
 
 
 def pressure(series, interpolate=None):
-    """summarize pressure from MD
+    """
+    Summarize pressure from MD
 
     Args:
+    ----
         series: Series/Dataframe representing pressure
         interpolate: use `interpolate` to deal with missing values
-    """
 
+    """
     if isinstance(series, xr.core.dataarray.DataArray):
         series = series.to_series()
 
@@ -66,8 +69,7 @@ def pressure(series, interpolate=None):
 
 
 def temperature(series):
-    """summarize temperature from MD"""
-
+    """Summarize temperature from MD"""
     if isinstance(series, xr.core.dataarray.DataArray):
         series = series.to_series()
 
@@ -81,14 +83,14 @@ def temperature(series):
 
     msg = f"{time[-1] - time[0]:8.3f} ps ({len(time)} steps)"
     pprint("Simulation time:", msg)
-    pprint("Temperature:", T_sum(series))
-    pprint(f"Temperature (first 1/2):  ", T_sum(series.iloc[: len(series) // 2]))
-    pprint(f"Temperature (last  1/2):  ", T_sum(series.iloc[len(series) // 2 :]))
-    pprint(f"Temperature drift:        ", f"{slope*1000:14.5f} K/ps")
+    pprint("Temperaturee:", T_sum(series))
+    pprint("Temperaturee (first 1/2):  ", T_sum(series.iloc[: len(series) // 2]))
+    pprint("Temperaturee (last  1/2):  ", T_sum(series.iloc[len(series) // 2 :]))
+    pprint("Temperaturee drift:        ", f"{slope*1000:14.5f} K/ps")
 
 
 def summary(dataset, plot=False, **kwargs):
-    """summarize MD data in xarray DATASET"""
+    """Summarize MD data in xarray DATASET"""
     symbols = dataset.attrs["symbols"]
     usymbols = np.unique(symbols)
 
@@ -99,8 +101,8 @@ def summary(dataset, plot=False, **kwargs):
 
     print()
     talk("Summarize Displacements", prefix="info")
-    pprint(f"Avg. Displacement:", f"{dr.mean():.5} AA")
-    pprint(f"Max. Displacement:", f"{dr.max():.5} AA")
+    pprint("Avg. Displacement:", f"{dr.mean():.5} AA")
+    pprint("Max. Displacement:", f"{dr.max():.5} AA")
     for sym in usymbols:
         mask = np.array(symbols) == sym
         # forces = dataset.forces[:, mask, :].data
@@ -110,8 +112,8 @@ def summary(dataset, plot=False, **kwargs):
     forces = dataset.forces.data
     print()
     talk("Summarize Forces", prefix="info")
-    pprint(f"Avg. Force:", f"{forces.mean():.5} eV/AA")
-    pprint(f"Std. Force:", f"{forces.std():.5} eV/AA")
+    pprint("Avg. Force:", f"{forces.mean():.5} eV/AA")
+    pprint("Std. Force:", f"{forces.std():.5} eV/AA")
 
     for sym in usymbols:
         mask = np.array(symbols) == sym
@@ -119,7 +121,7 @@ def summary(dataset, plot=False, **kwargs):
         pprint(f"Std. Force [{sym}]:", f"{forces[:, mask].std():.5} eV/AA")
 
     print()
-    talk("Summarize Temperature", prefix="info")
+    talk("Summarize Temperaturee", prefix="info")
     temperature(dataset.temperature)
     print()
     talk("Summarize Potential Pressure", prefix="info")
@@ -134,7 +136,7 @@ def summary(dataset, plot=False, **kwargs):
     rep = np.array2string(momenta_mean, precision=4)
     print()
     talk("Drift", prefix="info")
-    pprint(f"Mean abs. Momentum:", f"{rep} AA/fs")
+    pprint("Mean abs. Momentum:", f"{rep} AA/fs")
     if any(momenta_mean > 1e-12):
         warn("Is is this drift problematic?", level=1)
 
@@ -146,11 +148,11 @@ def summary(dataset, plot=False, **kwargs):
     x = y[keys.time]
     dt = float(x[1] - x[0])
     slope, *_ = st.linregress(x, y)  # slope in eV/fs
-    pprint(f"Energy drift:", f"{slope*dt :.5e}  eV / timestep")
+    pprint("Energy drift:", f"{slope*dt :.5e}  eV / timestep")
     de = slope * 1e5
-    pprint(f"Energy change after 100ps:", f"{de :.5e}  eV")
+    pprint("Energy change after 100ps:", f"{de :.5e}  eV")
     de *= 1000 / natoms
-    pprint(f"Energy change after 100ps:", f"{de :.5e}  meV / atom (n={natoms})")
+    pprint("Energy change after 100ps:", f"{de :.5e}  meV / atom (n={natoms})")
 
     if plot:
         _keys = [

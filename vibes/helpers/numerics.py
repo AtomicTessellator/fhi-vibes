@@ -4,7 +4,8 @@ from vibes.konstanten.numerics import medium_tol
 
 
 def clean_matrix(matrix, eps=medium_tol):
-    """clean from small values
+    """
+    Clean from small values
 
     Parameters
     ----------
@@ -17,6 +18,7 @@ def clean_matrix(matrix, eps=medium_tol):
     -------
     matrix: np.ndarray
         Matrix cleaned of all values below eps
+
     """
     matrix = np.array(matrix)
     for ij in np.ndindex(matrix.shape):
@@ -26,7 +28,8 @@ def clean_matrix(matrix, eps=medium_tol):
 
 
 def get_3x3_matrix(matrix, dtype=int):
-    """get a 3x3 matrix
+    """
+    Get a 3x3 matrix
 
     Parameters
     ----------
@@ -44,8 +47,8 @@ def get_3x3_matrix(matrix, dtype=int):
     ------
     Exception
         If matrix can not be converted to a 3x3 matrix
-    """
 
+    """
     if np.size(matrix) == 1:
         supercell_matrix = matrix * np.eye(3)
     elif np.size(matrix) == 3:
@@ -54,9 +57,7 @@ def get_3x3_matrix(matrix, dtype=int):
         supercell_matrix = np.asarray(matrix).reshape((3, 3))
     else:
         raise Exception(
-            "Supercell matrix must have 1, 3, 9 elements, has {}".format(
-                np.size(matrix)
-            )
+            f"Supercell matrix must have 1, 3, 9 elements, has {np.size(matrix)}"
         )
 
     return supercell_matrix.astype(dtype)

@@ -1,4 +1,4 @@
-""" run harmonic md """
+"""run harmonic md"""
 
 import os
 
@@ -14,7 +14,7 @@ from vibes.tdep.wrapper import parse_tdep_forceconstant
 
 
 def lammps_si_tersoff_calculator(tmp_dir="./lammps"):
-    """ create a lammps calculator for Si """
+    """Create a lammps calculator for Si"""
     lmp_path = os.getenv("LAMMPS_PATH")
     potential = os.path.join(lmp_path, "potentials", "Si.tersoff")
     files = [potential]
@@ -25,9 +25,7 @@ def lammps_si_tersoff_calculator(tmp_dir="./lammps"):
     }
 
     # New syntax introduces with https://gitlab.com/ase/ase/merge_requests/1000
-    lammps = LAMMPS(parameters=parameters, files=files, tmp_dir=tmp_dir)
-
-    return lammps
+    return LAMMPS(parameters=parameters, files=files, tmp_dir=tmp_dir)
 
 
 def run(
@@ -40,8 +38,7 @@ def run(
     fc_file="infile.forceconstant",
     trajectory_file="trajectory.son",
 ):
-    """ run Verlet MD, harmonic or force field """
-    trajectory_file = trajectory_file
+    """Run Verlet MD, harmonic or force field"""
     atoms = read(sample)
 
     force_constants = parse_tdep_forceconstant(

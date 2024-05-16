@@ -1,4 +1,5 @@
 """FHI-aims related setup"""
+
 import shutil
 from pathlib import Path
 
@@ -11,7 +12,6 @@ from vibes.helpers.warnings import warn
 
 from ._defaults import talk
 from .context import CalculatorContext
-
 
 _fallback = "light"
 
@@ -45,13 +45,16 @@ class BasissetError(RuntimeError):
 def create_species_dir(
     ctx: CalculatorContext, folder: str = "basissets", fallback: str = _fallback
 ) -> str:
-    """ create a custom bassiset folder for the computation
+    """
+    Create a custom bassiset folder for the computation
 
     Args:
+    ----
         ctx: The context for the calculation
         folder: Folder to store the basisset
 
     Returns:
+    -------
         The absolute file path to the species directory
 
     """
@@ -96,13 +99,13 @@ def create_species_dir(
         if key not in ("default", "fallback")
     )
 
-    for (key, val) in key_vals:
+    for key, val in key_vals:
         # copy the respective basisset
         add_basisset(loc, val, key, dct[key], folder, fallback=fallback)
         del dct[key]
 
     # add remaining ones
-    for key in dct.keys():
+    for key in dct:
         # copy the respective basisset
         add_basisset(loc, default, key, dct[key], folder, fallback=fallback)
 
@@ -118,7 +121,7 @@ def add_basisset(
     fallback: str = _fallback,
     verbose: bool = True,
 ):
-    """copy basisset from location LOC of type TYP for ELEMENT w/ no. NUM to FOLDER"""
+    """Copy basisset from location LOC of type TYP for ELEMENT w/ no. NUM to FOLDER"""
     rep = f"{num:02d}_{elem}_default"
 
     msg = f"Add basisset `{typ}` for atom `{elem}` to basissets folder."
@@ -132,13 +135,16 @@ def add_basisset(
 
 
 def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
-    """Set up an aims calculator.
+    """
+    Set up an aims calculator.
 
     Args:
+    ----
         ctx (AimsContext): The context for the calculation
         verbose (bool): inform about the calculator details
 
     Returns:
+    -------
         Calculator object for the calculation
 
     """
@@ -216,6 +222,4 @@ def setup_aims(ctx: CalculatorContext, verbose: bool = True) -> Aims:
     msg = ["settings:", *[f"  {k}: {v}" for k, v in aims_settings.items()]]
     talk(msg, verbose=verbose)
 
-    calculator = Aims(**aims_settings)
-
-    return calculator
+    return Aims(**aims_settings)

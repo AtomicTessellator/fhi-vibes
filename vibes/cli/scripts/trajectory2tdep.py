@@ -1,4 +1,4 @@
-""" Update trajectory files of old format """
+"""Update trajectory files of old format"""
 
 from argparse import ArgumentParser
 
@@ -6,7 +6,7 @@ from vibes.trajectory import reader
 
 
 def main():
-    """ main routine """
+    """Main routine"""
     parser = ArgumentParser(description="Update trajectory file")
     parser.add_argument("trajectory")
     parser.add_argument("-s", "--skip", default=1, type=int)

@@ -6,7 +6,7 @@ Trajectory
 - atom labels: Capital letters starting from $`I`$: $`I, J, K, L, ...`$
 
 - Coordinate labels: small letters starting form $`a`$: $`a, b, c, d, ...`$
-  
+
   - instead of the greek letters $`\alpha, \beta, \gamma, \delta, ...`$
 
 - Time label: just `time`

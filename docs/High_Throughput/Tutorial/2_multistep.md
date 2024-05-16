@@ -317,7 +317,7 @@ Below is a workflow to calculate $\sigma^\text{A}$ of C, Si, and Ge with an atom
 These two conditions are arbitrarily chosen to remove C after the relaxation and Ge after the phonopy calculation.
 Only if the one-shot approximation to $\sigma^\text{A}$ is greater than 0.2, will it be explicitly calculated with molecular dynamics (which from the previous section's results we know is not the case for Si).
 
-To calculate the atomic volume we use the `test_va` function defined in `stop_conditions.py` with the current working directory included inside the `PYTHONPATH` environment variable.
+To calculate the atomic volume we use the `test_va` function defined in `stop_conditions.py` with the current working directory included inside the `pythonNPATH` environment variable.
 ??? info "`stop_conditions.py`"
     ```
     from ase.atoms import Atoms

@@ -1,4 +1,4 @@
-""" use spglib to symmetrize q points """
+"""use spglib to symmetrize q points"""
 
 import numpy as np
 import spglib as spg
@@ -11,7 +11,8 @@ from vibes.structure.convert import to_spglib_cell
 def get_ir_reciprocal_mesh(
     q_mesh, primitive, supercell=None, is_time_reversal=True, symprec=1e-5
 ):
-    r""" reduce the given q_mesh by symmetry
+    r"""
+    Reduce the given q_mesh by symmetry
 
     Remarks
     Maybe it would be nice to return the respective rotations as well?
@@ -42,7 +43,6 @@ def get_ir_reciprocal_mesh(
     irreducible_q_points/ir_qpoints.ipynb
 
     """
-
     timer = Timer()
 
     my_mesh = q_mesh.copy()
@@ -135,7 +135,7 @@ def get_ir_reciprocal_mesh(
             my_ir_grid @ primitive.get_reciprocal_cell() @ supercell.cell.T
         )
 
-    # verify that my_ir_grid indeed containts the reduced q points
+    # verify that my_ir_grid indeed contains the reduced q points
     # for i, q in enumerate(my_mapping):
     #     assert (my_ir_grid[my_ir_mapping[i]] % n_qmesh == ir_grid[q] % n_qmesh).all()
 

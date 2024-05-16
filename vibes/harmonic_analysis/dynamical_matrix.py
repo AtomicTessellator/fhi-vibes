@@ -1,4 +1,4 @@
-""" Functions related to creation of dynamical matrices """
+"""Functions related to creation of dynamical matrices"""
 
 import numpy as np
 
@@ -14,29 +14,30 @@ def _prefactor(q, r):
 
 
 def fc2dynmat(force_constants, masses):
-    """convert force_constants to dynamical matrix by mass weighting"""
-
+    """Convert force_constants to dynamical matrix by mass weighting"""
     Na = len(masses)
     M = (np.asarray(masses)).repeat(3)
-    rminv = M ** -0.5
+    rminv = M**-0.5
 
     assert force_constants.shape == (3 * Na, 3 * Na), force_constants.shape
 
-    dm = force_constants * rminv[:, None] * rminv[None, :]
-
-    return dm
+    return force_constants * rminv[:, None] * rminv[None, :]
 
 
 def get_frequencies(dyn_matrix, masses=None, factor=omega_to_THz):
-    """ Diagonalize dynamical_matrix and convert to THz
+    """
+    Diagonalize dynamical_matrix and convert to THz
 
     Args:
+    ----
         dyn_matrix: The dynamical matrix
         masses: used for mass weihting when `dyn_matrix` is the force constants
         factor: Unit conversion factor (default: to eV/AMU/AA*2 to THz)
 
     Returns:
+    -------
         np.ndarray: The eigenvalues of the dynamical matrix
+
     """
     if masses is not None:
         dyn_matrix = fc2dynmat(dyn_matrix, masses)
@@ -46,7 +47,8 @@ def get_frequencies(dyn_matrix, masses=None, factor=omega_to_THz):
 
 
 def get_dynamical_matrix(q_point, primitive, supercell, force_constants, eps=1e-12):
-    """build the dynamical matrix for one q_point
+    """
+    Build the dynamical matrix for one q_point
 
     Parameters
     ----------
@@ -65,8 +67,8 @@ def get_dynamical_matrix(q_point, primitive, supercell, force_constants, eps=1e-
     -------
     np.ndarray
         They dynamical matrix
-    """
 
+    """
     if np.size(q_point) == 1:
         q_point = q_point * np.ones(3)
     if isinstance(q_point, list) and len(q_point) == 3:
@@ -78,7 +80,8 @@ def get_dynamical_matrix(q_point, primitive, supercell, force_constants, eps=1e-
 
 
 def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=1e-12):
-    """build the dynamical matrix for each q_point
+    """
+    Build the dynamical matrix for each q_point
 
     Parameters
     ----------
@@ -97,8 +100,8 @@ def get_dynamical_matrices(q_points, primitive, supercell, force_constants, eps=
     -------
     list of np.ndarray
         They dynamical matrix at each point in q_points
-    """
 
+    """
     lattice_points, _ = get_lattice_points(primitive.cell, supercell.cell)
 
     force_constants_reshaped = reshape_force_constants(

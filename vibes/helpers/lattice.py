@@ -1,10 +1,11 @@
-""" Tools for dealing with lattices """
+"""Tools for dealing with lattices"""
 
 import scipy.linalg as la
 
 
 def fractional(positions, lattice):
-    """ compute fractioal components in terms of lattice
+    """
+    Compute fractioal components in terms of lattice
 
             r = r_frac . lattice
 
@@ -21,6 +22,6 @@ def fractional(positions, lattice):
     -------
     np.ndarray
         The fractional positions
-    """
 
+    """
     return positions @ la.inv(lattice)

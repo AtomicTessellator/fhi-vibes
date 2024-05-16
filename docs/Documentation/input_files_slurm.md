@@ -33,7 +33,7 @@ The command will do the following:
 
 ## Restart a job
 
-`vibes` supports autmatic restarts if the job will take longer than the available walltime, which is often the case during [_ab initio_ molecular dynamics simulations](../Tutorial/3_md_ab_initio.md). Restarts can be requested by adding
+`vibes` supports automatic restarts if the job will take longer than the available walltime, which is often the case during [_ab initio_ molecular dynamics simulations](../Tutorial/3_md_ab_initio.md). Restarts can be requested by adding
 
 ```
 ...

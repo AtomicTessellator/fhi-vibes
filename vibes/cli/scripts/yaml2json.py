@@ -1,4 +1,4 @@
-""" Summarize output from ASE.md class (in md.log) """
+"""Summarize output from ASE.md class (in md.log)"""
 
 import json
 from argparse import ArgumentParser
@@ -8,7 +8,7 @@ from vibes.helpers.fileformats import from_yaml, to_json
 
 
 def main():
-    """ main routine """
+    """Main routine"""
     parser = ArgumentParser(description="convert yaml file to json")
     parser.add_argument("file", help="md.log input file")
     args = parser.parse_args()

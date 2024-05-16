@@ -1,9 +1,11 @@
-""" Provides messages and warnings naming the origin """
+"""Provides messages and warnings naming the origin"""
+
 import inspect
 
 
 def warn(message, level=0):
-    """Print warnings to the console
+    """
+    Print warnings to the console
 
     https://stackoverflow.com/a/2654130/5172579
 
@@ -18,8 +20,8 @@ def warn(message, level=0):
     ------
     RuntimeError
         If warning level=2 (Error)
-    """
 
+    """
     curframe = inspect.currentframe()
     frame = inspect.getouterframes(curframe, 2)[1]
 

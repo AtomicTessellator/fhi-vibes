@@ -1,4 +1,5 @@
-""" socket io helpers """
+"""socket io helpers"""
+
 import socket
 from contextlib import closing
 
@@ -10,21 +11,23 @@ from vibes.helpers.warnings import warn
 
 from . import stresses as stresses_helper
 
-
 _prefix = "socketio"
 
 
 def check_socket(host, port):
-    """Check if socket is able to bind
+    """
+    Check if socket is able to bind
 
     Args:
+    ----
         host (str): string to the host
         port (int): port for the socket
 
     Returns:
+    -------
         bool: True if socket is able to bind
-    """
 
+    """
     try:
         socket.getservbyport(port)
         return False
@@ -40,17 +43,21 @@ def check_socket(host, port):
 
 
 def get_free_port(host, offset=0, min_port_val=10000):
-    """Automatically select a free port to use
+    """
+    Automatically select a free port to use
 
     Args:
+    ----
         host (str): String to the host path
         min_port_val (int): First port to check
-        offset (int): Select the next + offset free port (in case multiple sequntial runs)
+        offset (int): Select the next + offset free port
+        (in case multiple sequntial runs)
 
-    Returns
+    Returns:
+    -------
         port (int): The available port
-    """
 
+    """
     pp = 0
     for port in range(max(1024, min_port_val), 49151):
         if check_socket(host, port):
@@ -61,15 +68,19 @@ def get_free_port(host, offset=0, min_port_val=10000):
 
 
 def get_port(host, port, offset=0):
-    """Get the port to use for the socketio calculation
+    """
+    Get the port to use for the socketio calculation
 
     Args:
+    ----
         host (str): String to the host path
         port (int): Requested port
-        offset (int): Select the next + offset free port (in case multiple sequntial runs)
+        offset (int): Select the next + offset free port
 
-    Returns
+    Returns:
+    -------
         port (int): A free port based on the requested value
+
     """
     # If a unixsocket is being used then disregard since ports aren't used
     if "UNIX" in host:
@@ -90,17 +101,19 @@ def get_port(host, port, offset=0):
 
 
 def get_socket_info(calculator, prefix=_prefix):
-    """return port of the calculator
+    """
+    Return port of the calculator
 
     Args:
+    ----
         calculator: calculator to get the port of
         prefix: prefix for messages from this function
     Returns:
         host: The host for socketio
         port: the port for socketio
         unixsocket: get_unixsocket
-    """
 
+    """
     port = None
     unixsocket = None
     if not hasattr(calculator, "parameters"):
@@ -123,7 +136,8 @@ def get_socket_info(calculator, prefix=_prefix):
 
 
 def get_stresses(atoms):
-    """Use Socket to get intensive atomic stresses in eV/AA^3 in Nx3x3 shape.
+    """
+    Use Socket to get intensive atomic stresses in eV/AA^3 in Nx3x3 shape.
     Raw stresses are supposed to be extensive and the volume is divided out.
 
     """
@@ -139,20 +153,26 @@ def get_stresses(atoms):
 
 
 def socket_stress_off(calculator):
-    """Turn stresses computation off via socket
+    """
+    Turn stresses computation off via socket
 
     Args:
+    ----
         calculator: ase.calculators.calculator.Calculator
             calculator to turn off stress computation for
+
     """
     calculator.server.protocol.sendmsg("STRESSES_OFF")
 
 
 def socket_stress_on(calculator):
-    """Turn stresses computation on via socket
+    """
+    Turn stresses computation on via socket
 
     Args:
+    ----
         calculator: ase.calculators.calculator.Calculator
             calculator to turn on stress computation for
+
     """
     calculator.server.protocol.sendmsg("STRESSES_ON")

@@ -1,15 +1,16 @@
-"""Python API for qlaunch to connect to remote hosts
+"""
+python API for qlaunch to connect to remote hosts
 
 FireWorks Copyright (c) 2013, The Regents of the University of
 California, through Lawrence Berkeley National Laboratory (subject
 to receipt of any required approvals from the U.S. Dept. of Energy).
 All rights reserved.
 """
+
 import os
 import time
 
 from vibes.helpers import talk
-
 
 try:
     import fabric
@@ -35,7 +36,8 @@ __date__ = "Jan 14, 2013, Adaptation: October 31, 2018"
 
 
 def convert_input_to_param(param_name, param, param_list):
-    """Converts a function input into a qlaunch parameter
+    """
+    Converts a function input into a qlaunch parameter
 
     Parameters
     ----------
@@ -79,7 +81,8 @@ def qlaunch_remote(
     remote_shell="/bin/bash -l -c",
     daemon=0,
 ):
-    """This function adapts the fireworks script qlaunch to a python function
+    """
+    This function adapts the fireworks script qlaunch to a python function
 
     Parameters
     ----------
@@ -155,12 +158,12 @@ def qlaunch_remote(
         if firework_ids:
             non_default.append("--{} {}".format("firework_ids", firework_ids[0]))
             for fire_work in firework_ids[1:]:
-                non_default[-1] += " {}".format(fire_work)
+                non_default[-1] += f" {fire_work}"
                 fw_id = fire_work
         if wflow:
             non_default.append("--{} {}".format("wflow", wflow.root_firework_ids[0]))
             for fire_work in wflow.root_firework_ids[1:]:
-                non_default[-1] += " {}".format(fire_work)
+                non_default[-1] += f" {fire_work}"
     else:
         convert_input_to_param("fw_id", fw_id, non_default)
     non_default = " ".join(non_default)
@@ -179,7 +182,7 @@ def qlaunch_remote(
                 connect_kwargs["controlpath"] = controlpath
             talk(
                 f"Launching FireWork {fw_id} on {host} with command: \n"
-                + f"\tvibes fireworks qlaunch {pre_non_default} {command} {non_default}",
+                f"\tvibes fireworks qlaunch {pre_non_default} {command} {non_default}",
                 prefix="fireworks",
             )
             with fabric.Connection(
@@ -192,14 +195,13 @@ def qlaunch_remote(
                     remote = os.path.expanduser(remote)
                     with conn.cd(remote):
                         conn.run(
-                            "vibes fireworks qlaunch {} {} {}".format(
-                                pre_non_default, command, non_default
-                            )
+                            f"vibes fireworks qlaunch {pre_non_default} "
+                            f"{command} {non_default}"
                         )
         if interval > 0:
             talk(
-                "Next run in {} seconds... Press Ctrl-C to exit at any "
-                "time.".format(interval),
+                f"Next run in {interval} seconds... Press Ctrl-C to exit at any "
+                "time.",
                 prefix="fireworks",
             )
             time.sleep(daemon)

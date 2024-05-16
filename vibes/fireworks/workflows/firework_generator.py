@@ -1,8 +1,10 @@
 """Generates Task Specific FireWorks"""
+
+from pathlib import Path
+
 import numpy as np
 from fireworks import Firework
 from jconfigparser.dict import DotDict
-from pathlib import Path
 
 from vibes.filenames import filenames
 from vibes.fireworks.tasks.fw_out.check_conditionals import (
@@ -36,7 +38,8 @@ from vibes.helpers.watchdogs import str2time
 
 
 def ceheck_condition_list(condition_list):
-    """Checks the condition list to ensure that the conditions are valid
+    """
+    Checks the condition list to ensure that the conditions are valid
 
     Parameters
     ----------
@@ -47,10 +50,11 @@ def ceheck_condition_list(condition_list):
     ------
     ValueError
         If one of the terms in the condition list is wrong
+
     """
     if len(condition_list) not in [4, 5]:
         raise ValueError("Invalid size for the condition: {condition_list}.")
-    elif (len(condition_list) == 5) and (
+    if (len(condition_list) == 5) and (
         condition_list[0] not in ["cv", "free_energy", "entropy", "frequencies"]
     ):
         raise ValueError(
@@ -76,7 +80,8 @@ def ceheck_condition_list(condition_list):
 
 
 def parse_conditional(condition):
-    """Parse the stopping condition and replace it with the condition list.
+    """
+    Parse the stopping condition and replace it with the condition list.
 
     Parameters
     ----------
@@ -87,6 +92,7 @@ def parse_conditional(condition):
     -------
     list
         ["key", "vector_op", "comparision_op", value]
+
     """
     comp_ops = {"==": "eq", "!=": "ne", "<=": "le", ">=": "ge", "<": "lt", ">": "gt"}
     if isinstance(condition, list):
@@ -109,7 +115,7 @@ def parse_conditional(condition):
                 raise ValueError(
                     f'Vector operation is not properly formatted in "{condition}".'
                 )
-            elif len(op_check) == 0:
+            if len(op_check) == 0:
                 condition_list[:2] = [condition_split[0].strip(), ""]
             else:
                 vec_split = condition_split[0].split("(")
@@ -123,7 +129,8 @@ def parse_conditional(condition):
 
 
 def get_phonon_file_location(settings, atoms, remote=False):
-    """Get the phonon file location for a task
+    """
+    Get the phonon file location for a task
 
     Parameters
     ----------
@@ -135,11 +142,13 @@ def get_phonon_file_location(settings, atoms, remote=False):
         True if use remote directory instead of the local one
 
     Returns
+    -------
     str
         The phonon_file location
+
     """
     if "phonopy" not in settings:
-        raise IOError("phonon file must be given")
+        raise OSError("phonon file must be given")
 
     conv = False
     if "convergence" in settings.phonopy:
@@ -168,7 +177,8 @@ def get_phonon_file_location(settings, atoms, remote=False):
 
 
 def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=True):
-    """update the fw_settings for the next step
+    """
+    Update the fw_settings for the next step
 
     Parameters
     ----------
@@ -177,7 +187,8 @@ def update_fw_settings(fw_settings, fw_name, queueadapter=None, update_in_spec=T
     fw_name : str
         name of the current step
     queueadapter : dict
-        dict describing the queueadapter changes for this firework (Default value = None)
+        dict describing the queueadapter changes for this firework
+        (Default value = None)
     update_in_spec : bool
         If true move current out_spec to be in_spec (Default value = True)
 
@@ -220,7 +231,8 @@ def generate_firework(
     args=None,
     inputs=None,
 ):
-    """A function that takes in a set of inputs and returns a Firework for them
+    """
+    A function that takes in a set of inputs and returns a Firework for them
 
     Parameters
     ----------
@@ -229,7 +241,7 @@ def generate_firework(
     atoms : ase.atoms.Atoms
         If not atoms_calc_from_spec then this must be an ASE Atoms object or a dict
         If atoms_calc_from_spec then this must be a key str
-    calculator: ase.calculators.calulator.Calculator, dictionary or str
+    calculator: ase.calculators.calculator.Calculator, dictionary or str
         If not atoms_calc_from_spec then this must be an ASE Calculator or a dict
         If atoms_calc_from_spec then this must be a key str (Default value = None)
     fw_settings : dict
@@ -250,8 +262,9 @@ def generate_firework(
         Keyword arguments for the fw_out function (Default value = None)
     args : list
         List of arguments to pass to func (Default value = None)
-    inputs : (ist
-        List of spec to pull in as args from the FireWorks Database (Default value = None)
+    inputs : list
+        List of spec to pull in as args from the FireWorks Database
+        (Default value = None)
 
     Returns
     -------
@@ -302,7 +315,7 @@ def generate_firework(
     setup_tasks = []
     if atoms:
         if not atoms_calc_from_spec:
-            # Preform calculator updates here
+            # Perform calculator updates here
             at = atoms2dict(atoms, add_constraints=True)
 
             if not isinstance(calculator, str):
@@ -311,7 +324,7 @@ def generate_firework(
                         update_k_grid(
                             atoms, calculator, update_calc_settings["k_grid_density"]
                         )
-                    elif calculator["claculator"].lower() == "aims":
+                    elif calculator["calculator"].lower() == "aims":
                         recipcell = np.linalg.pinv(at["cell"]).transpose()
                         calculator = update_k_grid_calc_dict(
                             calculator,
@@ -360,12 +373,13 @@ def generate_firework(
 def generate_fw(
     atoms, task_list, fw_settings, qadapter, update_settings=None, update_in_spec=True
 ):
-    """Generates a FireWork
+    """
+    Generates a FireWork
 
     Parameters
     ----------
     atoms : ase.atoms.Atoms
-        ASE Atoms object to preform the calculation on
+        ASE Atoms object to perform the calculation on
     task_list : list of TaskSpecs
         Definitions for the tasks to be run
     fw_settings : dict
@@ -386,22 +400,15 @@ def generate_fw(
     fw_settings = update_fw_settings(
         fw_settings, fw_settings["fw_name"], qadapter, update_in_spec=update_in_spec
     )
-    fw_settings[
-        "fw_name"
-    ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    fw_settings["fw_name"] += (
+        f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    )
 
     if not update_settings:
         update_settings = {}
 
-    if "in_spec_atoms" in fw_settings:
-        at = fw_settings["in_spec_atoms"]
-    else:
-        at = atoms.copy()
-
-    if "in_spec_calc" in fw_settings:
-        cl = fw_settings["in_spec_calc"]
-    else:
-        cl = atoms.calc
+    at = fw_settings.get("in_spec_atoms", atoms.copy())
+    cl = fw_settings.get("in_spec_calc", atoms.calc)
 
     return generate_firework(
         task_list, at, cl, fw_settings, update_calc_settings=update_settings
@@ -409,14 +416,15 @@ def generate_fw(
 
 
 def generate_kgrid_fw(settings, atoms, fw_settings):
-    """Generate a k-grid optimization Firework
+    """
+    Generate a k-grid optimization Firework
 
     Parameters
     ----------
     settings : Settings
         settings settings where the task is defined
     atoms : ase.atoms.Atoms
-        ASE Atoms object to preform the calculation on
+        ASE Atoms object to perform the calculation on
     fw_settings : dict
         Firework settings for the step
 
@@ -446,14 +454,15 @@ def generate_kgrid_fw(settings, atoms, fw_settings):
 
 
 def generate_aims_relax_fw(settings, atoms, fw_settings, step):
-    """Generates a Firework for the relaxation step
+    """
+    Generates a Firework for the relaxation step
 
     Parameters
     ----------
     settings : Settings
         settings settings where the task is defined
     atoms : ase.atoms.Atoms
-        ASE Atoms object to preform the calculation on
+        ASE Atoms object to perform the calculation on
     fw_settings : dict
         Firework settings for the step
     step : str
@@ -502,14 +511,15 @@ def generate_aims_relax_fw(settings, atoms, fw_settings, step):
 
 
 def generate_relax_fw(settings, atoms, fw_settings, step):
-    """Generates a Firework for the relaxation step
+    """
+    Generates a Firework for the relaxation step
 
     Parameters
     ----------
     settings: Settings
         settings settings where the task is defined
     atoms: ase.atoms.Atoms, dict
-        ASE Atoms object to preform the calculation on
+        ASE Atoms object to perform the calculation on
     fw_settings: dict
         Firework settings for the step
 
@@ -517,6 +527,7 @@ def generate_relax_fw(settings, atoms, fw_settings, step):
     -------
     Firework
         Firework for the relaxation step
+
     """
     relax_settings = settings.relaxation.copy()
     relax_settings.pop("use_aims_relaxation", None)
@@ -536,9 +547,9 @@ def generate_relax_fw(settings, atoms, fw_settings, step):
     if settings.calculator.name.lower() == "aims":
         update_settings["basisset_type"] = relax_settings.get("basis")
 
-    relax_settings[
-        "workdir"
-    ] = f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/"
+    relax_settings["workdir"] = (
+        f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/"
+    )
     relax_settings["step"] = step
     task_spec = gen_relax_task_spec(relax_settings, fw_settings)
 
@@ -546,14 +557,15 @@ def generate_relax_fw(settings, atoms, fw_settings, step):
 
 
 def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
-    """Generates a Firework for the phonon initialization
+    """
+    Generates a Firework for the phonon initialization
 
     Parameters
     ----------
     settings : Settings
         settings settings where the task is defined
     atoms : ase.atoms.Atoms or dict
-        ASE Atoms object to preform the calculation on
+        ASE Atoms object to perform the calculation on
     fw_settings : dict
         Firework settings for the step
     name : str
@@ -598,9 +610,9 @@ def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
         get_3x3_matrix(settings[name]["supercell_matrix"])
     )
     natoms = int(round(natoms))
-    settings[name][
-        "workdir"
-    ] = f"{settings.fireworks.workdir.remote}/sc_natoms_{natoms}/{name}/"
+    settings[name]["workdir"] = (
+        f"{settings.fireworks.workdir.remote}/sc_natoms_{natoms}/{name}/"
+    )
 
     if name == "phonopy":
         func_kwargs = {"ph_settings": settings[name].copy()}
@@ -622,14 +634,15 @@ def generate_phonon_fw(settings, atoms, fw_settings, name, update_in_spec=True):
 def generate_phonon_postprocess_fw(
     settings, atoms, fw_settings, name, prev_dos_fp=None
 ):
-    """Generates a Firework for the phonon analysis
+    """
+    Generates a Firework for the phonon analysis
 
     Parameters
     ----------
     settings : Settings
         settings settings where the task is defined
     atoms : ase.atoms.Atoms
-        ASE Atoms object to preform the calculation on
+        ASE Atoms object to perform the calculation on
     fw_settings : dict
         Firework settings for the step
     name : str
@@ -665,9 +678,9 @@ def generate_phonon_postprocess_fw(
     )
     natoms = int(round(natoms))
 
-    func_kwargs[
-        "analysis_workdir"
-    ] = f"{settings.fireworks.workdir.local}/sc_natoms_{natoms}/{fw_settings['fw_name']}/"
+    func_kwargs["analysis_workdir"] = (
+        f"{settings.fireworks.workdir.local}/sc_natoms_{natoms}/{fw_settings['fw_name']}/"
+    )
     func_kwargs["init_workdir"] = f"{settings.fireworks.workdir.remote}/{name}/"
     func_kwargs["prev_dos_fp"] = prev_dos_fp
 
@@ -679,21 +692,22 @@ def generate_phonon_postprocess_fw(
         fw_settings["mod_spec_add"][:-7] + "_times",
         False,
     )
-    fw_settings[
-        "fw_name"
-    ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    fw_settings["fw_name"] += (
+        f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    )
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 
 def generate_stat_samp_fw(settings, atoms, fw_settings):
-    """Generates a Firework for the statistical sampling initialization
+    """
+    Generates a Firework for the statistical sampling initialization
 
     Parameters
     ----------
     settings : settings.Settings
         settings settings object
     atoms : ase.Atoms or dict
-        ASE Atoms object to preform the calculation on
+        ASE Atoms object to perform the calculation on
     fw_settings : dict
         Firework settings for the step
 
@@ -715,9 +729,9 @@ def generate_stat_samp_fw(settings, atoms, fw_settings):
     if "phonopy" in settings and "convergence" in settings.phonopy:
         add_qadapter = True
 
-    settings.statistical_sampling[
-        "workdir"
-    ] = f"{settings.fireworks.workdir.remote}/statistical_sampling/"
+    settings.statistical_sampling["workdir"] = (
+        f"{settings.fireworks.workdir.remote}/statistical_sampling/"
+    )
 
     if "phonon_file" not in settings.statistical_sampling:
         settings.statistical_sampling["phonon_file"] = get_phonon_file_location(
@@ -739,14 +753,15 @@ def generate_stat_samp_fw(settings, atoms, fw_settings):
 
 
 def generate_stat_samp_postprocess_fw(settings, atoms, fw_settings):
-    """Generates a Firework for the statistical sampling analysis
+    """
+    Generates a Firework for the statistical sampling analysis
 
     Parameters
     ----------
     settings : settings.Settings
         settings settings object
     atoms : ase.Atoms or dict
-        ASE Atoms object to preform the calculation on
+        ASE Atoms object to perform the calculation on
     fw_settings : dict
         Firework settings for the step
 
@@ -770,9 +785,9 @@ def generate_stat_samp_postprocess_fw(settings, atoms, fw_settings):
             for condition in func_kwargs["stop_if"]["condition_list"]
         ]
 
-    func_kwargs[
-        "analysis_workdir"
-    ] = f"{settings.fireworks.workdir.local}/{fw_settings['fw_name']}/"
+    func_kwargs["analysis_workdir"] = (
+        f"{settings.fireworks.workdir.local}/{fw_settings['fw_name']}/"
+    )
 
     task_spec = gen_stat_samp_analysis_task_spec(
         func_kwargs,
@@ -780,21 +795,22 @@ def generate_stat_samp_postprocess_fw(settings, atoms, fw_settings):
         fw_settings["mod_spec_add"],
         False,
     )
-    fw_settings[
-        "fw_name"
-    ] += f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    fw_settings["fw_name"] += (
+        f"_{atoms.symbols.get_chemical_formula()}_{hash_atoms_and_calc(atoms)[0]}"
+    )
     return generate_firework(task_spec, None, None, fw_settings=fw_settings.copy())
 
 
 def generate_aims_fw(settings, atoms, fw_settings):
-    """Generates a Firework for the relaxation step
+    """
+    Generates a Firework for the relaxation step
 
     Parameters
     ----------
     settings : Settings
         settings settings where the task is defined
     atoms : ase.atoms.Atoms or dict
-        ASE Atoms object to preform the calculation on
+        ASE Atoms object to perform the calculation on
     fw_settings : dict
         Firework settings for the step
 
@@ -806,7 +822,7 @@ def generate_aims_fw(settings, atoms, fw_settings):
     """
     qadapter = settings.get("qadapter", {})
 
-    fw_settings["fw_name"] = f"single_point"
+    fw_settings["fw_name"] = "single_point"
     func_kwargs = {
         "workdir": f"{settings.fireworks.workdir.remote}/single_point_calculation/"
     }
@@ -818,7 +834,8 @@ def generate_aims_fw(settings, atoms, fw_settings):
 def generate_gruniesen_fd_fw(
     settings, atoms, trajectory_file, constraints, fw_settings
 ):
-    """Generate a FireWork to calculate the Gruniesen Parameter with finite differences
+    """
+    Generate a FireWork to calculate the Gruniesen Parameter with finite differences
 
     Parameters
     ----------
@@ -850,7 +867,8 @@ def generate_gruniesen_fd_fw(
 
 
 def generate_md_fw(settings, atoms, fw_settings, qadapter=None, workdir=None):
-    """Generate a FireWork to run a Molecular Dynamics calculation
+    """
+    Generate a FireWork to run a Molecular Dynamics calculation
 
     Parameters
     ----------
@@ -869,6 +887,7 @@ def generate_md_fw(settings, atoms, fw_settings, qadapter=None, workdir=None):
     -------
     Firework:
         The Molecular Dynamics setup firework
+
     """
     fw_settings = fw_settings.copy()
     fw_settings.pop("in_spec_atoms", None)
@@ -894,9 +913,9 @@ def generate_md_fw(settings, atoms, fw_settings, qadapter=None, workdir=None):
         fw_settings["fw_name"] = f"md_{temp}"
         md_set = md_settings.copy()
         if workdir is None:
-            md_set[
-                "workdir"
-            ] = f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/"
+            md_set["workdir"] = (
+                f"{settings.fireworks.workdir.remote}/{fw_settings['fw_name']}/"
+            )
         else:
             md_set["workdir"] = workdir
         md_set["temperature"] = temp

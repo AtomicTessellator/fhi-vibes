@@ -9,13 +9,12 @@ from vibes.helpers.geometry import inscribed_sphere_in_box
 from vibes.phonopy.utils import remap_force_constants
 from vibes.structure.convert import to_Atoms
 
-
 try:
-    from hiphive import ForceConstants, ForceConstantPotential, ClusterSpace
-    from hiphive import enforce_rotational_sum_rules as _enfore_sum_rules
+    from hiphive import ClusterSpace, ForceConstantPotential, ForceConstants
+    from hiphive import enforce_rotational_sum_rules as _enforce_sum_rules
     from hiphive.utilities import extract_parameters
 except ModuleNotFoundError:
-    warn(f"`hiphive` could not be loaded, enforcing sum rules not possible", level=1)
+    warn("`hiphive` could not be loaded, enforcing sum rules not possible", level=1)
 
 
 _prefix = "hiphive"
@@ -30,12 +29,15 @@ def Timer(msg=None):
 
 
 def enforce_rotational_sum_rules(phonon, only_project=False):
-    """enforce the rotational sum rules on phonopy object
+    """
+    Enforce the rotational sum rules on phonopy object
 
-    References:
+    References
+    ----------
         - hiphive.materialsmodeling.org/advanced_topics/rotational_sum_rules.html
         - hiphive.materialsmodeling.org/advanced_topics/force_constants_io.html
         - hiphive.materialsmodeling.org/moduleref/cluster_space.html
+
     """
     primitive = to_Atoms(phonon.primitive)
     supercell = to_Atoms(phonon.supercell)
@@ -69,7 +71,7 @@ def enforce_rotational_sum_rules(phonon, only_project=False):
         sum_rules = ["Huang", "Born-Huang"]
         msg = f"Enforce {sum_rules} via `hiphive.enforce_rotational_sum_rules`"
         timer = Timer(msg)
-        parameters_rot = _enfore_sum_rules(cs, parameters, sum_rules)
+        parameters_rot = _enforce_sum_rules(cs, parameters, sum_rules)
         timer()
 
     # create new ForceConstantPotential

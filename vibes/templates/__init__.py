@@ -1,1 +1,1 @@
-""" Templates for testint etc. """
+"""Templates for testint etc."""

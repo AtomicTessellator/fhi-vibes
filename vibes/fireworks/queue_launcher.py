@@ -1,10 +1,12 @@
-"""A modified version of queue launcher to allow for a rapidfire over a single Workflow
+"""
+A modified version of queue launcher to allow for a rapidfire over a single Workflow
 
 FireWorks Copyright (c) 2013, The Regents of the University of
 California, through Lawrence Berkeley National Laboratory (subject
 to receipt of any required approvals from the U.S. Dept. of Energy).
 All rights reserved.
 """
+
 import glob
 import os
 import time
@@ -33,12 +35,12 @@ from fireworks.utilities.fw_utilities import (
     log_exception,
 )
 from monty.os import cd, makedirs_p
+
 from vibes.fireworks._defaults import FW_DEFAULTS
 from vibes.fireworks.combined_launcher import get_ready_firework_ids
 from vibes.helpers import talk
 from vibes.helpers.warnings import warn
 from vibes.helpers.watchdogs import str2time
-
 
 __author__ = "Anubhav Jain, Michael Kocher, Modified by Thomas Purcell"
 __copyright__ = "Copyright 2012, The Materials Project, Modified 2.11.2018"
@@ -59,7 +61,8 @@ def launch_rocket_to_queue(
     fill_mode=False,
     fw_id=None,
 ):
-    """Submit a single job to the queue.
+    """
+    Submit a single job to the queue.
 
     Parameters
     ----------
@@ -76,9 +79,11 @@ def launch_rocket_to_queue(
     strm_lvl : str
         level at which to stream log messages (Default value = "INFO")
     create_launcher_dir : bool
-        Whether to create a subfolder launcher+timestamp, if needed (Default value = False)
+        Whether to create a subfolder launcher+timestamp, if needed
+        (Default value = False)
     fill_mode : bool
-        If True submit jobs even if there are none to run (only in non-reservation mode) (Default value = False)
+        If True submit jobs even if there are none to run
+        (only in non-reservation mode) (Default value = False)
     fw_id : int
         specific fw_id to reserve (reservation mode only) (Default value = None)
 
@@ -108,9 +113,7 @@ def launch_rocket_to_queue(
 
     fw, launch_id = None, None  # only needed in reservation mode
     if not os.path.exists(launcher_dir):
-        raise ValueError(
-            "Desired launch directory {} does not exist!".format(launcher_dir)
-        )
+        raise ValueError(f"Desired launch directory {launcher_dir} does not exist!")
 
     if "--offline" in qadapter["rocket_launch"] and not reserve:
         raise ValueError(
@@ -119,9 +122,7 @@ def launch_rocket_to_queue(
         )
 
     if reserve and "singleshot" not in qadapter.get("rocket_launch", ""):
-        raise ValueError(
-            "Reservation mode of queue launcher only works for singleshot Rocket Launcher"
-        )
+        raise ValueError("Reservation mode of queue launcher only works for singleshot")
 
     if fill_mode and reserve:
         raise ValueError("Fill_mode cannot be used in conjunction with reserve mode!")
@@ -145,7 +146,7 @@ def launch_rocket_to_queue(
                         "No jobs exist in the LaunchPad for submission to queue!"
                     )
                     return False
-                l_logger.info("reserved FW with fw_id: {}".format(fw.fw_id))
+                l_logger.info(f"reserved FW with fw_id: {fw.fw_id}")
                 # update qadapter job_name based on FW name
                 job_name = get_slug(fw.name)[0:QUEUE_JOBNAME_MAXLEN]
                 qadapter.update({"job_name": job_name})
@@ -157,10 +158,7 @@ def launch_rocket_to_queue(
                         nodes = fw.spec["_queueadapter"].get("nodes", 1)
                     if "queues" in qadapter:
                         nodes_needed = []
-                        if "expected_mem" in fw.spec["_queueadapter"]:
-                            expect_mem = fw.spec["_queueadapter"]["expected_mem"]
-                        else:
-                            expect_mem = 1e-10
+                        expect_mem = fw.spec["_queueadapter"].get("expected_mem", 1e-10)
                         for queue in qadapter["queues"]:
                             if "max_mem" in queue:
                                 accessible_mem = queue["max_mem"]
@@ -186,7 +184,7 @@ def launch_rocket_to_queue(
                                     "Queue Name not found for that resources"
                                 )
                             if queue["max_nodes"] < nodes_needed[queue_ind]:
-                                raise IOError(
+                                raise OSError(
                                     "Requested resource does not have enough memory"
                                 )
                             sc_wt = str2time(fw.spec["_queueadapter"]["walltime"])
@@ -238,7 +236,7 @@ def launch_rocket_to_queue(
                             if queue is None:
                                 warn("Job may not run on requested resource")
                                 queue = qu
-                                queue_ind = ii 
+                                queue_ind = ii
                             fw.spec["_queueadapter"]["queue"] = queue["name"]
                             if sc_wt < str2time(queue["max_walltime"]):
                                 fw.spec["_queueadapter"]["nodes"] = nodes
@@ -277,7 +275,7 @@ def launch_rocket_to_queue(
                 fw, launch_id = launchpad.reserve_fw(fworker, launcher_dir, fw_id=fw_id)
 
                 # reservation mode includes --fw_id in rocket launch
-                qadapter["rocket_launch"] += " --fw_id {}".format(fw.fw_id)
+                qadapter["rocket_launch"] += f" --fw_id {fw.fw_id}"
 
                 # update launcher_dir if _launch_dir is selected in reserved fw
                 if "_launch_dir" in fw.spec:
@@ -305,10 +303,9 @@ def launch_rocket_to_queue(
                 )
 
             # move to the launch directory
-            l_logger.info("moving to launch_dir {}".format(launcher_dir))
+            l_logger.info(f"moving to launch_dir {launcher_dir}")
 
             with cd(launcher_dir):
-
                 if "--offline" in qadapter["rocket_launch"]:
                     setup_offline_job(launchpad, fw, launch_id)
 
@@ -332,21 +329,19 @@ def launch_rocket_to_queue(
             if reserve and launch_id is not None:
                 try:
                     l_logger.info(
-                        "Un-reserving FW with fw_id, launch_id: {}, {}".format(
-                            fw.fw_id, launch_id
-                        )
+                        f"Unreserving FW with fw_id, launch_id: {fw.fw_id}, {launch_id}"
                     )
                     launchpad.cancel_reservation(launch_id)
                     launchpad.forget_offline(launch_id)
                 except Exception:
                     log_exception(
-                        l_logger, "Error unreserving FW with fw_id {}".format(fw.fw_id)
+                        l_logger, f"Error unreserving FW with fw_id {fw.fw_id}"
                     )
 
             return False
 
     else:
-        # note: this is a hack (rather than False) to indicate a soft failure to rapidfire
+        # note: this is a hack to indicate a soft failure to rapidfire
         l_logger.info("No jobs exist in the LaunchPad for submission to queue!")
         return None
 
@@ -367,7 +362,8 @@ def rapidfire(
     firework_ids=None,
     wflow_id=None,
 ):
-    """Submit many jobs to the queue.
+    """
+    Submit many jobs to the queue.
 
     Parameters
     ----------
@@ -378,15 +374,20 @@ def rapidfire(
     qadapter : QueueAdapterBase
         Queue Adapter for the resource
     launch_dir : str
-        directory where we want to write the blocks (Default value = FW_DEFAULTS.launch_dir)
+        directory where we want to write the blocks
+        (Default value = FW_DEFAULTS.launch_dir)
     nlaunches : int
-        total number of launches desired; "infinite" for loop, 0 for one round (Default value = FW_DEFAULTS.nlaunches)
+        total number of launches desired; "infinite" for loop, 0 for one round
+        (Default value = FW_DEFAULTS.nlaunches)
     njobs_queue : int
-        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit (Default value = FW_DEFAULTS.njobs_queue)
+        stops submitting jobs when njobs_queue jobs are in the queue, 0 for no limit
+        (Default value = FW_DEFAULTS.njobs_queue)
     njobs_block : int
-        automatically write a new block when njobs_block jobs are in a single block (Default value = FW_DEFAULTS.njobs_block)
+        automatically write a new block when njobs_block jobs are in a single block
+        (Default value = FW_DEFAULTS.njobs_block)
     sleep_time : int
-        secs to sleep between rapidfire loop iterations (Default value = FW_DEFAULTS.sleep_time)
+        secs to sleep between rapidfire loop iterations
+        Default value = FW_DEFAULTS.sleep_time)
     reserve : bool
         Whether to queue in reservation mode (Default value = False)
     strm_lvl : str
@@ -394,14 +395,13 @@ def rapidfire(
     timeout : int
         # of seconds after which to stop the rapidfire process (Default value = None)
     fill_mode : bool
-        If True submit jobs even if there is nothing to run (only in non-reservation mode) (Default value = False)
+        If True submit jobs even if there is nothing to run
+        (only in non-reservation mode) (Default value = False)
     firework_ids : list of ints
-        a list firework_ids to launch (len(firework_ids) == nlaunches) (Default value = None)
+        a list firework_ids to launch (len(firework_ids) == nlaunches)
+        (Default value = None)
     wflow_id : list of ints
         a list firework_ids that are a root of the workflow (Default value = None)
-
-    Returns
-    -------
 
     Raises
     ------
@@ -424,9 +424,7 @@ def rapidfire(
 
     # make sure launch_dir exists:
     if not os.path.exists(launch_dir):
-        raise ValueError(
-            "Desired launch directory {} does not exist!".format(launch_dir)
-        )
+        raise ValueError(f"Desired launch directory {launch_dir} does not exist!")
 
     num_launched = 0
     start_time = datetime.now()
@@ -438,7 +436,7 @@ def rapidfire(
         )
         if prev_blocks and not ALWAYS_CREATE_NEW_BLOCK:
             block_dir = os.path.abspath(os.path.join(launch_dir, prev_blocks[0]))
-            l_logger.info("Found previous block, using {}".format(block_dir))
+            l_logger.info(f"Found previous block, using {block_dir}")
         else:
             block_dir = create_datestamp_dir(launch_dir, l_logger)
         while True:
@@ -461,8 +459,8 @@ def rapidfire(
 
                 if njobs_queue and jobs_in_queue >= njobs_queue:
                     l_logger.info(
-                        "Jobs in queue ({}) meets/exceeds "
-                        "maximum allowed ({})".format(jobs_in_queue, njobs_queue)
+                        f"Jobs in queue ({jobs_in_queue}) meets/exceeds "
+                        f"maximum allowed ({njobs_queue})"
                     )
                     break
 
@@ -470,7 +468,7 @@ def rapidfire(
 
                 # switch to new block dir if it got too big
                 if _njobs_in_dir(block_dir) >= njobs_block:
-                    l_logger.info("Block got bigger than {} jobs.".format(njobs_block))
+                    l_logger.info(f"Block got bigger than {njobs_block} jobs.")
                     block_dir = create_datestamp_dir(launch_dir, l_logger)
                 return_code = None
                 # launch a single job
@@ -500,7 +498,7 @@ def rapidfire(
                 if return_code is None:
                     l_logger.info("No READY jobs detected...")
                     break
-                elif not return_code:
+                if not return_code:
                     raise RuntimeError("Launch unsuccessful!")
 
                 if wflow_id:
@@ -509,14 +507,10 @@ def rapidfire(
                     firework_ids = get_ready_firework_ids(wflow)
                 num_launched += 1
                 if nlaunches > 0 and num_launched == nlaunches:
-                    l_logger.info(
-                        "Launched allowed number of " "jobs: {}".format(num_launched)
-                    )
+                    l_logger.info("Launched allowed number of " f"jobs: {num_launched}")
                     break
                 # wait for the queue system to update
-                l_logger.info(
-                    "Sleeping for {} seconds...zzz...".format(QUEUE_UPDATE_INTERVAL)
-                )
+                l_logger.info(f"Sleeping for {QUEUE_UPDATE_INTERVAL} seconds...zzz...")
                 time.sleep(QUEUE_UPDATE_INTERVAL)
                 jobs_in_queue += 1
                 job_counter += 1
@@ -539,7 +533,7 @@ def rapidfire(
                 break
 
             l_logger.info(
-                "Finished a round of launches, sleeping for {} secs".format(sleep_time)
+                f"Finished a round of launches, sleeping for {sleep_time} secs"
             )
             time.sleep(sleep_time)
             l_logger.info("Checking for Rockets to run...")

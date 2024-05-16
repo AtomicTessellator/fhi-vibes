@@ -1,15 +1,16 @@
-"""Define a set of functions for conditional stopping
+"""
+Define a set of functions for conditional stopping
 
 Defines a set of functions used for checking if the
 properties of an output means that the calculation should stop
 """
 
-from ase.atoms import Atoms
-from fireworks import FWAction
 from importlib import import_module
-from phonopy import Phonopy
 
 import numpy as np
+from ase.atoms import Atoms
+from fireworks import FWAction
+from phonopy import Phonopy
 
 from vibes.phonopy.wrapper import get_debye_temperature, get_thermal_properties
 from vibes.trajectory import Trajectory
@@ -49,7 +50,8 @@ supported_traj_attributes = {
 
 
 def check_stop_conditional(function_path, obj):
-    """Checks if an object has a property that should stop the workflow
+    """
+    Checks if an object has a property that should stop the workflow
 
     Parameters
     ----------
@@ -62,6 +64,7 @@ def check_stop_conditional(function_path, obj):
     -------
     FWAction
         The desired action to take for the workflow
+
     """
     module = import_module(".".join(function_path.split(".")[:-1]))
     check_func = getattr(module, function_path.split(".")[-1])
@@ -70,7 +73,8 @@ def check_stop_conditional(function_path, obj):
 
 
 def check_condition(value_obj, condition):
-    """Check if the condition is met
+    """
+    Check if the condition is met
 
     Parameters
     ----------
@@ -84,6 +88,7 @@ def check_condition(value_obj, condition):
     -------
     bool
         True if condition is met
+
     """
     if condition[1] not in allowed_comparisions:
         raise ValueError(
@@ -101,8 +106,9 @@ def check_condition(value_obj, condition):
     )
 
 
-def check_ojbect(obj, condition_list, **kwargs):
-    """Checks all conditions of the pre-made functions
+def check_Object(obj, condition_list, **kwargs):
+    """
+    Checks all conditions of the pre-made functions
 
     Parameters
     ----------
@@ -117,6 +123,7 @@ def check_ojbect(obj, condition_list, **kwargs):
     -------
     bool
         True if the condition is True
+
     """
     if isinstance(obj, Atoms):
         supported_attributes = supported_atoms_attributes
@@ -125,7 +132,7 @@ def check_ojbect(obj, condition_list, **kwargs):
     elif isinstance(obj, Trajectory):
         supported_attributes = supported_traj_attributes
     else:
-        raise ValueError("obj is of an unsupported type.")
+        raise TypeError("obj is of an unsupported type.")
 
     # condition_list = {cond[0]: cond[1:] for cond in condition_list}
     for cond in condition_list:
@@ -147,23 +154,25 @@ def check_ojbect(obj, condition_list, **kwargs):
 
 
 def run_all_checks(obj, stop_if, update_spec=None):
-    """Check all predefined and user-defined conditions
+    """
+    Check all predefined and user-defined conditions
 
     Parameters
     ----------
-    obj : Ojbect
+    obj : Object
         The object to be checked
     stop_if : dict
         Dictionary defining all stopping conditions
     update_spec : dict
         Dictionary of the updated spec
+
     Returns
     -------
     FWAction
         defuse_workflow if a condition is met
-    """
 
-    if check_ojbect(obj, stop_if.get("condition_list", [])):
+    """
+    if check_Object(obj, stop_if.get("condition_list", [])):
         return FWAction(defuse_workflow=True, update_spec=update_spec)
 
     for func_path in stop_if.get("external_functions", []):

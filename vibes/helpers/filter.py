@@ -5,12 +5,11 @@ from scipy import signal as sl
 from vibes import keys
 from vibes.helpers import talk, warn
 
-
 _prefix = "filter"
 
 
 def _talk(msg, **kw):
-    """wrapper for `utils.talk` with prefix"""
+    """Wrapper for `utils.talk` with prefix"""
     return talk(msg, prefix=_prefix, **kw)
 
 
@@ -22,11 +21,13 @@ def get_filtered(
     polyorder: int = 1,
     verbose: bool = True,
 ) -> xr.DataArray:
-    """apply Savitzky-Golay filter to array to remove noise
+    """
+    Apply Savitzky-Golay filter to array to remove noise
 
     See: https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter
 
     Args:
+    ----
         array [N_t, ...]: the array to be filtered with time axis in the front
         window_fs: the filter window in fs (we assume array has time axis given in fs)
         window: the filter window in time steps
@@ -35,6 +36,7 @@ def get_filtered(
         verbose: be verbose
 
     Returns:
+    -------
         xr.DataArray [N_t, ...]: array with filter applied to time axis
 
     """

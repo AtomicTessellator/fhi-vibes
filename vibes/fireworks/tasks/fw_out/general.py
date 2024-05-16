@@ -1,9 +1,11 @@
 """General purpose FWAction Generators"""
+
 from fireworks import FWAction
 
 
 def add_additions_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
-    """Adds a set of returned Fireworks to the Workflow
+    """
+    Adds a set of returned Fireworks to the Workflow
 
     Parameters
     ----------
@@ -24,11 +26,7 @@ def add_additions_to_spec(func, func_fw_out, *args, fw_settings=None, **kwargs):
         A FWAction to add the outputted FireWorks/Workflows as additions
 
     """
-    additions = []
-    for out in kwargs["outputs"]:
-        additions.append(out)
-
-    return FWAction(additions=additions)
+    return FWAction(additions=kwargs["outputs"])
 
 
 def fireworks_no_mods(
@@ -41,7 +39,8 @@ def fireworks_no_mods(
     func_fw_kwargs,
     fw_settings,
 ):
-    """A function that does not change the FireWorks Workflow upon completion
+    """
+    A function that does not change the FireWorks Workflow upon completion
 
     Parameters
     ----------
@@ -74,7 +73,8 @@ def fireworks_no_mods(
 def fireworks_no_mods_gen_function(
     func, func_fw_out, *args, fw_settings=None, **kwargs
 ):
-    """A function that does not change the FireWorks Workflow upon completion
+    """
+    A function that does not change the FireWorks Workflow upon completion
 
     Parameters
     ----------

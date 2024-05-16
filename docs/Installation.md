@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- A working`python3.7+` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html).
+- A working`python3.9+` environment, e.g., provided by [anaconda](https://docs.conda.io/en/latest/miniconda.html).
 
 - A working `fortran` compiler, e.g., obtained by:
     - `apt-get install gfortran` in Debian-derived systems, or
@@ -29,16 +29,11 @@ This way to install `fhi-vibes` should always work, it's currently the preferred
 	cd vibes
 	```
 
-- Install build requirements `numpy` and `poetry` manually (if you use a `conda` environment, you should install `numpy` via `conda` instead):
+- Install build requirements `numpy` and `setuptools` manually (if you use a `conda` environment, you should install `numpy` via `conda` instead):
 
 	```
-	pip install numpy poetry==1.1.12
-	```
-	
-- Install `fhi-vibes ` [_without_ build isolation](https://pip.pypa.io/en/stable/cli/pip_install/)
-
-	```
-	pip install --no-build-isolation .
+	pip install numpy
+	pip install .
 	```
 
 **If you run into problems, please have a look at our [troubleshooting section.](#Troubleshooting)**
@@ -101,7 +96,7 @@ eval (env _VIBES_COMPLETE=source-fish vibes)
 
 - `ModuleNotFoundError: No module named 'importlib_resources'`
     - Solution: `pip install importlib_resources dataclasses`
-- `RuntimeError: Click will abort further execution because Python 3 was configured to use ASCII as encoding for the environment. Consult https://click.palletsprojects.com/python3/ for mitigation steps`
+- `RuntimeError: Click will abort further execution because python 3 was configured to use ASCII as encoding for the environment. Consult https://click.palletsprojects.com/python3/ for mitigation steps`
     - Solution:  `export LC_ALL=C.UTF-8 ; export LANG=C.UTF-8`
 - `-bash: vibes: command not found`
     - Solution: `export PATH=$PATH:~/.local/bin`

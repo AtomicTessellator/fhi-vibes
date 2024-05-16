@@ -1,4 +1,5 @@
 """test the MD workflow"""
+
 import subprocess as sp
 from pathlib import Path
 
@@ -6,7 +7,6 @@ import numpy as np
 import pytest
 
 from vibes.trajectory import reader
-
 
 parent = Path(__file__).parent
 
@@ -18,7 +18,7 @@ geometry_input_files = sorted(parent.glob("geometry.in.???"))
 trajectory_ref_file = parent / "trajectory.ref.son"
 
 
-@pytest.mark.parametrize("socketio", (True, False))
+@pytest.mark.parametrize("socketio", [True, False])
 def test_aims_calculate(tmp_path, socketio):
     # read input file
     task_input = open(task_input_file).read().replace("SOCKETIO", str(socketio))
@@ -36,7 +36,7 @@ def test_aims_calculate(tmp_path, socketio):
 
 
 def _check_ref(trajectory1, trajectory2):
-    for (a0, a1) in zip(trajectory1, trajectory2):
+    for a0, a1 in zip(trajectory1, trajectory2):
         r0, r1 = a0.calc.results, a1.calc.results
         for key in r0:
             if key in r1:

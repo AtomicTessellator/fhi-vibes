@@ -7,7 +7,8 @@ from warnings import warn
 
 @contextlib.contextmanager
 def cwd(path, mkdir=False, debug=False):
-    """Change cwd intermediately
+    """
+    Change cwd intermediately
 
     Example
     -------
@@ -23,6 +24,7 @@ def cwd(path, mkdir=False, debug=False):
         If True make path if it does not exist
     debug: bool
         If True enter debug mode
+
     """
     CWD = os.getcwd()
 
@@ -41,7 +43,8 @@ def cwd(path, mkdir=False, debug=False):
 
 
 def move(file, dest, exist_ok=False):
-    """Move file to new destination
+    """
+    Move file to new destination
 
     Parameters
     ----------
@@ -51,6 +54,7 @@ def move(file, dest, exist_ok=False):
         destination of the new file
     exist_ok: bool
         if True then it is okay if the dest folder exists
+
     """
     file = Path(file)
     folder = Path(dest).parent
@@ -62,7 +66,8 @@ def move(file, dest, exist_ok=False):
 
 
 def move_to_dir(file, folder, exist_ok=False):
-    """Move file to new directory
+    """
+    Move file to new directory
 
     Parameters
     ----------
@@ -72,8 +77,8 @@ def move_to_dir(file, folder, exist_ok=False):
         destination of the new file
     exist_ok: bool
         if True then it is okay if folder exists
-    """
 
+    """
     file = Path(file)
     if file.exists():
         folder.mkdir(exist_ok=exist_ok)
@@ -83,7 +88,8 @@ def move_to_dir(file, folder, exist_ok=False):
 
 
 def copy_to_dir(file, folder, exist_ok=False):
-    """Copy file to new directory
+    """
+    Copy file to new directory
 
     Parameters
     ----------
@@ -93,6 +99,7 @@ def copy_to_dir(file, folder, exist_ok=False):
         destination of the new file
     exist_ok: bool
         if True then it is okay if folder exists
+
     """
     file = Path(file)
     if file.exists():

@@ -12,23 +12,28 @@ from vibes.helpers.converters import atoms2dict, dict2atoms
 from vibes.helpers.hash import hash_atoms, hashfunc
 from vibes.helpers.stress import has_stress
 from vibes.helpers.stresses import get_stresses, has_stresses
-from vibes.helpers.virials import get_virials, has_virials
 from vibes.helpers.utils import progressbar
+from vibes.helpers.virials import get_virials, has_virials
 
 from . import analysis as al
 from .utils import Timer, talk
 
 
 class Trajectory(list):
-    """A Trajectory is basically a list of Atoms objects with some functionality, e.g.
+    """
+    A Trajectory is basically a list of Atoms objects with some functionality, e.g.
     - extract and plot several statistics on the MD trajectory
-    - convert to other formats like xyz or TDEP"""
+    - convert to other formats like xyz or TDEP
+    """
 
     def __init__(self, *args, metadata=None, debug=False):
-        """Initializer
+        """
+        Initializer
 
         Args:
+        ----
             metadata: The metadata for a particular run
+
         """
         super().__init__(*args)
 
@@ -55,30 +60,29 @@ class Trajectory(list):
 
     @classmethod
     def read(cls, file=filenames.trajectory, **kwargs):
-        """ Read trajectory from file """
+        """Read trajectory from file"""
         from .io import reader
 
         return reader(file, **kwargs)
 
     @classmethod
     def from_dataset(cls, dataset):
-        """parse from xarray.Dataset"""
+        """Parse from xarray.Dataset"""
         from .io import parse_dataset
 
         return parse_dataset(dataset)
 
     def __getitem__(self, key):
-        """returns `trajectory[key]` as Atoms object or new Trajectory instance"""
+        """Returns `trajectory[key]` as Atoms object or new Trajectory instance"""
         temp = super().__getitem__(key)
         if isinstance(temp, Atoms):
             return temp
         metadata = self.metadata
-        new_trajectory = Trajectory(temp, metadata=metadata)
-        return new_trajectory
+        return Trajectory(temp, metadata=metadata)
 
     @property
     def metadata(self):
-        """ Return metadata """
+        """Return metadata"""
         return self._metadata
 
     @metadata.setter
@@ -116,7 +120,7 @@ class Trajectory(list):
 
     @property
     def primitive(self):
-        """ Return the primitive atoms if it is there """
+        """Return the primitive atoms if it is there"""
         if "primitive" in self.metadata:
             dct = self.metadata["primitive"]
             if "atoms" in dct:
@@ -127,7 +131,7 @@ class Trajectory(list):
 
     @primitive.setter
     def primitive(self, atoms):
-        """ Set the primitive atoms object """
+        """Set the primitive atoms object"""
         assert isinstance(atoms, Atoms)
         dct = atoms2dict(atoms)
         self.metadata["primitive"] = dct
@@ -135,7 +139,7 @@ class Trajectory(list):
 
     @property
     def supercell(self):
-        """ Return the supercell if it is there """
+        """Return the supercell if it is there"""
         if not self._supercell:
             if "supercell" in self.metadata:
                 dct = self.metadata["supercell"]
@@ -149,7 +153,7 @@ class Trajectory(list):
 
     @supercell.setter
     def supercell(self, atoms):
-        """ Set the supercell atoms object """
+        """Set the supercell atoms object"""
         assert isinstance(atoms, Atoms)
         dct = atoms2dict(atoms)
         self.metadata["supercell"] = dct
@@ -159,17 +163,17 @@ class Trajectory(list):
 
     @property
     def symbols(self):
-        """return chemical symbols"""
+        """Return chemical symbols"""
         return self.reference_atoms.get_chemical_symbols()
 
     @property
     def masses(self):
-        """return masses in AMU"""
+        """Return masses in AMU"""
         return self.reference_atoms.get_masses()
 
     @property
     def masses_dict(self):
-        """return masses in AMU as dictionary"""
+        """Return masses in AMU as dictionary"""
         masses_dict = {}
         for sym, mass in zip(self.symbols, self.masses):
             masses_dict[sym] = mass
@@ -177,24 +181,24 @@ class Trajectory(list):
 
     @lazy_property
     def cells(self):
-        """return cell per time step"""
+        """Return cell per time step"""
         return [a.cell[:] for a in self]
 
     @lazy_property
     def volumes(self):
-        """return volume per time step"""
+        """Return volume per time step"""
         if all(self.reference_atoms.pbc):
             return [a.get_volume() for a in self]
         return [np.nan for _ in self]
 
     @property
     def volume(self):
-        """return averaged volume"""
+        """Return averaged volume"""
         return np.mean(self.volumes).squeeze()
 
     @property
     def times(self):
-        """ return the times as numpy array in fs"""
+        """Return the times as numpy array in fs"""
         if self._times is None:
             try:
                 fs = self.metadata["MD"]["fs"]
@@ -215,41 +219,41 @@ class Trajectory(list):
 
     @times.setter
     def times(self, new_times):
-        """set `trajectory.times`"""
+        """Set `trajectory.times`"""
         assert np.size(new_times) == len(self)
 
         self._times = new_times
 
     @property
     def timestep(self):
-        """ return the timestep in fs"""
+        """Return the timestep in fs"""
         from vibes.fourier import get_timestep
 
         return get_timestep(self.times)
 
     @lazy_property
     def temperatures(self):
-        """return the temperatues as 1d array"""
+        """Return the temperatues as 1d array"""
         return np.array([a.get_temperature() for a in self])
 
     @lazy_property
     def aims_uuid(self):
-        """return aims uuids as list"""
+        """Return aims uuids as list"""
         return [a.info.get(keys.aims_uuid) for a in self]
 
     @property
     def ref_positions(self):
-        """return reference positions"""
+        """Return reference positions"""
         return self.reference_atoms.get_positions()
 
     @lazy_property
     def positions(self):
-        """return the positions as [N_t, N_a, 3] array"""
+        """Return the positions as [N_t, N_a, 3] array"""
         return np.array([a.get_positions() for a in self])
 
     @lazy_property
     def velocities(self):
-        """return the velocities as [N_t, N_a, 3] array"""
+        """Return the velocities as [N_t, N_a, 3] array"""
         velocities = np.array([a.get_velocities() for a in self])
         if None in velocities:
             velocities = np.full_like(self.positions, np.nan)
@@ -257,17 +261,17 @@ class Trajectory(list):
 
     @lazy_property
     def momenta(self):
-        """return the velocities as [N_t, N_a, 3] array"""
+        """Return the velocities as [N_t, N_a, 3] array"""
         return np.array([a.get_momenta() for a in self])
 
     @lazy_property
     def forces(self):
-        """return the forces as [N_t, N_a, 3] array"""
+        """Return the forces as [N_t, N_a, 3] array"""
         return np.array([a.get_forces() for a in self])
 
     @property
     def force_constants(self):
-        """return (reduced) force constants or warn if not set"""
+        """Return (reduced) force constants or warn if not set"""
         fc = self.metadata[keys.fc]
         if any(x is None for x in (fc, self.primitive, self.supercell)):
             if self.debug:
@@ -280,7 +284,7 @@ class Trajectory(list):
             return fc
 
     def set_force_constants(self, fc):
-        """set force constants"""
+        """Set force constants"""
         Np, Na = len(self.primitive), len(self.supercell)
         # assert fc.shape == 2 * (3 * len(self.supercell),), fc.shape
         assert fc.shape == (Np, Na, 3, 3), fc.shape
@@ -288,7 +292,7 @@ class Trajectory(list):
 
     @property
     def force_constants_remapped(self):
-        """return remapped force constants [3 * Na, 3 * Na]"""
+        """Return remapped force constants [3 * Na, 3 * Na]"""
         if self._force_constants_remapped is None:
             fc = self.force_constants
             if fc is not None:
@@ -301,13 +305,13 @@ class Trajectory(list):
         return self._force_constants_remapped
 
     def set_force_constants_remapped(self, fc):
-        """set remapped force constants"""
+        """Set remapped force constants"""
         Na = len(self.reference_atoms)
         assert fc.shape == (3 * Na, 3 * Na), fc.shape
         self._force_constants_remapped = fc
 
     def set_forces_harmonic(self, force_constants=None, average_reference=False):
-        """return harmonic force computed from force_constants"""
+        """Return harmonic force computed from force_constants"""
         if average_reference:
             talk("Compute harmonic force constants with average positions as reference")
             self.reference_atoms = self.average_atoms
@@ -324,21 +328,20 @@ class Trajectory(list):
 
     @property
     def forces_harmonic(self):
-        """return harmonic forces, None if not set via `set_force_constants`"""
-        if self._forces_harmonic is None:
-            if self.force_constants_remapped is not None:
-                self.set_forces_harmonic()
+        """Return harmonic forces, None if not set via `set_force_constants`"""
+        if self._forces_harmonic is None and self.force_constants_remapped is not None:
+            self.set_forces_harmonic()
 
         return self._forces_harmonic
 
     @lazy_property
     def kinetic_energy(self):
-        """return the kinetic energy as [N_t] array"""
+        """Return the kinetic energy as [N_t] array"""
         return np.array([a.get_kinetic_energy() for a in self])
 
     @lazy_property
     def potential_energy(self):
-        """return the potential energy as [N_t] array"""
+        """Return the potential energy as [N_t] array"""
         return np.array([a.get_potential_energy() for a in self])
 
     @lazy_property
@@ -347,7 +350,7 @@ class Trajectory(list):
 
     @lazy_property
     def stress_potential(self):
-        """return the potential stress as [N_t, 3, 3] array"""
+        """Return the potential stress as [N_t, 3, 3] array"""
         zeros = np.zeros((3, 3))
         stresses = []
         for a in self:
@@ -362,7 +365,7 @@ class Trajectory(list):
 
     @lazy_property
     def stress_kinetic(self):
-        """return the kinetic stress as [N_t, 3, 3] array"""
+        """Return the kinetic stress as [N_t, 3, 3] array"""
         zeros = np.zeros((3, 3))
         stresses = []
         for a in self:
@@ -378,12 +381,12 @@ class Trajectory(list):
 
     @property
     def stress(self):
-        """return the full stress (kinetic + potential) as [N_t, 3, 3] array"""
+        """Return the full stress (kinetic + potential) as [N_t, 3, 3] array"""
         return self.stress_kinetic + self.stress_potential
 
     @lazy_property
     def stresses_potential(self):
-        """return the atomic stress as [N_t, N_a, 3, 3] array"""
+        """Return the atomic stress as [N_t, N_a, 3, 3] array"""
         atomic_stresses = []
 
         zeros = np.zeros((len(self.reference_atoms), 3, 3))
@@ -399,7 +402,7 @@ class Trajectory(list):
 
     @lazy_property
     def virials(self):
-        """return the virials as [N_t, N_a, 3, 3] array"""
+        """Return the virials as [N_t, N_a, 3, 3] array"""
         virials = []
 
         zeros = np.zeros((len(self.reference_atoms), 3, 3))
@@ -414,7 +417,7 @@ class Trajectory(list):
         return np.array(virials, dtype=float)
 
     def get_pressure(self, kinetic=False):
-        """return the pressure as [N_t] array"""
+        """Return the pressure as [N_t] array"""
         if kinetic:
             stress = self.stress_kinetic
         else:
@@ -427,22 +430,22 @@ class Trajectory(list):
 
     @lazy_property
     def pressure_potential(self):
-        """return the potential pressure as [N_t] array"""
+        """Return the potential pressure as [N_t] array"""
         return self.get_pressure(kinetic=False)
 
     @lazy_property
     def pressure_kinetic(self):
-        """return the potential pressure as [N_t] array"""
+        """Return the potential pressure as [N_t] array"""
         return self.get_pressure(kinetic=True)
 
     @lazy_property
     def pressure(self):
-        """return the full pressure (kinetic + potential) as [N_t] array"""
+        """Return the full pressure (kinetic + potential) as [N_t] array"""
         return self.pressure_kinetic + self.pressure_potential
 
     @property
     def sigma(self):
-        """return sigma_A"""
+        """Return sigma_A"""
         if self.forces_harmonic is not None:
             x = self.forces
             y = self.forces_harmonic
@@ -450,7 +453,7 @@ class Trajectory(list):
 
     @property
     def sigma_per_sample(self):
-        """return sigma_A per time step"""
+        """Return sigma_A per time step"""
         if self.forces_harmonic is not None:
             x = self.forces
             y = self.forces_harmonic
@@ -458,7 +461,8 @@ class Trajectory(list):
 
     @property
     def dataset(self):
-        """return data as xarray.Dataset
+        """
+        Return data as xarray.Dataset
 
         Contains:
             positions, velocities, forces, stress, pressure, temperature
@@ -469,7 +473,8 @@ class Trajectory(list):
 
     @property
     def dataframe(self):
-        """return 1D data as pandas.DataFrame
+        """
+        Return 1D data as pandas.DataFrame
 
         Contains:
             temperature, kinetic energy, potential energy, pressure
@@ -482,12 +487,10 @@ class Trajectory(list):
             keys.pressure_potential,
             keys.pressure,
         ]
-        df = self.dataset[_keys].to_dataframe()
-
-        return df
+        return self.dataset[_keys].to_dataframe()
 
     def discard(self, first=0, last=0):
-        """discard atoms before FIRST and after LAST and return as new Trajectory"""
+        """Discard atoms before FIRST and after LAST and return as new Trajectory"""
         n = len(self)
         part = self[first : n - last]
         talk(f"Discard first {first} atoms")
@@ -497,8 +500,7 @@ class Trajectory(list):
         return Trajectory(part, metadata=self.metadata)
 
     def clean_drift(self):
-        """ Clean constant drift CAUTION: respect ASE time unit correctly! """
-
+        """Clean constant drift CAUTION: respect ASE time unit correctly!"""
         timer = Timer("Clean trajectory from constant drift")
 
         p_drift = np.mean([a.get_momenta().sum(axis=0) for a in self], axis=0)
@@ -515,20 +517,26 @@ class Trajectory(list):
         timer("velocities and positions cleaned from drift")
 
     def write(self, file=filenames.trajectory):
-        """Write to son or nc file
+        """
+        Write to son or nc file
 
         Args:
+        ----
             file: path to trajecotry son or nc file
+
         """
         from .io import write
 
         write(self, file=file)
 
     def to_xyz(self, file="positions.xyz"):
-        """Write positions to simple xyz file for e.g. viewing with VMD
+        """
+        Write positions to simple xyz file for e.g. viewing with VMD
 
         Args:
+        ----
             file: path to trajecotry xyz file
+
         """
         from ase.io.xyz import simple_write_xyz
 
@@ -536,20 +544,25 @@ class Trajectory(list):
             simple_write_xyz(fo, self)
 
     def to_tdep(self, folder=".", skip=1):
-        """Convert to TDEP infiles for direct processing
+        """
+        Convert to TDEP infiles for direct processing
 
         Args:
+        ----
             folder: Directory to store tdep files
             skip: Number of structures to skip
+
         """
         from .io import to_tdep
 
         to_tdep(self, folder, skip)
 
     def to_db(self, database):
-        """Convert to ase database
+        """
+        Convert to ase database
 
         Args:
+        ----
             database: Filename or address of database
 
         """
@@ -558,9 +571,11 @@ class Trajectory(list):
         to_db(self, database)
 
     def to_traj(self, trajectory):
-        """Convert to ase trajectory
+        """
+        Convert to ase trajectory
 
         Args:
+        ----
             trajectory: Filename of ase trajectory
 
         """
@@ -569,7 +584,7 @@ class Trajectory(list):
         to_ase_trajectory(self, trajectory)
 
     def set_displacements(self):
-        """calculate the displacements for `reference_atoms`"""
+        """Calculate the displacements for `reference_atoms`"""
         if not self.supercell:
             # warn("Supercell not set, let us stop here.", level=2)
             warn("SUPERCELL NOT SET, compute w.r.t to reference atoms", level=1)
@@ -586,7 +601,7 @@ class Trajectory(list):
 
     @property
     def displacements(self):
-        """cached version of `get_displacements`"""
+        """Cached version of `get_displacements`"""
         if self._displacements is None:
             self.set_displacements()
         return self._displacements
@@ -597,32 +612,36 @@ class Trajectory(list):
         self._displacements = displacement_array
 
     def get_average_displacements(self, window=-1):
-        """Return averaged displacements
+        """
+        Return averaged displacements
 
         Args:
+        ----
             window: This does nothing
         Returns:
             array: The average displacements of all the atoms in self
-        """
 
+        """
         displacements = self.displacements
 
         weight = 1  # 1 / len(displacements)
 
         # this will hold the averaged displacement
-        avg_displacement = weight * displacements.mean(axis=0)
-
-        return avg_displacement
+        return weight * displacements.mean(axis=0)
 
     def get_average_positions(self, window=-1, wrap=False):
-        """Return averaged positions
+        """
+        Return averaged positions
 
         Args:
+        ----
             window: This does nothing
             wrap: If True wrap all the atoms to be within the unit cell
 
         Returns:
+        -------
             np.ndarray: The average positions of all the atoms in self
+
         """
         # reference atoms
         ref_atoms = self.reference_atoms
@@ -645,14 +664,13 @@ class Trajectory(list):
         return self._average_atoms
 
     def set_average_reference(self):
-        talk(f"(Re-)set average positions")
+        talk("(Re-)set average positions")
         avg_atoms = self.reference_atoms.copy()
         avg_atoms.positions = self.get_average_positions()
         self._average_atoms = avg_atoms
 
     def get_hashes(self, verbose=False):
-        """return all hashes from trajectory"""
-
+        """Return all hashes from trajectory"""
         hashes = []
         try:
             hashes = [None for aa in range(self[-1].info["displacement_id"] + 1)]
@@ -665,30 +683,28 @@ class Trajectory(list):
         return hashes
 
     def summarize(self, vebose=False):
-        """give a summary of relevant statistics"""
-
+        """Give a summary of relevant statistics"""
         DS = self.dataset
 
         al.pressure(DS.pressure)
 
     def compute_heat_flux(self):
-        """attach `heat_flux` to each `atoms`"""
-
+        """Attach `heat_flux` to each `atoms`"""
         have_virials = not np.isnan(self.virials).all()
         have_stresses = not np.isnan(self.stresses_potential).all()
 
         if have_virials:
             if have_stresses:
-                talk(f"We have both virials and stresses, using virials.")
+                talk("We have both virials and stresses, using virials.")
 
-            talk(f"Computing heat flux using virials.")
+            talk("Computing heat flux using virials.")
             raw_virials = self.virials
         else:
             if not have_stresses:
-                talk(f"We have neither virials nor stresses, can't compute heat flux.")
-                return None
+                talk("We have neither virials nor stresses, can't compute heat flux.")
+                return
 
-            talk(f"Computing heat flux using stresses.")
+            talk("Computing heat flux using stresses.")
             raw_virials = self.stresses_potential
 
         # 0) obtain virials and decide for which timesteps to compute heat flux
@@ -728,14 +744,15 @@ class Trajectory(list):
         timer()
 
     def compute_heat_flux_from_stresses(self):
-        """attach `heat_flux` to each `atoms`
+        """
+        Attach `heat_flux` to each `atoms`
 
         Retained for legacy reasons.
         """
         self.compute_heat_flux()
 
     def get_heat_flux(self, aux=False):
-        """return the heat flux as [N_t, 3] array"""
+        """Return the heat flux as [N_t, 3] array"""
         flux = []
 
         nan = np.full_like(np.zeros(3), np.nan)
@@ -754,24 +771,23 @@ class Trajectory(list):
 
         if np.isnan(flux).all():
             return None
-        else:
-            return np.array(flux, dtype=float)
+        return np.array(flux, dtype=float)
 
     @lazy_property
     def hash(self):
-        """hash the atoms and metadata"""
+        """Hash the atoms and metadata"""
         hashes = self.get_hashes()
 
         return hashfunc("".join(hashes))
 
     @property
     def hash_raw(self):
-        """raw hash for input trajectory file (like trajectory.son)"""
+        """Raw hash for input trajectory file (like trajectory.son)"""
         return self._hash_raw
 
     @hash_raw.setter
     def hash_raw(self, string: str):
-        """set raw hash for input trajectory file, can be set only once"""
+        """Set raw hash for input trajectory file, can be set only once"""
         assert self._hash_raw is None
         assert isinstance(string, str)
         self._hash_raw = string

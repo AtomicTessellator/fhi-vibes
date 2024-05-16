@@ -9,7 +9,6 @@ from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from vibes import Settings
 from vibes.molecular_dynamics.context import MDContext
 
-
 parent = Path(__file__).parent
 
 atoms = bulk("Al") * (4, 4, 4)
