@@ -517,22 +517,13 @@ class InterpolationDynamicalMatrix(DynamicalMatrix):
         pcell, scell = primitive.cell, supercell.cell
         q_points = get_commensurate_q_points(pcell, scell, fractional=True)
 
-        if "born_charges" in dataset.attrs:
-            return cls(
-                force_constants=interpolation_fc,
-                primitive=primitive,
-                supercell=interpolation_supercell,
-                q_points=q_points,
-                born_charges=dataset.attrs["born_charges"],
-            )
-        else:
-            return cls(
-                force_constants=interpolation_fc,
-                primitive=primitive,
-                supercell=interpolation_supercell,
-                q_points=q_points,
-            )
-
+        return cls(
+            force_constants=interpolation_fc,
+            primitive=primitive,
+            supercell=interpolation_supercell,
+            q_points=q_points,
+            born_charges=dataset.attrs.get("born_charges"),
+        )
 
 # legacy
 def fc2dynmat(force_constants, masses):
