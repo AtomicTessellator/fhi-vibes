@@ -525,6 +525,7 @@ class InterpolationDynamicalMatrix(DynamicalMatrix):
             born_charges=dataset.attrs.get("born_charges"),
         )
 
+
 # legacy
 def fc2dynmat(force_constants, masses):
     """convert force_constants to dynamical matrix by mass weighting"""

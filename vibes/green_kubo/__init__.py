@@ -255,8 +255,8 @@ def get_gk_dataset(
     # report
     if verbose:
         _talk(["Cutoff times (fs):", *np.array2string(ts, precision=3).split("\n")])
-        _talk(f"Kappa is:       {k_mean:.3f} +/- {k_err:.3f}")
-        _talk(["Kappa^ab is: ", *np.array2string(ks, precision=3).split("\n")])
+        _talk(f"Kappa is:       {k_mean:.3f} +/- {k_err:.3f} W/mK")
+        _talk(["Kappa^ab (W/mK) is: ", *np.array2string(ks, precision=3).split("\n")])
 
     # 6. compile new dataset
     # add filter parameters to attrs
@@ -286,10 +286,20 @@ def get_gk_dataset(
 
         if interpolate:
             correction = data_ha.interpolation_correction
+            correction_ab = data_ha.interpolation_correction_ab[1]
             kappa_corrected = ks + correction * np.eye(3)
+            kappa_corrected_ab = ks + correction_ab
             data.update({keys.kappa_corrected: (dims.tensor, kappa_corrected)})
             _talk("END RESULT: Finite-size corrected thermal conductivity")
-            _talk(f"Kappa is: {k_mean+correction:.3f} +/- {k_err:.3f}")
+            _talk(
+                f"Corrected kappa is:       {k_mean+correction:.3f} +/- {k_err:.3f} W/mK"
+            )
+            _talk(
+                [
+                    "Corrected kappa^ab (W/mK) is: ",
+                    *np.array2string(kappa_corrected_ab, precision=3).split("\n"),
+                ]
+            )
 
     # add thermodynamic properties
     data.update({key: dataset[key] for key in (keys.volume, keys.temperature)})
