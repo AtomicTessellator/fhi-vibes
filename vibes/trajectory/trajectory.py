@@ -782,7 +782,11 @@ class Trajectory(list):
 
         return flux
 
-    def compute_heat_flux_harmonic(self):
+    def _heat_flux_harmonic_para(self, atoms):
+        results = self.calc_ha.calculate(atoms)
+        return results
+    
+    def compute_heat_flux_harmonic(self, distribute: bool = True):
         """compute harmonic properties from FCCalculator"""
         from vibes.ase.calculators.fc import FCCalculator
 
@@ -790,12 +794,25 @@ class Trajectory(list):
             atoms_reference=self.reference_atoms,
             force_constants=self.force_constants.remapped,
         )
+        self.calc_ha = calc_ha
 
         timer = Timer("Set harmonic properties")
-        for atoms in progressbar(self):
-            calc_ha.calculate(atoms)
-            for key in calc_ha.results:
-                atoms.calc.results[f"{key}_harmonic"] = calc_ha.results[key]
+        if distribute:
+            import multiprocess
+            n_atoms = len(self)
+            
+            kw = {"len_it": n_atoms}
+            with multiprocess.Pool(multiprocess.cpu_count()) as p:
+                all_results = [*progressbar(p.imap(self._heat_flux_harmonic_para,
+                    self, chunksize=n_atoms), **kw)]
+            for _n, atoms in enumerate(self):
+                for key in all_results[_n]:
+                    atoms.calc.results[f"{key}_harmonic"] = all_results[_n][key]
+        else:
+            for atoms in progressbar(self):
+                calc_ha.calculate(atoms)
+                for key in calc_ha.results:
+                    atoms.calc.results[f"{key}_harmonic"] = calc_ha.results[key]
 
         # set attribute
         self.set_heat_flux_harmonic()
