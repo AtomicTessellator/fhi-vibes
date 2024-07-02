@@ -58,7 +58,7 @@ def get_gk_prefactor_from_dataset(dataset: xr.Dataset, verbose: bool = True) -> 
 
 
 def get_hf_data(
-    flux: xr.DataArray, dropna_dim=keys.time, prefactor: float = 1.0
+    flux: xr.DataArray, dropna_dim=keys.time, prefactor: float = 1.0, total: bool = False
 ) -> namedtuple:
     """Compute heat flux autocorrelation and integrated kappa from heat flux
 
@@ -74,8 +74,12 @@ def get_hf_data(
     flux = flux.dropna(dropna_dim)
 
     # compute the time mean flux of flux <J>
-    flux_avg = flux.mean(axis=0)
-
+    if total:
+        flux_avg = 0
+        _talk("use no Gauge in flux hfacf")
+    else:
+        flux_avg = flux.mean(axis=0)
+    
     # compute heat flux autocorrelation function (HFACF) <J(t)J>
     flux_corr = get_autocorrelationNd(flux - flux_avg, off_diagonal=True, verbose=False)
 
@@ -192,7 +196,7 @@ def get_gk_dataset(
     gk_prefactor = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
 
     # get heatflux and integrated kappa
-    hfacf, kappa = get_hf_data(heat_flux, prefactor=gk_prefactor)
+    hfacf, kappa = get_hf_data(heat_flux, prefactor=gk_prefactor ,total=total)
 
     # 2. get lowest significant frequency (from VDOS) in THz
     kw = {"prominence": filter_prominence}
