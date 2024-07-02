@@ -26,14 +26,14 @@ def trapz(series, index=None, axis=0, initial=0):
 
 
 def cumtrapz(series, index=None, axis=0, initial=0):
-    """wrap `scipy.integrate.cumtrapz`"""
+    """wrap `scipy.integrate.cumulative_trapezoid`"""
     array = np.asarray(series)
     if index is not None and len(index) > 1:
         x = np.asarray(index)
     else:
         warn(f"index = {index}, use `x=None`", level=1)
         x = None
-    ct = si.cumtrapz(array, x=x, axis=axis, initial=initial)
+    ct = si.cumulative_trapezoid(array, x=x, axis=axis, initial=initial)
 
     return ct
 
