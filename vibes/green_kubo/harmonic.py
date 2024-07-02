@@ -9,7 +9,7 @@ from vibes import dimensions, keys
 from vibes.brillouin import get_symmetrized_array
 from vibes.correlation import get_autocorrelationNd
 from vibes.dynamical_matrix import DynamicalMatrix
-from vibes.helpers import Timer, talk
+from vibes.helpers import Timer, progressbar, talk
 from vibes.integrate import get_cumtrapz
 from vibes.konstanten import to_W_mK
 
@@ -152,7 +152,7 @@ def get_J_ha_q(E_tsq: np.ndarray, v_sqa: np.ndarray, volume: float) -> np.ndarra
     # J = 1/V * w**2 * n(t) * v
     J_ha_q_sq = 1 / V * (E_tsq)[:, :, :, _] * v_sqa[_, :]  # [t, s, q, a]
 
-    return J_ha_q_sq.sum(axis=(1, 2))  # -> [t, a]
+    return J_ha_q_sq, J_ha_q_sq.sum(axis=(1, 2))  # -> [t, a]
 
 
 def get_flux_ha_q_data(
@@ -184,16 +184,18 @@ def get_flux_ha_q_data(
     v_sqa = dmx.v_sqa_cartesian
     volume = dataset.volume.data.mean()
 
-    J_ha_q = get_J_ha_q(E_tsq=E_tsq, v_sqa=v_sqa, volume=volume)
+    J_ha_q_sq, J_ha_q = get_J_ha_q(E_tsq=E_tsq, v_sqa=v_sqa, volume=volume)
 
     # make dataarrays incl. coords and dims
     ta = (keys.time, dimensions.a)
     tsq = (keys.time, dimensions.s, dimensions.q)
+    tsqa = (keys.time, dimensions.s, dimensions.q, dimensions.a)
     coords = dataset.coords
     E_tsq = xr.DataArray(E_tsq, coords=coords, dims=tsq, name=keys.mode_energy)
     J_ha_q = xr.DataArray(J_ha_q, coords=coords, dims=ta, name=keys.hf_ha_q)
+    J_ha_q_sq = xr.DataArray(J_ha_q_sq, coords=coords, dims=tsqa, name="heat_flux_harmonic_q_tsqa") # tsqa
 
-    data = {ar.name: ar for ar in (J_ha_q, E_tsq)}
+    data = {ar.name: ar for ar in (J_ha_q_sq, J_ha_q, E_tsq)}
 
     return collections.namedtuple("flux_ha_q_data", data.keys())(**data)
 
@@ -247,6 +249,83 @@ def get_kappa(
         return np.diagonal(array).mean()
     return array
 
+def full_to_voigt(corr): 
+    # map 3x3 tensor to voigt index
+    corr += corr.swapaxes(-1,-2)
+    corr /= 2
+    corr = corr.reshape([*corr.shape[0:-2], 9])
+    corr = corr[...,[0,4,8,5,2,1]]
+    return corr
+
+def get_mode_resolved_ha_q_acf(dataset, J_ha_q_sq, gk_prefactor, dump_q=True):
+    # mode-resolved correlation
+    from itertools import product
+    from vibes.correlation import c1, get_unique_dimensions
+    
+    jhq_sq = J_ha_q_sq - J_ha_q_sq.mean(axis=0) # t, s, q, a
+    #J_ha_q_sq_acf = gk_prefactor * get_autocorrelationNd(jhq_sq, off_diagonal=True, **kw)
+    dims = jhq_sq.dims
+    # new_dims = t, s, q, 2, 6 
+    _shape = jhq_sq.shape
+    new_shape = (_shape[0], 2, 6)
+    corr = np.zeros(new_shape)
+
+    jhq_q = jhq_sq.sum(axis=1)
+    for _q in range(_shape[2]):
+        j2 = jhq_q[:,_q,:] # shape = t, 3
+        Nt, *shape = np.shape(j2)
+        _j2 = np.asarray(j2).reshape(Nt,-1).swapaxes(0, 1)
+        
+        q_corr = np.zeros((*_shape[0:-2], 2, 6))
+        for _s in range(_shape[1]):
+            j1 = jhq_sq[:,_s,_q,:] # shape = t, 3
+                
+            # reshape to (X, Nt)
+            _j1 = np.asarray(j1).reshape(Nt,-1).swapaxes(0, 1)
+            
+            # compute correlation function
+            off_corr = np.zeros([_j1.shape[0] ** 2, Nt])
+            for ii, X in enumerate([*product(_j1,_j2)]):
+                off_corr[ii] = c1(X)
+            off_corr = np.moveaxis(off_corr.reshape((*shape, *shape, Nt)), -1, 0)
+
+            diag_corr = np.zeros([_j1.shape[0] ** 2, Nt])
+            for ii, X in enumerate([*product(_j1,_j1)]):
+                diag_corr[ii] = c1(X)
+            diag_corr = np.moveaxis(diag_corr.reshape((*shape, *shape, Nt)), -1, 0)
+            
+            off_corr = full_to_voigt(off_corr)
+            diag_corr = full_to_voigt(diag_corr)
+
+            q_corr[:,_s,0,:] = gk_prefactor * diag_corr
+            q_corr[:,_s,1,:] = gk_prefactor * off_corr
+
+        if dump_q:
+            J_ha_q_sq_acf_q = xr.DataArray(
+                q_corr,
+                dims= (*dims[0:-2], "ifdiag", "voigt"),
+                coords=dataset[keys.heat_flux].coords,
+                name=f"{jhq_sq.name}_{keys.autocorrelation}",
+            )
+            J_ha_q_sq_acf_q.astype("f4") # FIXME
+            _talk(f"this shape {dataset[keys.heat_flux].coords}")
+            _talk(f"our shape now {J_ha_q_sq_acf_q.shape}")
+            jha_q_filename = f"J_ha_q_acf_{_q}.nc"
+            _talk(f"harmonic heat flux dump to {jha_q_filename}")
+            encoding = {J_ha_q_sq_acf_q.name:{"dtype": "f4"}} # FIXME
+            J_ha_q_sq_acf_q.to_netcdf(jha_q_filename, encoding=encoding)
+        
+        corr += q_corr.sum(axis=1)
+    _talk(f"corr_shape: {corr.shape}")
+    new_dims = (dims[0], "ifdiag", "voigt")
+    _talk(f"new_dims: {new_dims}")
+    J_ha_q_sq_acf  = xr.DataArray(
+        corr,
+        dims=new_dims,
+        coords=jhq_sq.coords,
+        name=f"{jhq_sq.name}_{keys.autocorrelation}",
+    )
+    return J_ha_q_sq_acf
 
 def get_gk_ha_q_data(
     dataset: xr.Dataset,
@@ -273,7 +352,7 @@ def get_gk_ha_q_data(
     if dmx is None:
         dmx = DynamicalMatrix.from_dataset(dataset)
 
-    J_ha_q, E_tsq = get_flux_ha_q_data(dataset=dataset, dmx=dmx)
+    J_ha_q_sq, J_ha_q, E_tsq = get_flux_ha_q_data(dataset=dataset, dmx=dmx)
 
     # gk prefactor
     gk_prefactor = get_gk_prefactor_from_dataset(dataset, verbose=False)
@@ -332,10 +411,17 @@ def get_gk_ha_q_data(
     arrays = [J_ha_q, J_ha_q_acf, K_ha_q_cum, K_ha_q, K_ha_q_symmetrized]
     arrays += [E_tsq, dE_acf, cv_sq, cv, tau_sq, tau_symmetrized_sq]
 
+    # mode-resolved correlation 
+    #timer = Timer("Calc mode-resolved correlation", prefix=_prefix)
+    #J_ha_q_sq_acf = get_mode_resolved_ha_q_acf(dataset, J_ha_q_sq, gk_prefactor)
+    #K_ha_q_sq_cum = get_cumtrapz(J_ha_q_sq_acf)
+    #arrays += [J_ha_q_sq, J_ha_q_sq_acf, K_ha_q_sq_cum]
+    #timer()
+
     # add dynamical matrix arrays
     arrays += dmx._get_arrays()
 
-    data = {ar.name: ar for ar in arrays}
+    data = {ar.name: ar.astype("f4") for ar in arrays} # FIXME
 
     # interpolate
     if interpolate:

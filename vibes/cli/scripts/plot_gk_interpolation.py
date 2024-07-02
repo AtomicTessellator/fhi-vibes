@@ -141,9 +141,88 @@ def main(
     ax2.set_title("Analytic")
 
     if outfile is not None:
-        outfile = Path(outfile).stem + "_lifetimes" + Path(outfile).suffix
-        fig.savefig(outfile)
-        click.echo(f"..      lifetime summary plotted to {outfile}")
+        _outfile = Path(outfile).stem + "_lifetimes" + Path(outfile).suffix
+        fig.savefig(_outfile)
+        click.echo(f"..      lifetime summary plotted to {_outfile}")
+
+    # mode resolved
+    # plot this component
+    ab = [0,2]
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(ncols=2, nrows=2, sharex=True, figsize=(10, 5))
+    kw = {"color": "black", "alpha": 0.5}
+
+    x = DS.time.data / 1000  # in ps
+
+    y1 = [] # diagonal
+    y2 = [] # sum over all off-diagonal
+    y3 = [] # kappa diagonal
+    y4 = [] # kappa off-diag
+    y1_lim_max = 0
+    y3_lim_max = 0
+    for s in np.arange(DS.heat_flux_harmonic_q_tsa_acf.shape[1]):
+        y1.append(DS.heat_flux_harmonic_q_tsa_acf.data[:, s, ab[0], s, ab[1]])
+        _y1_max = np.abs(DS.heat_flux_harmonic_q_tsa_acf.data[:, s, ab[0], s, ab[1]]).max()
+        if _y1_max > y1_lim_max:
+            y1_lim_max = _y1_max
+        hf_ha_q_offdiag = DS.heat_flux_harmonic_q_tsa_acf.sum(axis=3)[:, s, ab[0], ab[1]] - \
+                                DS.heat_flux_harmonic_q_tsa_acf[:, s, ab[0], s, ab[1]]
+        y2.append(hf_ha_q_offdiag)
+        y3.append(DS.heat_flux_harmonic_q_tsa_acf_integral.data[:, s, ab[0], s, ab[1]])
+        _y3_max = np.abs(DS.heat_flux_harmonic_q_tsa_acf_integral.data[:, s, ab[0], s, ab[1]]).max()
+        if _y3_max > y3_lim_max:
+            y3_lim_max = _y3_max
+        hf_ha_q_integral_offdiag = DS.heat_flux_harmonic_q_tsa_acf_integral.sum(axis=3)[:, s, ab[0], ab[1]] - \
+                                DS.heat_flux_harmonic_q_tsa_acf_integral[:, s, ab[0], s, ab[1]]
+        y4.append(hf_ha_q_integral_offdiag)
+    
+    # plot in segments (memory)
+    shape = (*np.shape(y1), 2)
+    segments1 = np.zeros(shape)
+    segments1[:, :, 0] = x
+    segments1[:, :, 1] = y1
+    segments2 = segments1.copy()
+    segments2[:, :, 1] = y2
+    segments3 = segments1.copy()
+    segments3[:, :, 1] = y3
+    segments4 = segments1.copy()
+    segments4[:, :, 1] = y4
+
+    lc1 = LineCollection(segments1, **kw)
+    lc2 = LineCollection(segments2, **kw)
+    lc3 = LineCollection(segments3, **kw)
+    lc4 = LineCollection(segments4, **kw)
+    ax1.add_collection(lc1)
+    ax2.add_collection(lc2)
+    ax3.add_collection(lc3)
+    ax4.add_collection(lc4)
+
+    y1lim = [y1_lim_max*-1.2, y1_lim_max*1.2]
+    y3lim = [y3_lim_max*-1.2, y3_lim_max*1.2]
+    #yticks = [-0.005, 0.005]
+    for ax in (ax1, ax2, ax3, ax4):
+        ax.set_xlim([0.01, x.max() * 1.2])
+        ax.set_xscale("log")
+        ax.set_xlabel("Time (ps)")
+    ax1.set_ylim(y1lim)
+    ax2.set_ylim(y1lim)
+    ax3.set_ylim(y3lim)
+    ax4.set_ylim(y3lim)
+    #ax1.set_yscale("log")
+    #ax1.set_yticks(yticks)
+    #ax1.set_yticks(np.arange(0.1, 1, 0.1), minor=True)
+    #ax1.set_yticklabels(yticks)
+    #ax1.set_yticklabels([], minor=True)
+    ax1.set_ylabel(r"$G_s(t)$", rotation=0)
+    ax3.set_ylabel(r"$kappa_s(t)$", rotation=0)
+
+    fig.suptitle("Harmonic mode-resolve correlation")
+    ax1.set_title("Diagonal")
+    ax2.set_title("Off-diagonal")
+
+    if outfile is not None:
+        _outfile = Path(outfile).stem + f"_ha_q_{ab[0]}{ab[1]}" + Path(outfile).suffix
+        fig.savefig(_outfile)
+        click.echo(f".. harmonic mode-resolve plotted to {_outfile}")
 
 
 if __name__ == "__main__":
