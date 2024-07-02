@@ -224,3 +224,4 @@ class FCCalculator(Calculator):
             j0 = pref * (s0_i * v[:, None, :]).sum(axis=(0, -1))
             self.results["heat_flux"] = j
             self.results["heat_flux_0"] = j0
+        return self.results
