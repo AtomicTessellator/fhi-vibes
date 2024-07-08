@@ -65,9 +65,7 @@ def get_ir_reciprocal_mesh(
     ir_grid = spg_mesh[np.unique(mapping)]
 
     # dict translates between full and reduced grid point indices
-    dct = {}
-    for nn, ii in enumerate(np.unique(mapping)):
-        dct[ii] = nn
+    dct = {ii: nn for nn, ii in enumerate(np.unique(mapping))}
 
     # mapping to the unique grid points
     ir_mapping = np.array([dct[ii] for ii in mapping])

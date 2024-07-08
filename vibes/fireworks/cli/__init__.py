@@ -823,7 +823,7 @@ def rlaunch_multi(
         if nodefile in os.environ:
             nodefile = os.environ[nodefile]
         with open(nodefile) as f:
-            total_node_list = [line.strip() for line in f.readlines()]
+            total_node_list = [line.strip() for line in f]
     launch_multiprocess(
         launchpad,
         fworker,

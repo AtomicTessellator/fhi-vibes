@@ -174,7 +174,7 @@ def inform(atoms, file=None, verbosity=1, symprec=symprec):
         r = bounding_sphere_of_box(atoms.cell)
         print(f"  Bounding box rad.:   {r/2:.3f} AA")
 
-    print("")
+    print()
 
     if symprec is not None:
         sds = get_symmetry_dataset(atoms, symprec=symprec)

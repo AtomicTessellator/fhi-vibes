@@ -174,10 +174,7 @@ class Trajectory(list):
     @property
     def masses_dict(self):
         """Return masses in AMU as dictionary"""
-        masses_dict = {}
-        for sym, mass in zip(self.symbols, self.masses):
-            masses_dict[sym] = mass
-        return masses_dict
+        return {sym: mass for sym, mass in zip(self.symbols, self.masses)}
 
     @lazy_property
     def cells(self):

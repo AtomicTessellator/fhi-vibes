@@ -193,10 +193,7 @@ def calculate_socket(
     if backup_after_calculation:
         backup(calc_dir, target_folder=f"{backup_folder}")
 
-    if n_cell < len(atoms_to_calculate) - 1:
-        return False
-
-    return True
+    return n_cell >= len(atoms_to_calculate) - 1
 
 
 def check_metadata(new_metadata: dict, old_metadata: dict, keys: list | None = None):
