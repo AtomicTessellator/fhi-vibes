@@ -14,7 +14,7 @@ maintainers = [
 ]
 description = "Fritz Haber Institute Vibrational Simulations"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = "<3.12"
 keywords = ['thermal transport', 'vibrations', 'molecular dynamics', 'ab initio']
 license = { text = "MIT" }
 classifiers = [
