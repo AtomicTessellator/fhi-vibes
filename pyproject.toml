@@ -101,6 +101,10 @@ addopts = "--import-mode=importlib"
 filterwarnings = ["ignore"]
 
 [tool.ruff]
+exclude = [
+  "tests",
+  "*.ipynb",
+]
 target-version = "py39"
 lint.select = ["ALL"]
 lint.ignore = [
