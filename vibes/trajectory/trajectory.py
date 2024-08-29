@@ -299,6 +299,23 @@ class Trajectory(list):
     @property
     def force_constants_remapped(self):
         """Return remapped force constants [3 * Na, 3 * Na]"""
+        if self._force_constants_remapped is None:
+            fc = self.force_constants
+            if fc is not None:
+                uc, sc = self.primitive, self.supercell
+                from vibes.phonopy.utils import remap_force_constants
+
+                fc = remap_force_constants(fc, uc, sc, two_dim=True, symmetrize=True)
+
+                self._force_constants_remapped = fc
+        return self._force_constants_remapped
+
+    def set_force_constants_remapped(self, fc):
+        """Set remapped force constants"""
+        Na = len(self.reference_atoms)
+        assert fc.shape == (3 * Na, 3 * Na), fc.shape
+        self._force_constants_remapped = fc
+
         return self.force_constants.remapped
 
     def set_forces_harmonic(self):
