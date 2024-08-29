@@ -6,9 +6,12 @@ from ase import Atoms
 
 from vibes.helpers import Timer, lazy_property, progressbar, warn
 from vibes.helpers.displacements import get_dUdt, get_U
-from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
+from vibes.helpers.lattice_points import (
+    get_commensurate_q_points,
+    get_lattice_points,
+    map_I_to_iL,
+)
 from vibes.helpers.numerics import clean_matrix
-from vibes.helpers.supercell import get_commensurate_q_points
 from vibes.spglib.q_mesh import get_ir_reciprocal_mesh
 from vibes.structure.misc import get_sysname
 
@@ -191,7 +194,7 @@ class HarmonicAnalysis:
         # find commensurate q_points
         if q_points is None:
             self.q_points = get_commensurate_q_points(
-                primitive.cell, supercell.cell, **vbsty
+                primitive.cell, supercell.cell,
             )
         else:
             self.q_points = q_points

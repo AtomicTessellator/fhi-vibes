@@ -4,7 +4,7 @@ from pathlib import Path
 
 import click
 
-from vibes import defaults
+from vibes import defaults, keys
 from vibes.filenames import filenames
 
 from .misc import ClickAliasedGroup as AliasedGroup
@@ -28,7 +28,6 @@ def output():
 @click.option("--force", is_flag=True, help="enforce parsing of output file")
 def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
     """Write trajectory data in FILE to xarray.Dataset"""
-    from vibes import keys
     from vibes.trajectory import reader
     from vibes.trajectory.dataset import get_trajectory_dataset
 
@@ -169,25 +168,77 @@ def phono3py(obj, file, q_mesh):
 @click.option("-o", "--outfile", default="greenkubo.nc", type=Path)
 @click.option("-w", "--window_factor", default=defaults.window_factor)
 @click.option("--filter_prominence", default=defaults.filter_prominence)
+@click.option("--interpolate", is_flag=True, help="interpolate to dense grid")
 @click.option("--total", is_flag=True, help="compute total flux")
+@click.option("-fc", "--fc_file", type=Path, help="use force constants from file")
+@click.option("-u", "--update", is_flag=True, help="only parse if input data changed")
+@click.option("--shorten", default=0.0, help="shorten trajectory by percentage.")
 # @click.option("-d", "--discard", default=0)
-def greenkubo(file, outfile, window_factor, filter_prominence, total):
+def greenkubo(
+    file,
+    outfile,
+    window_factor,
+    filter_prominence,
+    interpolate,
+    total,
+    fc_file,
+    update,
+    shorten,
+):
     """Perform greenkubo analysis for dataset in FILE"""
+    import numpy as np
     import xarray as xr
 
     import vibes.green_kubo as gk
-
-    ds = xr.open_dataset(file)
-
-    ds_gk = gk.get_gk_dataset(
-        ds,
-        window_factor=window_factor,
-        filter_prominence=filter_prominence,
-        total=total,
-    )
+    from vibes import dimensions as dims
+    from vibes.io import parse_force_constants
 
     if total:
         outfile = outfile.parent / f"{outfile.stem}.total.nc"
+
+    click.echo(f"Run aiGK output workflows for {file}")
+
+    with xr.open_dataset(file) as ds_raw:
+
+        ds = ds_raw
+        if shorten > 0:
+            dim = dims.time
+            click.echo(f".. shorten trajectory by {shorten*100} %:")
+            tmax_ds = float(ds_raw[dim].isel({dim: -1}))
+            click.echo(f"... max. time in trajectory: {tmax_ds} fs")
+            n_max = len(ds_raw[dim])
+            n_start = int(np.floor(n_max * shorten))
+            click.echo(f"... discard {n_start} steps")
+            ds = ds_raw.shift({dim: n_start}).dropna(dim=dim)
+            ds = ds.assign_coords({dim: ds[dim] - ds[dim][0]})
+            tm = float(ds.time.max() / 1000)
+            click.echo(f"... new trajectory length: {tm*1000} fs")
+
+        # check if postprocess is necessary
+        if Path(outfile).exists() and update:
+            file_size_old = xr.open_dataset(outfile).attrs.get(keys.st_size)
+            file_size_new = ds.attrs.get(keys.st_size)
+
+            if file_size_new == file_size_old:
+                click.echo(".. input file (size) has not changed, skip.")
+                click.echo(".. (use --force to parse anyway)")
+                return
+            click.echo(".. file size has changed, parse the file.")
+
+        if fc_file is not None and keys.fc in ds:
+            click.echo(f".. update force constants from {fc_file}")
+            fcs = ds[keys.fc]
+            fcs.data = parse_force_constants(fc_file)
+            fcs.attrs = {"filename": str(Path(fc_file).absolute())}
+            ds[keys.fc] = fcs
+
+        ds_gk = gk.get_gk_dataset(
+            ds,
+            interpolate=interpolate,
+            window_factor=window_factor,
+            filter_prominence=filter_prominence,
+            total=total,
+        )
 
     click.echo(f".. write to {outfile}")
 

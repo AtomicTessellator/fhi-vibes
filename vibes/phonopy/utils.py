@@ -45,7 +45,7 @@ def last_calculation_id(trajectory_file):
     return disp_id
 
 
-def to_phonopy_atoms(atoms):
+def to_phonopy_atoms(atoms, wrap=False):
     """
     Convert ase.atoms.Atoms to PhonopyAtoms
 
@@ -64,7 +64,7 @@ def to_phonopy_atoms(atoms):
         symbols=atoms.get_chemical_symbols(),
         cell=atoms.get_cell(),
         masses=atoms.get_masses(),
-        positions=atoms.get_positions(wrap=True),
+        positions=atoms.get_positions(wrap=wrap),
     )
 
 

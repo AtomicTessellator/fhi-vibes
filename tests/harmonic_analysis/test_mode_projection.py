@@ -14,7 +14,7 @@ from vibes.harmonic_analysis.normal_modes import get_A_qst2, projector, u_s_to_u
 from vibes.helpers import Timer, progressbar
 from vibes.helpers.displacements import get_dUdt, get_U
 from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
-from vibes.helpers.supercell import get_commensurate_q_points
+from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import read
 from vibes.konstanten import kB
 from vibes.molecular_dynamics.utils import MDLogger
@@ -47,7 +47,7 @@ def test_all():
 
     # check if the commensurate q point is correct
     q_points = get_commensurate_q_points(primitive.cell, supercell.cell)
-    assert la.norm(q_points[1] - [0.184_295_531_753_242_92, 0.0, 0.0]) < 1e-14, q_points
+    assert la.norm(q_points[1] - [0.0, 0.0, -0.184_295_531_753_242_92]) < 1e-14, q_points
 
     # diagonalize dynamical matrices at commensurate q points
 

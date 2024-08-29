@@ -1,7 +1,6 @@
 from pathlib import Path
 
-from vibes.helpers.lattice_points import get_lattice_points
-from vibes.helpers.supercell import get_commensurate_q_points
+from vibes.helpers.lattice_points import get_lattice_points, get_commensurate_q_points
 from vibes.io import read
 
 tolerance = 1e-5
@@ -31,10 +30,10 @@ for material in materials:
 
     print("\nMomentum space lattice points")
     inv_lattice_points = get_commensurate_q_points(
-        primitive.cell, supercell.cell, fortran=False, verbose=True
+        primitive.cell, supercell.cell, fortran=False
     )
     inv_lattice_points_fortran = get_commensurate_q_points(
-        primitive.cell, supercell.cell, verbose=True
+        primitive.cell, supercell.cell
     )
 
     check = check_q_points(inv_lattice_points, supercell.cell)

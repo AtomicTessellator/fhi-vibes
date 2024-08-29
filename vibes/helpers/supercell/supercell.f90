@@ -170,24 +170,24 @@ module supercell
 
         frac_lp = fractional(lp, inv_superlattice)
 
-        ! check if frac_lp is within supercell [0, 1)
-        if     ((frac_lp(1, 1) > -tolerance) &
-          .and. (frac_lp(2, 1) > -tolerance) &
-          .and. (frac_lp(3, 1) > -tolerance) &
-          .and. (frac_lp(1, 1) < 1 - tolerance) &
-          .and. (frac_lp(2, 1) < 1 - tolerance) &
-          .and. (frac_lp(3, 1) < 1 - tolerance)) then
+        ! check if frac_lp is within supercell [-0.5, 0.5)
+        if     ((frac_lp(1, 1) > -0.5 - tolerance) &
+          .and. (frac_lp(2, 1) > -0.5 - tolerance) &
+          .and. (frac_lp(3, 1) > -0.5 - tolerance) &
+          .and. (frac_lp(1, 1) < 0.5 - tolerance) &
+          .and. (frac_lp(2, 1) < 0.5 - tolerance) &
+          .and. (frac_lp(3, 1) < 0.5 - tolerance)) then
 
             counter = counter + 1
             lattice_points(1:3, counter:counter) = lp(1:3, 1:1)
 
-        ! check if frac_lp is within extended supercell [0, 1]
-        else if     ((frac_lp(1, 1) > -tolerance) &
-          .and. (frac_lp(2, 1) > -tolerance) &
-          .and. (frac_lp(3, 1) > -tolerance) &
-          .and. (frac_lp(1, 1) < 1 + tolerance) &
-          .and. (frac_lp(2, 1) < 1 + tolerance) &
-          .and. (frac_lp(3, 1) < 1 + tolerance)) then
+        ! check if frac_lp is within extended supercell [-0.5, 0.5]
+        else if     ((frac_lp(1, 1) > -0.5 - tolerance) &
+          .and. (frac_lp(2, 1) > -0.5 - tolerance) &
+          .and. (frac_lp(3, 1) > -0.5 - tolerance) &
+          .and. (frac_lp(1, 1) < 0.5 + tolerance) &
+          .and. (frac_lp(2, 1) < 0.5 + tolerance) &
+          .and. (frac_lp(3, 1) < 0.5 + tolerance)) then
 
             counter_ext = counter_ext + 1
             ! write (*,*) 'counter: ', counter
