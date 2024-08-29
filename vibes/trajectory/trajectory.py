@@ -312,7 +312,7 @@ class Trajectory(list):
     @property
     def force_constants_remapped(self):
         """Return remapped force constants [3 * Na, 3 * Na]"""
-        return self.force_constants.remapped
+        return self._force_constants_remapped
 
     def set_forces_harmonic(self):
         """Compute harmonic force computed from self.force_constants"""
