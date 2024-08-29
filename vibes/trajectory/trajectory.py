@@ -52,6 +52,7 @@ class Trajectory(list):
         self._avg_heat_flux = None
         self._forces_harmonic = None
         self._displacements = None
+        self._force_constants = None
         self._force_constants_remapped = None
         self._hash_raw = None
         if keys.fc not in self._metadata:
@@ -289,6 +290,18 @@ class Trajectory(list):
             force_constants=fc, primitive=self.primitive, supercell=self.supercell
         )
         self._force_constants = fcs
+        self._force_constants_remapped = self._force_constants.remapped
+        self.set_forces_harmonic()
+
+    def set_force_constants_remapped(self, fc=None):
+        """Attach remapped force constants as ForceConstants object"""
+        if fc is None:
+            fc = self.force_constants_raw
+        fcs = ForceConstants(
+            force_constants=fc, primitive=self.primitive, supercell=self.supercell
+        )
+        self._force_constants = fcs
+        self._force_constants_remapped = self._force_constants.remapped
         self.set_forces_harmonic()
 
     @property
@@ -299,23 +312,6 @@ class Trajectory(list):
     @property
     def force_constants_remapped(self):
         """Return remapped force constants [3 * Na, 3 * Na]"""
-        if self._force_constants_remapped is None:
-            fc = self.force_constants
-            if fc is not None:
-                uc, sc = self.primitive, self.supercell
-                from vibes.phonopy.utils import remap_force_constants
-
-                fc = remap_force_constants(fc, uc, sc, two_dim=True, symmetrize=True)
-
-                self._force_constants_remapped = fc
-        return self._force_constants_remapped
-
-    def set_force_constants_remapped(self, fc):
-        """Set remapped force constants"""
-        Na = len(self.reference_atoms)
-        assert fc.shape == (3 * Na, 3 * Na), fc.shape
-        self._force_constants_remapped = fc
-
         return self.force_constants.remapped
 
     def set_forces_harmonic(self):
@@ -330,6 +326,9 @@ class Trajectory(list):
     @property
     def forces_harmonic(self):
         """Return harmonic forces, None if not set via `set_force_constants`"""
+        if self._forces_harmonic is None and self.force_constants_remapped is not None:
+            self.set_forces_harmonic()
+
         return self._forces_harmonic
 
     @lazy_property
