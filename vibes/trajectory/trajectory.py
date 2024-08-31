@@ -291,27 +291,26 @@ class Trajectory(list):
         )
         self._force_constants = fcs
         self._force_constants_remapped = self._force_constants.remapped
-        self.set_forces_harmonic()
 
     def set_force_constants_remapped(self, fc=None):
         """Attach remapped force constants as ForceConstants object"""
-        if fc is None:
-            fc = self.force_constants_raw
-        fcs = ForceConstants(
-            force_constants=fc, primitive=self.primitive, supercell=self.supercell
-        )
-        self._force_constants = fcs
-        self._force_constants_remapped = self._force_constants.remapped
-        self.set_forces_harmonic()
+        self.set_force_constants(fc=fc)
 
     @property
     def force_constants(self):
         """Return ForceConstants object representing the force constants"""
+        if self._force_constants is None and self.force_constants_raw is not None:
+            self.set_force_constants()
+
         return self._force_constants
 
     @property
     def force_constants_remapped(self):
         """Return remapped force constants [3 * Na, 3 * Na]"""
+        if self._force_constants_remapped is None and \
+            self.force_constants_raw is not None:
+            self.set_force_constants()
+
         return self._force_constants_remapped
 
     def set_forces_harmonic(self):
