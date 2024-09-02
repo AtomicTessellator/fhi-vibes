@@ -4,7 +4,6 @@ import collections
 import numpy as np
 import scipy.optimize as so
 import xarray as xr
-from ase import units
 
 from vibes import dimensions, keys
 from vibes.brillouin import get_symmetrized_array
@@ -12,6 +11,7 @@ from vibes.correlation import get_autocorrelationNd
 from vibes.dynamical_matrix import DynamicalMatrix
 from vibes.helpers import Timer, talk
 from vibes.integrate import get_cumtrapz
+from vibes.konstanten import atomic_units as units
 from vibes.konstanten import to_W_mK
 
 from . import get_gk_prefactor_from_dataset

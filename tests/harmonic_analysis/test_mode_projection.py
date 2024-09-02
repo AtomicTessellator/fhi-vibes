@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 import scipy.linalg as la
-from ase import units
 from ase.md.verlet import VelocityVerlet
 
 from vibes.ase.calculators.fc import FCCalculator
@@ -16,7 +15,7 @@ from vibes.helpers.displacements import get_dUdt, get_U
 from vibes.helpers.lattice_points import get_lattice_points, map_I_to_iL
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import read
-from vibes.konstanten import kB
+from vibes.konstanten import atomic_units as units
 from vibes.molecular_dynamics.utils import MDLogger
 from vibes.tdep.wrapper import (
     parse_tdep_forceconstant,
@@ -93,13 +92,13 @@ def test_all():
     # set velocities such that temperature is 100K
     temp = 100
     omegas = omegas2**0.5
-    pref = (2 * kB * temp) ** 0.5
+    pref = (2 * units.kB * temp) ** 0.5
     amplitudes = pref / omegas * (omegas.size / (omegas.size - 3)) ** 0.5
 
     # set acoustic modes to zero
     amplitudes[0, :3] = 0
 
-    const = 1 / (2 * kB) / 4 / 2 / 3
+    const = 1 / (2 * units.kB) / 4 / 2 / 3
     assert la.norm(const * (amplitudes**2 * omegas**2).sum() - temp) < 1e-13
 
     # \dot u = \omega * A
@@ -141,7 +140,7 @@ def test_all():
     U_t = [P @ get_U(atoms, supercell).flatten() for atoms in traj]
     V_t = [P @ get_dUdt(atoms).flatten() for atoms in traj]
 
-    const = 1 / kB / 4 / 2 / 3
+    const = 1 / units.kB / 4 / 2 / 3
 
     for ii in range(100):
         amp = V_t[ii]
@@ -154,7 +153,7 @@ def test_all():
 
     E = 0.5 * omegas[None, :, :] ** 2 * a
 
-    assert abs(E.mean() / kB - temp) / temp < 0.01, E.mean() / kB
+    assert abs(E.mean() / units.kB - temp) / temp < 0.01, E.mean() / units.kB
     assert E[:, 3:, :].std() / E.mean() < 0.01, E[:, 3:, :].std() / E.mean()
 
     # compare the high level access via HarmonicAnalysis
@@ -170,7 +169,7 @@ def test_all():
         assert la.norm(e1 - e2) < 1e-14, (e1, e2)
 
     # make sure the mode energies were conserved
-    assert abs(E.mean() / kB - temp) / temp < 0.01, E.mean() / kB
+    assert abs(E.mean() / units.kB - temp) / temp < 0.01, E.mean() / units.kB
     assert E[:, 3:, :].std() / E.mean() < 0.01, E[:, 3:, :].std() / E.mean()
 
     timer("ran mode projection test successfully")

@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 from ase import md as ase_md
-from ase import units as u
 from ase.io import read
 from ase.md.md import MolecularDynamics
 
@@ -12,6 +11,7 @@ from vibes import keys, son
 from vibes.context import TaskContext
 from vibes.helpers import warn
 from vibes.helpers.converters import dict2atoms, input2dict
+from vibes.konstanten import atomic_units as u
 
 from ._defaults import keys as md_keys
 from ._defaults import name, npt_dict, nve_dict, nvt_dict, talk

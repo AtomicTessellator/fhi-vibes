@@ -5,8 +5,8 @@ from pathlib import Path
 from warnings import warn
 
 import numpy as np
-from ase import units
 
+from vibes.konstanten import atomic_units as units
 from vibes.trajectory import reader
 
 
