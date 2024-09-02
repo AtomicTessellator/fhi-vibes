@@ -4,12 +4,12 @@ Similar to canonical_sampling from TDEP.
 """
 
 import numpy as np
+from ase import units as u
 from ase.io import read
 
 import vibes.ase.md.velocitydistribution as vd
 from vibes.harmonic_analysis.dynamical_matrix import get_frequencies
 from vibes.helpers import talk
-from vibes.konstanten import atomic_units as u
 from vibes.structure.io import inform
 
 

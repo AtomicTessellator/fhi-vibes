@@ -1,13 +1,13 @@
 from pathlib import Path
 
 import numpy as np
+from ase import units as u
 from ase.build import bulk
 from ase.calculators.emt import EMT
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 
 from vibes import Settings
 from vibes.molecular_dynamics.context import MDContext
-from vibes.konstanten import atomic_units as units
 
 parent = Path(__file__).parent
 
@@ -17,7 +17,7 @@ settings = Settings(settings_file=parent / "md.in")
 calculator = EMT()
 
 np.random.seed(4)
-MaxwellBoltzmannDistribution(atoms, 300 * units.kB)
+MaxwellBoltzmannDistribution(atoms, 300 * u.kB)
 
 
 def test_run(tmp_path):

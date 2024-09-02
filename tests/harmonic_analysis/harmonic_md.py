@@ -2,13 +2,13 @@
 
 import os
 
+from ase import units
 from ase.calculators.lammpsrun import LAMMPS
 from ase.md.verlet import VelocityVerlet
 
 from vibes.ase.calculators.fc import FCCalculator
 from vibes.helpers import progressbar
 from vibes.io import read
-from vibes.konstanten import atomic_units as units
 from vibes.molecular_dynamics.utils import MDLogger
 from vibes.tdep.wrapper import parse_tdep_forceconstant
 
