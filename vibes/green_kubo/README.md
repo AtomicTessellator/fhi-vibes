@@ -29,20 +29,19 @@ Workflow:
 - Complex amplitudes [BornHuang (38.38)]
     $$
     \begin{align}
-    \def\D{\dagger}
-    u_s &= a^\D_{-s} + a_s \\
-    p_s &= {\rm i}\omega_s \left( a^\D_{-s} - a_s \right)~,
+    u_s &= a^\dagger_{-s} + a_s \\
+    p_s &= {\rm i}\omega_s \left( a^\dagger_{-s} - a_s \right)~,
     \end{align}
     $$
     and
     $$
     \begin{align}
     a_s &= ... \\
-    a^\D_{-s} &= ...
+    a^\dagger_{-s} &= ...
     \end{align}
     $$
     
-- $n_s = a^\D_s a_s$: Occupation of mode $s$
+- $n_s = a^\dagger_s a_s$: Occupation of mode $s$
 
 ### Procedure
 
