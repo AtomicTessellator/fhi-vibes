@@ -38,6 +38,7 @@ def get_lifetimes(
     Compute mode lifetimes from energy autocorrelation functinon by fitting exp.
 
     Formulation:
+    -----------
         assume <E_s(t)E_s> / <E^2_s> ~ g_s(t) = e^{-t / tau_s}
 
     Args:
@@ -107,6 +108,7 @@ def get_a_tsq(
     get mode amplitude in shape [Nt, Ns, Nq]
 
     Formulation:
+    -----------
         a_tsq = 1/2 * (u_tsq + 1/iw_sq p_tsq)
 
     Args:
@@ -221,7 +223,8 @@ def get_kappa(
     """
     return BTE-type kappa = c v^2 t for given heat capacity, group vel., and lifetime
 
-    Formula:
+    Formulation:
+    -----------
         kappa^ab = sum_s c_s t_s v^a_s v^b_s
 
     Args:

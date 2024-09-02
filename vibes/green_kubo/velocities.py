@@ -24,7 +24,9 @@ def get_vdos(
     r"""
     compute vibrational DOS for trajectory
 
-    vdos(w) = FT{\sum_i corr(v_i, v_i)(t)}(w)
+    Formulation:
+    -----------
+        vdos(w) = FT{\sum_i corr(v_i, v_i)(t)}(w)
 
     Args:
     ----
