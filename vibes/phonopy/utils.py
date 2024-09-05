@@ -7,7 +7,6 @@ from ase import Atoms
 from ase.geometry import get_distances
 from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS, read_force_constants_hdf5
-from phonopy.structure.atoms import PhonopyAtoms
 
 from vibes.helpers import Timer, progressbar, talk, warn
 from vibes.helpers.converters import input2dict
@@ -43,29 +42,6 @@ def last_calculation_id(trajectory_file):
         pass
 
     return disp_id
-
-
-def to_phonopy_atoms(atoms, wrap=False):
-    """
-    Convert ase.atoms.Atoms to PhonopyAtoms
-
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        Atoms to convert
-
-    Returns
-    -------
-    phonopy_atoms: PhonopyAtoms
-        The PhonopyAtoms for the same structure as atoms
-
-    """
-    return PhonopyAtoms(
-        symbols=atoms.get_chemical_symbols(),
-        cell=atoms.get_cell(),
-        masses=atoms.get_masses(),
-        positions=atoms.get_positions(wrap=wrap),
-    )
 
 
 def enumerate_displacements(cells, info_str=displacement_id_str):

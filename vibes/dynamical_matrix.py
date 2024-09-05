@@ -15,7 +15,7 @@ from vibes.helpers import talk
 from vibes.helpers.lattice_points import get_commensurate_q_points
 from vibes.io import get_identifier
 from vibes.konstanten import gv_to_AA_fs, omega_to_THz
-from vibes.phonopy import to_phonopy_atoms
+from vibes.structure.convert import to_phonopy_atoms
 
 la = np.linalg
 
