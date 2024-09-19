@@ -13,8 +13,7 @@ from vibes.fourier import get_fourier_transformed
 from vibes.helpers import Timer, talk, warn
 from vibes.helpers.filter import get_filtered
 from vibes.integrate import get_cumtrapz
-from vibes.konstanten import atomic_units as units
-from vibes.konstanten import to_W_mK
+from vibes.konstanten import to_W_mK, units
 
 _prefix = "GreenKubo"
 
