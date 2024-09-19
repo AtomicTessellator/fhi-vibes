@@ -11,8 +11,7 @@ from vibes.correlation import get_autocorrelationNd
 from vibes.dynamical_matrix import DynamicalMatrix
 from vibes.helpers import Timer, talk
 from vibes.integrate import get_cumtrapz
-from vibes.konstanten import atomic_units as units
-from vibes.konstanten import to_W_mK
+from vibes.konstanten import to_W_mK, units
 
 from . import get_gk_prefactor_from_dataset
 from .interpolation import get_interpolation_data
