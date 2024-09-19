@@ -1,82 +1,206 @@
-[tool.poetry]
+[build-system]
+requires = ["setuptools", "numpy", "wheel", "meson-python"]
+build-backend = "mesonpy"
+
+[project]
 name = "fhi-vibes"
 version = "1.1.0-alpha.3"
+authors = [
+    { name = "Florian Knoop", email = "knoop@fhi-berlin.mpg.de" },
+    { name = "Thomas Purcell", email = "purcell@fhi-berlin.mpg.de" }
+]
+maintainers = [
+    { name = "Thomas Purcell", email = "purcell@fhi-berlin.mpg.de" },
+    { name = "Christian Carbogno", email = "carbogno@fhi-berlin.mpg.de" }
+]
 description = "Fritz Haber Institute Vibrational Simulations"
-authors = ["Florian Knoop <knoop@fhi-berlin.mpg.de>", "Thomas Purcell <purcell@fhi-berlin.mpg.de"]
-license = "MIT"
 readme = "README.md"
-repository = "https://gitlab.com/vibes-developers/vibes"
-packages = [
-    { include = "vibes" },
+requires-python = "<3.12"
+keywords = ['thermal transport', 'vibrations', 'molecular dynamics', 'ab initio']
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: python :: 3",
+]
+dependencies = [
+    "numpy<2",
+    "scipy<=1.13",
+    "matplotlib>=3.1",
+    "son>=0.4.1",
+    "spglib<=2.3",
+    "phonopy>=2.13",
+    "ase<=3.22",
+    "click>=8.0",
+    "attrs>=19.1",
+    "xarray>=0.13",
+    "netCDF4>=1.5",
+    "jinja2>=2.10",
+    "tables>=3.5",
+    "click_aliases>=1.0",
+    "click_completion>=0.5.2",
+    "jconfigparser>=0.1.2",
+    "pandas<2.0",
+    "seaborn>=0.11.0",
+    "ruamel.yaml==0.17.40"
 ]
 
-keywords = ['physics']
+[project.optional-dependencies]
+fireworks = [
+    "fireworks>=1.9",
+    "pymongo>=3.8",
+    "fabric>=2.4",
+    "paramiko>=2.4",
+    "requests>=2.25"
+]
+phono3py = ["phono3py>=1.21"]
+hiphive = ["hiphive>=0.50"]
+postgresql = ["psycopg2>=2.8.0"]
+docs=[
+    "mkdocs>=1.2",
+    "mkdocs-material>=7.3",
+    "mkdocs-minify-plugin>=0.5.0"
+]
+tests = [
+    "pytest>=6.0",
+    "pytest-xdist>=1.31",
+    "pytest-cov>=2.8"
+]
+dev = [
+    "pre-commit>=2.12.1",
+]
 
-build = "build.py"
-
-[tool.poetry.dependencies]
-python = "^3.6.1, <4.0"
-numpy = "^1.17.5"
-scipy = "^1.1.1"
-matplotlib = "^3.1"
-son = ">=0.4.1"
-spglib = ">=1.12"
-phonopy = "^2.6"
-ase = "^3.20.0,<3.23"
-click = ">=8.0"
-attrs = ">=19.1"
-fireworks = {version = "^1.9",optional = true}
-phono3py = {version = "^1.21",optional = true}
-python-gssapi = {version = "^0.6.4",optional = true}
-pymongo = {version = "^3.8",optional = true}
-fabric = {version = "^2.4",optional = true}
-paramiko = {version = "^2.4",optional = true}
-psycopg2 = {version="^2.8.0", optional=true}
-xarray = ">=0.13"
-netCDF4 = ">=1.5"
-jinja2 = ">=2.10"
-hiphive = {version = "^0.5.0", optional = true}
-tables = "^3.5"
-click_aliases = ">=1.0"
-click_completion = ">=0.5.2"
-jconfigparser = "^0.1.2"
-pandas = ">=1.0"
-importlib_resources = { version = "*", python = "3.6.*" }
-dataclasses = { version = "*", python = "3.6.*" }
-seaborn = ">=0.11.0"
-requests = {version = "^2.25", optional=true}
-
-[tool.poetry.extras]
-fireworks = ["fireworks", "python-gssapi", "pymongo", "fabric", "paramiko", "requests"]
-phono3py = ["phono3py"]
-hiphive = ["hiphive"]
-postgresql = ["psycopg2"]
-
-[tool.poetry.dev-dependencies]
-black = "^19.10b0"
-pytest = ">=6.0"
-flake8 = "^3.7"
-rope = "^0.14.0"
-flake8-bugbear = "^19.8"
-flake8-comprehensions = "^3.1"
-pytest-xdist = "^1.31"
-pytest-cov = "^2.8"
-isort = "^4.3"
-mkdocs = "^1.2"
-mkdocs-material = "^7.3"
-mkdocs-minify-plugin = "^0.5.0"
-
-[tool.poetry.scripts]
+[project.scripts]
 vibes = 'vibes.cli:cli'
+
+[project.urls]
+repository = "https://gitlab.com/vibes-developers/vibes"
+homepage="https://vibes-developers.gitlab.io/vibes/"
+documentation="https://vibes-developers.gitlab.io/vibes/Documentation/0_intro"
+
+[tool.setuptools.package-data]
+vibes = ["py.typed"]
+"vibes.templates.config_files" = ["*template", "*.in"]
+"vibes.templates.settings" = ["aims*", "lj"]
+
+[tool.setuptools.packages.find]
+where = ["."]  # list of folders that contain the packages (["."] by default)
+exclude = ["paper"]  # exclude packages matching these glob patterns (empty by default)
+namespaces = true  # to disable scanning PEP 420 namespaces (true by default)
+
+[tool.mypy]
+ignore_missing_imports = true
+no_strict_optional = true
 
 [tool.black]
 target-version = ['py37']
+
+[tool.versioningit.vcs]
+method = "git"
+default-tag = "0.0.1"
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib"
 filterwarnings = ["ignore"]
 
-[build-system]
-requires = ["setuptools<=59.2.0", "wheel", "poetry<=1.1.12", "numpy"]
-build-backend = "poetry.masonry.api"
-
+[tool.ruff]
+exclude = [
+  "tests",
+  "*.ipynb",
+]
+target-version = "py39"
+lint.select = ["ALL"]
+lint.ignore = [
+    "ANN001",
+    "ANN002",
+    "ANN003",
+    "ANN101",  # missing self type annotation
+    "ANN102",
+    "ANN201",
+    "ANN202",
+    "ANN204",
+    "ANN206",
+    "ANN401",
+    "ARG001",  # unused method argument
+    "ARG002",  # unused method argument
+    "A001",
+    "A002",
+    "B006",
+    "B028",
+    "BLE001",
+    "C408",    # Unnecessary (dict/list/tuple) call - remove call
+    "C416",
+    "C901",    # function too complex
+    "COM812",  # trailing comma missing
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D107",
+    "D203",
+    "D205",
+    "D212",
+    "D400",
+    "D401",
+    "D404",
+    "D415",
+    "D417",
+    "DTZ",     # datetime-tz-now
+    "EM",      # exception message must not use f-string literal
+    "ERA001",  # found commented out code
+    "EXE002",
+    "E731",
+    "E741",
+    "FBT001",
+    "FBT002",
+    "FBT003",
+    "FIX002",
+    "G004",    # logging uses fstring
+    "INP001",
+    "ISC001",
+    "ISC003",
+    "NPY002",
+    "NPY201",
+    "N802",
+    "N803",
+    "N806",
+    "N813",
+    "N816",
+    "PD011",   # pandas-use-of-dot-values
+    "PD901",
+    "PERF203", # try-except-in-loop
+    "PERF401", # try-except-in-loop
+    "PLR",     # pylint-refactor
+    "PLW2901",
+    "PT004",   # pytest-missing-fixture-name-underscore
+    "PT006",   # pytest-parametrize-names-wrong-type
+    "PT013",   # pytest-incorrect-pytest-import
+    "PTH",     # prefer Pathlib to os.path
+    "PYI024",
+    "RET503",
+    "RUF005",
+    "RUF012",  # implicit-optional
+    "RUF013",  # implicit-optional
+    "RUF015",
+    "SIM102",
+    "SIM105",
+    "SIM108",
+    "SIM115",
+    "S101",
+    "S110",
+    "S301",
+    "S324",    # use of insecure hash function
+    "S507",    # paramiko auto trust
+    "S603",
+    "S605",
+    "S607",
+    "SLF",     # private member accessed outside class
+    "T201",
+    "TCH002",
+    "TD",      # TODOs
+    "TRY002",
+    "TRY003",  # long message outside exception class
+    "TRY300",
+    "TRY301",
+]
+lint.isort.known-first-party = ["vibes"]
