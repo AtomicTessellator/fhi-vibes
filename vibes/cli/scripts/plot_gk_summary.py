@@ -1,12 +1,13 @@
 from argparse import ArgumentParser as argpars
+
 import click
 import numpy as np
 import seaborn as sns
 import xarray as xr
 from matplotlib import pyplot as plt
+
 from vibes import keys
 from vibes.helpers.plotting import rc_params
-
 
 plt.style.use(rc_params)
 
@@ -57,7 +58,7 @@ def plot_gk_summary(
         ax2.plot(times_ps, k, c=c, alpha=0.5)
 
         k = k_filtered[:, ii, ii]
-        ax2.plot(times_ps, k, c=c, label="$\kappa_{"+f"{labels[ii]}"+"}$")
+        ax2.plot(times_ps, k, c=c, label=r"$\kappa_{"+f"{labels[ii]}"+"}$")
 
         ta = cutoff_time[ii, ii]
         ax1.axvline(ta, c=c, lw=2)
@@ -71,7 +72,7 @@ def plot_gk_summary(
 
     # mean of k
     ax2.plot(times_ps, k_total, c="k", alpha=0.5)
-    ax2.plot(times_ps, k_total_filtered, c="k", label="$\kappa_{\\rm mean}$")
+    ax2.plot(times_ps, k_total_filtered, c="k", label="$\\kappa_{\\rm mean}$")
 
     ax1.axhline(0, c="k")
     ax1.set_ylim([j_filtered.min(), 1.2 * j_filtered.max()])
@@ -94,7 +95,7 @@ def plot_gk_summary(
         xlim = tmax
 
     ax2.set_xlim([0, xlim])
-    
+
     ax1.legend(loc="upper right", ncol=2)
     ax2.legend(loc="upper right", ncol=2)
     fig.tight_layout()
