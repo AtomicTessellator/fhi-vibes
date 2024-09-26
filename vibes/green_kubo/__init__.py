@@ -293,7 +293,7 @@ def get_gk_dataset(
     }
 
     # 7. add properties derived from harmonic model
-    if keys.fc in dataset:
+    if keys.fc in dataset and interpolate:
         data_ha = get_gk_ha_q_data(dataset, interpolate=interpolate)
         data.update(data_ha._asdict())
         data.update({keys.fc: dataset[keys.fc]})
