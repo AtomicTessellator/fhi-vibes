@@ -166,7 +166,7 @@ def get_metadata(phonon_file, temperatures=None, debye_temp_fact=None, **kwargs)
     }
 
     if not kwargs.get("deterministic", True):
-        if kwargs.get("rng_seed", None) is None:
+        if kwargs.get("rng_seed") is None:
             rng_seed = np.random.randint(2**32 - 1)
         else:
             rng_seed = int(kwargs.get("rng_seed"))
