@@ -79,8 +79,7 @@ class Trajectory(list):
         temp = super().__getitem__(key)
         if isinstance(temp, Atoms):
             return temp
-        metadata = self.metadata
-        return Trajectory(temp, metadata=metadata)
+        return Trajectory(temp, metadata=self.metadata)
 
     @property
     def metadata(self):
@@ -290,11 +289,11 @@ class Trajectory(list):
             force_constants=fc, primitive=self.primitive, supercell=self.supercell
         )
         self._force_constants = fcs
-        self._force_constants_remapped = self._force_constants.remapped
 
     def set_force_constants_remapped(self, fc=None):
         """Attach remapped force constants as ForceConstants object"""
         self.set_force_constants(fc=fc)
+        self._force_constants_remapped = self._force_constants.remapped
 
     @property
     def force_constants(self):
@@ -307,9 +306,10 @@ class Trajectory(list):
     @property
     def force_constants_remapped(self):
         """Return remapped force constants [3 * Na, 3 * Na]"""
-        if self._force_constants_remapped is None and \
+        if self._force_constants_remapped is None:
+            if self.force_constants is not None or \
             self.force_constants_raw is not None:
-            self.set_force_constants()
+                self._force_constants_remapped = self.force_constants.remapped
 
         return self._force_constants_remapped
 

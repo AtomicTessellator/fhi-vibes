@@ -22,6 +22,7 @@ from vibes.helpers.converters import (
 )
 from vibes.helpers.hash import hash_file
 from vibes.helpers.utils import progressbar
+from vibes.trajectory.trajectory import Trajectory
 
 from .utils import Timer, talk
 
@@ -152,7 +153,7 @@ def reader(
     fc_file=None,
     single_point_calculator=True,
     verbose=True,
-):
+) -> Trajectory:
     """
     Convert information in file to Trajectory
 

@@ -20,14 +20,15 @@ def output():
 
 @output.command(aliases=["md"], context_settings=default_context_settings)
 @click.argument("file", default=filenames.trajectory, type=complete_files)
-@click.option("-hf", "--heat_flux", is_flag=True, help="write heat flux dataset")
-@click.option("-d", "--discard", type=int, help="discard this many steps")
-@click.option("--minimal", is_flag=True, help="omit redundant information")
 @click.option("-fc", "--fc_file", type=Path, help="add force constants from file")
 @click.option("-o", "--outfile", default="auto", show_default=True)
 @click.option("--force", is_flag=True, help="enforce parsing of output file")
-def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
+@click.option("--shorten", default=0.0, help="shorten trajectory by percentage")
+def trajectory(file, fc_file, outfile, force, shorten):
     """Write trajectory data in FILE to xarray.Dataset"""
+    import numpy as np
+
+    from vibes.io import parse_force_constants
     from vibes.trajectory import reader
     from vibes.trajectory.dataset import get_trajectory_dataset
 
@@ -50,17 +51,29 @@ def trajectory(file, heat_flux, discard, minimal, fc_file, outfile, force):
         click.echo(".. file size has changed, parse the file.")
 
     click.echo(f"Extract Trajectory dataset from {file}")
-    traj = reader(file=file, fc_file=fc_file)
+    traj = reader(file=file)
 
-    if discard:
-        traj = traj.discard(discard)
+    if shorten != 0:
+        click.echo(f".. shorten trajectory by {shorten*100} %")
+        tmax_ds = float(traj.times[-1])
+        n_max = len(traj)
+        n_shorten = int(np.floor(n_max * abs(shorten)))
+        if shorten > 0:
+            traj = traj.discard(first=n_shorten, last=0)
+            traj.times = traj.times - traj.times[0]
+        elif shorten < 0:
+            traj = traj.discard(first=0, last=n_shorten)
+        click.echo(f"... max. time in trajectory: {tmax_ds} fs")
+        click.echo(f"... new trajectory length: {traj.times[-1]:.2f} fs")
 
     # harmonic forces?
     if fc_file:
+        fc = parse_force_constants(fc_file, two_dim=False)
+        traj.set_force_constants(fc)
         traj.set_forces_harmonic()
 
-    if heat_flux:
-        traj.compute_heat_flux_from_stresses()
+    if traj.stresses_potential is not None:
+        traj.compute_heat_flux()
 
     DS = get_trajectory_dataset(traj, metadata=True)
     # attach file size
