@@ -296,6 +296,7 @@ def get_gk_ha_q_data(
         dmx = DynamicalMatrix.from_dataset(dataset)
 
     J_ha_q, E_tsq = get_flux_ha_q_data(dataset=dataset, dmx=dmx)
+    J_ha_q.data *= 1000 # convert unit from fs to ps
 
     # gk prefactor
     gk_prefactor = get_gk_prefactor_from_dataset(dataset, verbose=False)

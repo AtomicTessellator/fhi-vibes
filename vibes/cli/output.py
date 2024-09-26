@@ -185,6 +185,7 @@ def phono3py(obj, file, q_mesh):
 @click.option("--total", is_flag=True, help="compute total flux")
 @click.option("-fc", "--fc_file", type=Path, help="use force constants from file")
 @click.option("-u", "--update", is_flag=True, help="only parse if input data changed")
+@click.option("--plot", is_flag=True, help="plot Green Kubo data")
 @click.option("--shorten", default=0.0, help="shorten trajectory by percentage.")
 # @click.option("-d", "--discard", default=0)
 def greenkubo(
@@ -197,6 +198,7 @@ def greenkubo(
     fc_file,
     update,
     shorten,
+    plot,
 ):
     """Perform greenkubo analysis for dataset in FILE"""
     import numpy as np
@@ -256,3 +258,11 @@ def greenkubo(
     click.echo(f".. write to {outfile}")
 
     ds_gk.to_netcdf(outfile)
+
+    if plot:
+        from vibes.cli.scripts.plot_gk_interpolation import plot_gk_interpolation
+        from vibes.cli.scripts.plot_gk_summary import plot_gk_summary
+        plot_gk_summary(ds_gk)
+        if interpolate:
+            plot_gk_interpolation(ds_gk)
+

@@ -158,7 +158,7 @@ def get_interpolation_data(
         mesh = (nq, nq, nq)
 
         # create grid and harmonic solution on grid
-        grid, solution = dmx.get_mesh_and_solution(mesh, reduced=False)
+        grid, solution = dmx.get_mesh_and_solution(mesh, reduced=False, monkhorst=False)
 
         # interpolate scaled lifetimes on irred. grid
         ir_l_int_sq = interpolate_to_grid(q_points=grid.ir.points, **kw_train)
