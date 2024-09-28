@@ -22,7 +22,6 @@ def prepare_phono3py(
     is_diagonal=defaults.kwargs.is_diagonal,
     q_mesh=defaults.kwargs.q_mesh,
     displacement=defaults.kwargs.displacement,
-    symmetrize_fc3q=False,
     symprec=defaults.kwargs.symprec,
     log_level=defaults.kwargs.log_level,
     **kwargs,
@@ -41,7 +40,6 @@ def prepare_phono3py(
         is_diagonal: bool
         mesh: np.ndarray
         displacement: float
-        symmetrize_fc3q: bool
         symprec: float
         log_level: int
 
@@ -57,10 +55,8 @@ def prepare_phono3py(
     phonon3 = Phono3py(
         ph_atoms,
         supercell_matrix=np.transpose(supercell_matrix),
-        mesh=q_mesh,
         symprec=symprec,
         is_symmetry=True,
-        symmetrize_fc3q=symmetrize_fc3q,
         frequency_factor_to_THz=const.omega_to_THz,
         log_level=log_level,
     )

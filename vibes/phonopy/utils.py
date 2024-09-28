@@ -87,14 +87,14 @@ def get_supercells_with_displacements(phonon):
 
     """
     supercell = to_Atoms(
-        phonon.get_supercell(),
+        phonon.supercell,
         info={
             "supercell": True,
-            "supercell_matrix": phonon.get_supercell_matrix().T.flatten().tolist(),
+            "supercell_matrix": phonon.supercell_matrix.T.flatten().tolist(),
         },
     )
 
-    scells = phonon.get_supercells_with_displacements()
+    scells = phonon.supercells_with_displacements
 
     supercells_with_disps = [to_Atoms(cell) for cell in scells]
 
@@ -138,25 +138,25 @@ def metadata2dict(phonon, calculator):
                 The displacement dataset for the phonon calculation
 
     """
-    atoms = to_Atoms(phonon.get_unitcell())
+    atoms = to_Atoms(phonon.unitcell)
 
     prim_data = input2dict(atoms)
 
     phonon_dict = {
-        "version": phonon.get_version(),
+        "version": phonon.version,
         "primitive": prim_data["atoms"],
-        "supercell_matrix": phonon.get_supercell_matrix().T.astype(int).tolist(),
-        "symprec": float(phonon.get_symmetry().get_symmetry_tolerance()),
-        "displacement_dataset": phonon.get_displacement_dataset(),
+        "supercell_matrix": phonon.supercell_matrix.T.astype(int).tolist(),
+        "symprec": float(phonon.symmetry.tolerance),
+        "displacement_dataset": phonon.dataset,
     }
 
     try:
-        displacements = phonon.get_displacements()
+        displacements = phonon.displacements
         phonon_dict.update({"displacements": displacements})
     except AttributeError:
         pass
 
-    supercell = to_Atoms(phonon.get_supercell())
+    supercell = to_Atoms(phonon.supercell)
     supercell_data = input2dict(supercell, calculator)
 
     return {str(phonon.__class__.__name__): phonon_dict, **supercell_data}
