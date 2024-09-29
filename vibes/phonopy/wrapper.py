@@ -81,7 +81,7 @@ def prepare_phonopy(
     )
 
     if fc2 is not None:
-        phonon.set_force_constants(fc2)
+        phonon.force_constants = fc2
 
     return phonon
 

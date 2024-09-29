@@ -67,9 +67,9 @@ def postprocess(
     symprec = metadata["Phono3py"]["symprec"]
 
     phonon = prepare_phono3py(primitive, supercell_matrix, symprec=symprec)
-    phonon.set_displacement_dataset(metadata["Phono3py"]["displacement_dataset"].copy())
+    phonon.dataset = metadata["Phono3py"]["displacement_dataset"].copy()
 
-    scs = phonon.get_supercells_with_displacements()
+    scs = phonon.supercells_with_displacements
 
     n_sc = len(scs)
     n_calc = len(calculated_atoms)
@@ -110,11 +110,11 @@ def extract_results(phonon, output_dir="output"):
 
     from .wrapper import phono3py_save
 
-    primitive = phonon.get_unitcell()
-    supercell = phonon.get_supercell()
-    p2s_map = phonon.primitive.get_primitive_to_supercell_map()
+    primitive = phonon.unitcell
+    supercell = phonon.supercell
+    p2s_map = phonon.primitive.p2s_map
 
-    dds = phonon.get_displacement_dataset()
+    dds = phonon.dataset
 
     fc2 = phonon.fc2
     fc3 = phonon.fc3

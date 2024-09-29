@@ -198,14 +198,14 @@ def get_force_constants_from_trajectory(
     phonon = postprocess(trajectory_file)
 
     if supercell is None:
-        supercell = to_Atoms(phonon.get_supercell())
+        supercell = to_Atoms(phonon.supercell)
         if reduce_fc:
-            return phonon.get_force_constants()
+            return phonon.force_constants
 
     return remap_force_constants(
-        phonon.get_force_constants(),
-        to_Atoms(phonon.get_unitcell()),
-        to_Atoms(phonon.get_supercell()),
+        phonon.force_constants,
+        to_Atoms(phonon.unitcell),
+        to_Atoms(phonon.supercell),
         supercell,
         reduce_fc,
         two_dim,

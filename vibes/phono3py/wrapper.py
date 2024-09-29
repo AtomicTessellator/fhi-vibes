@@ -20,7 +20,6 @@ def prepare_phono3py(
     cutoff_pair_distance=defaults.kwargs.cutoff_pair_distance,
     displacement_dataset=None,
     is_diagonal=defaults.kwargs.is_diagonal,
-    q_mesh=defaults.kwargs.q_mesh,
     displacement=defaults.kwargs.displacement,
     symprec=defaults.kwargs.symprec,
     log_level=defaults.kwargs.log_level,
@@ -62,7 +61,7 @@ def prepare_phono3py(
     )
 
     if displacement_dataset is not None:
-        phonon3.set_displacement_dataset(displacement_dataset)
+        phonon3.dataset = displacement_dataset
 
     phonon3.generate_displacements(
         distance=displacement,
