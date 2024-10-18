@@ -1,0 +1,24 @@
+[files]
+geometry:                      geometry.in
+primitive:                     geometry.in.primitive
+supercell:                     geometry.in.supercell
+
+[calculator]
+name:                          lj
+
+[calculator.parameters]
+sigma:                         3.405
+epsilon:                       0.010325
+rc:                            13.0
+
+[md]
+driver:                        VelocityVerlet
+timestep:                      4
+maxsteps:                      20000
+compute_stresses:              2
+workdir:                       md
+
+[md.kwargs]
+logfile:                       md.log
+
+

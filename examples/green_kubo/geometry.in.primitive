@@ -1,0 +1,15 @@
+#=======================================================
+# FHI-aims file: /home/shuo/data/240602_vibes_tutorials/06_lj_expansion/60K/relaxation_02/relaxation/geometry.in.next_step
+# Created using the Atomic Simulation Environment (ASE)
+# Sun Jun  2 20:36:34 2024
+
+# Additional information:
+#  Relaxed with BFGS, fmax=0.100 meV/AA
+#  nsteps = 4
+#  residual force  = 0.000000 meV/AA
+#  residual stress = 0.098990 meV/AA
+#=======================================================
+lattice_vector -0.0000000000000000 2.7012948697789998 2.7012948697789998 
+lattice_vector 2.7012948697789998 0.0000000000000000 2.7012948697789998 
+lattice_vector 2.7012948697789998 2.7012948697789998 0.0000000000000000 
+atom_frac 0.0000000000000000 0.0000000000000000 -0.0000000000000000 Ar
