@@ -180,7 +180,7 @@ def greenkubo(files, plot, lifetimes):
     k_err = (ks_flat.var() / (ks_flat.size)) ** 0.5
     click.echo("[info]         Summarize Green-Kubo:")
     click.echo(f"Kappa (W/mK) is:                {k:.3f} +/- {k_err:.3f}")
-    click.echo(f"Kappa^ab (W/mK) is:           " + \
+    click.echo("Kappa^ab (W/mK) is:           " + \
         f"{np.array2string(ks.data, precision=3, prefix=' '*30)}")
     click.echo()
 
@@ -196,7 +196,7 @@ def greenkubo(files, plot, lifetimes):
         k_ha = ks_flat.mean()
         k_ha_err = (ks_flat.var() / (ks_flat.size)) ** 0.5
         click.echo(f"Kappa (W/mK) is:                {k_ha:.3f} +/- {k_ha_err:.3f}")
-        click.echo(f"Kappa^ab (W/mK) is:           " + \
+        click.echo("Kappa^ab (W/mK) is:           " + \
             f"{np.array2string(ks_ha.data, precision=3, prefix=' '*30)}")
         click.echo()
 
@@ -211,22 +211,21 @@ def greenkubo(files, plot, lifetimes):
         if keys.interpolation_correction in ds_gk:
             intercept = float(ds_gk[keys.interpolation_fit_intercept])
             correction_ab = ds_gk.interpolation_correction_ab
-            correction1 = float(ds_gk[keys.interpolation_correction])
-            correction2 = intercept - k_ha
-            kc = k + correction2
+            correction = float(ds_gk[keys.interpolation_correction])
+            kc = k + correction
             kappa_corrected_ab = ks + correction_ab
 
             click.echo("[info]         Summarize interpolation:")
             click.echo(f"Initial harmonic kappa value:   {k_ha:.3f} W/mK")
             click.echo(f"Fit intercept:                  {intercept:.3f} W/mK")
             # click.echo(f"Correction1 (k_init + m / nq):  {correction1:.3f} W/mK")
-            click.echo(f"Correction (k_inf  - k_init):   {correction2:.3f} W/mK")
-            click.echo(f"Correction^ab (W/mK) is:      " + \
+            click.echo(f"Correction (k_inf  - k_init):   {correction:.3f} W/mK")
+            click.echo("Correction^ab (W/mK) is:      " + \
                 f"{np.array2string(correction_ab.data, precision=3, prefix=' '*30)}")
             # click.echo(f"Interpolated harm. kappa:       {k_ha+correction1:.3f} W/mK")
             click.echo(f"Corrected kappa:                {kc:.3f} +/- {k_err:.3f} W/mK")
-            click.echo(f"Corrected kappa^ab (W/mK) is:" + \
-                f"{np.array2string(kappa_corrected_ab.data, precision=3, prefix=' '*29)}")
+            click.echo("Corrected kappa^ab (W/mK) is:" + \
+            f"{np.array2string(kappa_corrected_ab.data, precision=3, prefix=' '*29)}")
             click.echo()
 
     if plot:
