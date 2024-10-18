@@ -1,5 +1,6 @@
 """`vibes info` backend"""
 
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -157,12 +158,9 @@ def csv(file, describe, half, to_json):
 
 @info.command(aliases=["gk"], context_settings=_default_context_settings)
 @click.argument("files", nargs=-1)
-@click.option("-p", "--plot", is_flag=True, help="plot summary")
-@click.option("--logx", is_flag=True)
-@click.option("--xlim", type=float, default=None)
-@click.option("--cmap", default="colorblind", help="the matplotlib colormap")
-@click.option("--outfile", default="greenkubo_summary.pdf")
-def greenkubo(files, plot, logx, xlim, cmap, outfile):
+@click.option("-p", "--plot", is_flag=True, help="plot info")
+@click.option("--lifetimes", is_flag=True, help="describe lifetimes")
+def greenkubo(files, plot, lifetimes):
     """Visualize heat flux and thermal conductivity"""
     import xarray as xr
 
@@ -176,85 +174,67 @@ def greenkubo(files, plot, logx, xlim, cmap, outfile):
     attrs = {ii: d.attrs for (ii, d) in enumerate(datasets)}
     ds_gk.attrs = attrs
 
-    ks = np.array([np.diag(k) for k in ds_gk.kappa]).flatten()
-    k_mean = ks.mean()
-    k_err = (ks.var() / (len(ks))) ** 0.5
-    click.echo(f"Kappa:    {k_mean:.3f} +/- {k_err:.3f}")
-    click.echo(f"Kappa^ab: {ds_gk.kappa.mean(axis=0)}")
+    ks = ds_gk[keys.kappa]
+    ks_flat = ks.stack(ab=("a", "b"))[:, ::4].data
+    k = ks_flat.mean()
+    k_err = (ks_flat.var() / (ks_flat.size)) ** 0.5
+    click.echo("[info]         Summarize Green-Kubo:")
+    click.echo(f"Kappa (W/mK) is:                {k:.3f} +/- {k_err:.3f}")
+    click.echo(f"Kappa^ab (W/mK) is:           " + \
+        f"{np.array2string(ks.data, precision=3, prefix=' '*30)}")
+    click.echo()
+
+    # harmonic/interpolation
+    if keys.kappa_ha in ds_gk:
+        if lifetimes:
+            click.echo("Lifetimes:")
+            click.echo(ds_gk[keys.mode_lifetime].to_series().describe())
+
+        click.echo("[info]         Harmonic values:")
+        ks_ha = ds_gk[keys.kappa_ha]
+        ks_flat = ks_ha.stack(ab=("a", "b"))[:, ::4].data
+        k_ha = ks_flat.mean()
+        k_ha_err = (ks_flat.var() / (ks_flat.size)) ** 0.5
+        click.echo(f"Kappa (W/mK) is:                {k_ha:.3f} +/- {k_ha_err:.3f}")
+        click.echo(f"Kappa^ab (W/mK) is:           " + \
+            f"{np.array2string(ks_ha.data, precision=3, prefix=' '*30)}")
+        click.echo()
+
+        if len(datasets) > 1:
+            click.echo(".. perform ensemble average before proceding")
+
+        # ignore warnings regarding empty slices
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        ds_gk = ds_gk.mean(dim=keys.trajectory)
+
+        # interpolation
+        if keys.interpolation_correction in ds_gk:
+            intercept = float(ds_gk[keys.interpolation_fit_intercept])
+            correction_ab = ds_gk.interpolation_correction_ab
+            correction1 = float(ds_gk[keys.interpolation_correction])
+            correction2 = intercept - k_ha
+            kc = k + correction2
+            kappa_corrected_ab = ks + correction_ab
+
+            click.echo("[info]         Summarize interpolation:")
+            click.echo(f"Initial harmonic kappa value:   {k_ha:.3f} W/mK")
+            click.echo(f"Fit intercept:                  {intercept:.3f} W/mK")
+            # click.echo(f"Correction1 (k_init + m / nq):  {correction1:.3f} W/mK")
+            click.echo(f"Correction (k_inf  - k_init):   {correction2:.3f} W/mK")
+            click.echo(f"Correction^ab (W/mK) is:      " + \
+                f"{np.array2string(correction_ab.data, precision=3, prefix=' '*30)}")
+            # click.echo(f"Interpolated harm. kappa:       {k_ha+correction1:.3f} W/mK")
+            click.echo(f"Corrected kappa:                {kc:.3f} +/- {k_err:.3f} W/mK")
+            click.echo(f"Corrected kappa^ab (W/mK) is:" + \
+                f"{np.array2string(kappa_corrected_ab.data, precision=3, prefix=' '*29)}")
+            click.echo()
 
     if plot:
-        import seaborn as sns
-        from matplotlib import pyplot as plt
-
-        from vibes.helpers.xarray import xtrace
-
-        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
-
-        colors = sns.color_palette(cmap, n_colors=3)  # plt.get_cmap(cmap)
-
-        cutoff_time = ds_gk.cutoff_time.mean(axis=0)
-        j_raw = ds_gk.heat_flux_autocorrelation.mean(axis=0)
-        k_raw = ds_gk.heat_flux_autocorrelation_cumtrapz.mean(axis=0)
-        j_filtered = ds_gk.heat_flux_autocorrelation_filtered.mean(axis=0)
-        k_filtered = ds_gk.heat_flux_autocorrelation_cumtrapz_filtered.mean(axis=0)
-
-        k_total = xtrace(k_raw) / 3  # .mean(axis=1)
-        k_total_filteres = xtrace(k_filtered) / 3  # .mean(axis=1)
-
-        for ii in range(3):
-            c = colors[ii]
-
-            j = j_filtered[:, ii, ii]
-            j.to_series().plot(ax=ax1, c=c, lw=2)
-
-            # unfiltered kappa
-            k = k_raw[:, ii, ii]
-            k.to_series().plot(ax=ax2, c=c, alpha=0.75)
-
-            k = k_filtered[:, ii, ii]
-            k.to_series().plot(ax=ax2, c=c)
-
-            ta = cutoff_time[ii, ii]
-            ax1.axvline(ta, c=c, lw=2)
-            ax2.axvline(ta, c=c, lw=2)
-
-            # unfiltered hfacf (and restore ylim)
-            ylim = ax1.get_ylim()
-            j = j_raw[:, ii, ii]
-            j.to_series().plot(ax=ax1, c=c, lw=0.1, zorder=-1)
-            ax1.set_ylim(ylim)
-
-        # mean of k
-        k_total.to_series().plot(ax=ax2, c="k", alpha=0.75)
-        k_total_filteres.to_series().plot(ax=ax2, c="k")
-
-        ax1.axhline(0, c="k")
-        ax1.set_ylim([j_filtered.min(), 1.2 * j_filtered.max()])
-
-        # plot final kappa
-        ax2.axhline(k_mean, c="k")
-        ax2.fill_between(j.time, k_mean + k_err, k_mean - k_err, color="k", alpha=0.1)
-
-        ax1.set_ylabel("$J_{\\rm corr} (t)$")
-        ax2.set_ylabel("$\\kappa (t)$")
-
-        kappa_str = f"$\\kappa$: {k_mean:.2f} +/- {k_err:.2f} W/mK"
-
-        ax1.set_title(kappa_str)
-
-        tmax = 3 * np.diag(cutoff_time).max()
-
-        if xlim is None:
-            xlim = tmax
-
-        if logx:
-            ax2.set_xlim([0.01 * xlim, xlim])
-            ax2.set_xscale("log")
-        else:
-            ax2.set_xlim([0, xlim])
-
-        fig.savefig(outfile, bbox_inches="tight")
-        click.echo(f".. summary plotted to {outfile}")
+        from vibes.cli.scripts.plot_gk_interpolation import plot_gk_interpolation
+        from vibes.cli.scripts.plot_gk_summary import plot_gk_summary
+        plot_gk_summary(ds_gk)
+        if keys.kappa_ha in ds_gk:
+            plot_gk_interpolation(ds_gk)
 
 
 @info.command(context_settings=_default_context_settings)
