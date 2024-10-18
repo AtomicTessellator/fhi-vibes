@@ -271,7 +271,7 @@ def get_gk_dataset(
     if verbose:
         _talk(["Cutoff times (fs):", *np.array2string(ts, precision=3).split("\n")])
         _talk(f"Kappa is:       {k_mean:.3f} +/- {k_err:.3f} W/mK")
-        _talk(["Kappa^ab is: ", *np.array2string(ks, precision=3).split("\n")])
+        _talk(["Kappa^ab (W/mK) is: ", *np.array2string(ks, precision=3).split("\n")])
 
     # 6. compile new dataset
     attrs = dataset.attrs.copy()
