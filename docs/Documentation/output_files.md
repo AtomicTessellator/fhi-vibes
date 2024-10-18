@@ -310,3 +310,56 @@ These are force constants in the [`phonopy` format](https://phonopy.github.io/ph
 ### `FORCE_CONSTANTS_remapped`
 
 These are force constants mapped to `(3 * n_supercell, 3 * n_supercell)` shape. They can be parsed with `numpy.loadtxt` similar to [`.dat.` files](#dat-files).
+
+
+## Green-Kubo results
+
+
+### `greenkubo.nc`
+
+A [`NetCDF`](https://www.unidata.ucar.edu/software/netcdf/) file containing and [`xarray.Dataset`](http://xarray.pydata.org/en/stable/io.html?highlight=netcdf#netcdf) with post-processed data
+
+??? example "Load `trajectory.nc`"
+    ```python
+    >>> import xarray as xr
+    >>>
+    >>> ds = xr.open_dataset('greenkubo.nc')
+    >>>
+    >>> print(ds)
+    <xarray.Dataset> Size: 34MB
+    Dimensions:                                        (time: 3001, a: 3, b: 3,
+                                                        s: 6, q: 108, ia: 6,
+                                                        q_ir: 24, nq: 9,
+                                                        q_int: 8000, i: 2, J: 216)
+    Coordinates:
+      * time                                           (time) float64 24kB 0.0 .....
+      * nq                                             (nq) int64 72B 4 6 ... 18 20
+    Dimensions without coordinates: a, b, s, q, ia, q_ir, q_int, i, J
+    Data variables: (12/42)
+        heat_flux                                      (time, a) float64 72kB -1....
+        heat_flux_autocorrelation                      (time, a, b) float64 216kB ...
+        heat_flux_autocorrelation_filtered             (time, a, b) float64 216kB ...
+        heat_flux_autocorrelation_cumtrapz             (time, a, b) float64 216kB ...
+        heat_flux_autocorrelation_cumtrapz_filtered    (time, a, b) float64 216kB ...
+        kappa                                          (a, b) float64 72B 1.423 ....
+        ...                                             ...
+        interpolation_w_sq                             (s, q_int) float64 384kB 0...
+        interpolation_tau_sq                           (s, q_int) float64 384kB 0...
+        force_constants                                (i, J, a, b) float64 31kB ...
+        thermal_conductivity_corrected                 (a, b) float64 72B 2.324 ....
+        volume                                         (time) float64 24kB 5.873e...
+        temperature                                    (time) float64 24kB 307.5 ...
+    Attributes: (12/19)
+        name:               trajectory
+        system_name:        CuI
+        natoms:             216
+        time_unit:          fs
+        timestep:           5.0
+        nsteps:             12000
+        ...                 ...
+        sigma:              0.6311824798505474
+        st_size:            749635900
+        hash_raw:           4967e1958c2f78b579e3669a6582ab830b075df8
+        gk_window_fs:       1195.5434782608695
+        gk_prefactor:       1134529729.719537
+        filter_prominence:  0.2

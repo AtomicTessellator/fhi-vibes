@@ -16,7 +16,7 @@ $V$, Boltzmann constant $k_B$ and temperature $T$.
 In the density functional theory, the ab initio heat flux $\boldsymbol{J}_v$ 
 (discarding the negligible convective term in solids) can be uniquely expressed from the 
 virial theorm on the atomic contribution of stress tensor $\boldsymbol{\sigma}_{I}$
-[[Carbogno2017](reference#Carbogno2017)]
+[[Carbogno2017](references.md#Carbogno2017)]
 
 $$\boldsymbol{J}_v(t) = \frac{1}{V}\sum_{I}\boldsymbol{\sigma}_{I}(t)\boldsymbol{\dot{R}}_I(t)$$
 

@@ -52,6 +52,7 @@ Commands:
   anharmonicity   Compute sigmaA for trajectory dataset in FILE
   csv             show contents of csv FILE
   geometry        inform about a structure in a geometry input file
+  greenkubo (gk)  Visualize heat flux and thermal conductivity
   md              inform about MD simulation in FILE
   netcdf          show contents of netCDF FILE
   phonopy         inform about a phonopy calculation based on the input FILE
@@ -115,6 +116,7 @@ Options:
   -h, --help  Show this message and exit.
 
 Commands:
+  greenkubo (gk)   Perform greenkubo analysis for dataset in FILE
   phonopy          perform phonopy postprocess for trajectory in FILE
   trajectory (md)  write trajectory data in FILE to xarray.Dataset
 ```
