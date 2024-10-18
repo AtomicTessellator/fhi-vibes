@@ -30,7 +30,7 @@ reserve = True # If True run FireWorks in reservation mode
 nlaunches = 0 # Maximum number of jobs to launch at any given (0 no limit)
 sleep_time = 60 # Time to sleep in seconds between checking for jobs to run
 ```
-For a complete description of each of these parameters see the [full documentation](../../Documentation/1_general_high_throughput).
+For a complete description of each of these parameters see the [full documentation](../Documentation/1_general_high_throughput.md).
 
 ## Testing if it works
 Now that your FireWorks installation should be working properly test it with the vibes FireWorks test in `test/fireworks/test_fireworks.py`.

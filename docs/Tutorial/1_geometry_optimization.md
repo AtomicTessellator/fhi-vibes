@@ -7,7 +7,7 @@ In this tutorial, you will learn how to perform a geometry optimization with `FH
 
 ## Define Inputs
 
-For starting the relaxation, we use the `geometry.in` file for Silicon in the primitive unit cell  discussed in the [introduction](0_intro.md#test-systems) and copy it to the actual (empty) directory in which we are working. Generate a task input file for running a relaxation by copying the [calculator information for your test system](0_intro.md#test-systems) to a file called `relaxation.in`. Next, use the command line interface (CLI) of `FHI-vibes` to obtain default settings for performing the relaxation and appending them to the input file:
+For starting the relaxation, we use the `geometry.in` file for Silicon in the primitive unit cell  discussed in the [introduction](0_intro.md) and copy it to the actual (empty) directory in which we are working. Generate a task input file for running a relaxation by copying the [calculator information for your test system](0_intro.md) to a file called `relaxation.in`. Next, use the command line interface (CLI) of `FHI-vibes` to obtain default settings for performing the relaxation and appending them to the input file:
 
 ```
 vibes template relaxation >> relaxation.in

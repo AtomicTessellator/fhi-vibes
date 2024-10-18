@@ -215,7 +215,7 @@ or by submitting to queue as above.
 
 To efficiently perform _ab initio_ calculations for systems larger than a few atoms, you will need a workstation or access to a computing cluster. To submit a `vibes` simulation to your cluster, follow these steps:
 
-1. [Install `FHI-vibes` on your cluster](../../#installation),
+1. [Install `FHI-vibes` on your cluster](../Installation.md),
 2. set up a calculation as you have done earlier on your laptop,
 3. submit the `vibes run` command to the queue.
 

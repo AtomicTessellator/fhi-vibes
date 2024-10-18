@@ -36,7 +36,7 @@ This way to install `fhi-vibes` should always work, it's currently the preferred
 	pip install .
 	```
 
-**If you run into problems, please have a look at our [troubleshooting section.](#Troubleshooting)**
+**If you run into problems, please have a look at our [troubleshooting section.](#troubleshooting)**
 
 ## Configuration
 
