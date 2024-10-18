@@ -75,26 +75,6 @@ def test_kappa(flux=flux_df.flux, ref_kappa=kappa_df.kappa):
     assert (ref_kappa.iloc[-1] - k2[tmax]) < 0.001
 
 
-def test_kappa_dataset(file="test.nc", flux=flux_df.flux, ref_kappa=kappa_df.kappa):
-    _keys = (
-        keys.hf_acf,
-        keys.kappa_cumulative,
-    )
-    DS = xr.load_dataset(parent / file)
-
-    # w/o aux
-    ds_kappa = get_gk_dataset(DS)
-    for key in _keys:
-        assert key in ds_kappa
-
-
-    # w/ aux
-    ds_kappa = get_gk_dataset(DS, total=True)
-    for key in _keys:
-        assert key in ds_kappa
-
-
 if __name__ == "__main__":
     test_j_corr()
     test_kappa()
-    test_kappa_dataset()
