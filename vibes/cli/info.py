@@ -174,8 +174,12 @@ def greenkubo(files, plot, lifetimes):
     attrs = {ii: d.attrs for (ii, d) in enumerate(datasets)}
     ds_gk.attrs = attrs
 
+    if len(datasets) > 1:
+        click.echo(".. perform ensemble average")
+    ds_gk = ds_gk.mean(dim=keys.trajectory)
+
     ks = ds_gk[keys.kappa]
-    ks_flat = ks.stack(ab=("a", "b"))[:, ::4].data
+    ks_flat = ks.stack(ab=("a", "b"))[::4].data
     k = ks_flat.mean()
     k_err = (ks_flat.var() / (ks_flat.size)) ** 0.5
     click.echo("[info]         Summarize Green-Kubo:")
@@ -192,7 +196,7 @@ def greenkubo(files, plot, lifetimes):
 
         click.echo("[info]         Harmonic values:")
         ks_ha = ds_gk[keys.kappa_ha]
-        ks_flat = ks_ha.stack(ab=("a", "b"))[:, ::4].data
+        ks_flat = ks_ha.stack(ab=("a", "b"))[::4].data
         k_ha = ks_flat.mean()
         k_ha_err = (ks_flat.var() / (ks_flat.size)) ** 0.5
         click.echo(f"Kappa (W/mK) is:                {k_ha:.3f} +/- {k_ha_err:.3f}")
@@ -200,12 +204,8 @@ def greenkubo(files, plot, lifetimes):
             f"{np.array2string(ks_ha.data, precision=3, prefix=' '*30)}")
         click.echo()
 
-        if len(datasets) > 1:
-            click.echo(".. perform ensemble average before proceding")
-
         # ignore warnings regarding empty slices
         warnings.simplefilter("ignore", category=RuntimeWarning)
-        ds_gk = ds_gk.mean(dim=keys.trajectory)
 
         # interpolation
         if keys.interpolation_correction in ds_gk:

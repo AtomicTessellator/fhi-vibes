@@ -5,14 +5,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# import xarray as xr
+import xarray as xr
 from scipy import integrate as si
 from scipy import signal as sl
 
-# from vibes import keys
+from vibes import keys
 from vibes.correlation import get_autocorrelation
 
-# from vibes.green_kubo.heat_flux import get_kappa_cumulative_dataset
+from vibes.green_kubo import get_gk_dataset
 from vibes.integrate import get_cumtrapz
 from vibes.settings import Config
 
@@ -75,25 +75,26 @@ def test_kappa(flux=flux_df.flux, ref_kappa=kappa_df.kappa):
     assert (ref_kappa.iloc[-1] - k2[tmax]) < 0.001
 
 
-# def test_kappa_dataset(file="test.nc"):
-#     _keys = (
-#         keys.hf_acf,
-#         keys.kappa_cumulative,
-#     )
-#     DS = xr.load_dataset(parent / file)
-#
-#     # w/o aux
-#     ds_kappa = get_kappa_cumulative_dataset(DS)
-#     for key in _keys:
-#         assert key in ds_kappa
-#
-#     # w/ aux
-#     ds_kappa = get_kappa_cumulative_dataset(DS, aux=True)
-#     for key in _keys:
-#         assert key in ds_kappa
+def test_kappa_dataset(file="test.nc", flux=flux_df.flux, ref_kappa=kappa_df.kappa):
+    _keys = (
+        keys.hf_acf,
+        keys.kappa_cumulative,
+    )
+    DS = xr.load_dataset(parent / file)
+
+    # w/o aux
+    ds_kappa = get_gk_dataset(DS)
+    for key in _keys:
+        assert key in ds_kappa
+
+
+    # w/ aux
+    ds_kappa = get_gk_dataset(DS, total=True)
+    for key in _keys:
+        assert key in ds_kappa
 
 
 if __name__ == "__main__":
     test_j_corr()
     test_kappa()
-#     test_kappa_dataset()
+    test_kappa_dataset()
