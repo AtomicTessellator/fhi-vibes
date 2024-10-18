@@ -721,8 +721,8 @@ class Trajectory(list):
             virials = all_virials[i]
             ds = virials - avg_virials
 
-            # velocity in \AA / ps
-            vs = a.get_velocities() * units.fs * 1000
+            # velocity in \AA / fs
+            vs = a.get_velocities() * units.fs
 
             fluxes = np.squeeze(ds @ vs[:, :, None])
             fluxes_aux = np.squeeze(avg_virials @ vs[:, :, None])

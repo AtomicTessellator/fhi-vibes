@@ -41,7 +41,7 @@ def gk_prefactor(volume: float, temperature: float, verbose: bool = False) -> fl
     """
     V = float(volume)
     T = float(temperature)
-    prefactor = 1 / units.kB / T**2 * V * to_W_mK / 1e6 # heat flux in ps
+    prefactor = 1 / units.kB / T**2 * V * to_W_mK
     msg = [
         "Compute Prefactor:",
         f".. Volume:        {V:10.2f}  AA^3",
