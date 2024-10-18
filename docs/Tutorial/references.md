@@ -11,3 +11,8 @@
 9. <a name="HansenMcDonald"></a> J.P. Hansen, and I.R. McDonald, _Theory of simple liquids_, Elsevier, 1990.
 10. <a name="Nocedal"></a> J. Nocedal, and S. Wright, _Numerical optimization_, Springer Science & Business Media, 2006.
 11. <a name="Vanden-Eijnden2006"></a> [E. Vanden-Eijnden and G. Ciccotti, Chem Phys Lett 429, 310 (2006).](https://doi.org/10.1016/j.cplett.2006.07.086)
+12. <a name="Carbogno2017"></a> [C. Carbogno, R. Ramprasad, and M. Scheffler, Phys. Rev. Lett.118, 175901 (2017).](https://doi.org/10.1103/PhysRevLett.118.175901)
+13. <a name="Pomeranchuk1941"></a> [I. Pomeranchuk, Phys. Rev. 60, 820 (1941).](https://doi.org/10.1103/PhysRev.60.820)
+14. <a name="Herring1954"></a> [C. Herring, Phys. Rev. 95, 954 (1954).](https://doi.org/10.1103/PhysRev.95.954)
+
+

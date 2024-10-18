@@ -20,6 +20,8 @@ The following tutorials are available:
 - [Molecular dynamics](3_md_intro.md)
 - [Harmonic sampling](4_statistical_sampling.md)
 - [Anharmonicity quantification](5_anharmonicity_quantification.md)
+- [Lattice Expansion](6_lattice_expansion.md)
+- [Green Kubo](7_green_kubo.md)
 - [High-Throughput workflows](../High_Throughput/Tutorial/0_configuring_fw_for_vibes.md)
 
 ### LDA-Silicon
