@@ -1,0 +1,27 @@
+[files]
+geometry:                      geometry.in
+primitive:                     geometry.in.primitive
+supercell:                     geometry.in.supercell
+
+[calculator]
+name:                          lj
+
+[calculator.parameters]
+# parameters for LJ Argon
+sigma:    3.405
+epsilon:  0.010325
+rc:       13.0
+
+[md]
+driver:                        Langevin
+timestep:                      4
+maxsteps:                      5000
+compute_stresses:              True
+workdir:                       md
+
+[md.kwargs]
+temperature:                   <temp>
+friction:                      0.02
+logfile:                       md.log
+
+

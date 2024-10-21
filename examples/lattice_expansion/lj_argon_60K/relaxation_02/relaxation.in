@@ -1,0 +1,31 @@
+[files]
+geometry:                      geometry.in
+
+[calculator]
+name:                          lj
+
+[calculator.parameters]
+# parameters for LJ Argon
+sigma:    3.405
+epsilon:  0.010325
+rc:       8.0
+
+
+[relaxation]
+driver:                        BFGS
+fmax:                          0.0001
+unit_cell:                     True
+fix_symmetry:                  True
+hydrostatic_strain:            False
+constant_volume:               False
+scalar_pressure:               <pressure>
+decimals:                      12
+symprec:                       1e-05
+workdir:                       relaxation
+
+[relaxation.kwargs]
+maxstep:                       0.2
+logfile:                       relaxation.log
+restart:                       bfgs.restart
+
+
