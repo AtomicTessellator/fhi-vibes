@@ -106,7 +106,7 @@ def plot_gk_summary(
 
 def main():
     """Main routine, deprecated since CLI"""
-    parser = argpars(description="Read geometry and use spglib to refine")
+    parser = argpars(description="Plot summary for Green-Kubo formula")
     parser.add_argument("filename", help="greenkubo.nc")
     parser.add_argument("--outfile", default="greenkubo_summary.pdf")
     args = parser.parse_args()

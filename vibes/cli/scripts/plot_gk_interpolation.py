@@ -16,14 +16,13 @@ plt.style.use(rc_params)
 def plot_gk_interpolation(
     gk_ds: xr.Dataset,
     outfile: Path = "greenkubo_interpolation.pdf",
+    verbose: bool = False,
 ):
     """Plot summary for interpolation"""
     tau_sq = gk_ds[keys.mode_lifetime]
 
-    # kappa = gk_ds[keys.kappa]
     kappa_ha = gk_ds[keys.kappa_ha]
 
-    # correction = gk_ds[keys.interpolation_correction]
 
     # plot
     k_ai_r = gk_ds.heat_flux_autocorrelation_cumtrapz.stack(ab=("a", "b"))[:, ::4]
@@ -35,24 +34,32 @@ def plot_gk_interpolation(
     ax.plot(k_ha_q.time, k_ha_q.mean(axis=1).data, label=r"$\kappa_{\rm hm-q}$")
     km, kerr = k_ai_r.mean(axis=1), k_ai_r.std(axis=1) / 3 ** 0.5
     ax.fill_between(k_ai_r.time, km + kerr, km - kerr, alpha=0.25, color="C0")
-    # k0 = np.diagonal(kappa).mean()
     k1 = np.diagonal(kappa_ha).mean()
-    # k2 = np.diagonal(kappa).mean() + correction
-    # k3 = np.diagonal(kappa).mean() * correction_factor
-    # ax.axhline(k0, c="C0")
-    # ax.axhline(k1, c="C1")
-    # ax.axhline(k2, c="C0", ls="--")
-    # ax.axhline(k3, c="C2", ls="--")
+
+    if verbose:
+        kappa = gk_ds[keys.kappa]
+        correction = gk_ds[keys.interpolation_correction]
+        correction_factor = gk_ds[keys.interpolation_correction_factor]
+        k0 = np.diagonal(kappa).mean()
+        k2 = np.diagonal(kappa).mean() + correction
+        k3 = np.diagonal(kappa).mean() * correction_factor
+        ax.axhline(k0, c="C0")
+        ax.axhline(k1, c="C1")
+        ax.axhline(k2, c="C0", ls="--")
+        ax.axhline(k3, c="C2", ls="--")
+
     ax.set_ylabel(r"$\kappa (t)$ (W/mK)")
     ax.set_xlabel("$t$ (fs)")
 
     kw = {"zorder": -1, "linestyle": "--"}
     cutoff_times = gk_ds.cutoff_time.stack(ab=("a", "b"))[::4]
     ax.axvline(cutoff_times.mean(), c="C0", **kw, label="Cutoff time")
-    # for ct in cutoff_times:
-    #     ax.axvline(ct, c="C0", lw=0.33, **kw)
-    # ax.axvline(gk_ds.mode_lifetime.max(), c="C1", **kw)
-    # ax.axvline(gk_ds.mode_lifetime_symmetrized.max(), c="C1", ls="--", **kw)
+
+    if verbose:
+        for ct in cutoff_times:
+            ax.axvline(ct, c="C0", lw=0.33, **kw)
+        ax.axvline(gk_ds.mode_lifetime.max(), c="C1", **kw)
+        ax.axvline(gk_ds.mode_lifetime_symmetrized.max(), c="C1", ls="--", **kw)
 
     ax.set_xlim(1e2)
     ax.set_xscale("log")
@@ -145,14 +152,15 @@ def plot_gk_interpolation(
 
 def main():
     """Main routine, deprecated since CLI"""
-    parser = argpars(description="Read geometry and use spglib to refine")
+    parser = argpars(description="Plot interpolation summary")
     parser.add_argument("filename", help="greenkubo.nc")
     parser.add_argument("--outfile", default="greenkubo_interpolation.pdf")
+    parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
     file = args.filename
     ds_gk = xr.load_dataset(file)
-    plot_gk_interpolation(ds_gk, outfile=args.outfile)
+    plot_gk_interpolation(ds_gk, outfile=args.outfile, verbose=args.verbose)
 
 if __name__ == "__main__":
     main()
