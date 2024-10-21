@@ -13,11 +13,12 @@ The heat flux can be calculated from [ab initio calculations](https://doi.org/10
 
 ## Example: LJ-Argon at 60 K
 
-Here we use Lennard-Jones force fields as an example to calculate the thermal conductivity of Argon, for rapid prototyping the *ab initio* Green-Kubo workflow, including the noise reduction and extrapolation. Example files can be found in the [FHI-vibes Gitlab repository](https://gitlab.com/vibes-developers/vibes) at `example/green_kubo`.
+Here we use Lennard-Jones force fields as an example to calculate the thermal conductivity of Argon, for rapid prototyping the *ab initio* Green-Kubo workflow, including the noise reduction and extrapolation. Example files can be found in the [FHI-vibes Gitlab repository](https://gitlab.com/vibes-developers/vibes) at `examples/green_kubo/lj_argon_60K`.
 
 The thermal conductivity are calculated from *NVE* trajectory. First we will pick a geometry from the *NVT* trajectory as the starting geometry for this *NVE* trajectory. 
 Using command `vibes utils trajectory pick-sample -n 4500 trajectory.nc`, we pick the snapshot at step $4500$ from `trajectory.nc`. 
 Together with `geometry.in.primitive` and `geometry.in.supercell`, we copy the `geometry.in.04500` to a new directory for preparing a *NVE* MD calculation. Here is an example of `md.in`,
+
 ```
 [files]
 geometry:                      geometry.in
@@ -46,6 +47,7 @@ logfile:                       md.log
 To accelerate the calculation, we calculate the atomic stresses every $2$ time step.
 After finishing the computation using command `vibes run md`, we use `vibes output md md/trajectory` to generate the trajectory file `trajectory.nc`.
 Then we calculate the Green-Kubo thermal conductivity using command `vibes output gk --plot trajectory.nc`, a filter window size will be automatically chosen based on the lowest vibrational frequency from the MD simulation and the output shows like this:
+
 ```
 Run aiGK output workflows for trajectory.nc
 [GreenKubo]    Compute Prefactor:
@@ -105,79 +107,80 @@ vibes output gk --interpolate --plot trajectory.nc
 
 You're expected to get something looks like this, which means you have done the right finite-size extrapolation.
 
-```
-[lattice_points] .. matched 108 positions in supercell and primitive cell in 0.470s
-[symmetry]     reduce q-grid w/ 108 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  108/108
-[symmetry]     .. q-points reduced from 108 to 20 points. in 0.079s
-[force_constants] remap force constants
-[force_constants] .. time elapsed: 0.122s
-[force_constants] -> Symmetrize force constants.
-[dynamical_matrix] Setup complete, eigensolution is unitary.
-[gk.harmonic]  Get lifetimes by fitting to exponential
-[gk.harmonic]  ** acf drops fast for s, q: 0, 0 set tau_sq = np.nan
-[gk.harmonic]  ** acf drops fast for s, q: 1, 0 set tau_sq = np.nan
-[gk.harmonic]  ** acf drops fast for s, q: 2, 0 set tau_sq = np.nan
-[gk.harmonic]  .. time elapsed: 0.360s
-[gk.interpolation] Interpolated l_sq at Gamma: [1.52 2.49 4.26]
-[symmetry]     reduce q-grid w/ 64 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  64/64
-[symmetry]     .. q-points reduced from 64 to 16 points. in 0.059s
-[gk.interpolation]   4, Nq_eff =   0.59, kappa = 0.135 W/mK
-[symmetry]     reduce q-grid w/ 216 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  216/216
-[symmetry]     .. q-points reduced from 216 to 40 points. in 0.062s
-[gk.interpolation]   6, Nq_eff =   2.00, kappa = 0.172 W/mK
-[symmetry]     reduce q-grid w/ 512 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  512/512
-[symmetry]     .. q-points reduced from 512 to 80 points. in 0.084s
-[gk.interpolation]   8, Nq_eff =   4.74, kappa = 0.192 W/mK
-[symmetry]     reduce q-grid w/ 1000 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  1000/1000
-[symmetry]     .. q-points reduced from 1000 to 140 points. in 0.120s
-[gk.interpolation]  10, Nq_eff =   9.26, kappa = 0.203 W/mK
-[symmetry]     reduce q-grid w/ 1728 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  1728/1728
-[symmetry]     .. q-points reduced from 1728 to 224 points. in 0.208s
-[gk.interpolation]  12, Nq_eff =  16.00, kappa = 0.209 W/mK
-[symmetry]     reduce q-grid w/ 2744 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  2744/2744
-[symmetry]     .. q-points reduced from 2744 to 336 points. in 0.382s
-[gk.interpolation]  14, Nq_eff =  25.41, kappa = 0.215 W/mK
-[symmetry]     reduce q-grid w/ 4096 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  4096/4096
-[symmetry]     .. q-points reduced from 4096 to 480 points. in 0.643s
-[gk.interpolation]  16, Nq_eff =  37.93, kappa = 0.219 W/mK
-[symmetry]     reduce q-grid w/ 5832 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  5832/5832
-[symmetry]     .. q-points reduced from 5832 to 660 points. in 1.676s
-[gk.interpolation]  18, Nq_eff =  54.00, kappa = 0.221 W/mK
-[symmetry]     reduce q-grid w/ 8000 points
-[symmetry]        |||||||||||||||||||||||||||||||||||||  8000/8000
-[symmetry]     .. q-points reduced from 8000 to 880 points. in 1.858s
-[gk.interpolation]  20, Nq_eff =  74.07, kappa = 0.225 W/mK
-[gk.interpolation] Initial harmonic kappa value:       0.149 W/mK
-[gk.interpolation] Fit intercept:                      0.247 W/mK
-[gk.interpolation] Fit intercept - initial value:      0.098 +/- 0.001  W/mK
-[gk.interpolation] Interpolated harm. kappa:           0.247 +/- 0.001 W/mK
-[gk.interpolation] Correction^ab: 
-[gk.interpolation] [[ 0.098 -0.003 -0.003]
-[gk.interpolation]  [-0.003  0.098 -0.003]
-[gk.interpolation]  [-0.003 -0.003  0.098]]
-[gk.interpolation] Correction:                         0.098 +/- 0.001 W/mK
-[gk.interpolation] Correction factor:                  1.655 +/- 0.008
-[GreenKubo]    END RESULT: Finite-size corrected thermal conductivity
-[GreenKubo]    Corrected kappa is:       0.350 +/- 0.066 W/mK
-[GreenKubo]    Corrected kappa^ab (W/mK) is: 
-[GreenKubo]    [[ 0.217 -0.003 -0.003]
-[GreenKubo]     [ 0.019  0.338 -0.003]
-[GreenKubo]     [-0.003 -0.003  0.497]]
-.. write to greenkubo.nc
-..    green kubo summary plotted to greenkubo_summary.png
-.. interpolation summary plotted to greenkubo_interpolation.png
-.. interpolation summary plotted to greenkubo_interpolation_fit.png
-..      lifetime summary plotted to greenkubo_interpolation_lifetimes.png
-```
+??? info "Output of `vibes output gk --interpolate --plot trajectory.nc`"
+    ```
+    [lattice_points] .. matched 108 positions in supercell and primitive cell in 0.470s
+    [symmetry]     reduce q-grid w/ 108 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  108/108
+    [symmetry]     .. q-points reduced from 108 to 20 points. in 0.079s
+    [force_constants] remap force constants
+    [force_constants] .. time elapsed: 0.122s
+    [force_constants] -> Symmetrize force constants.
+    [dynamical_matrix] Setup complete, eigensolution is unitary.
+    [gk.harmonic]  Get lifetimes by fitting to exponential
+    [gk.harmonic]  ** acf drops fast for s, q: 0, 0 set tau_sq = np.nan
+    [gk.harmonic]  ** acf drops fast for s, q: 1, 0 set tau_sq = np.nan
+    [gk.harmonic]  ** acf drops fast for s, q: 2, 0 set tau_sq = np.nan
+    [gk.harmonic]  .. time elapsed: 0.360s
+    [gk.interpolation] Interpolated l_sq at Gamma: [1.52 2.49 4.26]
+    [symmetry]     reduce q-grid w/ 64 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  64/64
+    [symmetry]     .. q-points reduced from 64 to 16 points. in 0.059s
+    [gk.interpolation]   4, Nq_eff =   0.59, kappa = 0.135 W/mK
+    [symmetry]     reduce q-grid w/ 216 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  216/216
+    [symmetry]     .. q-points reduced from 216 to 40 points. in 0.062s
+    [gk.interpolation]   6, Nq_eff =   2.00, kappa = 0.172 W/mK
+    [symmetry]     reduce q-grid w/ 512 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  512/512
+    [symmetry]     .. q-points reduced from 512 to 80 points. in 0.084s
+    [gk.interpolation]   8, Nq_eff =   4.74, kappa = 0.192 W/mK
+    [symmetry]     reduce q-grid w/ 1000 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  1000/1000
+    [symmetry]     .. q-points reduced from 1000 to 140 points. in 0.120s
+    [gk.interpolation]  10, Nq_eff =   9.26, kappa = 0.203 W/mK
+    [symmetry]     reduce q-grid w/ 1728 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  1728/1728
+    [symmetry]     .. q-points reduced from 1728 to 224 points. in 0.208s
+    [gk.interpolation]  12, Nq_eff =  16.00, kappa = 0.209 W/mK
+    [symmetry]     reduce q-grid w/ 2744 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  2744/2744
+    [symmetry]     .. q-points reduced from 2744 to 336 points. in 0.382s
+    [gk.interpolation]  14, Nq_eff =  25.41, kappa = 0.215 W/mK
+    [symmetry]     reduce q-grid w/ 4096 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  4096/4096
+    [symmetry]     .. q-points reduced from 4096 to 480 points. in 0.643s
+    [gk.interpolation]  16, Nq_eff =  37.93, kappa = 0.219 W/mK
+    [symmetry]     reduce q-grid w/ 5832 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  5832/5832
+    [symmetry]     .. q-points reduced from 5832 to 660 points. in 1.676s
+    [gk.interpolation]  18, Nq_eff =  54.00, kappa = 0.221 W/mK
+    [symmetry]     reduce q-grid w/ 8000 points
+    [symmetry]        |||||||||||||||||||||||||||||||||||||  8000/8000
+    [symmetry]     .. q-points reduced from 8000 to 880 points. in 1.858s
+    [gk.interpolation]  20, Nq_eff =  74.07, kappa = 0.225 W/mK
+    [gk.interpolation] Initial harmonic kappa value:       0.149 W/mK
+    [gk.interpolation] Fit intercept:                      0.247 W/mK
+    [gk.interpolation] Fit intercept - initial value:      0.098 +/- 0.001  W/mK
+    [gk.interpolation] Interpolated harm. kappa:           0.247 +/- 0.001 W/mK
+    [gk.interpolation] Correction^ab: 
+    [gk.interpolation] [[ 0.098 -0.003 -0.003]
+    [gk.interpolation]  [-0.003  0.098 -0.003]
+    [gk.interpolation]  [-0.003 -0.003  0.098]]
+    [gk.interpolation] Correction:                         0.098 +/- 0.001 W/mK
+    [gk.interpolation] Correction factor:                  1.655 +/- 0.008
+    [GreenKubo]    END RESULT: Finite-size corrected thermal conductivity
+    [GreenKubo]    Corrected kappa is:       0.350 +/- 0.066 W/mK
+    [GreenKubo]    Corrected kappa^ab (W/mK) is: 
+    [GreenKubo]    [[ 0.217 -0.003 -0.003]
+    [GreenKubo]     [ 0.019  0.338 -0.003]
+    [GreenKubo]     [-0.003 -0.003  0.497]]
+    .. write to greenkubo.nc
+    ..    green kubo summary plotted to greenkubo_summary.png
+    .. interpolation summary plotted to greenkubo_interpolation.png
+    .. interpolation summary plotted to greenkubo_interpolation_fit.png
+    ..      lifetime summary plotted to greenkubo_interpolation_lifetimes.png
+    ```
 
 and the following plots, helping to understand the extrapolation method.
 
@@ -210,10 +213,7 @@ of the linear fit. The finite-size correction $\Delta \kappa$ is calculated by,
 
 $$\Delta\kappa = \kappa_{\rm hm-bulk} - \kappa_{\rm hm}$$
 
-
-
-
-#### TODO
-Adjusting the simulation time (for example double or half the simulation time) to test if the thermal conductivity increase.
-Pick several snapshots from an NVT trajectory as the starting points as starting geometry, and run NVE trajectory from each starting points. Test the ensemble uncertainty and convergence.
+## TODO
+1. Adjusting the simulation time (for example double or half the simulation time) to test how the thermal conductivity converge with simulation time.
+2. Pick several snapshots from a NVT trajectory as the starting points, and run NVE simulaiton from each starting point. Test the ensemble uncertainty and convergence.
 
