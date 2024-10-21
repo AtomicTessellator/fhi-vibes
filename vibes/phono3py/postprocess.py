@@ -1,11 +1,11 @@
-"""Provide a full highlevel phonopy workflow"""
+"""Provide a full highlevel phono3py workflow"""
 
 from pathlib import Path
 
 import numpy as np
 
 from vibes.filenames import filenames
-from vibes.helpers import Timer, talk, warn
+from vibes.helpers import Timer, warn
 from vibes.helpers.converters import dict2atoms
 from vibes.helpers.paths import cwd
 from vibes.io import write
@@ -14,13 +14,10 @@ from vibes.phonopy import displacement_id_str
 from vibes.structure.convert import to_Atoms
 from vibes.trajectory import reader
 
-from . import _defaults as defaults
-
 
 def postprocess(
     trajectory=filenames.trajectory,
     workdir=".",
-    output_dir="output",
     verbose=True,
     **kwargs,
 ):
@@ -31,7 +28,6 @@ def postprocess(
     ----
         trajectory: The trajectory file to process
         workdir: The working directory where trajectory is stored
-        output_dir: write postprocessing results to this folder
         verbose: be verbose
 
     Returns:
@@ -39,7 +35,7 @@ def postprocess(
         phono3py.Phono3py: The Phono3py object with the force constants calculated
 
     """
-    timer = Timer("Start phonopy postprocess:")
+    timer = Timer("Start phono3py postprocess:")
 
     trajectory = Path(workdir) / trajectory
 
@@ -66,10 +62,10 @@ def postprocess(
     supercell.info = {"supercell_matrix": str(supercell_matrix)}
     symprec = metadata["Phono3py"]["symprec"]
 
-    phonon = prepare_phono3py(primitive, supercell_matrix, symprec=symprec)
-    phonon.dataset = metadata["Phono3py"]["displacement_dataset"].copy()
+    phonon3 = prepare_phono3py(primitive, supercell_matrix, symprec=symprec)
+    phonon3.dataset = metadata["Phono3py"]["displacement_dataset"].copy()
 
-    scs = phonon.supercells_with_displacements
+    scs = phonon3.supercells_with_displacements
 
     n_sc = len(scs)
     n_calc = len(calculated_atoms)
@@ -87,37 +83,30 @@ def postprocess(
             continue
         force_sets.append(a.get_forces())
 
-    phonon.forces = np.array(force_sets)
+    phonon3.forces = np.array(force_sets)
 
-    phonon.produce_fc2()
-    phonon.produce_fc3()
-
-    if output_dir is not None:
-        outfile = Path(workdir) / output_dir
-        msg = f"Write postprocessing results to {outfile}"
-        talk(msg, prefix=defaults.name)
-
-        extract_results(phonon, output_dir=outfile)
+    phonon3.produce_fc2()
+    phonon3.produce_fc3()
 
     if verbose:
         timer("done")
 
-    return phonon
+    return phonon3
 
 
-def extract_results(phonon, output_dir="output"):
+def extract_results(phonon3, output_dir="output"):
     from phono3py import file_IO as io
 
     from .wrapper import phono3py_save
 
-    primitive = phonon.unitcell
-    supercell = phonon.supercell
-    p2s_map = phonon.primitive.p2s_map
+    primitive = phonon3.unitcell
+    supercell = phonon3.supercell
+    p2s_map = phonon3.primitive.p2s_map
 
-    dds = phonon.dataset
+    dds = phonon3.dataset
 
-    fc2 = phonon.fc2
-    fc3 = phonon.fc3
+    fc2 = phonon3.fc2
+    fc3 = phonon3.fc3
 
     with cwd(output_dir, mkdir=True):
         p = to_Atoms(primitive)
@@ -131,4 +120,4 @@ def extract_results(phonon, output_dir="output"):
         io.write_fc3_to_hdf5(fc3, p2s_map=p2s_map)
 
         # save yaml
-        phono3py_save(phonon)
+        phono3py_save(phonon3)

@@ -157,23 +157,16 @@ def phonopy(
 
 @output.command()
 @click.argument("file", default="trajectory.son", type=complete_files)
-# necessary?
-@click.option("--q_mesh", nargs=3, default=None)
 @click.pass_obj
-def phono3py(obj, file, q_mesh):
+def phono3py(obj, file):
     """Perform phono3py postprocess for trajectory in FILE"""
-    from vibes.phono3py._defaults import kwargs
     from vibes.phono3py.postprocess import extract_results, postprocess
 
-    if not q_mesh:
-        q_mesh = kwargs.q_mesh.copy()
-        click.echo(f"q_mesh not given, use default {q_mesh}")
-
-    phonon = postprocess(trajectory=file)
+    phonon3 = postprocess(trajectory=file)
 
     output_directory = Path(file).parent / "output"
 
-    extract_results(phonon, output_dir=output_directory)
+    extract_results(phonon3, output_dir=output_directory)
 
 
 @output.command(aliases=["gk"], context_settings=_default_context_settings)
