@@ -96,7 +96,7 @@ def get_supercells_with_displacements(phonon):
 
     scells = phonon.supercells_with_displacements
 
-    supercells_with_disps = [to_Atoms(cell) for cell in scells]
+    supercells_with_disps = [to_Atoms(cell) for cell in scells if cell is not None]
 
     enumerate_displacements(supercells_with_disps)
 

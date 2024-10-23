@@ -67,6 +67,11 @@ def postprocess(
 
     scs = phonon3.supercells_with_displacements
 
+    # fill excluded supercell due to cutoff_pair_distance
+    for n_cell, cell in enumerate(scs):
+        if cell is None:
+            calculated_atoms.insert(n_cell, None)
+
     n_sc = len(scs)
     n_calc = len(calculated_atoms)
     for disp_id in range(n_calc, n_sc):
