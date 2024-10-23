@@ -67,26 +67,27 @@ def postprocess(
 
     scs = phonon3.supercells_with_displacements
 
-    # fill excluded supercell due to cutoff_pair_distance
-    for n_cell, cell in enumerate(scs):
-        if cell is None:
-            calculated_atoms.insert(n_cell, None)
+    # None cell shows in scs due to cutoff_pair_distance
+    valid_scs = [cell for cell in scs if cell is not None]
 
-    n_sc = len(scs)
+    n_valid_sc = len(valid_scs)
     n_calc = len(calculated_atoms)
-    for disp_id in range(n_calc, n_sc):
+    for disp_id in range(n_calc, n_valid_sc):
         if disp_id not in excluded_displacements:
-            msg = f"No. of supercells {n_sc} != no. of calculated atoms: {n_calc}"
+            msg = f"No. of supercells {n_valid_sc} != no. of calculated atoms: {n_calc}"
             raise RuntimeError(msg)
         n_calc += 1
         calculated_atoms.append(None)
 
     force_sets = []
-    for pa, a in zip(scs, calculated_atoms):
-        if pa is None:
+    _n_valid_cell = 0
+    for cell in scs:
+        if cell is None:
             force_sets.append(np.zeros([len(supercell), 3]))
             continue
-        force_sets.append(a.get_forces())
+        atoms = calculated_atoms[_n_valid_cell]
+        _n_valid_cell += 1
+        force_sets.append(atoms.get_forces())
 
     phonon3.forces = np.array(force_sets)
 

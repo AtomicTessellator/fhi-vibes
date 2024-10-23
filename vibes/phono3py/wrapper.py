@@ -7,6 +7,7 @@ from phono3py.api_phono3py import Phono3pyYaml
 from vibes import konstanten as const
 from vibes.helpers.numerics import get_3x3_matrix
 from vibes.phonopy import get_supercells_with_displacements
+from vibes.phonopy import enumerate_displacements
 from vibes.structure.convert import to_phonopy_atoms
 
 from . import _defaults as defaults
@@ -120,7 +121,13 @@ def preprocess(
         log_level=log_level,
     )
 
-    return get_supercells_with_displacements(phonon3)
+    phonon3, scell, supercells_with_disps = get_supercells_with_displacements(phonon3)
+
+    # exclude the none cells due to cutoff_pair_distance
+    scs = [atoms for atoms in supercells_with_disps if atoms is not None]
+    enumerate_displacements(scs)
+
+    return phonon3, scell, scs
 
 
 def phono3py_save(phonon: Phono3py, file=defaults.phono3py_params_yaml_file):
