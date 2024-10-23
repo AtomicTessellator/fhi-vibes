@@ -82,7 +82,6 @@ def preprocess(
     supercell_matrix,
     cutoff_pair_distance=defaults.kwargs.cutoff_pair_distance,
     is_diagonal=defaults.kwargs.is_diagonal,
-    q_mesh=defaults.kwargs.q_mesh,
     displacement=defaults.kwargs.displacement,
     symprec=defaults.kwargs.symprec,
     log_level=defaults.kwargs.log_level,
@@ -97,7 +96,6 @@ def preprocess(
         supercell_matrix: np.ndarray
         cutoff_pair_distance: float
         is_diagonal: bool
-        q_mesh: np.ndarray
         displacement: float
         symprec: float
         log_level: int
@@ -114,7 +112,6 @@ def preprocess(
         supercell_matrix=supercell_matrix,
         cutoff_pair_distance=cutoff_pair_distance,
         is_diagonal=is_diagonal,
-        q_mesh=q_mesh,
         displacement=displacement,
         symprec=symprec,
         log_level=log_level,
@@ -139,7 +136,6 @@ def phono3py_save(phonon: Phono3py, file=defaults.phono3py_params_yaml_file):
 
 def phono3py_load(
     file=defaults.phono3py_params_yaml_file,
-    mesh=defaults.kwargs.q_mesh,
     log_level=defaults.kwargs.log_level,
     **kwargs,
 ):

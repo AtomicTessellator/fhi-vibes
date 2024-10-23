@@ -61,6 +61,7 @@ nav:
             - Workflows:
                 - "Relaxation": Documentation/relaxation.md
                 - "Phonopy": Documentation/phonopy.md
+                - "Phono3py": Documentation/phono3py.md
                 - "Molecular Dynamics": Documentation/md.md
             - Documentation/input_files_slurm.md
         - Documentation/output_files.md
