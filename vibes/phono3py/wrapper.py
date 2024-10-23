@@ -6,8 +6,7 @@ from phono3py.api_phono3py import Phono3pyYaml
 
 from vibes import konstanten as const
 from vibes.helpers.numerics import get_3x3_matrix
-from vibes.phonopy import get_supercells_with_displacements
-from vibes.phonopy import enumerate_displacements
+from vibes.phonopy import enumerate_displacements, get_supercells_with_displacements
 from vibes.structure.convert import to_phonopy_atoms
 
 from . import _defaults as defaults
