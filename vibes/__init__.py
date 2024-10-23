@@ -1,7 +1,7 @@
 """useful things to import"""
 # flake8: noqa
 
-import pkg_resources
+from importlib.metadata import version 
 
 from ._defaults import (
     DEFAULT_CONFIG_FILE,
@@ -13,4 +13,4 @@ from ._defaults import (
 from .settings import Configuration, Settings
 
 
-__version__ = str(pkg_resources.require("fhi-vibes")[0].version)
+__version__ = version("fhi-vibes")
