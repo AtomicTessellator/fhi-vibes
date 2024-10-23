@@ -341,7 +341,15 @@ def get_gk_ha_q_data(
     # scalar cv: account for cv/kB not exactly 1 in the numeric simulation
     # choose such that c * K(c_s=kB) = K(c_s=c_s)
     k = K_ha_q.data.diagonal().mean()
-    if k < 1.0e-4:  # comment: this criteria needs a careful tuning
+
+    # SZ comments:
+    # In some cases, the commensurate q points are at BZ boundary,
+    # such that the thermal conductivity of these q points are zero.
+    # The heat capacity calculated for such cases is zero/zero,
+    # which has large numerical error.
+    # For such cases (kappa < 1.0e-4, this criteria need attention),
+    # we use the mean of the heat capacity instead of weighted average.
+    if k < 1.0e-4:
         cv = cv_sq.mean()
     else:
         cv = k / get_kappa(v_sqa=v_sqa, tau_sq=tau_sq, scalar=True)
