@@ -9,11 +9,11 @@ vibes:
   stage: test
   before_script:
     # check syntax before doing anything
-    - conda install -c conda-forge openblas
+    - conda install -c conda-forge fortran-compiler cmake openblas libxcrypt
     - pip install ruff
     - ruff check
     - apt-get update
-    - apt-get install -y gnupg curl gfortran g++ liblapack-dev liblapacke-dev
+    - apt-get install -y gnupg curl g++ liblapack-dev liblapacke-dev
     - wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
     - echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
     - apt-get update
