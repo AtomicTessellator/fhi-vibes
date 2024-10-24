@@ -40,9 +40,10 @@ def test_get_gk_dataset(ref_gk_ds=gk_ds):
     _keys = (
         keys.hf_acf,
         keys.kappa_cumulative,
+        keys.interpolation_kappa_array,
     )
 
-    GK_DS = gk.get_gk_dataset(ds)
+    GK_DS = gk.get_gk_dataset(ds, interpolate=True)
 
     for key in _keys:
         assert np.allclose(ref_gk_ds.get(key).data, GK_DS.get(key).data)
