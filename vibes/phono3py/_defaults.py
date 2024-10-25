@@ -1,6 +1,8 @@
 """vibes Phono3py defaults"""
 
-from vibes.phonopy._defaults import kwargs as defaults_fc2
+import collections
+
+from vibes.helpers.dict import AttributeDict as adict
 
 name = "phono3py"
 
@@ -9,15 +11,28 @@ mandatory = {
     "mandatory_obj_keys": ["supercell_matrix"],
 }
 
-kwargs = defaults_fc2.copy()
-kwargs.update(
+_keys = [
+    "supercell_matrix",
+    "displacement",
+    "cutoff_pair_distance",
+    "symprec",
+    "is_diagonal",
+    "is_plusminus",
+    "log_level",
+    "workdir",
+]
+keys = collections.namedtuple(f"{name}_keywords", _keys)(*_keys)
+
+kwargs = adict(
     {
-        "displacement": 0.03,
-        "is_diagonal": True,
-        "cutoff_pair_distance": 100.0,
-        "q_mesh": [21, 21, 21],
-        "log_level": 2,
-        "workdir": name,
+        keys.supercell_matrix: [1, 1, 1],
+        keys.displacement: 0.03,
+        keys.cutoff_pair_distance: 100.0,
+        keys.symprec: 1e-5,
+        keys.is_diagonal: True,
+        keys.is_plusminus: "auto",
+        keys.log_level: 2,
+        keys.workdir: name,
     }
 )
 

@@ -26,7 +26,7 @@ The linear term vanishes, since no forces $\vec{F} = - \nabla \mathcal V$ are ac
 Assessing the Hessian $\Phi_{IJ} = \frac{\partial^2 \mathcal V}{\partial \vec{R}_I\partial \vec{R}_J}$ involves some additional
 complications: In contrast to the forces $\vec{F}$, which only depend on the density, the Hessian $\Phi_{IJ}$ also depends
 on its derivative with respect to the nuclear coordinates, i.e., on its _response_ to nuclear displacements. One can either
-use _Density Functional Perturbation Theory (DFPT)_ [[Baroni2001](references.md#baroni2001)] to compute the response
+use _Density Functional Perturbation Theory (DFPT)_ [[Baroni2001](references.md#Baroni2001)] to compute the response
 or one can circumvent this problem by performing the second order derivative _numerically by finite differences_
 
 $$
@@ -134,7 +134,7 @@ foundations, we refer to [[BornHuang](references.md#BornHuang)].
 To compute the quantities introduced above, we will use
 `FHI-vibes`, which uses the package _phonopy_ [[Togo2015](references.md#Togo2015)] as a backend to compute vibrational properties via the finite-displacements method as outlined above. Please note that
 _phonopy_ makes extensive use of symmetry
-analysis [[Parlinski1997](references.md#Parlinski1997)], which allows to reduce numerical noise and to speed up the calculations considerably. Our system of choice will be fcc-diamond Silicon (you can run the tutorial as well with [LJ-Argon](0_intro.md#test-systems-for-the-tutorials)).
+analysis [[Parlinski1997](references.md#Parlinski1997)], which allows to reduce numerical noise and to speed up the calculations considerably. Our system of choice will be fcc-diamond Silicon (you can run the tutorial as well with [LJ-Argon](0_intro.md#lj-argon)).
 
 !!! warning
     In the following exercises, the computational settings, in particular the reciprocal space grid (tag `k_grid`), the basisset and supercell sizes, have been chosen to allow a rapid computation of the exercises. In a _real_ production calculation, the reciprocal space grid, the basis set, and the supercells would all have to be converged with much more care,  although the qualitative trends hold already with the present settings.

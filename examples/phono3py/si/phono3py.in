@@ -1,0 +1,23 @@
+[files]
+geometry:                      geometry.in
+
+[calculator]
+name:                          aims
+socketio:                      true
+
+[calculator.parameters]
+xc:                            pw-lda
+compute_forces:                true
+
+
+[calculator.kpoints]
+density:                       2
+
+[calculator.basissets]
+default:                       light
+
+
+[phono3py]
+supercell_matrix:              [-3,  3,  3,  3, -3,  3,  3,  3, -3]
+cutoff_pair_distance:          6
+workdir:                       phono3py

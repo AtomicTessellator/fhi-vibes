@@ -42,6 +42,10 @@ nav:
             - "Rapid Prototyping": Tutorial/3_md_rapid_prototyping.md
         - Tutorial/4_statistical_sampling.md
         - Tutorial/5_anharmonicity_quantification.md
+        - Tutorial/6_lattice_expansion.md
+        - "Green Kubo":
+            - "Background": Tutorial/7_green_kubo_intro.md
+            - Tutorial/7_green_kubo.md
         - High-Throughput:
             - "Configure FHI-vibes with FireWorks": High_Throughput/Tutorial/0_configuring_fw_for_vibes.md
             - "Phonon Calculations": High_Throughput/Tutorial/1_phonopy.md
@@ -57,6 +61,7 @@ nav:
             - Workflows:
                 - "Relaxation": Documentation/relaxation.md
                 - "Phonopy": Documentation/phonopy.md
+                - "Phono3py": Documentation/phono3py.md
                 - "Molecular Dynamics": Documentation/md.md
             - Documentation/input_files_slurm.md
         - Documentation/output_files.md

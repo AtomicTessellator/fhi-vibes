@@ -26,7 +26,7 @@ dependencies = [
     "matplotlib>=3.1",
     "son>=0.4.1",
     "spglib<=2.3",
-    "phonopy>=2.6",
+    "phonopy>=2.13",
     "ase<=3.22",
     "click>=8.0",
     "attrs>=19.1",
@@ -38,7 +38,8 @@ dependencies = [
     "click_completion>=0.5.2",
     "jconfigparser>=0.1.2",
     "pandas<2.0",
-    "seaborn>=0.11.0"
+    "seaborn>=0.11.0",
+    "ruamel.yaml==0.17.40"
 ]
 dynamic = ["version"]
 
@@ -166,6 +167,7 @@ lint.ignore = [
     "N813",
     "N816",
     "PD011",   # pandas-use-of-dot-values
+    "PD013",   # pandas-use-of-dot-stack
     "PD901",
     "PERF203", # try-except-in-loop
     "PERF401", # try-except-in-loop

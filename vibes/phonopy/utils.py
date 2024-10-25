@@ -7,7 +7,6 @@ from ase import Atoms
 from ase.geometry import get_distances
 from ase.io import read
 from phonopy.file_IO import parse_FORCE_CONSTANTS, read_force_constants_hdf5
-from phonopy.structure.atoms import PhonopyAtoms
 
 from vibes.helpers import Timer, progressbar, talk, warn
 from vibes.helpers.converters import input2dict
@@ -43,29 +42,6 @@ def last_calculation_id(trajectory_file):
         pass
 
     return disp_id
-
-
-def to_phonopy_atoms(atoms):
-    """
-    Convert ase.atoms.Atoms to PhonopyAtoms
-
-    Parameters
-    ----------
-    atoms: ase.atoms.Atoms
-        Atoms to convert
-
-    Returns
-    -------
-    phonopy_atoms: PhonopyAtoms
-        The PhonopyAtoms for the same structure as atoms
-
-    """
-    return PhonopyAtoms(
-        symbols=atoms.get_chemical_symbols(),
-        cell=atoms.get_cell(),
-        masses=atoms.get_masses(),
-        positions=atoms.get_positions(wrap=True),
-    )
 
 
 def enumerate_displacements(cells, info_str=displacement_id_str):
@@ -111,14 +87,14 @@ def get_supercells_with_displacements(phonon):
 
     """
     supercell = to_Atoms(
-        phonon.get_supercell(),
+        phonon.supercell,
         info={
             "supercell": True,
-            "supercell_matrix": phonon.get_supercell_matrix().T.flatten().tolist(),
+            "supercell_matrix": phonon.supercell_matrix.T.flatten().tolist(),
         },
     )
 
-    scells = phonon.get_supercells_with_displacements()
+    scells = phonon.supercells_with_displacements
 
     supercells_with_disps = [to_Atoms(cell) for cell in scells]
 
@@ -162,25 +138,25 @@ def metadata2dict(phonon, calculator):
                 The displacement dataset for the phonon calculation
 
     """
-    atoms = to_Atoms(phonon.get_unitcell())
+    atoms = to_Atoms(phonon.unitcell)
 
     prim_data = input2dict(atoms)
 
     phonon_dict = {
-        "version": phonon.get_version(),
+        "version": phonon.version,
         "primitive": prim_data["atoms"],
-        "supercell_matrix": phonon.get_supercell_matrix().T.astype(int).tolist(),
-        "symprec": float(phonon.get_symmetry().get_symmetry_tolerance()),
-        "displacement_dataset": phonon.get_displacement_dataset(),
+        "supercell_matrix": phonon.supercell_matrix.T.astype(int).tolist(),
+        "symprec": float(phonon.symmetry.tolerance),
+        "displacement_dataset": phonon.dataset,
     }
 
     try:
-        displacements = phonon.get_displacements()
+        displacements = phonon.displacements
         phonon_dict.update({"displacements": displacements})
     except AttributeError:
         pass
 
-    supercell = to_Atoms(phonon.get_supercell())
+    supercell = to_Atoms(phonon.supercell)
     supercell_data = input2dict(supercell, calculator)
 
     return {str(phonon.__class__.__name__): phonon_dict, **supercell_data}
@@ -222,14 +198,14 @@ def get_force_constants_from_trajectory(
     phonon = postprocess(trajectory_file)
 
     if supercell is None:
-        supercell = to_Atoms(phonon.get_supercell())
+        supercell = to_Atoms(phonon.supercell)
         if reduce_fc:
-            return phonon.get_force_constants()
+            return phonon.force_constants
 
     return remap_force_constants(
-        phonon.get_force_constants(),
-        to_Atoms(phonon.get_unitcell()),
-        to_Atoms(phonon.get_supercell()),
+        phonon.force_constants,
+        to_Atoms(phonon.unitcell),
+        to_Atoms(phonon.supercell),
         supercell,
         reduce_fc,
         two_dim,
@@ -340,7 +316,7 @@ def remap_force_constants(
             pairs=sc_r,
             fc_in=force_constants,
             map2prim=map2prim,
-            inv_lattice=new_supercell.get_reciprocal_cell(),
+            inv_lattice=new_supercell.cell.reciprocal(),
             tol=tol,
             eps=eps,
         )

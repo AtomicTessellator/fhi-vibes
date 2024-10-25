@@ -1,0 +1,17 @@
+[files]
+geometry:                      geometry.in
+
+[calculator]
+name:                          lj
+
+[calculator.parameters]
+sigma:                         3.405
+epsilon:                       0.010325
+rc:                            13.0
+
+
+
+[phono3py]
+supercell_matrix:              [-3,  3,  3,  3, -3,  3,  3,  3, -3]
+cutoff_pair_distance:          5
+workdir:                       phono3py

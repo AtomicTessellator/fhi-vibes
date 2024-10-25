@@ -43,7 +43,7 @@ vibes template phonopy >> phonopy.in
     workdir:                       phonopy
     ```
 
-Obviously the most important section in the `phonopy.in` input file is `[phonopy]` which contains information about how the supercells with displacements should be set up to compute the force constants from the [finite-differences method](0_intro.md#Phonons). An explanation for the full list of keywords is found in the [documentation](../Documentation/phonopy.md). The most important two are explained in the following:
+Obviously the most important section in the `phonopy.in` input file is `[phonopy]` which contains information about how the supercells with displacements should be set up to compute the force constants from the [finite-differences method](2_phonopy_intro.md#phonons). An explanation for the full list of keywords is found in the [documentation](../Documentation/phonopy.md). The most important two are explained in the following:
 
 ### Supercell Matrix (`supercell_matrix`)
 

@@ -12,6 +12,7 @@ In particular, you will find
 - Tasks and workflows, i.e.,
     - [Geometry optimization](relaxation.md)
     - [Phonon calculations](phonopy.md)
+    - [Phono3py calculations](phono3py.md)
     - [Molecular dynamics simulations](md.md)
 - and [High-Throughput workflows.](../High_Throughput/Documentation/0_overview.md)
 

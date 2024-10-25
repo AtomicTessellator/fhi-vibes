@@ -85,7 +85,7 @@ Once the geometry files are added, create a phonopy workflow in `workflow.in` wi
     walltime:                      00-04:00:00
     ```
 
-This `workflow.in` is very similar to the `phonopy.in` file from the [phonopy tutorial](../../../Tutorial/2_phonopy), but with a few extra sections and keywords.
+This `workflow.in` is very similar to the `phonopy.in` file from the [phonopy tutorial](../../Tutorial/2_phonopy.md), but with a few extra sections and keywords.
 
 ### FireWorks sections
 
@@ -99,7 +99,7 @@ Furthermore to ensure the MgO and Si calculations do not overwrite each other th
 ### qadapter
 
 Another new section in this workflow is `[phonopy.qadapter]`.
-This section is used to define job/queue specific information (number of nodes and wallclock time limits in this case), for a more complete definition of what to include here see the [documentation](../../Documentation/2_qadapter).
+This section is used to define job/queue specific information (number of nodes and wallclock time limits in this case), for a more complete definition of what to include here see the [documentation](../Documentation/2_qadapter.md).
 Defaults for all of these parameters will be stored in the `my_qadapter.yaml` file.
 
 ### `[phonopy]`
@@ -128,7 +128,7 @@ If it is smaller than the threshold then the supercell is increased to
     M_\text{S, new} = \left(n\right) M_\text{S, base} + M_\text{0}
     \label{eq:update_phonon}
 \end{equation}
-where $M_\text{S, base}$ is defined in [`phonopy.convergence.sc_matrix_base`](../../Documentation/5_phonons/#sc_matrix_base), $n$ the current phonopy iteration, and $M_\text{0}$ is the original supercell defined by `phonopy.supercell_matrix`.
+where $M_\text{S, base}$ is defined in [`phonopy.convergence.sc_matrix_base`](../Documentation/5_phonons.md/#sc_matrix_base), $n$ the current phonopy iteration, and $M_\text{0}$ is the original supercell defined by `phonopy.supercell_matrix`.
 $M_\text{0}$ must be an integer scalar value of $M_\text{S, base}$, or the workflow will not be added to the `LaunchPad`.
 
 A score of 0.80 is considered to be a good balance between getting fully converged results and not going to very large supercell sizes; however, you may want to increase it if very accurate results are needed or lower it if the unitcell of a material is already very large.

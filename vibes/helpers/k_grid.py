@@ -26,7 +26,7 @@ def d2k(atoms, kptdensity=3.5, even=True):
         Monkhorst-Pack grid size in all directions
 
     """
-    recipcell = atoms.get_reciprocal_cell()
+    recipcell = atoms.cell.reciprocal()
     return d2k_recipcell(recipcell, atoms.pbc, kptdensity, even)
 
 
@@ -83,7 +83,7 @@ def k2d(atoms, k_grid=[2, 2, 2]):
         density of kpoints in each direction. result.mean() computes average density
 
     """
-    recipcell = atoms.get_reciprocal_cell()
+    recipcell = atoms.cell.reciprocal()
     densities = k_grid / (2 * np.pi * np.sqrt((recipcell**2).sum(axis=1)))
     return np.array(densities)
 

@@ -49,6 +49,8 @@ atomic_units = AttributeDict(
 omega_to_THz = (EV / AA**2 / AMU) ** 0.5 / THZ / 2 / PI  # 15.633302 THz
 THz_to_cm = THZ / LIGHT / 100  # 33.3564 [1/cm]
 omega_to_cm = omega_to_THz * THz_to_cm
+gv_to_AA_fs = omega_to_THz / 1000  # group velocity to AA/fs
+to_W_mK = EV * 1e25 # eV/fs/A -> 1.602e-19 J / 1e-15 s / 1e-10 m
 
 amu_AA_THz_to_eV = AMU * AA**2 * THZ**2 / EV
 

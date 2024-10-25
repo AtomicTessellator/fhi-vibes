@@ -1,6 +1,6 @@
 # Rapid Prototyping with Empirical Force-Fields
 
-The aim of this tutorial is to learn how to use force-fields within FHI-vibes. For this purpose, we use [the Lennard-Jones Argon test case](0_intro.md#test-systems) at $20\,{\rm K}$
+The aim of this tutorial is to learn how to use force-fields within FHI-vibes. For this purpose, we use [the Lennard-Jones Argon test case](0_intro.md#lj-argon) at $20\,{\rm K}$
 and perform the exact same calculation steps discussed for LDA-Silicon in the previous tutorial. Since force evaluations for such a toy system are order of magnitudes faster compared to _ab initio_
 methods, this allows to quickly test and illustrate the influence of varios computational parameter on the MD. For instance, we suggest to test the workflow below for various supercell
 sizes, temperatures, timesteps, etc.
@@ -14,7 +14,7 @@ sizes, temperatures, timesteps, etc.
 
 ### Generate a structure
 
-Copy the [the Argon structure](0_intro.md#test-systems) to a file called `geometry.in.primitive`. From this primitive cell, we can use the CLI to generate a supercell of about 100 atoms:
+Copy the [the Argon structure](0_intro.md#lj-argon) to a file called `geometry.in.primitive`. From this primitive cell, we can use the CLI to generate a supercell of about 100 atoms:
 
 ```
 vibes utils make_supercell geometry.in.primitive -n 100

@@ -10,12 +10,12 @@ In the documentation and tutorials, knowledge of first-principles electronic-str
 - Geometry optimization via [ASE](https://wiki.fysik.dtu.dk/ase/ase/optimize.html#module-ase.optimize),
 - harmonic phonon calculations via [Phonopy](https://atztogo.github.io/phonopy/),
 - molecular dynamics simulations in [NVE](https://wiki.fysik.dtu.dk/ase/ase/md.html#constant-nve-simulations-the-microcanonical-ensemble), [NVT](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md.langevin), and [NPT](https://wiki.fysik.dtu.dk/ase/ase/md.html#module-ase.md.nptberendsen) ensembles,
-- [harmonic sampling](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.96.115504), and
-- [anharmonicity quantification](https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.4.083809).
+- [harmonic sampling](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.96.115504),
+- [anharmonicity quantification](https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.4.083809), and
+- thermal transport with [ab initio Green-Kubo](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.107.224304) and [Phono3py](Documentation/phono3py.md)
 
 Most of the functionality is high-throughput ready via [fireworks](https://materialsproject.github.io/fireworks/#).
 
-A reference implementation of the [ab initio Green Kubo method](https://arxiv.org/abs/2209.01139) is [available](https://gitlab.com/vibes-developers/vibes/-/merge_requests/57). However, we ask you to contact the developers before using this functionality as it requires extra instructions.
 
 ## Overview
 

@@ -28,7 +28,7 @@ Sections to do relaxation of structures. This is a general definition for variou
 
 #### `use_aims_relax`
 
-`bool`: True if you want to use the aims relaxation instead of the one defined in the [`relaxation`](../../../Documentation/relaxation) portion of the documentation. For this documentation we will only show keywords if this is true. If this is false then use the keywords you'd normally use for a relaxation
+`bool`: True if you want to use the aims relaxation instead of the one defined in the [`relaxation`](../../Documentation/relaxation.md) portion of the documentation. For this documentation we will only show keywords if this is true. If this is false then use the keywords you'd normally use for a relaxation
 
 #### `basis`
 

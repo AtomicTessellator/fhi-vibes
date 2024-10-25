@@ -8,5 +8,4 @@ from vibes.phonopy.utils import (
     get_supercells_with_displacements,
     last_calculation_id,
     metadata2dict,
-    to_phonopy_atoms,
 )

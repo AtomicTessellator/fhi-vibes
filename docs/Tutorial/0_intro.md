@@ -20,7 +20,11 @@ The following tutorials are available:
 - [Molecular dynamics](3_md_intro.md)
 - [Harmonic sampling](4_statistical_sampling.md)
 - [Anharmonicity quantification](5_anharmonicity_quantification.md)
+- [Lattice Expansion](6_lattice_expansion.md)
+- [Green Kubo](7_green_kubo.md)
 - [High-Throughput workflows](../High_Throughput/Tutorial/0_configuring_fw_for_vibes.md)
+
+### LDA-Silicon
 
 All tutorials discuss fcc-Silicon, which is treated at the _ab initio_ level using FHI-aims and the LDA exchange-correlation functional.
 Although only very moderate computational resources are needed (mostly few minutes of runtime on a modern multi-core node), the tutorials
@@ -94,6 +98,7 @@ More details for each keyword can be found in the documentation.
     tutorials for LJ-Argon. Such calculations take only seconds, even on older laptops. The required geometry description
     and calculator settings are given below.
 
+### LJ-Argon
 
 ??? info "Geometry in put file `geometry.in`"
     ```

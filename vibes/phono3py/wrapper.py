@@ -6,7 +6,7 @@ from phono3py.api_phono3py import Phono3pyYaml
 
 from vibes import konstanten as const
 from vibes.helpers.numerics import get_3x3_matrix
-from vibes.phonopy import get_supercells_with_displacements
+from vibes.phonopy import enumerate_displacements, get_supercells_with_displacements
 from vibes.structure.convert import to_phonopy_atoms
 
 from . import _defaults as defaults
@@ -20,9 +20,7 @@ def prepare_phono3py(
     cutoff_pair_distance=defaults.kwargs.cutoff_pair_distance,
     displacement_dataset=None,
     is_diagonal=defaults.kwargs.is_diagonal,
-    q_mesh=defaults.kwargs.q_mesh,
     displacement=defaults.kwargs.displacement,
-    symmetrize_fc3q=False,
     symprec=defaults.kwargs.symprec,
     log_level=defaults.kwargs.log_level,
     **kwargs,
@@ -41,7 +39,6 @@ def prepare_phono3py(
         is_diagonal: bool
         mesh: np.ndarray
         displacement: float
-        symmetrize_fc3q: bool
         symprec: float
         log_level: int
 
@@ -57,16 +54,14 @@ def prepare_phono3py(
     phonon3 = Phono3py(
         ph_atoms,
         supercell_matrix=np.transpose(supercell_matrix),
-        mesh=q_mesh,
         symprec=symprec,
         is_symmetry=True,
-        symmetrize_fc3q=symmetrize_fc3q,
         frequency_factor_to_THz=const.omega_to_THz,
         log_level=log_level,
     )
 
     if displacement_dataset is not None:
-        phonon3.set_displacement_dataset(displacement_dataset)
+        phonon3.dataset = displacement_dataset
 
     phonon3.generate_displacements(
         distance=displacement,
@@ -87,7 +82,6 @@ def preprocess(
     supercell_matrix,
     cutoff_pair_distance=defaults.kwargs.cutoff_pair_distance,
     is_diagonal=defaults.kwargs.is_diagonal,
-    q_mesh=defaults.kwargs.q_mesh,
     displacement=defaults.kwargs.displacement,
     symprec=defaults.kwargs.symprec,
     log_level=defaults.kwargs.log_level,
@@ -102,7 +96,6 @@ def preprocess(
         supercell_matrix: np.ndarray
         cutoff_pair_distance: float
         is_diagonal: bool
-        q_mesh: np.ndarray
         displacement: float
         symprec: float
         log_level: int
@@ -119,13 +112,18 @@ def preprocess(
         supercell_matrix=supercell_matrix,
         cutoff_pair_distance=cutoff_pair_distance,
         is_diagonal=is_diagonal,
-        q_mesh=q_mesh,
         displacement=displacement,
         symprec=symprec,
         log_level=log_level,
     )
 
-    return get_supercells_with_displacements(phonon3)
+    phonon3, scell, supercells_with_disps = get_supercells_with_displacements(phonon3)
+
+    # exclude the none cells due to cutoff_pair_distance
+    scs = [atoms for atoms in supercells_with_disps if atoms is not None]
+    enumerate_displacements(scs)
+
+    return phonon3, scell, scs
 
 
 def phono3py_save(phonon: Phono3py, file=defaults.phono3py_params_yaml_file):
@@ -138,7 +136,6 @@ def phono3py_save(phonon: Phono3py, file=defaults.phono3py_params_yaml_file):
 
 def phono3py_load(
     file=defaults.phono3py_params_yaml_file,
-    mesh=defaults.kwargs.q_mesh,
     log_level=defaults.kwargs.log_level,
     **kwargs,
 ):

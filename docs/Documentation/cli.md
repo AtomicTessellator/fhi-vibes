@@ -52,6 +52,7 @@ Commands:
   anharmonicity   Compute sigmaA for trajectory dataset in FILE
   csv             show contents of csv FILE
   geometry        inform about a structure in a geometry input file
+  greenkubo (gk)  Visualize heat flux and thermal conductivity
   md              inform about MD simulation in FILE
   netcdf          show contents of netCDF FILE
   phonopy         inform about a phonopy calculation based on the input FILE
@@ -75,6 +76,7 @@ Options:
 
 Commands:
   md           run an MD simulation from FILE (default: md.in)
+  phono3py     Run a phono3py calculation from FILE (default: phono3py.in)
   phonopy      run a phonopy calculation from FILE (default: phonopy.in)
   relaxation   run an relaxation from FILE (default: relaxation.in)
   singlepoint  run singlepoint calculations from FILE (default: aims.in)
@@ -97,6 +99,7 @@ Options:
 
 Commands:
   md           submit MD simulation from FILE (default: md.in)
+  phono3py     Submit a phono3py calculation for FILE (default: phono3py.in)
   phonopy      submit a phonopy calculation from FILE (default: phonopy.in)
   relaxation   submit relaxation from FILE (default: relaxation.in)
   singlepoint  submit singlepoint calculations from FILE (default: aims.in)
@@ -115,6 +118,8 @@ Options:
   -h, --help  Show this message and exit.
 
 Commands:
+  greenkubo (gk)   Perform greenkubo analysis for dataset in FILE
+  phono3py         Perform phono3py postprocess for trajectory in FILE
   phonopy          perform phonopy postprocess for trajectory in FILE
   trajectory (md)  write trajectory data in FILE to xarray.Dataset
 ```

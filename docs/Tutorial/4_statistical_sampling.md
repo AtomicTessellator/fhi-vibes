@@ -104,7 +104,7 @@ where $\langle A_s \rangle$ is given by Eq. $\eqref{eq:As}$ and each $\zeta_s (n
 
 We will reuse the calculation from [the previous tutorial on phonon calculations](2_phonopy.md) in the conventional cell with 8 atoms. If you didn't run these calculations, you find the respective calculations in [our reference repository](https://gitlab.com/vibes-developers/vibes-tutorial-files/-/tree/master/2_phonopy/sc_8).
 
-As start, [perform the postprocess](2_phonopy.md#basic-postprocessing) in the `phonopy` folder:
+As start, [perform the postprocess](2_phonopy.md#postprocessing) in the `phonopy` folder:
 
 ```
 cd phonopy

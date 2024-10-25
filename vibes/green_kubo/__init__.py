@@ -4,7 +4,6 @@ from collections import namedtuple
 
 import numpy as np
 import xarray as xr
-from ase import units
 from scipy import signal as sl
 
 from vibes import defaults, keys
@@ -14,6 +13,7 @@ from vibes.fourier import get_fourier_transformed
 from vibes.helpers import Timer, talk, warn
 from vibes.helpers.filter import get_filtered
 from vibes.integrate import get_cumtrapz
+from vibes.konstanten import to_W_mK, units
 
 _prefix = "GreenKubo"
 
@@ -25,32 +25,28 @@ def _talk(msg, **kw):
     return talk(msg, prefix=_prefix, **kw)
 
 
-def gk_prefactor(
-    volume: float, temperature: float, fs_factor: float = 1, verbose: bool = False
-) -> float:
+def gk_prefactor(volume: float, temperature: float, verbose: bool = False) -> float:
     """
-    Convert eV/AA^2/fs to W/mK
+    Compute GK prefactor V / (k_B * T^2) and convert from eV/AA^2/fs to W/mK
 
     Args:
     ----
         volume (float): volume of the supercell in AA^3
         temperature (float): avg. temp. in K (trajectory.temperatures.mean())
-        fs_factor (float): time * fs_factor = time in fs
 
     Returns:
     -------
-        V / (k_B * T^2) * 1602
+        V / (k_B * T^2) * 1.602e6
 
     """
     V = float(volume)
     T = float(temperature)
-    prefactor = 1 / units.kB / T**2 * 1.602 * V / fs_factor  # / 1000
+    prefactor = 1 / units.kB / T**2 * V * to_W_mK
     msg = [
         "Compute Prefactor:",
         f".. Volume:        {V:10.2f}  AA^3",
-        f".. Temperaturee:   {T:10.2f}  K",
-        f".. factor to fs.: {fs_factor:10.5f}",
-        f"-> Prefactor:     {prefactor:10.2f}  W/mK / (eV/AA^/fs)",
+        f".. Temperature:   {T:10.2f}  K",
+        f"-> Prefactor:     {prefactor:10.3e}  W/mK / (eV/AA^2/fs)",
     ]
     _talk(msg, verbose=verbose)
     return float(prefactor)
@@ -64,7 +60,11 @@ def get_gk_prefactor_from_dataset(dataset: xr.Dataset, verbose: bool = True) -> 
 
 
 def get_hf_data(
-    flux: xr.DataArray, dropna_dim=keys.time, distribute=True
+    flux: xr.DataArray,
+    dropna_dim=keys.time,
+    prefactor: float = 1.0,
+    total: bool = False,
+    distribute: bool = True,
 ) -> namedtuple:
     """
     Compute heat flux autocorrelation and integrated kappa from heat flux
@@ -73,7 +73,8 @@ def get_hf_data(
     ----
         flux [N_t, 3]: the heat flux in an xr.DataArray
         dropna_dim: drop nan values along this dimension (default: `time`)
-        bool: use multiprocessing to parallelize autocorrelation
+        prefactor: GK prefactor  V/kB/T**2
+        distribute: use multiprocessing to parallelize autocorrelation
 
     Returns:
     -------
@@ -84,12 +85,19 @@ def get_hf_data(
     flux = flux.dropna(dropna_dim)
 
     # compute the time mean flux of flux <J>
-    flux_avg = flux.mean(axis=0)
+    if total:
+        flux_avg = 0
+        _talk("use no Gauge in flux hfacf")
+    else:
+        flux_avg = flux.mean(axis=0)
 
     # compute heat flux autocorrelation function (HFACF) <J(t)J>
     flux_corr = get_autocorrelationNd(
         flux - flux_avg, off_diagonal=True, verbose=False, distribute=distribute
     )
+
+    # use gk prefactor
+    flux_corr *= prefactor
 
     # get integrated kappa
     kappa = get_cumtrapz(flux_corr)
@@ -164,6 +172,7 @@ def get_lowest_vibrational_frequency(
 
 def get_gk_dataset(
     dataset: xr.Dataset,
+    interpolate: bool = False,
     window_factor: int = defaults.window_factor,
     filter_prominence: float = defaults.filter_prominence,
     discard: int = 0,
@@ -176,6 +185,7 @@ def get_gk_dataset(
     Args:
     ----
         dataset: a dataset containing `heat_flux` and describing attributes
+        interpolate: interpolate harmonic flux to dense grid
         window_factor: factor for filter width estimated from VDOS (default: 1)
         filter_prominence: prominence for peak detection
         discard: discard this many timesteps from the beginning of the trajectory
@@ -194,18 +204,19 @@ def get_gk_dataset(
         6. estimate cutoff time from the decay of the filtered HFACF
 
     """
+    from .harmonic import get_gk_ha_q_data
+
     # 1. get HFACF and integrated kappa
     heat_flux = dataset[keys.heat_flux]
 
     if total:  # add non-gauge-invariant contribution
         heat_flux += dataset[keys.heat_flux_aux]
 
-    hfacf, kappa = get_hf_data(heat_flux)
+    # get prefactor V/kB/T**2
+    gk_prefactor = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
 
-    # convert to W/mK
-    pref = get_gk_prefactor_from_dataset(dataset, verbose=verbose)
-    hfacf *= pref
-    kappa *= pref
+    # get heatflux and integrated kappa
+    hfacf, kappa = get_hf_data(heat_flux, prefactor=gk_prefactor ,total=total)
 
     # 2. get lowest significant frequency (from VDOS) in THz
     kw = {"prominence": filter_prominence}
@@ -252,25 +263,59 @@ def get_gk_dataset(
         ks[ii, jj] = k_filtered[:, ii, jj].sel(time=ta)
         ts[ii, jj] = ta
 
+    k_diag = np.diag(ks)
+    k_mean = np.mean(k_diag)
+    k_err = np.std(k_diag) / 3**0.5
+
     # report
     if verbose:
-        k_diag = np.diag(ks)
         _talk(["Cutoff times (fs):", *np.array2string(ts, precision=3).split("\n")])
-        _talk(f"Kappa is:       {np.mean(k_diag):.3f} +/- {np.std(k_diag) / 3**.5:.3f}")
-        _talk(["Kappa^ab is: ", *np.array2string(ks, precision=3).split("\n")])
+        _talk(f"Kappa is:       {k_mean:.3f} +/- {k_err:.3f} W/mK")
+        _talk(["Kappa^ab (W/mK) is: ", *np.array2string(ks, precision=3).split("\n")])
 
     # 6. compile new dataset
     attrs = dataset.attrs.copy()
-    attrs.update({"gk_window_fs": window_fs})
+    u = {
+        keys.gk_window_fs: window_fs,
+        keys.gk_prefactor: gk_prefactor,
+        keys.filter_prominence: filter_prominence,
+    }
+    attrs.update(u)
 
-    _filtered = "_filtered"
     data = {
+        keys.heat_flux: heat_flux,
         keys.hf_acf: hfacf,
-        keys.hf_acf + _filtered: j_filtered,
+        keys.hf_acf_filtered: j_filtered,
         keys.kappa_cumulative: kappa,
-        keys.kappa_cumulative + _filtered: k_filtered,
+        keys.kappa_cumulative_filtered: k_filtered,
         keys.kappa: (dims.tensor, ks),
         keys.time_cutoff: (dims.tensor, ts),
     }
+
+    # 7. add properties derived from harmonic model
+    if keys.fc in dataset and interpolate:
+        data_ha = get_gk_ha_q_data(dataset, interpolate=interpolate)
+        data.update(data_ha._asdict())
+        data.update({keys.fc: dataset[keys.fc]})
+
+        if interpolate:
+            correction = data_ha.interpolation_correction
+            correction_ab = data_ha.interpolation_correction_ab[1]
+            kappa_corrected = ks + correction * np.eye(3)
+            kappa_corrected_ab = ks + correction_ab
+            data.update({keys.kappa_corrected: (dims.tensor, kappa_corrected)})
+            _talk("END RESULT: Finite-size corrected thermal conductivity")
+            _talk(
+            f"Corrected kappa is:       {k_mean+correction:.3f} +/- {k_err:.3f} W/mK"
+            )
+            _talk(
+                [
+                    "Corrected kappa^ab (W/mK) is: ",
+                    *np.array2string(kappa_corrected_ab, precision=3).split("\n"),
+                ]
+            )
+
+    # add thermodynamic properties
+    data.update({key: dataset[key] for key in (keys.volume, keys.temperature)})
 
     return xr.Dataset(data, coords=kappa.coords, attrs=attrs)

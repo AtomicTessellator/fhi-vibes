@@ -43,6 +43,13 @@ def phonopy():
     ctx = PhonopyContext()
     ctx.settings.print()
 
+@template.command()
+def phono3py():
+    """Provide template input for phono3py workflow."""
+    from vibes.phono3py.context import Phono3pyContext
+
+    ctx = Phono3pyContext()
+    ctx.settings.print()
 
 @template.command()
 @click.option("--nvt", is_flag=True, help="Use Langevin thermostat for NVT simulation")
