@@ -45,7 +45,7 @@ def phonon_to_dict(phonon, to_mongo=False, add_fc=False):
     if add_fc:
         dct["_fc_2"] = np.array(phonon.get_force_constants())
     else:
-        displacement_dataset = copy.deepcopy(phonon._displacement_dataset)
+        displacement_dataset = copy.deepcopy(phonon.dataset)
         dct["force_2"] = []
         for disp1 in displacement_dataset["first_atoms"]:
             if "forces" in disp1:
@@ -128,7 +128,7 @@ def phonon3_to_dict(phonon3, store_second_order=False, to_mongo=False):
 
     dct["force_3"] = []
     get_forces = True
-    displacement_dataset = copy.deepcopy(phonon3._displacement_dataset)
+    displacement_dataset = copy.deepcopy(phonon3.dataset)
     for disp1 in displacement_dataset["first_atoms"]:
         if "forces" in disp1:
             if disp1["forces"].shape[0] == dct["natoms_in_sc_3"]:

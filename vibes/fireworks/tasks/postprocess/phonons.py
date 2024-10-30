@@ -254,7 +254,7 @@ def get_converge_phonon_update(
             / np.array(kwargs["sc_matrix_base"]).flatten()[ind]
         )
     )
-    displacement = phonon._displacement_dataset["first_atoms"][0]["displacement"]
+    displacement = phonon.dataset["first_atoms"][0]["displacement"]
     disp_mag = np.linalg.norm(displacement)
 
     if n_cur > 1 and prev_dos_fp is None:
@@ -344,7 +344,7 @@ def get_converge_phonon_update(
     # init_workdir += f"/sc_natoms_{phonon.get_supercell().get_number_of_atoms()}"
     # analysis_wd += f"/sc_natoms_{phonon.get_supercell().get_number_of_atoms()}"
 
-    displacement = phonon._displacement_dataset["first_atoms"][0]["displacement"]
+    displacement = phonon.dataset["first_atoms"][0]["displacement"]
     disp_mag = np.linalg.norm(displacement)
 
     update_job = {
