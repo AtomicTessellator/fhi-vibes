@@ -10,7 +10,8 @@ authors = [
 ]
 maintainers = [
     { name = "Thomas Purcell", email = "purcell@fhi-berlin.mpg.de" },
-    { name = "Christian Carbogno", email = "carbogno@fhi-berlin.mpg.de" }
+    { name = "Christian Carbogno", email = "carbogno@fhi-berlin.mpg.de" },
+    { name = "Shuo Zhao", email = "szhao@fhi-berlin.mpg.de" }
 ]
 description = "Fritz Haber Institute Vibrational Simulations"
 readme = "README.md"
