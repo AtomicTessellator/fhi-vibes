@@ -10,7 +10,8 @@ authors = [
 ]
 maintainers = [
     { name = "Thomas Purcell", email = "purcell@fhi-berlin.mpg.de" },
-    { name = "Christian Carbogno", email = "carbogno@fhi-berlin.mpg.de" }
+    { name = "Christian Carbogno", email = "carbogno@fhi-berlin.mpg.de" },
+    { name = "Shuo Zhao", email = "szhao@fhi-berlin.mpg.de" }
 ]
 description = "Fritz Haber Institute Vibrational Simulations"
 readme = "README.md"
@@ -18,7 +19,7 @@ requires-python = "<3.12"
 keywords = ['thermal transport', 'vibrations', 'molecular dynamics', 'ab initio']
 license = { text = "MIT" }
 classifiers = [
-    "Programming Language :: python :: 3",
+    "Programming Language :: Python :: 3",
 ]
 dependencies = [
     "numpy<2",
