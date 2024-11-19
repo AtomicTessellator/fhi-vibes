@@ -40,3 +40,43 @@ doi = {10.1103/PhysRevMaterials.4.083809},
 url = {https://link.aps.org/doi/10.1103/PhysRevMaterials.4.083809}
 }
 ```
+
+### "Ab initio Green-Kubo simulations of heat transport in solids: Method and implementation"
+[F. Knoop, M. Scheffler, and C. Carbogno, Phys. Rev. B, 107(22), 224304 (2023)](https://doi.org/10.1103/PhysRevB.107.224304), [arXiv:2209.01139](https://arxiv.org/abs/2209.01139)
+
+```
+@article{PhysRevB.107.224304,
+  title = {Ab initio Green-Kubo simulations of heat transport in solids: Method and implementation},
+  author = {Knoop, Florian and Scheffler, Matthias and Carbogno, Christian},
+  journal = {Phys. Rev. B},
+  volume = {107},
+  issue = {22},
+  pages = {224304},
+  numpages = {12},
+  year = {2023},
+  month = {Jun},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevB.107.224304},
+  url = {https://link.aps.org/doi/10.1103/PhysRevB.107.224304}
+}
+```
+
+### "Anharmonicity in Thermal Insulators: An Analysis from First Principles"
+[F. Knoop, T.A.R. Purcell, M. Scheffler, and C. Carbogno, Phys. Rev. Lett. **130**, 236301 (2023)](https://doi.org/10.1103/PhysRevLett.130.236301), [arXiv:2209.12720](https://arxiv.org/abs/2209.12720)
+
+```
+@article{PhysRevLett.130.236301,
+  title = {Anharmonicity in Thermal Insulators: An Analysis from First Principles},
+  author = {Knoop, Florian and Purcell, Thomas A. R. and Scheffler, Matthias and Carbogno, Christian},
+  journal = {Phys. Rev. Lett.},
+  volume = {130},
+  issue = {23},
+  pages = {236301},
+  numpages = {6},
+  year = {2023},
+  month = {Jun},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevLett.130.236301},
+  url = {https://link.aps.org/doi/10.1103/PhysRevLett.130.236301}
+}
+```

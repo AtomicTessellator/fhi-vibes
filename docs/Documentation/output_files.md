@@ -363,3 +363,4 @@ A [`NetCDF`](https://www.unidata.ucar.edu/software/netcdf/) file containing and 
         gk_window_fs:       1195.5434782608695
         gk_prefactor:       1134529729.719537
         filter_prominence:  0.2
+    ```

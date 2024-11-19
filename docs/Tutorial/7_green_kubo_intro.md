@@ -22,7 +22,7 @@ $$\boldsymbol{J}_v(t) = \frac{1}{V}\sum_{I}\boldsymbol{\sigma}_{I}(t)\boldsymbol
 
 The atomic contribution to the stress tenor $\boldsymbol{\sigma}_I(t)$ and the virial heat flux 
 $\boldsymbol{J}_v(t)$ will be calculated along the ab initio trajectory accounts for the full 
-anharmonicity.
+anharmonicity [[Knoop2023PRL](references.md#Knoop2023PRL)].
 
 
 ## Cutoff time and noise filtering
@@ -31,7 +31,8 @@ Limited by the supercell size and simulation time, the time correlation function
 heavy noise at its tail. Therefore, a cutoff time $t_0$ is chosen to avoid the 
 statistical fluctuations. 
 
-For a robust identification of the cutoff time, we first 
+A robust and parameter-free method for reducing the noise and identification of the cutoff time is 
+introduced in this paper [[Knoop2023PRB](references.md#Knoop2023PRB)]. In this method, we first 
 reduce noise by discarding the non-contributing term in atomic stress tensor
 $\delta \boldsymbol{\sigma}_I(t) = \boldsymbol{\sigma}_I(t) - \langle \boldsymbol{\sigma}_I(t) \rangle$, 
 and in heat flux $\delta \boldsymbol{J}(t) = \boldsymbol{J}(t) - \langle \boldsymbol{J}(t) \rangle$.
@@ -50,6 +51,8 @@ Due to the limited supercell size used in *ai*MD simulation, the vibration with 
 wavelength than the supercell dimension is not included. This is particularly important 
 for some harmonic system where the long-wavelength phonon mode contribute significantly 
 to the heat transport.
+
+Here we introduce the finite-size correction method in [[Carbogno2017](references.md#Carbogno2017), [Knoop2023PRB](references.md#Knoop2023PRB)].
 
 ### Harmonic mapping
 
