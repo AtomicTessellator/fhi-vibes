@@ -14,7 +14,7 @@ name:                          lj
 [calculator.parameters]
 sigma:                         3.4
 
-[phonopy]
+[phono3py]
 supercell_matrix:              [2, 2, 2]
 ```
 

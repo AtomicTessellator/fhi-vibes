@@ -82,7 +82,7 @@ maxsteps:                      1000
 
 #### `compute_stresses`
 
-`bool/int`: specify whether to compute stress during the MD simulation (more costly in _ab initio_ MD).
+`bool/int`: specify whether to compute stress (`True/False`) or the interval (`N` time steps) at which stress is computed during the simulation (more costly in _ab initio_ MD).
 
 #### `workdir`
 

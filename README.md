@@ -27,6 +27,12 @@ Most of the functionality is high-throughput ready via [fireworks](https://mater
 
 ## Changelog
 
+#### v1.1.0
+
+- Update ab initio Green Kubo method and [tutorials](https://vibes-developers.gitlab.io/vibes/Tutorial/7_green_kubo/). [(!100)](https://gitlab.com/vibes-developers/vibes/-/merge_requests/100)
+- Update Phono3py interface and [documentations](https://vibes-developers.gitlab.io/vibes/Documentation/phono3py/).
+- Heatflux unit updated from `eV/AA^2/ps` to `eV/AA^2/fs`.
+
 #### v1.0.5
 
 - bugfix

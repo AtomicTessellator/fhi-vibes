@@ -1,6 +1,6 @@
 # References
 
-1. <a name="Knoop2020"></a> [F. Knoop, T.A.R. Purcell, M. Scheffler, and C. Carbogno, (2020), arXiv:2006.14672](https://arxiv.org/abs/2006.14672)
+1. <a name="Knoop2020"></a> [F. Knoop, T.A.R. Purcell, M. Scheffler, and C. Carbogno, Phys. Rev. Materials **4**, 083809 (2020).](https://doi.org/10.1103/PhysRevMaterials.4.083809)
 2. <a name="Baroni2001"></a> [S. Baroni, S. de Gironcoli, and A. Dal Corso, Rev. Mod. Phys. **73**, 515 (2001).](https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.73.515)
 3. <a name="AshcroftMermin"></a> N. W. Ashcroft and N. D. Mermin, _Solid State Physics_, Saunders College Publishing (1976).
 4. <a name="BornHuang"></a>  M. Born, and K. Huang, _Dynamical Theory of Crystal Lattices_, Oxford University Press (1962).
@@ -10,9 +10,11 @@
 8. <a name="Dove1993"></a> M. Dove, _Introduction to Lattice Dynamics_, Cambridge University Press (1993)
 9. <a name="HansenMcDonald"></a> J.P. Hansen, and I.R. McDonald, _Theory of simple liquids_, Elsevier, 1990.
 10. <a name="Nocedal"></a> J. Nocedal, and S. Wright, _Numerical optimization_, Springer Science & Business Media, 2006.
-11. <a name="Vanden-Eijnden2006"></a> [E. Vanden-Eijnden and G. Ciccotti, Chem Phys Lett 429, 310 (2006).](https://doi.org/10.1016/j.cplett.2006.07.086)
-12. <a name="Carbogno2017"></a> [C. Carbogno, R. Ramprasad, and M. Scheffler, Phys. Rev. Lett.118, 175901 (2017).](https://doi.org/10.1103/PhysRevLett.118.175901)
-13. <a name="Pomeranchuk1941"></a> [I. Pomeranchuk, Phys. Rev. 60, 820 (1941).](https://doi.org/10.1103/PhysRev.60.820)
-14. <a name="Herring1954"></a> [C. Herring, Phys. Rev. 95, 954 (1954).](https://doi.org/10.1103/PhysRev.95.954)
+11. <a name="Vanden-Eijnden2006"></a> [E. Vanden-Eijnden and G. Ciccotti, Chem. Phys. Lett. **429**, 310 (2006).](https://doi.org/10.1016/j.cplett.2006.07.086)
+12. <a name="Carbogno2017"></a> [C. Carbogno, R. Ramprasad, and M. Scheffler, Phys. Rev. Lett. **118**, 175901 (2017).](https://doi.org/10.1103/PhysRevLett.118.175901)
+13. <a name="Knoop2023PRB"></a> [F. Knoop, M. Scheffler, and C. Carbogno, Phys. Rev. B, **107**(22), 224304 (2023).](https://doi.org/10.1103/PhysRevB.107.224304)
+14. <a name="Knoop2023PRL"></a> [F. Knoop, T.A.R. Purcell, M. Scheffler, and C. Carbogno, Phys. Rev. Lett. **130**, 236301 (2023)](https://doi.org/10.1103/PhysRevLett.130.236301)
+15. <a name="Pomeranchuk1941"></a> [I. Pomeranchuk, Phys. Rev. 60, 820 (1941).](https://doi.org/10.1103/PhysRev.60.820)
+16. <a name="Herring1954"></a> [C. Herring, Phys. Rev. 95, 954 (1954).](https://doi.org/10.1103/PhysRev.95.954)
 
 
