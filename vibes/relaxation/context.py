@@ -166,7 +166,8 @@ def prepare_from_trajectory(atoms, trajectory_file):
 
         assert "info" in last_atoms["atoms"]
 
-        atoms.set_cell(last_atoms["atoms"]["cell"])
+        if 'cell' in last_atoms["atoms"]:
+            atoms.set_cell(last_atoms["atoms"]["cell"])
         atoms.set_positions(last_atoms["atoms"]["positions"])
         talk(f"Resume relaxation from  {trajectory_file}", prefix=_prefix)
         return True
